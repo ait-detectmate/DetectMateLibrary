@@ -1,20 +1,21 @@
 from abc import ABC, abstractmethod
-from typing import Any, Literal, Optional
+from typing import Any, Callable, Literal, Optional
 from components.Base.ConfigBase import ConfigBase
 from components.utils.DataBuffer import DataBuffer
-from schemas.BaseSchema import BaseSchema
 
-class DetectorBase(ABC):
+
+class ParserBase(ABC):
     def __init__(
-        self, 
-        buffer_mode: Optional[Literal["no_buf", "batch", "window"]] = "no_buf", 
-        buffer_size: Optional[int] = None, 
+        self,
+        buffer_mode: Optional[Literal["no_buf", "batch", "window"]] = "no_buf",
+        buffer_size: Optional[int] = None,
         config: Optional[ConfigBase | dict] = None
     ):
+        self.process_function: Callable[[Any, ConfigBase], Any] = self.parse
         self.data_buffer = DataBuffer(
             mode=buffer_mode,
             size=buffer_size,
-            process_function=self.detect,
+            process_function=self.process_function,
         )
         if isinstance(config, dict):
             self.config = ConfigBase(**config)
@@ -24,14 +25,14 @@ class DetectorBase(ABC):
             self.config = ConfigBase()
 
     @abstractmethod
-    def detect(self, data: Any, config: ConfigBase):
+    def parse(self, data: Any, config: ConfigBase):
         pass
 
     @abstractmethod
     def train(self, data: Any, config: ConfigBase) -> None:
         pass
 
-    def _process(self, data: BaseSchema, config: ConfigBase) -> BaseSchema:
+    def _process(self, data: Any, config: ConfigBase):
         # schema validation?
         if config:
             self.config.update_config(config.get_config())

@@ -1,12 +1,13 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from pydantic import BaseModel
 
 
 class ConfigBase(BaseModel):
     """Base configuration class with helper methods."""
 
+    # Forbid extra fields not defined in subclasses (via pydantic)
     class Config:
-        extra = "forbid"  # Forbid extra fields not defined in subclasses (via pydantic)
+        extra = "forbid"
 
     def get_config(self) -> Dict[str, Any]:
         """Return the configuration as a dictionary."""
