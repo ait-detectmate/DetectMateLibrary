@@ -15,6 +15,5 @@ class ConfigBase(BaseModel):
 
     def update_config(self, new_config: dict) -> None:
         """Update the configuration with new values."""
-        validated = self.model_validate(new_config, strict=True)
-        for key, value in validated.model_dump().items():
+        for key, value in new_config.items():
             setattr(self, key, value)
