@@ -28,6 +28,7 @@ repos:
       additional_dependencies:
         - pydantic
         - types-PyYAML
+      exclude: ^tests/
 
 # Code formatting
 - repo: https://github.com/hhatto/autopep8
@@ -41,6 +42,7 @@ repos:
   rev: 7.3.0
   hooks:
     - id: flake8
+      args: [--max-line-length=110]
 
 # Docstring formatting
 - repo: https://github.com/PyCQA/docformatter
@@ -56,11 +58,11 @@ repos:
       exclude: ^tests/
 
 # Unused code detection
-# - repo: https://github.com/jendrikseipp/vulture
-#   rev: v2.14
-#   hooks:
-#     - id: vulture
-#       args: [src/]
+- repo: https://github.com/jendrikseipp/vulture
+  rev: v2.14
+  hooks:
+    - id: vulture
+      args: [--min-confidence=70, src/]
 
 # Log and syntax pattern checks
 - repo: https://github.com/pre-commit/pygrep-hooks
