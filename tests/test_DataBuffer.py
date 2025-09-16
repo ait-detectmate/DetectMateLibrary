@@ -1,6 +1,6 @@
 import pytest
 from collections import deque
-from components.utils.DataBuffer import DataBuffer
+from src.components.utils.DataBuffer import DataBuffer
 
 
 class TestDataBuffer:
