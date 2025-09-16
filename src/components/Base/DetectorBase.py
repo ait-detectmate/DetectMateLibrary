@@ -1,10 +1,11 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Any, Literal, Optional
 from components.Base.ConfigBase import ConfigBase
 from components.utils.DataBuffer import DataBuffer
+from components.Base.ComponentBase import ComponentBase
 
 
-class DetectorBase(ABC):
+class DetectorBase(ComponentBase):
     def __init__(
         self,
         buffer_mode: Optional[Literal["no_buf", "batch", "window"]] = "no_buf",
@@ -31,8 +32,11 @@ class DetectorBase(ABC):
     def train(self, data: Any, config: ConfigBase) -> None:
         pass
 
-    # def _process(self, data: BaseSchema, config: ConfigBase) -> BaseSchema:
-    #     # schema validation?
-    #     if config:
-    #         self.config.update_config(config.get_config())
-    #     return self.data_buffer.add(data)
+    def process(self, data, learnmode=False, config=None):
+        # schema validation?
+        if config:
+            self.config.update_config(config.get_config())
+        if learnmode:
+            return self.train(data, self.config)
+        else:
+            return self.detect(data, self.config)

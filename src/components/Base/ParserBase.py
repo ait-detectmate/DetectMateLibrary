@@ -1,10 +1,11 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Any, Callable, Literal, Optional
 from components.Base.ConfigBase import ConfigBase
 from components.utils.DataBuffer import DataBuffer
+from components.Base.ComponentBase import ComponentBase
 
 
-class ParserBase(ABC):
+class ParserBase(ComponentBase):
     def __init__(
         self,
         buffer_mode: Optional[Literal["no_buf", "batch", "window"]] = "no_buf",

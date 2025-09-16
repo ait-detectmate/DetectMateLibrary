@@ -1,6 +1,5 @@
 from collections import deque
 from typing import Any, Callable, Optional, Literal
-import copy
 
 
 class DataBuffer:
@@ -22,7 +21,7 @@ class DataBuffer:
         if mode not in {"no_buf", "batch", "window"}:
             raise ValueError("mode must be 'no_buf', 'batch' or 'window'")
         self.mode = mode
-        self.size = size or 0
+        self.size = size
         self.process_function = process_function
         self.add = lambda x: None
         self.buffer: deque = deque()
@@ -44,19 +43,26 @@ class DataBuffer:
             self.buffer = deque(maxlen=size)
             self.add = self._add_window
 
+    def _is_full(self):
+        """Determine if the buffer is full."""
+        if self.size is not None:
+            return len(self.buffer) == self.size
+
     def _add_batch(self, data_point: Any):
+        """Add data_point to the batch buffer and process if full."""
         self.buffer.append(data_point)
-        if len(self.buffer) >= self.size:
+        if self._is_full():
             return self._process_and_clear(self.buffer)
 
     def _add_window(self, data_point: Any):
+        """Add data_point to the window buffer and process if full."""
         self.buffer.append(data_point)
-        if len(self.buffer) == self.size:
+        if self._is_full():
             return self.process_function(self.buffer)
 
     def _process_and_clear(self, buf: deque, clear: bool = True):
         """Process and optionally clear the buffer."""
-        result = copy.copy(self.process_function(buf))
+        result = self.process_function(buf)
         if clear:
             buf.clear()
         return result
