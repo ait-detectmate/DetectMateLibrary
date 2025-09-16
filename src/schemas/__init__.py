@@ -1,7 +1,7 @@
 # flake8: noqa
 
 from src.schemas._op import (
-    BASIC_SCHEMA,
+    ANY_SCHEMA,
     LOG_SCHEMA,
     PARSER_SCHEMA,
     DETECTOR_SCHEMA,
@@ -10,5 +10,6 @@ from src.schemas._op import (
     initialize,
     serialize,
     deserialize,
-    check_is_same_schema
+    check_is_same_schema,
+    SchemaID
 )

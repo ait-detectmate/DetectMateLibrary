@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from typing import Any, Literal, Optional
-from components.Base.ConfigBase import ConfigBase
+from components.Base.ComponentBase import ConfigBase
 from components.utils.DataBuffer import DataBuffer
 from components.Base.ComponentBase import ComponentBase
 

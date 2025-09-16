@@ -9,7 +9,7 @@ SchemaT = NewType("SchemaT", object)
 SchemaID = NewType("SchemaID", bytes)
 
 
-BASIC_SCHEMA: SchemaID = SchemaID(b"0")
+ANY_SCHEMA: SchemaID = SchemaID(b"0")
 LOG_SCHEMA: SchemaID = SchemaID(b"1")
 PARSER_SCHEMA: SchemaID = SchemaID(b"2")
 DETECTOR_SCHEMA: SchemaID = SchemaID(b"3")
@@ -17,7 +17,7 @@ DETECTOR_SCHEMA: SchemaID = SchemaID(b"3")
 
 __current_version = "1.0.0"
 __id_codes: Dict[SchemaID, SchemaT] = {
-    BASIC_SCHEMA: s.Schema,  # type: ignore
+    ANY_SCHEMA: s.Schema,  # type: ignore
     LOG_SCHEMA: s.LogSchema,  # type: ignore
     PARSER_SCHEMA: s.ParserSchema,  # type: ignore
     DETECTOR_SCHEMA: s.DetectorSchema,  # type: ignore
