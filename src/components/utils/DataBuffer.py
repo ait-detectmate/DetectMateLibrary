@@ -62,7 +62,8 @@ class DataBuffer:
 
     def _process_and_clear(self, buf: deque, clear: bool = True):
         """Process and optionally clear the buffer."""
-        result = self.process_function(buf)
+        buf_copy = buf.copy()
+        result = self.process_function(buf_copy)
         if clear:
             buf.clear()
         return result

@@ -53,6 +53,7 @@ repos:
   rev: 1.8.6
   hooks:
     - id: bandit
+      exclude: ^tests/
 
 # Unused code detection
 # - repo: https://github.com/jendrikseipp/vulture
