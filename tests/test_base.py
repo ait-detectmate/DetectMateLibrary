@@ -1,4 +1,5 @@
 from src.components.common.core import ConfigCore, CoreComponent
+from src.components.utils.DataBuffer import ArgsBuffer
 import src.schemas as schemas
 
 import pydantic
@@ -19,11 +20,9 @@ class DummyComponentWithBuffer(CoreComponent):
     def __init__(self, name: str, config: MockConfig = MockConfig()) -> None:
         super().__init__(
             name=name,
-            type_="DummyWithBuffer",
             config=config,
-            buffer_mode="batch",
-            buffer_size=3,
-            process_function=sum
+            type_="DummyWithBuffer",
+            args_buffer=ArgsBuffer(mode="batch", size=3, process_function=sum),
         )
 
 

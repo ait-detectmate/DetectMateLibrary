@@ -1,8 +1,8 @@
 
-from typing import Any, Literal, Optional, Dict
+from typing import Any, Dict
 from pydantic import BaseModel
 
-from src.components.utils.DataBuffer import DataBuffer
+from src.components.utils.DataBuffer import DataBuffer, ArgsBuffer
 import src.schemas as schemas
 
 
@@ -35,9 +35,7 @@ class CoreComponent:
         name: str,
         type_: str = "Base",
         config: ConfigCore = ConfigCore(),
-        buffer_mode: Optional[Literal["no_buf", "batch", "window"]] = "no_buf",
-        buffer_size: Optional[int] = None,
-        process_function: Optional[callable] = lambda x: x,
+        args_buffer: ArgsBuffer = ArgsBuffer("no_buf"),
         input_schema: schemas.SchemaID = schemas.BASE_SCHEMA,
         output_schema: schemas.SchemaID = schemas.BASE_SCHEMA
     ) -> None:
@@ -47,11 +45,7 @@ class CoreComponent:
         self.config = config
         self.input_schema, self.output_schema = input_schema, output_schema
 
-        self.data_buffer = DataBuffer(
-            mode=buffer_mode,
-            size=buffer_size,
-            process_function=process_function,
-        )
+        self.data_buffer = DataBuffer(args_buffer)
 
     def __repr__(self) -> str:
         return f"<{self.type_}> {self.name}: {self.config}"

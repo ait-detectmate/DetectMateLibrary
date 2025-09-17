@@ -1,4 +1,5 @@
-from components.common.core import CoreComponent, ConfigCore
+from src.components.common.core import CoreComponent, ConfigCore
+from src.components.utils.DataBuffer import ArgsBuffer
 import src.schemas as schemas
 
 from typing import Any, Literal, Optional
@@ -19,9 +20,9 @@ class CoreParser(CoreComponent):
             name=name,
             type_="Parser",
             config=config,
-            buffer_mode=buffer_mode,
-            buffer_size=buffer_size,
-            process_function=self.parse,
+            args_buffer=ArgsBuffer(
+                mode=buffer_mode, size=buffer_size, process_function=self.parse
+            ),
             input_schema=schemas.LOG_SCHEMA,
             output_schema=schemas.PARSER_SCHEMA,
         )
