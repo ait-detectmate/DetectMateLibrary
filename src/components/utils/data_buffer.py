@@ -20,7 +20,7 @@ class ArgsBuffer:
 
     def is_correct_format(self) -> None | ValueError:
         if self.mode not in {"no_buf", "batch", "window"}:
-            raise ValueError("mode must be 'no_buf', 'batch' or 'window'")
+            raise ValueError("'mode' must be 'no_buf', 'batch' or 'window'")
 
         if self.mode == "no_buf":
             if self.size:

@@ -43,6 +43,7 @@ repos:
   hooks:
     - id: flake8
       args: [--max-line-length=110]
+      exclude: ^tests/
 
 # Docstring formatting
 - repo: https://github.com/PyCQA/docformatter

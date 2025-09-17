@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from src.components.common.core import CoreComponent, ConfigCore
 from src.components.utils.data_buffer import ArgsBuffer
 import src.schemas as schemas
@@ -5,7 +6,7 @@ import src.schemas as schemas
 from typing import Any, Literal, Optional
 
 
-class CoreDetector(CoreComponent):
+class CoreDetector(CoreComponent, ABC):
     def __init__(
         self,
         name: str = "CoreDetector",
@@ -18,26 +19,19 @@ class CoreDetector(CoreComponent):
 
         super().__init__(
             name=name,
-            type_="Detector",
+            type_="Parser",
             config=config,
+            train_function=self.train,
+            process_function=self.detect,
             args_buffer=ArgsBuffer(
-                mode=buffer_mode, size=buffer_size, process_function=self.detect
+                mode=buffer_mode, size=buffer_size
             ),
             input_schema=schemas.PARSER_SCHEMA,
             output_schema=schemas.DETECTOR_SCHEMA,
         )
 
-    def detect(self, data: Any, config: ConfigCore):
-        pass
+    @abstractmethod
+    def detect(self, data: Any) -> Any: return data
 
-    def train(self, data: Any, config: ConfigCore) -> None:
-        pass
-
-    def process(self, data, learnmode=False, config=None):
-        # schema validation?
-        if config:
-            self.config.update_config(config.get_config())
-        if learnmode:
-            return self.train(data, self.config)
-        else:
-            return self.detect(data, self.config)
+    @abstractmethod
+    def train(self, data: Any) -> None: ...

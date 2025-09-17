@@ -20,8 +20,10 @@ class CoreParser(CoreComponent):
             name=name,
             type_="Parser",
             config=config,
+            train_function=self.train,
+            process_function=self.parse,
             args_buffer=ArgsBuffer(
-                mode=buffer_mode, size=buffer_size, process_function=self.parse
+                mode=buffer_mode, size=buffer_size
             ),
             input_schema=schemas.LOG_SCHEMA,
             output_schema=schemas.PARSER_SCHEMA,
@@ -32,8 +34,3 @@ class CoreParser(CoreComponent):
 
     def train(self, data: Any, config: ConfigCore) -> None:
         pass
-
-    def _process(self, data: Any, config: ConfigCore):
-        # schema validation?
-        if config:
-            self.config.update_config(config.get_config())

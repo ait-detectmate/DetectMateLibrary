@@ -1,10 +1,12 @@
 import src.schemas as schemas
 
+import pytest
 
-def test_initialize_basic():
-    schema = schemas.initialize(schemas.BASE_SCHEMA, **{})
+class TestSchemas:
+    def test_initialize_basic(self):
+        schema = schemas.initialize(schemas.BASE_SCHEMA, **{})
 
-    assert schema.__version__ == "1.0.0"
+        assert schema.__version__ == "1.0.0"
 
 
 def test_initialize_not_support_schema():
