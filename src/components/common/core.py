@@ -22,6 +22,11 @@ class ConfigCore(BaseModel):
         for key, value in new_config.items():
             setattr(self, key, value)
 
+    @classmethod
+    def from_dict(cls, data: dict) -> "ConfigCore":
+        """Create a ConfigCore instance from a dictionary."""
+        return cls(**data)
+
 
 class CoreComponent:
     """Base class for all components in the system."""

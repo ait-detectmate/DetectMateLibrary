@@ -34,6 +34,12 @@ class TestConfigCore:
         assert isinstance(config, ConfigCore)
         assert config.get_config() == {"thresholds": 0.5, "max_iter": 100}
 
+    def test_initialize_dict(self) -> None:
+        config = MockConfig.from_dict({"thresholds": 0.8, "max_iter": 30})
+
+        assert isinstance(config, ConfigCore)
+        assert config.get_config() == {"thresholds": 0.8, "max_iter": 30}
+
     def test_incorect_type(self) -> None:
         with pytest.raises(pydantic.ValidationError):
             MockConfig(thresholds="high", max_iter="many")
