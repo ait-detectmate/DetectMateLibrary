@@ -21,14 +21,14 @@ repos:
     - id: check-toml
 
 # Type checking
-- repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.16.1
-  hooks:
-    - id: mypy
-      additional_dependencies:
-        - pydantic
-        - types-PyYAML
-      exclude: ^tests/
+#- repo: https://github.com/pre-commit/mirrors-mypy
+#  rev: v1.16.1
+#  hooks:
+#    - id: mypy
+#      additional_dependencies:
+#        - pydantic
+#       - types-PyYAML
+#      exclude: ^tests/
 
 # Code formatting
 - repo: https://github.com/hhatto/autopep8

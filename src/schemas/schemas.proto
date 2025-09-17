@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+message Schema {
+    string __version__ = 1;
+}
+
+message LogSchema {
+    string __version__ = 1;
+    int32 logID = 2;
+    string log = 3;
+    string logSource = 4;
+    string hostname = 5;
+}
+
+message ParserSchema {
+    string __version__ = 1;
+    string parserType = 2;
+    int32 EventID = 3;
+    string template = 4;
+    repeated string variables = 5;
+    int32 parserID = 6;
+    int32 logID = 7;
+    string log = 8;
+    map<string, string> logFormatVariables = 9;
+}
+
+message DetectorSchema {
+    string __version__ = 1;
+    string detectorID = 2;
+    string detectorType = 3;
+    int32 alertID = 4;
+    int32 detectionTimestamp = 5;
+    repeated int32 logID = 6;
+    bool predictionLabel = 7;
+    float score = 8;
+    repeated int32 extractedTimestamps = 9;
+}
