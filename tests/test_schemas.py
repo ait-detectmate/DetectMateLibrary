@@ -2,7 +2,7 @@ import src.schemas as schemas
 
 
 def test_initialize_basic():
-    schema = schemas.initialize(schemas.ANY_SCHEMA, **{})
+    schema = schemas.initialize(schemas.BASE_SCHEMA, **{})
 
     assert schema.__version__ == "1.0.0"
 
@@ -108,6 +108,6 @@ def test_check_is_same_schema():
     schemas.check_is_same_schema(schemas.LOG_SCHEMA, schemas.LOG_SCHEMA)
 
     try:
-        schemas.check_is_same_schema(schemas.ANY_SCHEMA, schemas.LOG_SCHEMA)
+        schemas.check_is_same_schema(schemas.BASE_SCHEMA, schemas.LOG_SCHEMA)
     except schemas.IncorrectSchema:
         pass

@@ -1,13 +1,12 @@
 
 from typing import Any, Literal, Optional, Dict
 from pydantic import BaseModel
-from abc import ABC
 
-from src.schemas import ANY_SCHEMA, serialize, deserialize, check_is_same_schema, SchemaID
 from src.components.utils.DataBuffer import DataBuffer
+import src.schemas as schemas
 
 
-class ConfigBase(BaseModel):
+class ConfigCore(BaseModel):
     """Base configuration class with helper methods."""
 
     # Forbid extra fields not defined in subclasses (via pydantic)
@@ -24,18 +23,18 @@ class ConfigBase(BaseModel):
             setattr(self, key, value)
 
 
-class ComponentBase(ABC):
+class CoreComponent:
     """Base class for all components in the system."""
     def __init__(
         self,
         name: str,
         type_: str = "Base",
-        config: ConfigBase = ConfigBase(),
+        config: ConfigCore = ConfigCore(),
         buffer_mode: Optional[Literal["no_buf", "batch", "window"]] = "no_buf",
         buffer_size: Optional[int] = None,
         process_function: Optional[callable] = lambda x: x,
-        input_schema: SchemaID = ANY_SCHEMA,
-        output_schema: SchemaID = ANY_SCHEMA
+        input_schema: schemas.SchemaID = schemas.BASE_SCHEMA,
+        output_schema: schemas.SchemaID = schemas.BASE_SCHEMA
     ) -> None:
 
         self.name = name
@@ -52,16 +51,16 @@ class ComponentBase(ABC):
     def __repr__(self) -> str:
         return f"<{self.type_}> {self.name}: {self.config}"
 
-    def process(self, data):
+    def process(self, data: schemas.SchemaT | bytes) -> schemas.SchemaT | bytes:
         is_byte = False
         if isinstance(data, bytes):
-            schema_id, data = deserialize(data)
+            schema_id, data = schemas.deserialize(data)
             is_byte = True
-            check_is_same_schema(schema_id, self.input_schema)
+            schemas.check_is_same_schema(schema_id, self.input_schema)
 
         data = self.data_buffer.add(data)
 
-        return data if not is_byte else serialize(self.output_schema, data)
+        return data if not is_byte else schemas.serialize(self.output_schema, data)
 
     def get_config(self) -> Dict[str, Any]:
         return self.config.get_config()

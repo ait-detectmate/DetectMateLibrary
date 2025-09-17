@@ -1,16 +1,17 @@
-from abc import abstractmethod
-from typing import Any, Literal, Optional
-from components.Base.ComponentBase import ConfigBase
 from components.utils.DataBuffer import DataBuffer
-from components.Base.ComponentBase import ComponentBase
+from components.common.core import CoreComponent, ConfigCore
 
 
-class DetectorBase(ComponentBase):
+from typing import Any, Literal, Optional
+from abc import abstractmethod
+
+
+class DetectorBase(CoreComponent):
     def __init__(
         self,
         buffer_mode: Optional[Literal["no_buf", "batch", "window"]] = "no_buf",
         buffer_size: Optional[int] = None,
-        config: Optional[ConfigBase | dict] = None
+        config: Optional[ConfigCore | dict] = None
     ):
         self.data_buffer = DataBuffer(
             mode=buffer_mode,
@@ -18,18 +19,18 @@ class DetectorBase(ComponentBase):
             process_function=self.detect,
         )
         if isinstance(config, dict):
-            self.config = ConfigBase(**config)
-        elif isinstance(config, ConfigBase):
+            self.config = ConfigCore(**config)
+        elif isinstance(config, ConfigCore):
             self.config = config
         else:
-            self.config = ConfigBase()
+            self.config = ConfigCore()
 
     @abstractmethod
-    def detect(self, data: Any, config: ConfigBase):
+    def detect(self, data: Any, config: ConfigCore):
         pass
 
     @abstractmethod
-    def train(self, data: Any, config: ConfigBase) -> None:
+    def train(self, data: Any, config: ConfigCore) -> None:
         pass
 
     def process(self, data, learnmode=False, config=None):
