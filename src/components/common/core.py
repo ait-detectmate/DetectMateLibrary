@@ -2,7 +2,7 @@
 from typing import Any, Dict
 from pydantic import BaseModel
 
-from src.components.utils.DataBuffer import DataBuffer, ArgsBuffer
+from src.components.utils.data_buffer import DataBuffer, ArgsBuffer
 import src.schemas as schemas
 
 

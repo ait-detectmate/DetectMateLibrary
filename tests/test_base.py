@@ -1,5 +1,5 @@
 from src.components.common.core import ConfigCore, CoreComponent
-from src.components.utils.DataBuffer import ArgsBuffer
+from src.components.utils.data_buffer import ArgsBuffer
 import src.schemas as schemas
 
 import pydantic

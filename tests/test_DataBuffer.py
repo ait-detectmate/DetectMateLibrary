@@ -1,4 +1,4 @@
-from src.components.utils.DataBuffer import DataBuffer, ArgsBuffer
+from src.components.utils.data_buffer import DataBuffer, ArgsBuffer
 
 from collections import deque
 import pytest

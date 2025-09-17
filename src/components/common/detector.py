@@ -1,5 +1,5 @@
 from src.components.common.core import CoreComponent, ConfigCore
-from src.components.utils.DataBuffer import ArgsBuffer
+from src.components.utils.data_buffer import ArgsBuffer
 import src.schemas as schemas
 
 from typing import Any, Literal, Optional
