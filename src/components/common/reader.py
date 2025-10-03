@@ -24,16 +24,16 @@ class LogIDGenerator:
 
 class CoreReader(CoreComponent, ABC):
     def __init__(
-        self, 
-        name: str, 
-        config: Optional[ReaderConfig | dict] = ReaderConfig(), 
+        self,
+        name: str,
+        config: Optional[ReaderConfig | dict] = ReaderConfig(),
         id_generator: LogIDGenerator = LogIDGenerator,
     ) -> None:
 
         if isinstance(config, dict):
             config = ReaderConfig.from_dict(config)
         super().__init__(
-            name=name, type_="Reader",config=config, output_schema=schemas.LOG_SCHEMA
+            name=name, type_="Reader", config=config, output_schema=schemas.LOG_SCHEMA
         )
 
         self.data_buffer = None
@@ -43,10 +43,10 @@ class CoreReader(CoreComponent, ABC):
         return schemas.initialize(
             schema_id=self.output_schema,
             **{
-                "__version__": "1.0.0", 
-                "logID": self.id_generator(), 
-                "log": "<PLACEHOLDER>", 
-                "logSource": self.config.logSource, 
+                "__version__": "1.0.0",
+                "logID": self.id_generator(),
+                "log": "<PLACEHOLDER>",
+                "logSource": self.config.logSource,
                 "hostname": self.config.hostname,
             }
         )
@@ -56,6 +56,6 @@ class CoreReader(CoreComponent, ABC):
 
         return schemas.serialize(self.output_schema, log) if as_bytes else log
 
-
     @abstractmethod
-    def read(self, output_: schemas.SchemaT) -> None: pass
+    def read(self, output_: schemas.SchemaT) -> None:
+        output_

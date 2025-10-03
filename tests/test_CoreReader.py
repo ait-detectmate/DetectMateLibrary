@@ -25,7 +25,7 @@ class TestCoreDetector:
         with pytest.raises(pydantic.ValidationError):
             MockupReader(name="TestReader", config={"param1": "invalid_type", "param2": 0.5})
 
-    def test_process_no_binary(self) -> None: 
+    def test_process_no_binary(self) -> None:
         config = ReaderConfig(**{"logSource": "TestSource", "hostname": "0.0.0.0"})
 
         reader = MockupReader(name="TestReader", config=config)
@@ -50,6 +50,3 @@ class TestCoreDetector:
         reader = MockupReader(name="TestReader", config={})
         for i in range(10):
             assert reader.process(as_bytes=False).logID == i
-
-                
-
