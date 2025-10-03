@@ -51,8 +51,10 @@ class CoreReader(CoreComponent, ABC):
             }
         )
 
-    def process(self, as_bytes: bool = True) -> schemas.SchemaT | bytes:
-        self.read(log := self.__init_logs())
+    def process(self, as_bytes: bool = True) -> schemas.SchemaT | bytes | None:
+        is_new_log = self.read(log := self.__init_logs())
+        if not is_new_log:
+            return None
 
         return schemas.serialize(self.output_schema, log) if as_bytes else log
 

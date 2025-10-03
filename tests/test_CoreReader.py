@@ -11,6 +11,15 @@ class MockupReader(CoreReader):
 
     def read(self, output_):
         output_.log = "Hello"
+        return True
+
+
+class MockupNoneReader(CoreReader):
+    def __init__(self, name: str, config: ReaderConfig | dict) -> None:
+        super().__init__(name=name, config=config)
+
+    def read(self, output_):
+        return False
 
 
 class TestCoreDetector:
@@ -19,7 +28,7 @@ class TestCoreDetector:
 
         assert isinstance(reader, CoreReader)
         assert reader.name == "TestReader"
-        assert isinstance(reader.config, ReaderConfig), "hii" + str(type(reader.config))
+        assert isinstance(reader.config, ReaderConfig)
 
     def test_incorrect_config_type(self) -> None:
         with pytest.raises(pydantic.ValidationError):
@@ -50,3 +59,9 @@ class TestCoreDetector:
         reader = MockupReader(name="TestReader", config={})
         for i in range(10):
             assert reader.process(as_bytes=False).logID == i
+
+    def test_process_None(self) -> None:
+        reader = MockupNoneReader(name="TestReader", config={})
+        output = reader.process()
+
+        assert output is None
