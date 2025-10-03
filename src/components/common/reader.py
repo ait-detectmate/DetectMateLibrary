@@ -59,5 +59,5 @@ class CoreReader(CoreComponent, ABC):
         return schemas.serialize(self.output_schema, log) if as_bytes else log
 
     @abstractmethod
-    def read(self, output_: schemas.SchemaT) -> None:
+    def read(self, output_: schemas.SchemaT) -> bool:
         output_
