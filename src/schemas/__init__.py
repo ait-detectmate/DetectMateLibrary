@@ -1,5 +1,7 @@
 # flake8: noqa
 
+from typing import TypeAlias, NewType
+
 from src.schemas._op import (
     BASE_SCHEMA,
     LOG_SCHEMA,
@@ -14,3 +16,8 @@ from src.schemas._op import (
     SchemaID,
     SchemaT
 )
+
+BaseSchema = NewType("BaseSchema", SchemaT)
+LogSchema = NewType("LogSchema", SchemaT)
+ParserSchema = NewType("ParserSchema", SchemaT)
+DetectorSchema = NewType("DetectorSchema", SchemaT)
