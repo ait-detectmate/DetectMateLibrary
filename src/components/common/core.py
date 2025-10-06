@@ -55,7 +55,9 @@ class CoreComponent:
     def __repr__(self) -> str:
         return f"<{self.type_}> {self.name}: {self.config}"
 
-    def process(self, data: schemas.SchemaT | bytes, learnmode: bool = False) -> schemas.SchemaT | bytes:
+    def process(
+        self, data: schemas.SchemaT | bytes, learnmode: bool = False
+    ) -> schemas.SchemaT | bytes | None:
         is_byte = False
         if isinstance(data, bytes):
             schema_id, data = schemas.deserialize(data)
@@ -67,6 +69,8 @@ class CoreComponent:
             result = self.train(data_buffered)  # returns None
         else:
             result = self.processing_function(data_buffered)
+        if result is None:
+            return None
 
         return result if not is_byte else schemas.serialize(self.output_schema, result)
 

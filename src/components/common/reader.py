@@ -1,5 +1,6 @@
 
 from src.components.common.core import CoreComponent, ConfigCore
+from src.components.common._op import LogIDGenerator
 import src.schemas as schemas
 
 from abc import ABC, abstractmethod
@@ -11,15 +12,6 @@ class ReaderConfig(ConfigCore):
     hostname: str = "<PLACEHOLDER>"
 
     start_id: int = 0
-
-
-class LogIDGenerator:
-    def __init__(self, config: ReaderConfig) -> None:
-        self.current_id = config.start_id - 1
-
-    def __call__(self) -> int:
-        self.current_id += 1
-        return self.current_id
 
 
 class CoreReader(CoreComponent, ABC):
@@ -37,7 +29,7 @@ class CoreReader(CoreComponent, ABC):
         )
 
         self.data_buffer = None
-        self.id_generator = id_generator(self.config)
+        self.id_generator = id_generator(self.config.start_id)
 
     def __init_logs(self) -> schemas.SchemaT:
         return schemas.initialize(

@@ -1,5 +1,7 @@
 
-from src.components.common.reader import ReaderConfig, CoreReader, LogIDGenerator
+from src.components.common.reader import ReaderConfig, CoreReader
+from src.components.common._op import LogIDGenerator
+
 import src.schemas as schemas
 
 from typing import Optional, Iterator

@@ -1,17 +1,30 @@
-from src.components.common.detector import CoreDetector, ConfigCore
+from src.components.common.detector import CoreDetector, DetectorConfig
 import src.schemas as schemas
 
+from typing import Callable
 import pydantic
 import pytest
 
 
+def dummy_timestamp():
+    return 0
+
+
+class MockupConfig(DetectorConfig):
+    detectorID: str = "TestDetector01"
+    detectorType: str = "TestType"
+
+    get_timestamp: Callable[[], int] = dummy_timestamp
+
+
 class MockupDetector(CoreDetector):
-    def __init__(self, name: str, config: ConfigCore) -> None:
+    def __init__(self, name: str, config: DetectorConfig) -> None:
         super().__init__(name=name, buffer_mode="no_buf", config=config)
 
-    def detect(self, data):
-        result = schemas.initialize(schemas.DETECTOR_SCHEMA, **{"score": 0.99})
-        return result
+    def detect(self, input_, output_):
+        output_.score = 0.9
+        output_.predictionLabel = True
+        return True
 
     def train(self, data):
         pass
@@ -23,7 +36,7 @@ class TestCoreDetector:
 
         assert isinstance(detector, CoreDetector)
         assert detector.name == "TestDetector"
-        assert isinstance(detector.config, ConfigCore)
+        assert isinstance(detector.config, DetectorConfig)
         assert detector.input_schema == schemas.PARSER_SCHEMA
         assert detector.output_schema == schemas.DETECTOR_SCHEMA
 
@@ -33,7 +46,9 @@ class TestCoreDetector:
 
     def test_process_correct_input_schema(self) -> None:
         detector = MockupDetector(name="TestDetector", config={})
-        data = schemas.initialize(schemas.PARSER_SCHEMA, **{"log": "This is a parsed log."})
+        data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+            "logFormatVariables": {"timestamp": "12121"}, "log": "This is a parsed log."
+        })
         data_serialized = schemas.serialize(schemas.PARSER_SCHEMA, data)
         result = detector.process(data_serialized)  # no error should be produced
         assert isinstance(result, bytes)  # and result should be bytes
@@ -46,8 +61,19 @@ class TestCoreDetector:
             detector.process(data_serialized)
 
     def test_process_input_schema_not_serialized(self) -> None:
-        detector = MockupDetector(name="TestDetector", config={})
-        expected_result = schemas.initialize(schemas.DETECTOR_SCHEMA, **{"score": 0.99})
-        data = schemas.initialize(schemas.PARSER_SCHEMA, **{"log": "This is a parsed log."})
+        detector = MockupDetector(name="TestDetector", config=MockupConfig())
+        expected_result = schemas.initialize(schemas.DETECTOR_SCHEMA, **{
+            "__version__": "1.0.0",
+            "detectorID": "TestDetector01",
+            "detectorType": "TestType",
+            "alertID": 0,
+            "detectionTimestamp": 0,
+            "predictionLabel": True,
+            "score": 0.9,
+            "extractedTimestamps": [12121]
+        })
+        data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+            "logFormatVariables": {"timestamp": "12121"}, "log": "This is a parsed log."
+        })
         result = detector.process(data)
         assert result == expected_result
