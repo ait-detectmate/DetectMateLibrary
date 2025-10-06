@@ -1,5 +1,5 @@
 
-from src.components.common.reader import ReaderConfig, CoreReader
+from src.components.common.reader import CoreReaderConfig, CoreReader
 from src.components.utils.id_generator import SimpleIDGenerator
 
 import src.schemas as schemas
@@ -7,7 +7,7 @@ import src.schemas as schemas
 from typing import Optional, Iterator
 
 
-class LogFileConfig(ReaderConfig):
+class LogFileConfig(CoreReaderConfig):
     file: str = "file.log"
 
 

@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 
-class ReaderConfig(ConfigCore):
+class CoreReaderConfig(ConfigCore):
     logSource: str = "<PLACEHOLDER>"
     hostname: str = "<PLACEHOLDER>"
 
@@ -18,12 +18,12 @@ class CoreReader(CoreComponent, ABC):
     def __init__(
         self,
         name: str,
-        config: Optional[ReaderConfig | dict] = ReaderConfig(),
+        config: Optional[CoreReaderConfig | dict] = CoreReaderConfig(),
         id_generator: SimpleIDGenerator = SimpleIDGenerator,
     ) -> None:
 
         if isinstance(config, dict):
-            config = ReaderConfig.from_dict(config)
+            config = CoreReaderConfig.from_dict(config)
         super().__init__(
             name=name, type_="Reader", config=config, output_schema=schemas.LOG_SCHEMA
         )
