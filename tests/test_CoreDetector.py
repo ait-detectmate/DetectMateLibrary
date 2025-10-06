@@ -89,12 +89,13 @@ class TestCoreDetector:
             "detectorType": "TestType",
             "alertID": 0,
             "detectionTimestamp": int(datetime.now().timestamp()),
+            "logIDs": [0],
             "predictionLabel": True,
             "score": 0.9,
             "extractedTimestamps": [12121]
         })
         data = schemas.initialize(schemas.PARSER_SCHEMA, **{
-            "logFormatVariables": {"timestamp": "12121"}, "log": "This is a parsed log."
+            "logID": 0, "logFormatVariables": {"timestamp": "12121"}, "log": "This is a parsed log."
         })
         result = detector.process(data)
         assert result == expected_result, f"result -> {result}"
@@ -107,12 +108,13 @@ class TestCoreDetector:
             "detectorType": "TestType",
             "alertID": 0,
             "detectionTimestamp": int(datetime.now().timestamp()),
+            "logIDs": [0, 0, 0],
             "predictionLabel": True,
             "score": 0.9,
             "extractedTimestamps": [12121, 12121, 12121]
         })
         data = schemas.initialize(schemas.PARSER_SCHEMA, **{
-            "logFormatVariables": {"timestamp": "12121"}, "log": "This is a parsed log."
+            "logID": 0, "logFormatVariables": {"timestamp": "12121"}, "log": "This is a parsed log."
         })
 
         assert detector.process(data) is None
@@ -129,12 +131,13 @@ class TestCoreDetector:
             "detectorType": "TestType",
             "alertID": 0,
             "detectionTimestamp": int(datetime.now().timestamp()),
+            "logIDs": [0, 0, 0],
             "predictionLabel": True,
             "score": 0.9,
             "extractedTimestamps": [12121, 12121, 12121]
         })
         data = schemas.initialize(schemas.PARSER_SCHEMA, **{
-            "logFormatVariables": {"timestamp": "12121"}, "log": "This is a parsed log."
+            "logID": 0, "logFormatVariables": {"timestamp": "12121"}, "log": "This is a parsed log."
         })
 
         assert detector.process(data) is None

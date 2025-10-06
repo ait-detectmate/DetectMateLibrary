@@ -25,6 +25,15 @@ def _extract_timestamp(
     return [int(i.logFormatVariables["timestamp"]) for i in input_]
 
 
+def _extract_logIDs(
+    input_: List[schemas.ParserSchema] | schemas.ParserSchema
+) -> List[int]:
+    if not isinstance(input_, list):
+        input_ = [input_]
+
+    return [i.logID for i in input_]
+
+
 def _generate_default_output(
     input_: List[schemas.ParserSchema] | schemas.ParserSchema,
     config: CoreDetectorConfig
@@ -37,12 +46,12 @@ def _generate_default_output(
             "detectorType": config.detectorType,
             "alertID": 0,
             "detectionTimestamp": int(datetime.now().timestamp()),
+            "logIDs": _extract_logIDs(input_),
             "predictionLabel": False,
             "score": 0.0,
             "extractedTimestamps": _extract_timestamp(input_)
         }
-        # TODO: missing logIDs variable
-        )
+    )
 
 
 class CoreDetector(CoreComponent, ABC):
