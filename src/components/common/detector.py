@@ -8,6 +8,14 @@ from typing import Any, Literal, Optional, List, Callable
 from abc import ABC, abstractmethod
 
 
+class DetectorConfig(ConfigCore):
+    detectorID: str = "<PLACEHOLDER>"
+    detectorType: str = "<PLACEHOLDER>"
+
+    get_timestamp: Callable[[], int] = op.current_timestamp
+    start_id: int = 0
+
+
 def _extract_timestamp(
     input_: List[schemas.ParserSchema] | schemas.ParserSchema
 ) -> List[int]:
@@ -17,12 +25,23 @@ def _extract_timestamp(
     return [int(i.logFormatVariables["timestamp"]) for i in input_]
 
 
-class DetectorConfig(ConfigCore):
-    detectorID: str = "<PLACEHOLDER>"
-    detectorType: str = "<PLACEHOLDER>"
-
-    get_timestamp: Callable[[], int] = op.current_timestamp
-    start_id: int = 0
+def _generate_output(
+    input_: List[schemas.ParserSchema] | schemas.ParserSchema,
+    config: DetectorConfig
+) -> schemas.DetectorSchema:
+    return schemas.initialize(
+        schema_id=schemas.DETECTOR_SCHEMA,
+        **{
+            "__version__": "1.0.0",
+            "detectorID": config.detectorID,
+            "detectorType": config.detectorType,
+            "alertID": 0,
+            "detectionTimestamp": config.get_timestamp(),
+            "predictionLabel": False,
+            "score": 0.0,
+            "extractedTimestamps": _extract_timestamp(input_)
+        }
+        )
 
 
 class CoreDetector(CoreComponent, ABC):
@@ -54,23 +73,13 @@ class CoreDetector(CoreComponent, ABC):
     def run(
         self, input_: List[schemas.ParserSchema] | schemas.ParserSchema
     ) -> schemas.DetectorSchema | None:
-        output_ = schemas.initialize(
-            schema_id=self.output_schema,
-            **{
-                "__version__": "1.0.0",
-                "detectorID": self.config.detectorID,
-                "detectorType": self.config.detectorType,
-                "alertID": self.id_generator(),
-                "detectionTimestamp": self.config.get_timestamp(),
-                "predictionLabel": False,
-                "score": 0.0,
-                "extractedTimestamps": _extract_timestamp(input_)
-            }
-        )
+        output_ = _generate_output(input_=input_, config=self.config)
+        output_.alertID = self.id_generator()
+
         if self.detect(input_=input_, output_=output_):
             return output_
         else:
-            None
+            return None
 
     @abstractmethod
     def detect(
