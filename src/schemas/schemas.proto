@@ -30,7 +30,7 @@ message DetectorSchema {
     string detectorType = 3;
     int32 alertID = 4;
     int32 detectionTimestamp = 5;
-    repeated int32 logID = 6;
+    repeated int32 logIDs = 6;
     bool predictionLabel = 7;
     float score = 8;
     repeated int32 extractedTimestamps = 9;
