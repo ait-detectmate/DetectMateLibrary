@@ -3,7 +3,11 @@ from src.components.common.core import CoreComponent, ConfigCore
 from src.components.utils.data_buffer import ArgsBuffer
 import src.schemas as schemas
 
-from typing import Any, Literal, Optional
+from typing import Literal, Optional
+
+
+class CoreDetectorConfig(ConfigCore):
+    auto_config: bool = True
 
 
 class CoreDetector(CoreComponent, ABC):
@@ -12,10 +16,10 @@ class CoreDetector(CoreComponent, ABC):
         name: str = "CoreDetector",
         buffer_mode: Optional[Literal["no_buf", "batch", "window"]] = "no_buf",
         buffer_size: Optional[int] = None,
-        config: Optional[ConfigCore | dict] = ConfigCore()
+        config: Optional[CoreDetectorConfig | dict] = CoreDetectorConfig()
     ):
         if isinstance(config, dict):
-            config = ConfigCore.from_dict(config)
+            config = CoreDetectorConfig.from_dict(config)
 
         super().__init__(
             name=name,
@@ -31,7 +35,13 @@ class CoreDetector(CoreComponent, ABC):
         )
 
     @abstractmethod
-    def detect(self, data: Any) -> Any: return data
+    def detect(
+        self, input_: schemas.ParserSchema | list[schemas.ParserSchema]
+    ) -> schemas.DetectorSchema: return input_
 
     @abstractmethod
-    def train(self, data: Any) -> None: ...
+    def train(
+        self, input_: schemas.ParserSchema | list[schemas.ParserSchema]
+    ) -> None: ...
+
+    # def _auto_config(self) -> Any: ...
