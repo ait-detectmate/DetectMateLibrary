@@ -1,5 +1,7 @@
 
-from src.components.common.reader import ReaderConfig, CoreReader, LogIDGenerator
+from src.components.common.reader import ReaderConfig, CoreReader
+from src.components.common._op import IDGenerator
+
 import src.schemas as schemas
 
 from typing import Optional, Iterator
@@ -14,7 +16,7 @@ class LogFileReader(CoreReader):
         self,
         name: str="File_reader",
         config: Optional[LogFileConfig | dict] = LogFileConfig(),
-        id_generator: LogIDGenerator = LogIDGenerator,
+        id_generator: IDGenerator = IDGenerator,
     ) -> None:
         super().__init__(
             name=name, config=config, id_generator=id_generator

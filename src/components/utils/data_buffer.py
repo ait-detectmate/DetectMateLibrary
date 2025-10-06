@@ -74,11 +74,11 @@ class DataBuffer:
         """Add data_point to the window buffer and process if full."""
         self.buffer.append(data_point)
         if self._is_full():
-            return self.process_function(self.buffer)
+            return self.process_function(list(self.buffer))
 
     def _process_and_clear(self, buf: deque, clear: bool = True):
         """Process and optionally clear the buffer."""
-        buf_copy = buf.copy()
+        buf_copy = list(buf.copy())
         result = self.process_function(buf_copy)
         if clear:
             buf.clear()
