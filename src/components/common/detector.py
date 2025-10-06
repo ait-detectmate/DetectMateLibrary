@@ -41,6 +41,7 @@ def _generate_default_output(
             "score": 0.0,
             "extractedTimestamps": _extract_timestamp(input_)
         }
+        # TODO: missing logIDs variable
         )
 
 
