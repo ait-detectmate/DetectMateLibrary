@@ -1,18 +1,18 @@
 from src.components.common.core import CoreComponent, ConfigCore
 from src.components.utils.data_buffer import ArgsBuffer
-import src.components.common._op as op
+import src.components.utils.id_generator as op
 
 import src.schemas as schemas
 
-from typing import Literal, Optional, List, Callable
+from typing import Literal, Optional, List
 from abc import ABC, abstractmethod
+from datetime import datetime
 
 
 class CoreDetectorConfig(ConfigCore):
     detectorID: str = "<PLACEHOLDER>"
     detectorType: str = "<PLACEHOLDER>"
 
-    get_timestamp: Callable[[], int] = op.current_timestamp
     start_id: int = 0
 
 
@@ -36,7 +36,7 @@ def _generate_default_output(
             "detectorID": config.detectorID,
             "detectorType": config.detectorType,
             "alertID": 0,
-            "detectionTimestamp": config.get_timestamp(),
+            "detectionTimestamp": int(datetime.now().timestamp()),
             "predictionLabel": False,
             "score": 0.0,
             "extractedTimestamps": _extract_timestamp(input_)
@@ -52,7 +52,7 @@ class CoreDetector(CoreComponent, ABC):
         buffer_mode: Optional[Literal["no_buf", "batch", "window"]] = "no_buf",
         buffer_size: Optional[int] = None,
         config: Optional[CoreDetectorConfig | dict] = CoreDetectorConfig(),
-        id_generator: op.IDGenerator = op.IDGenerator,
+        id_generator: op.SimpleIDGenerator = op.SimpleIDGenerator,
     ):
         if isinstance(config, dict):
             config = CoreDetectorConfig.from_dict(config)

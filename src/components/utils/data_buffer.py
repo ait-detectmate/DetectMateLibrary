@@ -59,32 +59,32 @@ class DataBuffer:
         else:
             self.add = self.process_function
 
-    def _is_full(self):
+    def _is_full(self) -> bool:
         """Determine if the buffer is full."""
         if self.size is not None:
             return len(self.buffer) == self.size
 
-    def _add_batch(self, data_point: Any):
+    def _add_batch(self, data_point: Any) -> Any:
         """Add data_point to the batch buffer and process if full."""
         self.buffer.append(data_point)
         if self._is_full():
             return self._process_and_clear(self.buffer)
 
-    def _add_window(self, data_point: Any):
+    def _add_window(self, data_point: Any) -> Any:
         """Add data_point to the window buffer and process if full."""
         self.buffer.append(data_point)
         if self._is_full():
             return self.process_function(list(self.buffer))
 
-    def _process_and_clear(self, buf: deque, clear: bool = True):
+    def _process_and_clear(self, buf: deque, clear: bool = True) -> Any:
         """Process and optionally clear the buffer."""
-        buf_copy = list(buf.copy())
+        buf_copy = list(buf)
         result = self.process_function(buf_copy)
         if clear:
             buf.clear()
         return result
 
-    def flush(self):
+    def flush(self) -> Any:
         """Process remaining data_points."""
         if self.buffer:
             clear = self.mode != "window"

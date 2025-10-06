@@ -1,20 +1,14 @@
 from src.components.common.detector import CoreDetector, CoreDetectorConfig
 import src.schemas as schemas
 
-from typing import Callable
+from datetime import datetime
 import pydantic
 import pytest
-
-
-def dummy_timestamp():
-    return 0
 
 
 class MockupConfig(CoreDetectorConfig):
     detectorID: str = "TestDetector01"
     detectorType: str = "TestType"
-
-    get_timestamp: Callable[[], int] = dummy_timestamp
 
 
 class MockupDetector(CoreDetector):
@@ -94,7 +88,7 @@ class TestCoreDetector:
             "detectorID": "TestDetector01",
             "detectorType": "TestType",
             "alertID": 0,
-            "detectionTimestamp": 0,
+            "detectionTimestamp": int(datetime.now().timestamp()),
             "predictionLabel": True,
             "score": 0.9,
             "extractedTimestamps": [12121]
@@ -112,7 +106,7 @@ class TestCoreDetector:
             "detectorID": "TestDetector01",
             "detectorType": "TestType",
             "alertID": 0,
-            "detectionTimestamp": 0,
+            "detectionTimestamp": int(datetime.now().timestamp()),
             "predictionLabel": True,
             "score": 0.9,
             "extractedTimestamps": [12121, 12121, 12121]
@@ -134,7 +128,7 @@ class TestCoreDetector:
             "detectorID": "TestDetector01",
             "detectorType": "TestType",
             "alertID": 0,
-            "detectionTimestamp": 0,
+            "detectionTimestamp": int(datetime.now().timestamp()),
             "predictionLabel": True,
             "score": 0.9,
             "extractedTimestamps": [12121, 12121, 12121]
