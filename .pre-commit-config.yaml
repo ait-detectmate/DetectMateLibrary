@@ -27,7 +27,7 @@ repos:
 #    - id: mypy
 #      additional_dependencies:
 #        - pydantic
-#       - types-PyYAML
+#        - types-PyYAML
 #      exclude: ^tests/
 
 # Code formatting
@@ -43,7 +43,7 @@ repos:
   hooks:
     - id: flake8
       args: [--max-line-length=110]
-      exclude: ^tests/
+      exclude: src/schemas/schemas_pb2.py
 
 # Docstring formatting
 - repo: https://github.com/PyCQA/docformatter

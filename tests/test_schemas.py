@@ -1,6 +1,5 @@
 import src.schemas as schemas
 
-import pytest
 
 class TestSchemas:
     def test_initialize_basic(self):
