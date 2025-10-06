@@ -1,6 +1,6 @@
 
 from src.components.common.core import CoreComponent, ConfigCore
-from src.components.common._op import LogIDGenerator
+from src.components.common._op import IDGenerator
 import src.schemas as schemas
 
 from abc import ABC, abstractmethod
@@ -19,7 +19,7 @@ class CoreReader(CoreComponent, ABC):
         self,
         name: str,
         config: Optional[ReaderConfig | dict] = ReaderConfig(),
-        id_generator: LogIDGenerator = LogIDGenerator,
+        id_generator: IDGenerator = IDGenerator,
     ) -> None:
 
         if isinstance(config, dict):

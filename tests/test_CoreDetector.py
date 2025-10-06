@@ -24,7 +24,20 @@ class MockupDetector(CoreDetector):
     def detect(self, input_, output_):
         output_.score = 0.9
         output_.predictionLabel = True
-        return True
+
+    def train(self, data):
+        pass
+
+
+class MockupDetector_window(CoreDetector):
+    def __init__(self, name: str, config: DetectorConfig) -> None:
+        super().__init__(
+            name=name, buffer_mode="window", buffer_size=3, config=config
+        )
+
+    def detect(self, input_, output_):
+        output_.score = 0.9
+        output_.predictionLabel = True
 
     def train(self, data):
         pass
@@ -76,4 +89,26 @@ class TestCoreDetector:
             "logFormatVariables": {"timestamp": "12121"}, "log": "This is a parsed log."
         })
         result = detector.process(data)
-        assert result == expected_result
+        assert result == expected_result, f"result -> {result}"
+
+    def test_process_input_schema_not_serialized_window_3(self) -> None:
+        detector = MockupDetector_window(name="TestDetector", config=MockupConfig())
+        expected_result = schemas.initialize(schemas.DETECTOR_SCHEMA, **{
+            "__version__": "1.0.0",
+            "detectorID": "TestDetector01",
+            "detectorType": "TestType",
+            "alertID": 0,
+            "detectionTimestamp": 0,
+            "predictionLabel": True,
+            "score": 0.9,
+            "extractedTimestamps": [12121, 12121, 12121]
+        })
+        data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+            "logFormatVariables": {"timestamp": "12121"}, "log": "This is a parsed log."
+        })
+
+        assert detector.process(data) is None
+        assert detector.process(data) is None
+
+        result = detector.process(data)
+        assert result == expected_result, f"result -> {expected_result} and {result}"

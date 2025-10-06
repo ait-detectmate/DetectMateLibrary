@@ -1,6 +1,5 @@
 from src.components.utils.data_buffer import DataBuffer, ArgsBuffer
 
-from collections import deque
 import pytest
 
 
@@ -30,7 +29,7 @@ class TestDataBuffer:
         buf.add(1)
         assert results == []
         buf.add(1)
-        assert results == [deque([1, 1, 1])]
+        assert results == [[1, 1, 1]]
         # Buffer should be empty after processing
         assert len(buf.buffer) == 0
 

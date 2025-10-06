@@ -1,7 +1,7 @@
 from datetime import datetime
 
 
-class LogIDGenerator:
+class IDGenerator:
     def __init__(self, start_id: int) -> None:
         self.current_id = start_id - 1
 

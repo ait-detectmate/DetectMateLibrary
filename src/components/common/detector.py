@@ -25,7 +25,7 @@ def _extract_timestamp(
     return [int(i.logFormatVariables["timestamp"]) for i in input_]
 
 
-def _generate_output(
+def _generate_default_output(
     input_: List[schemas.ParserSchema] | schemas.ParserSchema,
     config: DetectorConfig
 ) -> schemas.DetectorSchema:
@@ -51,7 +51,7 @@ class CoreDetector(CoreComponent, ABC):
         buffer_mode: Optional[Literal["no_buf", "batch", "window"]] = "no_buf",
         buffer_size: Optional[int] = None,
         config: Optional[DetectorConfig | dict] = DetectorConfig(),
-        id_generator: op.LogIDGenerator = op.LogIDGenerator,
+        id_generator: op.IDGenerator = op.IDGenerator,
     ):
         if isinstance(config, dict):
             config = DetectorConfig.from_dict(config)
@@ -73,21 +73,21 @@ class CoreDetector(CoreComponent, ABC):
     def run(
         self, input_: List[schemas.ParserSchema] | schemas.ParserSchema
     ) -> schemas.DetectorSchema | None:
-        output_ = _generate_output(input_=input_, config=self.config)
-        output_.alertID = self.id_generator()
+        if input_ is None:
+            return
+        output_ = _generate_default_output(input_=input_, config=self.config)
 
-        if self.detect(input_=input_, output_=output_):
-            return output_
-        else:
-            return None
+        self.detect(input_=input_, output_=output_)
+        output_.alertID = self.id_generator()
+        return output_
 
     @abstractmethod
     def detect(
         self,
         input_: List[schemas.ParserSchema] | schemas.ParserSchema,
         output_: schemas.DetectorSchema
-    ) -> bool:
-        return False
+    ) -> None:
+        return
 
     @abstractmethod
     def train(self, data: Any) -> None: ...
