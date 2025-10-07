@@ -38,18 +38,18 @@ class CoreParser(CoreComponent, ABC):
             name=name,
             type_="Parser",
             config=config,
-            train_function=self.train,
-            process_function=self.run,
             args_buffer=ArgsBuffer(mode="no_buf", size=None),
             input_schema=schemas.LOG_SCHEMA,
             output_schema=schemas.PARSER_SCHEMA,
         )
 
-    def run(self, input_: schemas.LogSchema) -> schemas.ParserSchema:
-        output_ = _generate_default_output(input_=input_, config=self.config)
+    def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> None:
+
+        output_.parserID = self.id_generator()
+        output_.logID = input_.logID
+        output_.log = input_.log
 
         self.parse(input_=input_, output_=output_)
-        output_.parserID = self.id_generator()
         return output_
 
     @abstractmethod

@@ -31,24 +31,6 @@ def _extract_logIDs(
     return [i.logID for i in input_]
 
 
-def _generate_default_output(
-    input_: List[schemas.ParserSchema] | schemas.ParserSchema,
-    config: CoreDetectorConfig
-) -> schemas.DetectorSchema:
-
-    return schemas.initialize(
-        schema_id=schemas.DETECTOR_SCHEMA,
-        **{
-            "__version__": "1.0.0",
-            "detectorID": config.detectorID,
-            "detectorType": config.detectorType,
-            "detectionTimestamp": int(datetime.now().timestamp()),
-            "logIDs": _extract_logIDs(input_),
-            "extractedTimestamps": _extract_timestamp(input_)
-        }
-    )
-
-
 class CoreDetector(CoreComponent, ABC):
     def __init__(
         self,
@@ -64,8 +46,6 @@ class CoreDetector(CoreComponent, ABC):
             name=name,
             type_="Detector",
             config=config,
-            train_function=self.train,
-            process_function=self.run,
             args_buffer=ArgsBuffer(
                 mode=buffer_mode, size=buffer_size
             ),
@@ -74,15 +54,16 @@ class CoreDetector(CoreComponent, ABC):
         )
 
     def run(
-        self, input_: List[schemas.ParserSchema] | schemas.ParserSchema
-    ) -> schemas.DetectorSchema | None:
-        if input_ is None:
-            return
-        output_ = _generate_default_output(input_=input_, config=self.config)
+        self, input_: List[schemas.ParserSchema] | schemas.ParserSchema,
+        output_: schemas.DetectorSchema
+    ) -> None:
+
+        output_.detectionTimestamp = int(datetime.now().timestamp())
+        output_.logIDs.extend(_extract_logIDs(input_))
+        output_.extractedTimestamps.extend(_extract_timestamp(input_))
+        output_.alertID = self.id_generator()
 
         self.detect(input_=input_, output_=output_)
-        output_.alertID = self.id_generator()
-        return output_
 
     @abstractmethod
     def detect(
@@ -96,5 +77,3 @@ class CoreDetector(CoreComponent, ABC):
     def train(
         self, input_: schemas.ParserSchema | list[schemas.ParserSchema]
     ) -> None: ...
-
-    # def _auto_config(self) -> Any: ...

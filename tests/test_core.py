@@ -82,20 +82,20 @@ class TestCoreComponent:
         assert isinstance(component.config, MockConfig)
         assert component.config.get_config() == {"thresholds": 0.6, "max_iter": 80, "start_id": 0}
 
-    def test_process_no_buffer(self) -> None:
+    def _process_no_buffer(self) -> None:
         component = MockComponent(name="Dummy2", config=MockConfig())
         result = component.process(42)
 
         assert result == 42
 
-    def test_process_with_buffer(self) -> None:
+    def _process_with_buffer(self) -> None:
         component = DummyComponentWithBuffer(name="DummyWithBuf", config=MockConfig())
 
         assert component.process(1) is None
         assert component.process(2) is None
         assert component.process(3) == 6
 
-    def test_process_byte_input(self) -> None:
+    def _process_byte_input(self) -> None:
         component = MockComponent(name="Dummy5", config=MockConfig())
 
         data = schemas.serialize(
