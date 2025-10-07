@@ -37,7 +37,6 @@ class CoreReader(CoreComponent, ABC):
             **{
                 "__version__": "1.0.0",
                 "logID": self.id_generator(),
-                "log": "<PLACEHOLDER>",
                 "logSource": self.config.logSource,
                 "hostname": self.config.hostname,
             }

@@ -38,17 +38,15 @@ def _generate_default_output(
     input_: List[schemas.ParserSchema] | schemas.ParserSchema,
     config: CoreDetectorConfig
 ) -> schemas.DetectorSchema:
+
     return schemas.initialize(
         schema_id=schemas.DETECTOR_SCHEMA,
         **{
             "__version__": "1.0.0",
             "detectorID": config.detectorID,
             "detectorType": config.detectorType,
-            "alertID": 0,
             "detectionTimestamp": int(datetime.now().timestamp()),
             "logIDs": _extract_logIDs(input_),
-            "predictionLabel": False,
-            "score": 0.0,
             "extractedTimestamps": _extract_timestamp(input_)
         }
     )

@@ -22,9 +22,6 @@ def _generate_default_output(
         **{
             "__version__": "1.0.0",
             "parserType": config.parserType,
-            "EventID": 0,
-            "template": "",
-            "parserID": 0,
             "logID": input_.logID,
             "log": input_.log,
         }
