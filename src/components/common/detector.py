@@ -54,7 +54,8 @@ class CoreDetector(CoreComponent, ABC):
         )
 
     def run(
-        self, input_: List[schemas.ParserSchema] | schemas.ParserSchema,
+        self,
+        input_: List[schemas.ParserSchema] | schemas.ParserSchema,
         output_: schemas.DetectorSchema
     ) -> None:
 

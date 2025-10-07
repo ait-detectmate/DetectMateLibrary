@@ -4,7 +4,7 @@ from src.utils.id_generator import SimpleIDGenerator
 
 import src.schemas as schemas
 
-from typing import Any, Dict
+from typing import Any, Dict, Tuple, List
 
 
 class CoreConfig(BasicConfig):
@@ -34,15 +34,22 @@ class CoreComponent:
     def __repr__(self) -> str:
         return f"<{self.type_}> {self.name}: {self.config}"
 
-    def run(*args): pass
-
-    def process(self, data: schemas.AnySchema | bytes) -> schemas.AnySchema | bytes | None:
+    def __preprocess(self, data: schemas.AnySchema | bytes) -> Tuple[bool, schemas.AnySchema]:
         is_byte = False
         if isinstance(data, bytes):
             schema_id, data = schemas.deserialize(data)
             is_byte = True
             schemas.check_is_same_schema(schema_id, self.input_schema)
 
+        return is_byte, data
+
+    def run(
+        self, input_: List[schemas.AnySchema] | schemas.AnySchema, output_: schemas.AnySchema
+    ) -> None:
+        pass
+
+    def process(self, data: schemas.AnySchema | bytes) -> schemas.AnySchema | bytes | None:
+        is_byte, data = self.__preprocess(data)
         if (data_buffered := self.data_buffer.add(data)) is None:
             return None
 
