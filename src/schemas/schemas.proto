@@ -35,4 +35,5 @@ message DetectorSchema {
     bool predictionLabel = 7;
     float score = 8;
     repeated int32 extractedTimestamps = 9;
+    string description = 10;
 }

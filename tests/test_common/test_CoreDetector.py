@@ -18,6 +18,7 @@ class MockupDetector(CoreDetector):
     def detect(self, input_, output_):
         output_.score = 0.9
         output_.predictionLabel = True
+        output_.description = "hii"
 
 
 class MockupDetector_window(CoreDetector):
@@ -29,6 +30,7 @@ class MockupDetector_window(CoreDetector):
     def detect(self, input_, output_):
         output_.score = 0.9
         output_.predictionLabel = True
+        output_.description = "hii"
 
 
 class MockupDetector_buffer(CoreDetector):
@@ -40,6 +42,7 @@ class MockupDetector_buffer(CoreDetector):
     def detect(self, input_, output_):
         output_.score = 0.9
         output_.predictionLabel = True
+        output_.description = "hii"
 
 
 class IncompleteMockupDetector(CoreDetector):
@@ -102,6 +105,7 @@ class TestCoreDetector:
             "logIDs": [12],
             "predictionLabel": True,
             "score": 0.9,
+            "description": "hii",
             "extractedTimestamps": [12121]
         })
         data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_schema)
@@ -119,6 +123,7 @@ class TestCoreDetector:
             "logIDs": [12, 12, 12],
             "predictionLabel": True,
             "score": 0.9,
+            "description": "hii",
             "extractedTimestamps": [12121, 12121, 12121]
         })
         data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_schema)
@@ -140,6 +145,7 @@ class TestCoreDetector:
             "logIDs": [12, 12, 12],
             "predictionLabel": True,
             "score": 0.9,
+            "description": "hii",
             "extractedTimestamps": [12121, 12121, 12121]
         })
         data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_schema)
