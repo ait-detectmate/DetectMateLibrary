@@ -1,9 +1,9 @@
 from src.components.common.core import CoreComponent, CoreConfig
+
 from src.utils.data_buffer import ArgsBuffer
 
 import src.schemas as schemas
 
-from abc import ABC, abstractmethod
 from typing import Any, Optional
 
 
@@ -25,7 +25,7 @@ def _generate_default_output(
     )
 
 
-class CoreParser(CoreComponent, ABC):
+class CoreParser(CoreComponent):
     def __init__(
         self,
         name: str = "CoreParser",
@@ -52,7 +52,6 @@ class CoreParser(CoreComponent, ABC):
         self.parse(input_=input_, output_=output_)
         return output_
 
-    @abstractmethod
     def parse(
         self, input_: schemas.LogSchema, output_: schemas.ParserSchema
     ) -> None:

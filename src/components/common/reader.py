@@ -1,8 +1,7 @@
-
 from src.components.common.core import CoreComponent, CoreConfig
+
 import src.schemas as schemas
 
-from abc import ABC, abstractmethod
 from typing import Optional
 
 
@@ -11,7 +10,7 @@ class CoreReaderConfig(CoreConfig):
     hostname: str = "<PLACEHOLDER>"
 
 
-class CoreReader(CoreComponent, ABC):
+class CoreReader(CoreComponent):
     def __init__(
         self,
         name: str,
@@ -44,6 +43,5 @@ class CoreReader(CoreComponent, ABC):
 
         return schemas.serialize(self.output_schema, log) if as_bytes else log
 
-    @abstractmethod
     def read(self, output_: schemas.SchemaT) -> bool:
-        output_
+        return False

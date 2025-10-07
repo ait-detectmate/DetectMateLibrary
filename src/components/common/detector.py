@@ -1,10 +1,10 @@
 from src.components.common.core import CoreComponent, CoreConfig
+
 from src.utils.data_buffer import ArgsBuffer
 
 import src.schemas as schemas
 
 from typing import Literal, Optional, List
-from abc import ABC, abstractmethod
 from datetime import datetime
 
 
@@ -31,7 +31,7 @@ def _extract_logIDs(
     return [i.logID for i in input_]
 
 
-class CoreDetector(CoreComponent, ABC):
+class CoreDetector(CoreComponent):
     def __init__(
         self,
         name: str = "CoreDetector",
@@ -66,7 +66,6 @@ class CoreDetector(CoreComponent, ABC):
 
         self.detect(input_=input_, output_=output_)
 
-    @abstractmethod
     def detect(
         self,
         input_: List[schemas.ParserSchema] | schemas.ParserSchema,
@@ -74,7 +73,6 @@ class CoreDetector(CoreComponent, ABC):
     ) -> None:
         return
 
-    @abstractmethod
     def train(
         self, input_: schemas.ParserSchema | list[schemas.ParserSchema]
     ) -> None: ...
