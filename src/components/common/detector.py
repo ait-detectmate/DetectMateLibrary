@@ -1,6 +1,5 @@
-from src.components.common.core import CoreComponent, ConfigCore
+from src.components.common.core import CoreComponent, CoreConfig
 from src.components.utils.data_buffer import ArgsBuffer
-import src.components.utils.id_generator as op
 
 import src.schemas as schemas
 
@@ -9,11 +8,9 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 
 
-class CoreDetectorConfig(ConfigCore):
+class CoreDetectorConfig(CoreConfig):
     detectorID: str = "<PLACEHOLDER>"
     detectorType: str = "<PLACEHOLDER>"
-
-    start_id: int = 0
 
 
 def _extract_timestamp(
@@ -59,7 +56,6 @@ class CoreDetector(CoreComponent, ABC):
         buffer_mode: Optional[Literal["no_buf", "batch", "window"]] = "no_buf",
         buffer_size: Optional[int] = None,
         config: Optional[CoreDetectorConfig | dict] = CoreDetectorConfig(),
-        id_generator: op.SimpleIDGenerator = op.SimpleIDGenerator,
     ):
         if isinstance(config, dict):
             config = CoreDetectorConfig.from_dict(config)
@@ -76,7 +72,6 @@ class CoreDetector(CoreComponent, ABC):
             input_schema=schemas.PARSER_SCHEMA,
             output_schema=schemas.DETECTOR_SCHEMA,
         )
-        self.id_generator = id_generator(self.config.start_id)
 
     def run(
         self, input_: List[schemas.ParserSchema] | schemas.ParserSchema

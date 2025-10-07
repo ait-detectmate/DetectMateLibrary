@@ -1,17 +1,14 @@
 
-from src.components.common.core import CoreComponent, ConfigCore
-from src.components.utils.id_generator import SimpleIDGenerator
+from src.components.common.core import CoreComponent, CoreConfig
 import src.schemas as schemas
 
 from abc import ABC, abstractmethod
 from typing import Optional
 
 
-class CoreReaderConfig(ConfigCore):
+class CoreReaderConfig(CoreConfig):
     logSource: str = "<PLACEHOLDER>"
     hostname: str = "<PLACEHOLDER>"
-
-    start_id: int = 0
 
 
 class CoreReader(CoreComponent, ABC):
@@ -19,7 +16,6 @@ class CoreReader(CoreComponent, ABC):
         self,
         name: str,
         config: Optional[CoreReaderConfig | dict] = CoreReaderConfig(),
-        id_generator: SimpleIDGenerator = SimpleIDGenerator,
     ) -> None:
 
         if isinstance(config, dict):
@@ -29,7 +25,6 @@ class CoreReader(CoreComponent, ABC):
         )
 
         self.data_buffer = None
-        self.id_generator = id_generator(self.config.start_id)
 
     def __init_logs(self) -> schemas.SchemaT:
         return schemas.initialize(

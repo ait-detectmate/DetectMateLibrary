@@ -1,13 +1,13 @@
-
-from typing import Any, Dict
-from pydantic import BaseModel
-from typing import Callable, Optional
-
 from src.components.utils.data_buffer import DataBuffer, ArgsBuffer
+
+import src.components.utils.id_generator as op
 import src.schemas as schemas
 
+from typing import Callable, Optional, Any, Dict
+from pydantic import BaseModel
 
-class ConfigCore(BaseModel):
+
+class BasicConfig(BaseModel):
     """Base configuration class with helper methods."""
 
     # Forbid extra fields not defined in subclasses (via pydantic)
@@ -24,9 +24,13 @@ class ConfigCore(BaseModel):
             setattr(self, key, value)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "ConfigCore":
+    def from_dict(cls, data: dict) -> "CoreConfig":
         """Create a ConfigCore instance from a dictionary."""
         return cls(**data)
+
+
+class CoreConfig(BasicConfig):
+    start_id: int = 0
 
 
 class CoreComponent:
@@ -34,8 +38,8 @@ class CoreComponent:
     def __init__(
         self,
         name: str,
-        type_: str = "Base",
-        config: ConfigCore = ConfigCore(),
+        type_: str = "Core",
+        config: CoreConfig = CoreConfig(),
         train_function: Optional[Callable[[Any], None]] = lambda x: None,
         process_function: Optional[Callable[[Any], Any]] = lambda x: x,
         args_buffer: ArgsBuffer = ArgsBuffer("no_buf"),
@@ -51,6 +55,7 @@ class CoreComponent:
         self.input_schema, self.output_schema = input_schema, output_schema
 
         self.data_buffer = DataBuffer(args_buffer)
+        self.id_generator = op.SimpleIDGenerator(self.config.start_id)
 
     def __repr__(self) -> str:
         return f"<{self.type_}> {self.name}: {self.config}"

@@ -1,4 +1,4 @@
-from src.components.common.core import ConfigCore, CoreComponent
+from src.components.common.core import CoreConfig, CoreComponent, BasicConfig
 from src.components.utils.data_buffer import ArgsBuffer
 import src.schemas as schemas
 
@@ -6,7 +6,12 @@ import pydantic
 import pytest
 
 
-class MockConfig(ConfigCore):
+class MockConfig(BasicConfig):
+    thresholds: float = 0.7
+    max_iter: int = 50
+
+
+class MockCoreConfig(CoreConfig):
     thresholds: float = 0.7
     max_iter: int = 50
 
@@ -26,17 +31,17 @@ class DummyComponentWithBuffer(CoreComponent):
         )
 
 
-class TestConfigCore:
+class TestCaseBasicConfig:
     def test_initialize(self) -> None:
         config = MockConfig(thresholds=0.5, max_iter=100)
 
-        assert isinstance(config, ConfigCore)
+        assert isinstance(config, BasicConfig)
         assert config.get_config() == {"thresholds": 0.5, "max_iter": 100}
 
     def test_initialize_dict(self) -> None:
         config = MockConfig.from_dict({"thresholds": 0.8, "max_iter": 30})
 
-        assert isinstance(config, ConfigCore)
+        assert isinstance(config, BasicConfig)
         assert config.get_config() == {"thresholds": 0.8, "max_iter": 30}
 
     def test_incorect_type(self) -> None:
@@ -68,34 +73,34 @@ class TestCoreComponent:
         component = CoreComponent(name="TestComponent")
 
         assert component.name == "TestComponent"
-        assert component.type_ == "Base"
-        assert isinstance(component.config, ConfigCore)
-        assert component.config.get_config() == {}
+        assert component.type_ == "Core"
+        assert isinstance(component.config, CoreConfig)
+        assert component.config.get_config() == {"start_id": 0}
 
     def test_initalize_with_config(self) -> None:
-        config = MockConfig(thresholds=0.6, max_iter=80)
+        config = MockCoreConfig(thresholds=0.6, max_iter=80)
         component = MockComponent(name="Dummy1", config=config)
 
         assert component.name == "Dummy1"
         assert component.type_ == "Dummy"
-        assert isinstance(component.config, MockConfig)
-        assert component.config.get_config() == {"thresholds": 0.6, "max_iter": 80}
+        assert isinstance(component.config, MockCoreConfig)
+        assert component.config.get_config() == {"thresholds": 0.6, "max_iter": 80, "start_id": 0}
 
     def test_process_no_buffer(self) -> None:
-        component = MockComponent(name="Dummy2", config=MockConfig())
+        component = MockComponent(name="Dummy2", config=MockCoreConfig())
         result = component.process(42)
 
         assert result == 42
 
     def test_process_with_buffer(self) -> None:
-        component = DummyComponentWithBuffer(name="DummyWithBuf", config=MockConfig())
+        component = DummyComponentWithBuffer(name="DummyWithBuf", config=MockCoreConfig())
 
         assert component.process(1) is None
         assert component.process(2) is None
         assert component.process(3) == 6
 
     def test_process_byte_input(self) -> None:
-        component = MockComponent(name="Dummy5", config=MockConfig())
+        component = MockComponent(name="Dummy5", config=MockCoreConfig())
 
         data = schemas.serialize(
             schemas.BASE_SCHEMA,
@@ -106,14 +111,14 @@ class TestCoreComponent:
         assert data == output
 
     def test_process_invalid_schema(self) -> None:
-        component = MockComponent(name="Dummy4", config=MockConfig())
+        component = MockComponent(name="Dummy4", config=MockCoreConfig())
 
         with pytest.raises(schemas.NotSupportedSchema):
             component.process(b"invalid bytes")
 
     def test_update_config(self) -> None:
-        component = MockComponent(name="Dummy3", config=MockConfig())
+        component = MockComponent(name="Dummy3", config=MockCoreConfig())
 
-        assert component.get_config() == {"thresholds": 0.7, "max_iter": 50}
+        assert component.get_config() == {"thresholds": 0.7, "max_iter": 50, "start_id": 0}
         component.update_config({"thresholds": 0.95})
-        assert component.get_config() == {"thresholds": 0.95, "max_iter": 50}
+        assert component.get_config() == {"thresholds": 0.95, "max_iter": 50, "start_id": 0}
