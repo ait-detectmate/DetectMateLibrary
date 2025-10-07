@@ -11,6 +11,7 @@ from src.schemas._op import (
     NotSupportedSchema,
     IncorrectSchema,
     initialize,
+    initialize_with_default,
     serialize,
     deserialize,
     check_is_same_schema,

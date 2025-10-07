@@ -1,14 +1,20 @@
+from src.utils.aux import BasicConfig
+
 import src.schemas as schemas
 
 
-class TestSchemas:
+class MockConfig(BasicConfig):
+    score: float = 0.4
+    detectorID: str = "test"
+    no_field: str = "should not appear"
+
+
+class TestCaseSchemas:
     def test_initialize_basic(self):
         schema = schemas.initialize(schemas.BASE_SCHEMA, **{})
 
         assert schema.__version__ == "1.0.0"
 
-
-class TestCaseSchemas:
     def test_initialize_not_support_schema(self) -> None:
         try:
             schemas.initialize(b"1111", **{})
@@ -107,3 +113,11 @@ class TestCaseSchemas:
             schemas.check_is_same_schema(schemas.BASE_SCHEMA, schemas.LOG_SCHEMA)
         except schemas.IncorrectSchema:
             pass
+
+    def test_initialize_with_default(self) -> None:
+        schema = schemas.initialize_with_default(schemas.DETECTOR_SCHEMA, MockConfig())
+        expected_schema = schemas.initialize(
+            schema_id=schemas.DETECTOR_SCHEMA, **{"score": 0.4, "detectorID": "test"}
+        )
+
+        assert schema == expected_schema

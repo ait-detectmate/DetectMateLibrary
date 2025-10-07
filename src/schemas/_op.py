@@ -1,4 +1,6 @@
 """" Interface between the code base and the protobuf code."""
+from src.utils.aux import BasicConfig
+
 import src.schemas.schemas_pb2 as s
 
 
@@ -55,8 +57,16 @@ def initialize(schema_id: SchemaID, **kwargs) -> SchemaT:
     return schema_class(**kwargs)
 
 
-def initialize_with_defaul(schema_id: SchemaID, config) -> SchemaT:
-    pass
+def initialize_with_default(schema_id: SchemaID, config: BasicConfig) -> SchemaT:
+    """Initialize schema with default fields in a Config instance."""
+    fields = initialize(schema_id=schema_id, **{}).DESCRIPTOR.fields
+    args = {}
+    dict_config = config.get_config()
+    for field in fields:
+        if field.name in dict_config:
+            args[field.name] = dict_config[field.name]
+
+    return initialize(schema_id=schema_id, **args)
 
 
 def serialize(id_schema: SchemaID, schema: SchemaT) -> bytes:
