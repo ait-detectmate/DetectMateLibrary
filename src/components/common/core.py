@@ -11,6 +11,27 @@ class CoreConfig(BasicConfig):
     start_id: int = 0
 
 
+class SchemaPipeline:
+    @staticmethod
+    def preprocess(
+        schema_id: schemas.SchemaID, data: schemas.AnySchema | bytes
+    ) -> Tuple[bool, schemas.AnySchema]:
+
+        is_byte = False
+        if isinstance(data, bytes):
+            schema_id_, data = schemas.deserialize(data)
+            is_byte = True
+            schemas.check_is_same_schema(schema_id_, schema_id)
+
+        return is_byte, data
+
+    @staticmethod
+    def postprocess(
+        schema_id: schemas.SchemaID, data: schemas.AnySchema, is_byte: bool
+    ) -> schemas.AnySchema | bytes:
+        return data if not is_byte else schemas.serialize(schema_id, data)
+
+
 class CoreComponent:
     """Base class for all components in the system."""
     def __init__(
@@ -34,29 +55,20 @@ class CoreComponent:
     def __repr__(self) -> str:
         return f"<{self.type_}> {self.name}: {self.config}"
 
-    def __preprocess(self, data: schemas.AnySchema | bytes) -> Tuple[bool, schemas.AnySchema]:
-        is_byte = False
-        if isinstance(data, bytes):
-            schema_id, data = schemas.deserialize(data)
-            is_byte = True
-            schemas.check_is_same_schema(schema_id, self.input_schema)
-
-        return is_byte, data
-
     def run(
         self, input_: List[schemas.AnySchema] | schemas.AnySchema, output_: schemas.AnySchema
     ) -> None:
         pass
 
     def process(self, data: schemas.AnySchema | bytes) -> schemas.AnySchema | bytes | None:
-        is_byte, data = self.__preprocess(data)
+        is_byte, data = SchemaPipeline.preprocess(self.input_schema, data)
         if (data_buffered := self.data_buffer.add(data)) is None:
             return None
 
         output_ = schemas.initialize_with_default(self.output_schema, config=self.config)
         self.run(data_buffered, output_)
 
-        return output_ if not is_byte else schemas.serialize(self.output_schema, output_)
+        return SchemaPipeline.postprocess(self.output_schema, output_, is_byte=is_byte)
 
     def get_config(self) -> Dict[str, Any]:
         return self.config.get_config()
