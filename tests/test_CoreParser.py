@@ -73,3 +73,15 @@ class TestCoreParser:
         result = parser.process(data)
 
         assert result == expected_result, f"results {result} and expected {expected_result}"
+
+    def test_process_ids(self) -> None:
+        parser = MockupParser(name="TestParser", config=MockupConfig())
+        data = schemas.initialize(schemas.LOG_SCHEMA, **{
+            "logID": 1, "log": "This is a log."
+        })
+
+        result = parser.process(data)
+        assert result.parserID == 0
+
+        result = parser.process(data)
+        assert result.parserID == 1
