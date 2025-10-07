@@ -38,10 +38,11 @@ class TestCaseSchemas:
     def test_initialize_parser_schema(self) -> None:
         values = {
             "parserType": "test",
+            "parserID": "test",
             "EventID": 5,
             "template": "test template",
             "variables": ["a", "b"],
-            "parserID": 1,
+            "parsedLogID": 2,
             "logID": 4,
             "log": "test log",
             "logFormatVariables": {"TimeStamp": "test timestamp"}
@@ -52,8 +53,9 @@ class TestCaseSchemas:
         assert schema.EventID == 5
         assert schema.template == "test template"
         assert schema.variables == ["a", "b"]
-        assert schema.parserID == 1
+        assert schema.parserID == "test"
         assert schema.logID == 4
+        assert schema.parsedLogID == 2
         assert schema.log == "test log"
         assert schema.logFormatVariables == {"TimeStamp": "test timestamp"}
 

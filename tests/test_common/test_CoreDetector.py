@@ -56,7 +56,8 @@ dummy_schema = {
     "template": "asd",
     "variables": [""],
     "logID": 12,
-    "parserID": 0,
+    "parsedLogID": 22,
+    "parserID": "test",
     "log": "This is a parsed log.",
     "logFormatVariables": {"timestamp": "12121"},
 }

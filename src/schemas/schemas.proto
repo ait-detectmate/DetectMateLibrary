@@ -15,13 +15,14 @@ message LogSchema {
 message ParserSchema {
     string __version__ = 1;
     string parserType = 2;
-    int32 EventID = 3;
-    string template = 4;
-    repeated string variables = 5;
-    int32 parserID = 6;
-    int32 logID = 7;
-    string log = 8;
-    map<string, string> logFormatVariables = 9;
+    string parserID = 3;
+    int32 EventID = 4;
+    string template = 5;
+    repeated string variables = 6;
+    int32 parsedLogID = 7;
+    int32 logID = 8;
+    string log = 9;
+    map<string, string> logFormatVariables = 10;
 }
 
 message DetectorSchema {

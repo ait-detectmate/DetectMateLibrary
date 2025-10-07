@@ -9,20 +9,7 @@ from typing import Any, Optional
 
 class CoreParserConfig(CoreConfig):
     parserType: str = "<PLACEHOLDER>"
-
-
-def _generate_default_output(
-    input_: schemas.LogSchema, config: CoreParserConfig
-) -> schemas.ParserSchema:
-    return schemas.initialize(
-        schema_id=schemas.PARSER_SCHEMA,
-        **{
-            "__version__": "1.0.0",
-            "parserType": config.parserType,
-            "logID": input_.logID,
-            "log": input_.log,
-        }
-    )
+    parserID: str = "<PLACEHOLDER>"
 
 
 class CoreParser(CoreComponent):
@@ -45,7 +32,7 @@ class CoreParser(CoreComponent):
 
     def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> None:
 
-        output_.parserID = self.id_generator()
+        output_.parsedLogID = self.id_generator()
         output_.logID = input_.logID
         output_.log = input_.log
 

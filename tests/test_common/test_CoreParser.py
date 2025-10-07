@@ -7,6 +7,7 @@ import pytest
 
 class MockupConfig(CoreParserConfig):
     parserType: str = "TestType"
+    parserID: str = "TestParser"
 
 
 class MockupParser(CoreParser):
@@ -65,9 +66,10 @@ class TestCoreParser:
         expected_result = schemas.initialize(schemas.PARSER_SCHEMA, **{
             "__version__": "1.0.0",
             "parserType": "TestType",
+            "parserID": "TestParser",
             "EventID": 1,
             "template": "hello",
-            "parserID": 10,
+            "parsedLogID": 10,
             "logID": 1,
             "log": "This is a log."
         })
@@ -88,10 +90,10 @@ class TestCoreParser:
         })
 
         result = parser.process(data)
-        assert result.parserID == 10
+        assert result.parsedLogID == 10
 
         result = parser.process(data)
-        assert result.parserID == 11
+        assert result.parsedLogID == 11
 
     def test_incomplete_parser(self) -> None:
         parser = IncompleteMockupParser(name="TestParser", config=MockupConfig())
