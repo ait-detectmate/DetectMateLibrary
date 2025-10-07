@@ -32,13 +32,13 @@ class TestConfigCore:
         config = MockConfig(thresholds=0.5, max_iter=100)
 
         assert isinstance(config, BasicConfig)
-        assert config.get_config() == {"thresholds": 0.5, "max_iter": 100, "start_id": 0}
+        assert config.get_config() == {"thresholds": 0.5, "max_iter": 100, "start_id": 10}
 
     def test_initialize_dict(self) -> None:
-        config = MockConfig.from_dict({"thresholds": 0.8, "max_iter": 30, "start_id": 0})
+        config = MockConfig.from_dict({"thresholds": 0.8, "max_iter": 30, "start_id": 10})
 
         assert isinstance(config, BasicConfig)
-        assert config.get_config() == {"thresholds": 0.8, "max_iter": 30, "start_id": 0}
+        assert config.get_config() == {"thresholds": 0.8, "max_iter": 30, "start_id": 10}
 
     def test_incorect_type(self) -> None:
         with pytest.raises(pydantic.ValidationError):
@@ -46,13 +46,13 @@ class TestConfigCore:
 
     def test_update_config(self) -> None:
         config = MockConfig()
-        assert config.get_config() == {"thresholds": 0.7, "max_iter": 50, "start_id": 0}
+        assert config.get_config() == {"thresholds": 0.7, "max_iter": 50, "start_id": 10}
 
         config.update_config({"thresholds": 0.9})
-        assert config.get_config() == {"thresholds": 0.9, "max_iter": 50, "start_id": 0}
+        assert config.get_config() == {"thresholds": 0.9, "max_iter": 50, "start_id": 10}
 
         config.update_config({"max_iter": 200})
-        assert config.get_config() == {"thresholds": 0.9, "max_iter": 200, "start_id": 0}
+        assert config.get_config() == {"thresholds": 0.9, "max_iter": 200, "start_id": 10}
 
     def test_add_new_parameter(self) -> None:
         config = MockConfig()
@@ -71,7 +71,7 @@ class TestCoreComponent:
         assert component.name == "TestComponent"
         assert component.type_ == "Core"
         assert isinstance(component.config, CoreConfig)
-        assert component.config.get_config() == {"start_id": 0}
+        assert component.config.get_config() == {"start_id": 10}
 
     def test_initalize_with_config(self) -> None:
         config = MockConfig(thresholds=0.6, max_iter=80)
@@ -80,7 +80,7 @@ class TestCoreComponent:
         assert component.name == "Dummy1"
         assert component.type_ == "Dummy"
         assert isinstance(component.config, MockConfig)
-        assert component.config.get_config() == {"thresholds": 0.6, "max_iter": 80, "start_id": 0}
+        assert component.config.get_config() == {"thresholds": 0.6, "max_iter": 80, "start_id": 10}
 
     def _process_no_buffer(self) -> None:
         component = MockComponent(name="Dummy2", config=MockConfig())
@@ -116,9 +116,9 @@ class TestCoreComponent:
         component = MockComponent(name="Dummy3", config=MockConfig())
 
         assert component.get_config() == {
-            "thresholds": 0.7, "max_iter": 50, "start_id": 0
+            "thresholds": 0.7, "max_iter": 50, "start_id": 10
         }
         component.update_config({"thresholds": 0.95})
         assert component.get_config() == {
-            "thresholds": 0.95, "max_iter": 50, "start_id": 0
+            "thresholds": 0.95, "max_iter": 50, "start_id": 10
         }

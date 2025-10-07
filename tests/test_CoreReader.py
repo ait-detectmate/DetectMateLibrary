@@ -22,6 +22,14 @@ class MockupNoneReader(CoreReader):
         return False
 
 
+class IncompleteMockupReader(CoreReader):
+    def __init__(self, name: str, config: CoreReaderConfig | dict) -> None:
+        super().__init__(name=name, config=config)
+
+    def read(self, output_):
+        return True
+
+
 class TestCoreDetector:
     def test_initialize_default(self) -> None:
         reader = MockupReader(name="TestReader", config={})
@@ -58,10 +66,16 @@ class TestCoreDetector:
     def test_process_logid_default(self) -> None:
         reader = MockupReader(name="TestReader", config={})
         for i in range(10):
-            assert reader.process(as_bytes=False).logID == i
+            assert reader.process(as_bytes=False).logID == 10 + i
 
     def test_process_None(self) -> None:
         reader = MockupNoneReader(name="TestReader", config={})
         output = reader.process()
 
         assert output is None
+
+    def test_incomplete_reader(self) -> None:
+        reader = IncompleteMockupReader(name="TestReader", config={})
+
+        with pytest.raises(schemas.NotCompleteSchema):
+            reader.process()

@@ -19,8 +19,15 @@ class MockupParser(CoreParser):
         output_.variables.extend(["a", "b"])
         output_.logFormatVariables["t"] = "c"
 
-    def train(self, data):
-        pass
+
+class IncompleteMockupParser(CoreParser):
+    def __init__(self, name: str, config: CoreParserConfig) -> None:
+        super().__init__(name=name, config=config)
+
+    def parse(self, input_, output_):
+        output_.EventID = 1
+        output_.variables.extend(["a", "b"])
+        output_.logFormatVariables["t"] = "c"
 
 
 class TestCoreParser:
@@ -60,7 +67,7 @@ class TestCoreParser:
             "parserType": "TestType",
             "EventID": 1,
             "template": "hello",
-            "parserID": 0,
+            "parserID": 10,
             "logID": 1,
             "log": "This is a log."
         })
@@ -77,11 +84,20 @@ class TestCoreParser:
     def test_process_ids(self) -> None:
         parser = MockupParser(name="TestParser", config=MockupConfig())
         data = schemas.initialize(schemas.LOG_SCHEMA, **{
-            "logID": 1, "log": "This is a log."
+            "logID": 1, "log": "This is a log.", "logSource": "", "hostname": ""
         })
 
         result = parser.process(data)
-        assert result.parserID == 0
+        assert result.parserID == 10
 
         result = parser.process(data)
-        assert result.parserID == 1
+        assert result.parserID == 11
+
+    def test_incomplete_parser(self) -> None:
+        parser = IncompleteMockupParser(name="TestParser", config=MockupConfig())
+        data = schemas.initialize(schemas.LOG_SCHEMA, **{
+            "logID": 1, "log": "This is a log.", "logSource": "", "hostname": ""
+        })
+
+        with pytest.raises(schemas.NotCompleteSchema):
+            parser.process(data)

@@ -9,7 +9,7 @@ from typing import Any, Dict, Tuple, List
 
 
 class CoreConfig(BasicConfig):
-    start_id: int = 0
+    start_id: int = 10
 
 
 class SchemaPipeline:
@@ -30,6 +30,8 @@ class SchemaPipeline:
     def postprocess(
         schema_id: schemas.SchemaID, data: schemas.AnySchema, is_byte: bool
     ) -> schemas.AnySchema | bytes:
+
+        schemas.check_if_schema_is_complete(data)
         return data if not is_byte else schemas.serialize(schema_id, data)
 
 

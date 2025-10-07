@@ -1,4 +1,4 @@
-from src.components.common.core import CoreComponent, CoreConfig
+from src.components.common.core import CoreComponent, CoreConfig, SchemaPipeline
 
 import src.schemas as schemas
 
@@ -41,7 +41,7 @@ class CoreReader(CoreComponent):
         if not is_new_log:
             return None
 
-        return schemas.serialize(self.output_schema, log) if as_bytes else log
+        return SchemaPipeline.postprocess(self.output_schema, log, is_byte=as_bytes)
 
     def read(self, output_: schemas.SchemaT) -> bool:
         return False

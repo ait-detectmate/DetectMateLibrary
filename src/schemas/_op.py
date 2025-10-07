@@ -108,4 +108,4 @@ def check_if_schema_is_complete(schema: SchemaT) -> None | NotCompleteSchema:
     """Check if the schema is complete."""
     for field in schema.DESCRIPTOR.fields:
         if not getattr(schema, field.name):
-            raise NotCompleteSchema()
+            raise NotCompleteSchema(field.name)

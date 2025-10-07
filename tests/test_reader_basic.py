@@ -9,11 +9,11 @@ class TestCaseLogFileReader:
 
         log1 = reader.process(as_bytes=False)
         assert isinstance(log1.log, str)
-        assert log1.logID == 0
+        assert log1.logID == 10
 
         log2 = reader.process(as_bytes=False)
         assert isinstance(log2.log, str)
-        assert log2.logID == 1
+        assert log2.logID == 11
 
         assert log1.log != log2.log
 
