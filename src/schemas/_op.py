@@ -40,11 +40,17 @@ class IncorrectSchema(Exception):
     pass
 
 
+class NotCompleteSchema(Exception):
+    """Not all the fields are full."""
+    pass
+
+
 # Private methods *************************************
 def __get_schema_class(schema_id: SchemaID) -> Type[Message]:
     """Get the schema class for the given schema ID."""
     if schema_id not in __id_codes:
         raise NotSupportedSchema()
+
     return __id_codes[schema_id]
 
 
@@ -74,6 +80,9 @@ def serialize(id_schema: SchemaID, schema: SchemaT) -> bytes:
 
     First 4 bits are the schema id
     """
+    if id_schema not in __id_codes:
+        raise NotSupportedSchema()
+
     return id_schema + schema.SerializeToString()
 
 
@@ -93,3 +102,10 @@ def check_is_same_schema(
     if id_schema_1 != id_schema_2:
         raise IncorrectSchema()
     return None
+
+
+def check_if_schema_is_complete(schema: SchemaT) -> None | NotCompleteSchema:
+    """Check if the schema is complete."""
+    for field in schema.DESCRIPTOR.fields:
+        if not getattr(schema, field.name):
+            raise NotCompleteSchema()

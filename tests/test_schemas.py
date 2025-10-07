@@ -2,6 +2,8 @@ from src.utils.aux import BasicConfig
 
 import src.schemas as schemas
 
+import pytest
+
 
 class MockConfig(BasicConfig):
     score: float = 0.4
@@ -78,6 +80,14 @@ class TestCaseSchemas:
         assert schema.score == 0.5
         assert schema.extractedTimestamps == [4, 5, 6]
 
+    def test_initialize_with_default(self) -> None:
+        schema = schemas.initialize_with_default(schemas.DETECTOR_SCHEMA, MockConfig())
+        expected_schema = schemas.initialize(
+            schema_id=schemas.DETECTOR_SCHEMA, **{"score": 0.4, "detectorID": "test"}
+        )
+
+        assert schema == expected_schema
+
     def test_serialize_method(self) -> None:
         values = {
             "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
@@ -101,23 +111,22 @@ class TestCaseSchemas:
         }
         schema = schemas.initialize(schemas.LOG_SCHEMA, **values)
 
-        try:
+        with pytest.raises(schemas.NotSupportedSchema):
             schemas.serialize(b"1111", schema=schema)
-        except schemas.NotSupportedSchema:
-            pass
 
     def test_check_is_same_schema(self) -> None:
         schemas.check_is_same_schema(schemas.LOG_SCHEMA, schemas.LOG_SCHEMA)
 
-        try:
+        with pytest.raises(schemas.IncorrectSchema):
             schemas.check_is_same_schema(schemas.BASE_SCHEMA, schemas.LOG_SCHEMA)
-        except schemas.IncorrectSchema:
-            pass
 
-    def test_initialize_with_default(self) -> None:
-        schema = schemas.initialize_with_default(schemas.DETECTOR_SCHEMA, MockConfig())
-        expected_schema = schemas.initialize(
-            schema_id=schemas.DETECTOR_SCHEMA, **{"score": 0.4, "detectorID": "test"}
-        )
+    def test_check_is_schema_complete(self) -> None:
+        schema = schemas.initialize(schemas.LOG_SCHEMA, **{})
+        with pytest.raises(schemas.NotCompleteSchema):
+            schemas.check_if_schema_is_complete(schema)
 
-        assert schema == expected_schema
+        values = {
+            "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
+        }
+        schema = schemas.initialize(schemas.LOG_SCHEMA, **values)
+        schemas.check_if_schema_is_complete(schema)
