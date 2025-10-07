@@ -1,32 +1,10 @@
+from src.components.utils.aux import BasicConfig
 from src.components.utils.data_buffer import DataBuffer, ArgsBuffer
+from src.components.utils.id_generator import SimpleIDGenerator
 
-import src.components.utils.id_generator as op
 import src.schemas as schemas
 
 from typing import Callable, Optional, Any, Dict
-from pydantic import BaseModel
-
-
-class BasicConfig(BaseModel):
-    """Base configuration class with helper methods."""
-
-    # Forbid extra fields not defined in subclasses (via pydantic)
-    class Config:
-        extra = "forbid"
-
-    def get_config(self) -> Dict[str, Any]:
-        """Return the configuration as a dictionary."""
-        return self.model_dump()
-
-    def update_config(self, new_config: dict) -> None:
-        """Update the configuration with new values."""
-        for key, value in new_config.items():
-            setattr(self, key, value)
-
-    @classmethod
-    def from_dict(cls, data: dict) -> "CoreConfig":
-        """Create a ConfigCore instance from a dictionary."""
-        return cls(**data)
 
 
 class CoreConfig(BasicConfig):
@@ -55,14 +33,14 @@ class CoreComponent:
         self.input_schema, self.output_schema = input_schema, output_schema
 
         self.data_buffer = DataBuffer(args_buffer)
-        self.id_generator = op.SimpleIDGenerator(self.config.start_id)
+        self.id_generator = SimpleIDGenerator(self.config.start_id)
 
     def __repr__(self) -> str:
         return f"<{self.type_}> {self.name}: {self.config}"
 
     def process(
-        self, data: schemas.SchemaT | bytes, learnmode: bool = False
-    ) -> schemas.SchemaT | bytes | None:
+        self, data: schemas.AnySchema | bytes, learnmode: bool = False
+    ) -> schemas.AnySchema | bytes | None:
         is_byte = False
         if isinstance(data, bytes):
             schema_id, data = schemas.deserialize(data)
