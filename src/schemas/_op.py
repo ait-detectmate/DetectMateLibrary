@@ -1,6 +1,7 @@
 """" Interface between the code base and the protobuf code."""
 import src.schemas.schemas_pb2 as s
 
+
 from typing import NewType, Tuple, Dict, Type, Union
 from google.protobuf.message import Message
 
@@ -52,6 +53,10 @@ def initialize(schema_id: SchemaID, **kwargs) -> SchemaT:
     kwargs["__version__"] = __current_version
     schema_class = __get_schema_class(schema_id)
     return schema_class(**kwargs)
+
+
+def initialize_with_defaul(schema_id: SchemaID, config) -> SchemaT:
+    pass
 
 
 def serialize(id_schema: SchemaID, schema: SchemaT) -> bytes:

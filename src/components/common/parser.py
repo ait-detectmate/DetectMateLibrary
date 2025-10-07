@@ -1,5 +1,5 @@
 from src.components.common.core import CoreComponent, CoreConfig
-from src.components.utils.data_buffer import ArgsBuffer
+from src.utils.data_buffer import ArgsBuffer
 
 import src.schemas as schemas
 

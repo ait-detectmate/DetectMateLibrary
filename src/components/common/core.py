@@ -1,6 +1,6 @@
-from src.components.utils.aux import BasicConfig
-from src.components.utils.data_buffer import DataBuffer, ArgsBuffer
-from src.components.utils.id_generator import SimpleIDGenerator
+from src.utils.aux import BasicConfig
+from src.utils.data_buffer import DataBuffer, ArgsBuffer
+from src.utils.id_generator import SimpleIDGenerator
 
 import src.schemas as schemas
 

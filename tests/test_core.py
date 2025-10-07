@@ -1,6 +1,6 @@
-from src.components.utils.aux import BasicConfig
+from src.utils.aux import BasicConfig
 from src.components.common.core import CoreConfig, CoreComponent
-from src.components.utils.data_buffer import ArgsBuffer
+from src.utils.data_buffer import ArgsBuffer
 import src.schemas as schemas
 
 import pydantic
