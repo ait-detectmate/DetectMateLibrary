@@ -62,7 +62,7 @@ def __is_repeated_field(field) -> bool:
 
 
 # Main methods *****************************************
-def initialize(schema_id: SchemaID, **kwargs) -> SchemaT:
+def initialize(schema_id: SchemaID, **kwargs) -> SchemaT | NotSupportedSchema:
     """Initialize a protobuf schema, it use its arguments and the assigned
     id."""
     kwargs["__version__"] = __current_version
@@ -70,7 +70,9 @@ def initialize(schema_id: SchemaID, **kwargs) -> SchemaT:
     return schema_class(**kwargs)
 
 
-def initialize_with_default(schema_id: SchemaID, config: BasicConfig) -> SchemaT:
+def initialize_with_default(
+    schema_id: SchemaID, config: BasicConfig
+) -> SchemaT | NotSupportedSchema:
     """Initialize schema with default fields in a Config instance."""
     fields = initialize(schema_id=schema_id, **{}).DESCRIPTOR.fields
     args = {}
@@ -82,10 +84,12 @@ def initialize_with_default(schema_id: SchemaID, config: BasicConfig) -> SchemaT
     return initialize(schema_id=schema_id, **args)
 
 
-def copy(schema_id: SchemaID,  schema: SchemaT) -> SchemaT | IncorrectSchema:
+def copy(
+    schema_id: SchemaID,  schema: SchemaT
+) -> SchemaT | IncorrectSchema | NotSupportedSchema:
     """Make a copy of the schema."""
+    new_schema = initialize(schema_id=schema_id, **{})
     try:
-        new_schema = initialize(schema_id=schema_id, **{})
         new_schema.CopyFrom(schema)
         return new_schema
     except TypeError:

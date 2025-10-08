@@ -109,6 +109,14 @@ class TestCaseSchemas:
         with pytest.raises(schemas.IncorrectSchema):
             schemas.copy(schemas.PARSER_SCHEMA, schema)
 
+    def test_copy_incompatible_schema(self) -> None:
+        values = {
+            "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
+        }
+        schema = schemas.initialize(schemas.LOG_SCHEMA, **values)
+        with pytest.raises(schemas.NotSupportedSchema):
+            schemas.copy(b"213123213123", schema)
+
     def test_serialize_method(self) -> None:
         values = {
             "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
