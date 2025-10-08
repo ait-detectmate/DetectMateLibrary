@@ -19,6 +19,7 @@ class CoreReader(CoreComponent):
 
         if isinstance(config, dict):
             config = CoreReaderConfig.from_dict(config)
+
         super().__init__(
             name=name, type_="Reader", config=config, output_schema=schemas.LOG_SCHEMA
         )
