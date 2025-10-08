@@ -1,4 +1,4 @@
-from src.components.common.core import ConfigCore
+from src.components.common.core import CoreConfig
 from src.components.detectors.NewValueDetector import NewValueDetector
 
 
@@ -8,7 +8,7 @@ class TestNewValueDetector():
 
         assert isinstance(detector, NewValueDetector)
         assert detector.name == "NewValueDetector"
-        assert isinstance(detector.config, ConfigCore)
+        assert isinstance(detector.config, CoreConfig)
 
 #     def test_train_and_detect(self) -> None:
 #         detector = NewValueDetector(name="NewValueDetector", config={})

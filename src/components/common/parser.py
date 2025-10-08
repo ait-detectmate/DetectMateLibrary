@@ -1,36 +1,50 @@
-from src.components.common.core import CoreComponent, ConfigCore
-from src.components.utils.data_buffer import ArgsBuffer
+from src.components.common.core import CoreComponent, CoreConfig
+
+from src.utils.data_buffer import ArgsBuffer
+
 import src.schemas as schemas
 
-from typing import Any, Literal, Optional
+from typing import Any, Optional
+from datetime import datetime
+
+
+class CoreParserConfig(CoreConfig):
+    parserType: str = "<PLACEHOLDER>"
+    parserID: str = "<PLACEHOLDER>"
 
 
 class CoreParser(CoreComponent):
     def __init__(
         self,
         name: str = "CoreParser",
-        buffer_mode: Optional[Literal["no_buf", "batch", "window"]] = "no_buf",
-        buffer_size: Optional[int] = None,
-        config: Optional[ConfigCore | dict] = ConfigCore()
+        config: Optional[CoreParserConfig | dict] = CoreParserConfig(),
     ):
         if isinstance(config, dict):
-            config = ConfigCore.from_dict(config)
+            config = CoreParserConfig.from_dict(config)
 
         super().__init__(
             name=name,
             type_="Parser",
             config=config,
-            train_function=self.train,
-            process_function=self.parse,
-            args_buffer=ArgsBuffer(
-                mode=buffer_mode, size=buffer_size
-            ),
+            args_buffer=ArgsBuffer(mode="no_buf", size=None),
             input_schema=schemas.LOG_SCHEMA,
             output_schema=schemas.PARSER_SCHEMA,
         )
 
-    def parse(self, data: Any, config: ConfigCore):
-        pass
+    def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> None:
 
-    def train(self, data: Any, config: ConfigCore) -> None:
+        output_.parsedLogID = self.id_generator()
+        output_.logID = input_.logID
+        output_.log = input_.log
+        output_.receivedTimestamp = int(datetime.now().timestamp())
+
+        self.parse(input_=input_, output_=output_)
+        output_.parsedTimestamp = int(datetime.now().timestamp())
+
+    def parse(
+        self, input_: schemas.LogSchema, output_: schemas.ParserSchema
+    ) -> None:
+        return
+
+    def train(self, data: Any, config: CoreConfig) -> None:
         pass

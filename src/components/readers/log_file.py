@@ -1,13 +1,12 @@
 
-from src.components.common.reader import ReaderConfig, CoreReader
-from src.components.utils.id_generator import SimpleIDGenerator
+from src.components.common.reader import CoreReaderConfig, CoreReader
 
 import src.schemas as schemas
 
 from typing import Optional, Iterator
 
 
-class LogFileConfig(ReaderConfig):
+class LogFileConfig(CoreReaderConfig):
     file: str = "file.log"
 
 
@@ -16,11 +15,8 @@ class LogFileReader(CoreReader):
         self,
         name: str="File_reader",
         config: Optional[LogFileConfig | dict] = LogFileConfig(),
-        id_generator: SimpleIDGenerator = SimpleIDGenerator,
     ) -> None:
-        super().__init__(
-            name=name, config=config, id_generator=id_generator
-        )
+        super().__init__(name=name, config=config)
         self.__log_generator = self.__read_logs()
         self.is_over = False
 

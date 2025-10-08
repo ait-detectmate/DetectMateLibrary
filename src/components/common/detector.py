@@ -1,19 +1,16 @@
-from src.components.common.core import CoreComponent, ConfigCore
-from src.components.utils.data_buffer import ArgsBuffer
-import src.components.utils.id_generator as op
+from src.components.common.core import CoreComponent, CoreConfig
+
+from src.utils.data_buffer import ArgsBuffer
 
 import src.schemas as schemas
 
 from typing import Literal, Optional, List
-from abc import ABC, abstractmethod
 from datetime import datetime
 
 
-class CoreDetectorConfig(ConfigCore):
+class CoreDetectorConfig(CoreConfig):
     detectorID: str = "<PLACEHOLDER>"
     detectorType: str = "<PLACEHOLDER>"
-
-    start_id: int = 0
 
 
 def _extract_timestamp(
@@ -25,34 +22,22 @@ def _extract_timestamp(
     return [int(i.logFormatVariables["timestamp"]) for i in input_]
 
 
-def _generate_default_output(
-    input_: List[schemas.ParserSchema] | schemas.ParserSchema,
-    config: CoreDetectorConfig
-) -> schemas.DetectorSchema:
-    return schemas.initialize(
-        schema_id=schemas.DETECTOR_SCHEMA,
-        **{
-            "__version__": "1.0.0",
-            "detectorID": config.detectorID,
-            "detectorType": config.detectorType,
-            "alertID": 0,
-            "detectionTimestamp": int(datetime.now().timestamp()),
-            "predictionLabel": False,
-            "score": 0.0,
-            "extractedTimestamps": _extract_timestamp(input_)
-        }
-        # TODO: missing logIDs variable
-        )
+def _extract_logIDs(
+    input_: List[schemas.ParserSchema] | schemas.ParserSchema
+) -> List[int]:
+    if not isinstance(input_, list):
+        input_ = [input_]
+
+    return [i.logID for i in input_]
 
 
-class CoreDetector(CoreComponent, ABC):
+class CoreDetector(CoreComponent):
     def __init__(
         self,
         name: str = "CoreDetector",
         buffer_mode: Optional[Literal["no_buf", "batch", "window"]] = "no_buf",
         buffer_size: Optional[int] = None,
         config: Optional[CoreDetectorConfig | dict] = CoreDetectorConfig(),
-        id_generator: op.SimpleIDGenerator = op.SimpleIDGenerator,
     ):
         if isinstance(config, dict):
             config = CoreDetectorConfig.from_dict(config)
@@ -61,28 +46,27 @@ class CoreDetector(CoreComponent, ABC):
             name=name,
             type_="Detector",
             config=config,
-            train_function=self.train,
-            process_function=self.run,
             args_buffer=ArgsBuffer(
                 mode=buffer_mode, size=buffer_size
             ),
             input_schema=schemas.PARSER_SCHEMA,
             output_schema=schemas.DETECTOR_SCHEMA,
         )
-        self.id_generator = id_generator(self.config.start_id)
 
     def run(
-        self, input_: List[schemas.ParserSchema] | schemas.ParserSchema
-    ) -> schemas.DetectorSchema | None:
-        if input_ is None:
-            return
-        output_ = _generate_default_output(input_=input_, config=self.config)
+        self,
+        input_: List[schemas.ParserSchema] | schemas.ParserSchema,
+        output_: schemas.DetectorSchema
+    ) -> None:
+
+        output_.logIDs.extend(_extract_logIDs(input_))
+        output_.extractedTimestamps.extend(_extract_timestamp(input_))
+        output_.alertID = self.id_generator()
+        output_.receivedTimestamp = int(datetime.now().timestamp())
 
         self.detect(input_=input_, output_=output_)
-        output_.alertID = self.id_generator()
-        return output_
+        output_.detectionTimestamp = int(datetime.now().timestamp())
 
-    @abstractmethod
     def detect(
         self,
         input_: List[schemas.ParserSchema] | schemas.ParserSchema,
@@ -90,9 +74,6 @@ class CoreDetector(CoreComponent, ABC):
     ) -> None:
         return
 
-    @abstractmethod
     def train(
         self, input_: schemas.ParserSchema | list[schemas.ParserSchema]
     ) -> None: ...
-
-    # def _auto_config(self) -> Any: ...

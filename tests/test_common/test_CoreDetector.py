@@ -18,9 +18,7 @@ class MockupDetector(CoreDetector):
     def detect(self, input_, output_):
         output_.score = 0.9
         output_.predictionLabel = True
-
-    def train(self, data):
-        pass
+        output_.description = "hii"
 
 
 class MockupDetector_window(CoreDetector):
@@ -32,9 +30,7 @@ class MockupDetector_window(CoreDetector):
     def detect(self, input_, output_):
         output_.score = 0.9
         output_.predictionLabel = True
-
-    def train(self, data):
-        pass
+        output_.description = "hii"
 
 
 class MockupDetector_buffer(CoreDetector):
@@ -46,9 +42,28 @@ class MockupDetector_buffer(CoreDetector):
     def detect(self, input_, output_):
         output_.score = 0.9
         output_.predictionLabel = True
+        output_.description = "hii"
 
-    def train(self, data):
-        pass
+
+class IncompleteMockupDetector(CoreDetector):
+    def __init__(self, name: str, config: CoreDetectorConfig) -> None:
+        super().__init__(name=name, buffer_mode="no_buf", config=config)
+
+    def detect(self, input_, output_):
+        output_.predictionLabel = True
+
+
+dummy_schema = {
+    "parserType": "a",
+    "EventID": 0,
+    "template": "asd",
+    "variables": [""],
+    "logID": 0,
+    "parsedLogID": 22,
+    "parserID": "test",
+    "log": "This is a parsed log.",
+    "logFormatVariables": {"timestamp": "12121"},
+}
 
 
 class TestCoreDetector:
@@ -67,9 +82,7 @@ class TestCoreDetector:
 
     def test_process_correct_input_schema(self) -> None:
         detector = MockupDetector(name="TestDetector", config={})
-        data = schemas.initialize(schemas.PARSER_SCHEMA, **{
-            "logFormatVariables": {"timestamp": "12121"}, "log": "This is a parsed log."
-        })
+        data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_schema)
         data_serialized = schemas.serialize(schemas.PARSER_SCHEMA, data)
         result = detector.process(data_serialized)  # no error should be produced
         assert isinstance(result, bytes)  # and result should be bytes
@@ -87,15 +100,16 @@ class TestCoreDetector:
             "__version__": "1.0.0",
             "detectorID": "TestDetector01",
             "detectorType": "TestType",
-            "alertID": 0,
+            "alertID": 10,
             "detectionTimestamp": int(datetime.now().timestamp()),
+            "logIDs": [0],
             "predictionLabel": True,
             "score": 0.9,
-            "extractedTimestamps": [12121]
+            "description": "hii",
+            "extractedTimestamps": [12121],
+            "receivedTimestamp": int(datetime.now().timestamp()),
         })
-        data = schemas.initialize(schemas.PARSER_SCHEMA, **{
-            "logFormatVariables": {"timestamp": "12121"}, "log": "This is a parsed log."
-        })
+        data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_schema)
         result = detector.process(data)
         assert result == expected_result, f"result -> {result}"
 
@@ -105,15 +119,16 @@ class TestCoreDetector:
             "__version__": "1.0.0",
             "detectorID": "TestDetector01",
             "detectorType": "TestType",
-            "alertID": 0,
+            "alertID": 10,
             "detectionTimestamp": int(datetime.now().timestamp()),
+            "logIDs": [0, 0, 0],
             "predictionLabel": True,
             "score": 0.9,
-            "extractedTimestamps": [12121, 12121, 12121]
+            "description": "hii",
+            "extractedTimestamps": [12121, 12121, 12121],
+            "receivedTimestamp": int(datetime.now().timestamp()),
         })
-        data = schemas.initialize(schemas.PARSER_SCHEMA, **{
-            "logFormatVariables": {"timestamp": "12121"}, "log": "This is a parsed log."
-        })
+        data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_schema)
 
         assert detector.process(data) is None
         assert detector.process(data) is None
@@ -127,18 +142,26 @@ class TestCoreDetector:
             "__version__": "1.0.0",
             "detectorID": "TestDetector01",
             "detectorType": "TestType",
-            "alertID": 0,
+            "alertID": 10,
             "detectionTimestamp": int(datetime.now().timestamp()),
+            "logIDs": [0, 0, 0],
             "predictionLabel": True,
             "score": 0.9,
-            "extractedTimestamps": [12121, 12121, 12121]
+            "description": "hii",
+            "extractedTimestamps": [12121, 12121, 12121],
+            "receivedTimestamp": int(datetime.now().timestamp()),
         })
-        data = schemas.initialize(schemas.PARSER_SCHEMA, **{
-            "logFormatVariables": {"timestamp": "12121"}, "log": "This is a parsed log."
-        })
+        data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_schema)
 
         assert detector.process(data) is None
         assert detector.process(data) is None
 
         result = detector.process(data)
         assert result == expected_result, f"result -> {expected_result} and {result}"
+
+    def test_incomplete_detector(self) -> None:
+        detector = IncompleteMockupDetector(name="TestDetector", config=MockupConfig())
+        data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_schema)
+
+        with pytest.raises(schemas.NotCompleteSchema):
+            detector.process(data)

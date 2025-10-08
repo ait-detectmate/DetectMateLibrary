@@ -10,10 +10,13 @@ from src.schemas._op import (
     DETECTOR_SCHEMA,
     NotSupportedSchema,
     IncorrectSchema,
+    NotCompleteSchema,
     initialize,
+    initialize_with_default,
     serialize,
     deserialize,
     check_is_same_schema,
+    check_if_schema_is_complete,
     SchemaID,
     SchemaT
 )

@@ -1,32 +1,38 @@
 
-from typing import Any, Dict
-from pydantic import BaseModel
-from typing import Callable, Optional
+from src.utils.data_buffer import DataBuffer, ArgsBuffer
+from src.utils.id_generator import SimpleIDGenerator
+from src.utils.aux import BasicConfig
 
-from src.components.utils.data_buffer import DataBuffer, ArgsBuffer
 import src.schemas as schemas
 
+from typing import Any, Dict, Tuple, List
 
-class ConfigCore(BaseModel):
-    """Base configuration class with helper methods."""
 
-    # Forbid extra fields not defined in subclasses (via pydantic)
-    class Config:
-        extra = "forbid"
+class CoreConfig(BasicConfig):
+    start_id: int = 10
 
-    def get_config(self) -> Dict[str, Any]:
-        """Return the configuration as a dictionary."""
-        return self.model_dump()
 
-    def update_config(self, new_config: dict) -> None:
-        """Update the configuration with new values."""
-        for key, value in new_config.items():
-            setattr(self, key, value)
+class SchemaPipeline:
+    @staticmethod
+    def preprocess(
+        schema_id: schemas.SchemaID, data: schemas.AnySchema | bytes
+    ) -> Tuple[bool, schemas.AnySchema]:
 
-    @classmethod
-    def from_dict(cls, data: dict) -> "ConfigCore":
-        """Create a ConfigCore instance from a dictionary."""
-        return cls(**data)
+        is_byte = False
+        if isinstance(data, bytes):
+            schema_id_, data = schemas.deserialize(data)
+            is_byte = True
+            schemas.check_is_same_schema(schema_id_, schema_id)
+
+        return is_byte, data
+
+    @staticmethod
+    def postprocess(
+        schema_id: schemas.SchemaID, data: schemas.AnySchema, is_byte: bool
+    ) -> schemas.AnySchema | bytes:
+
+        schemas.check_if_schema_is_complete(data)
+        return data if not is_byte else schemas.serialize(schema_id, data)
 
 
 class CoreComponent:
@@ -34,10 +40,8 @@ class CoreComponent:
     def __init__(
         self,
         name: str,
-        type_: str = "Base",
-        config: ConfigCore = ConfigCore(),
-        train_function: Optional[Callable[[Any], None]] = lambda x: None,
-        process_function: Optional[Callable[[Any], Any]] = lambda x: x,
+        type_: str = "Core",
+        config: CoreConfig = CoreConfig(),
         args_buffer: ArgsBuffer = ArgsBuffer("no_buf"),
         input_schema: schemas.SchemaID = schemas.BASE_SCHEMA,
         output_schema: schemas.SchemaID = schemas.BASE_SCHEMA
@@ -46,33 +50,28 @@ class CoreComponent:
         self.name = name
         self.type_ = type_
         self.config = config
-        self.train = train_function
-        self.processing_function = process_function
         self.input_schema, self.output_schema = input_schema, output_schema
 
         self.data_buffer = DataBuffer(args_buffer)
+        self.id_generator = SimpleIDGenerator(self.config.start_id)
 
     def __repr__(self) -> str:
         return f"<{self.type_}> {self.name}: {self.config}"
 
-    def process(
-        self, data: schemas.SchemaT | bytes, learnmode: bool = False
-    ) -> schemas.SchemaT | bytes | None:
-        is_byte = False
-        if isinstance(data, bytes):
-            schema_id, data = schemas.deserialize(data)
-            is_byte = True
-            schemas.check_is_same_schema(schema_id, self.input_schema)
+    def run(
+        self, input_: List[schemas.AnySchema] | schemas.AnySchema, output_: schemas.AnySchema
+    ) -> None:
+        pass
 
-        data_buffered = self.data_buffer.add(data)
-        if learnmode:
-            result = self.train(data_buffered)  # returns None
-        else:
-            result = self.processing_function(data_buffered)
-        if result is None:
+    def process(self, data: schemas.AnySchema | bytes) -> schemas.AnySchema | bytes | None:
+        is_byte, data = SchemaPipeline.preprocess(self.input_schema, data)
+        if (data_buffered := self.data_buffer.add(data)) is None:
             return None
 
-        return result if not is_byte else schemas.serialize(self.output_schema, result)
+        output_ = schemas.initialize_with_default(self.output_schema, config=self.config)
+        self.run(data_buffered, output_)
+
+        return SchemaPipeline.postprocess(self.output_schema, output_, is_byte=is_byte)
 
     def get_config(self) -> Dict[str, Any]:
         return self.config.get_config()

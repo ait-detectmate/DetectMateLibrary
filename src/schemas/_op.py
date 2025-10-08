@@ -1,7 +1,12 @@
 """" Interface between the code base and the protobuf code."""
+from src.utils.aux import BasicConfig
+
 import src.schemas.schemas_pb2 as s
 
+
 from typing import NewType, Tuple, Dict, Type, Union
+
+from google.protobuf.descriptor import FieldDescriptor
 from google.protobuf.message import Message
 
 
@@ -37,12 +42,23 @@ class IncorrectSchema(Exception):
     pass
 
 
+class NotCompleteSchema(Exception):
+    """Not all the fields are full."""
+    pass
+
+
 # Private methods *************************************
 def __get_schema_class(schema_id: SchemaID) -> Type[Message]:
     """Get the schema class for the given schema ID."""
     if schema_id not in __id_codes:
         raise NotSupportedSchema()
+
     return __id_codes[schema_id]
+
+
+def __is_repeated_field(field) -> bool:
+    """Check if a field in the message is a repeated element."""
+    return field.label == FieldDescriptor.LABEL_REPEATED
 
 
 # Main methods *****************************************
@@ -54,11 +70,26 @@ def initialize(schema_id: SchemaID, **kwargs) -> SchemaT:
     return schema_class(**kwargs)
 
 
+def initialize_with_default(schema_id: SchemaID, config: BasicConfig) -> SchemaT:
+    """Initialize schema with default fields in a Config instance."""
+    fields = initialize(schema_id=schema_id, **{}).DESCRIPTOR.fields
+    args = {}
+    dict_config = config.get_config()
+    for field in fields:
+        if field.name in dict_config:
+            args[field.name] = dict_config[field.name]
+
+    return initialize(schema_id=schema_id, **args)
+
+
 def serialize(id_schema: SchemaID, schema: SchemaT) -> bytes:
     """Convert the protobuf schema into a binary serialization.
 
     First 4 bits are the schema id
     """
+    if id_schema not in __id_codes:
+        raise NotSupportedSchema()
+
     return id_schema + schema.SerializeToString()
 
 
@@ -78,3 +109,17 @@ def check_is_same_schema(
     if id_schema_1 != id_schema_2:
         raise IncorrectSchema()
     return None
+
+
+def check_if_schema_is_complete(schema: SchemaT) -> None | NotCompleteSchema:
+    """Check if the schema is complete."""
+    missing_fields = []
+    for field in schema.DESCRIPTOR.fields:
+        if __is_repeated_field(field):
+            # TODO: for now this is ignore
+            pass
+        elif not schema.HasField(field.name):
+            missing_fields.append(field.name)
+
+    if len(missing_fields) > 0:
+        raise NotCompleteSchema(f"Missing fields: {missing_fields}")
