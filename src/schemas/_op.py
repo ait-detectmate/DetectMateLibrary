@@ -125,10 +125,7 @@ def check_if_schema_is_complete(schema: SchemaT) -> None | NotCompleteSchema:
     """Check if the schema is complete."""
     missing_fields = []
     for field in schema.DESCRIPTOR.fields:
-        if __is_repeated_field(field):
-            # TODO: for now this is ignore
-            pass
-        elif not schema.HasField(field.name):
+        if not __is_repeated_field(field) and not schema.HasField(field.name):
             missing_fields.append(field.name)
 
     if len(missing_fields) > 0:
