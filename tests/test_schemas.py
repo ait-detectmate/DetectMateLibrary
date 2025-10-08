@@ -101,6 +101,14 @@ class TestCaseSchemas:
         schema.log = "hello"
         assert schema != schema2
 
+    def test_copy_incorrect_schema(self) -> None:
+        values = {
+            "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
+        }
+        schema = schemas.initialize(schemas.LOG_SCHEMA, **values)
+        with pytest.raises(schemas.IncorrectSchema):
+            schemas.copy(schemas.PARSER_SCHEMA, schema)
+
     def test_serialize_method(self) -> None:
         values = {
             "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"

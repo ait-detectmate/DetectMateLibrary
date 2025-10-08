@@ -82,11 +82,14 @@ def initialize_with_default(schema_id: SchemaID, config: BasicConfig) -> SchemaT
     return initialize(schema_id=schema_id, **args)
 
 
-def copy(schema_id: SchemaID,  schema: SchemaT) -> SchemaT:
+def copy(schema_id: SchemaID,  schema: SchemaT) -> SchemaT | IncorrectSchema:
     """Make a copy of the schema."""
-    new_schema = initialize(schema_id=schema_id, **{})
-    new_schema.CopyFrom(schema)
-    return new_schema
+    try:
+        new_schema = initialize(schema_id=schema_id, **{})
+        new_schema.CopyFrom(schema)
+        return new_schema
+    except TypeError:
+        raise IncorrectSchema()
 
 
 def serialize(id_schema: SchemaID, schema: SchemaT) -> bytes:
