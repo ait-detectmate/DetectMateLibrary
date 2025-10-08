@@ -90,6 +90,17 @@ class TestCaseSchemas:
 
         assert schema == expected_schema
 
+    def test_copy(self) -> None:
+        values = {
+            "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
+        }
+        schema = schemas.initialize(schemas.LOG_SCHEMA, **values)
+        schema2 = schemas.copy(schemas.LOG_SCHEMA, schema)
+
+        assert schema == schema2
+        schema.log = "hello"
+        assert schema != schema2
+
     def test_serialize_method(self) -> None:
         values = {
             "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"

@@ -82,6 +82,13 @@ def initialize_with_default(schema_id: SchemaID, config: BasicConfig) -> SchemaT
     return initialize(schema_id=schema_id, **args)
 
 
+def copy(schema_id: SchemaID,  schema: SchemaT) -> SchemaT:
+    """Make a copy of the schema."""
+    new_schema = initialize(schema_id=schema_id, **{})
+    new_schema.CopyFrom(schema)
+    return new_schema
+
+
 def serialize(id_schema: SchemaID, schema: SchemaT) -> bytes:
     """Convert the protobuf schema into a binary serialization.
 
