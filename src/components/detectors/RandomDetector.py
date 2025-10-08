@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import Optional, Dict, List, Union
 from typing_extensions import Literal
 from src.components.common.detector import CoreDetector, CoreDetectorConfig
+import src.schemas as schemas
 from pydantic import BaseModel, Field
 
 import numpy as np
@@ -107,30 +108,37 @@ class RandomDetector(CoreDetector):
     ) -> None:
         super().__init__(name=name, buffer_mode="no_buf", config=config)
 
-    def train(self, input_) -> None:
+    def train(self, input_: List[schemas.ParserSchema] | schemas.ParserSchema) -> None:
         """Train the detector by learning known values from the input data."""
         return
 
-    def detect(self, input_, output_) -> bool:
+    def detect(
+        self,
+        input_: List[schemas.ParserSchema] | schemas.ParserSchema,
+        output_: schemas.DetectorSchema
+    ) -> bool:
         """Detect new values in the input data.
 
         Only processes events and variables specified in the
         hierarchical configuration.
         """
-        input_data = self.data_buffer.add(input_)
         overall_score = 0.0
-        for input_data_point in input_data:
-            data_instances = self.config.get_filtered_data_instances(input_data_point)
-            for event_id, data in data_instances.items():
-                # randomly decide if anomaly or not
-                if np.random.rand() < 0.5:
-                    # anomaly_detected = True
-                    score = 1.0
-                else:
-                    # anomaly_detected = False
-                    score = 0.0
-                overall_score += score
+        alerts = {}
+        data_instances = self.config.get_filtered_data_instances(input_)
+        for i, (event_id, data) in enumerate(data_instances.items()):
+            # randomly decide if anomaly or not
+            print(data)
+            if np.random.rand() < 0.5:
+                # anomaly_detected = True
+                score = 1.0
+                alerts.update({str(data): str(score)})
+            else:
+                # anomaly_detected = False
+                score = 0.0
+            overall_score += score
         if overall_score > 0:
             output_.score = overall_score
-            output_
+            # Use update() method for protobuf map fields
+            output_.alertsObtain.update(alerts)
             return True
+        return False
