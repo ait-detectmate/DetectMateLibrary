@@ -50,6 +50,18 @@ class IncompleteMockupDetector(CoreDetector):
         output_.description = "hii"
 
 
+class NoneMockupDetector(CoreDetector):
+    def __init__(self, name: str, config: CoreDetectorConfig) -> None:
+        super().__init__(name=name, buffer_mode="no_buf", config=config)
+        self.value = True
+
+    def detect(self, input_, output_):
+        output_.score = 0.9
+        output_.description = "hii"
+        self.value = not self.value
+        return self.value
+
+
 dummy_schema = {
     "parserType": "a",
     "EventID": 0,
@@ -159,3 +171,10 @@ class TestCoreDetector:
 
         with pytest.raises(schemas.NotCompleteSchema):
             detector.process(data)
+
+    def test_none_detector(self) -> None:
+        detector = NoneMockupDetector(name="TestDetector", config=MockupConfig())
+        data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_schema)
+
+        assert detector.process(data) is None
+        assert detector.process(data) is not None

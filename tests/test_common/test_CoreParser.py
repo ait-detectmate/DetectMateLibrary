@@ -32,6 +32,22 @@ class IncompleteMockupParser(CoreParser):
         output_.logFormatVariables["t"] = "c"
 
 
+class NoneMockupParser(CoreParser):
+    def __init__(self, name: str, config: CoreParserConfig) -> None:
+        super().__init__(name=name, config=config)
+        self.value = True
+
+    def parse(self, input_, output_):
+        self.value = not self.value
+
+        output_.EventID = 1
+        output_.template = "hello"
+        output_.variables.extend(["a", "b"])
+        output_.logFormatVariables["t"] = "c"
+
+        return self.value
+
+
 class TestCoreParser:
     def test_initialize_default(self) -> None:
         parser = MockupParser(name="TestParser", config={})
@@ -106,3 +122,12 @@ class TestCoreParser:
 
         with pytest.raises(schemas.NotCompleteSchema):
             parser.process(data)
+
+    def test_none_parser(self) -> None:
+        parser = NoneMockupParser(name="TestParser", config=MockupConfig())
+        data = schemas.initialize(schemas.LOG_SCHEMA, **{
+            "logID": 1, "log": "This is a log.", "logSource": "", "hostname": ""
+        })
+
+        assert parser.process(data) is None
+        assert parser.process(data) is not None

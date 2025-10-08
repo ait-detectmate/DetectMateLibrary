@@ -31,20 +31,22 @@ class CoreParser(CoreComponent):
             output_schema=schemas.PARSER_SCHEMA,
         )
 
-    def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> None:
+    def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:
 
         output_.parsedLogID = self.id_generator()
         output_.logID = input_.logID
         output_.log = input_.log
         output_.receivedTimestamp = int(datetime.now().timestamp())
 
-        self.parse(input_=input_, output_=output_)
+        use_schema = self.parse(input_=input_, output_=output_)
         output_.parsedTimestamp = int(datetime.now().timestamp())
+
+        return True if use_schema is None else use_schema
 
     def parse(
         self, input_: schemas.LogSchema, output_: schemas.ParserSchema
-    ) -> None:
-        return
+    ) -> bool:
+        return True
 
     def train(self, data: Any, config: CoreConfig) -> None:
         pass

@@ -57,22 +57,24 @@ class CoreDetector(CoreComponent):
         self,
         input_: List[schemas.ParserSchema] | schemas.ParserSchema,
         output_: schemas.DetectorSchema
-    ) -> None:
+    ) -> bool:
 
         output_.logIDs.extend(_extract_logIDs(input_))
         output_.extractedTimestamps.extend(_extract_timestamp(input_))
         output_.alertID = self.id_generator()
         output_.receivedTimestamp = int(datetime.now().timestamp())
 
-        self.detect(input_=input_, output_=output_)
+        use_schema = self.detect(input_=input_, output_=output_)
         output_.detectionTimestamp = int(datetime.now().timestamp())
+
+        return True if use_schema is None else use_schema
 
     def detect(
         self,
         input_: List[schemas.ParserSchema] | schemas.ParserSchema,
         output_: schemas.DetectorSchema,
-    ) -> None:
-        return
+    ) -> bool | None:
+        return True
 
     def train(
         self, input_: schemas.ParserSchema | list[schemas.ParserSchema]
