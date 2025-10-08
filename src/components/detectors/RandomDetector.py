@@ -1,8 +1,10 @@
 from collections import defaultdict
-from typing import Any, Iterable, Optional, Dict, List, Set, Union
+from typing import Optional, Dict, List, Union
 from typing_extensions import Literal
 from src.components.common.detector import CoreDetector, CoreDetectorConfig
 from pydantic import BaseModel, Field
+
+import numpy as np
 
 
 class EventConfig(BaseModel):
@@ -25,8 +27,8 @@ class EventConfig(BaseModel):
         extra = "forbid"
 
 
-class NVDConfig(CoreDetectorConfig):
-    """Configuration for NewValueDetector with hierarchical event-based
+class RandomConfig(CoreDetectorConfig):
+    """Configuration for RandomDetector with hierarchical event-based
     filtering."""
 
     event_configs: Dict[Union[int, Literal["all"]], List[EventConfig]] = defaultdict(
@@ -97,33 +99,17 @@ class NVDConfig(CoreDetectorConfig):
         return data_instances
 
 
-class NewValueDetector(CoreDetector):
-    """New Value Detector with hierarchical configuration support."""
-
-    # Explicit type annotations for better IDE support
-    config: NVDConfig
-    value_set: Dict[int, Dict[Union[str, int], Set[Any]]]
+class RandomDetector(CoreDetector):
+    """Random Detector with hierarchical configuration support."""
 
     def __init__(
-        self, name: str = "NewValueDetector", config: NVDConfig = NVDConfig()
+        self, name: str = "RandomDetector", config: RandomConfig = RandomConfig()
     ) -> None:
         super().__init__(name=name, buffer_mode="no_buf", config=config)
-        self.value_set = defaultdict(lambda: defaultdict(set))
 
     def train(self, input_) -> None:
         """Train the detector by learning known values from the input data."""
-        if not isinstance(input_, Iterable):
-            input_data = [input_]
-        else:
-            input_data = input_
-        # Iterate over each input data point
-        # (detectors might receive multiple parsed logs, based on databuffer settings)
-        for input_data_point in input_data:
-            data_instances = self.config.get_filtered_data_instances(input_data_point)
-            for event_id, data in data_instances.items():
-                for var_name, values in data.items():
-                    for value in values:
-                        self.value_set[event_id][var_name].add(value)
+        return
 
     def detect(self, input_, output_) -> bool:
         """Detect new values in the input data.
@@ -131,27 +117,20 @@ class NewValueDetector(CoreDetector):
         Only processes events and variables specified in the
         hierarchical configuration.
         """
-        if not isinstance(input_, Iterable):
-            input_data = [input_]
-        else:
-            input_data = input_
-        for data_point_raw in input_data:
-            data_instances = self.config.get_filtered_data_instances(data_point_raw)
+        input_data = self.data_buffer.add(input_)
+        overall_score = 0.0
+        for input_data_point in input_data:
+            data_instances = self.config.get_filtered_data_instances(input_data_point)
             for event_id, data in data_instances.items():
-                if event_id not in self.value_set:
-                    continue
-                anomaly_detected = False
-                overall_score = 0.0
-                for var_name, values in data.items():
-                    for value in values:
-                        if value not in self.value_set[event_id][var_name]:
-                            # anomaly_detected = True
-                            # Simple scoring: 1.0 for new value, 0.0 for known value
-                            score = 1.0
-                        else:
-                            score = 0.0
-                        overall_score += score
-
-        # Set output values
-        output_.score = overall_score
-        return anomaly_detected
+                # randomly decide if anomaly or not
+                if np.random.rand() < 0.5:
+                    # anomaly_detected = True
+                    score = 1.0
+                else:
+                    # anomaly_detected = False
+                    score = 0.0
+                overall_score += score
+        if overall_score > 0:
+            output_.score = overall_score
+            output_
+            return True
