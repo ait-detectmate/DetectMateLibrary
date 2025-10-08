@@ -70,7 +70,7 @@ class CoreDetector(CoreComponent):
     def detect(
         self,
         input_: List[schemas.ParserSchema] | schemas.ParserSchema,
-        output_: schemas.DetectorSchema
+        output_: schemas.DetectorSchema,
     ) -> None:
         return
 

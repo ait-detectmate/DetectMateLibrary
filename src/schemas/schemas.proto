@@ -39,4 +39,5 @@ message DetectorSchema {
     repeated int32 extractedTimestamps = 9;
     optional string description = 10;
     optional int32 receivedTimestamp = 11;
+    map<string, string> alertsObtain = 12;
 }
