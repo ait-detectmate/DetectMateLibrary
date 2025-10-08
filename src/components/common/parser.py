@@ -5,6 +5,7 @@ from src.utils.data_buffer import ArgsBuffer
 import src.schemas as schemas
 
 from typing import Any, Optional
+from datetime import datetime
 
 
 class CoreParserConfig(CoreConfig):
@@ -35,9 +36,10 @@ class CoreParser(CoreComponent):
         output_.parsedLogID = self.id_generator()
         output_.logID = input_.logID
         output_.log = input_.log
+        output_.receivedTimestamp = int(datetime.now().timestamp())
 
         self.parse(input_=input_, output_=output_)
-        return output_
+        output_.parsedTimestamp = int(datetime.now().timestamp())
 
     def parse(
         self, input_: schemas.LogSchema, output_: schemas.ParserSchema

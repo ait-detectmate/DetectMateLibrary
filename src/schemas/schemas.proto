@@ -23,6 +23,8 @@ message ParserSchema {
     optional int32 logID = 8;
     string log = 9;
     map<string, string> logFormatVariables = 10;
+    optional int32 receivedTimestamp = 11;
+    optional int32 parsedTimestamp = 12;
 }
 
 message DetectorSchema {
@@ -36,4 +38,5 @@ message DetectorSchema {
     float score = 8;
     repeated int32 extractedTimestamps = 9;
     string description = 10;
+    optional int32 receivedTimestamp = 11;
 }

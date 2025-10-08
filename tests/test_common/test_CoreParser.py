@@ -1,6 +1,7 @@
 from src.components.common.parser import CoreParser, CoreParserConfig
 import src.schemas as schemas
 
+from datetime import datetime
 import pydantic
 import pytest
 
@@ -71,7 +72,9 @@ class TestCoreParser:
             "template": "hello",
             "parsedLogID": 10,
             "logID": 1,
-            "log": "This is a log."
+            "log": "This is a log.",
+            "receivedTimestamp": int(datetime.now().timestamp()),
+            "parsedTimestamp": int(datetime.now().timestamp()),
         })
         expected_result.variables.extend(["a", "b"])
         expected_result.logFormatVariables["t"] = "c"

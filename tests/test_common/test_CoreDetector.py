@@ -106,7 +106,8 @@ class TestCoreDetector:
             "predictionLabel": True,
             "score": 0.9,
             "description": "hii",
-            "extractedTimestamps": [12121]
+            "extractedTimestamps": [12121],
+            "receivedTimestamp": int(datetime.now().timestamp()),
         })
         data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_schema)
         result = detector.process(data)
@@ -124,7 +125,8 @@ class TestCoreDetector:
             "predictionLabel": True,
             "score": 0.9,
             "description": "hii",
-            "extractedTimestamps": [12121, 12121, 12121]
+            "extractedTimestamps": [12121, 12121, 12121],
+            "receivedTimestamp": int(datetime.now().timestamp()),
         })
         data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_schema)
 
@@ -146,7 +148,8 @@ class TestCoreDetector:
             "predictionLabel": True,
             "score": 0.9,
             "description": "hii",
-            "extractedTimestamps": [12121, 12121, 12121]
+            "extractedTimestamps": [12121, 12121, 12121],
+            "receivedTimestamp": int(datetime.now().timestamp()),
         })
         data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_schema)
 

@@ -59,12 +59,13 @@ class CoreDetector(CoreComponent):
         output_: schemas.DetectorSchema
     ) -> None:
 
-        output_.detectionTimestamp = int(datetime.now().timestamp())
         output_.logIDs.extend(_extract_logIDs(input_))
         output_.extractedTimestamps.extend(_extract_timestamp(input_))
         output_.alertID = self.id_generator()
+        output_.receivedTimestamp = int(datetime.now().timestamp())
 
         self.detect(input_=input_, output_=output_)
+        output_.detectionTimestamp = int(datetime.now().timestamp())
 
     def detect(
         self,
