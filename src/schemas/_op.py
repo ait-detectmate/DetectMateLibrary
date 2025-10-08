@@ -62,7 +62,7 @@ def __is_repeated_field(field) -> bool:
 
 
 # Main methods *****************************************
-def initialize(schema_id: SchemaID, **kwargs) -> SchemaT:
+def initialize(schema_id: SchemaID, **kwargs) -> SchemaT | NotSupportedSchema:
     """Initialize a protobuf schema, it use its arguments and the assigned
     id."""
     kwargs["__version__"] = __current_version
@@ -70,7 +70,9 @@ def initialize(schema_id: SchemaID, **kwargs) -> SchemaT:
     return schema_class(**kwargs)
 
 
-def initialize_with_default(schema_id: SchemaID, config: BasicConfig) -> SchemaT:
+def initialize_with_default(
+    schema_id: SchemaID, config: BasicConfig
+) -> SchemaT | NotSupportedSchema:
     """Initialize schema with default fields in a Config instance."""
     fields = initialize(schema_id=schema_id, **{}).DESCRIPTOR.fields
     args = {}
@@ -80,6 +82,18 @@ def initialize_with_default(schema_id: SchemaID, config: BasicConfig) -> SchemaT
             args[field.name] = dict_config[field.name]
 
     return initialize(schema_id=schema_id, **args)
+
+
+def copy(
+    schema_id: SchemaID,  schema: SchemaT
+) -> SchemaT | IncorrectSchema | NotSupportedSchema:
+    """Make a copy of the schema."""
+    new_schema = initialize(schema_id=schema_id, **{})
+    try:
+        new_schema.CopyFrom(schema)
+        return new_schema
+    except TypeError:
+        raise IncorrectSchema()
 
 
 def serialize(id_schema: SchemaID, schema: SchemaT) -> bytes:
@@ -115,10 +129,7 @@ def check_if_schema_is_complete(schema: SchemaT) -> None | NotCompleteSchema:
     """Check if the schema is complete."""
     missing_fields = []
     for field in schema.DESCRIPTOR.fields:
-        if __is_repeated_field(field):
-            # TODO: for now this is ignore
-            pass
-        elif not schema.HasField(field.name):
+        if not __is_repeated_field(field) and not schema.HasField(field.name):
             missing_fields.append(field.name)
 
     if len(missing_fields) > 0:

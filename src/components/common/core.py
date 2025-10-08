@@ -24,7 +24,7 @@ class SchemaPipeline:
             is_byte = True
             schemas.check_is_same_schema(schema_id_, schema_id)
 
-        return is_byte, data
+        return is_byte, schemas.copy(schema_id, schema=data)
 
     @staticmethod
     def postprocess(

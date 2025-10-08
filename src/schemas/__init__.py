@@ -13,6 +13,7 @@ from src.schemas._op import (
     NotCompleteSchema,
     initialize,
     initialize_with_default,
+    copy,
     serialize,
     deserialize,
     check_is_same_schema,
