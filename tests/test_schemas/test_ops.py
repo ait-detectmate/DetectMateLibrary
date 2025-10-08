@@ -66,7 +66,6 @@ class TestCaseSchemas:
             "alertID": 1,
             "detectionTimestamp": 2,
             "logIDs": [1, 2, 3],
-            "predictionLabel": True,
             "score": 0.5,
             "extractedTimestamps": [4, 5, 6]
         }
@@ -78,7 +77,6 @@ class TestCaseSchemas:
         assert schema.alertID == 1
         assert schema.detectionTimestamp == 2
         assert schema.logIDs == [1, 2, 3]
-        assert schema.predictionLabel
         assert schema.score == 0.5
         assert schema.extractedTimestamps == [4, 5, 6]
 

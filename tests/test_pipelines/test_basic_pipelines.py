@@ -16,7 +16,6 @@ class MockupParser(CoreParser):
 class MockupDetector(CoreDetector):
     def detect(self, input_, output_):
         output_.score = 0.9
-        output_.predictionLabel = True
         output_.description = "ciao"
 
 

@@ -34,7 +34,6 @@ message DetectorSchema {
     optional int32 alertID = 4;
     optional int32 detectionTimestamp = 5;
     repeated int32 logIDs = 6;
-    optional bool predictionLabel = 7;
     optional float score = 8;
     repeated int32 extractedTimestamps = 9;
     optional string description = 10;

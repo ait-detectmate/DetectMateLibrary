@@ -34,7 +34,6 @@ class TestCaseDefaultValues:
             "alertID": 0,
             "detectionTimestamp": 0,
             "logIDs": [0, 0, 0],
-            "predictionLabel": True,
             "score": 0.0,
             "extractedTimestamps": [0, 0, 0],
             "description": "",

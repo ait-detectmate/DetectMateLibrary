@@ -17,7 +17,6 @@ class MockupDetector(CoreDetector):
 
     def detect(self, input_, output_):
         output_.score = 0.9
-        output_.predictionLabel = True
         output_.description = "hii"
 
 
@@ -29,7 +28,6 @@ class MockupDetector_window(CoreDetector):
 
     def detect(self, input_, output_):
         output_.score = 0.9
-        output_.predictionLabel = True
         output_.description = "hii"
 
 
@@ -41,7 +39,6 @@ class MockupDetector_buffer(CoreDetector):
 
     def detect(self, input_, output_):
         output_.score = 0.9
-        output_.predictionLabel = True
         output_.description = "hii"
 
 
@@ -50,7 +47,7 @@ class IncompleteMockupDetector(CoreDetector):
         super().__init__(name=name, buffer_mode="no_buf", config=config)
 
     def detect(self, input_, output_):
-        output_.predictionLabel = True
+        output_.description = "hii"
 
 
 dummy_schema = {
@@ -103,7 +100,6 @@ class TestCoreDetector:
             "alertID": 10,
             "detectionTimestamp": int(datetime.now().timestamp()),
             "logIDs": [0],
-            "predictionLabel": True,
             "score": 0.9,
             "description": "hii",
             "extractedTimestamps": [12121],
@@ -122,7 +118,6 @@ class TestCoreDetector:
             "alertID": 10,
             "detectionTimestamp": int(datetime.now().timestamp()),
             "logIDs": [0, 0, 0],
-            "predictionLabel": True,
             "score": 0.9,
             "description": "hii",
             "extractedTimestamps": [12121, 12121, 12121],
@@ -145,7 +140,6 @@ class TestCoreDetector:
             "alertID": 10,
             "detectionTimestamp": int(datetime.now().timestamp()),
             "logIDs": [0, 0, 0],
-            "predictionLabel": True,
             "score": 0.9,
             "description": "hii",
             "extractedTimestamps": [12121, 12121, 12121],
