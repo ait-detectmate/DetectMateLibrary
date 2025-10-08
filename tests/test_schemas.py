@@ -134,7 +134,7 @@ class TestCaseSchemas:
         schemas.check_if_schema_is_complete(schema)
 
 
-class TestCaseZeroProblem:
+class TestCaseDefaultValues:
     """Tests done to check that all the ints can work with zeros."""
     def test_log_schema(self) -> None:
         values = {
@@ -175,3 +175,21 @@ class TestCaseZeroProblem:
         }
         schema = schemas.initialize(schemas.DETECTOR_SCHEMA, **values)
         schemas.check_if_schema_is_complete(schema)
+
+    def test_initialize_parser_schema_empty_list_dict(self) -> None:
+        values = {
+            "parserType": "test",
+            "parserID": "test",
+            "EventID": 0,
+            "template": "test template",
+            "parsedLogID": 0,
+            "logID": 0,
+            "log": "test log",
+            "receivedTimestamp": 0,
+            "parsedTimestamp": 0,
+        }
+        schema = schemas.initialize(schemas.PARSER_SCHEMA, **values)
+        schemas.check_if_schema_is_complete(schema)
+
+        assert len(schema.logFormatVariables) == 0
+        assert len(schema.variables) == 0
