@@ -1,7 +1,7 @@
 from src.components.common.parser import CoreParser, CoreParserConfig
+from src.utils.aux import time_test_mode
 import src.schemas as schemas
 
-from datetime import datetime
 import pydantic
 import pytest
 
@@ -48,6 +48,9 @@ class NoneMockupParser(CoreParser):
         return self.value
 
 
+time_test_mode()
+
+
 class TestCoreParser:
     def test_initialize_default(self) -> None:
         parser = MockupParser(name="TestParser", config={})
@@ -89,8 +92,8 @@ class TestCoreParser:
             "parsedLogID": 10,
             "logID": 1,
             "log": "This is a log.",
-            "receivedTimestamp": int(datetime.now().timestamp()),
-            "parsedTimestamp": int(datetime.now().timestamp()),
+            "receivedTimestamp": 0,
+            "parsedTimestamp": 0,
         })
         expected_result.variables.extend(["a", "b"])
         expected_result.logFormatVariables["t"] = "c"

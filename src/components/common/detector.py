@@ -1,11 +1,11 @@
 from src.components.common.core import CoreComponent, CoreConfig
 
 from src.utils.data_buffer import ArgsBuffer
+from src.utils.aux import get_timestamp
 
 import src.schemas as schemas
 
 from typing import Literal, Optional, List
-from datetime import datetime
 
 
 class CoreDetectorConfig(CoreConfig):
@@ -62,10 +62,10 @@ class CoreDetector(CoreComponent):
         output_.logIDs.extend(_extract_logIDs(input_))
         output_.extractedTimestamps.extend(_extract_timestamp(input_))
         output_.alertID = self.id_generator()
-        output_.receivedTimestamp = int(datetime.now().timestamp())
+        output_.receivedTimestamp = get_timestamp()
 
         use_schema = self.detect(input_=input_, output_=output_)
-        output_.detectionTimestamp = int(datetime.now().timestamp())
+        output_.detectionTimestamp = get_timestamp()
 
         return True if use_schema is None else use_schema
 

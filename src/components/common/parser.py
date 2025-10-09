@@ -1,11 +1,11 @@
 from src.components.common.core import CoreComponent, CoreConfig
 
 from src.utils.data_buffer import ArgsBuffer
+from src.utils.aux import get_timestamp
 
 import src.schemas as schemas
 
 from typing import Any, Optional
-from datetime import datetime
 
 
 class CoreParserConfig(CoreConfig):
@@ -36,10 +36,10 @@ class CoreParser(CoreComponent):
         output_.parsedLogID = self.id_generator()
         output_.logID = input_.logID
         output_.log = input_.log
-        output_.receivedTimestamp = int(datetime.now().timestamp())
+        output_.receivedTimestamp = get_timestamp()
 
         use_schema = self.parse(input_=input_, output_=output_)
-        output_.parsedTimestamp = int(datetime.now().timestamp())
+        output_.parsedTimestamp = get_timestamp()
 
         return True if use_schema is None else use_schema
 

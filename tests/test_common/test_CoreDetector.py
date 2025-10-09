@@ -1,7 +1,7 @@
 from src.components.common.detector import CoreDetector, CoreDetectorConfig
+from src.utils.aux import time_test_mode
 import src.schemas as schemas
 
-from datetime import datetime
 import pydantic
 import pytest
 
@@ -75,6 +75,9 @@ dummy_schema = {
 }
 
 
+time_test_mode()
+
+
 class TestCoreDetector:
     def test_initialize_default(self) -> None:
         detector = MockupDetector(name="TestDetector", config={})
@@ -110,12 +113,12 @@ class TestCoreDetector:
             "detectorID": "TestDetector01",
             "detectorType": "TestType",
             "alertID": 10,
-            "detectionTimestamp": int(datetime.now().timestamp()),
+            "detectionTimestamp": 0,
             "logIDs": [0],
             "score": 0.9,
             "description": "hii",
             "extractedTimestamps": [12121],
-            "receivedTimestamp": int(datetime.now().timestamp()),
+            "receivedTimestamp": 0,
         })
         data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_schema)
         result = detector.process(data)
@@ -128,12 +131,12 @@ class TestCoreDetector:
             "detectorID": "TestDetector01",
             "detectorType": "TestType",
             "alertID": 10,
-            "detectionTimestamp": int(datetime.now().timestamp()),
+            "detectionTimestamp": 0,
             "logIDs": [0, 0, 0],
             "score": 0.9,
             "description": "hii",
             "extractedTimestamps": [12121, 12121, 12121],
-            "receivedTimestamp": int(datetime.now().timestamp()),
+            "receivedTimestamp": 0
         })
         data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_schema)
 
@@ -150,12 +153,12 @@ class TestCoreDetector:
             "detectorID": "TestDetector01",
             "detectorType": "TestType",
             "alertID": 10,
-            "detectionTimestamp": int(datetime.now().timestamp()),
+            "detectionTimestamp": 0,
             "logIDs": [0, 0, 0],
             "score": 0.9,
             "description": "hii",
             "extractedTimestamps": [12121, 12121, 12121],
-            "receivedTimestamp": int(datetime.now().timestamp()),
+            "receivedTimestamp": 0,
         })
         data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_schema)
 
