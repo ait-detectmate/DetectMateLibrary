@@ -4,6 +4,7 @@ from src.components.detectors.RandomDetector import RandomDetector, RandomConfig
 from src.components.common.detector import CoreDetector, CoreDetectorConfig
 import src.schemas as schemas
 
+import numpy as np
 
 # Test data schema for ParserSchema
 dummy_parser_schema = {
@@ -173,7 +174,7 @@ class TestRandomDetector:
 
         result = detector.detect(data, output)
 
-        assert result is False
+        assert not result
         assert output.score == 0.0
         assert len(output.alertsObtain) == 0
 
@@ -191,7 +192,7 @@ class TestRandomDetector:
 
         result = detector.detect(data, output)
 
-        assert result is True
+        assert result
         assert output.score == 1.0
         assert len(output.alertsObtain) == 1
 
@@ -203,10 +204,11 @@ class TestRandomDetector:
         data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_parser_schema)
         output = schemas.initialize(schemas.DETECTOR_SCHEMA, **{})
 
+        np.random.seed(0)
         result = detector.detect(data, output)
 
         # Should return False since no events are configured
-        assert result is False
+        assert not result
         assert output.score == 0.0
         assert len(output.alertsObtain) == 0
 
@@ -224,9 +226,10 @@ class TestRandomDetector:
         data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_parser_schema)
         output = schemas.initialize(schemas.DETECTOR_SCHEMA, **{})
 
+        np.random.seed(0)
         result = detector.detect(data, output)
 
-        assert result is True
+        assert result
 
     def test_detect_edge_case_empty_variables(self):
         """Test detect method with empty variables list."""
@@ -239,6 +242,7 @@ class TestRandomDetector:
         data = schemas.initialize(schemas.PARSER_SCHEMA, **empty_var_schema)
         output = schemas.initialize(schemas.DETECTOR_SCHEMA, **{})
 
+        np.random.seed(0)
         result = detector.detect(data, output)
 
-        assert result is False
+        assert not result
