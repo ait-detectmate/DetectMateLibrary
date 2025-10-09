@@ -1,5 +1,5 @@
-from src.components.common.parser import CoreParser, CoreParserConfig
-import src.schemas as schemas
+from components.common.parser import CoreParser, CoreParserConfig
+import schemas as schemas
 
 import pydantic
 import pytest

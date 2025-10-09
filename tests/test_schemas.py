@@ -1,6 +1,6 @@
-from src.utils.aux import BasicConfig
+from utils.aux import BasicConfig
 
-import src.schemas as schemas
+import schemas as schemas
 
 import pytest
 

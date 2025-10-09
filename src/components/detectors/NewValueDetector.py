@@ -1,6 +1,6 @@
 from typing import Any, Optional
-from src.components.common.detector import CoreDetector, CoreDetectorConfig
-import src.schemas as schemas
+from components.common.detector import CoreDetector, CoreDetectorConfig
+import schemas as schemas
 
 
 class NVDConfig(CoreDetectorConfig):

@@ -1,5 +1,5 @@
-from src.components.common.reader import CoreReaderConfig, CoreReader
-import src.schemas as schemas
+from components.common.reader import CoreReaderConfig, CoreReader
+import schemas as schemas
 
 import pydantic
 import pytest

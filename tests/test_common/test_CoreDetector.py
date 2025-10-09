@@ -1,5 +1,5 @@
-from src.components.common.detector import CoreDetector, CoreDetectorConfig
-import src.schemas as schemas
+from components.common.detector import CoreDetector, CoreDetectorConfig
+import schemas as schemas
 
 from datetime import datetime
 import pydantic

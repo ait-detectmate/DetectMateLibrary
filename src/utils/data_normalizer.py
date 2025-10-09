@@ -1,6 +1,6 @@
 import pandas as pd
 
-import src.schemas as schemas
+import schemas as schemas
 
 
 class DataNormalizer:

@@ -1,7 +1,7 @@
-from src.utils.aux import BasicConfig
-from src.components.common.core import CoreConfig, CoreComponent
-from src.utils.data_buffer import ArgsBuffer
-import src.schemas as schemas
+from utils.aux import BasicConfig
+from components.common.core import CoreConfig, CoreComponent
+from utils.data_buffer import ArgsBuffer
+import schemas as schemas
 
 import pydantic
 import pytest

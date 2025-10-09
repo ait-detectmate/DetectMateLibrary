@@ -1,4 +1,4 @@
-from src.utils.data_buffer import DataBuffer, ArgsBuffer
+from utils.data_buffer import DataBuffer, ArgsBuffer
 
 import pytest
 

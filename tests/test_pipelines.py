@@ -1,8 +1,7 @@
+from components.common.detector import CoreDetector, CoreDetectorConfig
+from components.common.parser import CoreParser, CoreParserConfig
 
-from src.components.common.detector import CoreDetector, CoreDetectorConfig
-from src.components.common.parser import CoreParser, CoreParserConfig
-
-from src.components.readers.log_file import LogFileConfig, LogFileReader
+from components.readers.log_file import LogFileConfig, LogFileReader
 
 
 class MockupParser(CoreParser):

@@ -1,8 +1,8 @@
-from src.components.common.core import CoreComponent, CoreConfig
+from components.common.core import CoreComponent, CoreConfig
 
-from src.utils.data_buffer import ArgsBuffer
+from utils.data_buffer import ArgsBuffer
 
-import src.schemas as schemas
+import schemas as schemas
 
 from typing import Literal, Optional, List
 from datetime import datetime
