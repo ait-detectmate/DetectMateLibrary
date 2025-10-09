@@ -1,8 +1,8 @@
 from collections import defaultdict
 from typing import Optional, Dict, List, Union
 from typing_extensions import Literal
-from src.components.common.detector import CoreDetector, CoreDetectorConfig
-import src.schemas as schemas
+from components.common.detector import CoreDetector, CoreDetectorConfig
+import schemas as schemas
 from pydantic import BaseModel, Field
 
 import numpy as np

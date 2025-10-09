@@ -1,10 +1,10 @@
 
-from src.components.common.detector import CoreDetector, CoreDetectorConfig
-from src.components.common.parser import CoreParser, CoreParserConfig
+from components.common.detector import CoreDetector, CoreDetectorConfig
+from components.common.parser import CoreParser, CoreParserConfig
 
-from src.components.readers.log_file import LogFileConfig, LogFileReader
+from components.readers.log_file import LogFileConfig, LogFileReader
 
-import src.schemas as schemas
+import schemas as schemas
 
 import pytest
 
