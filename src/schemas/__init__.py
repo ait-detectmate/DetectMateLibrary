@@ -2,8 +2,8 @@
 
 from typing import TypeAlias, Union
 
-import src.schemas.schemas_pb2 as pb2
-from src.schemas._op import (
+import schemas.schemas_pb2 as pb2
+from schemas._op import (
     BASE_SCHEMA,
     LOG_SCHEMA,
     PARSER_SCHEMA,

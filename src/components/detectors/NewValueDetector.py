@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import Any, Iterable, Optional, Dict, List, Set, Union
 from typing_extensions import Literal
-from src.components.common.detector import CoreDetector, CoreDetectorConfig
+from components.common.detector import CoreDetector, CoreDetectorConfig
 from pydantic import BaseModel, Field
 
 

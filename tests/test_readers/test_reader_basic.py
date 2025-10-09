@@ -1,4 +1,4 @@
-from src.components.readers.log_file import LogFileConfig, LogFileReader
+from components.readers.log_file import LogFileConfig, LogFileReader
 
 
 class TestCaseLogFileReader:

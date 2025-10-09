@@ -1,6 +1,6 @@
-from src.components.common.parser import CoreParser, CoreParserConfig
-from src.utils.aux import time_test_mode
-import src.schemas as schemas
+from components.common.parser import CoreParser, CoreParserConfig
+from utils.aux import time_test_mode
+import schemas as schemas
 
 import pydantic
 import pytest

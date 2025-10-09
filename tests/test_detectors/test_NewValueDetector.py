@@ -1,5 +1,5 @@
-from src.components.common.core import CoreConfig
-from src.components.detectors.NewValueDetector import NewValueDetector
+from components.common.core import CoreConfig
+from components.detectors.NewValueDetector import NewValueDetector
 
 
 class TestNewValueDetector():

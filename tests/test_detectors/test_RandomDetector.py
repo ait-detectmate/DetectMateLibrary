@@ -1,8 +1,8 @@
 from unittest.mock import patch
 
-from src.components.detectors.RandomDetector import RandomDetector, RandomConfig, EventConfig
-from src.components.common.detector import CoreDetector, CoreDetectorConfig
-import src.schemas as schemas
+from components.detectors.RandomDetector import RandomDetector, RandomConfig, EventConfig
+from components.common.detector import CoreDetector, CoreDetectorConfig
+import schemas as schemas
 
 import numpy as np
 

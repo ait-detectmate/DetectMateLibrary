@@ -1,4 +1,4 @@
-import src.schemas as schemas
+import schemas as schemas
 
 
 class TestCaseDefaultValues:
