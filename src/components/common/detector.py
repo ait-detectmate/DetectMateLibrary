@@ -64,10 +64,10 @@ class CoreDetector(CoreComponent):
         output_.alertID = self.id_generator()
         output_.receivedTimestamp = get_timestamp()
 
-        use_schema = self.detect(input_=input_, output_=output_)
+        anomaly_detected = self.detect(input_=input_, output_=output_)
         output_.detectionTimestamp = get_timestamp()
 
-        return True if use_schema is None else use_schema
+        return True if anomaly_detected is None else anomaly_detected
 
     def detect(
         self,
