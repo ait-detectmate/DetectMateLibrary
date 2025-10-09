@@ -15,7 +15,6 @@ class MockupParser(CoreParser):
 class MockupDetector(CoreDetector):
     def detect(self, input_, output_):
         output_.score = 0.9
-        output_.predictionLabel = True
         output_.description = "ciao"
 
 
@@ -37,8 +36,8 @@ class TestCaseBasicPipelines:
             buffer_size=None,
         )
 
-        log = reader.process(as_bytes=False)
-        parsed_log = parser.process(log)
+        assert (log := reader.process(as_bytes=False)) is not None
+        assert (parsed_log := parser.process(log)) is not None
         assert detector.process(parsed_log) is not None
 
     def test_window_pipeline(self) -> None:
@@ -62,8 +61,8 @@ class TestCaseBasicPipelines:
             parsed_log = parser.process(log)
             assert detector.process(parsed_log) is None
 
-        log = reader.process(as_bytes=False)
-        parsed_log = parser.process(log)
+        assert (log := reader.process(as_bytes=False)) is not None
+        assert (parsed_log := parser.process(log)) is not None
         assert detector.process(parsed_log) is not None
 
     def test_batch_pipeline(self) -> None:
@@ -87,6 +86,6 @@ class TestCaseBasicPipelines:
             parsed_log = parser.process(log)
             assert detector.process(parsed_log) is None
 
-        log = reader.process(as_bytes=False)
-        parsed_log = parser.process(log)
+        assert (log := reader.process(as_bytes=False)) is not None
+        assert (parsed_log := parser.process(log)) is not None
         assert detector.process(parsed_log) is not None

@@ -1,4 +1,5 @@
 from components.common.parser import CoreParser, CoreParserConfig
+from utils.aux import time_test_mode
 import schemas as schemas
 
 import pydantic
@@ -29,6 +30,25 @@ class IncompleteMockupParser(CoreParser):
         output_.EventID = 1
         output_.variables.extend(["a", "b"])
         output_.logFormatVariables["t"] = "c"
+
+
+class NoneMockupParser(CoreParser):
+    def __init__(self, name: str, config: CoreParserConfig) -> None:
+        super().__init__(name=name, config=config)
+        self.value = True
+
+    def parse(self, input_, output_):
+        self.value = not self.value
+
+        output_.EventID = 1
+        output_.template = "hello"
+        output_.variables.extend(["a", "b"])
+        output_.logFormatVariables["t"] = "c"
+
+        return self.value
+
+
+time_test_mode()
 
 
 class TestCoreParser:
@@ -71,7 +91,9 @@ class TestCoreParser:
             "template": "hello",
             "parsedLogID": 10,
             "logID": 1,
-            "log": "This is a log."
+            "log": "This is a log.",
+            "receivedTimestamp": 0,
+            "parsedTimestamp": 0,
         })
         expected_result.variables.extend(["a", "b"])
         expected_result.logFormatVariables["t"] = "c"
@@ -103,3 +125,12 @@ class TestCoreParser:
 
         with pytest.raises(schemas.NotCompleteSchema):
             parser.process(data)
+
+    def test_none_parser(self) -> None:
+        parser = NoneMockupParser(name="TestParser", config=MockupConfig())
+        data = schemas.initialize(schemas.LOG_SCHEMA, **{
+            "logID": 1, "log": "This is a log.", "logSource": "", "hostname": ""
+        })
+
+        assert parser.process(data) is None
+        assert parser.process(data) is not None

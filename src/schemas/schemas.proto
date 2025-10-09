@@ -5,35 +5,38 @@ message Schema {
 }
 
 message LogSchema {
-    string __version__ = 1;
-    int32 logID = 2;
-    string log = 3;
-    string logSource = 4;
-    string hostname = 5;
+    optional string __version__ = 1;
+    optional int32 logID = 2;
+    optional string log = 3;
+    optional string logSource = 4;
+    optional string hostname = 5;
 }
 
 message ParserSchema {
-    string __version__ = 1;
-    string parserType = 2;
-    string parserID = 3;
-    int32 EventID = 4;
-    string template = 5;
+    optional string __version__ = 1;
+    optional string parserType = 2;
+    optional string parserID = 3;
+    optional int32 EventID = 4;
+    optional string template = 5;
     repeated string variables = 6;
-    int32 parsedLogID = 7;
-    int32 logID = 8;
-    string log = 9;
+    optional int32 parsedLogID = 7;
+    optional int32 logID = 8;
+    optional string log = 9;
     map<string, string> logFormatVariables = 10;
+    optional int32 receivedTimestamp = 11;
+    optional int32 parsedTimestamp = 12;
 }
 
 message DetectorSchema {
-    string __version__ = 1;
-    string detectorID = 2;
-    string detectorType = 3;
-    int32 alertID = 4;
-    int32 detectionTimestamp = 5;
+    optional string __version__ = 1;
+    optional string detectorID = 2;
+    optional string detectorType = 3;
+    optional int32 alertID = 4;
+    optional int32 detectionTimestamp = 5;
     repeated int32 logIDs = 6;
-    bool predictionLabel = 7;
-    float score = 8;
+    optional float score = 8;
     repeated int32 extractedTimestamps = 9;
-    string description = 10;
+    optional string description = 10;
+    optional int32 receivedTimestamp = 11;
+    map<string, string> alertsObtain = 12;
 }

@@ -1,6 +1,7 @@
 from components.common.core import CoreComponent, CoreConfig
 
 from utils.data_buffer import ArgsBuffer
+from utils.aux import get_timestamp
 
 import schemas as schemas
 
@@ -30,19 +31,22 @@ class CoreParser(CoreComponent):
             output_schema=schemas.PARSER_SCHEMA,
         )
 
-    def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> None:
+    def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:
 
         output_.parsedLogID = self.id_generator()
         output_.logID = input_.logID
         output_.log = input_.log
+        output_.receivedTimestamp = get_timestamp()
 
-        self.parse(input_=input_, output_=output_)
-        return output_
+        use_schema = self.parse(input_=input_, output_=output_)
+        output_.parsedTimestamp = get_timestamp()
+
+        return True if use_schema is None else use_schema
 
     def parse(
         self, input_: schemas.LogSchema, output_: schemas.ParserSchema
-    ) -> None:
-        return
+    ) -> bool:
+        return True
 
     def train(self, data: Any, config: CoreConfig) -> None:
         pass

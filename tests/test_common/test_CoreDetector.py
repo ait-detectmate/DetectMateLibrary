@@ -1,7 +1,7 @@
 from components.common.detector import CoreDetector, CoreDetectorConfig
+from utils.aux import time_test_mode
 import schemas as schemas
 
-from datetime import datetime
 import pydantic
 import pytest
 
@@ -17,7 +17,6 @@ class MockupDetector(CoreDetector):
 
     def detect(self, input_, output_):
         output_.score = 0.9
-        output_.predictionLabel = True
         output_.description = "hii"
 
 
@@ -29,7 +28,6 @@ class MockupDetector_window(CoreDetector):
 
     def detect(self, input_, output_):
         output_.score = 0.9
-        output_.predictionLabel = True
         output_.description = "hii"
 
 
@@ -41,7 +39,6 @@ class MockupDetector_buffer(CoreDetector):
 
     def detect(self, input_, output_):
         output_.score = 0.9
-        output_.predictionLabel = True
         output_.description = "hii"
 
 
@@ -50,20 +47,35 @@ class IncompleteMockupDetector(CoreDetector):
         super().__init__(name=name, buffer_mode="no_buf", config=config)
 
     def detect(self, input_, output_):
-        output_.predictionLabel = True
+        output_.description = "hii"
+
+
+class NoneMockupDetector(CoreDetector):
+    def __init__(self, name: str, config: CoreDetectorConfig) -> None:
+        super().__init__(name=name, buffer_mode="no_buf", config=config)
+        self.value = True
+
+    def detect(self, input_, output_):
+        output_.score = 0.9
+        output_.description = "hii"
+        self.value = not self.value
+        return self.value
 
 
 dummy_schema = {
     "parserType": "a",
-    "EventID": 1,
+    "EventID": 0,
     "template": "asd",
     "variables": [""],
-    "logID": 12,
+    "logID": 0,
     "parsedLogID": 22,
     "parserID": "test",
     "log": "This is a parsed log.",
     "logFormatVariables": {"timestamp": "12121"},
 }
+
+
+time_test_mode()
 
 
 class TestCoreDetector:
@@ -101,12 +113,12 @@ class TestCoreDetector:
             "detectorID": "TestDetector01",
             "detectorType": "TestType",
             "alertID": 10,
-            "detectionTimestamp": int(datetime.now().timestamp()),
-            "logIDs": [12],
-            "predictionLabel": True,
+            "detectionTimestamp": 0,
+            "logIDs": [0],
             "score": 0.9,
             "description": "hii",
-            "extractedTimestamps": [12121]
+            "extractedTimestamps": [12121],
+            "receivedTimestamp": 0,
         })
         data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_schema)
         result = detector.process(data)
@@ -119,12 +131,12 @@ class TestCoreDetector:
             "detectorID": "TestDetector01",
             "detectorType": "TestType",
             "alertID": 10,
-            "detectionTimestamp": int(datetime.now().timestamp()),
-            "logIDs": [12, 12, 12],
-            "predictionLabel": True,
+            "detectionTimestamp": 0,
+            "logIDs": [0, 0, 0],
             "score": 0.9,
             "description": "hii",
-            "extractedTimestamps": [12121, 12121, 12121]
+            "extractedTimestamps": [12121, 12121, 12121],
+            "receivedTimestamp": 0
         })
         data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_schema)
 
@@ -141,12 +153,12 @@ class TestCoreDetector:
             "detectorID": "TestDetector01",
             "detectorType": "TestType",
             "alertID": 10,
-            "detectionTimestamp": int(datetime.now().timestamp()),
-            "logIDs": [12, 12, 12],
-            "predictionLabel": True,
+            "detectionTimestamp": 0,
+            "logIDs": [0, 0, 0],
             "score": 0.9,
             "description": "hii",
-            "extractedTimestamps": [12121, 12121, 12121]
+            "extractedTimestamps": [12121, 12121, 12121],
+            "receivedTimestamp": 0,
         })
         data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_schema)
 
@@ -162,3 +174,10 @@ class TestCoreDetector:
 
         with pytest.raises(schemas.NotCompleteSchema):
             detector.process(data)
+
+    def test_none_detector(self) -> None:
+        detector = NoneMockupDetector(name="TestDetector", config=MockupConfig())
+        data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_schema)
+
+        assert detector.process(data) is None
+        assert detector.process(data) is not None

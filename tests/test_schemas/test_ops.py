@@ -66,7 +66,6 @@ class TestCaseSchemas:
             "alertID": 1,
             "detectionTimestamp": 2,
             "logIDs": [1, 2, 3],
-            "predictionLabel": True,
             "score": 0.5,
             "extractedTimestamps": [4, 5, 6]
         }
@@ -78,7 +77,6 @@ class TestCaseSchemas:
         assert schema.alertID == 1
         assert schema.detectionTimestamp == 2
         assert schema.logIDs == [1, 2, 3]
-        assert schema.predictionLabel
         assert schema.score == 0.5
         assert schema.extractedTimestamps == [4, 5, 6]
 
@@ -89,6 +87,33 @@ class TestCaseSchemas:
         )
 
         assert schema == expected_schema
+
+    def test_copy(self) -> None:
+        values = {
+            "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
+        }
+        schema = schemas.initialize(schemas.LOG_SCHEMA, **values)
+        schema2 = schemas.copy(schemas.LOG_SCHEMA, schema)
+
+        assert schema == schema2
+        schema.log = "hello"
+        assert schema != schema2
+
+    def test_copy_incorrect_schema(self) -> None:
+        values = {
+            "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
+        }
+        schema = schemas.initialize(schemas.LOG_SCHEMA, **values)
+        with pytest.raises(schemas.IncorrectSchema):
+            schemas.copy(schemas.PARSER_SCHEMA, schema)
+
+    def test_copy_incompatible_schema(self) -> None:
+        values = {
+            "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
+        }
+        schema = schemas.initialize(schemas.LOG_SCHEMA, **values)
+        with pytest.raises(schemas.NotSupportedSchema):
+            schemas.copy(b"213123213123", schema)
 
     def test_serialize_method(self) -> None:
         values = {

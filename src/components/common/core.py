@@ -24,7 +24,7 @@ class SchemaPipeline:
             is_byte = True
             schemas.check_is_same_schema(schema_id_, schema_id)
 
-        return is_byte, data
+        return is_byte, schemas.copy(schema_id, schema=data)
 
     @staticmethod
     def postprocess(
@@ -69,7 +69,8 @@ class CoreComponent:
             return None
 
         output_ = schemas.initialize_with_default(self.output_schema, config=self.config)
-        self.run(data_buffered, output_)
+        if not self.run(data_buffered, output_):
+            return None
 
         return SchemaPipeline.postprocess(self.output_schema, output_, is_byte=is_byte)
 
