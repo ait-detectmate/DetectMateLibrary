@@ -1,7 +1,7 @@
 [project]
 name = "detectmatelibrary"
 version = "0.1.0"
-description = "Add your description here"
+description = "DetectMate Library for log processing components"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -11,3 +11,10 @@ dependencies = [
     "pydantic>=2.11.7",
     "pytest>=8.4.2",
 ]
+
+[build-system]
+requires = ["setuptools>=45.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
