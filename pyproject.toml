@@ -5,6 +5,7 @@ description = "DetectMate Library for log processing components"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "drain3>=0.9.11",
     "pandas>=2.3.2",
     "pre-commit>=4.3.0",
     "protobuf>=6.32.1",
