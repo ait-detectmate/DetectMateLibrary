@@ -11,6 +11,8 @@ from components.common.reader import CoreReader, CoreReaderConfig
 from components.common.parser import CoreParser, CoreParserConfig
 from components.common.detector import CoreDetector, CoreDetectorConfig
 
+from components.detectors.RandomDetector import RandomDetector, RandomConfig
+
 
 __all__ = [
     "CoreComponent",
@@ -21,4 +23,6 @@ __all__ = [
     "CoreParserConfig",
     "CoreDetector",
     "CoreDetectorConfig",
+    "RandomDetector",
+    "RandomConfig",
 ]
