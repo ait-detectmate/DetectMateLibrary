@@ -12,15 +12,11 @@ from components.common.reader import CoreReader, CoreReaderConfig
 from components.common.parser import CoreParser, CoreParserConfig
 from components.common.detector import CoreDetector, CoreDetectorConfig
 
-# specific implementations
-# TODO: do we need direct imports?
-from components.readers.log_file import LogFileReader, LogFileConfig
-from components.detectors.RandomDetector import RandomDetector, RandomConfig
-from components.detectors.NewValueDetector import NewValueDetector, NVDConfig
+# Import subpackages
+from . import detectors
 
-# submodule aliases for better organization
-from components import readers, detectors, parsers
-
+# Re-export for direct imports
+from .detectors import RandomDetector, RandomConfig, NewValueDetector, NVDConfig
 
 __all__ = [
     "CoreComponent",
@@ -36,5 +32,5 @@ __all__ = [
 
     # submodule access
     # TODO: maybe keep only these?
-    "readers", "detectors", "parsers"
+    "detectors"
 ]
