@@ -1,16 +1,26 @@
 from components.common.core import CoreComponent, CoreConfig
+from typing import List, Optional, Dict, Any
+from pydantic import BaseModel, Field
 
 from utils.data_buffer import ArgsBuffer
 from utils.aux import get_timestamp
 
 import schemas as schemas
 
-from typing import Any, Optional
+
+class ParserInstance(BaseModel):
+    id: str
+    log_format: Optional[str] = Field(
+        default="<Content>",
+        description='Default is "<Content>" (i.e., the full message content).',
+    )
+    params: Optional[Dict[str, Any]] = None  # free-form, parser-type specific
 
 
 class CoreParserConfig(CoreConfig):
     parserType: str = "<PLACEHOLDER>"
     parserID: str = "<PLACEHOLDER>"
+    instances: List[ParserInstance] = []
 
 
 class CoreParser(CoreComponent):
