@@ -1,7 +1,7 @@
 """" Interface between the code base and the protobuf code."""
 from utils.aux import BasicConfig
 
-import schemas.schemas_pb2 as s
+import detectmatelibrary.schemas.schemas_pb2 as s
 
 
 from typing import NewType, Tuple, Dict, Type, Union

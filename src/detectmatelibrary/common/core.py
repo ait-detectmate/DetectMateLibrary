@@ -1,9 +1,9 @@
 
-from utils.data_buffer import DataBuffer, ArgsBuffer
-from utils.id_generator import SimpleIDGenerator
-from utils.aux import BasicConfig
+from ..utils.data_buffer import DataBuffer, ArgsBuffer
+from ..utils.id_generator import SimpleIDGenerator
+from ..utils.aux import BasicConfig
 
-import schemas as schemas
+from .. import schemas
 
 from typing import Any, Dict, Tuple, List
 

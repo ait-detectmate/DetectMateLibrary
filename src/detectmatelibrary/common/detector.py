@@ -1,9 +1,9 @@
-from components.common.core import CoreComponent, CoreConfig
+from ..common.core import CoreComponent, CoreConfig
 
-from utils.data_buffer import ArgsBuffer
-from utils.aux import get_timestamp
+from ..utils.data_buffer import ArgsBuffer
+from ..utils.aux import get_timestamp
 
-import schemas as schemas
+from .. import schemas
 
 from typing import Literal, Optional, List
 

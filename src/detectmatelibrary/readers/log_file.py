@@ -1,7 +1,7 @@
 
-from components.common.reader import CoreReaderConfig, CoreReader
+from ..common.reader import CoreReaderConfig, CoreReader
 
-import schemas as schemas
+from .. import schemas
 
 from typing import Optional, Iterator
 

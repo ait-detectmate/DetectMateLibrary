@@ -1,6 +1,6 @@
-from components.common.core import CoreComponent, CoreConfig, SchemaPipeline
+from ..common.core import CoreComponent, CoreConfig, SchemaPipeline
 
-import schemas as schemas
+from .. import schemas
 
 from typing import Optional
 
