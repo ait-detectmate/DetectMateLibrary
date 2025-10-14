@@ -112,11 +112,14 @@ class CoreDetectorConfig(CoreConfig):
     instances: List[DetectorInstance] = []
 
     _n_instances: Optional[int] = None
+    _all_instances: Optional[List] = None
+    _all_instances_dict: Optional[dict] = None
 
     @model_validator(mode="after")
-    def _calculate_n_instances(self):
+    def _calculate_instances(self):
         """Calculate total number of variables across all instances."""
-        self._n_instances = 0
+        all_instances = []
+        all_instances_dict = {}
         if self.instances:
             for i in self.instances:
                 instance = (
@@ -124,7 +127,13 @@ class CoreDetectorConfig(CoreConfig):
                     if isinstance(i, DetectorInstance)
                     else DetectorInstance.model_validate(i)
                 )
-                self._n_instances += len(getattr(instance, "variables") or [])
+                variables = getattr(instance, "variables") or []
+                all_instances += [(instance.event, var) for var in variables if var]
+                variable_dict = {var.pos: var for var in variables}
+                all_instances_dict.update({instance.event: variable_dict})
+        self._all_instances = all_instances
+        self._n_instances = len(self._all_instances)
+        self._all_instances_dict = all_instances_dict
         return self
 
     @model_validator(mode="after")
@@ -142,8 +151,16 @@ class CoreDetectorConfig(CoreConfig):
     def get_number_of_instances(self) -> int:
         """Return the number of instances, calculating if necessary."""
         if self._n_instances is None:
-            self._calculate_n_instances()
+            self._calculate_instances()
         return self._n_instances
+
+    def get_all_instances(self) -> int:
+        """Return a list of all DetectInstances."""
+        return self._all_instances
+
+    def get_all_instances_dict(self) -> dict:
+        """Return a dict of all DetectInstances, keyed by event ID."""
+        return self._all_instances_dict
 
     def add_instance(
         self,
@@ -175,7 +192,22 @@ class CoreDetectorConfig(CoreConfig):
             )
         self.instances.append(new_instance)
         # Recalculate number of all instances
-        self._calculate_n_instances()
+        self._calculate_instances()
+
+    def get_relevant_fields(self, data: schemas.ParserSchema) -> dict:
+        """Get relevant fields for a given log entry based on the detector
+        configuration."""
+        all_variables = {**data.logFormatVariables, **dict(enumerate(data.variables))}
+        configured_instances = self.get_all_instances_dict()
+        relevant_event_config = configured_instances.get(data.EventID)
+        if relevant_event_config is None:
+            return {}
+        relevant_fields = {}
+        for var in all_variables.keys():
+            matching_var = relevant_event_config.get(var)
+            if matching_var is not None:
+                relevant_fields[var] = {"value": all_variables[var], "config": matching_var.params}
+        return relevant_fields
 
 
 def _extract_timestamp(
