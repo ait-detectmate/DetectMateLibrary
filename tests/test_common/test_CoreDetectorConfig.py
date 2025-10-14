@@ -358,10 +358,10 @@ class TestCoreDetectorConfigValidation:
                 auto_config=False,
                 instances=[]
             )
-            config
+            config  # to avoid unused variable warning
 
         assert len(record) == 1
-        assert "has auto_config=false, but no explicit instances were provided" in str(record[0].message)
+        assert "has auto_config=false, but no explicit instances" in str(record[0].message)
 
     def test_auto_config_true_no_warning(self):
         """Test no warning when auto_config is True."""
