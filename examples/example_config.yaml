@@ -8,13 +8,14 @@ parsers:
 
 detectors:
   - type: ExampleDetector
+    # id: example_detector # optional; if not defined, id is assigned
     parser: example_parser_1 # must match an instance id from parsers
     auto_config: false # if false, explicit instances must be given
     instances:
       - id: example_detector_1
         event: 1 # can be int or "all"
         template: "jk2_init() Found child <*> in scoreboard slot <*>" # optional
-        variables: # optional
+        variables: # optional; each variable spawns a detector instance
           - id: 0 # int
             name: child_process # optional; if not defined, idx is used as name
             params: # optional; can be defined depending on what params the detector required
@@ -25,7 +26,7 @@ detectors:
               threshold: 0.7
           - id: 99 # out of range index will be ignored but produces warning
             name: ignored_variable # optional
-        header-variables: # optional; could be part of variables but separated for clarity
+        header_variables: # optional; could be part of variables but separated for clarity
           - id: Level # str
             params: # optional
               threshold: 0.2
