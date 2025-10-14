@@ -1,5 +1,5 @@
 """" Interface between the code base and the protobuf code."""
-from utils.aux import BasicConfig
+from ..utils.aux import BasicConfig
 
 import detectmatelibrary.schemas.schemas_pb2 as s
 
