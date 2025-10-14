@@ -16,8 +16,5 @@ dependencies = [
 requires = ["setuptools>=45.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.package-dir]
-detectmatelibrary = "src/detectmatelibrary"
-
-[tool.setuptools]
-packages = ["detectmatelibrary"]
+[tool.setuptools.packages.find]
+where = ["src"]
