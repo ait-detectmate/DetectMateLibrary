@@ -1,4 +1,4 @@
-from .RandomDetector import RandomDetector, RandomConfig
+from .RandomDetector import RandomDetector, RandomDetectorConfig
 from .NewValueDetector import NewValueDetector, NVDConfig
 
-__all__ = ["RandomDetector", "RandomConfig", "NewValueDetector", "NVDConfig"]
+__all__ = ["RandomDetector", "RandomDetectorConfig", "NewValueDetector", "NVDConfig"]

@@ -1,31 +1,12 @@
 # from collections import defaultdict
 # from typing import Any, Iterable, Optional, Dict, List, Set, Union
 # from typing_extensions import Literal
-# from components.common.detector import CoreDetector, CoreDetectorConfig
-# from pydantic import BaseModel, Field
+from components.common.detector import CoreDetectorConfig, CoreDetector
 
 
-# class EventConfig(BaseModel):
-#     """Configuration for a specific event ID with its associated variables and
-#     log format variables."""
+class NVDConfig(CoreDetectorConfig):
+    pass
 
-#     eventId: Union[int, Literal["all"]] = Field(
-#         default="all", description="Event ID to filter on, either an integer or 'all'"
-#     )
-#     variables: Union[List[int], List[Literal["all"]]] = Field(
-#         default=["all"],
-#         description="Variable indices to filter on, either a list of integers or 'all'",
-#     )
-#     logFormatVariables: Union[List[str], List[Literal["all"]]] = Field(
-#         default=["all"],
-#         description="Log format variables to filter on, either a list of strings or 'all'",
-#     )
-
-#     class Config:
-#         extra = "forbid"
-
-
-# class NVDConfig(CoreDetectorConfig):
 #     """Configuration for NewValueDetector with hierarchical event-based
 #     filtering."""
 
@@ -97,7 +78,8 @@
 #         return data_instances
 
 
-# class NewValueDetector(CoreDetector):
+class NewValueDetector(CoreDetector):
+    pass
 #     """New Value Detector with hierarchical configuration support."""
 
 #     # Explicit type annotations for better IDE support

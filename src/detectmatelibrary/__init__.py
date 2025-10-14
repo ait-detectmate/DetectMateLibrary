@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 
-
 # add the src directory to path so internal imports work
 src_path = Path(__file__).parent
 sys.path.insert(0, str(src_path))
@@ -16,7 +15,7 @@ from components.common.detector import CoreDetector, CoreDetectorConfig
 from . import detectors
 
 # Re-export for direct imports
-from .detectors import RandomDetector, RandomConfig, NewValueDetector, NVDConfig
+from .detectors import RandomDetector, RandomDetectorConfig, NewValueDetector, NVDConfig
 
 __all__ = [
     "CoreComponent",
