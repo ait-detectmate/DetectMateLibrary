@@ -10,34 +10,34 @@ template: "User <*> performed action <*> on resource <*>"
 
 # Regular variables (using integer IDs for template slots)
 variables:
-  - id: 0  # First <*> in template - username
+  - pos: 0  # First <*> in template - username
     params:
       type: string
       validation: alphanumeric
 
-  - id: 1  # Second <*> in template - action
+  - pos: 1  # Second <*> in template - action
     params:
       type: string
       allowed_values: ["login", "logout", "delete", "create"]
 
-  - id: 2  # Third <*> in template - resource
+  - pos: 2  # Third <*> in template - resource
     params:
       type: string
       max_length: 100
 
 # Header variables (using string IDs for log headers/metadata)
 header-variables:
-  - id: Level
+  - pos: Level
     params:
       default: INFO
       allowed_values: ["DEBUG", "INFO", "WARN", "ERROR"]
 
-  - id: Timestamp
+  - pos: Timestamp
     params:
       format: iso8601
       required: true
 
-  - id: Source
+  - pos: Source
     params:
       default: "system"
       type: string

@@ -26,7 +26,7 @@ class DetectorVariableBase(BaseModel):
 
 class DetectorVariable(DetectorVariableBase):
     # header variables use string IDs (e.g., Level, Time)
-    id: Union[int, str]
+    pos: Union[int, str]
 
 
 class DetectorInstance(BaseModel):
@@ -83,15 +83,15 @@ class DetectorInstance(BaseModel):
             slot_count = len(m)
             for var in self.variables:
                 # Only check integer IDs (DetectorVariable), skip string IDs (HeaderVariable)
-                if isinstance(var.id, int):
-                    if var.id < 0:
+                if isinstance(var.pos, int):
+                    if var.pos < 0:
                         warnings.warn(
-                            f"[{self.id}] Variable id {var.id} is negative; it will be ignored.",
+                            f"[{self.id}] Variable id {var.pos} is negative; it will be ignored.",
                             stacklevel=2,
                         )
-                    elif slot_count and var.id >= slot_count:
+                    elif slot_count and var.pos >= slot_count:
                         warnings.warn(
-                            f"[{self.id}] Variable id {var.id} out of range for template with {slot_count} "
+                            f"[{self.id}] Variable id {var.pos} out of range for template with {slot_count} "
                             f"slots; will be ignored.",
                             stacklevel=2,
                         )
@@ -149,7 +149,7 @@ class CoreDetectorConfig(CoreConfig):
         self,
         instance: Optional[DetectorInstance] = None,
         *,
-        id: Optional[str] = None,
+        pos: Optional[str] = None,
         event: Optional[Union[int, Literal["all"]]] = None,
         template: Optional[str] = None,
         variables: Optional[List[DetectorVariable]] = None,
@@ -163,11 +163,11 @@ class CoreDetectorConfig(CoreConfig):
             new_instance = instance
         else:
             # Create instance from parameters
-            if id is None or event is None:
+            if pos is None or event is None:
                 raise ValueError("id and event are required when instance is not provided")
 
             new_instance = DetectorInstance(
-                id=id,
+                id=pos,
                 event=event,
                 template=template,
                 variables=variables or [],

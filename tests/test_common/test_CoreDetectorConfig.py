@@ -50,47 +50,47 @@ class TestDetectorVariable:
 
     def test_create_with_int_id(self):
         """Test creating DetectorVariable with integer ID."""
-        var = DetectorVariable(id=0)
-        assert var.id == 0
+        var = DetectorVariable(pos=0)
+        assert var.pos == 0
         assert var.params is None
 
     def test_create_with_string_id(self):
         """Test creating DetectorVariable with string ID."""
-        var = DetectorVariable(id="timestamp")
-        assert var.id == "timestamp"
+        var = DetectorVariable(pos="timestamp")
+        assert var.pos == "timestamp"
         assert var.params is None
 
     def test_create_with_dict_params(self):
         """Test creating DetectorVariable with dict parameters."""
         params = {"threshold": 0.8, "mode": "strict"}
-        var = DetectorVariable(id=1, params=params)
-        assert var.id == 1
+        var = DetectorVariable(pos=1, params=params)
+        assert var.pos == 1
         assert var.params == params
 
     def test_create_with_basemodel_params(self):
         """Test creating DetectorVariable with BaseModel parameters."""
         params = SampleDetectorParams(threshold=0.7, sensitivity=5)
-        var = DetectorVariable(id=2, params=params)
-        assert var.id == 2
+        var = DetectorVariable(pos=2, params=params)
+        assert var.pos == 2
         assert var.params == params
 
     def test_param_serialization_with_dict(self):
         """Test parameter serialization with dict."""
         params = {"key": "value"}
-        var = DetectorVariable(id=0, params=params)
+        var = DetectorVariable(pos=0, params=params)
         serialized = var.model_dump()
         assert serialized["params"] == params
 
     def test_param_serialization_with_basemodel(self):
         """Test parameter serialization with BaseModel."""
         params = SampleDetectorParams(threshold=0.9)
-        var = DetectorVariable(id=0, params=params)
+        var = DetectorVariable(pos=0, params=params)
         serialized = var.model_dump()
         assert serialized["params"] == {"threshold": 0.9, "sensitivity": 3, "mode": "default"}
 
     def test_param_serialization_with_none(self):
         """Test parameter serialization with None."""
-        var = DetectorVariable(id=0, params=None)
+        var = DetectorVariable(pos=0, params=None)
         serialized = var.model_dump()
         assert serialized["params"] is None
 
@@ -115,13 +115,13 @@ class TestDetectorInstance:
     def test_create_with_variables(self):
         """Test creating DetectorInstance with variables."""
         variables = [
-            DetectorVariable(id=0, params={"threshold": 0.5}),
-            DetectorVariable(id=1, params={"threshold": 0.8})
+            DetectorVariable(pos=0, params={"threshold": 0.5}),
+            DetectorVariable(pos=1, params={"threshold": 0.8})
         ]
         instance = DetectorInstance(id="test", event="all", variables=variables)
         assert len(instance.variables) == 2
-        assert instance.variables[0].id == 0
-        assert instance.variables[1].id == 1
+        assert instance.variables[0].pos == 0
+        assert instance.variables[1].pos == 1
 
     def test_event_validation_positive_int(self):
         """Test event validation with positive integer."""
@@ -146,8 +146,8 @@ class TestDetectorInstance:
 
     def test_header_variables_combination(self):
         """Test that header variables are combined with regular variables."""
-        regular_vars = [DetectorVariable(id=0)]
-        header_vars = [DetectorVariable(id="timestamp")]
+        regular_vars = [DetectorVariable(pos=0)]
+        header_vars = [DetectorVariable(pos="timestamp")]
 
         # Using the alias for header variables
         instance = DetectorInstance(
@@ -159,13 +159,13 @@ class TestDetectorInstance:
 
         # Should have both variables combined
         assert len(instance.variables) == 2
-        assert any(var.id == 0 for var in instance.variables)
-        assert any(var.id == "timestamp" for var in instance.variables)
+        assert any(var.pos == 0 for var in instance.variables)
+        assert any(var.pos == "timestamp" for var in instance.variables)
 
     def test_template_variable_id_warning(self):
         """Test warning for variable ID out of range for template."""
         template = "Error at <*>"  # Only one slot
-        variables = [DetectorVariable(id=1)]  # ID 1 is out of range (should be 0)
+        variables = [DetectorVariable(pos=1)]  # ID 1 is out of range (should be 0)
 
         with pytest.warns(UserWarning) as record:
             DetectorInstance(id="test", event=1, template=template, variables=variables)
@@ -176,7 +176,7 @@ class TestDetectorInstance:
     def test_negative_variable_id_warning(self):
         """Test warning for negative variable ID (only occurs with
         template)."""
-        variables = [DetectorVariable(id=-1)]
+        variables = [DetectorVariable(pos=-1)]
         template = "Error at <*>"  # Template is needed for validation
 
         with pytest.warns(UserWarning) as record:
@@ -190,23 +190,23 @@ class TestDetectorInstance:
     def test_no_warning_for_string_ids(self):
         """Test that string IDs don't trigger range warnings."""
         template = "Error at <*>"  # Only one slot
-        variables = [DetectorVariable(id="timestamp")]  # String ID should not warn
+        variables = [DetectorVariable(pos="timestamp")]  # String ID should not warn
 
         with warnings.catch_warnings():
             warnings.simplefilter("error")  # Turn warnings into errors
             # Should not raise any warnings
             instance = DetectorInstance(id="test", event=1, template=template, variables=variables)
-            assert instance.variables[0].id == "timestamp"
+            assert instance.variables[0].pos == "timestamp"
 
     def test_no_warning_without_template(self):
         """Test that negative IDs don't warn without template."""
-        variables = [DetectorVariable(id=-1)]
+        variables = [DetectorVariable(pos=-1)]
 
         with warnings.catch_warnings():
             warnings.simplefilter("error")  # Turn warnings into errors
             # Should not raise any warnings since no template is provided
             instance = DetectorInstance(id="test", event=1, variables=variables)
-            assert instance.variables[0].id == -1
+            assert instance.variables[0].pos == -1
 
 
 class TestCoreDetectorConfig:
@@ -263,7 +263,7 @@ class TestCoreDetectorConfigInstanceManagement:
         """Test adding instance using parameters."""
         config = CoreDetectorConfig()
 
-        config.add_instance(id="instance_2", event="all", template="Error: <*>")
+        config.add_instance(pos="instance_2", event="all", template="Error: <*>")
 
         assert len(config.instances) == 1
         assert config.instances[0].id == "instance_2"
@@ -273,20 +273,20 @@ class TestCoreDetectorConfigInstanceManagement:
     def test_add_instance_with_variables(self):
         """Test adding instance with variables."""
         config = CoreDetectorConfig()
-        variables = [DetectorVariable(id=0, params={"threshold": 0.7})]
+        variables = [DetectorVariable(pos=0, params={"threshold": 0.7})]
 
-        config.add_instance(id="instance_3", event=2, variables=variables)
+        config.add_instance(pos="instance_3", event=2, variables=variables)
 
         assert len(config.instances) == 1
         assert len(config.instances[0].variables) == 1
-        assert config.instances[0].variables[0].id == 0
+        assert config.instances[0].variables[0].pos == 0
 
     def test_add_instance_missing_required_params(self):
         """Test adding instance with missing required parameters."""
         config = CoreDetectorConfig()
 
         with pytest.raises(ValueError) as excinfo:
-            config.add_instance(id="instance_4")  # Missing event
+            config.add_instance(pos="instance_4")  # Missing event
         assert "id and event are required" in str(excinfo.value)
 
         with pytest.raises(ValueError) as excinfo:
@@ -312,22 +312,22 @@ class TestCoreDetectorConfigInstanceManagement:
 
         # Add instance with 2 variables
         config.add_instance(
-            id="instance_1",
+            pos="instance_1",
             event=1,
             variables=[
-                DetectorVariable(id=0),
-                DetectorVariable(id=1)
+                DetectorVariable(pos=0),
+                DetectorVariable(pos=1)
             ]
         )
 
         # Add another instance with 3 variables
         config.add_instance(
-            id="instance_2",
+            pos="instance_2",
             event=2,
             variables=[
-                DetectorVariable(id=0),
-                DetectorVariable(id=1),
-                DetectorVariable(id="timestamp")
+                DetectorVariable(pos=0),
+                DetectorVariable(pos=1),
+                DetectorVariable(pos="timestamp")
             ]
         )
 
@@ -341,7 +341,7 @@ class TestCoreDetectorConfigInstanceManagement:
         assert config.get_number_of_instances() == 0
 
         # Add an instance
-        config.add_instance(id="test", event=1, variables=[DetectorVariable(id=0)])
+        config.add_instance(pos="test", event=1, variables=[DetectorVariable(pos=0)])
 
         # Count should update automatically
         assert config.get_number_of_instances() == 1
@@ -400,23 +400,23 @@ class TestComplexScenarios:
 
         # Add first instance with integer ID variables
         config.add_instance(
-            id="numeric_instance",
+            pos="numeric_instance",
             event=1,
             template="Error <*> at line <*>",
             variables=[
-                DetectorVariable(id=0, params=SampleDetectorParams(threshold=0.8)),
-                DetectorVariable(id=1, params={"custom": "value"})
+                DetectorVariable(pos=0, params=SampleDetectorParams(threshold=0.8)),
+                DetectorVariable(pos=1, params={"custom": "value"})
             ]
         )
 
         # Add second instance with mixed ID types
         config.add_instance(
-            id="mixed_instance",
+            pos="mixed_instance",
             event="all",
             variables=[
-                DetectorVariable(id="timestamp"),
-                DetectorVariable(id="level"),
-                DetectorVariable(id=0, params={"threshold": 0.5})
+                DetectorVariable(pos="timestamp"),
+                DetectorVariable(pos="level"),
+                DetectorVariable(pos=0, params={"threshold": 0.5})
             ]
         )
 
@@ -435,11 +435,11 @@ class TestComplexScenarios:
         )
 
         original_config.add_instance(
-            id="test_instance",
+            pos="test_instance",
             event=1,
             template="Test <*>",
             variables=[
-                DetectorVariable(id=0, params=SampleDetectorParams(threshold=0.9))
+                DetectorVariable(pos=0, params=SampleDetectorParams(threshold=0.9))
             ]
         )
 
@@ -468,6 +468,6 @@ class TestComplexScenarios:
         assert config._n_instances == 0  # Calculated during initialization
 
         # Should be able to add instances to empty config
-        config.add_instance(id="first", event=0)
+        config.add_instance(pos="first", event=0)
         assert len(config.instances) == 1
         assert config.get_number_of_instances() == 0  # No variables
