@@ -16,6 +16,10 @@ class LogFileReader(CoreReader):
         name: str="File_reader",
         config: Optional[LogFileConfig | dict] = LogFileConfig(),
     ) -> None:
+        
+        if isinstance(config, dict):
+            config = LogFileConfig.from_dict(config)
+        
         super().__init__(name=name, config=config)
         self.__log_generator = self.__read_logs()
         self.is_over = False
