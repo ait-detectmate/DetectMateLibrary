@@ -1,5 +1,6 @@
 
 from detectmatelibrary.detectors.dummy_detector import DummyDetector, DummyDetectorConfig
+from detectmatelibrary.parsers.dummy_parser import DummyParser, DummyParserConfig
 import detectmatelibrary.schemas as schemas
 
 
@@ -25,3 +26,36 @@ class TestDummyMethods:
         else:
             assert output.score == 0.0
             assert len(output.alertsObtain) == 0
+
+    def test_parser_initialize_default(self) -> None:
+        parser = DummyParser(name="DummyParser", config={})
+
+        assert isinstance(parser, DummyParser)
+        assert parser.name == "DummyParser"
+        assert isinstance(parser.config, DummyParserConfig)
+
+    def test_run_parse_method(self) -> None:
+        parser = DummyParser()
+        input_data = schemas.initialize(schemas.LOG_SCHEMA, **{"log": "test log"})
+        output_data = schemas.initialize(schemas.PARSER_SCHEMA)
+
+        parser.parse(input_data, output_data)
+
+        assert output_data.parserType == "DummyParser"
+        assert output_data.log == "test log"
+        assert output_data.variables == ["dummy_variable"]
+        assert output_data.template == "This is a dummy template"
+        assert output_data.logFormatVariables == {"timestamp": "0"}
+
+    def test_pipeline(test) -> None:
+        parser = DummyParser()
+        detector = DummyDetector()
+
+        log_input = schemas.initialize(schemas.LOG_SCHEMA, **{"log": "test log"})
+        parsed_log = parser.process(log_input)
+
+        while (result := detector.process(parsed_log)) is None:
+            pass
+
+        assert result.description == "Dummy detection process"
+        assert result.score == 1.

@@ -29,7 +29,8 @@ class DummyDetector(CoreDetector):
         output_: schemas.DetectorSchema
     ) -> bool | None:
         output_.description = "Dummy detection process"
-        if np.random.rand() > 0.5:
+        if np.random.rand() > 0.75:
             output_.score = 1.0
             output_.alertsObtain["type"] = "Anomaly detected by DummyDetector"
             return True
+        return False
