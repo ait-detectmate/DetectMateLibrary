@@ -1,6 +1,6 @@
-from components.common.detector import CoreDetector, CoreDetectorConfig
-from utils.aux import time_test_mode
-import schemas as schemas
+from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
+from detectmatelibrary.utils.aux import time_test_mode
+import detectmatelibrary.schemas as schemas
 
 import pydantic
 import pytest

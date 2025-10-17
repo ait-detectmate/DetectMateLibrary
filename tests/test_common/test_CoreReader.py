@@ -1,5 +1,5 @@
-from components.common.reader import CoreReaderConfig, CoreReader
-import schemas as schemas
+from detectmatelibrary.common.reader import CoreReaderConfig, CoreReader
+import detectmatelibrary.schemas as schemas
 
 import pydantic
 import pytest

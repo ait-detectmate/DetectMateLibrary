@@ -1,6 +1,6 @@
-from components.common.parser import CoreParser, CoreParserConfig
-from utils.aux import time_test_mode
-import schemas as schemas
+from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
+from detectmatelibrary.utils.aux import time_test_mode
+import detectmatelibrary.schemas as schemas
 
 import pydantic
 import pytest

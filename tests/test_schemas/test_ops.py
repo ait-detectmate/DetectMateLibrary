@@ -1,6 +1,6 @@
-from utils.aux import BasicConfig
+from detectmatelibrary.utils.aux import BasicConfig
 
-import schemas as schemas
+import detectmatelibrary.schemas as schemas
 
 import pytest
 

@@ -1,7 +1,7 @@
-from utils.aux import BasicConfig
-from components.common.core import CoreConfig, CoreComponent
-from utils.data_buffer import ArgsBuffer
-import schemas as schemas
+from detectmatelibrary.utils.aux import BasicConfig
+from detectmatelibrary.common.core import CoreConfig, CoreComponent
+from detectmatelibrary.utils.data_buffer import ArgsBuffer
+import detectmatelibrary.schemas as schemas
 
 import pydantic
 import pytest

@@ -1,4 +1,4 @@
-from components.readers.log_file import LogFileConfig, LogFileReader
+from detectmatelibrary.readers.log_file import LogFileConfig, LogFileReader
 
 
 class TestCaseLogFileReader:
