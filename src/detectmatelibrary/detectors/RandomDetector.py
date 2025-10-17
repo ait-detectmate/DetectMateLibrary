@@ -104,8 +104,10 @@ class RandomDetector(CoreDetector):
     """Random Detector with hierarchical configuration support."""
 
     def __init__(
-        self, name: str = "RandomDetector", config: RandomConfig = RandomConfig()
+        self, name: str = "RandomDetector", config: RandomConfig | dict = RandomConfig()
     ) -> None:
+        if isinstance(config, dict):
+            config = RandomConfig.from_dict(config)
         super().__init__(name=name, buffer_mode="no_buf", config=config)
 
     def train(self, input_: List[schemas.ParserSchema] | schemas.ParserSchema) -> None:
