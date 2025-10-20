@@ -22,6 +22,7 @@ class DummyDetector(CoreDetector):
         if isinstance(config, dict):
             config = DummyDetectorConfig.from_dict(config)
         super().__init__(name=name, buffer_mode="no_buf", config=config)
+        self._call_count = 0
 
     def detect(
         self,
@@ -29,8 +30,12 @@ class DummyDetector(CoreDetector):
         output_: schemas.DetectorSchema
     ) -> bool | None:
         output_.description = "Dummy detection process"
-        if np.random.rand() < 0.75:
+
+        # Alternating pattern: True, False, True, False, etc
+        self._call_count += 1
+        pattern = [True, False]
+        result = pattern[self._call_count % len(pattern)]
+        if result:
             output_.score = 1.0
             output_.alertsObtain["type"] = "Anomaly detected by DummyDetector"
-            return True
-        return False
+        return result
