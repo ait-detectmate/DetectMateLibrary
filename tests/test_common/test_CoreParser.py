@@ -1,4 +1,5 @@
-from components.common.parser import CoreParser, CoreParserConfig
+from components.common.config.parser import CoreParserConfig
+from components.common.parser import CoreParser
 from utils.aux import time_test_mode
 import schemas as schemas
 

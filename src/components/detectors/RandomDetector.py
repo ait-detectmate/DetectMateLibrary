@@ -1,4 +1,5 @@
-from src.components.common.detector import CoreDetectorConfig, CoreDetector
+from components.common.config.detector import CoreDetectorConfig
+from src.components.common.detector import CoreDetector
 import src.schemas as schemas
 
 from pydantic import BaseModel

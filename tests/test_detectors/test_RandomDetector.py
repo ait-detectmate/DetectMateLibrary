@@ -9,8 +9,9 @@ This module tests the RandomDetector implementation including:
 - Error handling
 """
 
+from components.common.config.detector import DetectorInstance, DetectorVariable
 from components.detectors.RandomDetector import RandomDetector, RandomDetectorConfig
-from components.common.detector import CoreDetectorConfig, DetectorInstance, DetectorVariable
+from components.common.config.detector import CoreDetectorConfig
 import schemas as schemas
 from utils.aux import time_test_mode
 

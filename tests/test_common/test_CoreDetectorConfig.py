@@ -31,10 +31,9 @@ import pytest
 import warnings
 from pydantic import BaseModel, ValidationError
 
-from components.common.detector import (
+from components.common.config.detector import DetectorInstance, DetectorVariable
+from components.common.config.detector import (
     CoreDetectorConfig,
-    DetectorInstance,
-    DetectorVariable,
 )
 
 
