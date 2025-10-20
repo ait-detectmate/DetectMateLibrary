@@ -16,21 +16,21 @@ detectors:
         event: 1 # can be int or "all"
         template: "jk2_init() Found child <*> in scoreboard slot <*>" # optional
         variables: # optional; each variable spawns a detector instance
-          - id: 0 # int
-            name: child_process # optional; if not defined, idx is used as name
+          - pos: 0 # int
+            name: child_process # optional; if not defined, posx is used as name
             params: # optional; can be defined depending on what params the detector required
               threshold: 0.5
-          - id: 1 # int
+          - pos: 1 # int
             name: slot_number # optional
             params: # optional
               threshold: 0.7
-          - id: 99 # out of range index will be ignored but produces warning
+          - pos: 99 # out of range index will be ignored but produces warning
             name: ignored_variable # optional
         header_variables: # optional; could be part of variables but separated for clarity
-          - id: Level # str
+          - pos: Level # str
             params: # optional
               threshold: 0.2
-          - id: Time # str
+          - pos: Time # str
             params: # optional
               threshold: 0.4
 
