@@ -1,9 +1,8 @@
+from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer
+from detectmatelibrary.utils.id_generator import SimpleIDGenerator
+from detectmatelibrary.utils.aux import BasicConfig
 
-from ..utils.data_buffer import DataBuffer, ArgsBuffer
-from ..utils.id_generator import SimpleIDGenerator
-from ..utils.aux import BasicConfig
-
-from .. import schemas
+from detectmatelibrary import schemas
 
 from typing import Any, Dict, Tuple, List
 

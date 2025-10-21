@@ -1,6 +1,6 @@
 import pandas as pd
 
-import schemas as schemas
+import detectmatelibrary.schemas as schemas
 
 
 class DataNormalizer:

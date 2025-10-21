@@ -1,12 +1,12 @@
-from ..common.core import CoreComponent, CoreConfig, CoreComponent
-from ..common.config.detector import CoreDetectorConfig
+from detectmatelibrary.common.core import CoreComponent, CoreConfig, CoreComponent
+from detectmatelibrary.common.config.detector import CoreDetectorConfig
 
 from typing import List, Optional, Literal
 
-from ..utils.data_buffer import ArgsBuffer
-from ..utils.aux import get_timestamp
+from detectmatelibrary.utils.data_buffer import ArgsBuffer
+from detectmatelibrary.utils.aux import get_timestamp
 
-from .. import schemas
+from detectmatelibrary import schemas
 
 
 def _extract_timestamp(

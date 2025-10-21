@@ -1,6 +1,6 @@
-from components.common.config.detector import CoreDetectorConfig
-from src.components.common.detector import CoreDetector
-import src.schemas as schemas
+from detectmatelibrary.common.config.detector import CoreDetectorConfig
+from detectmatelibrary.common.detector import CoreDetector
+import detectmatelibrary.schemas as schemas
 
 from pydantic import BaseModel
 from typing import List

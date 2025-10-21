@@ -1,7 +1,6 @@
+from detectmatelibrary.common.reader import CoreReaderConfig, CoreReader
 
-from ..common.reader import CoreReaderConfig, CoreReader
-
-from .. import schemas
+from detectmatelibrary import schemas
 
 from typing import Optional, Iterator
 

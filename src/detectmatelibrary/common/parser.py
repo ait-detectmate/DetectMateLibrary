@@ -1,11 +1,11 @@
-from components.common.config.parser import CoreParserConfig
-from components.common.core import CoreComponent, CoreConfig
+from detectmatelibrary.common.config.parser import CoreParserConfig
+from detectmatelibrary.common.core import CoreComponent, CoreConfig
 from typing import Optional, Any
 
-from utils.data_buffer import ArgsBuffer
-from utils.aux import get_timestamp
+from detectmatelibrary.utils.data_buffer import ArgsBuffer
+from detectmatelibrary.utils.aux import get_timestamp
 
-import schemas as schemas
+import detectmatelibrary.schemas as schemas
 
 
 class CoreParser(CoreComponent):

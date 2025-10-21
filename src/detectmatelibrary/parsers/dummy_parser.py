@@ -1,5 +1,5 @@
-from ..common.parser import CoreParser, CoreParserConfig
-from .. import schemas
+from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
+from detectmatelibrary import schemas
 
 
 class DummyParserConfig(CoreParserConfig):

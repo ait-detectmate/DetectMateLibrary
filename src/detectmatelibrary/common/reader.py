@@ -1,6 +1,6 @@
-from ..common.core import CoreComponent, CoreConfig, SchemaPipeline
+from detectmatelibrary.common.core import CoreComponent, CoreConfig, SchemaPipeline
 
-from .. import schemas
+from detectmatelibrary import schemas
 
 from typing import Optional
 

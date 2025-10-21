@@ -1,7 +1,7 @@
 from typing import Any, Dict, Optional
 from pydantic import BaseModel, Field
 
-from components.common.core import CoreConfig, List
+from detectmatelibrary.common.core import CoreConfig, List
 
 
 class ParserInstance(BaseModel):

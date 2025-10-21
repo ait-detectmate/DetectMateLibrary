@@ -3,8 +3,8 @@ from typing import List, Literal, Optional, Union
 import warnings
 import re
 
-from components.common.core import CoreConfig
-import schemas as schemas
+from detectmatelibrary.common.core import CoreConfig
+import detectmatelibrary.schemas as schemas
 
 
 class DetectorVariableBase(BaseModel):

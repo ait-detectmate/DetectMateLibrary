@@ -1,8 +1,8 @@
 # from collections import defaultdict
 # from typing import Any, Iterable, Optional, Dict, List, Set, Union
 # from typing_extensions import Literal
-from components.common.config.detector import CoreDetectorConfig
-from components.common.detector import CoreDetector
+from detectmatelibrary.common.config.detector import CoreDetectorConfig
+from detectmatelibrary.common.detector import CoreDetector
 
 
 class NVDConfig(CoreDetectorConfig):

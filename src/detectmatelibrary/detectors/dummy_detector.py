@@ -1,8 +1,7 @@
-from ..common.detector import CoreDetector, CoreDetectorConfig
-from .. import schemas
+from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
+from detectmatelibrary import schemas
 
 from typing import List
-import numpy as np
 
 
 class DummyDetectorConfig(CoreDetectorConfig):
