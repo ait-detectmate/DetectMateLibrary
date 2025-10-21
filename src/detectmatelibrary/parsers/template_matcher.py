@@ -248,3 +248,4 @@ class MatcherParser(CoreParser):
         output_.template = parsed["EventTemplate"]
         output_.variables.extend(parsed["Params"])
         output_.EventID = parsed["EventId"]
+        # TODO: add logFormatVariables if needed
