@@ -1,7 +1,7 @@
-import re
-from functools import lru_cache
 from collections import defaultdict
+from functools import lru_cache
 import pandas as pd
+import re
 
 
 class TemplateMatcher:

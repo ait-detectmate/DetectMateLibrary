@@ -1,6 +1,6 @@
-import pandas as pd
-
 from detectmatelibrary.parsers.template_matcher import TemplateMatcher
+
+import pandas as pd
 
 
 log_df = pd.read_csv("tests/test_folder/logs_with_template_labels.csv")
