@@ -1,16 +1,12 @@
-from ..common.core import CoreComponent, CoreConfig
+from ..common.core import CoreComponent, CoreConfig, CoreComponent
+from ..common.config.detector import CoreDetectorConfig
+
+from typing import List, Optional, Literal
 
 from ..utils.data_buffer import ArgsBuffer
 from ..utils.aux import get_timestamp
 
 from .. import schemas
-
-from typing import Literal, Optional, List
-
-
-class CoreDetectorConfig(CoreConfig):
-    detectorID: str = "<PLACEHOLDER>"
-    detectorType: str = "<PLACEHOLDER>"
 
 
 def _extract_timestamp(
@@ -46,9 +42,7 @@ class CoreDetector(CoreComponent):
             name=name,
             type_="Detector",
             config=config,
-            args_buffer=ArgsBuffer(
-                mode=buffer_mode, size=buffer_size
-            ),
+            args_buffer=ArgsBuffer(mode=buffer_mode, size=buffer_size),
             input_schema=schemas.PARSER_SCHEMA,
             output_schema=schemas.DETECTOR_SCHEMA,
         )
@@ -64,10 +58,10 @@ class CoreDetector(CoreComponent):
         output_.alertID = self.id_generator()
         output_.receivedTimestamp = get_timestamp()
 
-        use_schema = self.detect(input_=input_, output_=output_)
+        anomaly_detected = self.detect(input_=input_, output_=output_)
         output_.detectionTimestamp = get_timestamp()
 
-        return True if use_schema is None else use_schema
+        return True if anomaly_detected is None else anomaly_detected
 
     def detect(
         self,

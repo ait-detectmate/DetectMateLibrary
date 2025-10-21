@@ -1,0 +1,39 @@
+parsers:
+  - type: ExampleParser
+    instances:
+      - id: example_parser_1 # str
+        log_format: "[<Time>] [<Level>] <Content>" # if None, log format is <Content>
+        params: # optional; can be defined depending on parser type
+          depth: 4
+
+detectors:
+  - type: ExampleDetector
+    # id: example_detector # optional; if not defined, id is assigned
+    parser: example_parser_1 # must match an instance id from parsers
+    auto_config: false # if false, explicit instances must be given
+    instances:
+      - id: example_detector_1
+        event: 1 # can be int or "all"
+        template: "jk2_init() Found child <*> in scoreboard slot <*>" # optional
+        variables: # optional; each variable spawns a detector instance
+          - pos: 0 # int
+            name: child_process # optional; if not defined, posx is used as name
+            params: # optional; can be defined depending on what params the detector required
+              threshold: 0.5
+          - pos: 1 # int
+            name: slot_number # optional
+            params: # optional
+              threshold: 0.7
+          - pos: 99 # out of range index will be ignored but produces warning
+            name: ignored_variable # optional
+        header_variables: # optional; could be part of variables but separated for clarity
+          - pos: Level # str
+            params: # optional
+              threshold: 0.2
+          - pos: Time # str
+            params: # optional
+              threshold: 0.4
+
+  - type: AnotherDetector
+    auto_config: true # creates explicit instances based on data as given above
+    # allow other fields?

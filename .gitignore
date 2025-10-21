@@ -193,5 +193,6 @@ cython_debug/
 .cursorignore
 .cursorindexingignore
 
-# tmp folder
-tmp/
+# local folder
+local/
+test.ipynb

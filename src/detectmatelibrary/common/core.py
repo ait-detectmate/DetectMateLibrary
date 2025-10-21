@@ -69,7 +69,8 @@ class CoreComponent:
             return None
 
         output_ = schemas.initialize_with_default(self.output_schema, config=self.config)
-        if not self.run(data_buffered, output_):
+        anomaly_detected = self.run(input_=data_buffered, output_=output_)
+        if not anomaly_detected:
             return None
 
         return SchemaPipeline.postprocess(self.output_schema, output_, is_byte=is_byte)

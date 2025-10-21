@@ -1,16 +1,11 @@
-from ..common.core import CoreComponent, CoreConfig
+from components.common.config.parser import CoreParserConfig
+from components.common.core import CoreComponent, CoreConfig
+from typing import Optional, Any
 
-from ..utils.data_buffer import ArgsBuffer
-from ..utils.aux import get_timestamp
+from utils.data_buffer import ArgsBuffer
+from utils.aux import get_timestamp
 
-from .. import schemas
-
-from typing import Any, Optional
-
-
-class CoreParserConfig(CoreConfig):
-    parserType: str = "<PLACEHOLDER>"
-    parserID: str = "<PLACEHOLDER>"
+import schemas as schemas
 
 
 class CoreParser(CoreComponent):

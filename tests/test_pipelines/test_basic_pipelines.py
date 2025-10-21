@@ -1,7 +1,9 @@
-from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
-from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
+from components.common.config.detector import CoreDetectorConfig
+from components.common.config.parser import CoreParserConfig
+from components.common.detector import CoreDetector
+from components.common.parser import CoreParser
 
-from detectmatelibrary.readers.log_file import LogFileConfig, LogFileReader
+from components.readers.log_file import LogFileConfig, LogFileReader
 
 
 class MockupParser(CoreParser):
