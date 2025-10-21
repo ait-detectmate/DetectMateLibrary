@@ -1,7 +1,12 @@
+from ..common.parser import CoreParser, CoreParserConfig
+from .. import schemas
+
 from collections import defaultdict
 from functools import lru_cache
+from typing import List
 import pandas as pd
 import re
+import os
 
 
 class TemplateMatcher:
@@ -164,15 +169,15 @@ class TemplateMatcher:
                 return t["raw"], params, t["event_id"]
         return None
 
-    def match_logs(self, data: pd.DataFrame) -> pd.DataFrame:
+    def match_logs(self, data: List[str]) -> pd.DataFrame:
         """Backwards-compatible batch matching (template only)."""
-        df = data.copy()
-        df["EventTemplate"] = [self.match_template(x) for x in df["Content"]]
+        df = pd.DataFrame(data, columns=["Content"])
+        df["EventTemplate"] = [self.match_template(x) for x in data]
         return df
 
-    def match_logs_with_params(self, data: pd.DataFrame, add_event_id: bool = True) -> pd.DataFrame:
+    def match_logs_with_params(self, data: List[str], add_event_id: bool = True) -> pd.DataFrame:
         """Batch matching that also returns the params list."""
-        df = data.copy()
+        df = pd.DataFrame(data, columns=["Content"])
         out_tpl = []
         out_params = []
         for x in df["Content"]:
@@ -190,3 +195,56 @@ class TemplateMatcher:
             tpl_to_id = {t["raw"]: i for i, t in enumerate(self.templates)}
             df["EventId"] = [tpl_to_id.get(tpl, -1) if tpl is not None else -1 for tpl in out_tpl]
         return df
+
+
+class TemplatesNotFoundError(Exception):
+    pass
+
+
+class MatcherParserConfig(CoreParserConfig):
+    remove_spaces: bool = True
+    remove_punctuation: bool = True
+    lowercase: bool = True
+
+    path_templates: str = "<PLACEHOLDER>"
+
+
+class MatcherParser(CoreParser):
+    def __init__(
+        self,
+        name: str = "MatcherParser",
+        config: MatcherParserConfig | dict = MatcherParserConfig(),
+    ) -> None:
+
+        if isinstance(config, dict):
+            config = MatcherParserConfig.from_dict(config)
+        super().__init__(name=name, config=config)
+
+        self.template_matcher = TemplateMatcher(
+            template_list=self.__load_templates(self.config.path_templates),
+            remove_spaces=self.config.remove_spaces,
+            remove_punctuation=self.config.remove_punctuation,
+            lowercase=self.config.lowercase,
+        )
+
+    def __load_templates(self, path: str) -> list[str] | TemplatesNotFoundError:
+        if not os.path.exists(path):
+            raise TemplatesNotFoundError(f"Template file not found at: {path}")
+
+        with open(path, "r") as f:
+            templates = [line.strip() for line in f if line.strip()]
+        return templates
+
+    def parse(
+        self,
+        input_: schemas.LogSchema,
+        output_: schemas.ParserSchema
+    ) -> None:
+
+        parsed = self.template_matcher.match_logs_with_params(
+            [input_.log], add_event_id=True
+        ).iloc[0].to_dict()
+
+        output_.template = parsed["EventTemplate"]
+        output_.variables.extend(parsed["Params"])
+        output_.EventID = parsed["EventId"]

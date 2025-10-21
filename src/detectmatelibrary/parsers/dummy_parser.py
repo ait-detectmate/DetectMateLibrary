@@ -26,8 +26,6 @@ class DummyParser(CoreParser):
         output_: schemas.ParserSchema
     ) -> None:
         output_.EventID = 2
-        output_.parserType = "DummyParser"
-        output_.log = input_.log
         output_.variables.extend(["dummy_variable"])
         output_.template = "This is a dummy template"
         output_.logFormatVariables["timestamp"] = "0"

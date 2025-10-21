@@ -41,8 +41,6 @@ class TestDummyMethods:
 
         parser.parse(input_data, output_data)
 
-        assert output_data.parserType == "DummyParser"
-        assert output_data.log == "test log"
         assert output_data.variables == ["dummy_variable"]
         assert output_data.template == "This is a dummy template"
         assert output_data.logFormatVariables == {"timestamp": "0"}

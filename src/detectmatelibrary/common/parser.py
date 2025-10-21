@@ -34,6 +34,7 @@ class CoreParser(CoreComponent):
     def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:
 
         output_.parsedLogID = self.id_generator()
+        output_.parserType = self.config.parserType
         output_.logID = input_.logID
         output_.log = input_.log
         output_.receivedTimestamp = get_timestamp()
