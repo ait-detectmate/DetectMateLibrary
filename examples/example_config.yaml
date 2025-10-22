@@ -35,5 +35,6 @@ detectors:
               threshold: 0.4
 
   - type: AnotherDetector
+    parser: example_parser_1
     auto_config: true # creates explicit instances based on data as given above
     # allow other fields?
