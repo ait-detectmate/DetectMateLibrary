@@ -2,3 +2,5 @@
 from ..template_matcher._parser import TemplatesNotFoundError
 from ..template_matcher._parser import MatcherParserConfig
 from ..template_matcher._parser import  MatcherParser
+
+__all__ = ["TemplatesNotFoundError", "MatcherParserConfig", "MatcherParser"]
