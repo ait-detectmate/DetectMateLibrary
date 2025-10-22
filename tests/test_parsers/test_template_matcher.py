@@ -12,7 +12,10 @@ import pandas as pd
 
 
 log_df = pd.read_csv("tests/test_folder/logs_with_template_labels.csv")
-test_template = ["pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>"]
+test_template = [
+    "pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>",
+    "pid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>",
+]
 test_log = 'pid=9699 uid=0 auid=4294967295 ses=4294967295 msg=\'op=PAM:accounting acct="root"'
 
 
@@ -102,7 +105,7 @@ class TestPreprocessing:
 class TestTemplatesManager:
     def test_loading_templates(self):
         manager = TemplatesManager(template_list=test_template)
-        assert len(manager.templates) == 1
+        assert len(manager.templates) == 2
         assert manager.templates[0]["raw"] == test_template[0]
         assert manager.templates[0]["count"] == 0
         assert manager.templates[0]["min_len"] > 0
@@ -112,7 +115,7 @@ class TestTemplatesManager:
         manager = TemplatesManager(template_list=test_template)
         pre_s, candidates = manager.candidate_indices(test_log)
         assert pre_s == manager.preprocess(test_log)
-        assert candidates == [0]
+        assert candidates == [0, 1]
 
 
 class TestParsing:
