@@ -18,7 +18,7 @@ from components.common.detector import CoreDetector
 from . import detectors
 
 # Re-export for direct imports
-from .detectors import RandomDetector, RandomDetectorConfig, NewValueDetector, NVDConfig
+from .detectors import RandomDetector, RandomDetectorConfig, NewValueDetector, NewValueDetectorConfig
 
 __all__ = [
     "CoreComponent",

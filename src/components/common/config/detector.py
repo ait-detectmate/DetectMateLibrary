@@ -105,15 +105,23 @@ class CoreDetectorConfig(CoreConfig):
         description="If present, must reference a ParserInstance.id.",
     )
     auto_config: bool = False
-    instances: List[DetectorInstance] = []
+    instances: List[DetectorInstance] = Field(default_factory=list)
 
     _n_instances: Optional[int] = None
     _all_instances: Optional[List] = None
     _all_instances_dict: Optional[dict] = None
 
+    @field_validator('instances', mode='before')
+    def ensure_detector_instance(cls, v):
+        # v is the list passed to instances
+        return [
+            item if isinstance(item, DetectorInstance) else DetectorInstance.model_validate(item)
+            for item in v
+        ]
+
     @model_validator(mode="after")
     def _calculate_instances(self):
-        """Calculate total number of variables across all instances."""
+        """Calculate instances."""
         all_instances = []
         all_instances_dict = {}
         if self.instances:
@@ -151,11 +159,11 @@ class CoreDetectorConfig(CoreConfig):
         return self._n_instances
 
     def get_all_instances(self) -> int:
-        """Return a list of all DetectInstances."""
+        """Return a list of all instances."""
         return self._all_instances
 
     def get_all_instances_dict(self) -> dict:
-        """Return a dict of all DetectInstances, keyed by event ID."""
+        """Return a dict of all instances, keyed by event ID."""
         return self._all_instances_dict
 
     def add_instance(
@@ -192,13 +200,19 @@ class CoreDetectorConfig(CoreConfig):
 
     def get_relevant_fields(self, data: schemas.ParserSchema) -> dict:
         """Get relevant fields for a given log entry based on the detector
-        configuration."""
+        configuration.
+
+        Returns:
+        dict: A dictionary of relevant fields with their values and configs. Example:
+            {"level": {"value": "ERROR", "config": <DetectorVariable>}, ...}
+        """
         all_variables = {**data.logFormatVariables, **dict(enumerate(data.variables))}
         configured_instances = self.get_all_instances_dict()
-        relevant_event_config = configured_instances.get(data.EventID)
-        if relevant_event_config is None:
-            return {}
+        relevant_event_config = configured_instances.get(data.EventID, {})
+        relevant_event_config.update(configured_instances.get("all", {}))
         relevant_fields = {}
+        if not relevant_event_config:
+            return {}
         for var in all_variables.keys():
             matching_var = relevant_event_config.get(var)
             if matching_var is not None:
