@@ -1,5 +1,4 @@
-from detectmatelibrary.common.config.parser import CoreParserConfig
-from detectmatelibrary.common.parser import CoreParser
+from detectmatelibrary.common.parser import CoreParser, CoreParserConfig, _get_format_variables
 from detectmatelibrary.utils.aux import time_test_mode
 import detectmatelibrary.schemas as schemas
 
@@ -20,7 +19,6 @@ class MockupParser(CoreParser):
         output_.EventID = 1
         output_.template = "hello"
         output_.variables.extend(["a", "b"])
-        output_.logFormatVariables["t"] = "c"
 
 
 class IncompleteMockupParser(CoreParser):
@@ -30,7 +28,6 @@ class IncompleteMockupParser(CoreParser):
     def parse(self, input_, output_):
         output_.EventID = 1
         output_.variables.extend(["a", "b"])
-        output_.logFormatVariables["t"] = "c"
 
 
 class NoneMockupParser(CoreParser):
@@ -44,7 +41,6 @@ class NoneMockupParser(CoreParser):
         output_.EventID = 1
         output_.template = "hello"
         output_.variables.extend(["a", "b"])
-        output_.logFormatVariables["t"] = "c"
 
         return self.value
 
@@ -97,7 +93,7 @@ class TestCoreParser:
             "parsedTimestamp": 0,
         })
         expected_result.variables.extend(["a", "b"])
-        expected_result.logFormatVariables["t"] = "c"
+        expected_result.logFormatVariables["timestamp"] = "0"
 
         data = schemas.initialize(schemas.LOG_SCHEMA, **{
             "logID": 1, "log": "This is a log."
@@ -135,3 +131,38 @@ class TestCoreParser:
 
         assert parser.process(data) is None
         assert parser.process(data) is not None
+
+
+class TestGetFormatVariables:
+    def test_no_pattern(self) -> None:
+        log = "This is a log."
+        var, content = _get_format_variables(None, None, log)
+
+        assert var == {"timestamp": "0"}
+        assert content == log
+
+    def test_pattern_no_match(self) -> None:
+        pattern = r"(?P<date>\d{4}-\d{2}-\d{2})"
+        log = "This is a log."
+
+        var, content = _get_format_variables(pattern, None, log)
+
+        assert var == {"timestamp": "0"}
+        assert content == log
+
+    def test_pattern_with_match(self) -> None:
+        log = "[INFO] 2024-10-05 This is a log."
+        pattern = r"\[(?P<level>\w+)\]\s(?P<timestamp>\d{4}-\d{2}-\d{2})"
+
+        var, content = _get_format_variables(pattern, None, log)
+        assert var == {"level": "INFO", "timestamp": "2024-10-05"}
+        assert content == log
+
+    def test_pattern_with_time_format(self) -> None:
+        log = "[INFO] 2024-10-05 14:30:00 This is a log."
+        pattern = r"\[(?P<level>\w+)\]\s(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})"
+        time_format = "%Y-%m-%d %H:%M:%S"
+
+        var, content = _get_format_variables(pattern, time_format, log)
+        assert var == {"level": "INFO", "timestamp": "1728131400"}
+        assert content == log
