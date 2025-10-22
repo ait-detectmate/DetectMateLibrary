@@ -8,11 +8,11 @@ This module tests the NewValueDetector implementation including:
 - Input/output schema validation
 """
 
-from components.common.config.detector import DetectorInstance, DetectorVariable
-from components.detectors.NewValueDetector import NewValueDetector, NewValueDetectorConfig
-from components.common.config.detector import CoreDetectorConfig
-import schemas as schemas
-from utils.aux import time_test_mode
+from detectmatelibrary.common.config.detector import DetectorInstance, DetectorVariable
+from detectmatelibrary.detectors.NewValueDetector import NewValueDetector, NewValueDetectorConfig
+from detectmatelibrary.common.config.detector import CoreDetectorConfig
+import detectmatelibrary.schemas as schemas
+from detectmatelibrary.utils.aux import time_test_mode
 
 
 # Set time test mode for consistent timestamps
