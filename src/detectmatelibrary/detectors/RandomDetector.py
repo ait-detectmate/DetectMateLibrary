@@ -12,7 +12,8 @@ class RandomDetectorConfig(BaseModel):
 
 
 class RandomDetector(CoreDetector):
-    """Random Detector with hierarchical configuration support."""
+    """Detects anomalies randomly in logs, completely independent of the input
+    data."""
 
     def __init__(
         self, name: str = "RandomDetector", config: CoreDetectorConfig = CoreDetectorConfig()
@@ -20,7 +21,7 @@ class RandomDetector(CoreDetector):
         super().__init__(name=name, buffer_mode="no_buf", config=config)
 
     def train(self, input_: List[schemas.ParserSchema] | schemas.ParserSchema) -> None:
-        """Train the detector by learning known values from the input data."""
+        """Training is not applicable for RandomDetector."""
         return
 
     def detect(
@@ -28,11 +29,7 @@ class RandomDetector(CoreDetector):
         input_: List[schemas.ParserSchema] | schemas.ParserSchema,
         output_: schemas.DetectorSchema
     ) -> bool:
-        """Detect new values in the input data.
-
-        Only processes events and variables specified in the
-        hierarchical configuration.
-        """
+        """Detect anomalies randomly in the input data."""
         overall_score = 0.0
         alerts = {}
         # get the relevant parts of a log based on config
@@ -40,8 +37,9 @@ class RandomDetector(CoreDetector):
         for i, (var_name, data) in enumerate(relevant_log_fields.items()):
             # data = {"value": value, "config": config}
             # randomly decide if anomaly or not
-            score = np.random.rand()
-            if score > data.get("config").threshold:
+            score = 0.0
+            random = np.random.rand()
+            if random > data.get("config").threshold:
                 # anomaly_detected = True
                 score = 1.0
                 alerts.update({str(data.get("value")): str(score)})

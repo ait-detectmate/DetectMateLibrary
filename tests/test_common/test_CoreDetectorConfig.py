@@ -32,7 +32,7 @@ import warnings
 from pydantic import BaseModel, ValidationError
 
 from detectmatelibrary.common.config.detector import DetectorInstance, DetectorVariable
-from detectmatelibrary.common.config.detector import (
+from detectmatelibrary.common.detector import (
     CoreDetectorConfig,
 )
 
