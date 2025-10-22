@@ -17,3 +17,6 @@ class CoreParserConfig(CoreConfig):
     parserType: str = "<PLACEHOLDER>"
     parserID: str = "<PLACEHOLDER>"
     instances: List[ParserInstance] = []
+
+    pattern: str | None = None
+    time_format: str | None = None

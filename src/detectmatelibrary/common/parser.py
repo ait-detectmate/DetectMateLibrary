@@ -1,5 +1,5 @@
 from detectmatelibrary.common.core import CoreComponent, CoreConfig
-
+from detectmatelibrary.common.config.parser import CoreParserConfig
 from detectmatelibrary.utils.data_buffer import ArgsBuffer
 from detectmatelibrary.utils.aux import get_timestamp
 
@@ -29,14 +29,6 @@ def _get_format_variables(pattern: str, time_format: str, log: str) -> Tuple[dic
     if "timestamp" in vars and time_format:
         vars["timestamp"] = _apply_time_format(vars["timestamp"], time_format)
     return vars, log
-
-
-class CoreParserConfig(CoreConfig):
-    parserType: str = "<PLACEHOLDER>"
-    parserID: str = "<PLACEHOLDER>"
-
-    pattern: str | None = None
-    time_format: str | None = None
 
 
 class CoreParser(CoreComponent):
