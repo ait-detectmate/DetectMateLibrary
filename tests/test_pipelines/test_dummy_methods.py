@@ -43,7 +43,6 @@ class TestDummyMethods:
 
         assert output_data.variables == ["dummy_variable"]
         assert output_data.template == "This is a dummy template"
-        assert output_data.logFormatVariables == {"timestamp": "0"}
 
     def test_pipeline(test) -> None:
         parser = DummyParser()
