@@ -25,6 +25,9 @@ jobs:
         activate-environment: true
         enable-cache: true
 
+    - name: Set timezone
+      run: sudo timedatectl set-timezone Europe/Vienna
+
     - name: Install project deps
       run: uv pip install .
 
