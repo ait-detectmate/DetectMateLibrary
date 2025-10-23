@@ -1,10 +1,10 @@
-# Core Component Prototype
+# DetectMateLibrary
 
-This project demonstrates a basic `CoreComponent` class designed to be inherited by other specialized components.
+Main library to run the different components in DetectMate.
 
+## Developer setup:
 
-### Developer setup:
-
+### Step 1:Install dependencies
 Set up the dev environment and install pre-commit hooks:
 
 ```bash
