@@ -9,11 +9,11 @@ This module tests the RandomDetector implementation including:
 - Error handling
 """
 
-from components.common.config.detector import DetectorInstance, DetectorVariable
-from components.detectors.RandomDetector import RandomDetector, RandomDetectorConfig
-from components.common.config.detector import CoreDetectorConfig
-import schemas as schemas
-from utils.aux import time_test_mode
+from detectmatelibrary.common.config.detector import DetectorInstance, DetectorVariable
+from detectmatelibrary.detectors.RandomDetector import RandomDetector, RandomDetectorConfig
+from detectmatelibrary.common.config.detector import CoreDetectorConfig
+import detectmatelibrary.schemas as schemas
+from detectmatelibrary.utils.aux import time_test_mode
 
 from unittest.mock import patch
 
@@ -95,7 +95,7 @@ class TestRandomDetectorEdgeCases:
     """Test edge cases and error handling."""
 
     @patch('numpy.random.rand')
-    @patch('components.common.detector.CoreDetectorConfig.get_relevant_fields')
+    @patch('detectmatelibrary.common.detector.CoreDetectorConfig.get_relevant_fields')
     def test_random_seed_consistency(self, mock_get_fields, mock_rand):
         """Test that mocking numpy.random works consistently."""
         mock_rand.return_value = 0.42

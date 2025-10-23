@@ -1,4 +1,4 @@
-import schemas as schemas
+import detectmatelibrary.schemas as schemas
 
 
 class TestCaseDefaultValues:

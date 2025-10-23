@@ -1,5 +1,5 @@
 
-from utils.aux import get_timestamp, time_test_mode
+from detectmatelibrary.utils.aux import get_timestamp, time_test_mode
 
 from datetime import datetime
 from time import sleep
