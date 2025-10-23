@@ -1,21 +1,10 @@
 from detectmatelibrary.common.config.detector import CoreDetectorConfig
 from detectmatelibrary.common.detector import CoreDetector
+from detectmatelibrary.utils.functions import replaced_with_objects
 import detectmatelibrary.schemas as schemas
 
 from pydantic import BaseModel
 from typing import List
-
-
-def replaced_with_sets(d: dict) -> dict:
-    new_dict = {}
-    for key, value in d.items():
-        if isinstance(value, dict):
-            # Recursively process nested dicts
-            new_dict[key] = replaced_with_sets(value)
-        else:
-            # Replace innermost (non-dict) values with an empty set
-            new_dict[key] = set()
-    return new_dict
 
 
 class NewValueDetectorConfig(BaseModel):
@@ -29,7 +18,7 @@ class NewValueDetector(CoreDetector):
         self, name: str = "NewValueDetector", config: CoreDetectorConfig = CoreDetectorConfig()
     ) -> None:
         super().__init__(name=name, buffer_mode="no_buf", config=config)
-        self.known_values = replaced_with_sets(config._all_instances_dict)
+        self.known_values = replaced_with_objects(config._all_instances_dict, object_type=set)
 
     def train(self, input_: List[schemas.ParserSchema] | schemas.ParserSchema) -> None:
         """Train the detector by learning values from the input data."""

@@ -1,10 +1,20 @@
 from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator, model_validator
 from typing import List, Literal, Optional, Union
+from collections import defaultdict
 import warnings
 import re
 
 from detectmatelibrary.common.core import CoreConfig
 import detectmatelibrary.schemas as schemas
+
+
+def to_grouped_dict(pairs):
+    """Convert a list of (key, value) pairs into a dictionary that groups all
+    values under the same key."""
+    grouped = defaultdict(dict)
+    for key, value in pairs:
+        grouped[key].update({value.pos: value})
+    return dict(grouped)
 
 
 class DetectorVariableBase(BaseModel):
@@ -123,7 +133,6 @@ class CoreDetectorConfig(CoreConfig):
     def _calculate_instances(self):
         """Calculate instances."""
         all_instances = []
-        all_instances_dict = {}
         if self.instances:
             for i in self.instances:
                 instance = (
@@ -133,11 +142,9 @@ class CoreDetectorConfig(CoreConfig):
                 )
                 variables = getattr(instance, "variables") or []
                 all_instances += [(instance.event, var) for var in variables if var]
-                variable_dict = {var.pos: var for var in variables}
-                all_instances_dict.update({instance.event: variable_dict})
         self._all_instances = all_instances
         self._n_instances = len(self._all_instances)
-        self._all_instances_dict = all_instances_dict
+        self._all_instances_dict = to_grouped_dict(self._all_instances)
         return self
 
     @model_validator(mode="after")
@@ -206,10 +213,16 @@ class CoreDetectorConfig(CoreConfig):
         dict: A dictionary of relevant fields with their values and configs. Example:
             {"level": {"value": "ERROR", "config": <DetectorVariable>}, ...}
         """
-        all_variables = {**data.logFormatVariables, **dict(enumerate(data.variables))}
-        configured_instances = self.get_all_instances_dict()
-        relevant_event_config = configured_instances.get(data.EventID, {})
-        relevant_event_config.update(configured_instances.get("all", {}))
+        positional = dict(enumerate(data.variables or []))
+        all_variables = {**(data.logFormatVariables or {}), **positional}
+
+        configured_instances = self.get_all_instances_dict() or {}
+        event_cfg = configured_instances.get(data.EventID, {}) or {}
+        all_cfg = configured_instances.get("all", {}) or {}
+
+        relevant_event_config = {**event_cfg}
+        if all_cfg:
+            relevant_event_config.update(all_cfg)
         relevant_fields = {}
         if not relevant_event_config:
             return {}
