@@ -1,4 +1,4 @@
-from components.common.config.detector import CoreDetectorConfig
+from src.components.common.config.detector import CoreDetectorConfig
 from src.components.common.detector import CoreDetector
 import src.schemas as schemas
 
