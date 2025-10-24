@@ -1,0 +1,126 @@
+parsers:
+  example_parser:
+    method_type: ExampleParser
+    auto_config: false
+    params:
+      log_format: "[<Time>] [<Level>] <Content>" # if None, log format is <Content>
+      depth: 4
+
+detectors:
+  detector_variables:
+    method_type: ExampleDetector
+    parser: example_parser_1 # must match an instance id from parsers
+    auto_config: false # if false, explicit instances must be given
+    params_format: log_variables
+    params:
+      - id: example_detector_1
+        event: 1 # can be int or "all"
+        template: "jk2_init() Found child <*> in scoreboard slot <*>" # optional
+        variables: # optional; each variable spawns a detector instance
+          - pos: 0 # int
+            name: child_process # optional; if not defined, posx is used as name
+            params: # optional; can be defined depending on what params the detector required
+              threshold: 0.5
+          - pos: 1 # int
+            name: slot_number # optional
+            params: # optional
+              threshold: 0.7
+          - pos: 99 # out of range index will be ignored but produces warning
+            name: ignored_variable # optional
+        header_variables: # optional; could be part of variables but separated for clarity
+          - pos: Level # str
+            params: # optional
+              threshold: 0.2
+          - pos: Time # str
+            params: # optional
+              threshold: 0.4
+
+  detector_missing_format:
+    method_type: ExampleDetector
+    parser: example_parser_1 # must match an instance id from parsers
+    auto_config: false # if false, explicit instances must be given
+    params:
+      - id: example_detector_1
+        event: 1 # can be int or "all"
+        template: "jk2_init() Found child <*> in scoreboard slot <*>" # optional
+        variables: # optional; each variable spawns a detector instance
+          - pos: 0 # int
+            name: child_process # optional; if not defined, posx is used as name
+            params: # optional; can be defined depending on what params the detector required
+              threshold: 0.5
+          - pos: 1 # int
+            name: slot_number # optional
+            params: # optional
+              threshold: 0.7
+          - pos: 99 # out of range index will be ignored but produces warning
+            name: ignored_variable # optional
+        header_variables: # optional; could be part of variables but separated for clarity
+          - pos: Level # str
+            params: # optional
+              threshold: 0.2
+          - pos: Time # str
+            params: # optional
+              threshold: 0.4
+
+  detector_incorrect_format1:
+    method_type: ExampleDetector
+    parser: example_parser_1 # must match an instance id from parsers
+    auto_config: false # if false, explicit instances must be given
+    params:
+      - id: example_detector_1
+        event: 1 # can be int or "all"
+        template: "jk2_init() Found child <*> in scoreboard slot <*>" # optional
+        variables: # optional; each variable spawns a detector instance
+          - pos: 0 # int
+            name: child_process # optional; if not defined, posx is used as name
+            params: # optional; can be defined depending on what params the detector required
+              threshold: 0.5
+          - pos: 1 # int
+            name: slot_number # optional
+            params: # optional
+              threshold: 0.7
+          - pos: 99 # out of range index will be ignored but produces warning
+            name: ignored_variable # optional
+        header_variables: # optional; could be part of variables but separated for clarity
+          - pos1: Level # str
+            params: # optional
+              threshold: 0.2
+          - pos: Time # str
+            params: # optional
+              threshold: 0.4
+
+  detector_incorrect_format2:
+    method_type: ExampleDetector
+    parser: example_parser_1 # must match an instance id from parsers
+    auto_config: false # if false, explicit instances must be given
+    params:
+      - id: example_detector_1
+        template: "jk2_init() Found child <*> in scoreboard slot <*>" # optional
+        variables: # optional; each variable spawns a detector instance
+          - pos: 0 # int
+            name: child_process # optional; if not defined, posx is used as name
+            params: # optional; can be defined depending on what params the detector required
+              threshold: 0.5
+          - pos: 1 # int
+            name: slot_number # optional
+            params: # optional
+              threshold: 0.7
+          - pos: 99 # out of range index will be ignored but produces warning
+            name: ignored_variable # optional
+
+  detector_auto:
+    method_type: ExampleDetector
+    parser: example_parser_1 # must match an instance id from parsers
+    auto_config: true # if false, explicit instances must be given
+
+  detector_wrong:
+    method_type: ExampleDetector
+    parser: example_parser_1 # must match an instance id from parsers
+    auto_config: false # if false, explicit instances must be given
+
+  detector_weird:
+    method_type: ExampleDetector
+    parser: example_parser_1 # must match an instance id from parsers
+    auto_config: true # if false, explicit instances must be given
+    params:
+      hello: a

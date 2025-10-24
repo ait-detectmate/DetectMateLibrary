@@ -1,17 +1,17 @@
 parsers:
-  - type: ExampleParser
-    instances:
-      - id: example_parser_1 # str
-        log_format: "[<Time>] [<Level>] <Content>" # if None, log format is <Content>
-        params: # optional; can be defined depending on parser type
-          depth: 4
+  example_parser:
+    type: ExampleParser
+    auto_config: false
+    params:
+      log_format: "[<Time>] [<Level>] <Content>" # if None, log format is <Content>
+      depth: 4
 
 detectors:
-  - type: ExampleDetector
-    # id: example_detector # optional; if not defined, id is assigned
+  example_detector:
+    type: ExampleDetector
     parser: example_parser_1 # must match an instance id from parsers
     auto_config: false # if false, explicit instances must be given
-    instances:
+    list_params:
       - id: example_detector_1
         event: 1 # can be int or "all"
         template: "jk2_init() Found child <*> in scoreboard slot <*>" # optional
@@ -33,8 +33,3 @@ detectors:
           - pos: Time # str
             params: # optional
               threshold: 0.4
-
-  - type: AnotherDetector
-    parser: example_parser_1
-    auto_config: true # creates explicit instances based on data as given above
-    # allow other fields?
