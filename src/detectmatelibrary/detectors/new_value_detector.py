@@ -88,11 +88,22 @@ class NewValueDetector(CoreDetector):
                     score = 1.0
                     alerts.update({str(var_pos): str(score)})
                 overall_score += score
+        elif input_.EventID in self.config.log_variables:
+            relevant_log_fields = self.config.log_variables[input_.EventID].get_all()
+            for var_pos in relevant_log_fields.keys():
+                score = 0.0
+                if isinstance(var_pos, str):
+                    value = input_.logFormatVariables[var_pos]
+                else:
+                    value = input_.variables[var_pos]
 
-        # TODO: missing single values
+                if value not in self.known_values[input_.EventID][var_pos]:
+                    score = 1.0
+                    alerts.update({str(var_pos): str(score)})
+                overall_score += score
+
         if overall_score > 0:
             output_.score = overall_score
-            # Use update() method for protobuf map fields
             output_.alertsObtain.update(alerts)
             return True
         return False
