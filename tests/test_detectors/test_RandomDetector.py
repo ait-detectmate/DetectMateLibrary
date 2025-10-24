@@ -2,38 +2,40 @@ from detectmatelibrary.detectors.random_detector import RandomDetector
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
 
+from copy import deepcopy
 
 time_test_mode()
+
+config = {
+    "detectors": {
+        "TestDetector": {
+            "auto_config": False,
+            "method_type": "random_detector",
+            "params": {
+                "log_variables": [{
+                    "id": "test",
+                    "event": 1,
+                    "template": "dummy template",
+                    "variables": [{
+                        "pos": 0,
+                        "name": "process",
+                        "params": {
+                            "threshold": 0.
+                        }
+                    }]
+                }]
+            }
+        }
+    }
+}
 
 
 class TestRandomDetectorIntegration:
     """Integration tests for RandomDetector with full pipeline."""
 
     def test_full_process_pipeline(self):
-        config = {
-            "detectors": {
-                "TestDetector": {
-                    "auto_config": False,
-                    "method_type": "random_detector",
-                    "params": {
-                        "log_variables": [{
-                            "id": "test",
-                            "event": 1,
-                            "template": "dummy template",
-                            "variables": [{
-                                "pos": 0,
-                                "name": "process",
-                                "params": {
-                                    "threshold": 0.5
-                                }
-                            }]
-                        }]
-                    }
-                }
-            }
-        }
 
-        detector = RandomDetector(name="TestDetector", config=config)
+        detector = RandomDetector(name="TestDetector", config=deepcopy(config))
 
         assert detector is not None
         assert detector.name == "TestDetector"
@@ -44,30 +46,8 @@ class TestRandomDetectorEdgeCases:
     """Test edge cases and error handling."""
 
     def test_random_seed_consistency(self):
-        config = {
-            "detectors": {
-                "TestDetector": {
-                    "auto_config": False,
-                    "method_type": "random_detector",
-                    "params": {
-                        "log_variables": [{
-                            "id": "test",
-                            "event": 1,
-                            "template": "dummy template",
-                            "variables": [{
-                                "pos": 0,
-                                "name": "process",
-                                "params": {
-                                    "threshold": 0.0
-                                }
-                            }]
-                        }]
-                    }
-                }
-            }
-        }
 
-        detector = RandomDetector(name="TestDetector", config=config)
+        detector = RandomDetector(name="TestDetector", config=deepcopy(config))
         parser_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
             "parserType": "test",
             "EventID": 1,
