@@ -57,4 +57,5 @@ class NewValueDetector(CoreDetector):
             # Use update() method for protobuf map fields
             output_.alertsObtain.update(alerts)
             return True
+        output_.score = 0.0
         return False
