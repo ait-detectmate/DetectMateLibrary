@@ -1,4 +1,4 @@
-from detectmatelibrary.utils._formats import apply_format
+from detectmatelibrary.common._config._formats import apply_format
 
 from pydantic import BaseModel
 

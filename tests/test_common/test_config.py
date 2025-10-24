@@ -1,6 +1,6 @@
 
 
-from detectmatelibrary.utils.config import (
+from detectmatelibrary.common._config.config import (
     ConfigMethods,
     MethodNotFoundError,
     TypeNotFoundError,
@@ -10,7 +10,7 @@ from detectmatelibrary.utils.config import (
     MissingFormat,
     BasicConfig,
 )
-from detectmatelibrary.utils._formats import (
+from detectmatelibrary.common._config._formats import (
     LogVariables
 )
 
