@@ -10,7 +10,7 @@ This module tests the RandomDetector implementation including:
 """
 
 from detectmatelibrary.common.config.detector import DetectorInstance, DetectorVariable
-from detectmatelibrary.detectors.RandomDetector import RandomDetector, RandomDetectorConfig
+from detectmatelibrary.detectors.random_detector import RandomDetector, RandomDetectorConfig
 from detectmatelibrary.common.config.detector import CoreDetectorConfig
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode

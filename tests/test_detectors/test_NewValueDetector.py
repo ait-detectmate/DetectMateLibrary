@@ -9,7 +9,7 @@ This module tests the NewValueDetector implementation including:
 """
 
 from detectmatelibrary.common.config.detector import DetectorInstance, DetectorVariable
-from detectmatelibrary.detectors.NewValueDetector import NewValueDetector, NewValueDetectorConfig
+from detectmatelibrary.detectors.new_value_detector import NewValueDetector, NewValueDetectorConfig
 from detectmatelibrary.common.config.detector import CoreDetectorConfig
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
