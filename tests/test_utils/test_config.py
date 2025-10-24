@@ -8,6 +8,7 @@ from detectmatelibrary.utils.config import (
     AutoConfigError,
     AutoConfigWarning,
     MissingFormat,
+    BasicConfig,
 )
 from detectmatelibrary.utils._formats import (
     LogVariables
@@ -150,3 +151,35 @@ class TestParamsFormat:
             ConfigMethods.process(ConfigMethods.get_method(
                 config_test, method_id="detector_incorrect_format2", comp_type="detectors"
             ))
+
+
+class MockupParserConfig(BasicConfig):
+    method_type: str = "ExampleParser"
+    comp_type: str = "parsers"
+
+    auto_config: bool = False
+    log_format: str = "<PLACEHOLDER>"
+    depth: int = -1
+
+
+class MockuptDetectorConfig(BasicConfig):
+    method_type: str = "ExampleDetector"
+    comp_type: str = "detectors"
+    parser: str = "<PLACEHOLDER>"
+
+
+class TestBasicConfig:
+    def test_parser_from_dict(self):
+        config_test = load_test_config()
+        config = MockupParserConfig.from_dict(config_test, "example_parser")
+
+        assert not config.auto_config
+        assert config.log_format == "[<Time>] [<Level>] <Content>"
+        assert config.depth == 4
+
+    def test_detectir_from_dict(self):
+        config_test = load_test_config()
+        config = MockuptDetectorConfig.from_dict(config_test, "detector_auto")
+
+        assert config.auto_config
+        assert config.parser == "example_parser_1"

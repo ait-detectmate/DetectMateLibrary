@@ -31,11 +31,8 @@ class LogVariables(BaseModel):
 
 _formats = {"log_variables": LogVariables}
 
-def choose_format(format: str) -> Tuple[bool, BaseModel | None]:
-    return (True, _formats[format]) if format in _formats else (False, None)
 
-
-def init_format(format: object, params: list):
-    return [
-        format.init(**param) for param in params
-    ]
+def apply_format(format: str, params: list | Any) -> Any:
+    if format in _formats:
+        return [_formats[format].init(**param) for param in params]
+    return params

@@ -1,7 +1,9 @@
-from detectmatelibrary.utils._formats import choose_format, init_format
+from detectmatelibrary.utils._formats import apply_format
 
 from pydantic import BaseModel
-from typing import Any, Dict
+
+from typing import Any, Dict, Self
+from copy import deepcopy
 import warnings
 
 
@@ -72,16 +74,12 @@ class ConfigMethods:
                 raise MissingFormat()
 
             for param in config["params"]:
-                use_format, format_ = choose_format(param)
-                if use_format:
-                    config["params"][param] = init_format(format_, config["params"][param])
+                config["params"][param] = apply_format(param, config["params"][param])
 
             config.update(config["params"])
             config.pop("params")
 
         return config
-
-
 
 
 class BasicConfig(BaseModel):
@@ -91,8 +89,9 @@ class BasicConfig(BaseModel):
     class Config:
         extra = "forbid"
 
-    method_id: str = "default_method"
-    method_type: str = "default_type"
+    method_type: str = "default_method_type"
+    comp_type: str = "default_type"
+
     auto_config: bool = False
 
     def get_config(self) -> Dict[str, Any]:
@@ -105,5 +104,11 @@ class BasicConfig(BaseModel):
             setattr(self, key, value)
 
     @classmethod
-    def from_dict(cls, data: dict) -> "BasicConfig":
-        return compile_config(data, cls)
+    def from_dict(cls, data: dict, method_id: str) -> Self:
+        aux = cls()
+        config_ = ConfigMethods.get_method(
+            deepcopy(data), comp_type=aux.comp_type, method_id=method_id
+        )
+        ConfigMethods.check_type(config_, method_type=aux.method_type)
+
+        return cls(**ConfigMethods.process(config_))
