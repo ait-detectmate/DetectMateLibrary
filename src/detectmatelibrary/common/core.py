@@ -1,6 +1,7 @@
 from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer
 from detectmatelibrary.utils.id_generator import SimpleIDGenerator
-from detectmatelibrary.utils.aux import BasicConfig
+
+from detectmatelibrary.common._config import BasicConfig
 
 from detectmatelibrary import schemas
 

@@ -10,7 +10,7 @@ from detectmatelibrary.common._config._compile import (
     MissingFormat,
 )
 from detectmatelibrary.common._config._formats import (
-    LogVariables
+    LogVariables, AllLogVariables
 )
 from detectmatelibrary.common._config import BasicConfig
 
@@ -94,7 +94,16 @@ class TestConfigMethods:
 
 
 class TestParamsFormat:
+    def test_all(self):
+        config_test = load_test_config()
+        config = ConfigMethods.process(ConfigMethods.get_method(
+            config_test, method_id="detector_all", comp_type="detectors"
+        ))
+
+        assert len(config) == 4
+
     def test_correct_format(self):
+        config_test = load_test_config()
         config = ConfigMethods.process(ConfigMethods.get_method(
             config_test, method_id="detector_variables", comp_type="detectors"
         ))
@@ -102,19 +111,19 @@ class TestParamsFormat:
         assert config["method_type"] == "ExampleDetector"
         assert config["parser"] == "example_parser_1"
         assert not config["auto_config"]
-        for i in range(len(config["log_variables"])):
+        for i in config["log_variables"]:
             assert isinstance(config["log_variables"][i], LogVariables)
 
-        assert config["log_variables"][0].id == "example_detector_1"
-        assert config["log_variables"][0].event == 1
-        assert config["log_variables"][0].template == "jk2_init() Found child <*>"
+        assert config["log_variables"][i].id == "example_detector_1"
+        assert config["log_variables"][i].event == 1
+        assert config["log_variables"][i].template == "jk2_init() Found child <*>"
 
-        assert config["log_variables"][0].variables[0].pos == 0
-        assert config["log_variables"][0].variables[0].name == "child_process"
-        assert config["log_variables"][0].variables[0].params == {"threshold": 0.5}
+        assert config["log_variables"][i].variables[0].pos == 0
+        assert config["log_variables"][i].variables[0].name == "child_process"
+        assert config["log_variables"][i].variables[0].params == {"threshold": 0.5}
 
-        assert config["log_variables"][0].header_variables[0].pos == "Level"
-        assert config["log_variables"][0].header_variables[0].params == {"threshold": 0.2}
+        assert config["log_variables"][i].header_variables["Level"].pos == "Level"
+        assert config["log_variables"][i].header_variables["Level"].params == {"threshold": 0.2}
 
     def test_correct_format2(self):
         config = ConfigMethods.process(ConfigMethods.get_method(
@@ -124,17 +133,26 @@ class TestParamsFormat:
         assert config["method_type"] == "ExampleDetector"
         assert config["parser"] == "example_parser_1"
         assert not config["auto_config"]
-        for i in range(len(config["log_variables"])):
+        for i in config["log_variables"]:
             assert isinstance(config["log_variables"][i], LogVariables)
 
-        assert config["log_variables"][0].id == "example_detector_1"
-        assert config["log_variables"][0].event == 1
-        assert config["log_variables"][0].template == "jk2_init() Found child <*>"
+        assert config["log_variables"][i].id == "example_detector_1"
+        assert config["log_variables"][i].event == 1
+        assert config["log_variables"][i].template == "jk2_init() Found child <*>"
 
-        assert len(config["log_variables"][0].variables) == 0
+        assert len(config["log_variables"][i].variables) == 0
 
-        assert config["log_variables"][0].header_variables[0].pos == "Level"
-        assert config["log_variables"][0].header_variables[0].params == {"threshold": 0.2}
+        assert config["log_variables"][i].header_variables["Level"].pos == "Level"
+        assert config["log_variables"][i].header_variables["Level"].params == {"threshold": 0.2}
+
+    def test_get_dict(self):
+        config_test = load_test_config()
+        config = ConfigMethods.process(ConfigMethods.get_method(
+            config_test, method_id="detector_variables", comp_type="detectors"
+        ))
+        variables = config["log_variables"][1].get_all()
+
+        assert len(variables) == 4
 
     def test_missing_format(self):
         with pytest.raises(MissingFormat):
@@ -168,6 +186,14 @@ class MockuptDetectorConfig(BasicConfig):
     parser: str = "<PLACEHOLDER>"
 
 
+class MockuptDetectorAllConfig(BasicConfig):
+    method_type: str = "ExampleDetector"
+    comp_type: str = "detectors"
+    parser: str = "<PLACEHOLDER>"
+
+    log_variables: AllLogVariables = AllLogVariables()
+
+
 class TestBasicConfig:
     def test_parser_from_dict(self):
         config_test = load_test_config()
@@ -183,3 +209,12 @@ class TestBasicConfig:
 
         assert config.auto_config
         assert config.parser == "example_parser_1"
+
+    def test_detector_all(self):
+        config_test = load_test_config()
+        config = MockuptDetectorAllConfig.from_dict(config_test, "detector_all")
+
+        assert not config.auto_config
+        assert config.log_variables[1].variables[0].pos == 0
+        assert config.log_variables["as"].variables[0].pos == 0
+        assert config.log_variables[43].variables[0].pos == 0

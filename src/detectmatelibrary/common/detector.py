@@ -1,5 +1,4 @@
 from detectmatelibrary.common.core import CoreComponent, CoreConfig, CoreComponent
-from detectmatelibrary.common.config.detector import CoreDetectorConfig
 
 from typing import List, Optional, Literal
 
@@ -27,6 +26,14 @@ def _extract_logIDs(
     return [i.logID for i in input_]
 
 
+class CoreDetectorConfig(CoreConfig):
+    comp_type: str = "detectors"
+    method_type: str = "core_detector"
+    parser: str = "<PLACEHOLDER>"
+
+    auto_config: bool = False
+
+
 class CoreDetector(CoreComponent):
     def __init__(
         self,
@@ -36,11 +43,11 @@ class CoreDetector(CoreComponent):
         config: Optional[CoreDetectorConfig | dict] = CoreDetectorConfig(),
     ):
         if isinstance(config, dict):
-            config = CoreDetectorConfig.from_dict(config)
+            config = CoreDetectorConfig.from_dict(config, name)
 
         super().__init__(
             name=name,
-            type_="Detector",
+            type_=config.comp_type,
             config=config,
             args_buffer=ArgsBuffer(mode=buffer_mode, size=buffer_size),
             input_schema=schemas.PARSER_SCHEMA,
@@ -53,6 +60,8 @@ class CoreDetector(CoreComponent):
         output_: schemas.DetectorSchema
     ) -> bool:
 
+        output_.detectorID = self.name
+        output_.detectorType = self.config.method_type
         output_.logIDs.extend(_extract_logIDs(input_))
         output_.extractedTimestamps.extend(_extract_timestamp(input_))
         output_.alertID = self.id_generator()

@@ -30,17 +30,36 @@ class IncompleteMockupReader(CoreReader):
         return True
 
 
+default_args = {
+    "readers": {
+        "TestReader": {
+            "auto_config": True,
+            "method_type": "core_reader"
+        }
+    }
+}
+
+
 class TestCoreDetector:
     def test_initialize_default(self) -> None:
-        reader = MockupReader(name="TestReader", config={})
+        reader = MockupReader(name="TestReader", config=default_args)
 
         assert isinstance(reader, CoreReader)
         assert reader.name == "TestReader"
         assert isinstance(reader.config, CoreReaderConfig)
 
     def test_incorrect_config_type(self) -> None:
+        invalid_args = {
+            "readers": {
+                "TestReader": {
+                    "auto_config": True,
+                    "method_type": "core_reader",
+                    "invalid": "lololo"
+                }
+            }
+        }
         with pytest.raises(pydantic.ValidationError):
-            MockupReader(name="TestReader", config={"param1": "invalid_type", "param2": 0.5})
+            MockupReader(name="TestReader", config=invalid_args)
 
     def test_process_no_binary(self) -> None:
         config = CoreReaderConfig(**{"logSource": "TestSource", "hostname": "0.0.0.0"})
@@ -64,18 +83,18 @@ class TestCoreDetector:
         assert output.hostname == "0.0.0.0"
 
     def test_process_logid_default(self) -> None:
-        reader = MockupReader(name="TestReader", config={})
+        reader = MockupReader(name="TestReader", config=default_args)
         for i in range(10):
             assert reader.process(as_bytes=False).logID == 10 + i
 
     def test_process_None(self) -> None:
-        reader = MockupNoneReader(name="TestReader", config={})
+        reader = MockupNoneReader(name="TestReader", config=default_args)
         output = reader.process()
 
         assert output is None
 
     def test_incomplete_reader(self) -> None:
-        reader = IncompleteMockupReader(name="TestReader", config={})
+        reader = IncompleteMockupReader(name="TestReader", config=default_args)
 
         with pytest.raises(schemas.NotCompleteSchema):
             reader.process()

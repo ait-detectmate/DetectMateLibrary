@@ -6,7 +6,7 @@ from typing import List
 
 class DummyDetectorConfig(CoreDetectorConfig):
     """Configuration for DummyDetector."""
-    pass
+    method_type: str = "dummy_detector"
 
 
 class DummyDetector(CoreDetector):
@@ -19,7 +19,7 @@ class DummyDetector(CoreDetector):
     ) -> None:
 
         if isinstance(config, dict):
-            config = DummyDetectorConfig.from_dict(config)
+            config = DummyDetectorConfig.from_dict(config, name)
         super().__init__(name=name, buffer_mode="no_buf", config=config)
         self._call_count = 0
 

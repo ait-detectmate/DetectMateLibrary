@@ -72,10 +72,13 @@ class ConfigMethods:
             if isinstance(config["params"], list):
                 raise MissingFormat()
 
-            for param in config["params"]:
-                config["params"][param] = apply_format(param, config["params"][param])
+            for param in config["params"].copy():
+                config["params"][param.replace("all_", "")] = apply_format(
+                    param, config["params"][param]
+                )
+                if "all_" in param:
+                    config["params"].pop(param)
 
             config.update(config["params"])
             config.pop("params")
-
         return config

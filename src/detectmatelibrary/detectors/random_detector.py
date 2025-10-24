@@ -1,14 +1,16 @@
-from detectmatelibrary.common.config.detector import CoreDetectorConfig
-from detectmatelibrary.common.detector import CoreDetector
+from detectmatelibrary.common._config._formats import LogVariables, AllLogVariables
+
+from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 import detectmatelibrary.schemas as schemas
 
-from pydantic import BaseModel
-from typing import List
+from typing import List, Dict
 import numpy as np
 
 
-class RandomDetectorConfig(BaseModel):
-    threshold: float = 0.7
+class RandomDetectorConfig(CoreDetectorConfig):
+    method_type: str = "random_detector"
+
+    log_variables: Dict[int, LogVariables] | AllLogVariables = {}
 
 
 class RandomDetector(CoreDetector):
@@ -16,8 +18,10 @@ class RandomDetector(CoreDetector):
     data."""
 
     def __init__(
-        self, name: str = "RandomDetector", config: CoreDetectorConfig = CoreDetectorConfig()
+        self, name: str = "RandomDetector", config: RandomDetectorConfig = RandomDetectorConfig()
     ) -> None:
+        if isinstance(config, dict):
+            config = RandomDetectorConfig.from_dict(config, name)
         super().__init__(name=name, buffer_mode="no_buf", config=config)
 
     def train(self, input_: List[schemas.ParserSchema] | schemas.ParserSchema) -> None:
@@ -32,21 +36,19 @@ class RandomDetector(CoreDetector):
         """Detect anomalies randomly in the input data."""
         overall_score = 0.0
         alerts = {}
-        # get the relevant parts of a log based on config
-        relevant_log_fields = self.config.get_relevant_fields(input_)
-        for i, (var_name, data) in enumerate(relevant_log_fields.items()):
-            # data = {"value": value, "config": config}
-            # randomly decide if anomaly or not
+
+        relevant_log_fields = self.config.log_variables[input_.EventID].get_all()
+        for log_variable in relevant_log_fields.values():
             score = 0.0
             random = np.random.rand()
-            if random > data.get("config").threshold:
-                # anomaly_detected = True
+            if random > log_variable.params["threshold"]:
                 score = 1.0
-                alerts.update({str(data.get("value")): str(score)})
+                alerts.update({log_variable.name: str(score)})
             overall_score += score
+
         if overall_score > 0:
             output_.score = overall_score
-            # Use update() method for protobuf map fields
             output_.alertsObtain.update(alerts)
             return True
+
         return False

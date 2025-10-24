@@ -4,7 +4,7 @@ from detectmatelibrary import schemas
 
 class DummyParserConfig(CoreParserConfig):
     """Configuration for DummyParser."""
-    pass
+    method_type: str = "dummy_parser"
 
 
 class DummyParser(CoreParser):
@@ -17,7 +17,7 @@ class DummyParser(CoreParser):
     ) -> None:
 
         if isinstance(config, dict):
-            config = DummyParserConfig.from_dict(config)
+            config = DummyParserConfig.from_dict(config, name)
         super().__init__(name=name, config=config)
 
     def parse(

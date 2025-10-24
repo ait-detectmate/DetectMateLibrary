@@ -1,4 +1,4 @@
-from detectmatelibrary.common.config.detector import CoreDetectorConfig
+from detectmatelibrary.common.detector import CoreDetectorConfig
 from detectmatelibrary.common.detector import CoreDetector
 from detectmatelibrary.utils.aux import time_test_mode
 import detectmatelibrary.schemas as schemas
@@ -8,8 +8,7 @@ import pytest
 
 
 class MockupConfig(CoreDetectorConfig):
-    detectorID: str = "TestDetector01"
-    detectorType: str = "TestType"
+    pass
 
 
 class MockupDetector(CoreDetector):
@@ -76,12 +75,22 @@ dummy_schema = {
 }
 
 
+dummy_config = {
+    "detectors": {
+        "TestDetector": {
+            "method_type": "core_detector",
+            "auto_config": True,
+        }
+    }
+}
+
+
 time_test_mode()
 
 
 class TestCoreDetector:
     def test_initialize_default(self) -> None:
-        detector = MockupDetector(name="TestDetector", config={})
+        detector = MockupDetector(name="TestDetector", config=dummy_config)
 
         assert isinstance(detector, CoreDetector)
         assert detector.name == "TestDetector"
@@ -90,18 +99,28 @@ class TestCoreDetector:
         assert detector.output_schema == schemas.DETECTOR_SCHEMA
 
     def test_incorrect_config_type(self) -> None:
+        dummy_config2 = {
+            "detectors": {
+                "TestDetector": {
+                    "method_type": "core_detector",
+                    "auto_config": True,
+                    "incorrect_field": 4
+                }
+            }
+        }
+
         with pytest.raises(pydantic.ValidationError):
-            MockupDetector(name="TestDetector", config={"param1": "invalid_type", "param2": 0.5})
+            MockupDetector(name="TestDetector", config=dummy_config2)
 
     def test_process_correct_input_schema(self) -> None:
-        detector = MockupDetector(name="TestDetector", config={})
+        detector = MockupDetector(name="TestDetector", config=dummy_config)
         data = schemas.initialize(schemas.PARSER_SCHEMA, **dummy_schema)
         data_serialized = schemas.serialize(schemas.PARSER_SCHEMA, data)
         result = detector.process(data_serialized)  # no error should be produced
         assert isinstance(result, bytes)  # and result should be bytes
 
     def test_process_incorrect_input_schema(self) -> None:
-        detector = MockupDetector(name="TestDetector", config={})
+        detector = MockupDetector(name="TestDetector", config=dummy_config)
         data = schemas.initialize(schemas.LOG_SCHEMA, **{"log": "This is a log."})
         data_serialized = schemas.serialize(schemas.LOG_SCHEMA, data)
         with pytest.raises(schemas.IncorrectSchema):
@@ -111,8 +130,8 @@ class TestCoreDetector:
         detector = MockupDetector(name="TestDetector", config=MockupConfig())
         expected_result = schemas.initialize(schemas.DETECTOR_SCHEMA, **{
             "__version__": "1.0.0",
-            "detectorID": "TestDetector01",
-            "detectorType": "TestType",
+            "detectorID": "TestDetector",
+            "detectorType": "core_detector",
             "alertID": 10,
             "detectionTimestamp": 0,
             "logIDs": [0],
@@ -129,8 +148,8 @@ class TestCoreDetector:
         detector = MockupDetector_window(name="TestDetector", config=MockupConfig())
         expected_result = schemas.initialize(schemas.DETECTOR_SCHEMA, **{
             "__version__": "1.0.0",
-            "detectorID": "TestDetector01",
-            "detectorType": "TestType",
+            "detectorID": "TestDetector",
+            "detectorType": "core_detector",
             "alertID": 10,
             "detectionTimestamp": 0,
             "logIDs": [0, 0, 0],
@@ -148,11 +167,11 @@ class TestCoreDetector:
         assert result == expected_result, f"result -> {expected_result} and {result}"
 
     def test_process_input_schema_not_serialized_buffer_3(self) -> None:
-        detector = MockupDetector_window(name="TestDetector", config=MockupConfig())
+        detector = MockupDetector_window(name="TestDetector01", config=MockupConfig())
         expected_result = schemas.initialize(schemas.DETECTOR_SCHEMA, **{
             "__version__": "1.0.0",
             "detectorID": "TestDetector01",
-            "detectorType": "TestType",
+            "detectorType": "core_detector",
             "alertID": 10,
             "detectionTimestamp": 0,
             "logIDs": [0, 0, 0],

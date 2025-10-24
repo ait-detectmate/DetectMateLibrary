@@ -7,8 +7,7 @@ import pytest
 
 
 class MockupConfig(CoreParserConfig):
-    parserType: str = "TestType"
-    parserID: str = "TestParser"
+    pass
 
 
 class MockupParser(CoreParser):
@@ -47,10 +46,19 @@ class NoneMockupParser(CoreParser):
 
 time_test_mode()
 
+default_args = {
+    "parsers": {
+        "TestParser": {
+            "auto_config": True,
+            "method_type": "core_parser"
+        }
+    }
+}
+
 
 class TestCoreParser:
     def test_initialize_default(self) -> None:
-        parser = MockupParser(name="TestParser", config={})
+        parser = MockupParser(name="TestParser", config=default_args)
 
         assert isinstance(parser, CoreParser)
         assert parser.name == "TestParser"
@@ -59,11 +67,20 @@ class TestCoreParser:
         assert parser.output_schema == schemas.PARSER_SCHEMA
 
     def test_incorrect_config_type(self) -> None:
+        invalid_args = {
+            "parsers": {
+                "TestParser": {
+                    "auto_config": True,
+                    "method_type": "core_parser",
+                    "invalid": 1
+                }
+            }
+        }
         with pytest.raises(pydantic.ValidationError):
-            MockupParser(name="TestParser", config={"param1": "invalid_type", "param2": 0.5})
+            MockupParser(name="TestParser", config=invalid_args)
 
     def test_process_correct_input_schema(self) -> None:
-        parser = MockupParser(name="TestParser", config={})
+        parser = MockupParser(name="TestParser", config=default_args)
         data = schemas.initialize(schemas.LOG_SCHEMA, **{
             "logID": 1, "log": "This is a log."
         })
@@ -72,7 +89,7 @@ class TestCoreParser:
         assert isinstance(result, bytes)  # and result should be bytes
 
     def test_process_incorrect_input_schema(self) -> None:
-        parser = MockupParser(name="TestParser", config={})
+        parser = MockupParser(name="TestParser", config=default_args)
         data = schemas.initialize(schemas.DETECTOR_SCHEMA, **{"score": 0.99})
         data_serialized = schemas.serialize(schemas.DETECTOR_SCHEMA, data)
         with pytest.raises(schemas.IncorrectSchema):
@@ -82,7 +99,7 @@ class TestCoreParser:
         parser = MockupParser(name="TestParser", config=MockupConfig())
         expected_result = schemas.initialize(schemas.PARSER_SCHEMA, **{
             "__version__": "1.0.0",
-            "parserType": "TestType",
+            "parserType": "core_parser",
             "parserID": "TestParser",
             "EventID": 1,
             "template": "hello",

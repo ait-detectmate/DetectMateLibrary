@@ -4,9 +4,27 @@ from detectmatelibrary.parsers.dummy_parser import DummyParser, DummyParserConfi
 import detectmatelibrary.schemas as schemas
 
 
+default_args = {
+    "parsers": {
+        "DummyParser": {
+            "auto_config": False,
+            "method_type": "dummy_parser",
+            "params": {},
+        }
+    },
+    "detectors": {
+        "DummyDetector": {
+            "method_type": "dummy_detector",
+            "auto_config": False,
+            "params": {},
+        }
+    }
+}
+
+
 class TestDummyMethods:
     def test_initialize_default(self) -> None:
-        detector = DummyDetector(name="DummyDetector", config={})
+        detector = DummyDetector(name="DummyDetector", config=default_args)
 
         assert isinstance(detector, DummyDetector)
         assert detector.name == "DummyDetector"
@@ -28,7 +46,7 @@ class TestDummyMethods:
             assert len(output.alertsObtain) == 0
 
     def test_parser_initialize_default(self) -> None:
-        parser = DummyParser(name="DummyParser", config={})
+        parser = DummyParser(name="DummyParser", config=default_args)
 
         assert isinstance(parser, DummyParser)
         assert parser.name == "DummyParser"

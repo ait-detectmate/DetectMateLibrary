@@ -1,9 +1,10 @@
-from detectmatelibrary.common.config.detector import CoreDetectorConfig
+from detectmatelibrary.common._config._formats import LogVariables, AllLogVariables
+
+from detectmatelibrary.common.detector import CoreDetectorConfig
 from detectmatelibrary.common.detector import CoreDetector
 import detectmatelibrary.schemas as schemas
 
-from pydantic import BaseModel
-from typing import List
+from typing import List, Dict
 
 
 def replaced_with_sets(d: dict) -> dict:
@@ -18,8 +19,10 @@ def replaced_with_sets(d: dict) -> dict:
     return new_dict
 
 
-class NewValueDetectorConfig(BaseModel):
-    pass
+class NewValueDetectorConfig(CoreDetectorConfig):
+    method_type: str = "new_value_detector"
+
+    log_variables: Dict[int, LogVariables] | AllLogVariables = {}
 
 
 class NewValueDetector(CoreDetector):
@@ -28,20 +31,37 @@ class NewValueDetector(CoreDetector):
     def __init__(
         self, name: str = "NewValueDetector", config: CoreDetectorConfig = CoreDetectorConfig()
     ) -> None:
+        if isinstance(config, dict):
+            config = NewValueDetectorConfig.from_dict(config, name)
         super().__init__(name=name, buffer_mode="no_buf", config=config)
-        self.known_values = replaced_with_sets(config._all_instances_dict)
+        self.known_values = {}
 
     def train(self, input_: List[schemas.ParserSchema] | schemas.ParserSchema) -> None:
         """Train the detector by learning values from the input data."""
-        relevant_log_fields = self.config.get_relevant_fields(input_)
-        if "all" in self.known_values:
-            for var_pos, data in relevant_log_fields.items():
-                if var_pos in self.known_values["all"]:
-                    self.known_values["all"][var_pos].add(data.get("value"))
-        if input_.EventID in self.known_values:
-            for i, (var_pos, data) in enumerate(relevant_log_fields.items()):
-                if var_pos in self.known_values[input_.EventID]:
-                    self.known_values[input_.EventID][var_pos].add(data.get("value"))
+        if isinstance(self.config.log_variables, AllLogVariables):
+            relevant_log_fields = self.config.log_variables[input_.EventID].get_all()
+            for var_pos in relevant_log_fields.keys():
+                if var_pos not in self.known_values:
+                    self.known_values[var_pos] = set()
+
+                if isinstance(var_pos, str):
+                    self.known_values[var_pos].add(input_.logFormatVariables[var_pos])
+                else:
+                    self.known_values[var_pos].add(input_.variables[var_pos])
+
+        elif input_.EventID in self.config.log_variables:
+            relevant_log_fields = self.config.log_variables[input_.EventID].get_all()
+            if input_.EventID not in self.known_values:
+                self.known_values[input_.EventID] = {}
+            for var_pos in relevant_log_fields.keys():
+                if var_pos not in self.known_values[input_.EventID]:
+                    self.known_values[input_.EventID][var_pos] = set()
+
+                if isinstance(var_pos, str):
+                    self.known_values[input_.EventID][var_pos].add(input_.logFormatVariables[var_pos])
+                else:
+                    self.known_values[input_.EventID][var_pos].add(input_.variables[var_pos])
+
         return None
 
     def detect(
@@ -52,17 +72,24 @@ class NewValueDetector(CoreDetector):
         """Detect new values in the input data."""
         overall_score = 0.0
         alerts = {}
-        # get the relevant parts of a log based on config
-        relevant_log_fields = self.config.get_relevant_fields(input_)
-        for i, (var_pos, data) in enumerate(relevant_log_fields.items()):
-            val = data.get("value")
-            score = 0.0
-            is_val_known = val in self.known_values["all"][var_pos] or \
-                val in self.known_values.get(input_.EventID, {}).get(var_pos, set())
-            if not is_val_known:
-                score = 1.0
-                alerts.update({str(val): str(score)})
-            overall_score += score
+        if isinstance(self.config.log_variables, AllLogVariables):
+            relevant_log_fields = self.config.log_variables[input_.EventID].get_all()
+
+            for var_pos in relevant_log_fields.keys():
+                score = 0.0
+                if isinstance(var_pos, str):
+                    value = input_.logFormatVariables.get(var_pos, None)
+                elif len(input_.variables) > var_pos:
+                    value = input_.variables[var_pos]
+                else:
+                    value = None
+
+                if value not in self.known_values[var_pos]:
+                    score = 1.0
+                    alerts.update({str(var_pos): str(score)})
+                overall_score += score
+
+        # TODO: missing single values
         if overall_score > 0:
             output_.score = overall_score
             # Use update() method for protobuf map fields

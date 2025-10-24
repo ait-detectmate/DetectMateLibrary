@@ -1,6 +1,6 @@
-from ..template_matcher._matcher_op import TemplateMatcher
-from ...common.parser import CoreParser, CoreParserConfig
-from ... import schemas
+from detectmatelibrary.parsers.template_matcher._matcher_op import TemplateMatcher
+from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
+from detectmatelibrary import schemas
 
 import os
 
@@ -10,6 +10,8 @@ class TemplatesNotFoundError(Exception):
 
 
 class MatcherParserConfig(CoreParserConfig):
+    method_type: str = "matcher_parser"
+
     remove_spaces: bool = True
     remove_punctuation: bool = True
     lowercase: bool = True
@@ -25,7 +27,7 @@ class MatcherParser(CoreParser):
     ) -> None:
 
         if isinstance(config, dict):
-            config = MatcherParserConfig.from_dict(config)
+            config = MatcherParserConfig.from_dict(config, name)
         super().__init__(name=name, config=config)
 
         self.template_matcher = TemplateMatcher(

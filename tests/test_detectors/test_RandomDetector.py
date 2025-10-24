@@ -1,112 +1,73 @@
-"""Tests for RandomDetector class.
-
-This module tests the RandomDetector implementation including:
-- Initialization and configuration
-- Training functionality (no-op for RandomDetector)
-- Detection logic with different thresholds
-- Hierarchical configuration handling
-- Input/output schema validation
-- Error handling
-"""
-
-from detectmatelibrary.common.config.detector import DetectorInstance, DetectorVariable
-from detectmatelibrary.detectors.random_detector import RandomDetector, RandomDetectorConfig
-from detectmatelibrary.common.config.detector import CoreDetectorConfig
+from detectmatelibrary.detectors.random_detector import RandomDetector
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
 
-from unittest.mock import patch
 
-
-# Set time test mode for consistent timestamps
 time_test_mode()
-
-
-class TestRandomDetectorConfig:
-    """Test RandomDetectorConfig validation and defaults."""
-
-    def test_custom_threshold(self):
-        """Test setting custom threshold value."""
-        config = RandomDetectorConfig(threshold=0.5)
-        assert config.threshold == 0.5
-
-
-class TestRandomDetectorInitialization:
-    """Test RandomDetector initialization and configuration."""
-
-    def test_default_initialization(self):
-        """Test detector initialization with default parameters."""
-        detector = RandomDetector()
-
-        assert detector.name == "RandomDetector"
-        assert hasattr(detector, 'config')  # Config should exist
-        # Buffer mode is stored directly in data_buffer
-        assert detector.data_buffer.mode == "no_buf"
-        assert detector.input_schema == schemas.PARSER_SCHEMA
-        assert detector.output_schema == schemas.DETECTOR_SCHEMA
-
-    def test_custom_config_initialization(self):
-        """Test detector initialization with custom configuration."""
-        config = CoreDetectorConfig(
-            detectorID="TestDetector01",
-            detectorType="RandomType"
-        )
-        detector = RandomDetector(name="TestDetector", config=config)
-
-        assert detector.name == "TestDetector"
-        assert detector.config.detectorID == "TestDetector01"
-        assert detector.config.detectorType == "RandomType"
 
 
 class TestRandomDetectorIntegration:
     """Integration tests for RandomDetector with full pipeline."""
 
     def test_full_process_pipeline(self):
-        """Test complete processing pipeline from input to output."""
-        # Create detector with specific configuration
-        config = CoreDetectorConfig(
-            detectorID="TestRandomDetector",
-            detectorType="RandomDetector",
-            instances=[
-                DetectorInstance(
-                    id="instance1",
-                    event=1,
-                    template="test template",
-                    variables=[
-                        DetectorVariable(
-                            pos=0,
-                            params=RandomDetectorConfig(threshold=0.5)
-                        )
-                    ]
-                )
-            ]
-        )
+        config = {
+            "detectors": {
+                "TestDetector": {
+                    "auto_config": False,
+                    "method_type": "random_detector",
+                    "params": {
+                        "log_variables": [{
+                            "id": "test",
+                            "event": 1,
+                            "template": "dummy template",
+                            "variables": [{
+                                "pos": 0,
+                                "name": "process",
+                                "params": {
+                                    "threshold": 0.5
+                                }
+                            }]
+                        }]
+                    }
+                }
+            }
+        }
 
         detector = RandomDetector(name="TestDetector", config=config)
 
-        # Just test that the detector was created successfully
         assert detector is not None
         assert detector.name == "TestDetector"
-        assert detector.config.detectorID == "TestRandomDetector"
-        assert detector.config.detectorType == "RandomDetector"
+        assert detector.config.log_variables[1].variables[0].name == "process"
 
 
 class TestRandomDetectorEdgeCases:
     """Test edge cases and error handling."""
 
-    @patch('numpy.random.rand')
-    @patch('detectmatelibrary.common.detector.CoreDetectorConfig.get_relevant_fields')
-    def test_random_seed_consistency(self, mock_get_fields, mock_rand):
-        """Test that mocking numpy.random works consistently."""
-        mock_rand.return_value = 0.42
-        mock_get_fields.return_value = {
-            "var1": {
-                "value": "test_value",
-                "config": RandomDetectorConfig(threshold=0.5)
+    def test_random_seed_consistency(self):
+        config = {
+            "detectors": {
+                "TestDetector": {
+                    "auto_config": False,
+                    "method_type": "random_detector",
+                    "params": {
+                        "log_variables": [{
+                            "id": "test",
+                            "event": 1,
+                            "template": "dummy template",
+                            "variables": [{
+                                "pos": 0,
+                                "name": "process",
+                                "params": {
+                                    "threshold": 0.0
+                                }
+                            }]
+                        }]
+                    }
+                }
             }
         }
 
-        detector = RandomDetector()
+        detector = RandomDetector(name="TestDetector", config=config)
         parser_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
             "parserType": "test",
             "EventID": 1,

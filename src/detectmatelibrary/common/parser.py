@@ -1,5 +1,4 @@
 from detectmatelibrary.common.core import CoreComponent, CoreConfig
-from detectmatelibrary.common.config.parser import CoreParserConfig
 from detectmatelibrary.utils.data_buffer import ArgsBuffer
 from detectmatelibrary.utils.aux import get_timestamp
 
@@ -31,6 +30,14 @@ def _get_format_variables(pattern: str, time_format: str, log: str) -> Tuple[dic
     return vars, log
 
 
+class CoreParserConfig(CoreConfig):
+    comp_type: str = "parsers"
+    method_type: str = "core_parser"
+
+    pattern: str | None = None
+    time_format: str | None = None
+
+
 class CoreParser(CoreComponent):
     def __init__(
         self,
@@ -38,11 +45,11 @@ class CoreParser(CoreComponent):
         config: Optional[CoreParserConfig | dict] = CoreParserConfig(),
     ):
         if isinstance(config, dict):
-            config = CoreParserConfig.from_dict(config)
+            config = CoreParserConfig.from_dict(config, name)
 
         super().__init__(
             name=name,
-            type_="Parser",
+            type_=config.method_type,
             config=config,
             args_buffer=ArgsBuffer(mode="no_buf", size=None),
             input_schema=schemas.LOG_SCHEMA,
@@ -54,8 +61,9 @@ class CoreParser(CoreComponent):
             self.config.pattern, log=input_.log, time_format=self.config.time_format
         )
 
+        output_.parserID = self.name
         output_.parsedLogID = self.id_generator()
-        output_.parserType = self.config.parserType
+        output_.parserType = self.config.method_type
         output_.logID = input_.logID
         output_.log = content
         output_.logFormatVariables.update(var)

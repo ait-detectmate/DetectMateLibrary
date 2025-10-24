@@ -7,17 +7,18 @@ from typing import Optional, Iterator
 
 class LogFileConfig(CoreReaderConfig):
     file: str = "file.log"
+    method_type: str = "log_file_reader"
 
 
 class LogFileReader(CoreReader):
     def __init__(
         self,
-        name: str="File_reader",
+        name: str = "File_reader",
         config: Optional[LogFileConfig | dict] = LogFileConfig(),
     ) -> None:
         
         if isinstance(config, dict):
-            config = LogFileConfig.from_dict(config)
+            config = LogFileConfig.from_dict(config, name)
         
         super().__init__(name=name, config=config)
         self.__log_generator = self.__read_logs()

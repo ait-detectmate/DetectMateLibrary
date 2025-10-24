@@ -139,17 +139,35 @@ class TestParsing:
         assert matched_df["EventId"] == 0
 
 
+default_args = {
+    "parsers": {
+        "MatcherParser": {
+            "method_type": "matcher_parser",
+            "auto_config": False,
+            "params": {
+                "path_templates": "tests/test_folder/test_templates.txt"
+            }
+        },
+        "Invalid": {
+            "method_type": "matcher_parser",
+            "auto_config": False,
+            "params": {
+                "path_templates": "non_existent_file.txt"
+            }
+        },
+    }
+}
+
+
 class TestMatcher:
     def test_no_template_found(self) -> None:
         try:
-            MatcherParser(config={"path_templates": "non_existent_file.txt"})
+            MatcherParser(config=default_args, name="Invalid")
         except TemplatesNotFoundError as e:
             assert str(e) == "Template file not found at: non_existent_file.txt"
 
     def test_matcher_parser(self) -> None:
-        matcher_parser = MatcherParser(
-            config={"path_templates": "tests/test_folder/test_templates.txt"}
-        )
+        matcher_parser = MatcherParser(config=default_args, name="MatcherParser")
         input_log = schemas.initialize(
             schemas.LOG_SCHEMA, **{"log": test_log}
         )
@@ -163,9 +181,7 @@ class TestMatcher:
         assert output_data.template == test_template[0]
 
     def test_matcher_parser_no_match(self) -> None:
-        matcher_parser = MatcherParser(
-            config={"path_templates": "tests/test_folder/test_templates.txt"}
-        )
+        matcher_parser = MatcherParser(config=default_args, name="MatcherParser")
         input_log = schemas.initialize(
             schemas.LOG_SCHEMA, **{"log": "this log does not match"}
         )

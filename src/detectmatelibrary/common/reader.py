@@ -6,6 +6,9 @@ from typing import Optional
 
 
 class CoreReaderConfig(CoreConfig):
+    comp_type: str = "readers"
+    method_type: str = "core_reader"
+
     logSource: str = "<PLACEHOLDER>"
     hostname: str = "<PLACEHOLDER>"
 
@@ -13,15 +16,15 @@ class CoreReaderConfig(CoreConfig):
 class CoreReader(CoreComponent):
     def __init__(
         self,
-        name: str,
+        name: str ="CoreReader",
         config: Optional[CoreReaderConfig | dict] = CoreReaderConfig(),
     ) -> None:
 
         if isinstance(config, dict):
-            config = CoreReaderConfig.from_dict(config)
+            config = CoreReaderConfig.from_dict(config, name)
 
         super().__init__(
-            name=name, type_="Reader", config=config, output_schema=schemas.LOG_SCHEMA
+            name=name, type_=config.method_type, config=config, output_schema=schemas.LOG_SCHEMA
         )
 
         self.data_buffer = None
