@@ -11,7 +11,7 @@ detectors:
     type: ExampleDetector
     parser: example_parser_1 # must match an instance id from parsers
     auto_config: false # if false, explicit instances must be given
-    list_params:
+    params:
       - id: example_detector_1
         event: 1 # can be int or "all"
         template: "jk2_init() Found child <*> in scoreboard slot <*>" # optional

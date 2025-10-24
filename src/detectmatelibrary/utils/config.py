@@ -1,3 +1,5 @@
+from detectmatelibrary.utils._formats import choose_format, init_format
+
 from pydantic import BaseModel
 from typing import Any, Dict
 import warnings
@@ -29,9 +31,13 @@ class AutoConfigError(Exception):
 
 
 class AutoConfigWarning(UserWarning):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__("auto_config = True will overwrite your params.")
 
+
+class MissingFormat(Exception):
+    def __init__(self) -> None:
+        super().__init__("params is a list an is missing its format id")
 
 
 class ConfigMethods:
@@ -55,18 +61,26 @@ class ConfigMethods:
            raise MethodTypeNotMatch( expected_type=method_type, actual_type=config["method_type"])
 
     @staticmethod
-    def process(config: Dict[str, Any]) -> Dict[str, Any] | AutoConfigError:
+    def process(config: Dict[str, Any]) -> Dict[str, Any] | AutoConfigError | MissingFormat:
         if "params" not in config and not config["auto_config"]:
             raise AutoConfigError()
 
         if "params" in config:
             if config["auto_config"]:
                 warnings.warn(AutoConfigWarning())
+            if isinstance(config["params"], list):
+                raise MissingFormat()
+
+            for param in config["params"]:
+                use_format, format_ = choose_format(param)
+                if use_format:
+                    config["params"][param] = init_format(format_, config["params"][param])
 
             config.update(config["params"])
             config.pop("params")
 
         return config
+
 
 
 

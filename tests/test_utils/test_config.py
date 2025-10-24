@@ -6,9 +6,14 @@ from detectmatelibrary.utils.config import (
     TypeNotFoundError,
     MethodTypeNotMatch,
     AutoConfigError,
-    AutoConfigWarning
+    AutoConfigWarning,
+    MissingFormat,
+)
+from detectmatelibrary.utils._formats import (
+    LogVariables
 )
 
+from pydantic import ValidationError
 import pytest
 import yaml
 
@@ -84,4 +89,64 @@ class TestConfigMethods:
         with pytest.warns(AutoConfigWarning):
             ConfigMethods.process(ConfigMethods.get_method(
                 config_test, method_id="detector_weird", comp_type="detectors"
+            ))
+
+
+class TestParamsFormat:
+    def test_correct_format(self):
+        config = ConfigMethods.process(ConfigMethods.get_method(
+            config_test, method_id="detector_variables", comp_type="detectors"
+        ))
+
+        assert config["method_type"] == "ExampleDetector"
+        assert config["parser"] == "example_parser_1"
+        assert not config["auto_config"]
+        for i in range(len(config["log_variables"])):
+            assert isinstance(config["log_variables"][i], LogVariables)
+
+        assert config["log_variables"][0].id == "example_detector_1"
+        assert config["log_variables"][0].event == 1
+        assert config["log_variables"][0].template == "jk2_init() Found child <*>"
+
+        assert config["log_variables"][0].variables[0].pos == 0
+        assert config["log_variables"][0].variables[0].name == "child_process"
+        assert config["log_variables"][0].variables[0].params == {"threshold": 0.5}
+
+        assert config["log_variables"][0].header_variables[0].pos == "Level"
+        assert config["log_variables"][0].header_variables[0].params == {"threshold": 0.2}
+
+    def test_correct_format2(self):
+        config = ConfigMethods.process(ConfigMethods.get_method(
+            config_test, method_id="detector_variables2", comp_type="detectors"
+        ))
+
+        assert config["method_type"] == "ExampleDetector"
+        assert config["parser"] == "example_parser_1"
+        assert not config["auto_config"]
+        for i in range(len(config["log_variables"])):
+            assert isinstance(config["log_variables"][i], LogVariables)
+
+        assert config["log_variables"][0].id == "example_detector_1"
+        assert config["log_variables"][0].event == 1
+        assert config["log_variables"][0].template == "jk2_init() Found child <*>"
+
+        assert len(config["log_variables"][0].variables) == 0
+
+        assert config["log_variables"][0].header_variables[0].pos == "Level"
+        assert config["log_variables"][0].header_variables[0].params == {"threshold": 0.2}
+
+    def test_missing_format(self):
+        with pytest.raises(MissingFormat):
+            ConfigMethods.process(ConfigMethods.get_method(
+                config_test, method_id="detector_missing_format", comp_type="detectors"
+            ))
+
+    def test_incorrect_format(self):
+        with pytest.raises(ValidationError):
+            ConfigMethods.process(ConfigMethods.get_method(
+                config_test, method_id="detector_incorrect_format1", comp_type="detectors"
+            ))
+        with pytest.raises(ValidationError):
+            ConfigMethods.process(ConfigMethods.get_method(
+                config_test, method_id="detector_incorrect_format2", comp_type="detectors"
             ))
