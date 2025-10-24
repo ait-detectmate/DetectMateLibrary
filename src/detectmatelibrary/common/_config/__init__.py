@@ -1,0 +1,38 @@
+from detectmatelibrary.common._config._compile import ConfigMethods
+
+from pydantic import BaseModel
+
+from typing import Any, Dict, Self
+from copy import deepcopy
+
+
+class BasicConfig(BaseModel):
+    """Base configuration class with helper methods."""
+
+    # Forbid extra fields not defined in subclasses (via pydantic)
+    class Config:
+        extra = "forbid"
+
+    method_type: str = "default_method_type"
+    comp_type: str = "default_type"
+
+    auto_config: bool = False
+
+    def get_config(self) -> Dict[str, Any]:
+        """Return the configuration as a dictionary."""
+        return self.model_dump()
+
+    def update_config(self, new_config: dict) -> None:
+        """Update the configuration with new values."""
+        for key, value in new_config.items():
+            setattr(self, key, value)
+
+    @classmethod
+    def from_dict(cls, data: dict, method_id: str) -> Self:
+        aux = cls()
+        config_ = ConfigMethods.get_method(
+            deepcopy(data), comp_type=aux.comp_type, method_id=method_id
+        )
+        ConfigMethods.check_type(config_, method_type=aux.method_type)
+
+        return cls(**ConfigMethods.process(config_))

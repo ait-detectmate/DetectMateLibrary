@@ -1,6 +1,6 @@
 
 
-from detectmatelibrary.common._config.config import (
+from detectmatelibrary.common._config._compile import (
     ConfigMethods,
     MethodNotFoundError,
     TypeNotFoundError,
@@ -8,11 +8,11 @@ from detectmatelibrary.common._config.config import (
     AutoConfigError,
     AutoConfigWarning,
     MissingFormat,
-    BasicConfig,
 )
 from detectmatelibrary.common._config._formats import (
     LogVariables
 )
+from detectmatelibrary.common._config import BasicConfig
 
 from pydantic import ValidationError
 import pytest
