@@ -60,7 +60,7 @@ def detect_new_values(
 
         if value not in kn_v[var_pos]:
             score = 1.0
-            alerts.update({str(var_pos): str(score)})
+            alerts.update({"New variable": str(var_pos)})
         overall_score += score
 
     return overall_score
