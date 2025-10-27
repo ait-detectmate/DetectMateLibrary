@@ -3,6 +3,7 @@ from pydantic import BaseModel
 from typing import List, Dict, Any, Self
 
 
+# Sub-formats ********************************************************+
 class Variable(BaseModel):
     pos: int
     name: str
@@ -36,6 +37,7 @@ class _LogVariable(BaseModel):
         return {**self.variables, **self.header_variables}
 
 
+# Main-formats ********************************************************+
 class LogVariables(BaseModel):
     logvars: Dict[str | int, _LogVariable]
     __index: int = 0
@@ -91,6 +93,7 @@ class AllLogVariables(BaseModel):
         return self
 
 
+# Initialize ********************************************************+
 _formats = {
     "log_variables": (LogVariables, True),
     "all_log_variables": (AllLogVariables, False)
