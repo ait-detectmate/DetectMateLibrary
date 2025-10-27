@@ -8,32 +8,28 @@ from typing import List, Dict
 
 
 # *************** Train methods ****************************************
-def train_all(known_values: dict, input_: schemas.ParserSchema, variables: AllLogVariables) -> None:
-    relevant_log_fields = variables[input_.EventID].get_all()
-    for var_pos in relevant_log_fields.keys():
-        if var_pos not in known_values:
-            known_values[var_pos] = set()
-
-        if isinstance(var_pos, str):
-            known_values[var_pos].add(input_.logFormatVariables[var_pos])
-        else:
-            known_values[var_pos].add(input_.variables[var_pos])
-
-
-def train_multiple(
-    known_values: dict, input_: schemas.ParserSchema, variables: Dict[int, LogVariables]
+def train_new_values(
+    known_values: dict, input_: schemas.ParserSchema, variables: AllLogVariables | LogVariables
 ) -> None:
-    relevant_log_fields = variables[input_.EventID].get_all()
-    if input_.EventID not in known_values:
-        known_values[input_.EventID] = {}
+
+    if (relevant_log_fields := variables[input_.EventID]) is None:
+        return
+    relevant_log_fields = relevant_log_fields.get_all()
+
+    kn_v = known_values
+    if isinstance(variables, LogVariables):
+        if input_.EventID not in known_values:
+            known_values[input_.EventID] = {}
+        kn_v = known_values[input_.EventID]
+
     for var_pos in relevant_log_fields.keys():
-        if var_pos not in known_values[input_.EventID]:
-            known_values[input_.EventID][var_pos] = set()
+        if var_pos not in kn_v:
+            kn_v[var_pos] = set()
 
         if isinstance(var_pos, str):
-            known_values[input_.EventID][var_pos].add(input_.logFormatVariables[var_pos])
+            kn_v[var_pos].add(input_.logFormatVariables[var_pos])
         else:
-            known_values[input_.EventID][var_pos].add(input_.variables[var_pos])
+            kn_v[var_pos].add(input_.variables[var_pos])
 
 # *************** Detect methods ****************************************
 def detect_all(
@@ -106,13 +102,7 @@ class NewValueDetector(CoreDetector):
 
     def train(self, input_: schemas.ParserSchema) -> None:
         """Train the detector by learning values from the input data."""
-        train_method = train_multiple
-        if isinstance(self.config.log_variables, AllLogVariables):
-            train_method = train_all
-        elif input_.EventID not in self.config.log_variables:
-            return
-
-        train_method(
+        train_new_values(
             known_values=self.known_values, input_=input_, variables=self.config.log_variables
         )
 
