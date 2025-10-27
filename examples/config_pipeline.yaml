@@ -1,0 +1,98 @@
+readers:
+    File_reader:
+        method_type: log_file_reader
+        auto_config: False
+        params:
+            file: tests/test_folder/logs.log
+
+parsers:
+    MatcherParser:
+        method_type: matcher_parser
+        auto_config: False
+        pattern: <time>|<content>
+        time_format: null
+        params:
+            remove_spaces: True
+            remove_punctuation: True
+            lowercase: True
+            path_templates: tests/test_folder/test_templates.txt
+
+detectors:
+    RandomDetector:
+        method_type: random_detector
+        auto_config: False
+        params:
+            log_variables:
+                - id: test
+                  event: 1
+                  template: dummy_template
+                  variables:
+                    - pos: 0
+                      name: var1
+                      params:
+                        threshold: 0.
+                  header_variable:
+                    - pos: level
+                      params:
+
+    NewValueDetector:
+        method_type: new_value_detector
+        auto_config: False
+        params:
+            log_variables:
+                - id: test
+                  event: 1
+                  template: dummy_template
+                  variables:
+                    - pos: 0
+                      name: var1
+                      params:
+                        threshold: 0.
+                  header_variable:
+                    - pos: level
+                      params:
+    NewValueDetector_All:
+        method_type: new_value_detector
+        auto_config: False
+        params:
+            all_log_variables:
+                  variables:
+                    - pos: 0
+                      name: var1
+                      params:
+                        threshold: 0.
+                  header_variable:
+                    - pos: level
+                      params:
+
+    NewValueComboDetector:
+        method_type: new_value_combo_detector
+        auto_config: False
+        params:
+            comb_size: 2
+            log_variables:
+                - id: test
+                  event: 1
+                  template: dummy_template
+                  variables:
+                    - pos: 0
+                      name: var1
+                      params:
+                        threshold: 0.
+                  header_variable:
+                    - pos: level
+                      params:
+    NewValueComboDetector_All:
+        method_type: new_value_combo_detector
+        auto_config: False
+        params:
+            comb_size: 2
+            all_log_variables:
+                  variables:
+                    - pos: 0
+                      name: var1
+                      params:
+                        threshold: 0.
+                  header_variable:
+                    - pos: level
+                      params:

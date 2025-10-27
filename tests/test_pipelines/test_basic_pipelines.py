@@ -1,7 +1,13 @@
 from detectmatelibrary.common.detector import CoreDetector
 from detectmatelibrary.common.parser import CoreParser
 
+from detectmatelibrary.detectors.new_value_combo_detector import NewValueComboDetector
+from detectmatelibrary.detectors.new_value_detector import NewValueDetector
+from detectmatelibrary.detectors.random_detector import RandomDetector
+from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.readers.log_file import LogFileReader
+
+import yaml
 
 
 class MockupParser(CoreParser):
@@ -99,3 +105,26 @@ class TestCaseBasicPipelines:
         assert (log := reader.process(as_bytes=False)) is not None
         assert (parsed_log := parser.process(log)) is not None
         assert detector.process(parsed_log) is not None
+
+
+class TestExamples:
+    def test_config_example(self) -> None:
+        with open("examples/config_pipeline.yaml", 'r') as file:
+            config = yaml.safe_load(file)
+
+        # Nothing should crash
+
+        # Readers
+        LogFileReader(config=config)
+
+        # Parsers
+        MatcherParser(config=config)
+
+        # Detectors
+        RandomDetector(config=config)
+
+        NewValueDetector(config=config)
+        NewValueDetector(config=config, name="NewValueDetector_All")
+
+        NewValueComboDetector(config=config)
+        NewValueComboDetector(config=config, name="NewValueComboDetector_All")
