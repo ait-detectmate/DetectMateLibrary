@@ -3,7 +3,6 @@ from detectmatelibrary.common._config._formats import LogVariables, AllLogVariab
 from detectmatelibrary.common.detector import CoreDetectorConfig
 from detectmatelibrary.common.detector import CoreDetector
 
-from detectmatelibrary.utils.functions import sorted_int_str
 import detectmatelibrary.schemas as schemas
 
 from itertools import combinations
@@ -100,17 +99,24 @@ class NewValueComboDetector(CoreDetector):
         """Detect new values in the input data."""
         overall_score = 0.0
         alerts = {}
-        # get the relevant parts of a log based on config
-        relevant_log_fields = self.config.get_relevant_fields(input_)
 
-        var_combo = tuple(sorted_int_str(relevant_log_fields.keys()))
-        if var_combo in self.known_combos.get(input_.EventID, []):
-            val_combo = tuple(field["value"] for field in relevant_log_fields.values())
-            is_combo_known = val_combo in self.known_combos[input_.EventID][var_combo]
-            if not is_combo_known:
-                score = 1.0
-                alerts.update({str(val_combo): str(score)})
-            overall_score += score
+        if input_.EventID in self.config.log_variables:
+            unique_combos = _get_combos(
+                input_=input_,
+                combo_size=self.config.comb_size,
+                log_variables=self.config.log_variables
+            )
+
+            if isinstance(self.config.log_variables, AllLogVariables):
+                known_combos = self.known_combos["all"]
+            else:
+                known_combos = self.known_combos[input_.EventID]
+
+            if not unique_combos.issubset(known_combos):
+                for combo in unique_combos - known_combos:
+                    overall_score += 1
+                    alerts.update({"Not found combo": str(combo)})
+
         if overall_score > 0:
             output_.score = overall_score
             # Use update() method for protobuf map fields

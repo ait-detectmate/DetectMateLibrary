@@ -184,3 +184,205 @@ class TestNewValueDetectorTraining:
         with pytest.raises(ComboTooBigError):
             detector = NewValueComboDetector(config=config, name="MultipleDetectorTooBig")
             detector.train(parser_data)
+
+
+class TestNewValueComboDetectorDetection:
+    """Test NewValueDetector detection functionality."""
+
+    def test_detect_known_value_no_alert_all(self):
+        """Test that known values don't trigger alerts."""
+        detector = NewValueComboDetector(config=config, name="AllDetector")
+
+        # Train with a value
+        train_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+            "parserType": "test",
+            "EventID": 1,
+            "template": "test template",
+            "variables": ["adsasd", "asdasd"],
+            "logID": 1,
+            "parsedLogID": 1,
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {"level": "INFO"}
+        })
+        detector.train(train_data)
+
+        train_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+            "parserType": "test",
+            "EventID": 1,
+            "template": "test template",
+            "variables": ["adsasd", "other_value"],
+            "logID": 1,
+            "parsedLogID": 1,
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {"level": "CRITICAL"}
+        })
+        detector.train(train_data)
+
+        # Detect with the same value
+        test_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+            "parserType": "test",
+            "EventID": 12,
+            "template": "test template",
+            "variables": ["adsasd", "asdasd"],
+            "logID": 2,
+            "parsedLogID": 2,
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {"level": "INFO"}
+        })
+        output = schemas.initialize(schemas.DETECTOR_SCHEMA)
+
+        result = detector.detect(test_data, output)
+
+        # Should not trigger alert for known value
+        assert not result
+        assert output.score == 0.0
+
+    def test_detect_known_value_alert_all(self):
+        detector = NewValueComboDetector(config=config, name="AllDetector")
+
+        # Train with a value
+        train_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+            "parserType": "test",
+            "EventID": 1,
+            "template": "test template",
+            "variables": ["adsasd", "asdasd"],
+            "logID": 1,
+            "parsedLogID": 1,
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {"level": "INFO"}
+        })
+        detector.train(train_data)
+
+        train_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+            "parserType": "test",
+            "EventID": 1,
+            "template": "test template",
+            "variables": ["adsasd", "other_value"],
+            "logID": 1,
+            "parsedLogID": 1,
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {"level": "CRITICAL"}
+        })
+        detector.train(train_data)
+
+        # Detect with the same value
+        test_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+            "parserType": "test",
+            "EventID": 12,
+            "template": "test template",
+            "variables": ["adsasd", "asdasd"],
+            "logID": 2,
+            "parsedLogID": 2,
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {"level": "CRITICAL"}
+        })
+        output = schemas.initialize(schemas.DETECTOR_SCHEMA)
+
+        result = detector.detect(test_data, output)
+
+        assert result
+        assert output.score == 1.0
+
+    def test_detect_known_value_no_alert(self):
+        detector = NewValueComboDetector(config=config, name="MultipleDetector")
+
+        # Train with a value
+        train_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+            "parserType": "test",
+            "EventID": 1,
+            "template": "test template",
+            "variables": ["adsasd", "asdasd"],
+            "logID": 1,
+            "parsedLogID": 1,
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {"level": "INFO"}
+        })
+        detector.train(train_data)
+
+        train_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+            "parserType": "test",
+            "EventID": 1,
+            "template": "test template",
+            "variables": ["adsasd", "other_value"],
+            "logID": 1,
+            "parsedLogID": 1,
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {"level": "CRITICAL"}
+        })
+        detector.train(train_data)
+
+        # Detect with the same value
+        test_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+            "parserType": "test",
+            "EventID": 12,
+            "template": "test template",
+            "variables": ["adsasd"],
+            "logID": 2,
+            "parsedLogID": 2,
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {"level": "CRITICAL"}
+        })
+        output = schemas.initialize(schemas.DETECTOR_SCHEMA)
+
+        result = detector.detect(test_data, output)
+
+        assert not result
+        assert output.score == 0.0
+
+    def test_detect_known_value_alert(self):
+        detector = NewValueComboDetector(config=config, name="MultipleDetector")
+
+        # Train with a value
+        train_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+            "parserType": "test",
+            "EventID": 1,
+            "template": "test template",
+            "variables": ["adsasd", "asdasd"],
+            "logID": 1,
+            "parsedLogID": 1,
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {"level": "INFO"}
+        })
+        detector.train(train_data)
+
+        train_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+            "parserType": "test",
+            "EventID": 1,
+            "template": "test template",
+            "variables": ["adsasd", "other_value"],
+            "logID": 1,
+            "parsedLogID": 1,
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {"level": "CRITICAL"}
+        })
+        detector.train(train_data)
+
+        # Detect with the same value
+        test_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+            "parserType": "test",
+            "EventID": 1,
+            "template": "test template",
+            "variables": ["adsasd"],
+            "logID": 2,
+            "parsedLogID": 2,
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {"level": "CRITICAL"}
+        })
+        output = schemas.initialize(schemas.DETECTOR_SCHEMA)
+
+        result = detector.detect(test_data, output)
+
+        assert result
+        assert output.score == 1.0
