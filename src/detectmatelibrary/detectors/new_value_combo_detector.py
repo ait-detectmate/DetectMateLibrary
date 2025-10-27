@@ -10,6 +10,7 @@ from itertools import combinations
 from typing import List, Any, Set, Dict
 
 
+# Auxiliar methods ********************************************************
 class ComboTooBigError(Exception):
     def __init__(self, exp_size: int, max_size: int) -> None:
         super().__init__(f"Expected size {exp_size} but the max it got {max_size}")
@@ -41,6 +42,7 @@ def _get_combos(
     ], combo_size))
 
 
+# Combo detector methods ********************************************************
 def train_combo_detector(
     input_: schemas.ParserSchema,
     known_combos: Dict[str | int, Set[Any]],
@@ -62,6 +64,34 @@ def train_combo_detector(
         known_combos["all"] = known_combos["all"].union(unique_combos)
 
 
+def detect_combo_detector(
+    input_: schemas.ParserSchema,
+    known_combos: Dict[str | int, Set[Any]],
+    combo_size: int,
+    log_variables: LogVariables | AllLogVariables,
+    alerts: dict,
+) -> int:
+
+    overall_score = 0
+    if input_.EventID in log_variables:
+        unique_combos = _get_combos(
+            input_=input_, combo_size=combo_size, log_variables=log_variables
+        )
+
+        if isinstance(log_variables, AllLogVariables):
+            known_combos = known_combos["all"]
+        else:
+            known_combos = known_combos[input_.EventID]
+
+        if not unique_combos.issubset(known_combos):
+            for combo in unique_combos - known_combos:
+                overall_score += 1
+                alerts.update({"Not found combo": str(combo)})
+
+    return overall_score
+
+# *********************************************************************
+
 class NewValueComboDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_value_combo_detector"
 
@@ -70,8 +100,6 @@ class NewValueComboDetectorConfig(CoreDetectorConfig):
 
 
 class NewValueComboDetector(CoreDetector):
-    """Detect new values in log data as anomalies based on learned values."""
-
     def __init__(
         self,
         name: str = "NewValueComboDetector",
@@ -96,30 +124,18 @@ class NewValueComboDetector(CoreDetector):
         input_: List[schemas.ParserSchema] | schemas.ParserSchema,
         output_: schemas.DetectorSchema
     ) -> bool:
-        """Detect new values in the input data."""
-        overall_score = 0.0
         alerts = {}
 
-        if input_.EventID in self.config.log_variables:
-            unique_combos = _get_combos(
-                input_=input_,
-                combo_size=self.config.comb_size,
-                log_variables=self.config.log_variables
-            )
-
-            if isinstance(self.config.log_variables, AllLogVariables):
-                known_combos = self.known_combos["all"]
-            else:
-                known_combos = self.known_combos[input_.EventID]
-
-            if not unique_combos.issubset(known_combos):
-                for combo in unique_combos - known_combos:
-                    overall_score += 1
-                    alerts.update({"Not found combo": str(combo)})
+        overall_score = detect_combo_detector(
+            input_=input_,
+            known_combos=self.known_combos,
+            combo_size=self.config.comb_size,
+            log_variables=self.config.log_variables,
+            alerts=alerts,
+        )
 
         if overall_score > 0:
             output_.score = overall_score
-            # Use update() method for protobuf map fields
             output_.alertsObtain.update(alerts)
             return True
         return False
