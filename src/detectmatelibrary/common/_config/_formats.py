@@ -92,6 +92,9 @@ class AllLogVariables(BaseModel):
     def __getitem__(self, idx) -> Self:
         return self
 
+    def __contains__(self, idx: str | int) -> bool:
+        return True
+
 
 # Initialize ********************************************************+
 _formats = {

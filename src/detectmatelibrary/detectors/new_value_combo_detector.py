@@ -16,11 +16,30 @@ class ComboTooBigError(Exception):
         super().__init__(f"Expected size {exp_size} but the max it got {max_size}")
 
 
+def _check_size(exp_size, max_size) -> None | ComboTooBigError:
+    if max_size < exp_size:
+        raise ComboTooBigError(exp_size, max_size)
+
+
 def _get_element(input_: schemas.ParserSchema, var_pos: str | int) -> Any:
     if isinstance(var_pos, str):
         return input_.logFormatVariables[var_pos]
     elif len(input_.variables) > var_pos:
         return input_.variables[var_pos]
+
+
+def _get_combos(
+    input_: schemas.ParserSchema,
+    combo_size: int,
+    log_variables: LogVariables | AllLogVariables
+) -> Set[Any]:
+
+    relevant_log_fields = log_variables[input_.EventID].get_all().keys()
+    _check_size(combo_size, len(relevant_log_fields))
+
+    return set(combinations([
+        _get_element(input_, var_pos=field) for field in relevant_log_fields
+    ], combo_size))
 
 
 def train_combo_detector(
@@ -30,17 +49,11 @@ def train_combo_detector(
     log_variables: LogVariables | AllLogVariables
 ) -> None:
 
-    relevant_log_fields = log_variables[input_.EventID]
-    if relevant_log_fields is None:
+    if input_.EventID not in log_variables:
         return
-    relevant_log_fields = relevant_log_fields.get_all().keys()
-
-    if len(relevant_log_fields) < combo_size:
-        raise ComboTooBigError(combo_size, len(relevant_log_fields))
-
-    unique_combos = set(combinations([
-        _get_element(input_, var_pos=field) for field in relevant_log_fields
-    ], combo_size))
+    unique_combos = _get_combos(
+        input_=input_, combo_size=combo_size, log_variables=log_variables
+    )
 
     if isinstance(log_variables, LogVariables):
         if input_.EventID not in known_combos:
