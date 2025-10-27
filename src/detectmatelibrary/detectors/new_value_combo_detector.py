@@ -1,14 +1,18 @@
-from detectmatelibrary.common.config.detector import CoreDetectorConfig
+from detectmatelibrary.common._config._formats import LogVariables, AllLogVariables
+
+from detectmatelibrary.common.detector import CoreDetectorConfig
 from detectmatelibrary.common.detector import CoreDetector
+
 from detectmatelibrary.utils.functions import sorted_int_str
 import detectmatelibrary.schemas as schemas
 
-from pydantic import BaseModel
 from typing import List
 
 
-class NewValueComboDetectorConfig(BaseModel):
-    pass
+class NewValueComboDetectorConfig(CoreDetectorConfig):
+    method_type: str = "new_value_combo_detector"
+
+    log_variables: LogVariables | AllLogVariables = {}
 
 
 class NewValueComboDetector(CoreDetector):
@@ -17,6 +21,9 @@ class NewValueComboDetector(CoreDetector):
     def __init__(
         self, name: str = "NewValueComboDetector", config: CoreDetectorConfig = CoreDetectorConfig()
     ) -> None:
+
+        if isinstance(config, dict):
+            config = CoreDetectorConfig.from_dict(config, name)
         super().__init__(name=name, buffer_mode="no_buf", config=config)
         self.known_combos = self._prepare_known_combos()
 
