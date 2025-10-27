@@ -6,13 +6,13 @@ import detectmatelibrary.schemas.schemas_pb2 as s
 
 from typing import NewType, Tuple, Dict, Type, Union
 
-from google.protobuf.descriptor import FieldDescriptor
-from google.protobuf.message import Message
+from google.protobuf.descriptor import FieldDescriptor  # type: ignore
+from google.protobuf.message import Message  # type: ignore
 
 
 #  Main variables ************************************
 # Use Union of actual protobuf classes for better type hints
-SchemaT = Union[s.Schema, s.LogSchema, s.ParserSchema, s.DetectorSchema]
+SchemaT = Union[s.Schema, s.LogSchema, s.ParserSchema, s.DetectorSchema]   # type: ignore
 SchemaID = NewType("SchemaID", bytes)
 
 
@@ -24,10 +24,10 @@ DETECTOR_SCHEMA: SchemaID = SchemaID(b"3")
 
 __current_version = "1.0.0"
 __id_codes: Dict[SchemaID, Type[Message]] = {
-    BASE_SCHEMA: s.Schema,
-    LOG_SCHEMA: s.LogSchema,
-    PARSER_SCHEMA: s.ParserSchema,
-    DETECTOR_SCHEMA: s.DetectorSchema,
+    BASE_SCHEMA: s.Schema,   # type: ignore
+    LOG_SCHEMA: s.LogSchema,  # type: ignore
+    PARSER_SCHEMA: s.ParserSchema,  # type: ignore
+    DETECTOR_SCHEMA: s.DetectorSchema,  # type: ignore
 }
 
 
@@ -74,7 +74,7 @@ def initialize_with_default(
     schema_id: SchemaID, config: BasicConfig
 ) -> SchemaT | NotSupportedSchema:
     """Initialize schema with default fields in a Config instance."""
-    fields = initialize(schema_id=schema_id, **{}).DESCRIPTOR.fields
+    fields = initialize(schema_id=schema_id, **{}).DESCRIPTOR.fields    # type: ignore
     args = {}
     dict_config = config.get_config()
     for field in fields:
@@ -90,7 +90,7 @@ def copy(
     """Make a copy of the schema."""
     new_schema = initialize(schema_id=schema_id, **{})
     try:
-        new_schema.CopyFrom(schema)
+        new_schema.CopyFrom(schema)    # type: ignore
         return new_schema
     except TypeError:
         raise IncorrectSchema()
@@ -134,3 +134,5 @@ def check_if_schema_is_complete(schema: SchemaT) -> None | NotCompleteSchema:
 
     if len(missing_fields) > 0:
         raise NotCompleteSchema(f"Missing fields: {missing_fields}")
+
+    return None

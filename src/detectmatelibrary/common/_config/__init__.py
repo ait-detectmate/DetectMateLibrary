@@ -2,7 +2,8 @@ from detectmatelibrary.common._config._compile import ConfigMethods
 
 from pydantic import BaseModel
 
-from typing import Any, Dict, Self
+from typing_extensions import Self
+from typing import Any, Dict
 from copy import deepcopy
 
 
@@ -33,6 +34,6 @@ class BasicConfig(BaseModel):
         config_ = ConfigMethods.get_method(
             deepcopy(data), comp_type=aux.comp_type, method_id=method_id
         )
-        ConfigMethods.check_type(config_, method_type=aux.method_type)
+        ConfigMethods.check_type(config_, method_type=aux.method_type)   # type: ignore
 
-        return cls(**ConfigMethods.process(config_))
+        return cls(**ConfigMethods.process(config_))  # type: ignore

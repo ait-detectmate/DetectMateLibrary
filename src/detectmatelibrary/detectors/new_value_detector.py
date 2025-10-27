@@ -21,7 +21,7 @@ def train_new_values(
 
     if (relevant_log_fields := variables[input_.EventID]) is None:
         return
-    relevant_log_fields = relevant_log_fields.get_all()
+    relevant_log_fields = relevant_log_fields.get_all()   # type: ignore
 
     kn_v = known_values
     if isinstance(variables, LogVariables):
@@ -29,7 +29,7 @@ def train_new_values(
             known_values[input_.EventID] = {}
         kn_v = known_values[input_.EventID]
 
-    for var_pos in relevant_log_fields.keys():
+    for var_pos in relevant_log_fields.keys():   # type: ignore
         if var_pos not in kn_v:
             kn_v[var_pos] = set()
 
@@ -41,12 +41,12 @@ def detect_new_values(
     input_: schemas.ParserSchema,
     variables: AllLogVariables | LogVariables,
     alerts: dict,
-) -> int:
+) -> float:
 
     overall_score, alerts = 0.0, {}
     if (relevant_log_fields := variables[input_.EventID]) is None:
         return 0.
-    relevant_log_fields = relevant_log_fields.get_all()
+    relevant_log_fields = relevant_log_fields.get_all()   # type: ignore
 
     kn_v = known_values
     if isinstance(variables, LogVariables):
@@ -54,7 +54,7 @@ def detect_new_values(
             return overall_score
         kn_v = known_values[input_.EventID]
 
-    for var_pos in relevant_log_fields.keys():
+    for var_pos in relevant_log_fields.keys():   # type: ignore
         score = 0.0
         value = _get_element(input_, var_pos=var_pos)
 
@@ -70,7 +70,7 @@ def detect_new_values(
 class NewValueDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_value_detector"
 
-    log_variables: LogVariables | AllLogVariables = {}
+    log_variables: LogVariables | AllLogVariables | dict = {}
 
 
 class NewValueDetector(CoreDetector):
@@ -83,24 +83,24 @@ class NewValueDetector(CoreDetector):
         if isinstance(config, dict):
             config = NewValueDetectorConfig.from_dict(config, name)
         super().__init__(name=name, buffer_mode="no_buf", config=config)
-        self.known_values = {}
+        self.known_values: dict = {}
 
     def train(self, input_: schemas.ParserSchema) -> None:
         """Train the detector by learning values from the input data."""
         train_new_values(
-            known_values=self.known_values, input_=input_, variables=self.config.log_variables
+            known_values=self.known_values, input_=input_, variables=self.config.log_variables  # type: ignore
         )
 
     def detect(
         self, input_:  schemas.ParserSchema, output_: schemas.DetectorSchema
     ) -> bool:
         """Detect new values in the input data."""
-        alerts = {}
+        alerts: dict = {}
 
         overall_score = detect_new_values(
             known_values=self.known_values,
             input_=input_,
-            variables=self.config.log_variables,
+            variables=self.config.log_variables,   # type: ignore
             alerts={}
         )
 

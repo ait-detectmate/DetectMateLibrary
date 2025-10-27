@@ -3,14 +3,14 @@ from detectmatelibrary.common._config._formats import LogVariables, AllLogVariab
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 import detectmatelibrary.schemas as schemas
 
-from typing import List, Dict
-import numpy as np
+from typing import List
+import numpy as np   # type: ignore
 
 
 class RandomDetectorConfig(CoreDetectorConfig):
     method_type: str = "random_detector"
 
-    log_variables: LogVariables | AllLogVariables = {}
+    log_variables: LogVariables | AllLogVariables | dict = {}
 
 
 class RandomDetector(CoreDetector):
@@ -37,7 +37,7 @@ class RandomDetector(CoreDetector):
         overall_score = 0.0
         alerts = {}
 
-        relevant_log_fields = self.config.log_variables[input_.EventID].get_all()
+        relevant_log_fields = self.config.log_variables[input_.EventID].get_all()   # type: ignore
         for log_variable in relevant_log_fields.values():
             score = 0.0
             random = np.random.rand()

@@ -31,13 +31,13 @@ class MatcherParser(CoreParser):
         super().__init__(name=name, config=config)
 
         self.template_matcher = TemplateMatcher(
-            template_list=self.__load_templates(self.config.path_templates),
-            remove_spaces=self.config.remove_spaces,
-            remove_punctuation=self.config.remove_punctuation,
-            lowercase=self.config.lowercase,
+            template_list=self.__load_templates(self.config.path_templates),  # type: ignore
+            remove_spaces=self.config.remove_spaces,  # type: ignore
+            remove_punctuation=self.config.remove_punctuation,  # type: ignore
+            lowercase=self.config.lowercase,  # type: ignore
         )
 
-    def __load_templates(self, path: str) -> list[str] | TemplatesNotFoundError:
+    def __load_templates(self, path: str) -> list[str]:
         if not os.path.exists(path):
             raise TemplatesNotFoundError(f"Template file not found at: {path}")
 
@@ -49,10 +49,12 @@ class MatcherParser(CoreParser):
         self,
         input_: schemas.LogSchema,
         output_: schemas.ParserSchema
-    ) -> None:
+    ) -> bool:
 
         parsed = self.template_matcher(input_.log)
 
         output_.template = parsed["EventTemplate"]
         output_.variables.extend(parsed["Params"])
         output_.EventID = parsed["EventId"]
+
+        return True

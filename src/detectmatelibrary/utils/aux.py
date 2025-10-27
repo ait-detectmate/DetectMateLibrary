@@ -13,15 +13,3 @@ def get_timestamp() -> int:
         return 0
 
     return int(datetime.now().timestamp())
-
-
-def replaced_with_sets(d: dict) -> dict:
-    new_dict = {}
-    for key, value in d.items():
-        if isinstance(value, dict):
-            # Recursively process nested dicts
-            new_dict[key] = replaced_with_sets(value)
-        else:
-            # Replace innermost (non-dict) values with an empty set
-            new_dict[key] = set()
-    return new_dict

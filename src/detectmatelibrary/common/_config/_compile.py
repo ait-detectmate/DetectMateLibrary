@@ -58,8 +58,9 @@ class ConfigMethods:
 
     @staticmethod
     def check_type(config: Dict[str, Any], method_type: str) ->  MethodTypeNotMatch | None:
-       if config["method_type"] != method_type:
+        if config["method_type"] != method_type:
            raise MethodTypeNotMatch( expected_type=method_type, actual_type=config["method_type"])
+        return None
 
     @staticmethod
     def process(config: Dict[str, Any]) -> Dict[str, Any] | AutoConfigError | MissingFormat:

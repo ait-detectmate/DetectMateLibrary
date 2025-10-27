@@ -21,8 +21,8 @@ def _get_format_variables(pattern: str, time_format: str, log: str) -> Tuple[dic
     if not pattern:
         vars = {"timestamp": "0"}
     else:
-        pattern = re.compile(pattern)
-        match = pattern.search(log)
+        cpattern = re.compile(pattern)  # type: ignore
+        match = cpattern.search(log)
         vars = match.groupdict() if match else {"timestamp": "0"}
 
     if "timestamp" in vars and time_format:
@@ -49,8 +49,8 @@ class CoreParser(CoreComponent):
 
         super().__init__(
             name=name,
-            type_=config.method_type,
-            config=config,
+            type_=config.method_type,  # type: ignore
+            config=config,   # type: ignore
             args_buffer=ArgsBuffer(mode="no_buf", size=None),
             input_schema=schemas.LOG_SCHEMA,
             output_schema=schemas.PARSER_SCHEMA,
@@ -58,7 +58,7 @@ class CoreParser(CoreComponent):
 
     def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:
         var, content = _get_format_variables(
-            self.config.pattern, log=input_.log, time_format=self.config.time_format
+            self.config.pattern, log=input_.log, time_format=self.config.time_format   # type: ignore
         )
 
         output_.parserID = self.name

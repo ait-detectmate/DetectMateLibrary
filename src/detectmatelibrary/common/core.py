@@ -64,8 +64,8 @@ class CoreComponent:
 
     def run(
         self, input_: List[schemas.AnySchema] | schemas.AnySchema, output_: schemas.AnySchema
-    ) -> None:
-        pass
+    ) -> bool:
+        return False
 
     def train(
         self, input_: List[schemas.AnySchema] | schemas.AnySchema,

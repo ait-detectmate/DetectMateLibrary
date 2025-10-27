@@ -33,6 +33,7 @@ class ArgsBuffer:
                 raise ValueError(
                     "'size' must be a positive integer for mode 'window'."
                 )
+        return None
 
 
 class DataBuffer:
@@ -50,7 +51,7 @@ class DataBuffer:
         self.size = args.size
         self.process_function = args.process_function
         self.add = args.add
-        self.buffer = deque() if self.mode != "window" else deque(maxlen=self.size)
+        self.buffer: deque = deque() if self.mode != "window" else deque(maxlen=self.size)
 
         if self.mode == "window":
             self.add = self._add_window
@@ -63,6 +64,7 @@ class DataBuffer:
         """Determine if the buffer is full."""
         if self.size is not None:
             return len(self.buffer) == self.size
+        return False
 
     def _add_batch(self, data_point: Any) -> Any:
         """Add data_point to the batch buffer and process if full."""

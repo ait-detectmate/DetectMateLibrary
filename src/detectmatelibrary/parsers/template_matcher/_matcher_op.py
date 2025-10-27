@@ -2,7 +2,7 @@
 from ..template_matcher._extractor import ParamExtractor
 
 from collections import defaultdict
-from typing import Dict, List
+from typing import Dict, List, Any, Tuple
 import re
 
 
@@ -66,7 +66,7 @@ class TemplatesManager:
             do_lowercase=lowercase
         )
 
-        self.templates = []
+        self.templates: List[Dict[str, Any]] = []
         self._prefix_index = defaultdict(list)  # first literal -> [template_idx]
 
         event_id = 0
@@ -88,7 +88,7 @@ class TemplatesManager:
             first = tokens[0] if tokens else ""
             self._prefix_index[first].append(idx)
 
-    def candidate_indices(self, s: str) -> list[int]:
+    def candidate_indices(self, s: str) -> Tuple[str, List[int]]:
         pre_s = self.preprocess(s)
         candidates = []
         for first, idxs in self._prefix_index.items():
@@ -113,7 +113,7 @@ class TemplateMatcher:
             lowercase=lowercase
         )
 
-    def match_template_with_params(self, log: str) -> tuple[str, list[str]] | None:
+    def match_template_with_params(self, log: str) -> tuple[Any, list[str] | str] | None:
         """Return (template_string, [param1, param2, ...]) or None."""
         s, candidates = self.manager.candidate_indices(log)
         for i in candidates:
@@ -126,17 +126,17 @@ class TemplateMatcher:
                 return t["raw"], params
         return None
 
-    def __call__(self, log: str) -> Dict[str, int | str | List[str]]:
+    def __call__(self, log: str) -> Dict[str, Any]:
         """Batch matching that also returns the params list."""
         output = {}
         res = self.match_template_with_params(log)
         if res is None:
             output["EventTemplate"] = "<Not Found>"
-            output["Params"] = []
+            output["Params"] = []  # type: ignore
         else:
             tpl, params = res
             output["EventTemplate"] = tpl
-            output["Params"] = params
+            output["Params"] = params  # type: ignore
         tpl_to_id = {t["raw"]: i for i, t in enumerate(self.manager.templates)}
-        output["EventId"] = tpl_to_id.get(tpl, -1) if output["EventTemplate"] != "<Not Found>" else -1
+        output["EventId"] = tpl_to_id.get(tpl, -1) if output["EventTemplate"] != "<Not Found>" else -1  # type: ignore
         return output

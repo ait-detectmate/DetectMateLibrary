@@ -41,14 +41,14 @@ class CoreDetector(CoreComponent):
         buffer_mode: Optional[Literal["no_buf", "batch", "window"]] = "no_buf",
         buffer_size: Optional[int] = None,
         config: Optional[CoreDetectorConfig | dict] = CoreDetectorConfig(),
-    ):
+    ) -> None:
         if isinstance(config, dict):
             config = CoreDetectorConfig.from_dict(config, name)
 
         super().__init__(
             name=name,
-            type_=config.comp_type,
-            config=config,
+            type_=config.comp_type,  # type: ignore
+            config=config,  # type: ignore
             args_buffer=ArgsBuffer(mode=buffer_mode, size=buffer_size),
             input_schema=schemas.PARSER_SCHEMA,
             output_schema=schemas.DETECTOR_SCHEMA,

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 
-from typing import List, Dict, Any, Self
+from typing_extensions import Self
+from typing import List, Dict, Any
 
 
 # Sub-formats ********************************************************+
@@ -23,7 +24,7 @@ class _LogVariable(BaseModel):
     header_variables: Dict[str, Header] = {}
 
     @classmethod
-    def init(cls, **kwargs: dict) -> "_LogVariable":
+    def _init(cls, **kwargs: dict) -> "_LogVariable":
         for var, cl in zip(["variables", "header_variables"], [Variable, Header]):
             if var in kwargs:
                 new_dict = {}
@@ -31,10 +32,10 @@ class _LogVariable(BaseModel):
                     aux = cl(**v)
                     new_dict[aux.pos] = aux
                 kwargs[var] = new_dict
-        return cls(**kwargs)
+        return cls(**kwargs)  #  type: ignore
 
-    def get_all(self) -> List[Header | Variable]:
-        return {**self.variables, **self.header_variables}
+    def get_all(self) -> Dict[str, Header | Variable]:
+        return {**self.variables, **self.header_variables}  # type: ignore
 
 
 # Main-formats ********************************************************+
@@ -43,10 +44,10 @@ class LogVariables(BaseModel):
     __index: int = 0
 
     @classmethod
-    def init(cls, params):
+    def _init(cls, params):
         new_dict = {}
         for param in params:
-            aux = _LogVariable.init(**param)
+            aux = _LogVariable._init(**param)
             new_dict[aux.event] = aux
 
         return cls(logvars=new_dict)
@@ -58,7 +59,7 @@ class LogVariables(BaseModel):
             return value
         raise StopIteration
 
-    def __iter__(self) -> Self:
+    def __iter__(self) -> Self:  # type: ignore
         return self
 
     def __getitem__(self, idx: str | int) -> _LogVariable | None:
@@ -76,7 +77,7 @@ class AllLogVariables(BaseModel):
     header_variables: Dict[str, Header] = {}
 
     @classmethod
-    def init(cls, kwargs):
+    def _init(cls, kwargs):
         for var, cl in zip(["variables", "header_variables"], [Variable, Header]):
             if var in kwargs:
                 new_dict = {}
@@ -86,8 +87,8 @@ class AllLogVariables(BaseModel):
                 kwargs[var] = new_dict
         return cls(**kwargs)
 
-    def get_all(self) -> List[Header | Variable]:
-        return {**self.variables, **self.header_variables}
+    def get_all(self) -> Dict[str, Header | Variable]:
+        return {**self.variables, **self.header_variables}  # type: ignore
 
     def __getitem__(self, idx) -> Self:
         return self
@@ -98,16 +99,13 @@ class AllLogVariables(BaseModel):
 
 # Initialize ********************************************************+
 _formats = {
-    "log_variables": (LogVariables, True),
-    "all_log_variables": (AllLogVariables, False)
+    "log_variables": LogVariables,
+    "all_log_variables": AllLogVariables
 }
 
 
 def apply_format(format: str, params: list | Any) -> Any:
     if format in _formats:
-        f_cls, do_dict = _formats[format]
-        if do_dict:
-            return f_cls.init(params)
-        else:
-            return f_cls.init(params)
+        f_cls = _formats[format]
+        return f_cls._init(params)  # type: ignore
     return params

@@ -1,3 +1,6 @@
+from typing import Any
+
+
 class ParamExtractor:
     @staticmethod
     def _handle_trivial_cases(s: str, tokens: list[str]) -> list[str] | None | str:
@@ -20,7 +23,7 @@ class ParamExtractor:
     @staticmethod
     def _handle_last_token(
         s: str, pos: int, next_tok: str
-    ) -> tuple[bool, str | None, int | None]:
+    ) -> Any:
 
         if next_tok == "":
             return True, s[pos:], len(s)
@@ -34,7 +37,7 @@ class ParamExtractor:
     @staticmethod
     def _handle_middle_token(
         s: str, pos: int, next_tok: str
-    ) -> tuple[bool, str | None, int | None]:
+    ) -> Any:
 
         if next_tok == "":
             return True, "", pos
@@ -44,7 +47,7 @@ class ParamExtractor:
         return True, s[pos:idx], idx + len(next_tok)
 
     @staticmethod
-    def extract(s: str, tokens: list[str]) -> list[str] | None:
+    def extract(s: str, tokens: list[str]) -> list[str] | None | str:
         trivial = ParamExtractor._handle_trivial_cases(s, tokens)
         if trivial != "CONTINUE":
             return trivial
