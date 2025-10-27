@@ -7,11 +7,12 @@ import detectmatelibrary.schemas as schemas
 from typing import Any
 
 
-# *************** Train method ****************************************
+# *************** New value methods ****************************************
 def _get_element(input_: schemas.ParserSchema, var_pos: str | int) -> Any:
     if isinstance(var_pos, str):
         return input_.logFormatVariables[var_pos]
-    return input_.variables[var_pos]
+    elif len(input_.variables) > var_pos:
+        return input_.variables[var_pos]
 
 
 def train_new_values(
@@ -35,50 +36,29 @@ def train_new_values(
         kn_v[var_pos].add(_get_element(input_, var_pos=var_pos))
 
 
-# *************** Detect methods ****************************************
-def detect_all(
+def detect_new_values(
     known_values: dict,
     input_: schemas.ParserSchema,
-    variables: AllLogVariables,
+    variables: AllLogVariables | LogVariables,
     alerts: dict,
-    overall_score: int,
 ) -> int:
-    relevant_log_fields = variables[input_.EventID].get_all()
+
+    overall_score, alerts = 0.0, {}
+    if (relevant_log_fields := variables[input_.EventID]) is None:
+        return 0.
+    relevant_log_fields = relevant_log_fields.get_all()
+
+    kn_v = known_values
+    if isinstance(variables, LogVariables):
+        if input_.EventID not in known_values:
+            return overall_score
+        kn_v = known_values[input_.EventID]
 
     for var_pos in relevant_log_fields.keys():
         score = 0.0
-        if isinstance(var_pos, str):
-            value = input_.logFormatVariables.get(var_pos, None)
-        elif len(input_.variables) > var_pos:
-            value = input_.variables[var_pos]
-        else:
-            value = None
+        value = _get_element(input_, var_pos=var_pos)
 
-        if value not in known_values[var_pos]:
-            score = 1.0
-            alerts.update({str(var_pos): str(score)})
-        overall_score += score
-
-    return overall_score
-
-
-def detect_multiple(
-    known_values: dict,
-    input_: schemas.ParserSchema,
-    variables: AllLogVariables,
-    alerts: dict,
-    overall_score: int,
-) -> int:
-    relevant_log_fields = variables[input_.EventID].get_all()
-
-    for var_pos in relevant_log_fields.keys():
-        score = 0.0
-        if isinstance(var_pos, str):
-            value = input_.logFormatVariables[var_pos]
-        else:
-            value = input_.variables[var_pos]
-
-        if value not in known_values[input_.EventID][var_pos]:
+        if value not in kn_v[var_pos]:
             score = 1.0
             alerts.update({str(var_pos): str(score)})
         overall_score += score
@@ -86,6 +66,7 @@ def detect_multiple(
     return overall_score
 
 # ************************************************************************
+
 class NewValueDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_value_detector"
 
@@ -114,24 +95,14 @@ class NewValueDetector(CoreDetector):
         self, input_:  schemas.ParserSchema, output_: schemas.DetectorSchema
     ) -> bool:
         """Detect new values in the input data."""
-        overall_score, alerts = 0.0, {}
+        alerts = {}
 
-        if isinstance(self.config.log_variables, AllLogVariables):
-            overall_score = detect_all(
-                known_values=self.known_values,
-                input_=input_,
-                variables=self.config.log_variables,
-                alerts=alerts,
-                overall_score=overall_score
-            )
-        elif input_.EventID in self.config.log_variables:
-            overall_score = detect_multiple(
-                known_values=self.known_values,
-                input_=input_,
-                variables=self.config.log_variables,
-                alerts=alerts,
-                overall_score=overall_score
-            )
+        overall_score = detect_new_values(
+            known_values=self.known_values,
+            input_=input_,
+            variables=self.config.log_variables,
+            alerts={}
+        )
 
         if overall_score > 0:
             output_.score = overall_score
