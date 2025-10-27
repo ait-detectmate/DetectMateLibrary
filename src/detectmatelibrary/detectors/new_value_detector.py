@@ -4,10 +4,16 @@ from detectmatelibrary.common.detector import CoreDetectorConfig
 from detectmatelibrary.common.detector import CoreDetector
 import detectmatelibrary.schemas as schemas
 
-from typing import List, Dict
+from typing import Any
 
 
-# *************** Train methods ****************************************
+# *************** Train method ****************************************
+def _get_element(input_: schemas.ParserSchema, var_pos: str | int) -> Any:
+    if isinstance(var_pos, str):
+        return input_.logFormatVariables[var_pos]
+    return input_.variables[var_pos]
+
+
 def train_new_values(
     known_values: dict, input_: schemas.ParserSchema, variables: AllLogVariables | LogVariables
 ) -> None:
@@ -26,10 +32,8 @@ def train_new_values(
         if var_pos not in kn_v:
             kn_v[var_pos] = set()
 
-        if isinstance(var_pos, str):
-            kn_v[var_pos].add(input_.logFormatVariables[var_pos])
-        else:
-            kn_v[var_pos].add(input_.variables[var_pos])
+        kn_v[var_pos].add(_get_element(input_, var_pos=var_pos))
+
 
 # *************** Detect methods ****************************************
 def detect_all(
