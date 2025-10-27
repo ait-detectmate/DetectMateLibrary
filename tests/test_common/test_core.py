@@ -12,6 +12,13 @@ class MockConfig(CoreConfig):
     max_iter: int = 50
 
 
+class MockConfigWithTraining(CoreConfig):
+    thresholds: float = 0.7
+    max_iter: int = 50
+
+    data_use_training: int | None = 4
+
+
 default_args = {
     "method_type": "default_method_type",
     "comp_type": "default_type",
@@ -24,6 +31,22 @@ default_args = {
 class MockComponent(CoreComponent):
     def __init__(self, name: str, config: MockConfig = MockConfig()) -> None:
         super().__init__(name=name, type_="Dummy", config=config)
+
+
+class MockComponentWithTraining(CoreComponent):
+    def __init__(
+        self, name: str, config: MockConfigWithTraining = MockConfigWithTraining()
+    ) -> None:
+        super().__init__(
+            name=name, type_="Dummy", config=config, input_schema=schemas.LOG_SCHEMA
+        )
+        self.train_data = []
+
+    def train(self, input_: schemas.AnySchema) -> None:
+        self.train_data.append(input_)
+
+    def run(self, input_: schemas.AnySchema, output_: schemas.AnySchema) -> None:
+        return False
 
 
 class DummyComponentWithBuffer(CoreComponent):
@@ -134,3 +157,30 @@ class TestCoreComponent:
         expected = {"max_iter": 50, "thresholds": 0.95}
         expected.update(default_args)
         assert component.get_config() == expected
+
+    def test_training(self) -> None:
+        component = MockComponentWithTraining(name="Dummy4")
+
+        for i in range(10):
+            component.process(
+                schemas.initialize(
+                    schema_id=schemas.LOG_SCHEMA, **{
+                        "__version__": "1.0.0",
+                        "logID": i,
+                        "logSource": "test",
+                        "hostname": "test_hostname"
+                    }
+                )
+            )
+
+        assert len(component.train_data) == component.data_used_train
+        for i, log in enumerate(component.train_data):
+            expected = schemas.initialize(
+                schema_id=schemas.LOG_SCHEMA, **{
+                    "__version__": "1.0.0",
+                    "logID": i,
+                    "logSource": "test",
+                    "hostname": "test_hostname"
+                }
+            )
+            assert expected == log

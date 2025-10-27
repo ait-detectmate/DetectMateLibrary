@@ -8,11 +8,6 @@ from detectmatelibrary import schemas
 from typing import Any, Dict, Tuple, List
 
 
-class CoreConfig(BasicConfig):
-    start_id: int = 10
-    data_use_training: int | None = None
-
-
 class SchemaPipeline:
     @staticmethod
     def preprocess(
@@ -36,6 +31,11 @@ class SchemaPipeline:
         return data if not is_byte else schemas.serialize(schema_id, data)
 
 
+class CoreConfig(BasicConfig):
+    start_id: int = 10
+    data_use_training: int | None = None
+
+
 class CoreComponent:
     """Base class for all components in the system."""
     def __init__(
@@ -48,13 +48,12 @@ class CoreComponent:
         output_schema: schemas.SchemaID = schemas.BASE_SCHEMA
     ) -> None:
 
-        self.name = name
-        self.type_ = type_
-        self.config = config
+        self.name, self.type_, self.config = name, type_, config
         self.input_schema, self.output_schema = input_schema, output_schema
 
         self.data_buffer = DataBuffer(args_buffer)
         self.id_generator = SimpleIDGenerator(self.config.start_id)
+        self.data_used_train = 0
 
     def __repr__(self) -> str:
         return f"<{self.type_}> {self.name}: {self.config}"
@@ -73,6 +72,10 @@ class CoreComponent:
         is_byte, data = SchemaPipeline.preprocess(self.input_schema, data)
         if (data_buffered := self.data_buffer.add(data)) is None:
             return None
+
+        if self.config.data_use_training is not None and self.config.data_use_training > self.data_used_train:
+            self.data_used_train += 1
+            self.train(input_=data_buffered)
 
         output_ = schemas.initialize_with_default(self.output_schema, config=self.config)
         anomaly_detected = self.run(input_=data_buffered, output_=output_)
