@@ -79,5 +79,5 @@ class CoreParser(CoreComponent):
     ) -> bool:
         return True
 
-    def train(self, data: Any, config: CoreConfig) -> None:
+    def train(self, input_: schemas.LogSchema) -> None:
         pass

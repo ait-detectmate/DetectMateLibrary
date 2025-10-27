@@ -10,6 +10,7 @@ from typing import Any, Dict, Tuple, List
 
 class CoreConfig(BasicConfig):
     start_id: int = 10
+    data_use_training: int | None = None
 
 
 class SchemaPipeline:
@@ -60,6 +61,11 @@ class CoreComponent:
 
     def run(
         self, input_: List[schemas.AnySchema] | schemas.AnySchema, output_: schemas.AnySchema
+    ) -> None:
+        pass
+
+    def train(
+        self, input_: List[schemas.AnySchema] | schemas.AnySchema,
     ) -> None:
         pass
 

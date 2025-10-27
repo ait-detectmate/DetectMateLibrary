@@ -16,7 +16,8 @@ default_args = {
     "method_type": "default_method_type",
     "comp_type": "default_type",
     "auto_config": False,
-    "start_id": 10
+    "start_id": 10,
+    "data_use_training": None
 }
 
 
@@ -51,6 +52,7 @@ class TestConfigCore:
                     "test_id": {
                         "method_type": "default_method_type",
                         "auto_config": False,
+                        "data_use_training": 10,
                         "params": {"thresholds": 0.8, "max_iter": 30, "start_id": 10}
                     }
                 }
@@ -59,6 +61,7 @@ class TestConfigCore:
         )
         expected = {"thresholds": 0.8, "max_iter": 30}
         expected.update(default_args)
+        expected["data_use_training"] = 10
 
         assert isinstance(config, BasicConfig)
         assert config.get_config() == expected
@@ -70,16 +73,16 @@ class TestConfigCore:
     def test_update_config(self) -> None:
         config = MockConfig()
 
-        expected = {"thresholds": 0.7, "max_iter": 50}
+        expected = {"thresholds": 0.7, "max_iter": 50, "data_use_training": None}
         expected.update(default_args)
         assert config.get_config() == expected
 
-        expected = {"thresholds": 0.9, "max_iter": 50}
+        expected = {"thresholds": 0.9, "max_iter": 50, "data_use_training": None}
         expected.update(default_args)
         config.update_config({"thresholds": 0.9})
         assert config.get_config() == expected
 
-        expected = {"max_iter": 200, "thresholds": 0.9}
+        expected = {"max_iter": 200, "thresholds": 0.9, "data_use_training": None}
         expected.update(default_args)
         config.update_config({"max_iter": 200})
         assert config.get_config() == expected
