@@ -36,6 +36,10 @@ class CoreConfig(BasicConfig):
     data_use_training: int | None = None
 
 
+def do_training(config: CoreConfig, index: int) -> bool:
+    return config.data_use_training is not None and config.data_use_training > index
+
+
 class CoreComponent:
     """Base class for all components in the system."""
     def __init__(
@@ -73,7 +77,7 @@ class CoreComponent:
         if (data_buffered := self.data_buffer.add(data)) is None:
             return None
 
-        if self.config.data_use_training is not None and self.config.data_use_training > self.data_used_train:
+        if do_training(config=self.config, index=self.data_used_train):
             self.data_used_train += 1
             self.train(input_=data_buffered)
 
