@@ -10,7 +10,7 @@ import numpy as np
 class RandomDetectorConfig(CoreDetectorConfig):
     method_type: str = "random_detector"
 
-    log_variables: Dict[int, LogVariables] | AllLogVariables = {}
+    log_variables: LogVariables | AllLogVariables = {}
 
 
 class RandomDetector(CoreDetector):

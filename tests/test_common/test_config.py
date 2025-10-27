@@ -10,7 +10,7 @@ from detectmatelibrary.common._config._compile import (
     MissingFormat,
 )
 from detectmatelibrary.common._config._formats import (
-    LogVariables, AllLogVariables
+    AllLogVariables,  _LogVariable
 )
 from detectmatelibrary.common._config import BasicConfig
 
@@ -111,19 +111,19 @@ class TestParamsFormat:
         assert config["method_type"] == "ExampleDetector"
         assert config["parser"] == "example_parser_1"
         assert not config["auto_config"]
-        for i in config["log_variables"]:
-            assert isinstance(config["log_variables"][i], LogVariables)
+        for logvar in config["log_variables"]:
+            assert isinstance(logvar, _LogVariable)
 
-        assert config["log_variables"][i].id == "example_detector_1"
-        assert config["log_variables"][i].event == 1
-        assert config["log_variables"][i].template == "jk2_init() Found child <*>"
+        assert logvar.id == "example_detector_1"
+        assert logvar.event == 1
+        assert logvar.template == "jk2_init() Found child <*>"
 
-        assert config["log_variables"][i].variables[0].pos == 0
-        assert config["log_variables"][i].variables[0].name == "child_process"
-        assert config["log_variables"][i].variables[0].params == {"threshold": 0.5}
+        assert logvar.variables[0].pos == 0
+        assert logvar.variables[0].name == "child_process"
+        assert logvar.variables[0].params == {"threshold": 0.5}
 
-        assert config["log_variables"][i].header_variables["Level"].pos == "Level"
-        assert config["log_variables"][i].header_variables["Level"].params == {"threshold": 0.2}
+        assert logvar.header_variables["Level"].pos == "Level"
+        assert logvar.header_variables["Level"].params == {"threshold": 0.2}
 
     def test_correct_format2(self):
         config = ConfigMethods.process(ConfigMethods.get_method(
@@ -133,17 +133,26 @@ class TestParamsFormat:
         assert config["method_type"] == "ExampleDetector"
         assert config["parser"] == "example_parser_1"
         assert not config["auto_config"]
-        for i in config["log_variables"]:
-            assert isinstance(config["log_variables"][i], LogVariables)
+        for logvar in config["log_variables"]:
+            assert isinstance(logvar, _LogVariable)
 
-        assert config["log_variables"][i].id == "example_detector_1"
-        assert config["log_variables"][i].event == 1
-        assert config["log_variables"][i].template == "jk2_init() Found child <*>"
+        assert logvar.id == "example_detector_1"
+        assert logvar.event == 1
+        assert logvar.template == "jk2_init() Found child <*>"
 
-        assert len(config["log_variables"][i].variables) == 0
+        assert len(logvar.variables) == 0
 
-        assert config["log_variables"][i].header_variables["Level"].pos == "Level"
-        assert config["log_variables"][i].header_variables["Level"].params == {"threshold": 0.2}
+        assert logvar.header_variables["Level"].pos == "Level"
+        assert logvar.header_variables["Level"].params == {"threshold": 0.2}
+
+    def test_return_none_if_not_found(self):
+        config_test = load_test_config()
+        config = ConfigMethods.process(ConfigMethods.get_method(
+            config_test, method_id="detector_variables", comp_type="detectors"
+        ))
+
+        assert isinstance(config["log_variables"][1], _LogVariable)
+        assert config["log_variables"]["NotExisting"] is None
 
     def test_get_dict(self):
         config_test = load_test_config()

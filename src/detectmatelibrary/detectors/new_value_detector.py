@@ -89,7 +89,7 @@ def detect_multiple(
 class NewValueDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_value_detector"
 
-    log_variables: Dict[int, LogVariables] | AllLogVariables = {}
+    log_variables: LogVariables | AllLogVariables = {}
 
 
 class NewValueDetector(CoreDetector):
