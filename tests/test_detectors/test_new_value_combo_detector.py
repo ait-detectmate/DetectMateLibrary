@@ -1,0 +1,186 @@
+
+from detectmatelibrary.detectors.new_value_combo_detector import NewValueComboDetector, ComboTooBigError
+import detectmatelibrary.schemas as schemas
+
+from detectmatelibrary.utils.aux import time_test_mode
+
+import pytest
+
+# Set time test mode for consistent timestamps
+time_test_mode()
+
+
+config = {
+    "detectors": {
+        "CustomInit": {
+            "method_type": "new_value_combo_detector",
+            "auto_config": False,
+            "params": {
+                "comb_size": 4,
+                "log_variables": [{
+                    "id": "instanace1",
+                    "event": 1,
+                    "template": "adsdas",
+                    "variables": [{
+                        "pos": 0, "name": "sad", "params": {}
+                    }]
+                }]
+            }
+        },
+        "AllDetector": {
+            "method_type": "new_value_combo_detector",
+            "auto_config": False,
+            "params": {
+                "comb_size": 2,
+                "all_log_variables": {
+                    "variables": [{
+                        "pos": 1, "name": "test", "params": {}
+                    }],
+                    "header_variables": [{
+                        "pos": "level", "params": {}
+                    }]
+                }
+            }
+        },
+        "AllDetectorTooBig": {
+            "method_type": "new_value_combo_detector",
+            "auto_config": False,
+            "params": {
+                "comb_size": 5,
+                "all_log_variables": {
+                    "variables": [{
+                        "pos": 1, "name": "test", "params": {}
+                    }],
+                    "header_variables": [{
+                        "pos": "level", "params": {}
+                    }]
+                }
+            }
+        },
+        "MultipleDetector": {
+            "method_type": "new_value_combo_detector",
+            "auto_config": False,
+            "params": {
+                "comb_size": 2,
+                "log_variables": [{
+                    "id": "test",
+                    "event": 1,
+                    "template": "qwewqe",
+                    "variables": [{
+                        "pos": 1, "name": "test", "params": {}
+                    }],
+                    "header_variables": [{
+                        "pos": "level", "params": {}
+                    }]
+                }]
+            }
+        },
+        "MultipleDetectorTooBig": {
+            "method_type": "new_value_combo_detector",
+            "auto_config": False,
+            "params": {
+                "comb_size": 5,
+                "log_variables": [{
+                    "id": "test",
+                    "event": 1,
+                    "template": "qwewqe",
+                    "variables": [{
+                        "pos": 1, "name": "test", "params": {}
+                    }],
+                    "header_variables": [{
+                        "pos": "level", "params": {}
+                    }]
+                }]
+            }
+        }
+    }
+}
+
+
+class TestNewValueComboDetectorInitialization:
+
+    def test_default_initialization(self):
+        detector = NewValueComboDetector()
+
+        assert detector.name == "NewValueComboDetector"
+        assert detector.data_buffer.mode == "no_buf"
+        assert detector.input_schema == schemas.PARSER_SCHEMA
+        assert detector.output_schema == schemas.DETECTOR_SCHEMA
+
+    def test_custom_config_initialization(self):
+        detector = NewValueComboDetector(name="CustomInit", config=config)
+
+        assert detector.name == "CustomInit"
+        assert detector.config.comb_size == 4
+        assert isinstance(detector.known_combos, dict)
+
+
+class TestNewValueDetectorTraining:
+
+    def test_train_all_multiple_values(self):
+        detector = NewValueComboDetector(config=config, name="AllDetector")
+
+        # Train with multiple values
+        for level in ["INFO", "WARNING", "ERROR"]:
+            parser_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+                "parserType": "test",
+                "EventID": 1,
+                "template": "test template",
+                "variables": ["0", "assa"],
+                "logID": 1,
+                "parsedLogID": 1,
+                "parserID": "test_parser",
+                "log": "test log message",
+                "logFormatVariables": {"level": level}
+            })
+            detector.train(parser_data)
+
+        combos = {"all": set({
+            ("assa", "INFO"), ("assa", "WARNING"), ("assa", "ERROR")
+        })}
+        assert combos == detector.known_combos
+
+    def test_train_multiple_values(self):
+        detector = NewValueComboDetector(config=config, name="MultipleDetector")
+
+        # Train with multiple values
+        for event in range(3):
+            for level in ["INFO", "WARNING", "ERROR"]:
+                parser_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+                    "parserType": "test",
+                    "EventID": event,
+                    "template": "test template",
+                    "variables": ["0", "assa"],
+                    "logID": 1,
+                    "parsedLogID": 1,
+                    "parserID": "test_parser",
+                    "log": "test log message",
+                    "logFormatVariables": {"level": level}
+                })
+                detector.train(parser_data)
+
+        combos = {"all": set(), 1: set({
+            ("assa", "INFO"), ("assa", "WARNING"), ("assa", "ERROR")
+        })}
+        assert combos == detector.known_combos
+
+    def test_train_too_big(self):
+        parser_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+            "parserType": "test",
+            "EventID": 1,
+            "template": "test template",
+            "variables": ["0", "assa"],
+            "logID": 1,
+            "parsedLogID": 1,
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {"level": "INFO"}
+        })
+
+        with pytest.raises(ComboTooBigError):
+            detector = NewValueComboDetector(config=config, name="AllDetectorTooBig")
+            detector.train(parser_data)
+
+        with pytest.raises(ComboTooBigError):
+            detector = NewValueComboDetector(config=config, name="MultipleDetectorTooBig")
+            detector.train(parser_data)
