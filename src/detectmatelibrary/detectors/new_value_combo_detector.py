@@ -7,7 +7,7 @@ import detectmatelibrary.schemas as schemas
 
 from itertools import combinations
 
-from typing import List, Any, Set, Dict
+from typing import List, Any, Set, Dict, cast
 
 
 # Auxiliar methods ********************************************************
@@ -19,6 +19,7 @@ class ComboTooBigError(Exception):
 def _check_size(exp_size, max_size) -> None | ComboTooBigError:
     if max_size < exp_size:
         raise ComboTooBigError(exp_size, max_size)
+    return None
 
 
 def _get_element(input_: schemas.ParserSchema, var_pos: str | int) -> Any:
@@ -34,11 +35,15 @@ def _get_combos(
     log_variables: LogVariables | AllLogVariables
 ) -> Set[Any]:
 
-    relevant_log_fields = log_variables[input_.EventID].get_all().keys()
-    _check_size(combo_size, len(relevant_log_fields))
+    relevant_log_fields = log_variables[input_.EventID]
+    if relevant_log_fields is None:
+        return set()
+
+    relevant_log_fields = relevant_log_fields.get_all().keys()   # type: ignore
+    _check_size(combo_size, len(relevant_log_fields))   # type: ignore
 
     return set(combinations([
-        _get_element(input_, var_pos=field) for field in relevant_log_fields
+        _get_element(input_, var_pos=field) for field in relevant_log_fields    # type: ignore
     ], combo_size))
 
 
@@ -79,12 +84,12 @@ def detect_combo_detector(
         )
 
         if isinstance(log_variables, AllLogVariables):
-            known_combos = known_combos["all"]
+            combos_set = known_combos["all"]
         else:
-            known_combos = known_combos[input_.EventID]
+            combos_set = known_combos[input_.EventID]
 
-        if not unique_combos.issubset(known_combos):
-            for combo in unique_combos - known_combos:
+        if not unique_combos.issubset(combos_set):
+            for combo in unique_combos - combos_set:
                 overall_score += 1
                 alerts.update({"Not found combo": str(combo)})
 
@@ -95,7 +100,7 @@ def detect_combo_detector(
 class NewValueComboDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_value_combo_detector"
 
-    log_variables: LogVariables | AllLogVariables = {}
+    log_variables: LogVariables | AllLogVariables | dict = {}
     comb_size: int = 2
 
 
@@ -109,14 +114,16 @@ class NewValueComboDetector(CoreDetector):
         if isinstance(config, dict):
             config = NewValueComboDetectorConfig.from_dict(config, name)
         super().__init__(name=name, buffer_mode="no_buf", config=config)
-        self.known_combos = {"all": set()}
+
+        self.config = cast(NewValueComboDetectorConfig, self.config)
+        self.known_combos: Dict[str | int, Set[Any]] = {"all": set()}
 
     def train(self, input_: schemas.ParserSchema) -> None:
         train_combo_detector(
-            input_=input_,
-            known_combos=self.known_combos,
-            combo_size=self.config.comb_size,
-            log_variables=self.config.log_variables
+            input_=input_,   # type: ignore
+            known_combos=self.known_combos,   # type: ignore
+            combo_size=self.config.comb_size,   # type: ignore
+            log_variables=self.config.log_variables   # type: ignore
         )
 
     def detect(
@@ -124,18 +131,19 @@ class NewValueComboDetector(CoreDetector):
         input_: List[schemas.ParserSchema] | schemas.ParserSchema,
         output_: schemas.DetectorSchema
     ) -> bool:
-        alerts = {}
+        alerts: Dict[str, str] = {}
 
         overall_score = detect_combo_detector(
-            input_=input_,
+            input_=input_,   # type: ignore
             known_combos=self.known_combos,
-            combo_size=self.config.comb_size,
-            log_variables=self.config.log_variables,
+            combo_size=self.config.comb_size,   # type: ignore
+            log_variables=self.config.log_variables,   # type: ignore
             alerts=alerts,
         )
 
         if overall_score > 0:
             output_.score = overall_score
+            output_.description = f"The detector check combinations of {self.config.comb_size} variables"   # type: ignore
             output_.alertsObtain.update(alerts)
             return True
         return False

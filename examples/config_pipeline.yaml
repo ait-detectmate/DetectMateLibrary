@@ -31,9 +31,9 @@ detectors:
                       name: var1
                       params:
                         threshold: 0.
-                  header_variable:
+                  header_variables:
                     - pos: level
-                      params:
+                      params: {}
 
     NewValueDetector:
         method_type: new_value_detector
@@ -48,9 +48,9 @@ detectors:
                       name: var1
                       params:
                         threshold: 0.
-                  header_variable:
+                  header_variables:
                     - pos: level
-                      params:
+                      params: {}
     NewValueDetector_All:
         method_type: new_value_detector
         auto_config: False
@@ -61,9 +61,9 @@ detectors:
                       name: var1
                       params:
                         threshold: 0.
-                  header_variable:
+                  header_variables:
                     - pos: level
-                      params:
+                      params: {}
 
     NewValueComboDetector:
         method_type: new_value_combo_detector
@@ -79,9 +79,9 @@ detectors:
                       name: var1
                       params:
                         threshold: 0.
-                  header_variable:
+                  header_variables:
                     - pos: level
-                      params:
+                      params: {}
     NewValueComboDetector_All:
         method_type: new_value_combo_detector
         auto_config: False
@@ -93,6 +93,6 @@ detectors:
                       name: var1
                       params:
                         threshold: 0.
-                  header_variable:
+                  header_variables:
                     - pos: level
-                      params:
+                      params: {}

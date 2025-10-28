@@ -17,8 +17,11 @@ def _apply_time_format(time_str: str, time_format: str) -> str:
         return "0"
 
 
-def _get_format_variables(pattern: str, time_format: str, log: str) -> Tuple[dict[str, str], str]:
-    if not pattern:
+def _get_format_variables(
+    pattern: str | None, time_format: str, log: str
+) -> Tuple[dict[str, str], str]:
+
+    if pattern is None:
         vars = {"timestamp": "0"}
     else:
         cpattern = re.compile(pattern)  # type: ignore
@@ -66,8 +69,9 @@ class CoreParser(CoreComponent):
         output_.parsedLogID = self.id_generator()
         output_.parserType = self.config.method_type
         output_.logID = input_.logID
-        output_.log = content
+        output_.log = input_.log
         output_.logFormatVariables.update(var)
+        input_.log = content
 
         output_.receivedTimestamp = get_timestamp()
         use_schema = self.parse(input_=input_, output_=output_)

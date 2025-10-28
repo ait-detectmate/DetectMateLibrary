@@ -43,7 +43,7 @@ def detect_new_values(
     alerts: dict,
 ) -> float:
 
-    overall_score, alerts = 0.0, {}
+    overall_score = 0.0
     if (relevant_log_fields := variables[input_.EventID]) is None:
         return 0.
     relevant_log_fields = relevant_log_fields.get_all()   # type: ignore
@@ -60,7 +60,7 @@ def detect_new_values(
 
         if value not in kn_v[var_pos]:
             score = 1.0
-            alerts.update({"New variable": str(var_pos)})
+            alerts.update({f"New variable in {var_pos}": str(value)})
         overall_score += score
 
     return overall_score
@@ -82,6 +82,7 @@ class NewValueDetector(CoreDetector):
 
         if isinstance(config, dict):
             config = NewValueDetectorConfig.from_dict(config, name)
+
         super().__init__(name=name, buffer_mode="no_buf", config=config)
         self.known_values: dict = {}
 
@@ -101,11 +102,12 @@ class NewValueDetector(CoreDetector):
             known_values=self.known_values,
             input_=input_,
             variables=self.config.log_variables,   # type: ignore
-            alerts={}
+            alerts=alerts
         )
 
         if overall_score > 0:
             output_.score = overall_score
+            output_.description = "Method that detect new value in the logs"
             output_.alertsObtain.update(alerts)
             return True
 

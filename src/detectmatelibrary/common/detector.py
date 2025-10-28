@@ -14,7 +14,7 @@ def _extract_timestamp(
     if not isinstance(input_, list):
         input_ = [input_]
 
-    return [int(i.logFormatVariables["timestamp"]) for i in input_]
+    return [int(float(i.logFormatVariables["timestamp"])) for i in input_]
 
 
 def _extract_logIDs(
