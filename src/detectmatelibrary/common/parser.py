@@ -27,7 +27,8 @@ def _get_format_variables(pattern: str, time_format: str, log: str) -> Tuple[dic
 
     if "timestamp" in vars and time_format:
         vars["timestamp"] = _apply_time_format(vars["timestamp"], time_format)
-    return vars, log
+
+    return vars, vars["content"] if "content" in vars else log
 
 
 class CoreParserConfig(CoreConfig):
