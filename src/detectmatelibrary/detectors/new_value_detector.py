@@ -4,7 +4,7 @@ from detectmatelibrary.common.detector import CoreDetectorConfig
 from detectmatelibrary.common.detector import CoreDetector
 import detectmatelibrary.schemas as schemas
 
-from typing import Any
+from typing import Any, cast
 
 
 # *************** New value methods ****************************************
@@ -84,6 +84,8 @@ class NewValueDetector(CoreDetector):
             config = NewValueDetectorConfig.from_dict(config, name)
 
         super().__init__(name=name, buffer_mode="no_buf", config=config)
+
+        self.config = cast(NewValueDetectorConfig, self.config)
         self.known_values: dict = {}
 
     def train(self, input_: schemas.ParserSchema) -> None:
