@@ -77,14 +77,14 @@ class CoreComponent:
         if (data_buffered := self.data_buffer.add(data)) is None:
             return None
 
-        if do_training(config=self.config, index=self.data_used_train):
-            self.data_used_train += 1
-            self.train(input_=data_buffered)
-
         output_ = schemas.initialize_with_default(self.output_schema, config=self.config)
         anomaly_detected = self.run(input_=data_buffered, output_=output_)
         if not anomaly_detected:
             return None
+
+        if do_training(config=self.config, index=self.data_used_train):
+            self.data_used_train += 1
+            self.train(input_=data_buffered)
 
         return SchemaPipeline.postprocess(self.output_schema, output_, is_byte=is_byte)
 
