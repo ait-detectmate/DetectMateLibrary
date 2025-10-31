@@ -23,7 +23,7 @@ class DummyDetector(CoreDetector):
 
         if isinstance(config, dict):
             config = DummyDetectorConfig.from_dict(config, name)
-        super().__init__(name=name, buffer_mode=BufferMode.NO_BUFF, config=config)
+        super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self._call_count = 0
 
     def detect(

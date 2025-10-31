@@ -6,7 +6,7 @@ import pytest
 class TestDataBuffer:
     def test_no_buf_mode(self):
         results = []
-        buf = DataBuffer(ArgsBuffer(mode=BufferMode.NO_BUFF, process_function=results.append))
+        buf = DataBuffer(ArgsBuffer(mode=BufferMode.NO_BUF, process_function=results.append))
         buf.add(1)
         buf.add(2)
         assert results == [1, 2]
@@ -80,4 +80,4 @@ class TestDataBuffer:
 
     def test_size_set_for_no_buf(self):
         with pytest.raises(ValueError):
-            DataBuffer(ArgsBuffer(mode=BufferMode.NO_BUFF, process_function=sum, size=2))
+            DataBuffer(ArgsBuffer(mode=BufferMode.NO_BUF, process_function=sum, size=2))

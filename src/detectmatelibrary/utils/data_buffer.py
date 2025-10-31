@@ -4,16 +4,25 @@ from enum import Enum
 
 
 class BufferMode(Enum):
-    NO_BUFF = "no_buf"
+    NO_BUF = "no_buf"
     BATCH = "batch"
     WINDOW = "window"
+
+    def describe(self) -> str:
+        descriptions = {
+            "no_buf": "Return one value at the time.",
+            "batch": "Return values by batches.",
+            "window": "Return values by time windows."
+        }
+        return descriptions[self.value]
+
 
 
 class ArgsBuffer:
     """Arguments for DataBuffer class."""
     def __init__(
         self,
-        mode: BufferMode = BufferMode.NO_BUFF,
+        mode: BufferMode = BufferMode.NO_BUF,
         process_function: Callable[[Any], Any] = lambda x: x,
         size: Optional[int] = None,
     ) -> None:
@@ -29,7 +38,7 @@ class ArgsBuffer:
         if not isinstance(self.mode, BufferMode):
             raise ValueError("'mode' must be 'no_buf', 'batch' or 'window'")
 
-        if self.mode == BufferMode.NO_BUFF:
+        if self.mode == BufferMode.NO_BUF:
             if self.size:
                 raise ValueError("'size' should not be set for mode 'no_buf'.")
         elif self.mode == BufferMode.BATCH:
@@ -53,7 +62,7 @@ class DataBuffer:
     3. Window buffer: Processes data_points in a sliding window of fixed size.
     """
 
-    def __init__(self, args: ArgsBuffer = ArgsBuffer(BufferMode.NO_BUFF)) -> None:
+    def __init__(self, args: ArgsBuffer = ArgsBuffer(BufferMode.NO_BUF)) -> None:
         self.mode = args.mode
         self.size = args.size
         self.process_function = args.process_function

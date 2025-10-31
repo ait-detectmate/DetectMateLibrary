@@ -88,7 +88,7 @@ class NewValueDetector(CoreDetector):
         if isinstance(config, dict):
             config = NewValueDetectorConfig.from_dict(config, name)
 
-        super().__init__(name=name, buffer_mode=BufferMode.NO_BUFF, config=config)
+        super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
 
         self.config = cast(NewValueDetectorConfig, self.config)
         self.known_values: dict[str, Any] = {}

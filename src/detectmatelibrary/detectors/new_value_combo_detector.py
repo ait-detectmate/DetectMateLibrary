@@ -115,7 +115,7 @@ class NewValueComboDetector(CoreDetector):
 
         if isinstance(config, dict):
             config = NewValueComboDetectorConfig.from_dict(config, name)
-        super().__init__(name=name, buffer_mode=BufferMode.NO_BUFF, config=config)
+        super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
 
         self.config = cast(NewValueComboDetectorConfig, self.config)
         self.known_combos: Dict[str | int, Set[Any]] = {"all": set()}

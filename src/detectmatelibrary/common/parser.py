@@ -57,7 +57,7 @@ class CoreParser(CoreComponent):
             name=name,
             type_=config.method_type,  # type: ignore
             config=config,   # type: ignore
-            args_buffer=ArgsBuffer(mode=BufferMode.NO_BUFF, size=None),
+            args_buffer=ArgsBuffer(mode=BufferMode.NO_BUF, size=None),
             input_schema=schemas.LOG_SCHEMA,  # type: ignore
             output_schema=schemas.PARSER_SCHEMA,  # type: ignore
         )

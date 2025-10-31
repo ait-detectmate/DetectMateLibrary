@@ -13,7 +13,7 @@ class MockupConfig(CoreDetectorConfig):
 
 class MockupDetector(CoreDetector):
     def __init__(self, name: str, config: CoreDetectorConfig) -> None:
-        super().__init__(name=name, buffer_mode=BufferMode.NO_BUFF, config=config)
+        super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
 
     def detect(self, input_, output_):
         output_.score = 0.9
@@ -44,7 +44,7 @@ class MockupDetector_buffer(CoreDetector):
 
 class IncompleteMockupDetector(CoreDetector):
     def __init__(self, name: str, config: CoreDetectorConfig) -> None:
-        super().__init__(name=name, buffer_mode=BufferMode.NO_BUFF, config=config)
+        super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
 
     def detect(self, input_, output_):
         output_.description = "hii"
@@ -52,7 +52,7 @@ class IncompleteMockupDetector(CoreDetector):
 
 class NoneMockupDetector(CoreDetector):
     def __init__(self, name: str, config: CoreDetectorConfig) -> None:
-        super().__init__(name=name, buffer_mode=BufferMode.NO_BUFF, config=config)
+        super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.value = True
 
     def detect(self, input_, output_):

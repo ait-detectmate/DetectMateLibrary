@@ -47,7 +47,7 @@ class CoreComponent:
         name: str,
         type_: str = "Core",
         config: CoreConfig = CoreConfig(),
-        args_buffer: ArgsBuffer = ArgsBuffer(BufferMode.NO_BUFF),
+        args_buffer: ArgsBuffer = ArgsBuffer(BufferMode.NO_BUF),
         input_schema: schemas.SchemaID = schemas.BASE_SCHEMA,   # type: ignore
         output_schema: schemas.SchemaID = schemas.BASE_SCHEMA    # type: ignore
     ) -> None:

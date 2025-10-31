@@ -38,7 +38,7 @@ class CoreDetector(CoreComponent):
     def __init__(
         self,
         name: str = "CoreDetector",
-        buffer_mode: BufferMode = BufferMode.NO_BUFF,
+        buffer_mode: BufferMode = BufferMode.NO_BUF,
         buffer_size: Optional[int] = None,
         config: Optional[CoreDetectorConfig | dict[str, Any]] = CoreDetectorConfig(),
     ) -> None:

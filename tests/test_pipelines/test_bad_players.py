@@ -72,7 +72,7 @@ class TestCaseBasicPipelines:
         detector = MockupDetector(
             name="dummy_detector",
             config=config,
-            buffer_mode=BufferMode.NO_BUFF,
+            buffer_mode=BufferMode.NO_BUF,
             buffer_size=None,
         )
 

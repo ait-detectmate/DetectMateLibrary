@@ -25,7 +25,7 @@ class RandomDetector(CoreDetector):
     ) -> None:
         if isinstance(config, dict):
             config = RandomDetectorConfig.from_dict(config, name)
-        super().__init__(name=name, buffer_mode=BufferMode.NO_BUFF, config=config)
+        super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
 
     def train(self, input_: List[schemas.ParserSchema] | schemas.ParserSchema) -> None:
         """Training is not applicable for RandomDetector."""

@@ -105,7 +105,7 @@ class TestNewValueComboDetectorInitialization:
         detector = NewValueComboDetector()
 
         assert detector.name == "NewValueComboDetector"
-        assert detector.data_buffer.mode == BufferMode.NO_BUFF
+        assert detector.data_buffer.mode == BufferMode.NO_BUF
         assert detector.input_schema == schemas.PARSER_SCHEMA
         assert detector.output_schema == schemas.DETECTOR_SCHEMA
 
