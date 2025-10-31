@@ -24,7 +24,7 @@ def _get_format_variables(
     if pattern is None:
         vars = {"timestamp": "0"}
     else:
-        cpattern = re.compile(pattern)  # type: ignore
+        cpattern = re.compile(pattern)
         match = cpattern.search(log)
         vars = match.groupdict() if match else {"timestamp": "0"}
 
@@ -46,7 +46,7 @@ class CoreParser(CoreComponent):
     def __init__(
         self,
         name: str = "CoreParser",
-        config: Optional[CoreParserConfig | dict] = CoreParserConfig(),
+        config: Optional[CoreParserConfig | dict[str, Any]] = CoreParserConfig(),
     ):
         if isinstance(config, dict):
             config = CoreParserConfig.from_dict(config, name)
@@ -56,8 +56,8 @@ class CoreParser(CoreComponent):
             type_=config.method_type,  # type: ignore
             config=config,   # type: ignore
             args_buffer=ArgsBuffer(mode="no_buf", size=None),
-            input_schema=schemas.LOG_SCHEMA,
-            output_schema=schemas.PARSER_SCHEMA,
+            input_schema=schemas.LOG_SCHEMA,  # type: ignore
+            output_schema=schemas.PARSER_SCHEMA,  # type: ignore
         )
 
     def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:
@@ -81,7 +81,7 @@ class CoreParser(CoreComponent):
 
     def parse(
         self, input_: schemas.LogSchema, output_: schemas.ParserSchema
-    ) -> bool:
+    ) -> bool | None:
         return True
 
     def train(self, input_: schemas.LogSchema) -> None:

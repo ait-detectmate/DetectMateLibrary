@@ -11,24 +11,24 @@ from typing import Any, Dict, Tuple, List
 class SchemaPipeline:
     @staticmethod
     def preprocess(
-        schema_id: schemas.SchemaID, data: schemas.AnySchema | bytes
+        schema_id: schemas.SchemaID, data: schemas.AnySchema | bytes    # type: ignore
     ) -> Tuple[bool, schemas.AnySchema]:
 
         is_byte = False
         if isinstance(data, bytes):
-            schema_id_, data = schemas.deserialize(data)
+            schema_id_, data = schemas.deserialize(data)  # type: ignore
             is_byte = True
-            schemas.check_is_same_schema(schema_id_, schema_id)
+            schemas.check_is_same_schema(schema_id_, schema_id)  # type: ignore
 
-        return is_byte, schemas.copy(schema_id, schema=data)
+        return is_byte, schemas.copy(schema_id, schema=data)    # type: ignore
 
     @staticmethod
     def postprocess(
-        schema_id: schemas.SchemaID, data: schemas.AnySchema, is_byte: bool
+        schema_id: schemas.SchemaID, data: schemas.AnySchema, is_byte: bool   # type: ignore
     ) -> schemas.AnySchema | bytes:
 
-        schemas.check_if_schema_is_complete(data)
-        return data if not is_byte else schemas.serialize(schema_id, data)
+        schemas.check_if_schema_is_complete(data)   # type: ignore
+        return data if not is_byte else schemas.serialize(schema_id, data)    # type: ignore
 
 
 class CoreConfig(BasicConfig):
@@ -48,8 +48,8 @@ class CoreComponent:
         type_: str = "Core",
         config: CoreConfig = CoreConfig(),
         args_buffer: ArgsBuffer = ArgsBuffer("no_buf"),
-        input_schema: schemas.SchemaID = schemas.BASE_SCHEMA,
-        output_schema: schemas.SchemaID = schemas.BASE_SCHEMA
+        input_schema: schemas.SchemaID = schemas.BASE_SCHEMA,   # type: ignore
+        output_schema: schemas.SchemaID = schemas.BASE_SCHEMA    # type: ignore
     ) -> None:
 
         self.name, self.type_, self.config = name, type_, config
@@ -74,7 +74,7 @@ class CoreComponent:
 
     def process(self, data: schemas.AnySchema | bytes) -> schemas.AnySchema | bytes | None:
         is_byte, data = SchemaPipeline.preprocess(self.input_schema, data)
-        if (data_buffered := self.data_buffer.add(data)) is None:
+        if (data_buffered := self.data_buffer.add(data)) is None:    # type: ignore
             return None
 
         if do_training(config=self.config, index=self.data_used_train):
@@ -91,5 +91,5 @@ class CoreComponent:
     def get_config(self) -> Dict[str, Any]:
         return self.config.get_config()
 
-    def update_config(self, new_config: dict) -> None:
+    def update_config(self, new_config: Dict[str, Any]) -> None:
         self.config.update_config(new_config)

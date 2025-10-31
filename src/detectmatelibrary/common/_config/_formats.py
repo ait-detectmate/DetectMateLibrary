@@ -24,12 +24,12 @@ class _LogVariable(BaseModel):
     header_variables: Dict[str, Header] = {}
 
     @classmethod
-    def _init(cls, **kwargs: dict) -> "_LogVariable":
+    def _init(cls, **kwargs: dict[str, Any]) -> "_LogVariable":
         for var, cl in zip(["variables", "header_variables"], [Variable, Header]):
             if var in kwargs:
                 new_dict = {}
                 for v in kwargs[var]:
-                    aux = cl(**v)
+                    aux = cl(**v)    # type: ignore
                     new_dict[aux.pos] = aux
                 kwargs[var] = new_dict
         return cls(**kwargs)  #  type: ignore
@@ -44,13 +44,13 @@ class LogVariables(BaseModel):
     __index: int = 0
 
     @classmethod
-    def _init(cls, params):
+    def _init(cls, params: list[Dict[str, Any]]) -> "LogVariables":
         new_dict = {}
         for param in params:
             aux = _LogVariable._init(**param)
             new_dict[aux.event] = aux
 
-        return cls(logvars=new_dict)
+        return cls(logvars=new_dict)   # type: ignore
 
     def __next__(self) -> Any | StopIteration:
         if len(keys := list(self.logvars.keys())) > self.__index:
@@ -77,7 +77,7 @@ class AllLogVariables(BaseModel):
     header_variables: Dict[str, Header] = {}
 
     @classmethod
-    def _init(cls, kwargs):
+    def _init(cls, kwargs: Dict[str, Any]) -> "AllLogVariables":
         for var, cl in zip(["variables", "header_variables"], [Variable, Header]):
             if var in kwargs:
                 new_dict = {}
@@ -90,7 +90,7 @@ class AllLogVariables(BaseModel):
     def get_all(self) -> Dict[str, Header | Variable]:
         return {**self.variables, **self.header_variables}  # type: ignore
 
-    def __getitem__(self, idx) -> Self:
+    def __getitem__(self, idx: Any) -> Self:
         return self
 
     def __contains__(self, idx: str | int) -> bool:
@@ -104,7 +104,7 @@ _formats = {
 }
 
 
-def apply_format(format: str, params: list | Any) -> Any:
+def apply_format(format: str, params: list[Any] | Any) -> Any:
     if format in _formats:
         f_cls = _formats[format]
         return f_cls._init(params)  # type: ignore

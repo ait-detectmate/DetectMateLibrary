@@ -23,13 +23,13 @@ class BasicConfig(BaseModel):
         """Return the configuration as a dictionary."""
         return self.model_dump()
 
-    def update_config(self, new_config: dict) -> None:
+    def update_config(self, new_config: Dict[str, Any]) -> None:
         """Update the configuration with new values."""
         for key, value in new_config.items():
             setattr(self, key, value)
 
     @classmethod
-    def from_dict(cls, data: dict, method_id: str) -> Self:
+    def from_dict(cls, data: Dict[str, Any], method_id: str) -> Self:
         aux = cls()
         config_ = ConfigMethods.get_method(
             deepcopy(data), comp_type=aux.comp_type, method_id=method_id

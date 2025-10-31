@@ -7,7 +7,7 @@ class ArgsBuffer:
     def __init__(
         self,
         mode: Optional[Literal["no_buf", "batch", "window"]],
-        process_function: Callable = lambda x: x,
+        process_function: Callable[[Any], Any] = lambda x: x,
         size: Optional[int] = None,
     ) -> None:
 
@@ -51,7 +51,7 @@ class DataBuffer:
         self.size = args.size
         self.process_function = args.process_function
         self.add = args.add
-        self.buffer: deque = deque() if self.mode != "window" else deque(maxlen=self.size)
+        self.buffer: deque[Any] = deque() if self.mode != "window" else deque(maxlen=self.size)
 
         if self.mode == "window":
             self.add = self._add_window
@@ -78,7 +78,7 @@ class DataBuffer:
         if self._is_full():
             return self.process_function(list(self.buffer))
 
-    def _process_and_clear(self, buf: deque, clear: bool = True) -> Any:
+    def _process_and_clear(self, buf: deque[Any], clear: bool = True) -> Any:
         """Process and optionally clear the buffer."""
         buf_copy = list(buf)
         result = self.process_function(buf_copy)

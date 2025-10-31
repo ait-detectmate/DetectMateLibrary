@@ -4,10 +4,10 @@ from detectmatelibrary.common._config import BasicConfig
 import detectmatelibrary.schemas.schemas_pb2 as s
 
 
-from typing import NewType, Tuple, Dict, Type, Union
+from typing import NewType, Tuple, Dict, Type, Union, Any
 
-from google.protobuf.descriptor import FieldDescriptor  # type: ignore
-from google.protobuf.message import Message  # type: ignore
+from google.protobuf.descriptor import FieldDescriptor
+from google.protobuf.message import Message
 
 
 #  Main variables ************************************
@@ -56,16 +56,16 @@ def __get_schema_class(schema_id: SchemaID) -> Type[Message]:
     return __id_codes[schema_id]
 
 
-def __is_repeated_field(field) -> bool:
+def __is_repeated_field(field: Any) -> bool:
     """Check if a field in the message is a repeated element."""
-    return field.label == FieldDescriptor.LABEL_REPEATED
+    return field.label == FieldDescriptor.LABEL_REPEATED    # type: ignore
 
 
 # Main methods *****************************************
-def initialize(schema_id: SchemaID, **kwargs) -> SchemaT | NotSupportedSchema:
+def initialize(schema_id: SchemaID, **kwargs: dict[str, Any]) -> SchemaT | NotSupportedSchema:
     """Initialize a protobuf schema, it use its arguments and the assigned
     id."""
-    kwargs["__version__"] = __current_version
+    kwargs["__version__"] = __current_version   # type: ignore
     schema_class = __get_schema_class(schema_id)
     return schema_class(**kwargs)
 
@@ -104,7 +104,7 @@ def serialize(id_schema: SchemaID, schema: SchemaT) -> bytes:
     if id_schema not in __id_codes:
         raise NotSupportedSchema()
 
-    return id_schema + schema.SerializeToString()
+    return id_schema + schema.SerializeToString()    # type: ignore
 
 
 def deserialize(message: bytes) -> Tuple[SchemaID, SchemaT]:

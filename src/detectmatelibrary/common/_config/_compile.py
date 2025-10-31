@@ -54,7 +54,7 @@ class ConfigMethods:
         if method_id not in args:
             raise MethodNotFoundError(method_id, comp_type)
 
-        return args[method_id]
+        return args[method_id]    # type: ignore
 
     @staticmethod
     def check_type(config: Dict[str, Any], method_type: str) ->  MethodTypeNotMatch | None:

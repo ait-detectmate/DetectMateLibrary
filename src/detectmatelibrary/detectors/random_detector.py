@@ -3,14 +3,14 @@ from detectmatelibrary.common._config._formats import LogVariables, AllLogVariab
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 import detectmatelibrary.schemas as schemas
 
-from typing import List
-import numpy as np   # type: ignore
+from typing import List, Any
+import numpy as np
 
 
 class RandomDetectorConfig(CoreDetectorConfig):
     method_type: str = "random_detector"
 
-    log_variables: LogVariables | AllLogVariables | dict = {}
+    log_variables: LogVariables | AllLogVariables | dict[str, Any] = {}
 
 
 class RandomDetector(CoreDetector):
