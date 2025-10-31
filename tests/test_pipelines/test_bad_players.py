@@ -1,5 +1,5 @@
 
-from detectmatelibrary.common.detector import CoreDetector
+from detectmatelibrary.common.detector import CoreDetector, BufferMode
 from detectmatelibrary.common.parser import CoreParser
 
 from detectmatelibrary.readers.log_file import LogFileReader
@@ -72,7 +72,7 @@ class TestCaseBasicPipelines:
         detector = MockupDetector(
             name="dummy_detector",
             config=config,
-            buffer_mode="no_buf",
+            buffer_mode=BufferMode.NO_BUFF,
             buffer_size=None,
         )
 

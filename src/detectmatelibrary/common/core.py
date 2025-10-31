@@ -1,4 +1,4 @@
-from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer
+from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
 from detectmatelibrary.utils.id_generator import SimpleIDGenerator
 
 from detectmatelibrary.common._config import BasicConfig
@@ -47,7 +47,7 @@ class CoreComponent:
         name: str,
         type_: str = "Core",
         config: CoreConfig = CoreConfig(),
-        args_buffer: ArgsBuffer = ArgsBuffer("no_buf"),
+        args_buffer: ArgsBuffer = ArgsBuffer(BufferMode.NO_BUFF),
         input_schema: schemas.SchemaID = schemas.BASE_SCHEMA,   # type: ignore
         output_schema: schemas.SchemaID = schemas.BASE_SCHEMA    # type: ignore
     ) -> None:

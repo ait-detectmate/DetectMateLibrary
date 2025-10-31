@@ -1,8 +1,8 @@
 from detectmatelibrary.common.core import CoreComponent, CoreConfig, CoreComponent
 
-from typing import List, Optional, Literal, Any
+from typing import List, Optional, Any
 
-from detectmatelibrary.utils.data_buffer import ArgsBuffer
+from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 from detectmatelibrary.utils.aux import get_timestamp
 
 from detectmatelibrary import schemas
@@ -38,7 +38,7 @@ class CoreDetector(CoreComponent):
     def __init__(
         self,
         name: str = "CoreDetector",
-        buffer_mode: Optional[Literal["no_buf", "batch", "window"]] = "no_buf",
+        buffer_mode: BufferMode = BufferMode.NO_BUFF,
         buffer_size: Optional[int] = None,
         config: Optional[CoreDetectorConfig | dict[str, Any]] = CoreDetectorConfig(),
     ) -> None:

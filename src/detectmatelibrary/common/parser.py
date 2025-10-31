@@ -2,6 +2,8 @@ from detectmatelibrary.common.core import CoreComponent, CoreConfig
 from detectmatelibrary.utils.data_buffer import ArgsBuffer
 from detectmatelibrary.utils.aux import get_timestamp
 
+from detectmatelibrary.utils.data_buffer import BufferMode
+
 from detectmatelibrary import schemas
 
 from typing import Any, Optional, Tuple
@@ -55,7 +57,7 @@ class CoreParser(CoreComponent):
             name=name,
             type_=config.method_type,  # type: ignore
             config=config,   # type: ignore
-            args_buffer=ArgsBuffer(mode="no_buf", size=None),
+            args_buffer=ArgsBuffer(mode=BufferMode.NO_BUFF, size=None),
             input_schema=schemas.LOG_SCHEMA,  # type: ignore
             output_schema=schemas.PARSER_SCHEMA,  # type: ignore
         )

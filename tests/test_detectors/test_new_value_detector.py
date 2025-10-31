@@ -8,7 +8,7 @@ This module tests the NewValueDetector implementation including:
 - Input/output schema validation
 """
 
-from detectmatelibrary.detectors.new_value_detector import NewValueDetector
+from detectmatelibrary.detectors.new_value_detector import NewValueDetector, BufferMode
 import detectmatelibrary.schemas as schemas
 
 from detectmatelibrary.utils.aux import time_test_mode
@@ -78,7 +78,7 @@ class TestNewValueDetectorInitialization:
 
         assert detector.name == "NewValueDetector"
         assert hasattr(detector, 'config')
-        assert detector.data_buffer.mode == "no_buf"
+        assert detector.data_buffer.mode == BufferMode.NO_BUFF
         assert detector.input_schema == schemas.PARSER_SCHEMA
         assert detector.output_schema == schemas.DETECTOR_SCHEMA
         assert hasattr(detector, 'known_values')

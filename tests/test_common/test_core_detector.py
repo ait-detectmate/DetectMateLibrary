@@ -1,4 +1,4 @@
-from detectmatelibrary.common.detector import CoreDetectorConfig
+from detectmatelibrary.common.detector import CoreDetectorConfig, BufferMode
 from detectmatelibrary.common.detector import CoreDetector
 from detectmatelibrary.utils.aux import time_test_mode
 import detectmatelibrary.schemas as schemas
@@ -13,7 +13,7 @@ class MockupConfig(CoreDetectorConfig):
 
 class MockupDetector(CoreDetector):
     def __init__(self, name: str, config: CoreDetectorConfig) -> None:
-        super().__init__(name=name, buffer_mode="no_buf", config=config)
+        super().__init__(name=name, buffer_mode=BufferMode.NO_BUFF, config=config)
 
     def detect(self, input_, output_):
         output_.score = 0.9
@@ -23,7 +23,7 @@ class MockupDetector(CoreDetector):
 class MockupDetector_window(CoreDetector):
     def __init__(self, name: str, config: CoreDetectorConfig) -> None:
         super().__init__(
-            name=name, buffer_mode="window", buffer_size=3, config=config
+            name=name, buffer_mode=BufferMode.WINDOW, buffer_size=3, config=config
         )
 
     def detect(self, input_, output_):
@@ -34,7 +34,7 @@ class MockupDetector_window(CoreDetector):
 class MockupDetector_buffer(CoreDetector):
     def __init__(self, name: str, config: CoreDetectorConfig) -> None:
         super().__init__(
-            name=name, buffer_mode="window", buffer_size=3, config=config
+            name=name, buffer_mode=BufferMode.WINDOW, buffer_size=3, config=config
         )
 
     def detect(self, input_, output_):
@@ -44,7 +44,7 @@ class MockupDetector_buffer(CoreDetector):
 
 class IncompleteMockupDetector(CoreDetector):
     def __init__(self, name: str, config: CoreDetectorConfig) -> None:
-        super().__init__(name=name, buffer_mode="no_buf", config=config)
+        super().__init__(name=name, buffer_mode=BufferMode.NO_BUFF, config=config)
 
     def detect(self, input_, output_):
         output_.description = "hii"
@@ -52,7 +52,7 @@ class IncompleteMockupDetector(CoreDetector):
 
 class NoneMockupDetector(CoreDetector):
     def __init__(self, name: str, config: CoreDetectorConfig) -> None:
-        super().__init__(name=name, buffer_mode="no_buf", config=config)
+        super().__init__(name=name, buffer_mode=BufferMode.NO_BUFF, config=config)
         self.value = True
 
     def detect(self, input_, output_):

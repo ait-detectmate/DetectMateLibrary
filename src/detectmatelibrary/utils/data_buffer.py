@@ -1,12 +1,19 @@
-from typing import Any, Callable, Optional, Literal
+from typing import Any, Callable, Optional
 from collections import deque
+from enum import Enum
+
+
+class BufferMode(Enum):
+    NO_BUFF = "no_buf"
+    BATCH = "batch"
+    WINDOW = "window"
 
 
 class ArgsBuffer:
     """Arguments for DataBuffer class."""
     def __init__(
         self,
-        mode: Optional[Literal["no_buf", "batch", "window"]],
+        mode: BufferMode = BufferMode.NO_BUFF,
         process_function: Callable[[Any], Any] = lambda x: x,
         size: Optional[int] = None,
     ) -> None:
@@ -19,16 +26,16 @@ class ArgsBuffer:
         self.is_correct_format()
 
     def is_correct_format(self) -> None | ValueError:
-        if self.mode not in {"no_buf", "batch", "window"}:
+        if not isinstance(self.mode, BufferMode):
             raise ValueError("'mode' must be 'no_buf', 'batch' or 'window'")
 
-        if self.mode == "no_buf":
+        if self.mode == BufferMode.NO_BUFF:
             if self.size:
                 raise ValueError("'size' should not be set for mode 'no_buf'.")
-        elif self.mode == "batch":
+        elif self.mode == BufferMode.BATCH:
             if not self.size or self.size <= 1:
                 raise ValueError("'size' must be > 1 for mode 'batch'.")
-        elif self.mode == "window":
+        elif self.mode == BufferMode.WINDOW:
             if not self.size:
                 raise ValueError(
                     "'size' must be a positive integer for mode 'window'."
@@ -46,16 +53,16 @@ class DataBuffer:
     3. Window buffer: Processes data_points in a sliding window of fixed size.
     """
 
-    def __init__(self, args: ArgsBuffer = ArgsBuffer("no_buf")) -> None:
+    def __init__(self, args: ArgsBuffer = ArgsBuffer(BufferMode.NO_BUFF)) -> None:
         self.mode = args.mode
         self.size = args.size
         self.process_function = args.process_function
         self.add = args.add
-        self.buffer: deque[Any] = deque() if self.mode != "window" else deque(maxlen=self.size)
+        self.buffer: deque[Any] = deque() if self.mode != BufferMode.WINDOW else deque(maxlen=self.size)
 
-        if self.mode == "window":
+        if self.mode == BufferMode.WINDOW:
             self.add = self._add_window
-        elif self.mode == "batch":
+        elif self.mode == BufferMode.BATCH:
             self.add = self._add_batch
         else:
             self.add = self.process_function
@@ -89,5 +96,5 @@ class DataBuffer:
     def flush(self) -> Any:
         """Process remaining data_points."""
         if self.buffer:
-            clear = self.mode != "window"
+            clear = self.mode != BufferMode.WINDOW
             return self._process_and_clear(self.buffer, clear=clear)

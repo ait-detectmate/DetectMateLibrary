@@ -1,5 +1,7 @@
 
-from detectmatelibrary.detectors.new_value_combo_detector import NewValueComboDetector, ComboTooBigError
+from detectmatelibrary.detectors.new_value_combo_detector import (
+    NewValueComboDetector, ComboTooBigError, BufferMode
+)
 import detectmatelibrary.schemas as schemas
 
 from detectmatelibrary.utils.aux import time_test_mode
@@ -103,7 +105,7 @@ class TestNewValueComboDetectorInitialization:
         detector = NewValueComboDetector()
 
         assert detector.name == "NewValueComboDetector"
-        assert detector.data_buffer.mode == "no_buf"
+        assert detector.data_buffer.mode == BufferMode.NO_BUFF
         assert detector.input_schema == schemas.PARSER_SCHEMA
         assert detector.output_schema == schemas.DETECTOR_SCHEMA
 

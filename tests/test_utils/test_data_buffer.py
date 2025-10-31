@@ -1,4 +1,4 @@
-from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer
+from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
 
 import pytest
 
@@ -6,13 +6,13 @@ import pytest
 class TestDataBuffer:
     def test_no_buf_mode(self):
         results = []
-        buf = DataBuffer(ArgsBuffer(mode="no_buf", process_function=results.append))
+        buf = DataBuffer(ArgsBuffer(mode=BufferMode.NO_BUFF, process_function=results.append))
         buf.add(1)
         buf.add(2)
         assert results == [1, 2]
 
     def test_batch_mode(self):
-        buf = DataBuffer(ArgsBuffer(mode="batch", process_function=sum, size=3))
+        buf = DataBuffer(ArgsBuffer(mode=BufferMode.BATCH, process_function=sum, size=3))
         buf.add(1)
         buf.add(2)
         # Third add triggers processing
@@ -23,7 +23,7 @@ class TestDataBuffer:
 
     def test_batch_mode2(self):
         results = []
-        buf = DataBuffer(ArgsBuffer(mode="batch", process_function=results.append, size=3))
+        buf = DataBuffer(ArgsBuffer(mode=BufferMode.BATCH, process_function=results.append, size=3))
         buf.add(1)
         assert results == []
         buf.add(1)
@@ -34,7 +34,7 @@ class TestDataBuffer:
         assert len(buf.buffer) == 0
 
     def test_window_mode(self):
-        buf = DataBuffer(ArgsBuffer(mode="window", process_function=sum, size=2))
+        buf = DataBuffer(ArgsBuffer(mode=BufferMode.WINDOW, process_function=sum, size=2))
         assert buf.add(1) is None
         # Second add triggers processing
         assert buf.add(2) == 3
@@ -46,7 +46,7 @@ class TestDataBuffer:
     def test_flush_batch(self):
         results = []
         buf = DataBuffer(ArgsBuffer(
-            mode="batch",
+            mode=BufferMode.BATCH,
             process_function=lambda b: results.append(sum(b)),
             size=3
         ))
@@ -57,7 +57,7 @@ class TestDataBuffer:
         assert len(buf.buffer) == 0
 
     def test_flush_window(self):
-        buf = DataBuffer(ArgsBuffer(mode="window", process_function=sum, size=2))
+        buf = DataBuffer(ArgsBuffer(mode=BufferMode.WINDOW, process_function=sum, size=2))
         buf.add(1)
         buf.add(2)
         buf.add(3)
@@ -72,12 +72,12 @@ class TestDataBuffer:
 
     def test_invalid_size_batch(self):
         with pytest.raises(ValueError):
-            DataBuffer(ArgsBuffer(mode="batch", process_function=sum, size=1))
+            DataBuffer(ArgsBuffer(mode=BufferMode.BATCH, process_function=sum, size=1))
 
     def test_invalid_size_window(self):
         with pytest.raises(ValueError):
-            DataBuffer(ArgsBuffer(mode="window", process_function=sum, size=None))
+            DataBuffer(ArgsBuffer(mode=BufferMode.WINDOW, process_function=sum, size=None))
 
     def test_size_set_for_no_buf(self):
         with pytest.raises(ValueError):
-            DataBuffer(ArgsBuffer(mode="no_buf", process_function=sum, size=2))
+            DataBuffer(ArgsBuffer(mode=BufferMode.NO_BUFF, process_function=sum, size=2))

@@ -2,6 +2,9 @@ from detectmatelibrary.common._config._formats import LogVariables, AllLogVariab
 
 from detectmatelibrary.common.detector import CoreDetectorConfig
 from detectmatelibrary.common.detector import CoreDetector
+
+from detectmatelibrary.utils.data_buffer import BufferMode
+
 import detectmatelibrary.schemas as schemas
 
 from typing import Any, cast
@@ -85,7 +88,7 @@ class NewValueDetector(CoreDetector):
         if isinstance(config, dict):
             config = NewValueDetectorConfig.from_dict(config, name)
 
-        super().__init__(name=name, buffer_mode="no_buf", config=config)
+        super().__init__(name=name, buffer_mode=BufferMode.NO_BUFF, config=config)
 
         self.config = cast(NewValueDetectorConfig, self.config)
         self.known_values: dict[str, Any] = {}

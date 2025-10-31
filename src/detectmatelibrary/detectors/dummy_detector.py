@@ -1,7 +1,10 @@
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
+
+from detectmatelibrary.utils.data_buffer import BufferMode
+
 from detectmatelibrary import schemas
 
-from typing import List
+from typing import List, Any
 
 
 class DummyDetectorConfig(CoreDetectorConfig):
@@ -15,12 +18,12 @@ class DummyDetector(CoreDetector):
     def __init__(
         self,
         name: str = "DummyDetector",
-        config: DummyDetectorConfig | dict = DummyDetectorConfig()
+        config: DummyDetectorConfig | dict[str, Any] = DummyDetectorConfig()
     ) -> None:
 
         if isinstance(config, dict):
             config = DummyDetectorConfig.from_dict(config, name)
-        super().__init__(name=name, buffer_mode="no_buf", config=config)
+        super().__init__(name=name, buffer_mode=BufferMode.NO_BUFF, config=config)
         self._call_count = 0
 
     def detect(

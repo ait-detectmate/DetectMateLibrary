@@ -3,6 +3,8 @@ from detectmatelibrary.common._config._formats import LogVariables, AllLogVariab
 from detectmatelibrary.common.detector import CoreDetectorConfig
 from detectmatelibrary.common.detector import CoreDetector
 
+from detectmatelibrary.utils.data_buffer import BufferMode
+
 import detectmatelibrary.schemas as schemas
 
 from itertools import combinations
@@ -16,7 +18,7 @@ class ComboTooBigError(Exception):
         super().__init__(f"Expected size {exp_size} but the max it got {max_size}")
 
 
-def _check_size(exp_size, max_size) -> None | ComboTooBigError:
+def _check_size(exp_size: int, max_size: int) -> None | ComboTooBigError:
     if max_size < exp_size:
         raise ComboTooBigError(exp_size, max_size)
     return None
@@ -74,7 +76,7 @@ def detect_combo_detector(
     known_combos: Dict[str | int, Set[Any]],
     combo_size: int,
     log_variables: LogVariables | AllLogVariables,
-    alerts: dict,
+    alerts: dict[str, str],
 ) -> int:
 
     overall_score = 0
@@ -100,7 +102,7 @@ def detect_combo_detector(
 class NewValueComboDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_value_combo_detector"
 
-    log_variables: LogVariables | AllLogVariables | dict = {}
+    log_variables: LogVariables | AllLogVariables | dict[str, Any] = {}
     comb_size: int = 2
 
 
@@ -113,15 +115,15 @@ class NewValueComboDetector(CoreDetector):
 
         if isinstance(config, dict):
             config = NewValueComboDetectorConfig.from_dict(config, name)
-        super().__init__(name=name, buffer_mode="no_buf", config=config)
+        super().__init__(name=name, buffer_mode=BufferMode.NO_BUFF, config=config)
 
         self.config = cast(NewValueComboDetectorConfig, self.config)
         self.known_combos: Dict[str | int, Set[Any]] = {"all": set()}
 
     def train(self, input_: schemas.ParserSchema) -> None:
         train_combo_detector(
-            input_=input_,   # type: ignore
-            known_combos=self.known_combos,   # type: ignore
+            input_=input_,
+            known_combos=self.known_combos,
             combo_size=self.config.comb_size,   # type: ignore
             log_variables=self.config.log_variables   # type: ignore
         )
@@ -134,7 +136,7 @@ class NewValueComboDetector(CoreDetector):
         alerts: Dict[str, str] = {}
 
         overall_score = detect_combo_detector(
-            input_=input_,   # type: ignore
+            input_=input_,
             known_combos=self.known_combos,
             combo_size=self.config.comb_size,   # type: ignore
             log_variables=self.config.log_variables,   # type: ignore

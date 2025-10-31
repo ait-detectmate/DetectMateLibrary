@@ -1,6 +1,9 @@
 from detectmatelibrary.common._config._formats import LogVariables, AllLogVariables
 
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
+
+from detectmatelibrary.utils.data_buffer import BufferMode
+
 import detectmatelibrary.schemas as schemas
 
 from typing import List, Any
@@ -22,7 +25,7 @@ class RandomDetector(CoreDetector):
     ) -> None:
         if isinstance(config, dict):
             config = RandomDetectorConfig.from_dict(config, name)
-        super().__init__(name=name, buffer_mode="no_buf", config=config)
+        super().__init__(name=name, buffer_mode=BufferMode.NO_BUFF, config=config)
 
     def train(self, input_: List[schemas.ParserSchema] | schemas.ParserSchema) -> None:
         """Training is not applicable for RandomDetector."""

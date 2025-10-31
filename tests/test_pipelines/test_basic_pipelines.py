@@ -1,4 +1,4 @@
-from detectmatelibrary.common.detector import CoreDetector
+from detectmatelibrary.common.detector import CoreDetector, BufferMode
 from detectmatelibrary.common.parser import CoreParser
 
 from detectmatelibrary.detectors.new_value_combo_detector import NewValueComboDetector
@@ -59,7 +59,7 @@ class TestCaseBasicPipelines:
         detector = MockupDetector(
             name="dummy_detector",
             config=config,
-            buffer_mode="no_buf",
+            buffer_mode=BufferMode.NO_BUFF,
             buffer_size=None,
         )
 
@@ -74,7 +74,7 @@ class TestCaseBasicPipelines:
         detector = MockupDetector(
             name="dummy_detector",
             config=config,
-            buffer_mode="window",
+            buffer_mode=BufferMode.WINDOW,
             buffer_size=3,
         )
         for _ in range(2):
@@ -93,7 +93,7 @@ class TestCaseBasicPipelines:
         detector = MockupDetector(
             name="dummy_detector",
             config=config,
-            buffer_mode="batch",
+            buffer_mode=BufferMode.BATCH,
             buffer_size=3,
         )
 
