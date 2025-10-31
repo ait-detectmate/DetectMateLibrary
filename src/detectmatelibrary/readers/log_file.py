@@ -3,10 +3,19 @@ from detectmatelibrary.common.reader import CoreReaderConfig, CoreReader
 from detectmatelibrary import schemas
 
 from typing import Optional, Iterator
+import os
+
+
+class LogsNotFoundError(Exception):
+    pass
+
+
+class LogsNoPermissionError(Exception):
+    pass
 
 
 class LogFileConfig(CoreReaderConfig):
-    file: str = "file.log"
+    file: str = "<PLACEHOLDER>"
     method_type: str = "log_file_reader"
 
 
@@ -21,11 +30,19 @@ class LogFileReader(CoreReader):
             config = LogFileConfig.from_dict(config, name)
         
         super().__init__(name=name, config=config)
-        self.__log_generator = self.__read_logs()
+        self.__log_generator = self.read_logs()
         self.is_over = False
 
-    def __read_logs(self) -> Iterator[str]:
-        with open(self.config.file, "r") as file:
+    def read_logs(self) -> Iterator[str]:
+        path = self.config.file
+        if not os.path.exists(path):
+            raise LogsNotFoundError(f"Logs file not found at: {path}")
+        if not os.access(path, os.R_OK):
+            raise LogsNoPermissionError(
+                f"You do not have the permission to access logs: {path}"
+            )
+
+        with open(path, "r") as file:
             for line in file:
                 yield line.strip()  
         yield None  

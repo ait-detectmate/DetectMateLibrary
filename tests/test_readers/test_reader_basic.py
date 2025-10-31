@@ -1,4 +1,6 @@
-from detectmatelibrary.readers.log_file import LogFileConfig, LogFileReader
+from detectmatelibrary.readers.log_file import LogFileConfig, LogFileReader, LogsNotFoundError
+
+import pytest
 
 
 class TestCaseLogFileReader:
@@ -30,3 +32,9 @@ class TestCaseLogFileReader:
         for _ in range(10):
             log = reader.process()
         assert log is None
+
+    def test_logs_not_found(self) -> None:
+        with pytest.raises(LogsNotFoundError):
+            LogFileReader(
+                config=LogFileConfig(**{"file": "Unknown.log"})
+            ).process()
