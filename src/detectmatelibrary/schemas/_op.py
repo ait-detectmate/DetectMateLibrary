@@ -6,7 +6,6 @@ import detectmatelibrary.schemas.schemas_pb2 as s
 
 from typing import NewType, Tuple, Dict, Type, Union, Any
 
-from google.protobuf.descriptor import FieldDescriptor
 from google.protobuf.message import Message
 
 
@@ -58,7 +57,7 @@ def __get_schema_class(schema_id: SchemaID) -> Type[Message]:
 
 def __is_repeated_field(field: Any) -> bool:
     """Check if a field in the message is a repeated element."""
-    return field.label == FieldDescriptor.LABEL_REPEATED    # type: ignore
+    return field.is_repeated   # type: ignore
 
 
 # Main methods *****************************************

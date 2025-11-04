@@ -1,6 +1,6 @@
 from detectmatelibrary.common._config._compile import ConfigMethods
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from typing_extensions import Self
 from typing import Any, Dict
@@ -10,9 +10,7 @@ from copy import deepcopy
 class BasicConfig(BaseModel):
     """Base configuration class with helper methods."""
 
-    # Forbid extra fields not defined in subclasses (via pydantic)
-    class Config:
-        extra = "forbid"
+    model_config = ConfigDict(extra="forbid")
 
     method_type: str = "default_method_type"
     comp_type: str = "default_type"
