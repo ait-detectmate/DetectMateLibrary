@@ -1,6 +1,7 @@
-import pandas as pd
-
 import detectmatelibrary.schemas as schemas
+
+from typing import Any
+import pandas as pd
 
 
 class DataNormalizer:
@@ -11,7 +12,7 @@ class DataNormalizer:
 
     def __init__(
         self,
-        data: pd.DataFrame | dict | list,
+        data: pd.DataFrame | dict[str, Any] | list[Any],
         input_schema: schemas.AnySchema,
         output_schema: schemas.AnySchema
     ) -> None:

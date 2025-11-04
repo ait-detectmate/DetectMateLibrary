@@ -1,6 +1,8 @@
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
 from detectmatelibrary import schemas
 
+from typing import Any
+
 
 class DummyParserConfig(CoreParserConfig):
     """Configuration for DummyParser."""
@@ -13,7 +15,7 @@ class DummyParser(CoreParser):
     def __init__(
         self,
         name: str = "DummyParser",
-        config: DummyParserConfig | dict = DummyParserConfig()
+        config: DummyParserConfig | dict[str, Any] = DummyParserConfig()
     ) -> None:
 
         if isinstance(config, dict):
