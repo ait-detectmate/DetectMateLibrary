@@ -44,10 +44,10 @@ class MatcherParser(CoreParser):
 
     def __load_templates(self, path: str) -> list[str]:
         if not os.path.exists(path):
-            raise TemplatesNotFoundError(f"Template file not found at: {path}")
+            raise TemplatesNotFoundError(f"Templates file not found at: {path}")
         if not os.access(path, os.R_OK):
             raise TemplateNoPermissionError(
-                f"You do not have the permission to access template: {path}"
+                f"You do not have the permission to access the templates file: {path}"
             )
 
         with open(path, "r") as f:
