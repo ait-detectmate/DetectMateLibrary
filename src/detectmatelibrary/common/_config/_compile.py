@@ -28,7 +28,7 @@ class MethodTypeNotMatch(Exception):
 
 class AutoConfigError(Exception):
     def __init__(self) -> None:
-        super().__init__("When auto_config = False, there must a params field.")
+        super().__init__("When auto_config = False, there must be a params field.")
 
 
 class AutoConfigWarning(UserWarning):
