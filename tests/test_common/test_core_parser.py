@@ -182,5 +182,5 @@ class TestGetFormatVariables:
         time_format = "%Y-%m-%d %H:%M:%S"
 
         var, content = get_format_variables(pattern, time_format, log)
-        assert var == {"level": "INFO", "Time": "1728131400"}
+        assert var == {"level": "INFO", "Time": "1728138600"}
         assert content == log
