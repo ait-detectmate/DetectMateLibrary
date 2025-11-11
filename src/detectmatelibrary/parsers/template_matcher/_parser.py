@@ -3,6 +3,7 @@ from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
 from detectmatelibrary import schemas
 
 from typing import Any
+import csv
 import os
 
 
@@ -49,9 +50,26 @@ class MatcherParser(CoreParser):
             raise TemplateNoPermissionError(
                 f"You do not have the permission to access the templates file: {path}"
             )
-
-        with open(path, "r") as f:
-            templates = [line.strip() for line in f if line.strip()]
+        if path.endswith(".txt"):
+            with open(path, "r") as f:
+                templates = [line.strip() for line in f if line.strip()]
+        elif path.endswith(".csv"):
+            templates = []
+            # Use the lightweight built-in csv module instead of pandas
+            # Expect a header with a 'template' column
+            with open(path, newline="", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                if reader.fieldnames is None or "EventTemplate" not in reader.fieldnames:
+                    raise ValueError("CSV file must contain a 'EventTemplate' column.")
+                for row in reader:
+                    val = row.get("EventTemplate")
+                    if val is None:
+                        continue
+                    s = str(val).strip()
+                    if s:
+                        templates.append(s)
+        else:
+            raise ValueError("Unsupported template file format. Use .txt or .csv files.")
         return templates
 
     def parse(

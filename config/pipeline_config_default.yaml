@@ -3,19 +3,27 @@ readers:
         method_type: log_file_reader
         auto_config: False
         params:
-            file: tests/test_folder/logs.log
+            file: local/miranda.json
 
 parsers:
     MatcherParser:
         method_type: matcher_parser
         auto_config: False
-        pattern: <time>|<content>
+        log_format: "type=<Type> msg=audit(<Time>): <Content>"
         time_format: null
         params:
             remove_spaces: True
             remove_punctuation: True
             lowercase: True
-            path_templates: tests/test_folder/test_templates.txt
+            path_templates: tests/test_folder/audit_templates.txt
+
+    JsonParser:
+        method_type: json_parser
+        time_format: null
+        auto_config: False
+        params:
+            timestamp_name: "time"
+            content_name: "message"
 
 detectors:
     RandomDetector:

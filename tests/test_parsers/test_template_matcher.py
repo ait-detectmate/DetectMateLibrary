@@ -164,7 +164,7 @@ class TestMatcher:
         try:
             MatcherParser(config=default_args, name="Invalid")
         except TemplatesNotFoundError as e:
-            assert str(e) == "Template file not found at: non_existent_file.txt"
+            assert str(e) == "Templates file not found at: non_existent_file.txt"
 
     def test_matcher_parser(self) -> None:
         matcher_parser = MatcherParser(config=default_args, name="MatcherParser")
