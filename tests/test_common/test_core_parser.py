@@ -1,5 +1,5 @@
 import re
-from detectmatelibrary.common.parser import CoreParser, CoreParserConfig, _get_format_variables
+from detectmatelibrary.common.parser import CoreParser, CoreParserConfig, get_format_variables
 from detectmatelibrary.utils.aux import time_test_mode
 import detectmatelibrary.schemas as schemas
 
@@ -154,7 +154,7 @@ class TestCoreParser:
 class TestGetFormatVariables:
     def test_no_pattern(self) -> None:
         log = "This is a log."
-        var, content = _get_format_variables(None, None, log)
+        var, content = get_format_variables(None, None, log)
 
         assert var == {"Time": "0"}
         assert content == log
@@ -163,7 +163,7 @@ class TestGetFormatVariables:
         pattern = re.compile(r"(?P<date>\d{4}-\d{2}-\d{2})")
         log = "This is a log."
 
-        var, content = _get_format_variables(pattern, None, log)
+        var, content = get_format_variables(pattern, None, log)
 
         assert var == {"Time": "0"}
         assert content == log
@@ -172,7 +172,7 @@ class TestGetFormatVariables:
         log = "[INFO] 2024-10-05 This is a log."
         pattern = re.compile(r"\[(?P<level>\w+)\]\s(?P<Time>\d{4}-\d{2}-\d{2})")
 
-        var, content = _get_format_variables(pattern, None, log)
+        var, content = get_format_variables(pattern, None, log)
         assert var == {"level": "INFO", "Time": "2024-10-05"}
         assert content == log
 
@@ -181,6 +181,6 @@ class TestGetFormatVariables:
         pattern = re.compile(r"\[(?P<level>\w+)\]\s(?P<Time>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})")
         time_format = "%Y-%m-%d %H:%M:%S"
 
-        var, content = _get_format_variables(pattern, time_format, log)
+        var, content = get_format_variables(pattern, time_format, log)
         assert var == {"level": "INFO", "Time": "1728131400"}
         assert content == log

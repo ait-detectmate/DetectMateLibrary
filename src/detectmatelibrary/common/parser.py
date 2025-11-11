@@ -1,47 +1,35 @@
+from detectmatelibrary.utils.log_format_utils import generate_logformat_regex
+from detectmatelibrary.utils.log_format_utils import get_format_variables
+from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 from detectmatelibrary.common.core import CoreComponent, CoreConfig
-from detectmatelibrary.utils.data_buffer import ArgsBuffer
 from detectmatelibrary.utils.aux import get_timestamp
-
-from detectmatelibrary.utils.data_buffer import BufferMode
-
 from detectmatelibrary import schemas
 
 from typing import Any, Optional, Tuple
-from datetime import datetime
+from pydantic import model_validator
 import re
-
-
-def _apply_time_format(time_str: str, time_format: str) -> str:
-    try:
-        dt = datetime.strptime(time_str, time_format)
-        return str(int(dt.timestamp()))
-    except Exception:
-        return "0"
-
-
-def _get_format_variables(
-    pattern: str | None, time_format: str, log: str
-) -> Tuple[dict[str, str], str]:
-
-    if pattern is None:
-        vars = {"timestamp": "0"}
-    else:
-        cpattern = re.compile(pattern)
-        match = cpattern.search(log)
-        vars = match.groupdict() if match else {"timestamp": "0"}
-
-    if "timestamp" in vars and time_format:
-        vars["timestamp"] = _apply_time_format(vars["timestamp"], time_format)
-
-    return vars, vars["content"] if "content" in vars else log
 
 
 class CoreParserConfig(CoreConfig):
     comp_type: str = "parsers"
     method_type: str = "core_parser"
 
-    pattern: str | None = None
+    log_format: str | None = None
     time_format: str | None = None
+
+    _regex: re.Pattern[str] | None = None
+
+    # generate regex from log_format
+    @model_validator(mode="after")
+    def generate_regex(self) -> "CoreParserConfig":
+        if self.log_format is not None:
+            headers, regex = generate_logformat_regex(self.log_format)
+            self._regex = regex
+            self._headers = headers
+        else:
+            self._regex = None
+            self._headers = []
+        return self
 
 
 class CoreParser(CoreComponent):
@@ -63,8 +51,8 @@ class CoreParser(CoreComponent):
         )
 
     def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:
-        var, content = _get_format_variables(
-            self.config.pattern, log=input_.log, time_format=self.config.time_format   # type: ignore
+        var, content = get_format_variables(
+            self.config._regex, log=input_.log, time_format=self.config.time_format   # type: ignore
         )
 
         output_.parserID = self.name
