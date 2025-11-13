@@ -21,8 +21,9 @@ class SchemaPipeline:
             data = input_.copy()
         else:
             input_.check_is_same(data)
+            data = data.copy()
 
-        return is_byte, data.copy()  #  TODO: check if copy is needed
+        return is_byte, data
 
     @staticmethod
     def postprocess(

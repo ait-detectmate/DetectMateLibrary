@@ -21,22 +21,25 @@ def _initialize_schema(
 
 class SchemaVariables:
     def __init__(
-        self, schema_id: op.SchemaID, kwargs: dict[str, Any] |BasicConfig | None = None
+        self, schema_id: op.SchemaID, kwargs: dict[str, Any] | BasicConfig | None = None
     ) -> None:
         self.schema_id = schema_id
         self.init_schema(kwargs=kwargs)
 
     def get_schema(self) -> op.SchemaT:
+        """Retrieve the current schema instance."""
         return _initialize_schema(
             schema_id=self.schema_id,
             kwargs={var: getattr(self, var) for var in self.var_names}
         )
 
     def set_schema(self, schema: op.SchemaT) -> None:
+        """Set the schema instance and update attributes."""
         for var in self.var_names:
             setattr(self, var, getattr(schema, var))
 
-    def init_schema(self, kwargs: dict[str, Any] |BasicConfig | None) -> None:
+    def init_schema(self, kwargs: dict[str, Any] | BasicConfig | None) -> None:
+        """Initialize the schema instance and set attributes."""
         _schema = _initialize_schema(schema_id=self.schema_id, kwargs=kwargs)
 
         self.var_names = []
@@ -54,15 +57,18 @@ class BaseSchema(SchemaVariables):
         super().__init__(schema_id=schema_id, kwargs=kwargs)
 
     def copy(self) -> Self:
+        """Create a deep copy of the schema instance."""
         copy_schema = op.copy(schema_id=self.schema_id, schema=self.get_schema())
         new_instance = BaseSchema(schema_id=self.schema_id)
         new_instance.set_schema(copy_schema)
         return new_instance
 
     def serialize(self) -> bytes:
+        """Serialize the schema instance to bytes."""
         return op.serialize(id_schema=self.schema_id, schema=self.get_schema())
 
     def deserialize(self, message: bytes) -> None | op.IncorrectSchema:
+        """Deserialize bytes to populate the schema instance."""
         schema_id, schema = op.deserialize(message=message)
 
         op.check_is_same_schema(
@@ -74,18 +80,21 @@ class BaseSchema(SchemaVariables):
         return None
 
     def check_is_same(self, other: Self) -> None | op.IncorrectSchema:
+        """Check if another schema instance is of the same schema type."""
         return op.check_is_same_schema(
             id_schema_1=self.schema_id,
             id_schema_2=other.schema_id
         )  # TODO: add test
 
     def __eq__(self, other: object) -> bool:
+        """Check equality between two schema instances."""
         if not isinstance(other, BaseSchema):
             return False
         return self.get_schema() == other.get_schema()
 
-
+# Main schema classes ########################################
 class LogSchema(BaseSchema):
+    """Log schema class."""
     def __init__(
         self, kwargs: dict[str, Any] |BasicConfig | None = None
     ) -> None:
@@ -93,6 +102,7 @@ class LogSchema(BaseSchema):
 
 
 class ParserSchema(BaseSchema):
+    """Parser schema class."""
     def __init__(
         self, kwargs: dict[str, Any] |BasicConfig | None = None
     ) -> None:
@@ -100,6 +110,7 @@ class ParserSchema(BaseSchema):
 
 
 class DetectorSchema(BaseSchema):
+    """Detector schema class."""
     def __init__(
         self, kwargs: dict[str, Any] |BasicConfig | None = None
     ) -> None:
