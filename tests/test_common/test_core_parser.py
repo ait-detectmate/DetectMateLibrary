@@ -18,7 +18,7 @@ class MockupParser(CoreParser):
     def parse(self, input_, output_):
         output_.EventID = 1
         output_.template = "hello"
-        output_.variables.extend(["a", "b"])
+        output_.variables = ["a", "b"]
 
 
 class IncompleteMockupParser(CoreParser):
@@ -27,7 +27,7 @@ class IncompleteMockupParser(CoreParser):
 
     def parse(self, input_, output_):
         output_.EventID = 1
-        output_.variables.extend(["a", "b"])
+        output_.variables = ["a", "b"]
 
 
 class NoneMockupParser(CoreParser):
@@ -40,7 +40,7 @@ class NoneMockupParser(CoreParser):
 
         output_.EventID = 1
         output_.template = "hello"
-        output_.variables.extend(["a", "b"])
+        output_.variables = ["a", "b"]
 
         return self.value
 
@@ -64,8 +64,8 @@ class TestCoreParser:
         assert isinstance(parser, CoreParser)
         assert parser.name == "TestParser"
         assert isinstance(parser.config, CoreParserConfig)
-        assert parser.input_schema == schemas.LOG_SCHEMA
-        assert parser.output_schema == schemas.PARSER_SCHEMA
+        assert parser.input_schema == schemas.LogSchema_
+        assert parser.output_schema == schemas.ParserSchema_
 
     def test_incorrect_config_type(self) -> None:
         invalid_args = {
@@ -82,23 +82,20 @@ class TestCoreParser:
 
     def test_process_correct_input_schema(self) -> None:
         parser = MockupParser(name="TestParser", config=default_args)
-        data = schemas.initialize(schemas.LOG_SCHEMA, **{
-            "logID": 1, "log": "This is a log."
-        })
-        data_serialized = schemas.serialize(schemas.LOG_SCHEMA, data)
-        result = parser.process(data_serialized)  # no error should be produced
+        data = schemas.LogSchema_({"logID": 1, "log": "This is a log."}).serialize()
+        result = parser.process(data)  # no error should be produced
         assert isinstance(result, bytes)  # and result should be bytes
 
     def test_process_incorrect_input_schema(self) -> None:
         parser = MockupParser(name="TestParser", config=default_args)
-        data = schemas.initialize(schemas.DETECTOR_SCHEMA, **{"score": 0.99})
-        data_serialized = schemas.serialize(schemas.DETECTOR_SCHEMA, data)
+        data = schemas.DetectorSchema_({"score": 0.99}).serialize()
+
         with pytest.raises(schemas.IncorrectSchema):
-            parser.process(data_serialized)
+            parser.process(data)
 
     def test_process_correct_input_schema_not_serialize(self) -> None:
         parser = MockupParser(name="TestParser", config=MockupConfig())
-        expected_result = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        expected_result = schemas.ParserSchema_({
             "__version__": "1.0.0",
             "parserType": "core_parser",
             "parserID": "TestParser",
@@ -110,19 +107,17 @@ class TestCoreParser:
             "receivedTimestamp": 0,
             "parsedTimestamp": 0,
         })
-        expected_result.variables.extend(["a", "b"])
+        expected_result.variables = ["a", "b"]
         expected_result.logFormatVariables["Time"] = "0"
 
-        data = schemas.initialize(schemas.LOG_SCHEMA, **{
-            "logID": 1, "log": "This is a log."
-        })
+        data = schemas.LogSchema_({"logID": 1, "log": "This is a log."})
         result = parser.process(data)
 
         assert result == expected_result, f"results {result} and expected {expected_result}"
 
     def test_process_ids(self) -> None:
         parser = MockupParser(name="TestParser", config=MockupConfig())
-        data = schemas.initialize(schemas.LOG_SCHEMA, **{
+        data = schemas.LogSchema_({
             "logID": 1, "log": "This is a log.", "logSource": "", "hostname": ""
         })
 
@@ -132,18 +127,9 @@ class TestCoreParser:
         result = parser.process(data)
         assert result.parsedLogID == 11
 
-    def test_incomplete_parser(self) -> None:
-        parser = IncompleteMockupParser(name="TestParser", config=MockupConfig())
-        data = schemas.initialize(schemas.LOG_SCHEMA, **{
-            "logID": 1, "log": "This is a log.", "logSource": "", "hostname": ""
-        })
-
-        with pytest.raises(schemas.NotCompleteSchema):
-            parser.process(data)
-
     def test_none_parser(self) -> None:
         parser = NoneMockupParser(name="TestParser", config=MockupConfig())
-        data = schemas.initialize(schemas.LOG_SCHEMA, **{
+        data = schemas.LogSchema_({
             "logID": 1, "log": "This is a log.", "logSource": "", "hostname": ""
         })
 

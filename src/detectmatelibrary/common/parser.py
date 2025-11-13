@@ -5,8 +5,8 @@ from detectmatelibrary.common.core import CoreComponent, CoreConfig
 from detectmatelibrary.utils.aux import get_timestamp
 from detectmatelibrary import schemas
 
-from typing import Any, Optional, Tuple
 from pydantic import model_validator
+from typing import Any, Optional
 import re
 
 
@@ -46,11 +46,11 @@ class CoreParser(CoreComponent):
             type_=config.method_type,  # type: ignore
             config=config,   # type: ignore
             args_buffer=ArgsBuffer(mode=BufferMode.NO_BUF, size=None),
-            input_schema=schemas.LOG_SCHEMA,  # type: ignore
-            output_schema=schemas.PARSER_SCHEMA,  # type: ignore
+            input_schema=schemas.LogSchema_,
+            output_schema=schemas.ParserSchema_,
         )
 
-    def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:
+    def run(self, input_: schemas.LogSchema_, output_: schemas.ParserSchema_) -> bool:
         var, content = get_format_variables(
             self.config._regex, log=input_.log, time_format=self.config.time_format   # type: ignore
         )
@@ -70,9 +70,9 @@ class CoreParser(CoreComponent):
         return True if use_schema is None else use_schema
 
     def parse(
-        self, input_: schemas.LogSchema, output_: schemas.ParserSchema
+        self, input_: schemas.LogSchema_, output_: schemas.ParserSchema_
     ) -> bool | None:
         return True
 
-    def train(self, input_: schemas.LogSchema) -> None:
+    def train(self, input_: schemas.LogSchema_) -> None:
         pass

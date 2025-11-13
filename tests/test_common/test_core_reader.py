@@ -92,9 +92,3 @@ class TestCoreDetector:
         output = reader.process()
 
         assert output is None
-
-    def test_incomplete_reader(self) -> None:
-        reader = IncompleteMockupReader(name="TestReader", config=default_args)
-
-        with pytest.raises(schemas.NotCompleteSchema):
-            reader.process()

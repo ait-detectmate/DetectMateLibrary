@@ -28,8 +28,8 @@ class DummyDetector(CoreDetector):
 
     def detect(
         self,
-        input_: List[schemas.ParserSchema] | schemas.ParserSchema,
-        output_: schemas.DetectorSchema
+        input_: List[schemas.ParserSchema_] | schemas.ParserSchema_,
+        output_: schemas.DetectorSchema_
     ) -> bool | None:
         output_.description = "Dummy detection process"
 

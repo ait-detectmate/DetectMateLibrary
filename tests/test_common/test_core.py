@@ -38,14 +38,14 @@ class MockComponentWithTraining(CoreComponent):
         self, name: str, config: MockConfigWithTraining = MockConfigWithTraining()
     ) -> None:
         super().__init__(
-            name=name, type_="Dummy", config=config, input_schema=schemas.LOG_SCHEMA
+            name=name, type_="Dummy", config=config, input_schema=schemas.LogSchema_
         )
         self.train_data = []
 
-    def train(self, input_: schemas.AnySchema) -> None:
+    def train(self, input_) -> None:
         self.train_data.append(input_)
 
-    def run(self, input_: schemas.AnySchema, output_: schemas.AnySchema) -> None:
+    def run(self, input_, output_) -> None:
         return False
 
 
@@ -163,24 +163,20 @@ class TestCoreComponent:
 
         for i in range(10):
             component.process(
-                schemas.initialize(
-                    schema_id=schemas.LOG_SCHEMA, **{
-                        "__version__": "1.0.0",
-                        "logID": i,
-                        "logSource": "test",
-                        "hostname": "test_hostname"
-                    }
-                )
-            )
-
-        assert len(component.train_data) == component.data_used_train
-        for i, log in enumerate(component.train_data):
-            expected = schemas.initialize(
-                schema_id=schemas.LOG_SCHEMA, **{
+                schemas.LogSchema_({
                     "__version__": "1.0.0",
                     "logID": i,
                     "logSource": "test",
                     "hostname": "test_hostname"
-                }
+                })
             )
+
+        assert len(component.train_data) == component.data_used_train
+        for i, log in enumerate(component.train_data):
+            expected = schemas.LogSchema_({
+                "__version__": "1.0.0",
+                "logID": i,
+                "logSource": "test",
+                "hostname": "test_hostname"
+            })
             assert expected == log

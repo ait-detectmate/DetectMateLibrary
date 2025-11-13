@@ -79,8 +79,8 @@ class TestNewValueDetectorInitialization:
         assert detector.name == "NewValueDetector"
         assert hasattr(detector, 'config')
         assert detector.data_buffer.mode == BufferMode.NO_BUF
-        assert detector.input_schema == schemas.PARSER_SCHEMA
-        assert detector.output_schema == schemas.DETECTOR_SCHEMA
+        assert detector.input_schema == schemas.ParserSchema_
+        assert detector.output_schema == schemas.DetectorSchema_
         assert hasattr(detector, 'known_values')
 
     def test_custom_config_initialization(self):
@@ -100,7 +100,7 @@ class TestNewValueDetectorTraining:
 
         # Train with multiple values
         for level in ["INFO", "WARNING", "ERROR"]:
-            parser_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+            parser_data = schemas.ParserSchema_({
                 "parserType": "test",
                 "EventID": 1,
                 "template": "test template",
@@ -126,7 +126,7 @@ class TestNewValueDetectorTraining:
         # Train with multiple values
         for event in range(3):
             for level in ["INFO", "WARNING", "ERROR"]:
-                parser_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+                parser_data = schemas.ParserSchema_({
                     "parserType": "test",
                     "EventID": event,
                     "template": "test template",
@@ -154,7 +154,7 @@ class TestNewValueDetectorDetection:
         detector = NewValueDetector(config=config, name="AllDetector")
 
         # Train with a value
-        train_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        train_data = schemas.ParserSchema_({
             "parserType": "test",
             "EventID": 1,
             "template": "test template",
@@ -168,7 +168,7 @@ class TestNewValueDetectorDetection:
         detector.train(train_data)
 
         # Detect with the same value
-        test_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        test_data = schemas.ParserSchema_({
             "parserType": "test",
             "EventID": 12,
             "template": "test template",
@@ -179,7 +179,7 @@ class TestNewValueDetectorDetection:
             "log": "test log message",
             "logFormatVariables": {"level": "INFO"}
         })
-        output = schemas.initialize(schemas.DETECTOR_SCHEMA)
+        output = schemas.DetectorSchema_()
 
         result = detector.detect(test_data, output)
 
@@ -191,7 +191,7 @@ class TestNewValueDetectorDetection:
         detector = NewValueDetector(config=config, name="AllDetector")
 
         # Train with a value
-        train_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        train_data = schemas.ParserSchema_({
             "parserType": "test",
             "EventID": 1,
             "template": "test template",
@@ -205,7 +205,7 @@ class TestNewValueDetectorDetection:
         detector.train(train_data)
 
         # Detect with the same value
-        test_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        test_data = schemas.ParserSchema_({
             "parserType": "test",
             "EventID": 12,
             "template": "test template",
@@ -216,7 +216,7 @@ class TestNewValueDetectorDetection:
             "log": "test log message",
             "logFormatVariables": {"level": "CRITICAL"}
         })
-        output = schemas.initialize(schemas.DETECTOR_SCHEMA)
+        output = schemas.DetectorSchema_()
 
         result = detector.detect(test_data, output)
 
@@ -227,7 +227,7 @@ class TestNewValueDetectorDetection:
         detector = NewValueDetector(config=config, name="MultipleDetector")
 
         # Train with a value
-        train_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        train_data = schemas.ParserSchema_({
             "parserType": "test",
             "EventID": 1,
             "template": "test template",
@@ -241,7 +241,7 @@ class TestNewValueDetectorDetection:
         detector.train(train_data)
 
         # Detect with the same value
-        test_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        test_data = schemas.ParserSchema_({
             "parserType": "test",
             "EventID": 12,
             "template": "test template",
@@ -252,7 +252,7 @@ class TestNewValueDetectorDetection:
             "log": "test log message",
             "logFormatVariables": {"level": "CRITICAL"}
         })
-        output = schemas.initialize(schemas.DETECTOR_SCHEMA)
+        output = schemas.DetectorSchema_()
 
         result = detector.detect(test_data, output)
 
@@ -263,7 +263,7 @@ class TestNewValueDetectorDetection:
         detector = NewValueDetector(config=config, name="MultipleDetector")
 
         # Train with a value
-        train_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        train_data = schemas.ParserSchema_({
             "parserType": "test",
             "EventID": 1,
             "template": "test template",
@@ -277,7 +277,7 @@ class TestNewValueDetectorDetection:
         detector.train(train_data)
 
         # Detect with the same value
-        test_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        test_data = schemas.ParserSchema_({
             "parserType": "test",
             "EventID": 1,
             "template": "test template",
@@ -288,7 +288,7 @@ class TestNewValueDetectorDetection:
             "log": "test log message",
             "logFormatVariables": {"level": "CRITICAL"}
         })
-        output = schemas.initialize(schemas.DETECTOR_SCHEMA)
+        output = schemas.DetectorSchema_()
 
         result = detector.detect(test_data, output)
 

@@ -24,7 +24,7 @@ def _check_size(exp_size: int, max_size: int) -> None | ComboTooBigError:
     return None
 
 
-def _get_element(input_: schemas.ParserSchema, var_pos: str | int) -> Any:
+def _get_element(input_: schemas.ParserSchema_, var_pos: str | int) -> Any:
     if isinstance(var_pos, str):
         return input_.logFormatVariables[var_pos]
     elif len(input_.variables) > var_pos:
@@ -32,7 +32,7 @@ def _get_element(input_: schemas.ParserSchema, var_pos: str | int) -> Any:
 
 
 def _get_combos(
-    input_: schemas.ParserSchema,
+    input_: schemas.ParserSchema_,
     combo_size: int,
     log_variables: LogVariables | AllLogVariables
 ) -> Set[Any]:
@@ -51,7 +51,7 @@ def _get_combos(
 
 # Combo detector methods ********************************************************
 def train_combo_detector(
-    input_: schemas.ParserSchema,
+    input_: schemas.ParserSchema_,
     known_combos: Dict[str | int, Set[Any]],
     combo_size: int,
     log_variables: LogVariables | AllLogVariables
@@ -72,7 +72,7 @@ def train_combo_detector(
 
 
 def detect_combo_detector(
-    input_: schemas.ParserSchema,
+    input_: schemas.ParserSchema_,
     known_combos: Dict[str | int, Set[Any]],
     combo_size: int,
     log_variables: LogVariables | AllLogVariables,
@@ -120,7 +120,7 @@ class NewValueComboDetector(CoreDetector):
         self.config = cast(NewValueComboDetectorConfig, self.config)
         self.known_combos: Dict[str | int, Set[Any]] = {"all": set()}
 
-    def train(self, input_: schemas.ParserSchema) -> None:
+    def train(self, input_: schemas.ParserSchema_) -> None:
         train_combo_detector(
             input_=input_,
             known_combos=self.known_combos,
@@ -130,8 +130,8 @@ class NewValueComboDetector(CoreDetector):
 
     def detect(
         self,
-        input_: List[schemas.ParserSchema] | schemas.ParserSchema,
-        output_: schemas.DetectorSchema
+        input_: List[schemas.ParserSchema_] | schemas.ParserSchema_,
+        output_: schemas.DetectorSchema_
     ) -> bool:
         alerts: Dict[str, str] = {}
 

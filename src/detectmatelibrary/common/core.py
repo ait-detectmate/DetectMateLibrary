@@ -3,7 +3,7 @@ from detectmatelibrary.utils.id_generator import SimpleIDGenerator
 
 from detectmatelibrary.common._config import BasicConfig
 
-from detectmatelibrary import schemas
+from detectmatelibrary.schemas import BaseSchema_ # type: ignore
 
 from typing import Any, Dict, Tuple, List
 
@@ -11,24 +11,25 @@ from typing import Any, Dict, Tuple, List
 class SchemaPipeline:
     @staticmethod
     def preprocess(
-        schema_id: schemas.SchemaID, data: schemas.AnySchema | bytes    # type: ignore
-    ) -> Tuple[bool, schemas.AnySchema]:
+        input_: BaseSchema_, data: BaseSchema_ | bytes
+    ) -> Tuple[bool, BaseSchema_]:
 
         is_byte = False
         if isinstance(data, bytes):
-            schema_id_, data = schemas.deserialize(data)  # type: ignore
             is_byte = True
-            schemas.check_is_same_schema(schema_id_, schema_id)  # type: ignore
+            input_.deserialize(data)
+            data = input_.copy()
+        else:
+            input_.check_is_same(data)
 
-        return is_byte, schemas.copy(schema_id, schema=data)    # type: ignore
+        return is_byte, data.copy()  #  TODO: check if copy is needed
 
     @staticmethod
     def postprocess(
-        schema_id: schemas.SchemaID, data: schemas.AnySchema, is_byte: bool   # type: ignore
-    ) -> schemas.AnySchema | bytes:
+        data: BaseSchema_, is_byte: bool
+    ) -> BaseSchema_ | bytes:
 
-        schemas.check_if_schema_is_complete(data)   # type: ignore
-        return data if not is_byte else schemas.serialize(schema_id, data)    # type: ignore
+        return data if not is_byte else data.serialize()
 
 
 class CoreConfig(BasicConfig):
@@ -48,8 +49,8 @@ class CoreComponent:
         type_: str = "Core",
         config: CoreConfig = CoreConfig(),
         args_buffer: ArgsBuffer = ArgsBuffer(BufferMode.NO_BUF),
-        input_schema: schemas.SchemaID = schemas.BASE_SCHEMA,   # type: ignore
-        output_schema: schemas.SchemaID = schemas.BASE_SCHEMA    # type: ignore
+        input_schema: BaseSchema_ = BaseSchema_, # type: ignore
+        output_schema: BaseSchema_ = BaseSchema_ # type: ignore
     ) -> None:
 
         self.name, self.type_, self.config = name, type_, config
@@ -63,17 +64,17 @@ class CoreComponent:
         return f"<{self.type_}> {self.name}: {self.config}"
 
     def run(
-        self, input_: List[schemas.AnySchema] | schemas.AnySchema, output_: schemas.AnySchema
+        self, input_: List[BaseSchema_] | BaseSchema_, output_: BaseSchema_
     ) -> bool:
         return False
 
     def train(
-        self, input_: List[schemas.AnySchema] | schemas.AnySchema,
+        self, input_: List[BaseSchema_] | BaseSchema_,
     ) -> None:
         pass
 
-    def process(self, data: schemas.AnySchema | bytes) -> schemas.AnySchema | bytes | None:
-        is_byte, data = SchemaPipeline.preprocess(self.input_schema, data)
+    def process(self, data: BaseSchema_ | bytes) -> BaseSchema_ | bytes | None:
+        is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)  # type: ignore
         if (data_buffered := self.data_buffer.add(data)) is None:    # type: ignore
             return None
 
@@ -81,12 +82,12 @@ class CoreComponent:
             self.data_used_train += 1
             self.train(input_=data_buffered)
 
-        output_ = schemas.initialize_with_default(self.output_schema, config=self.config)
+        output_ = self.output_schema()
         anomaly_detected = self.run(input_=data_buffered, output_=output_)
         if not anomaly_detected:
             return None
 
-        return SchemaPipeline.postprocess(self.output_schema, output_, is_byte=is_byte)
+        return SchemaPipeline.postprocess(output_, is_byte=is_byte)
 
     def get_config(self) -> Dict[str, Any]:
         return self.config.get_config()

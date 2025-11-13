@@ -27,14 +27,14 @@ class RandomDetector(CoreDetector):
             config = RandomDetectorConfig.from_dict(config, name)
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
 
-    def train(self, input_: List[schemas.ParserSchema] | schemas.ParserSchema) -> None:
+    def train(self, input_: List[schemas.ParserSchema_] | schemas.ParserSchema_) -> None:
         """Training is not applicable for RandomDetector."""
         return
 
     def detect(
         self,
-        input_: List[schemas.ParserSchema] | schemas.ParserSchema,
-        output_: schemas.DetectorSchema
+        input_: List[schemas.ParserSchema_] | schemas.ParserSchema_,
+        output_: schemas.DetectorSchema_
     ) -> bool:
         """Detect anomalies randomly in the input data."""
         overall_score = 0.0

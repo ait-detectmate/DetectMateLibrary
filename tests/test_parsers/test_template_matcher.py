@@ -168,10 +168,8 @@ class TestMatcher:
 
     def test_matcher_parser(self) -> None:
         matcher_parser = MatcherParser(config=default_args, name="MatcherParser")
-        input_log = schemas.initialize(
-            schemas.LOG_SCHEMA, **{"log": test_log}
-        )
-        output_data = schemas.initialize(schemas.PARSER_SCHEMA)
+        input_log = schemas.LogSchema_({"log": test_log})
+        output_data = schemas.ParserSchema_()
         matcher_parser.parse(input_log, output_data)
 
         assert output_data.EventID == 0
@@ -182,10 +180,8 @@ class TestMatcher:
 
     def test_matcher_parser_no_match(self) -> None:
         matcher_parser = MatcherParser(config=default_args, name="MatcherParser")
-        input_log = schemas.initialize(
-            schemas.LOG_SCHEMA, **{"log": "this log does not match"}
-        )
-        output_data = schemas.initialize(schemas.PARSER_SCHEMA)
+        input_log = schemas.LogSchema_({"log": "this log does not match"})
+        output_data = schemas.ParserSchema_()
         matcher_parser.parse(input_log, output_data)
 
         assert output_data.EventID == -1

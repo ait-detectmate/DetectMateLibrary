@@ -74,12 +74,12 @@ class MatcherParser(CoreParser):
 
     def parse(
         self,
-        input_: schemas.LogSchema,
-        output_: schemas.ParserSchema
+        input_: schemas.LogSchema_,
+        output_: schemas.ParserSchema_
     ) -> None:
 
         parsed = self.template_matcher(input_.log)
 
         output_.template = parsed["EventTemplate"]
-        output_.variables.extend(parsed["Params"])
+        output_.variables = parsed["Params"]
         output_.EventID = parsed["EventId"]

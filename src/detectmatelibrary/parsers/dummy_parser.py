@@ -24,8 +24,8 @@ class DummyParser(CoreParser):
 
     def parse(
         self,
-        input_: schemas.LogSchema,
-        output_: schemas.ParserSchema
+        input_: schemas.LogSchema_,
+        output_: schemas.ParserSchema_
     ) -> None:
 
         output_.EventID = 2

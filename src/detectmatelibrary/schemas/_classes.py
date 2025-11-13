@@ -73,6 +73,17 @@ class BaseSchema_(SchemaVariables):
         self.set_schema(schema=schema)
         return None
 
+    def check_is_same(self, other: Self) -> None | op.IncorrectSchema:
+        return op.check_is_same_schema(
+            id_schema_1=self.schema_id,
+            id_schema_2=other.schema_id
+        )  # TODO: add test
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, BaseSchema_):
+            return False
+        return self.get_schema() == other.get_schema()  # type: ignore
+
 
 class LogSchema_(BaseSchema_):
     def __init__(
