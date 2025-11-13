@@ -1,14 +1,6 @@
-from detectmatelibrary.common._config import BasicConfig
-
 import detectmatelibrary.schemas as schemas
 
 import pytest
-
-
-class MockConfig(BasicConfig):
-    score: float = 0.4
-    detectorID: str = "test"
-    no_field: str = "should not appear"
 
 
 class TestCaseSchemas:
@@ -79,14 +71,6 @@ class TestCaseSchemas:
         assert schema.logIDs == [1, 2, 3]
         assert schema.score == 0.5
         assert schema.extractedTimestamps == [4, 5, 6]
-
-    def test_initialize_with_default(self) -> None:
-        schema = schemas.initialize_with_default(schemas.DETECTOR_SCHEMA, MockConfig())
-        expected_schema = schemas.initialize(
-            schema_id=schemas.DETECTOR_SCHEMA, **{"score": 0.4, "detectorID": "test"}
-        )
-
-        assert schema == expected_schema
 
     def test_copy(self) -> None:
         values = {

@@ -1,4 +1,3 @@
-from detectmatelibrary.common._config import BasicConfig
 import detectmatelibrary.schemas._op as op
 
 from typing_extensions import Self
@@ -6,14 +5,10 @@ from typing import Any
 
 
 def _initialize_schema(
-    schema_id: op.SchemaID, kwargs: dict[str, Any] |BasicConfig | None
+    schema_id: op.SchemaID, kwargs: dict[str, Any] | None
 ) -> op.SchemaT:
         if kwargs is None:
             _schema = op.initialize(schema_id=schema_id, **{})
-        elif isinstance(kwargs, BasicConfig):
-            _schema = op.initialize_with_default(
-                schema_id=schema_id, config=kwargs
-            )
         else:
             _schema = op.initialize(schema_id=schema_id, **kwargs)
         return _schema
@@ -21,7 +16,7 @@ def _initialize_schema(
 
 class SchemaVariables:
     def __init__(
-        self, schema_id: op.SchemaID, kwargs: dict[str, Any] | BasicConfig | None = None
+        self, schema_id: op.SchemaID, kwargs: dict[str, Any] | None = None
     ) -> None:
         self.schema_id = schema_id
         self.init_schema(kwargs=kwargs)
@@ -38,7 +33,7 @@ class SchemaVariables:
         for var in self.var_names:
             setattr(self, var, getattr(schema, var))
 
-    def init_schema(self, kwargs: dict[str, Any] | BasicConfig | None) -> None:
+    def init_schema(self, kwargs: dict[str, Any] | None) -> None:
         """Initialize the schema instance and set attributes."""
         _schema = _initialize_schema(schema_id=self.schema_id, kwargs=kwargs)
 
@@ -52,7 +47,7 @@ class BaseSchema(SchemaVariables):
     def __init__(
         self,
         schema_id: op.SchemaID = op.BASE_SCHEMA,
-        kwargs: dict[str, Any] |BasicConfig | None = None
+        kwargs: dict[str, Any] | None = None
     ) -> None:
         super().__init__(schema_id=schema_id, kwargs=kwargs)
 
@@ -96,7 +91,7 @@ class BaseSchema(SchemaVariables):
 class LogSchema(BaseSchema):
     """Log schema class."""
     def __init__(
-        self, kwargs: dict[str, Any] |BasicConfig | None = None
+        self, kwargs: dict[str, Any] | None = None
     ) -> None:
         super().__init__(schema_id=op.LOG_SCHEMA, kwargs=kwargs)
 
@@ -104,7 +99,7 @@ class LogSchema(BaseSchema):
 class ParserSchema(BaseSchema):
     """Parser schema class."""
     def __init__(
-        self, kwargs: dict[str, Any] |BasicConfig | None = None
+        self, kwargs: dict[str, Any] | None = None
     ) -> None:
         super().__init__(schema_id=op.PARSER_SCHEMA, kwargs=kwargs)
 
@@ -112,6 +107,6 @@ class ParserSchema(BaseSchema):
 class DetectorSchema(BaseSchema):
     """Detector schema class."""
     def __init__(
-        self, kwargs: dict[str, Any] |BasicConfig | None = None
+        self, kwargs: dict[str, Any] | None = None
     ) -> None:
         super().__init__(schema_id=op.DETECTOR_SCHEMA, kwargs=kwargs)

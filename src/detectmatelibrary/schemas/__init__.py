@@ -12,7 +12,6 @@ from detectmatelibrary.schemas._op import (
     IncorrectSchema,
     NotCompleteSchema,
     initialize,
-    initialize_with_default,
     copy,
     serialize,
     deserialize,

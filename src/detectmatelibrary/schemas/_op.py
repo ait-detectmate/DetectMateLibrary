@@ -69,20 +69,6 @@ def initialize(schema_id: SchemaID, **kwargs: dict[str, Any]) -> SchemaT | NotSu
     return schema_class(**kwargs)
 
 
-def initialize_with_default(
-    schema_id: SchemaID, config: BasicConfig
-) -> SchemaT | NotSupportedSchema:
-    """Initialize schema with default fields in a Config instance."""
-    fields = initialize(schema_id=schema_id, **{}).DESCRIPTOR.fields
-    args = {}
-    dict_config = config.get_config()
-    for field in fields:
-        if field.name in dict_config:
-            args[field.name] = dict_config[field.name]
-
-    return initialize(schema_id=schema_id, **args)
-
-
 def copy(
     schema_id: SchemaID,  schema: SchemaT
 ) -> SchemaT | IncorrectSchema | NotSupportedSchema:
