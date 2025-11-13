@@ -19,6 +19,7 @@ from detectmatelibrary.schemas._op import (
     deserialize,
     check_is_same_schema,
     check_if_schema_is_complete,
+    get_variables_names,
     SchemaID,
     SchemaT
 )

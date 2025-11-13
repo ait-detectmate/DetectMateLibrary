@@ -157,3 +157,14 @@ class TestCaseSchemas:
         }
         schema = schemas.initialize(schemas.LOG_SCHEMA, **values)
         schemas.check_if_schema_is_complete(schema)
+
+    def test_get_variables(self) -> None:
+        values = {
+            "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
+        }
+        schema = schemas.initialize(schemas.LOG_SCHEMA, **values)
+        vars = schemas.get_variables_names(schema)
+        expected_vars = ["logID", "log", "logSource", "hostname", "__version__"]
+
+        assert set(vars) == set(expected_vars), f"{vars}"
+        assert len(vars) == len(expected_vars), f"{vars}"

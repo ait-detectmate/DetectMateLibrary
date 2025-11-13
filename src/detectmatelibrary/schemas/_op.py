@@ -115,6 +115,7 @@ def deserialize(message: bytes) -> Tuple[SchemaID, SchemaT]:
     return schema_id, schema
 
 
+# Auxiliar methods *****************************************
 def check_is_same_schema(
     id_schema_1: SchemaID, id_schema_2: SchemaID
 ) -> None | IncorrectSchema:
@@ -135,3 +136,8 @@ def check_if_schema_is_complete(schema: SchemaT) -> None | NotCompleteSchema:
         raise NotCompleteSchema(f"Missing fields: {missing_fields}")
 
     return None
+
+
+def get_variables_names(schema: SchemaT) -> list[str]:
+    """Get the variable names of the schema."""
+    return [field.name for field in schema.DESCRIPTOR.fields]
