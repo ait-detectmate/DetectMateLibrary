@@ -1,5 +1,5 @@
 from detectmatelibrary.schemas._classes import (
-    SchemaVariables, BaseSchema, LogSchema, ParserSchema, DetectorSchema
+    SchemaVariables, BaseSchema_, LogSchema_, ParserSchema_, DetectorSchema_
 )
 from detectmatelibrary.schemas import (
     PARSER_SCHEMA, BASE_SCHEMA, IncorrectSchema
@@ -64,18 +64,18 @@ class TestSchemaVariables:
 
 class TestBaseSchema:
     def test_basic_init(self):
-        base_schema = BaseSchema()
+        base_schema = BaseSchema_()
 
         assert base_schema.schema_id == BASE_SCHEMA
         assert base_schema.get_schema().__version__ == "1.0.0"
 
     def test_all_initialize(self):
-        LogSchema()
-        ParserSchema()
-        DetectorSchema()
+        LogSchema_()
+        ParserSchema_()
+        DetectorSchema_()
 
     def test_copy(self):
-        log_schema = LogSchema()
+        log_schema = LogSchema_()
         log_schema.log = "Test log"
         log_schema_copy = log_schema.copy()
 
@@ -84,13 +84,13 @@ class TestBaseSchema:
         assert log_schema_copy.log == "Test log"
 
     def test_serialize_deserialize(self):
-        log_schema = LogSchema()
+        log_schema = LogSchema_()
         log_schema.log = "Test log"
         serialized = log_schema.serialize()
 
         assert isinstance(serialized, bytes)
 
-        new_log_schema = LogSchema()
+        new_log_schema = LogSchema_()
         new_log_schema.deserialize(serialized)
 
         assert new_log_schema.schema_id == log_schema.schema_id
@@ -98,19 +98,19 @@ class TestBaseSchema:
         assert new_log_schema.log == "Test log"
 
     def test_deserialize_incorrect_schema(self):
-        log_schema = LogSchema()
+        log_schema = LogSchema_()
         serialized = log_schema.serialize()
 
-        parser_schema = ParserSchema()
+        parser_schema = ParserSchema_()
 
         with pytest.raises(IncorrectSchema):
             parser_schema.deserialize(serialized)
 
     def test_wrong_value(self):
         with pytest.raises(Exception):
-            LogSchema({"logID": "helllo"})
+            LogSchema_({"logID": "helllo"})
 
-        log_schema = LogSchema()
+        log_schema = LogSchema_()
         log_schema.logID = "Test log"
         with pytest.raises(Exception):
             log_schema.get_schema()

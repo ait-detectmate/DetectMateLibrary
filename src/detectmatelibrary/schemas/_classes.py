@@ -45,7 +45,7 @@ class SchemaVariables:
             self.var_names.append(var)
 
 
-class BaseSchema(SchemaVariables):
+class BaseSchema_(SchemaVariables):
     def __init__(
         self,
         schema_id: op.SchemaID = op.BASE_SCHEMA,
@@ -55,7 +55,7 @@ class BaseSchema(SchemaVariables):
 
     def copy(self) -> Self:
         copy_schema = op.copy(schema_id=self.schema_id, schema=self.get_schema())
-        new_instance = BaseSchema(schema_id=self.schema_id)
+        new_instance = BaseSchema_(schema_id=self.schema_id)
         new_instance.set_schema(copy_schema)
         return new_instance # type: ignore
 
@@ -74,21 +74,21 @@ class BaseSchema(SchemaVariables):
         return None
 
 
-class LogSchema(BaseSchema):
+class LogSchema_(BaseSchema_):
     def __init__(
         self, kwargs: dict[str, Any] |BasicConfig | None = None
     ) -> None:
         super().__init__(schema_id=op.LOG_SCHEMA, kwargs=kwargs)
 
 
-class ParserSchema(BaseSchema):
+class ParserSchema_(BaseSchema_):
     def __init__(
         self, kwargs: dict[str, Any] |BasicConfig | None = None
     ) -> None:
         super().__init__(schema_id=op.PARSER_SCHEMA, kwargs=kwargs)
 
 
-class DetectorSchema(BaseSchema):
+class DetectorSchema_(BaseSchema_):
     def __init__(
         self, kwargs: dict[str, Any] |BasicConfig | None = None
     ) -> None:

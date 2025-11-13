@@ -24,6 +24,13 @@ from detectmatelibrary.schemas._op import (
     SchemaT
 )
 
+from detectmatelibrary.schemas._classes import (
+    BaseSchema_,
+    LogSchema_,
+    ParserSchema_,
+    DetectorSchema_
+)
+
 # Use the actual protobuf classes for better type hints and IDE support
 BaseSchema: TypeAlias = pb2.Schema
 LogSchema: TypeAlias = pb2.LogSchema
