@@ -5,13 +5,13 @@ from detectmatelibrary.common.detector import CoreDetector
 
 from detectmatelibrary.utils.data_buffer import BufferMode
 
-from detectmatelibrary.schemas import ParserSchema_, DetectorSchema_
+from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
 from typing import Any, cast
 
 
 # *************** New value methods ****************************************
-def _get_element(input_: ParserSchema_, var_pos: str | int) -> Any:
+def _get_element(input_: ParserSchema, var_pos: str | int) -> Any:
     if isinstance(var_pos, str):
         return input_.logFormatVariables[var_pos]
     elif len(input_.variables) > var_pos:
@@ -20,7 +20,7 @@ def _get_element(input_: ParserSchema_, var_pos: str | int) -> Any:
 
 def train_new_values(
     known_values: dict[str, Any],
-    input_: ParserSchema_,
+    input_: ParserSchema,
     variables: AllLogVariables | LogVariables
 ) -> None:
 
@@ -43,7 +43,7 @@ def train_new_values(
 
 def detect_new_values(
     known_values: dict[str, Any],
-    input_: ParserSchema_,
+    input_: ParserSchema,
     variables: AllLogVariables | LogVariables,
     alerts: dict[str, str],
 ) -> float:
@@ -93,14 +93,14 @@ class NewValueDetector(CoreDetector):
         self.config = cast(NewValueDetectorConfig, self.config)
         self.known_values: dict[str, Any] = {}
 
-    def train(self, input_: ParserSchema_) -> None:
+    def train(self, input_: ParserSchema) -> None:
         """Train the detector by learning values from the input data."""
         train_new_values(
             known_values=self.known_values, input_=input_, variables=self.config.log_variables
         )
 
     def detect(
-        self, input_:  ParserSchema_, output_: DetectorSchema_
+        self, input_:  ParserSchema, output_: DetectorSchema
     ) -> bool:
         """Detect new values in the input data."""
         alerts: dict[str, str] = {}

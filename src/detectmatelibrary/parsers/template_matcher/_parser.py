@@ -74,8 +74,8 @@ class MatcherParser(CoreParser):
 
     def parse(
         self,
-        input_: schemas.LogSchema_,
-        output_: schemas.ParserSchema_
+        input_: schemas.LogSchema,
+        output_: schemas.ParserSchema
     ) -> None:
 
         parsed = self.template_matcher(input_.log)

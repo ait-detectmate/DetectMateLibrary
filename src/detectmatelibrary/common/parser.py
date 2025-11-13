@@ -46,11 +46,11 @@ class CoreParser(CoreComponent):
             type_=config.method_type,
             config=config,
             args_buffer=ArgsBuffer(mode=BufferMode.NO_BUF, size=None),
-            input_schema=schemas.LogSchema_,
-            output_schema=schemas.ParserSchema_,
+            input_schema=schemas.LogSchema,
+            output_schema=schemas.ParserSchema,
         )
 
-    def run(self, input_: schemas.LogSchema_, output_: schemas.ParserSchema_) -> bool:
+    def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:
         var, content = get_format_variables(
             self.config._regex, log=input_.log, time_format=self.config.time_format
         )
@@ -70,9 +70,9 @@ class CoreParser(CoreComponent):
         return True if use_schema is None else use_schema
 
     def parse(
-        self, input_: schemas.LogSchema_, output_: schemas.ParserSchema_
+        self, input_: schemas.LogSchema, output_: schemas.ParserSchema
     ) -> bool | None:
         return True
 
-    def train(self, input_: schemas.LogSchema_) -> None:
+    def train(self, input_: schemas.LogSchema) -> None:
         pass

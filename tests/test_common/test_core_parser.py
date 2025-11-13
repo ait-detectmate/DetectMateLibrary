@@ -64,8 +64,8 @@ class TestCoreParser:
         assert isinstance(parser, CoreParser)
         assert parser.name == "TestParser"
         assert isinstance(parser.config, CoreParserConfig)
-        assert parser.input_schema == schemas.LogSchema_
-        assert parser.output_schema == schemas.ParserSchema_
+        assert parser.input_schema == schemas.LogSchema
+        assert parser.output_schema == schemas.ParserSchema
 
     def test_incorrect_config_type(self) -> None:
         invalid_args = {
@@ -82,20 +82,20 @@ class TestCoreParser:
 
     def test_process_correct_input_schema(self) -> None:
         parser = MockupParser(name="TestParser", config=default_args)
-        data = schemas.LogSchema_({"logID": 1, "log": "This is a log."}).serialize()
+        data = schemas.LogSchema({"logID": 1, "log": "This is a log."}).serialize()
         result = parser.process(data)  # no error should be produced
         assert isinstance(result, bytes)  # and result should be bytes
 
     def test_process_incorrect_input_schema(self) -> None:
         parser = MockupParser(name="TestParser", config=default_args)
-        data = schemas.DetectorSchema_({"score": 0.99}).serialize()
+        data = schemas.DetectorSchema({"score": 0.99}).serialize()
 
         with pytest.raises(schemas.IncorrectSchema):
             parser.process(data)
 
     def test_process_correct_input_schema_not_serialize(self) -> None:
         parser = MockupParser(name="TestParser", config=MockupConfig())
-        expected_result = schemas.ParserSchema_({
+        expected_result = schemas.ParserSchema({
             "__version__": "1.0.0",
             "parserType": "core_parser",
             "parserID": "TestParser",
@@ -110,14 +110,14 @@ class TestCoreParser:
         expected_result.variables = ["a", "b"]
         expected_result.logFormatVariables["Time"] = "0"
 
-        data = schemas.LogSchema_({"logID": 1, "log": "This is a log."})
+        data = schemas.LogSchema({"logID": 1, "log": "This is a log."})
         result = parser.process(data)
 
         assert result == expected_result, f"results {result} and expected {expected_result}"
 
     def test_process_ids(self) -> None:
         parser = MockupParser(name="TestParser", config=MockupConfig())
-        data = schemas.LogSchema_({
+        data = schemas.LogSchema({
             "logID": 1, "log": "This is a log.", "logSource": "", "hostname": ""
         })
 
@@ -129,7 +129,7 @@ class TestCoreParser:
 
     def test_none_parser(self) -> None:
         parser = NoneMockupParser(name="TestParser", config=MockupConfig())
-        data = schemas.LogSchema_({
+        data = schemas.LogSchema({
             "logID": 1, "log": "This is a log.", "logSource": "", "hostname": ""
         })
 

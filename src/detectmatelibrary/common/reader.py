@@ -27,12 +27,12 @@ class CoreReader(CoreComponent):
             name=name,
             type_=config.method_type,
             config=config,
-            output_schema=schemas.LogSchema_
+            output_schema=schemas.LogSchema
         )
 
         self.data_buffer = None
 
-    def __init_logs(self) -> schemas.LogSchema_:
+    def __init_logs(self) -> schemas.LogSchema:
         return self.output_schema({
                 "__version__": "1.0.0",
                 "logID": self.id_generator(),
@@ -40,12 +40,12 @@ class CoreReader(CoreComponent):
                 "hostname": self.config.hostname,
         })
 
-    def process(self, as_bytes: bool = True) -> schemas.LogSchema_ | bytes | None:
+    def process(self, as_bytes: bool = True) -> schemas.LogSchema | bytes | None:
         is_new_log = self.read(log := self.__init_logs())
         if not is_new_log:
             return None
 
         return SchemaPipeline.postprocess(log, is_byte=as_bytes)
 
-    def read(self, output_: schemas.LogSchema_) -> bool:
+    def read(self, output_: schemas.LogSchema) -> bool:
         return False

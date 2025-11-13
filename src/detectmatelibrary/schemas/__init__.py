@@ -24,8 +24,8 @@ from detectmatelibrary.schemas._op import (
 )
 
 from detectmatelibrary.schemas._classes import (
-    BaseSchema_,
-    LogSchema_,
-    ParserSchema_,
-    DetectorSchema_
+    BaseSchema,
+    LogSchema,
+    ParserSchema,
+    DetectorSchema
 )

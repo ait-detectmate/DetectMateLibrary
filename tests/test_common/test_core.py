@@ -38,7 +38,7 @@ class MockComponentWithTraining(CoreComponent):
         self, name: str, config: MockConfigWithTraining = MockConfigWithTraining()
     ) -> None:
         super().__init__(
-            name=name, type_="Dummy", config=config, input_schema=schemas.LogSchema_
+            name=name, type_="Dummy", config=config, input_schema=schemas.LogSchema
         )
         self.train_data = []
 
@@ -163,7 +163,7 @@ class TestCoreComponent:
 
         for i in range(10):
             component.process(
-                schemas.LogSchema_({
+                schemas.LogSchema({
                     "__version__": "1.0.0",
                     "logID": i,
                     "logSource": "test",
@@ -173,7 +173,7 @@ class TestCoreComponent:
 
         assert len(component.train_data) == component.data_used_train
         for i, log in enumerate(component.train_data):
-            expected = schemas.LogSchema_({
+            expected = schemas.LogSchema({
                 "__version__": "1.0.0",
                 "logID": i,
                 "logSource": "test",

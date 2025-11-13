@@ -47,7 +47,7 @@ class LogFileReader(CoreReader):
                 yield line.strip()  
         yield None  
 
-    def read(self, output_: schemas.LogSchema_) -> bool:
+    def read(self, output_: schemas.LogSchema) -> bool:
         if not self.is_over:
             log = next(self.__log_generator)
 

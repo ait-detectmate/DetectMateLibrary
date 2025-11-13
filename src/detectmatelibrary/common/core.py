@@ -3,7 +3,7 @@ from detectmatelibrary.utils.id_generator import SimpleIDGenerator
 
 from detectmatelibrary.common._config import BasicConfig
 
-from detectmatelibrary.schemas import BaseSchema_
+from detectmatelibrary.schemas import BaseSchema
 
 from typing import Any, Dict, Tuple, List
 
@@ -11,8 +11,8 @@ from typing import Any, Dict, Tuple, List
 class SchemaPipeline:
     @staticmethod
     def preprocess(
-        input_: BaseSchema_, data: BaseSchema_ | bytes
-    ) -> Tuple[bool, BaseSchema_]:
+        input_: BaseSchema, data: BaseSchema | bytes
+    ) -> Tuple[bool, BaseSchema]:
 
         is_byte = False
         if isinstance(data, bytes):
@@ -26,8 +26,8 @@ class SchemaPipeline:
 
     @staticmethod
     def postprocess(
-        data: BaseSchema_, is_byte: bool
-    ) -> BaseSchema_ | bytes:
+        data: BaseSchema, is_byte: bool
+    ) -> BaseSchema | bytes:
 
         return data if not is_byte else data.serialize()
 
@@ -49,8 +49,8 @@ class CoreComponent:
         type_: str = "Core",
         config: CoreConfig = CoreConfig(),
         args_buffer: ArgsBuffer = ArgsBuffer(BufferMode.NO_BUF),
-        input_schema: BaseSchema_ = BaseSchema_,
-        output_schema: BaseSchema_ = BaseSchema_
+        input_schema: BaseSchema = BaseSchema,
+        output_schema: BaseSchema = BaseSchema
     ) -> None:
 
         self.name, self.type_, self.config = name, type_, config
@@ -64,16 +64,16 @@ class CoreComponent:
         return f"<{self.type_}> {self.name}: {self.config}"
 
     def run(
-        self, input_: List[BaseSchema_] | BaseSchema_, output_: BaseSchema_
+        self, input_: List[BaseSchema] | BaseSchema, output_: BaseSchema
     ) -> bool:
         return False
 
     def train(
-        self, input_: List[BaseSchema_] | BaseSchema_,
+        self, input_: List[BaseSchema] | BaseSchema,
     ) -> None:
         pass
 
-    def process(self, data: BaseSchema_ | bytes) -> BaseSchema_ | bytes | None:
+    def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
         is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)
         if (data_buffered := self.data_buffer.add(data)) is None:
             return None

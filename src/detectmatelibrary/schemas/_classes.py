@@ -45,7 +45,7 @@ class SchemaVariables:
             self.var_names.append(var)
 
 
-class BaseSchema_(SchemaVariables):
+class BaseSchema(SchemaVariables):
     def __init__(
         self,
         schema_id: op.SchemaID = op.BASE_SCHEMA,
@@ -55,7 +55,7 @@ class BaseSchema_(SchemaVariables):
 
     def copy(self) -> Self:
         copy_schema = op.copy(schema_id=self.schema_id, schema=self.get_schema())
-        new_instance = BaseSchema_(schema_id=self.schema_id)
+        new_instance = BaseSchema(schema_id=self.schema_id)
         new_instance.set_schema(copy_schema)
         return new_instance
 
@@ -80,26 +80,26 @@ class BaseSchema_(SchemaVariables):
         )  # TODO: add test
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, BaseSchema_):
+        if not isinstance(other, BaseSchema):
             return False
         return self.get_schema() == other.get_schema()
 
 
-class LogSchema_(BaseSchema_):
+class LogSchema(BaseSchema):
     def __init__(
         self, kwargs: dict[str, Any] |BasicConfig | None = None
     ) -> None:
         super().__init__(schema_id=op.LOG_SCHEMA, kwargs=kwargs)
 
 
-class ParserSchema_(BaseSchema_):
+class ParserSchema(BaseSchema):
     def __init__(
         self, kwargs: dict[str, Any] |BasicConfig | None = None
     ) -> None:
         super().__init__(schema_id=op.PARSER_SCHEMA, kwargs=kwargs)
 
 
-class DetectorSchema_(BaseSchema_):
+class DetectorSchema(BaseSchema):
     def __init__(
         self, kwargs: dict[str, Any] |BasicConfig | None = None
     ) -> None:
