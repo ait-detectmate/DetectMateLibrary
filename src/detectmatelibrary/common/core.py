@@ -3,7 +3,7 @@ from detectmatelibrary.utils.id_generator import SimpleIDGenerator
 
 from detectmatelibrary.common._config import BasicConfig
 
-from detectmatelibrary.schemas import BaseSchema_ # type: ignore
+from detectmatelibrary.schemas import BaseSchema_
 
 from typing import Any, Dict, Tuple, List
 
@@ -49,8 +49,8 @@ class CoreComponent:
         type_: str = "Core",
         config: CoreConfig = CoreConfig(),
         args_buffer: ArgsBuffer = ArgsBuffer(BufferMode.NO_BUF),
-        input_schema: BaseSchema_ = BaseSchema_, # type: ignore
-        output_schema: BaseSchema_ = BaseSchema_ # type: ignore
+        input_schema: BaseSchema_ = BaseSchema_,
+        output_schema: BaseSchema_ = BaseSchema_
     ) -> None:
 
         self.name, self.type_, self.config = name, type_, config
@@ -74,8 +74,8 @@ class CoreComponent:
         pass
 
     def process(self, data: BaseSchema_ | bytes) -> BaseSchema_ | bytes | None:
-        is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)  # type: ignore
-        if (data_buffered := self.data_buffer.add(data)) is None:    # type: ignore
+        is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)
+        if (data_buffered := self.data_buffer.add(data)) is None:
             return None
 
         if do_training(config=self.config, index=self.data_used_train):

@@ -57,7 +57,7 @@ class BaseSchema_(SchemaVariables):
         copy_schema = op.copy(schema_id=self.schema_id, schema=self.get_schema())
         new_instance = BaseSchema_(schema_id=self.schema_id)
         new_instance.set_schema(copy_schema)
-        return new_instance # type: ignore
+        return new_instance
 
     def serialize(self) -> bytes:
         return op.serialize(id_schema=self.schema_id, schema=self.get_schema())
@@ -82,7 +82,7 @@ class BaseSchema_(SchemaVariables):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, BaseSchema_):
             return False
-        return self.get_schema() == other.get_schema()  # type: ignore
+        return self.get_schema() == other.get_schema()
 
 
 class LogSchema_(BaseSchema_):

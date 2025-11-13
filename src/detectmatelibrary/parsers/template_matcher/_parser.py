@@ -37,10 +37,10 @@ class MatcherParser(CoreParser):
         super().__init__(name=name, config=config)
 
         self.template_matcher = TemplateMatcher(
-            template_list=self.__load_templates(self.config.path_templates),  # type: ignore
-            remove_spaces=self.config.remove_spaces,  # type: ignore
-            remove_punctuation=self.config.remove_punctuation,  # type: ignore
-            lowercase=self.config.lowercase,  # type: ignore
+            template_list=self.__load_templates(self.config.path_templates),
+            remove_spaces=self.config.remove_spaces,
+            remove_punctuation=self.config.remove_punctuation,
+            lowercase=self.config.lowercase,
         )
 
     def __load_templates(self, path: str) -> list[str]:

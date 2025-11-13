@@ -41,11 +41,11 @@ def _get_combos(
     if relevant_log_fields is None:
         return set()
 
-    relevant_log_fields = relevant_log_fields.get_all().keys()   # type: ignore
-    _check_size(combo_size, len(relevant_log_fields))   # type: ignore
+    relevant_log_fields = relevant_log_fields.get_all().keys()
+    _check_size(combo_size, len(relevant_log_fields))
 
     return set(combinations([
-        _get_element(input_, var_pos=field) for field in relevant_log_fields    # type: ignore
+        _get_element(input_, var_pos=field) for field in relevant_log_fields
     ], combo_size))
 
 
@@ -124,8 +124,8 @@ class NewValueComboDetector(CoreDetector):
         train_combo_detector(
             input_=input_,
             known_combos=self.known_combos,
-            combo_size=self.config.comb_size,   # type: ignore
-            log_variables=self.config.log_variables   # type: ignore
+            combo_size=self.config.comb_size,
+            log_variables=self.config.log_variables
         )
 
     def detect(
@@ -138,14 +138,14 @@ class NewValueComboDetector(CoreDetector):
         overall_score = detect_combo_detector(
             input_=input_,
             known_combos=self.known_combos,
-            combo_size=self.config.comb_size,   # type: ignore
-            log_variables=self.config.log_variables,   # type: ignore
+            combo_size=self.config.comb_size,
+            log_variables=self.config.log_variables,
             alerts=alerts,
         )
 
         if overall_score > 0:
             output_.score = overall_score
-            output_.description = f"The detector check combinations of {self.config.comb_size} variables"   # type: ignore
+            output_.description = f"The detector check combinations of {self.config.comb_size} variables"
             output_.alertsObtain.update(alerts)
             return True
         return False

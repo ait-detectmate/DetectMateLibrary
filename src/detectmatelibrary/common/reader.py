@@ -25,22 +25,22 @@ class CoreReader(CoreComponent):
 
         super().__init__(
             name=name,
-            type_=config.method_type, # type: ignore
-            config=config,  # type: ignore
+            type_=config.method_type,
+            config=config,
             output_schema=schemas.LogSchema_
         )
 
-        self.data_buffer = None  # type: ignore
+        self.data_buffer = None
 
     def __init_logs(self) -> schemas.LogSchema_:
         return self.output_schema({
                 "__version__": "1.0.0",
                 "logID": self.id_generator(),
-                "logSource": self.config.logSource,  # type: ignore
-                "hostname": self.config.hostname,  # type: ignore
+                "logSource": self.config.logSource,
+                "hostname": self.config.hostname,
         })
 
-    def process(self, as_bytes: bool = True) -> schemas.LogSchema_ | bytes | None:  # type: ignore
+    def process(self, as_bytes: bool = True) -> schemas.LogSchema_ | bytes | None:
         is_new_log = self.read(log := self.__init_logs())
         if not is_new_log:
             return None

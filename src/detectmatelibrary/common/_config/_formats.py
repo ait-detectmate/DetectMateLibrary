@@ -29,13 +29,13 @@ class _LogVariable(BaseModel):
             if var in kwargs:
                 new_dict = {}
                 for v in kwargs[var]:
-                    aux = cl(**v)    # type: ignore
+                    aux = cl(**v)
                     new_dict[aux.pos] = aux
                 kwargs[var] = new_dict
         return cls(**kwargs)  #  type: ignore
 
     def get_all(self) -> Dict[str, Header | Variable]:
-        return {**self.variables, **self.header_variables}  # type: ignore
+        return {**self.variables, **self.header_variables}
 
 
 # Main-formats ********************************************************+
@@ -50,7 +50,7 @@ class LogVariables(BaseModel):
             aux = _LogVariable._init(**param)
             new_dict[aux.event] = aux
 
-        return cls(logvars=new_dict)   # type: ignore
+        return cls(logvars=new_dict)
 
     def __next__(self) -> Any | StopIteration:
         if len(keys := list(self.logvars.keys())) > self.__index:
@@ -59,7 +59,7 @@ class LogVariables(BaseModel):
             return value
         raise StopIteration
 
-    def __iter__(self) -> Self:  # type: ignore
+    def __iter__(self) -> Self:
         return self
 
     def __getitem__(self, idx: str | int) -> _LogVariable | None:
@@ -88,7 +88,7 @@ class AllLogVariables(BaseModel):
         return cls(**kwargs)
 
     def get_all(self) -> Dict[str, Header | Variable]:
-        return {**self.variables, **self.header_variables}  # type: ignore
+        return {**self.variables, **self.header_variables}
 
     def __getitem__(self, idx: Any) -> Self:
         return self
@@ -107,5 +107,5 @@ _formats = {
 def apply_format(format: str, params: list[Any] | Any) -> Any:
     if format in _formats:
         f_cls = _formats[format]
-        return f_cls._init(params)  # type: ignore
+        return f_cls._init(params)
     return params

@@ -40,7 +40,7 @@ class RandomDetector(CoreDetector):
         overall_score = 0.0
         alerts = {}
 
-        relevant_log_fields = self.config.log_variables[input_.EventID].get_all()   # type: ignore
+        relevant_log_fields = self.config.log_variables[input_.EventID].get_all()
         for log_variable in relevant_log_fields.values():
             score = 0.0
             random = np.random.rand()

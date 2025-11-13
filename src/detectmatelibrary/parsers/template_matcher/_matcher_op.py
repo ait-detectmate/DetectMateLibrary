@@ -132,11 +132,11 @@ class TemplateMatcher:
         res = self.match_template_with_params(log)
         if res is None:
             output["EventTemplate"] = "<Not Found>"
-            output["Params"] = []  # type: ignore
+            output["Params"] = []
         else:
             tpl, params = res
             output["EventTemplate"] = tpl
-            output["Params"] = params  # type: ignore
+            output["Params"] = params
         tpl_to_id = {t["raw"]: i for i, t in enumerate(self.manager.templates)}
-        output["EventId"] = tpl_to_id.get(tpl, -1) if output["EventTemplate"] != "<Not Found>" else -1  # type: ignore
+        output["EventId"] = tpl_to_id.get(tpl, -1) if output["EventTemplate"] != "<Not Found>" else -1
         return output

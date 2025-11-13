@@ -32,6 +32,6 @@ class BasicConfig(BaseModel):
         config_ = ConfigMethods.get_method(
             deepcopy(data), comp_type=aux.comp_type, method_id=method_id
         )
-        ConfigMethods.check_type(config_, method_type=aux.method_type)   # type: ignore
+        ConfigMethods.check_type(config_, method_type=aux.method_type)
 
-        return cls(**ConfigMethods.process(config_))  # type: ignore
+        return cls(**ConfigMethods.process(config_))

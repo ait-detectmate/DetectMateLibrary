@@ -11,7 +11,7 @@ from google.protobuf.message import Message
 
 #  Main variables ************************************
 # Use Union of actual protobuf classes for better type hints
-SchemaT = Union[s.Schema, s.LogSchema, s.ParserSchema, s.DetectorSchema]   # type: ignore
+SchemaT = Union[s.Schema, s.LogSchema, s.ParserSchema, s.DetectorSchema]
 SchemaID = NewType("SchemaID", bytes)
 
 
@@ -23,10 +23,10 @@ DETECTOR_SCHEMA: SchemaID = SchemaID(b"3")
 
 __current_version = "1.0.0"
 __id_codes: Dict[SchemaID, Type[Message]] = {
-    BASE_SCHEMA: s.Schema,   # type: ignore
-    LOG_SCHEMA: s.LogSchema,  # type: ignore
-    PARSER_SCHEMA: s.ParserSchema,  # type: ignore
-    DETECTOR_SCHEMA: s.DetectorSchema,  # type: ignore
+    BASE_SCHEMA: s.Schema,
+    LOG_SCHEMA: s.LogSchema,
+    PARSER_SCHEMA: s.ParserSchema,
+    DETECTOR_SCHEMA: s.DetectorSchema,
 }
 
 
@@ -57,14 +57,14 @@ def __get_schema_class(schema_id: SchemaID) -> Type[Message]:
 
 def __is_repeated_field(field: Any) -> bool:
     """Check if a field in the message is a repeated element."""
-    return field.is_repeated   # type: ignore
+    return field.is_repeated
 
 
 # Main methods *****************************************
 def initialize(schema_id: SchemaID, **kwargs: dict[str, Any]) -> SchemaT | NotSupportedSchema:
     """Initialize a protobuf schema, it use its arguments and the assigned
     id."""
-    kwargs["__version__"] = __current_version   # type: ignore
+    kwargs["__version__"] = __current_version
     schema_class = __get_schema_class(schema_id)
     return schema_class(**kwargs)
 
@@ -73,7 +73,7 @@ def initialize_with_default(
     schema_id: SchemaID, config: BasicConfig
 ) -> SchemaT | NotSupportedSchema:
     """Initialize schema with default fields in a Config instance."""
-    fields = initialize(schema_id=schema_id, **{}).DESCRIPTOR.fields    # type: ignore
+    fields = initialize(schema_id=schema_id, **{}).DESCRIPTOR.fields
     args = {}
     dict_config = config.get_config()
     for field in fields:
@@ -89,7 +89,7 @@ def copy(
     """Make a copy of the schema."""
     new_schema = initialize(schema_id=schema_id, **{})
     try:
-        new_schema.CopyFrom(schema)    # type: ignore
+        new_schema.CopyFrom(schema)
         return new_schema
     except TypeError:
         raise IncorrectSchema()
@@ -103,7 +103,7 @@ def serialize(id_schema: SchemaID, schema: SchemaT) -> bytes:
     if id_schema not in __id_codes:
         raise NotSupportedSchema()
 
-    return id_schema + schema.SerializeToString()    # type: ignore
+    return id_schema + schema.SerializeToString()
 
 
 def deserialize(message: bytes) -> Tuple[SchemaID, SchemaT]:

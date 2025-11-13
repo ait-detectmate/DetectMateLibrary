@@ -43,8 +43,8 @@ class CoreParser(CoreComponent):
 
         super().__init__(
             name=name,
-            type_=config.method_type,  # type: ignore
-            config=config,   # type: ignore
+            type_=config.method_type,
+            config=config,
             args_buffer=ArgsBuffer(mode=BufferMode.NO_BUF, size=None),
             input_schema=schemas.LogSchema_,
             output_schema=schemas.ParserSchema_,
@@ -52,7 +52,7 @@ class CoreParser(CoreComponent):
 
     def run(self, input_: schemas.LogSchema_, output_: schemas.ParserSchema_) -> bool:
         var, content = get_format_variables(
-            self.config._regex, log=input_.log, time_format=self.config.time_format   # type: ignore
+            self.config._regex, log=input_.log, time_format=self.config.time_format
         )
 
         output_.parserID = self.name
