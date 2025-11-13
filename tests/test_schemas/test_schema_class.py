@@ -83,6 +83,20 @@ class TestBaseSchema:
         assert log_schema_copy.get_schema() == log_schema.get_schema()
         assert log_schema_copy.log == "Test log"
 
+    def test_eq(self):
+        log_schema1 = LogSchema()
+        log_schema1.log = "Test log"
+
+        log_schema2 = LogSchema()
+        log_schema2.log = "Test log"
+
+        log_schema3 = LogSchema()
+        log_schema3.log = "Different log"
+
+        assert log_schema1 == log_schema2
+        assert log_schema1 != log_schema3
+        assert log_schema1 != "Not a schema"
+
     def test_serialize_deserialize(self):
         log_schema = LogSchema()
         log_schema.log = "Test log"
@@ -114,3 +128,14 @@ class TestBaseSchema:
         log_schema.logID = "Test log"
         with pytest.raises(Exception):
             log_schema.get_schema()
+
+    def test_check_is_same(self):
+        log_schema1 = LogSchema()
+        log_schema2 = LogSchema()
+        parser_schema = ParserSchema()
+
+        # Should not raise
+        log_schema1.check_is_same(log_schema2)
+
+        with pytest.raises(IncorrectSchema):
+            log_schema1.check_is_same(parser_schema)

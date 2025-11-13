@@ -79,13 +79,14 @@ class BaseSchema(SchemaVariables):
         return op.check_is_same_schema(
             id_schema_1=self.schema_id,
             id_schema_2=other.schema_id
-        )  # TODO: add test
+        )
 
     def __eq__(self, other: object) -> bool:
         """Check equality between two schema instances."""
         if not isinstance(other, BaseSchema):
             return False
         return self.get_schema() == other.get_schema()
+
 
 # Main schema classes ########################################
 class LogSchema(BaseSchema):
