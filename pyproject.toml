@@ -1,0 +1,30 @@
+[project]
+name = "detectmatelibrary"
+version = "0.1.0"
+description = "DetectMate Library for log processing components"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "drain3>=0.9.11",
+    "pandas>=2.3.2",
+    "protobuf>=6.32.1",
+    "pydantic>=2.11.7",
+    "pyyaml>=6.0.3",
+]
+
+
+[project.optional-dependencies]
+# add dependencies in this section with: uv add --optional dev <package>
+# install with all the dev dependencies:  uv pip install -e .[dev]
+dev = [
+    "prek>=0.2.8",
+    "pytest>=8.4.2",
+    "pytest-cov>=6.2.1",
+]
+
+[build-system]
+requires = ["setuptools>=45.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
