@@ -196,3 +196,4 @@ cython_debug/
 # local folder
 local/
 test.ipynb
+test.py
