@@ -15,16 +15,19 @@ def timeout_handler(_signum: int, _frame: FrameType | None) -> None:
 def safe_search(pattern: str, string: str, timeout: int = 1) -> re.Match[str] | None:
     """Perform regex search with a timeout to prevent catastrophic
     backtracking."""
-    signal.signal(signal.SIGALRM, timeout_handler)
+    try:
+        signal.signal(signal.SIGALRM, timeout_handler)
+    except ValueError:
+        # signal only works in main thread; fall back
+        return re.search(pattern, string)
+
     signal.alarm(timeout)
     try:
-        result = re.search(pattern, string)
+        return re.search(pattern, string)
     except TimeoutException:
-        result = None
+        return None
     finally:
         signal.alarm(0)
-    return result
-
 
 class Preprocess:
     def __init__(
