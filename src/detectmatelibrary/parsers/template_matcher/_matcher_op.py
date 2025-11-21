@@ -1,33 +1,17 @@
 from collections import defaultdict
 from typing import Dict, List, Any, Tuple
+import regex
 import re
-import signal
-from types import FrameType
 
 
-class TimeoutException(Exception):
-    pass
-
-
-def timeout_handler(_signum: int, _frame: FrameType | None) -> None:
-    raise TimeoutException()
-
-def safe_search(pattern: str, string: str, timeout: int = 1) -> re.Match[str] | None:
+def safe_search(pattern: str, string: str, timeout: int = 1) -> regex.Match[str] | None:
     """Perform regex search with a timeout to prevent catastrophic
     backtracking."""
     try:
-        signal.signal(signal.SIGALRM, timeout_handler)
-    except ValueError:
-        # signal only works in main thread; fall back
-        return re.search(pattern, string)
-
-    signal.alarm(timeout)
-    try:
-        return re.search(pattern, string)
-    except TimeoutException:
-        return None
-    finally:
-        signal.alarm(0)
+        result = regex.search(pattern, string, timeout=timeout)
+    except TimeoutError:
+        result = None
+    return result
 
 class Preprocess:
     def __init__(
@@ -147,7 +131,8 @@ class TemplateMatcher:
         # matches = re.search(regex, log)
         matches = safe_search(regex, log, 1)
         if matches:
-            return matches.groups()
+            groups: tuple[str, ...] = matches.groups()
+            return groups
         else:
             return None
 
