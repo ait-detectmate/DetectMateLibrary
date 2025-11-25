@@ -10,6 +10,7 @@ dependencies = [
     "protobuf>=6.32.1",
     "pydantic>=2.11.7",
     "pyyaml>=6.0.3",
+    "regex>=2025.11.3",
 ]
 
 
