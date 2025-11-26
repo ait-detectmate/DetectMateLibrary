@@ -29,6 +29,9 @@ jobs:
       - name: Install project deps
         run: uv pip install .[dev]
 
+      - name: Run pre-commit with prek
+        run: uv run prek run -a
+
       - name: Test with pytest
         run: uv run pytest
 
