@@ -5,7 +5,7 @@ name: Python application
 
 on:
   push:
-    branches: [ "main", "ci_pipe"]
+    branches: [ "main"]
   pull_request:
 
 permissions:
@@ -42,6 +42,7 @@ jobs:
       - name: Install DetectMateService (using local DetectMateLibrary)
         working-directory: DetectMateService
         run: |
+          # remove the git-based dependency so we don't override the local lib
           sed -i '/detectmatelibrary @ git+/d' pyproject.toml
           uv pip install .[dev]
 
