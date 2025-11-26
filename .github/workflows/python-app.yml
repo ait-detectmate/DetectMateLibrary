@@ -47,4 +47,4 @@ jobs:
 
       - name: Run DetectMateService library integration tests
         working-directory: DetectMateService
-        run: uv run pytest tests_libraryintegration
+        run: uv run pytest tests/library_integration
