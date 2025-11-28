@@ -4,7 +4,7 @@ from pathlib import Path
 
 # resolve paths relative to this file
 BASE_DIR = Path(__file__).resolve().parent.parent  # tools/
-PROJECT_ROOT = BASE_DIR.parent  # root of project
+PROJECT_ROOT = BASE_DIR.parent.parent  # root of project
 TEMPLATE_DIR = BASE_DIR / "workspace" / "templates"
 
 
