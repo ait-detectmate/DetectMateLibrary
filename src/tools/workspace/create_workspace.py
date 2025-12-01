@@ -1,63 +1,86 @@
 import argparse
 import shutil
+import sys
 from pathlib import Path
+
+from .utils import create_readme
 
 # resolve paths relative to this file
 BASE_DIR = Path(__file__).resolve().parent.parent  # tools/
 PROJECT_ROOT = BASE_DIR.parent.parent  # root of project
 TEMPLATE_DIR = BASE_DIR / "workspace" / "templates"
 
+META_FILES = ["LICENSE.md", ".gitignore", ".pre-commit-config.yaml"]
 
-def copy_file(src: Path, dst: Path):
+
+def copy_file(src: Path, dst: Path) -> None:
     """Copy file while ensuring destination directory exists."""
     dst.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy(src, dst)
+    shutil.copy2(src, dst)
 
 
-def create_readme(target_dir: Path, name: str, type_: str):
-    """Generate a template README.md"""
-    content = f"""# {name}
+def camelize(name: str) -> str:
+    """Convert names like "custom_parser" or "customParser" to "CustomParser".
 
-This is a custom **{type_}** workspace generated with:
-mate create --type {type_} --name {name} --dir {target_dir}
-
-## Structure
-
-- `{name}.py`: Your custom {type_} implementation.
-- `LICENSE.md`: Copied from the main project.
-- `.gitignore`: Copied from the main project.
-- `.pre-commit-config.yaml`: Copied from the main project.
-
-## Next Steps
-
-Implement your {type_} logic inside `{name}.py`  
-and integrate it with the main system.
-"""
-    with open(target_dir / "README.md", "w") as f:
-        f.write(content)
+    (Best practice from new version.)
+    """
+    if "_" in name or "-" in name:
+        parts = name.replace("-", "_").split("_")
+        return "".join(p.capitalize() for p in parts if p)
+    return name[0].upper() + name[1:]
 
 
-def create_workspace(type_: str, name: str, target_dir: Path):
-    """Main workspace creation logic."""
+def create_workspace(type_: str, name: str, target_dir: Path) -> None:
+    """Main workspace creation logic.
 
-    print(f"Creating workspace at: {target_dir}")
-    target_dir.mkdir(parents=True, exist_ok=True)
+    - `target_dir` is the workspace root (from --dir)
+    - Code lives in a subpackage: <target_dir>/<name>/
+    - Meta files (LICENSE, .gitignore, etc.) + README.md live in workspace root
+    """
 
-    # Copy template code
+    # Workspace root
+    workspace_root = Path(target_dir).expanduser().resolve()
+    workspace_root.mkdir(parents=True, exist_ok=True)
+
+    # Package directory inside the workspace
+    pkg_dir = workspace_root / name
+
+    # Fail if the package directory already exists
+    if pkg_dir.exists():
+        print(f"ERROR: Target directory already exists: {pkg_dir}", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Creating workspace at: {pkg_dir}")
+    pkg_dir.mkdir(parents=True, exist_ok=False)
+
+    # Template selection
     template_file = TEMPLATE_DIR / f"Custom{type_.capitalize()}.py"
+    target_code_file = pkg_dir / f"{name}.py"
+
     if not template_file.exists():
-        raise FileNotFoundError(f"Template not found: {template_file}")
+        print(f"WARNING: Template not found: {template_file}. Creating empty file.",
+              file=sys.stderr)
+        target_code_file.touch()
+    else:
+        template_content = template_file.read_text()
 
-    target_code_file = target_dir / f"{name}.py"
-    copy_file(template_file, target_code_file)
-    print(f"- Added template code: {target_code_file}")
+        # Replace default class name inside template
+        original_class = f"Custom{type_.capitalize()}"
+        new_class = camelize(name)
+        template_content = template_content.replace(original_class, new_class)
 
-    # Copy root files
-    root_files = ["LICENSE.md", ".gitignore", ".pre-commit-config.yaml"]
+        target_code_file.write_text(template_content)
 
-    for file_name in root_files:
+    print(f"- Added implementation file: {target_code_file}")
+
+    # Make the package importable
+    (pkg_dir / "__init__.py").touch()
+
+    # Copy meta/root files
+    for file_name in META_FILES:
         src = PROJECT_ROOT / file_name
-        dst = target_dir / file_name
+        dst = workspace_root / file_name
+
         if src.exists():
             copy_file(src, dst)
             print(f"- Copied {file_name}")
@@ -65,16 +88,15 @@ def create_workspace(type_: str, name: str, target_dir: Path):
             print(f"! Warning: {file_name} not found in project root.")
 
     # Create README
-    create_readme(target_dir, name, type_)
-    print(f"- Created README.md")
-
+    create_readme(name, type_, target_code_file, workspace_root)
+    print(f"- Created README.md in {workspace_root}")
     print("\nWorkspace created successfully!")
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Create a new workspace")
 
-    subparsers = parser.add_subparsers(dest="command")
+    subparsers = parser.add_subparsers(dest="command", required=True)
     create_cmd = subparsers.add_parser("create", help="Create a workspace")
 
     create_cmd.add_argument(
