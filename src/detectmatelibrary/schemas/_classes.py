@@ -52,6 +52,7 @@ class SchemaVariables:
             var_names.append(var)
         self.var_names = set(var_names)
 
+
 class BaseSchema(SchemaVariables):
     def __init__(
         self,
