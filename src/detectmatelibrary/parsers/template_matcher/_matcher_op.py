@@ -1,10 +1,17 @@
-
-from ..template_matcher._extractor import ParamExtractor
-
 from collections import defaultdict
 from typing import Dict, List, Any, Tuple
+import regex
 import re
 
+
+def safe_search(pattern: str, string: str, timeout: int = 1) -> regex.Match[str] | None:
+    """Perform regex search with a timeout to prevent catastrophic
+    backtracking."""
+    try:
+        result = regex.search(pattern, string, timeout=timeout)
+    except TimeoutError:
+        result = None
+    return result
 
 class Preprocess:
     def __init__(
@@ -113,14 +120,30 @@ class TemplateMatcher:
             lowercase=lowercase
         )
 
-    def match_template_with_params(self, log: str) -> tuple[Any, list[str] | str] | None:
+    @staticmethod
+    def extract_parameters(log: str, template: str) -> tuple[str, ...] | None:
+        """Extract parameters from the log based on the template."""
+        log = re.sub(r'\s+', ' ', log.strip()) # DS
+        pattern_parts = template.split("<*>")
+        pattern_parts_escaped = [re.escape(part) for part in pattern_parts]
+        regex_pattern = "(.*?)".join(pattern_parts_escaped)
+        regex = "^" + regex_pattern + "$"
+        # matches = re.search(regex, log)
+        matches = safe_search(regex, log, 1)
+        if matches:
+            groups: tuple[str, ...] = matches.groups()
+            return groups
+        else:
+            return None
+
+    def match_template_with_params(self, log: str) -> tuple[str, tuple[str, ...]] | None:
         """Return (template_string, [param1, param2, ...]) or None."""
         s, candidates = self.manager.candidate_indices(log)
         for i in candidates:
             t = self.manager.templates[i]
             if len(s) < t["min_len"]:
                 continue
-            params = ParamExtractor.extract(s, t["tokens"])
+            params = self.extract_parameters(log, t["raw"])
             if params is not None:
                 t["count"] += 1
                 return t["raw"], params

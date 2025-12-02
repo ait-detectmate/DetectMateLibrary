@@ -5,7 +5,7 @@ name: Python application
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main"]
   pull_request:
 
 permissions:
@@ -13,23 +13,42 @@ permissions:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up uv (Python 3.10)
-      uses: astral-sh/setup-uv@v6.6.0
-      with:
-        python-version: "3.12"
-        activate-environment: true
-        enable-cache: true
+      - uses: actions/checkout@v4
+      - name: Set up uv (Python 3.12)
+        uses: astral-sh/setup-uv@v6.6.0
+        with:
+          python-version: "3.12"
+          activate-environment: true
+          enable-cache: true
 
-    - name: Set timezone
-      run: sudo timedatectl set-timezone Europe/Vienna
+      - name: Set timezone
+        run: sudo timedatectl set-timezone Europe/Vienna
 
-    - name: Install project deps
-      run: uv pip install .[dev]
+      - name: Install project deps
+        run: uv pip install .[dev]
 
-    - name: Test with pytest
-      run: uv run pytest
+      - name: Run pre-commit with prek
+        run: uv run prek run -a
+
+      - name: Test with pytest
+        run: uv run pytest
+
+      # integration tests for DetectMateService
+      - name: Checkout DetectMateService
+        uses: actions/checkout@v4
+        with:
+          repository: ait-detectmate/DetectMateService
+          path: DetectMateService
+
+      - name: Install DetectMateService (using local DetectMateLibrary)
+        working-directory: DetectMateService
+        run: |
+          # remove the git-based dependency so we don't override the local lib
+          sed -i '/detectmatelibrary @ git+/d' pyproject.toml
+          uv pip install .[dev]
+
+      - name: Run DetectMateService library integration tests
+        working-directory: DetectMateService
+        run: uv run pytest tests/library_integration

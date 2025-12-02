@@ -1,10 +1,12 @@
 from detectmatelibrary.utils.log_format_utils import generate_logformat_regex
 from detectmatelibrary.utils.log_format_utils import get_format_variables
+from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 from detectmatelibrary.common.core import CoreComponent, CoreConfig
 from detectmatelibrary.utils.aux import get_timestamp
 from detectmatelibrary import schemas
 
+from typing import Any, Optional, cast
 from pydantic import model_validator
 from typing import Any, Optional
 import re
@@ -49,11 +51,15 @@ class CoreParser(CoreComponent):
             input_schema=schemas.LogSchema,
             output_schema=schemas.ParserSchema,
         )
-        self.config : CoreParserConfig
+        self.time_format_handler = TimeFormatHandler()
 
-    def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:  # type: ignore
+    def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool: # type: ignore
+        config = cast(CoreParserConfig, self.config)
         var, content = get_format_variables(
-            self.config._regex, log=input_["log"], time_format=self.config.time_format
+            config._regex,
+            log=input_["log"],
+            time_format=config.time_format,
+            time_format_handler=self.time_format_handler
         )
 
         output_["parserID"] = self.name
