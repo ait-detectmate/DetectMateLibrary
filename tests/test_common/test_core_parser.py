@@ -1,6 +1,7 @@
 import re
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig, get_format_variables
 from detectmatelibrary.utils.aux import time_test_mode
+import detectmatelibrary.schemas._op as op_schemas
 import detectmatelibrary.schemas as schemas
 
 import pydantic
@@ -90,7 +91,7 @@ class TestCoreParser:
         parser = MockupParser(name="TestParser", config=default_args)
         data = schemas.DetectorSchema({"score": 0.99}).serialize()
 
-        with pytest.raises(schemas.IncorrectSchema):
+        with pytest.raises(op_schemas.IncorrectSchema):
             parser.process(data)
 
     def test_process_correct_input_schema_not_serialize(self) -> None:

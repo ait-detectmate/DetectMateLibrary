@@ -1,5 +1,6 @@
 from detectmatelibrary.common.reader import CoreReaderConfig, CoreReader
-import detectmatelibrary.schemas as schemas
+
+import detectmatelibrary.schemas._op as op_schemas
 
 import pydantic
 import pytest
@@ -75,9 +76,9 @@ class TestCoreDetector:
         config = CoreReaderConfig(**{"logSource": "TestSource", "hostname": "0.0.0.0"})
 
         reader = MockupReader(name="TestReader", config=config)
-        schema_id, output = schemas.deserialize(reader.process(as_bytes=True))
+        schema_id, output = op_schemas.deserialize(reader.process(as_bytes=True))
 
-        assert schema_id == schemas.LOG_SCHEMA
+        assert schema_id == op_schemas.LOG_SCHEMA
         assert output.log == "Hello"
         assert output.logSource == "TestSource"
         assert output.hostname == "0.0.0.0"

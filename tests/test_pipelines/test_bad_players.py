@@ -4,7 +4,7 @@ from detectmatelibrary.common.parser import CoreParser
 
 from detectmatelibrary.readers.log_file import LogFileReader
 
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas._op as op_schemas
 
 import pytest
 
@@ -77,5 +77,5 @@ class TestCaseBasicPipelines:
         )
 
         log = reader.process(as_bytes=False)
-        with pytest.raises(schemas.IncorrectSchema):
+        with pytest.raises(op_schemas.IncorrectSchema):
             detector.process(log)

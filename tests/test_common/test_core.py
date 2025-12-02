@@ -1,6 +1,7 @@
 from detectmatelibrary.common._config import BasicConfig
 from detectmatelibrary.common.core import CoreConfig, CoreComponent
 from detectmatelibrary.utils.data_buffer import ArgsBuffer
+import detectmatelibrary.schemas._op as op_schemas
 import detectmatelibrary.schemas as schemas
 
 import pydantic
@@ -143,7 +144,7 @@ class TestCoreComponent:
     def test_process_invalid_schema(self) -> None:
         component = MockComponent(name="Dummy4", config=MockConfig())
 
-        with pytest.raises(schemas.NotSupportedSchema):
+        with pytest.raises(op_schemas.NotSupportedSchema):
             component.process(b"invalid bytes")
 
     def test_update_config(self) -> None:
