@@ -128,7 +128,7 @@ class TemplateMatcher:
 
     def __call__(self, log: str) -> Dict[str, Any]:
         """Batch matching that also returns the params list."""
-        output = {}
+        output: dict[str, Any] = {}
         res = self.match_template_with_params(log)
         if res is None:
             output["EventTemplate"] = "<Not Found>"

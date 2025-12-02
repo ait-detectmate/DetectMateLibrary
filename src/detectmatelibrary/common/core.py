@@ -50,8 +50,8 @@ class CoreComponent:
         type_: str = "Core",
         config: CoreConfig = CoreConfig(),
         args_buffer: ArgsBuffer = ArgsBuffer(BufferMode.NO_BUF),
-        input_schema: BaseSchema = BaseSchema,
-        output_schema: BaseSchema = BaseSchema
+        input_schema: type[BaseSchema] = BaseSchema,
+        output_schema: type[BaseSchema] = BaseSchema
     ) -> None:
 
         self.name, self.type_, self.config = name, type_, config
@@ -76,7 +76,7 @@ class CoreComponent:
 
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
         is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)
-        if (data_buffered := self.data_buffer.add(data)) is None:
+        if (data_buffered := self.data_buffer.add(data)) is None:  # type: ignore
             return None
 
         if do_training(config=self.config, index=self.data_used_train):

@@ -13,8 +13,8 @@ class DataNormalizer:
     def __init__(
         self,
         data: pd.DataFrame | dict[str, Any] | list[Any],
-        input_schema: schemas.AnySchema,
-        output_schema: schemas.AnySchema
+        input_schema: schemas.BaseSchema,
+        output_schema: schemas.BaseSchema
     ) -> None:
         self.data = data
         self.input_schema = input_schema

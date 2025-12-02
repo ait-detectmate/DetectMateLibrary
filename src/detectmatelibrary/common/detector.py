@@ -1,11 +1,12 @@
 from detectmatelibrary.common.core import CoreComponent, CoreConfig, CoreComponent
 
-from typing import List, Optional, Any
-
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 from detectmatelibrary.utils.aux import get_timestamp
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
+
+from typing_extensions import override
+from typing import List, Optional, Any
 
 
 def _extract_timestamp(
@@ -14,7 +15,7 @@ def _extract_timestamp(
     if not isinstance(input_, list):
         input_ = [input_]
 
-    return [int(float(i.logFormatVariables["Time"])) for i in input_]
+    return [int(float(i["logFormatVariables"]["Time"])) for i in input_]
 
 
 def _extract_logIDs(
@@ -23,7 +24,7 @@ def _extract_logIDs(
     if not isinstance(input_, list):
         input_ = [input_]
 
-    return [i.logID for i in input_]
+    return [i["logID"] for i in input_]
 
 
 class CoreDetectorConfig(CoreConfig):
@@ -47,28 +48,27 @@ class CoreDetector(CoreComponent):
 
         super().__init__(
             name=name,
-            type_=config.comp_type,
-            config=config,
+            type_=config.comp_type,  # type: ignore
+            config=config,  # type: ignore
             args_buffer=ArgsBuffer(mode=buffer_mode, size=buffer_size),
             input_schema=ParserSchema,
             output_schema=DetectorSchema,
         )
 
+    @override
     def run(
-        self,
-        input_: List[ParserSchema] | ParserSchema,
-        output_: DetectorSchema
+        self, input_: List[ParserSchema] | ParserSchema, output_: DetectorSchema  # type: ignore
     ) -> bool:
 
-        output_.detectorID = self.name
-        output_.detectorType = self.config.method_type
-        output_.logIDs.extend(_extract_logIDs(input_))
-        output_.extractedTimestamps.extend(_extract_timestamp(input_))
-        output_.alertID = self.id_generator()
-        output_.receivedTimestamp = get_timestamp()
+        output_["detectorID"] = self.name
+        output_["detectorType"] = self.config.method_type
+        output_["logIDs"].extend(_extract_logIDs(input_))
+        output_["extractedTimestamps"].extend(_extract_timestamp(input_))
+        output_["alertID"] = self.id_generator()
+        output_["receivedTimestamp"] = get_timestamp()
 
         anomaly_detected = self.detect(input_=input_, output_=output_)
-        output_.detectionTimestamp = get_timestamp()
+        output_["detectionTimestamp"] = get_timestamp()
 
         return True if anomaly_detected is None else anomaly_detected
 
@@ -79,6 +79,8 @@ class CoreDetector(CoreComponent):
     ) -> bool | None:
         return True
 
+    @override
     def train(
-        self, input_: ParserSchema | list[ParserSchema]
-    ) -> None: ...
+        self, input_: ParserSchema | list[ParserSchema]  # type: ignore
+    ) -> None:
+        pass

@@ -28,3 +28,6 @@ from detectmatelibrary.schemas._classes import (
     ParserSchema,
     DetectorSchema
 )
+
+
+__all__ = ["BaseSchema", "LogSchema", "ParserSchema", "DetectorSchema"]

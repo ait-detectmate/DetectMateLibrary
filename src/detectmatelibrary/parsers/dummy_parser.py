@@ -28,6 +28,6 @@ class DummyParser(CoreParser):
         output_: schemas.ParserSchema
     ) -> None:
 
-        output_.EventID = 2
-        output_.variables.extend(["dummy_variable"])
-        output_.template = "This is a dummy template"
+        output_["EventID"] = 2
+        output_["variables"].extend(["dummy_variable"])
+        output_["template"] = "This is a dummy template"

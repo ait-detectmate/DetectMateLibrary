@@ -43,29 +43,30 @@ class CoreParser(CoreComponent):
 
         super().__init__(
             name=name,
-            type_=config.method_type,
-            config=config,
+            type_=config.method_type,  # type: ignore
+            config=config,  # type: ignore
             args_buffer=ArgsBuffer(mode=BufferMode.NO_BUF, size=None),
             input_schema=schemas.LogSchema,
             output_schema=schemas.ParserSchema,
         )
+        self.config : CoreParserConfig
 
-    def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:
+    def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:  # type: ignore
         var, content = get_format_variables(
-            self.config._regex, log=input_.log, time_format=self.config.time_format
+            self.config._regex, log=input_["log"], time_format=self.config.time_format
         )
 
-        output_.parserID = self.name
-        output_.parsedLogID = self.id_generator()
-        output_.parserType = self.config.method_type
-        output_.logID = input_.logID
-        output_.log = input_.log
-        output_.logFormatVariables.update(var)
-        input_.log = content
+        output_["parserID"] = self.name
+        output_["parsedLogID"] = self.id_generator()
+        output_["parserType"] = self.config.method_type
+        output_["logID"] = input_["logID"]
+        output_["log"] = input_["log"]
+        output_["logFormatVariables"].update(var)
+        input_["log"] = content
 
-        output_.receivedTimestamp = get_timestamp()
+        output_["receivedTimestamp"] = get_timestamp()
         use_schema = self.parse(input_=input_, output_=output_)
-        output_.parsedTimestamp = get_timestamp()
+        output_["parsedTimestamp"] = get_timestamp()
 
         return True if use_schema is None else use_schema
 
@@ -74,5 +75,5 @@ class CoreParser(CoreComponent):
     ) -> bool | None:
         return True
 
-    def train(self, input_: schemas.LogSchema) -> None:
+    def train(self, input_: schemas.LogSchema) -> None:  # type: ignore
         pass

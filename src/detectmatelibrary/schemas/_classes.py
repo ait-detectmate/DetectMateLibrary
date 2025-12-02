@@ -51,7 +51,7 @@ class BaseSchema(SchemaVariables):
     ) -> None:
         super().__init__(schema_id=schema_id, kwargs=kwargs)
 
-    def copy(self) -> Self:
+    def copy(self) -> "BaseSchema":
         """Create a deep copy of the schema instance."""
         copy_schema = op.copy(schema_id=self.schema_id, schema=self.get_schema())
         new_instance = BaseSchema(schema_id=self.schema_id)
@@ -83,9 +83,15 @@ class BaseSchema(SchemaVariables):
 
     def __eq__(self, other: object) -> bool:
         """Check equality between two schema instances."""
-        if not isinstance(other, BaseSchema):
-            return False
-        return self.get_schema() == other.get_schema()
+        if isinstance(other, BaseSchema):
+            return self.get_schema() == other.get_schema()  # type: ignore
+        return False
+
+    def __getitem__(self, idx: str) -> Any:
+        return getattr(self, idx)
+
+    def __setitem__(self, idx: str, value: Any) -> None:
+        return setattr(self, idx, value)
 
 
 # Main schema classes ########################################
@@ -96,6 +102,9 @@ class LogSchema(BaseSchema):
     ) -> None:
         super().__init__(schema_id=op.LOG_SCHEMA, kwargs=kwargs)
 
+    def copy(self) -> "LogSchema":
+        schema: LogSchema = super().copy()  # type: ignore
+        return schema
 
 class ParserSchema(BaseSchema):
     """Parser schema class."""
@@ -104,6 +113,10 @@ class ParserSchema(BaseSchema):
     ) -> None:
         super().__init__(schema_id=op.PARSER_SCHEMA, kwargs=kwargs)
 
+    def copy(self) -> "ParserSchema":
+        schema: ParserSchema = super().copy()  # type: ignore
+        return schema
+
 
 class DetectorSchema(BaseSchema):
     """Detector schema class."""
@@ -111,3 +124,7 @@ class DetectorSchema(BaseSchema):
         self, kwargs: dict[str, Any] | None = None
     ) -> None:
         super().__init__(schema_id=op.DETECTOR_SCHEMA, kwargs=kwargs)
+
+    def copy(self) -> "DetectorSchema":
+        schema: DetectorSchema = super().copy()  # type: ignore
+        return schema

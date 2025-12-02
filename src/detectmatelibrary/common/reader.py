@@ -25,27 +25,28 @@ class CoreReader(CoreComponent):
 
         super().__init__(
             name=name,
-            type_=config.method_type,
-            config=config,
+            type_=config.method_type,  # type: ignore
+            config=config,  # type: ignore
             output_schema=schemas.LogSchema
         )
+        self.config : CoreReaderConfig
 
-        self.data_buffer = None
+        del self.data_buffer
 
     def __init_logs(self) -> schemas.LogSchema:
-        return self.output_schema({
+        return self.output_schema({  # type: ignore
                 "__version__": "1.0.0",
                 "logID": self.id_generator(),
                 "logSource": self.config.logSource,
                 "hostname": self.config.hostname,
         })
 
-    def process(self, as_bytes: bool = True) -> schemas.LogSchema | bytes | None:
+    def process(self, as_bytes: bool = True) -> schemas.LogSchema | bytes | None:  # type: ignore
         is_new_log = self.read(log := self.__init_logs())
         if not is_new_log:
             return None
 
-        return SchemaPipeline.postprocess(log, is_byte=as_bytes)
+        return SchemaPipeline.postprocess(log, is_byte=as_bytes) if is_new_log else None # type: ignore
 
     def read(self, output_: schemas.LogSchema) -> bool:
         return False

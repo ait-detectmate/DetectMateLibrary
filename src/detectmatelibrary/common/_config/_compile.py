@@ -44,8 +44,8 @@ class MissingFormat(Exception):
 class ConfigMethods:
     @staticmethod
     def get_method(
-        config: Dict[str, Any], method_id: str, comp_type: str
-    ) -> Dict[str, Any] | MethodNotFoundError | TypeNotFoundError:
+        config: Dict[str, Dict[str, Dict[str, Any]]], method_id: str, comp_type: str
+    ) -> Dict[str, Any]:
 
         if comp_type not in config:
             raise TypeNotFoundError(comp_type)
@@ -63,7 +63,7 @@ class ConfigMethods:
         return None
 
     @staticmethod
-    def process(config: Dict[str, Any]) -> Dict[str, Any] | AutoConfigError | MissingFormat:
+    def process(config: Dict[str, Any]) -> Dict[str, Any]:
         if "params" not in config and not config["auto_config"]:
             raise AutoConfigError()
 

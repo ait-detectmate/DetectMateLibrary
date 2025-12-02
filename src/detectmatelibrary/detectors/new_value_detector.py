@@ -13,32 +13,32 @@ from typing import Any, cast
 # *************** New value methods ****************************************
 def _get_element(input_: ParserSchema, var_pos: str | int) -> Any:
     if isinstance(var_pos, str):
-        return input_.logFormatVariables[var_pos]
-    elif len(input_.variables) > var_pos:
-        return input_.variables[var_pos]
+        return input_["logFormatVariables"][var_pos]
+    elif len(input_["variables"]) > var_pos:
+        return input_["variables"][var_pos]
 
 
 def train_new_values(
-    known_values: dict[str, Any],
+    known_values: dict[str, set[Any] | dict[str, Any]],
     input_: ParserSchema,
     variables: AllLogVariables | LogVariables
 ) -> None:
 
-    if (relevant_log_fields := variables[input_.EventID]) is None:
+    if (relevant_log_fields := variables[input_["EventID"]]) is None:
         return
-    relevant_log_fields = relevant_log_fields.get_all()
+    relevant_log_fields = relevant_log_fields.get_all()  # type: ignore
 
     kn_v = known_values
     if isinstance(variables, LogVariables):
-        if input_.EventID not in known_values:
-            known_values[input_.EventID] = {}
-        kn_v = known_values[input_.EventID]
+        if input_["EventID"] not in known_values:
+            known_values[input_["EventID"]] = {}
+        kn_v = known_values[input_["EventID"]]  # type: ignore
 
-    for var_pos in relevant_log_fields.keys():
+    for var_pos in relevant_log_fields.keys():  # type: ignore
         if var_pos not in kn_v:
             kn_v[var_pos] = set()
 
-        kn_v[var_pos].add(_get_element(input_, var_pos=var_pos))
+        kn_v[var_pos].add(_get_element(input_, var_pos=var_pos))  # type: ignore
 
 
 def detect_new_values(
@@ -49,17 +49,17 @@ def detect_new_values(
 ) -> float:
 
     overall_score = 0.0
-    if (relevant_log_fields := variables[input_.EventID]) is None:
+    if (relevant_log_fields := variables[input_["EventID"]]) is None:
         return 0.
-    relevant_log_fields = relevant_log_fields.get_all()
+    relevant_log_fields = relevant_log_fields.get_all()  # type: ignore
 
     kn_v = known_values
     if isinstance(variables, LogVariables):
-        if input_.EventID not in known_values:
+        if input_["EventID"] not in known_values:
             return overall_score
-        kn_v = known_values[input_.EventID]
+        kn_v = known_values[input_["EventID"]]
 
-    for var_pos in relevant_log_fields.keys():
+    for var_pos in relevant_log_fields.keys():  # type: ignore
         score = 0.0
         value = _get_element(input_, var_pos=var_pos)
 
@@ -93,14 +93,14 @@ class NewValueDetector(CoreDetector):
         self.config = cast(NewValueDetectorConfig, self.config)
         self.known_values: dict[str, Any] = {}
 
-    def train(self, input_: ParserSchema) -> None:
+    def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by learning values from the input data."""
         train_new_values(
-            known_values=self.known_values, input_=input_, variables=self.config.log_variables
+            known_values=self.known_values, input_=input_, variables=self.config.log_variables  # type: ignore
         )
 
     def detect(
-        self, input_:  ParserSchema, output_: DetectorSchema
+        self, input_:  ParserSchema, output_: DetectorSchema  # type: ignore
     ) -> bool:
         """Detect new values in the input data."""
         alerts: dict[str, str] = {}
@@ -108,14 +108,14 @@ class NewValueDetector(CoreDetector):
         overall_score = detect_new_values(
             known_values=self.known_values,
             input_=input_,
-            variables=self.config.log_variables,
+            variables=self.config.log_variables, # type: ignore
             alerts=alerts
         )
 
         if overall_score > 0:
-            output_.score = overall_score
-            output_.description = "Method that detect new value in the logs"
-            output_.alertsObtain.update(alerts)
+            output_["score"] = overall_score
+            output_["description"] = "Method that detect new value in the logs"
+            output_["alertsObtain"].update(alerts)
             return True
 
         return False

@@ -83,6 +83,15 @@ class TestBaseSchema:
         assert log_schema_copy.get_schema() == log_schema.get_schema()
         assert log_schema_copy.log == "Test log"
 
+    def test_assign_as_dict(self):
+        log_schema = LogSchema()
+        log_schema["log"] = "Test log"
+        log_schema_copy = log_schema.copy()
+
+        assert log_schema_copy.schema_id == log_schema.schema_id
+        assert log_schema_copy.get_schema() == log_schema.get_schema()
+        assert log_schema_copy["log"] == "Test log"
+
     def test_eq(self):
         log_schema1 = LogSchema()
         log_schema1.log = "Test log"
