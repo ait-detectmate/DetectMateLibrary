@@ -3,7 +3,7 @@ import shutil
 import sys
 from pathlib import Path
 
-from .utils import create_readme
+from .utils import create_readme, create_pyproject
 
 # resolve paths relative to this file
 BASE_DIR = Path(__file__).resolve().parent.parent  # tools/
@@ -20,10 +20,8 @@ def copy_file(src: Path, dst: Path) -> None:
 
 
 def camelize(name: str) -> str:
-    """Convert names like "custom_parser" or "customParser" to "CustomParser".
-
-    (Best practice from new version.)
-    """
+    """Convert names like "custom_parser" or "customParser" to
+    "CustomParser"."""
     if "_" in name or "-" in name:
         parts = name.replace("-", "_").split("_")
         return "".join(p.capitalize() for p in parts if p)
@@ -35,7 +33,7 @@ def create_workspace(type_: str, name: str, target_dir: Path) -> None:
 
     - `target_dir` is the workspace root (from --dir)
     - Code lives in a subpackage: <target_dir>/<name>/
-    - Meta files (LICENSE, .gitignore, etc.) + README.md live in workspace root
+    - Meta files (LICENSE, .gitignore, etc.) + README.md + pyproject.toml live in workspace root
     """
 
     # Workspace root
@@ -86,6 +84,10 @@ def create_workspace(type_: str, name: str, target_dir: Path) -> None:
             print(f"- Copied {file_name}")
         else:
             print(f"! Warning: {file_name} not found in project root.")
+
+    # Create pyproject.toml
+    create_pyproject(name, type_, workspace_root)
+    print(f"- Created pyproject.toml in {workspace_root}")
 
     # Create README
     create_readme(name, type_, target_code_file, workspace_root)
