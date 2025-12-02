@@ -74,7 +74,6 @@ class MatcherParser(CoreParser):
             lowercase=self.config.lowercase,
         )
 
-
     def parse(
         self,
         input_: schemas.LogSchema,

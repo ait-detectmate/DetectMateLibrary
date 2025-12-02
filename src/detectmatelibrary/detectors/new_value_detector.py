@@ -70,8 +70,8 @@ def detect_new_values(
 
     return overall_score
 
-# ************************************************************************
 
+#  ************************************************************************
 class NewValueDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_value_detector"
 
@@ -108,7 +108,7 @@ class NewValueDetector(CoreDetector):
         overall_score = detect_new_values(
             known_values=self.known_values,
             input_=input_,
-            variables=self.config.log_variables, # type: ignore
+            variables=self.config.log_variables,  # type: ignore
             alerts=alerts
         )
 

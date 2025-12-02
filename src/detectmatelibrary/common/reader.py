@@ -16,7 +16,7 @@ class CoreReaderConfig(CoreConfig):
 class CoreReader(CoreComponent):
     def __init__(
         self,
-        name: str ="CoreReader",
+        name: str = "CoreReader",
         config: Optional[CoreReaderConfig | dict[str, Any]] = CoreReaderConfig(),
     ) -> None:
 
@@ -29,7 +29,7 @@ class CoreReader(CoreComponent):
             config=config,  # type: ignore
             output_schema=schemas.LogSchema
         )
-        self.config : CoreReaderConfig
+        self.config: CoreReaderConfig
 
         del self.data_buffer
 
@@ -46,7 +46,7 @@ class CoreReader(CoreComponent):
         if not is_new_log:
             return None
 
-        return SchemaPipeline.postprocess(log, is_byte=as_bytes) if is_new_log else None # type: ignore
+        return SchemaPipeline.postprocess(log, is_byte=as_bytes) if is_new_log else None  # type: ignore
 
     def read(self, output_: schemas.LogSchema) -> bool:
         return False

@@ -12,11 +12,12 @@ class FieldNotFound(Exception):
 def _initialize_schema(
     schema_id: op.SchemaID, kwargs: dict[str, Any] | None
 ) -> op.SchemaT:
-        if kwargs is None:
-            _schema = op.initialize(schema_id=schema_id, **{})
-        else:
-            _schema = op.initialize(schema_id=schema_id, **kwargs)
-        return _schema
+
+    if kwargs is None:
+        _schema = op.initialize(schema_id=schema_id, **{})
+    else:
+        _schema = op.initialize(schema_id=schema_id, **kwargs)
+    return _schema
 
 
 class SchemaVariables:
@@ -121,6 +122,7 @@ class LogSchema(BaseSchema):
     def copy(self) -> "LogSchema":
         schema: LogSchema = super().copy()  # type: ignore
         return schema
+
 
 class ParserSchema(BaseSchema):
     """Parser schema class."""

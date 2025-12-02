@@ -13,6 +13,7 @@ def safe_search(pattern: str, string: str, timeout: int = 1) -> regex.Match[str]
         result = None
     return result
 
+
 class Preprocess:
     def __init__(
         self,
@@ -123,7 +124,7 @@ class TemplateMatcher:
     @staticmethod
     def extract_parameters(log: str, template: str) -> tuple[str, ...] | None:
         """Extract parameters from the log based on the template."""
-        log = re.sub(r'\s+', ' ', log.strip()) # DS
+        log = re.sub(r'\s+', ' ', log.strip())
         pattern_parts = template.split("<*>")
         pattern_parts_escaped = [re.escape(part) for part in pattern_parts]
         regex_pattern = "(.*?)".join(pattern_parts_escaped)

@@ -18,7 +18,6 @@ class TypeNotFoundError(Exception):
         super().__init__(f"Type '{type_name}' not found in configuration.")
 
 
-
 class MethodTypeNotMatch(Exception):
     def __init__(self, expected_type: str, actual_type: str) -> None:
         super().__init__(
@@ -57,9 +56,9 @@ class ConfigMethods:
         return args[method_id]
 
     @staticmethod
-    def check_type(config: Dict[str, Any], method_type: str) ->  MethodTypeNotMatch | None:
+    def check_type(config: Dict[str, Any], method_type: str) -> MethodTypeNotMatch | None:
         if config["method_type"] != method_type:
-           raise MethodTypeNotMatch( expected_type=method_type, actual_type=config["method_type"])
+            raise MethodTypeNotMatch(expected_type=method_type, actual_type=config["method_type"])
         return None
 
     @staticmethod

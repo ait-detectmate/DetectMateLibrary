@@ -8,7 +8,6 @@ from detectmatelibrary import schemas
 
 from typing import Any, Optional, cast
 from pydantic import model_validator
-from typing import Any, Optional
 import re
 
 
@@ -53,7 +52,7 @@ class CoreParser(CoreComponent):
         )
         self.time_format_handler = TimeFormatHandler()
 
-    def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool: # type: ignore
+    def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:  # type: ignore
         config = cast(CoreParserConfig, self.config)
         var, content = get_format_variables(
             config._regex,

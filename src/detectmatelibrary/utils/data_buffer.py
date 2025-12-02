@@ -17,7 +17,6 @@ class BufferMode(Enum):
         return descriptions[self.value]
 
 
-
 class ArgsBuffer:
     """Arguments for DataBuffer class."""
     def __init__(

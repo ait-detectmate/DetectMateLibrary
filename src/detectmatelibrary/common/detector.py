@@ -1,4 +1,4 @@
-from detectmatelibrary.common.core import CoreComponent, CoreConfig, CoreComponent
+from detectmatelibrary.common.core import CoreComponent, CoreConfig
 
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 from detectmatelibrary.utils.aux import get_timestamp
@@ -75,7 +75,7 @@ class CoreDetector(CoreComponent):
     def detect(
         self,
         input_: List[ParserSchema] | ParserSchema,
-        output_: DetectorSchema ,
+        output_: DetectorSchema,
     ) -> bool | None:
         return True
 

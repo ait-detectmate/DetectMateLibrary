@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from typing import Any, Iterable
 import json
 
+
 def iter_flatten(obj: dict[str, Any], sep: str = '.') -> Iterable[tuple[str, Any]]:
     """Iteratively flattens a nested dict/list JSON-like object. Yields
     (flat_key, value) pairs.
@@ -64,8 +65,7 @@ class JsonParser(CoreParser):
         self.time_extractor = KeyExtractor(key_substr=config.timestamp_name)
         self.content_extractor = KeyExtractor(key_substr=config.content_name)
 
-
-    def parse(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> None:  # t
+    def parse(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> None:
         log = json.loads(input_["log"])
         # extract timestamp and content in the most efficient way from the json log
         timestamp = self.time_extractor.extract(obj=log, delete=True)

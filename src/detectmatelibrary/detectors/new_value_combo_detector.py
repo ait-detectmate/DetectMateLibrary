@@ -9,7 +9,7 @@ import detectmatelibrary.schemas as schemas
 
 from itertools import combinations
 
-from typing import List, Any, Set, Dict, cast
+from typing import Any, Set, Dict, cast
 
 
 # Auxiliar methods ********************************************************
@@ -97,8 +97,8 @@ def detect_combo_detector(
 
     return overall_score
 
-# *********************************************************************
 
+#  *********************************************************************
 class NewValueComboDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_value_combo_detector"
 

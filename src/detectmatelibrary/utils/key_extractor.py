@@ -7,7 +7,7 @@ class KeyExtractor:
 
     Caches the path of the first occurrence to speed up future lookups.
     """
-    def __init__(self, key_substr: str="time"):
+    def __init__(self, key_substr: str = "time") -> None:
         self.key_substr = key_substr.lower()
         self._cached_path: list[str | int] | None = None  # list of keys/indices
 
@@ -63,9 +63,9 @@ class KeyExtractor:
             except (IndexError, TypeError):
                 pass
 
-    def extract(self,
-            obj: dict[str, Any], *, return_path: bool = False, delete: bool = False
-        ) -> Any | str | tuple[Any, list[str | int] | None]:
+    def extract(
+        self, obj: dict[str, Any], *, return_path: bool = False, delete: bool = False
+    ) -> Any | str | tuple[Any, list[str | int] | None]:
         """Extract the value whose key contains key_substr. Uses cached path if
         available; otherwise searches and caches.
 

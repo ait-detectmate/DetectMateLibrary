@@ -1,6 +1,4 @@
 """" Interface between the code base and the protobuf code."""
-from detectmatelibrary.common._config import BasicConfig
-
 import detectmatelibrary.schemas.schemas_pb2 as s
 
 
@@ -11,15 +9,13 @@ from google.protobuf.message import Message
 
 #  Main variables ************************************
 # Use Union of actual protobuf classes for better type hints
-SchemaT = Union[s.Schema, s.LogSchema, s.ParserSchema, s.DetectorSchema]  #type: ignore
+SchemaT = Union[s.Schema, s.LogSchema, s.ParserSchema, s.DetectorSchema]  # type: ignore
 SchemaID = NewType("SchemaID", bytes)
-
 
 BASE_SCHEMA: SchemaID = SchemaID(b"0")
 LOG_SCHEMA: SchemaID = SchemaID(b"1")
 PARSER_SCHEMA: SchemaID = SchemaID(b"2")
 DETECTOR_SCHEMA: SchemaID = SchemaID(b"3")
-
 
 __current_version = "1.0.0"
 __id_codes: Dict[SchemaID, Type[Message]] = {
@@ -75,7 +71,7 @@ def copy(
     """Make a copy of the schema."""
     new_schema = initialize(schema_id=schema_id, **{})
     try:
-        new_schema.CopyFrom(schema)  #type: ignore
+        new_schema.CopyFrom(schema)  # type: ignore
         return new_schema
     except TypeError:
         raise IncorrectSchema()

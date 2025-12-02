@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 from typing_extensions import Self
-from typing import List, Dict, Any
+from typing import Dict, Any
 
 
 # Sub-formats ********************************************************+
@@ -32,7 +32,7 @@ class _LogVariable(BaseModel):
                     aux = cl(**v)  # type: ignore
                     new_dict[aux.pos] = aux
                 kwargs[var] = new_dict
-        return cls(**kwargs)  #  type: ignore
+        return cls(**kwargs)  # type: ignore
 
     def get_all(self) -> Dict[Any, Header | Variable]:
         return {**self.variables, **self.header_variables}
@@ -69,7 +69,6 @@ class LogVariables(BaseModel):
 
     def __contains__(self, idx: str | int) -> bool:
         return idx in self.logvars
-
 
 
 class AllLogVariables(BaseModel):
