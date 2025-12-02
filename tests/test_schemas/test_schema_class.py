@@ -1,5 +1,5 @@
 from detectmatelibrary.schemas._classes import (
-    SchemaVariables, BaseSchema, LogSchema, ParserSchema, DetectorSchema
+    SchemaVariables, BaseSchema, LogSchema, ParserSchema, DetectorSchema, FieldNotFound
 )
 from detectmatelibrary.schemas._op import (
     PARSER_SCHEMA, BASE_SCHEMA, IncorrectSchema
@@ -91,6 +91,14 @@ class TestBaseSchema:
         assert log_schema_copy.schema_id == log_schema.schema_id
         assert log_schema_copy.get_schema() == log_schema.get_schema()
         assert log_schema_copy["log"] == "Test log"
+
+    def test_field_not_found(self) -> None:
+        log_schema = LogSchema()
+
+        with pytest.raises(FieldNotFound):
+            log_schema["unkown"] = "Test log"
+        with pytest.raises(FieldNotFound):
+            log_schema["unknown"]
 
     def test_eq(self):
         log_schema1 = LogSchema()

@@ -4,6 +4,11 @@ from typing_extensions import Self
 from typing import Any
 
 
+class FieldNotFound(Exception):
+    def __init__(self, var: str, list_vars: set[str]) -> None:
+        super().__init__(f"Field {var} not found in {list_vars}")
+
+
 def _initialize_schema(
     schema_id: op.SchemaID, kwargs: dict[str, Any] | None
 ) -> op.SchemaT:
@@ -19,7 +24,11 @@ class SchemaVariables:
         self, schema_id: op.SchemaID, kwargs: dict[str, Any] | None = None
     ) -> None:
         self.schema_id = schema_id
+        self.var_names: set[str]
         self.init_schema(kwargs=kwargs)
+
+    def __contains__(self, idx: str) -> bool:
+        return idx in self.var_names
 
     def get_schema(self) -> op.SchemaT:
         """Retrieve the current schema instance."""
@@ -37,11 +46,11 @@ class SchemaVariables:
         """Initialize the schema instance and set attributes."""
         _schema = _initialize_schema(schema_id=self.schema_id, kwargs=kwargs)
 
-        self.var_names = []
+        var_names = []
         for var in op.get_variables_names(_schema):
             setattr(self, var, getattr(_schema, var))
-            self.var_names.append(var)
-
+            var_names.append(var)
+        self.var_names = set(var_names)
 
 class BaseSchema(SchemaVariables):
     def __init__(
@@ -88,9 +97,15 @@ class BaseSchema(SchemaVariables):
         return False
 
     def __getitem__(self, idx: str) -> Any:
+        if idx not in self:
+            raise FieldNotFound(idx, self.var_names)
+
         return getattr(self, idx)
 
     def __setitem__(self, idx: str, value: Any) -> None:
+        if idx not in self:
+            raise FieldNotFound(idx, self.var_names)
+
         return setattr(self, idx, value)
 
 
