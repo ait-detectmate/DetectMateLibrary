@@ -1,33 +1,45 @@
+from typing import Any
+
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
 from detectmatelibrary import schemas
 
-from typing import Any
+
+class CustomParserConfig(CoreParserConfig):
+    """Configuration for CustomParser."""
+    # You can change this to whatever method_type you need
+    method_type: str = "custom_parser"
 
 
-class DummyParserConfig(CoreParserConfig):
-    """Configuration for DummyParser."""
-    method_type: str = "dummy_parser"
+class CustomParser(CoreParser):
+    """Template parser implementation based on CoreParser.
 
-
-class DummyParser(CoreParser):
-    """A dummy parser for testing purposes."""
+    Replace this docstring with a description of what your parser does.
+    """
 
     def __init__(
         self,
-        name: str = "DummyParser",
-        config: DummyParserConfig | dict[str, Any] = DummyParserConfig()
+        name: str = "CustomParser",
+        config: CustomParserConfig | dict[str, Any] = CustomParserConfig(),
     ) -> None:
-
+        # Allow passing either a config instance or a plain dict
         if isinstance(config, dict):
-            config = DummyParserConfig.from_dict(config, name)
+            config = CustomParserConfig.from_dict(config, name)
+
         super().__init__(name=name, config=config)
 
     def parse(
         self,
         input_: schemas.LogSchema,
-        output_: schemas.ParserSchema
+        output_: schemas.ParserSchema,
     ) -> None:
+        """Parse a single log entry and populate the output schema.
 
+        :param input_: Input log schema instance
+        :param output_: Parser output schema instance to be mutated in-
+            place
+        """
+
+        # Dummy implementation example (replace with real logic)
         output_.EventID = 2
         output_.variables.extend(["dummy_variable"])
         output_.template = "This is a dummy template"
