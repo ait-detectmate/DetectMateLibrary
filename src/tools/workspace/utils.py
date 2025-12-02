@@ -23,26 +23,94 @@ def create_readme(name: str, ws_type: str, target_impl: Path, target_dir: Path) 
         mate create --type {ws_type} --name {name} --dir {target_dir.parent}
         ```
 
+        The directory containing this `README.md` is referred to as the *workspace root* below.
+
         ## Contents
 
         - `{target_impl.name}`: starting point for your `{ws_type}` implementation.
         - `LICENSE.md`: copied from the main project.
         - `.pre-commit-config.yaml`: pre-commit hook configuration from the main project.
         - `.gitignore`: standard ignore rules from the main project.
-        - `pyproject.toml`: Python project metadata and dependencies for this workspace.
+        - `pyproject.toml`: Python project metadata, dependencies, and dev extras.
         - `__init__.py`: makes this directory importable as a package.
+
+        ## Recommended setup (uv + prek)
+
+        We recommend using [`uv`](https://github.com/astral-sh/uv) to manage the environment
+        and dependencies, and [`prek`](https://github.com/j178/prek) to manage Git
+        pre-commit hooks. `prek` is configured via the existing `.pre-commit-config.yaml`
+        and can be installed as part of the `dev` extras.
+
+        ### 1. Create and activate a virtual environment with uv
+
+        From the workspace root (the directory containing this `README.md`):
+
+        ```bash
+        cd <workspace-root>
+
+        # Create a virtual environment (if you don't have one yet)
+        uv venv
+
+        # Activate it
+        source .venv/bin/activate         # Linux/macOS
+        # .venv\\Scripts\\activate        # Windows (PowerShell / CMD)
+        ```
+
+        ### 2. Install the project and dev dependencies (including prek)
+
+        ```bash
+        uv pip install -e .[dev]
+        ```
+
+        To add new dev-only dependencies later:
+
+        ```bash
+        uv add --optional dev <package>
+        ```
+
+        ### 3. Install and run Git hooks with prek
+
+        With the virtual environment activated:
+
+        ```bash
+        # Install Git hooks from .pre-commit-config.yaml using prek
+        prek install
+
+        # (Optional but recommended) Run all hooks once on the full codebase
+        prek run --all-files
+        ```
+
+        After this, hooks will run automatically on each commit.
+
+        ## Alternative setup (pip instead of uv)
+
+        If you prefer plain `pip`, you can set things up like this instead:
+
+        ```bash
+        cd <workspace-root>
+
+        # Create a virtual environment
+        python -m venv .venv
+
+        # Activate it
+        source .venv/bin/activate         # Linux/macOS
+        # .venv\\Scripts\\activate        # Windows (PowerShell / CMD)
+
+        # Install the project in editable mode with dev dependencies
+        pip install -e .[dev]
+        ```
+
+        With `pip`, `prek` will still be available from the virtual environment,
+        and you can use the same commands to install hooks:
+
+        ```bash
+        prek install
+        prek run --all-files
+        ```
 
         ## Next steps
 
-        1. Open `{target_impl.name}` and implement your custom {ws_type}.
-        2. (Optional) Install pre-commit hooks:
-
-           ```bash
-           pre-commit install
-           ```
-
-        3. Add the libraries your workspace needs to `pyproject.toml` under `dependencies`.
-        4. Integrate this workspace with the rest of your project.
+        Open `{target_impl.name}` and implement your custom {ws_type}.
         """
     ).strip() + "\n"
 
@@ -70,6 +138,13 @@ def create_pyproject(name: str, ws_type: str, target_dir: Path) -> None:
 
         # Add the libraries your workspace needs below
         dependencies = [
+        ]
+
+        [project.optional-dependencies]
+        # Add dependencies in this section with: uv add --optional dev <package>
+        # Install with all the dev dependencies:  uv pip install -e .[dev]
+        dev = [
+            "prek>=0.2.8",
         ]
 
         [build-system]
