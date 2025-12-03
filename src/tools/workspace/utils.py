@@ -17,6 +17,8 @@ def create_readme(name: str, ws_type: str, target_impl: Path, target_dir: Path) 
         target_impl (Path): Path to the main implementation file.
         target_dir (Path): Directory where the README will be created.
     """
+    # Import path to the implementation module, e.g. "MyCoolThing.MyCoolThing"
+    impl_module = f"{target_dir.name}.{target_impl.stem}"
 
     readme_text = textwrap.dedent(
         f"""
@@ -116,6 +118,33 @@ def create_readme(name: str, ws_type: str, target_impl: Path, target_dir: Path) 
         ## Next steps
 
         Open `{target_impl.name}` and implement your custom {ws_type}.
+
+        ## (Optional) Run it as a Service
+
+        You can run your {ws_type} as a Service using the DetectMateService, which is added as
+        an optional dependency in the `dev` extras.
+
+        For this, create a settings file (e.g., `service_settings.yaml`) in the workspace root,
+        which could look like this:
+
+        ```yaml
+        component_name: {name}
+        component_type: {impl_module}.{name}
+        component_config_class: {impl_module}.{name}Config
+        log_level: DEBUG
+        log_dir: ./logs
+        manager_addr: ipc:///tmp/{name.lower()}_cmd.ipc
+        engine_addr: ipc:///tmp/{name.lower()}_engine.ipc
+        ```
+
+        Then start your {ws_type} service with:
+
+        ```bash
+        detectmate start --settings service_settings.yaml
+        ```
+
+        Make sure you run this command from within the virtual environment where you installed
+        this workspace (e.g. after `uv venv && source .venv/bin/activate`).
         """
     ).strip() + "\n"
 
