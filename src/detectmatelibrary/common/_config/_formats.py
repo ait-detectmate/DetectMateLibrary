@@ -106,5 +106,5 @@ _formats: dict[str, type[LogVariables | AllLogVariables]] = {
 def apply_format(format: str, params: Any) -> Any:
     if format in _formats:
         f_cls = _formats[format]
-        return f_cls._init(params)  # typr-ignore
+        return f_cls._init(params)
     return params
