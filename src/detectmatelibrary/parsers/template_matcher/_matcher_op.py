@@ -13,6 +13,7 @@ def safe_search(pattern: str, string: str, timeout: int = 1) -> regex.Match[str]
         result = None
     return result
 
+
 class Preprocess:
     def __init__(
         self,
@@ -123,7 +124,7 @@ class TemplateMatcher:
     @staticmethod
     def extract_parameters(log: str, template: str) -> tuple[str, ...] | None:
         """Extract parameters from the log based on the template."""
-        log = re.sub(r'\s+', ' ', log.strip()) # DS
+        log = re.sub(r'\s+', ' ', log.strip())
         pattern_parts = template.split("<*>")
         pattern_parts_escaped = [re.escape(part) for part in pattern_parts]
         regex_pattern = "(.*?)".join(pattern_parts_escaped)
@@ -151,15 +152,15 @@ class TemplateMatcher:
 
     def __call__(self, log: str) -> Dict[str, Any]:
         """Batch matching that also returns the params list."""
-        output = {}
+        output: dict[str, Any] = {}
         res = self.match_template_with_params(log)
         if res is None:
             output["EventTemplate"] = "<Not Found>"
-            output["Params"] = []  # type: ignore
+            output["Params"] = []
         else:
             tpl, params = res
             output["EventTemplate"] = tpl
-            output["Params"] = params  # type: ignore
+            output["Params"] = params
         tpl_to_id = {t["raw"]: i for i, t in enumerate(self.manager.templates)}
-        output["EventId"] = tpl_to_id.get(tpl, -1) if output["EventTemplate"] != "<Not Found>" else -1  # type: ignore
+        output["EventId"] = tpl_to_id.get(tpl, -1) if output["EventTemplate"] != "<Not Found>" else -1
         return output

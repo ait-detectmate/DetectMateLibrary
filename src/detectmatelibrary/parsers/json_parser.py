@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from typing import Any, Iterable
 import json
 
+
 def iter_flatten(obj: dict[str, Any], sep: str = '.') -> Iterable[tuple[str, Any]]:
     """Iteratively flattens a nested dict/list JSON-like object. Yields
     (flat_key, value) pairs.
@@ -64,9 +65,8 @@ class JsonParser(CoreParser):
         self.time_extractor = KeyExtractor(key_substr=config.timestamp_name)
         self.content_extractor = KeyExtractor(key_substr=config.content_name)
 
-
     def parse(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> None:
-        log = json.loads(input_.log)
+        log = json.loads(input_["log"])
         # extract timestamp and content in the most efficient way from the json log
         timestamp = self.time_extractor.extract(obj=log, delete=True)
         content = self.content_extractor.extract(obj=log, delete=True)
@@ -74,17 +74,17 @@ class JsonParser(CoreParser):
         parsed = {"EventTemplate": "", "Params": [], "EventId": 0}
         # if the json also contains a message field, parse it for template and parameters
         if content:
-            log_ = schemas.LogSchema(log=content)
+            log_ = schemas.LogSchema({"log": content})
             parsed_content = self.content_parser.process(log_)
-            parsed["EventTemplate"] = parsed_content.template  # type: ignore
-            parsed["Params"] = parsed_content.variables  # type: ignore
-            parsed["EventId"] = parsed_content.EventID  # type: ignore
+            parsed["EventTemplate"] = parsed_content["template"]  # type: ignore
+            parsed["Params"] = parsed_content["variables"]  # type: ignore
+            parsed["EventId"] = parsed_content["EventID"]  # type: ignore
 
         log_flat = flatten_dict(log)
-        output_.logFormatVariables.clear()  # ensure it's empty before updating
-        output_.logFormatVariables.update({k: str(v) for k, v in log_flat.items()})
+        output_["logFormatVariables"].clear()  # ensure it's empty before updating
+        output_["logFormatVariables"].update({k: str(v) for k, v in log_flat.items()})
         time = self.time_format_handler.parse_timestamp(timestamp, self.config.time_format)  # type: ignore
-        output_.logFormatVariables.update({"Time": time})
-        output_.template = parsed["EventTemplate"]
-        output_.variables.extend(parsed["Params"])
-        output_.EventID = parsed["EventId"]
+        output_["logFormatVariables"].update({"Time": time})
+        output_["template"] = parsed["EventTemplate"]
+        output_["variables"].extend(parsed["Params"])
+        output_["EventID"] = parsed["EventId"]

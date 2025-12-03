@@ -6,7 +6,7 @@ from detectmatelibrary.common.core import CoreComponent, CoreConfig
 from detectmatelibrary.utils.aux import get_timestamp
 from detectmatelibrary import schemas
 
-from typing import Any, Dict, Optional, Tuple, cast
+from typing import Any, Optional, cast
 from pydantic import model_validator
 import re
 
@@ -45,33 +45,33 @@ class CoreParser(CoreComponent):
         super().__init__(
             name=name,
             type_=config.method_type,  # type: ignore
-            config=config,   # type: ignore
+            config=config,  # type: ignore
             args_buffer=ArgsBuffer(mode=BufferMode.NO_BUF, size=None),
-            input_schema=schemas.LOG_SCHEMA,  # type: ignore
-            output_schema=schemas.PARSER_SCHEMA,  # type: ignore
+            input_schema=schemas.LogSchema,
+            output_schema=schemas.ParserSchema,
         )
         self.time_format_handler = TimeFormatHandler()
 
-    def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:
+    def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:  # type: ignore
         config = cast(CoreParserConfig, self.config)
         var, content = get_format_variables(
             config._regex,
-            log=input_.log,
+            log=input_["log"],
             time_format=config.time_format,
             time_format_handler=self.time_format_handler
         )
 
-        output_.parserID = self.name
-        output_.parsedLogID = self.id_generator()
-        output_.parserType = self.config.method_type
-        output_.logID = input_.logID
-        output_.log = input_.log
-        output_.logFormatVariables.update(var)
-        input_.log = content
+        output_["parserID"] = self.name
+        output_["parsedLogID"] = self.id_generator()
+        output_["parserType"] = self.config.method_type
+        output_["logID"] = input_["logID"]
+        output_["log"] = input_["log"]
+        output_["logFormatVariables"].update(var)
+        input_["log"] = content
 
-        output_.receivedTimestamp = get_timestamp()
+        output_["receivedTimestamp"] = get_timestamp()
         use_schema = self.parse(input_=input_, output_=output_)
-        output_.parsedTimestamp = get_timestamp()
+        output_["parsedTimestamp"] = get_timestamp()
 
         return True if use_schema is None else use_schema
 
@@ -80,5 +80,5 @@ class CoreParser(CoreComponent):
     ) -> bool | None:
         return True
 
-    def train(self, input_: schemas.LogSchema) -> None:
+    def train(self, input_: schemas.LogSchema) -> None:  # type: ignore
         pass

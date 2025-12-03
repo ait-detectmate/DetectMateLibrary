@@ -51,12 +51,12 @@ class TestJsonParser:
             "error_code": 404
         }
 
-        input_log = schemas.initialize(schemas.LOG_SCHEMA, **{
+        input_log = schemas.LogSchema({
             "logID": 1,
             "log": json.dumps(json_log)
         })
 
-        output = schemas.initialize(schemas.PARSER_SCHEMA)
+        output = schemas.ParserSchema()
         parser.parse(input_log, output)
 
         # When no message field, template should be empty
@@ -86,12 +86,12 @@ class TestJsonParser:
             }
         }
 
-        input_log = schemas.initialize(schemas.LOG_SCHEMA, **{
+        input_log = schemas.LogSchema({
             "logID": 1,
             "log": json.dumps(json_log)
         })
 
-        output = schemas.initialize(schemas.PARSER_SCHEMA)
+        output = schemas.ParserSchema()
         parser.parse(input_log, output)
 
         # Check flattened structure
@@ -111,12 +111,12 @@ class TestJsonParser:
             "events": ["login", "update", "logout"]
         }
 
-        input_log = schemas.initialize(schemas.LOG_SCHEMA, **{
+        input_log = schemas.LogSchema({
             "logID": 1,
             "log": json.dumps(json_log)
         })
 
-        output = schemas.initialize(schemas.PARSER_SCHEMA)
+        output = schemas.ParserSchema()
         parser.parse(input_log, output)
 
         # Check array is flattened
@@ -150,12 +150,12 @@ class TestJsonParser:
             "level": "INFO"
         }
 
-        input_log = schemas.initialize(schemas.LOG_SCHEMA, **{
+        input_log = schemas.LogSchema({
             "logID": 1,
             "log": json.dumps(json_log)
         })
 
-        output = schemas.initialize(schemas.PARSER_SCHEMA)
+        output = schemas.ParserSchema()
         parser.parse(input_log, output)
 
         # The content parser should have parsed the message
@@ -173,12 +173,12 @@ class TestJsonParser:
             "severity": "high"
         }
 
-        input_log = schemas.initialize(schemas.LOG_SCHEMA, **{
+        input_log = schemas.LogSchema({
             "logID": 1,
             "log": json.dumps(json_log)
         })
 
-        output = schemas.initialize(schemas.PARSER_SCHEMA)
+        output = schemas.ParserSchema()
         parser.parse(input_log, output)
 
         # Timestamp should be extracted and Time should be in logFormatVariables
@@ -197,7 +197,7 @@ class TestJsonParser:
             "status": "ok"
         }
 
-        input_log = schemas.initialize(schemas.LOG_SCHEMA, **{
+        input_log = schemas.LogSchema({
             "logID": 1,
             "log": json.dumps(json_log)
         })

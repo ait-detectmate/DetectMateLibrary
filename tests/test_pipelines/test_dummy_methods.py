@@ -32,8 +32,8 @@ class TestDummyMethods:
 
     def test_run_detect_method(self) -> None:
         detector = DummyDetector()
-        data = schemas.initialize(schemas.PARSER_SCHEMA, **{"log": "test log"})
-        output = schemas.initialize(schemas.DETECTOR_SCHEMA)
+        data = schemas.ParserSchema({"log": "test log"})
+        output = schemas.DetectorSchema()
 
         result = detector.detect(data, output)
 
@@ -54,8 +54,8 @@ class TestDummyMethods:
 
     def test_run_parse_method(self) -> None:
         parser = DummyParser()
-        input_data = schemas.initialize(schemas.LOG_SCHEMA, **{"log": "test log"})
-        output_data = schemas.initialize(schemas.PARSER_SCHEMA)
+        input_data = schemas.LogSchema({"log": "test log"})
+        output_data = schemas.ParserSchema()
 
         parser.parse(input_data, output_data)
 
@@ -66,7 +66,7 @@ class TestDummyMethods:
         parser = DummyParser()
         detector = DummyDetector()
 
-        log_input = schemas.initialize(schemas.LOG_SCHEMA, **{"log": "test log"})
+        log_input = schemas.LogSchema({"log": "test log"})
         parsed_log = parser.process(log_input)
 
         while (result := detector.process(parsed_log)) is None:
