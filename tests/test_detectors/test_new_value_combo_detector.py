@@ -106,8 +106,8 @@ class TestNewValueComboDetectorInitialization:
 
         assert detector.name == "NewValueComboDetector"
         assert detector.data_buffer.mode == BufferMode.NO_BUF
-        assert detector.input_schema == schemas.PARSER_SCHEMA
-        assert detector.output_schema == schemas.DETECTOR_SCHEMA
+        assert detector.input_schema == schemas.ParserSchema
+        assert detector.output_schema == schemas.DetectorSchema
 
     def test_custom_config_initialization(self):
         detector = NewValueComboDetector(name="CustomInit", config=config)
@@ -117,14 +117,14 @@ class TestNewValueComboDetectorInitialization:
         assert isinstance(detector.known_combos, dict)
 
 
-class TestNewValueDetectorTraining:
+class TestNewValueComboDetectorTraining:
 
     def test_train_all_multiple_values(self):
         detector = NewValueComboDetector(config=config, name="AllDetector")
 
         # Train with multiple values
         for level in ["INFO", "WARNING", "ERROR"]:
-            parser_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+            parser_data = schemas.ParserSchema({
                 "parserType": "test",
                 "EventID": 1,
                 "template": "test template",
@@ -148,7 +148,7 @@ class TestNewValueDetectorTraining:
         # Train with multiple values
         for event in range(3):
             for level in ["INFO", "WARNING", "ERROR"]:
-                parser_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+                parser_data = schemas.ParserSchema({
                     "parserType": "test",
                     "EventID": event,
                     "template": "test template",
@@ -167,7 +167,7 @@ class TestNewValueDetectorTraining:
         assert combos == detector.known_combos
 
     def test_train_too_big(self):
-        parser_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        parser_data = schemas.ParserSchema({
             "parserType": "test",
             "EventID": 1,
             "template": "test template",
@@ -196,7 +196,7 @@ class TestNewValueComboDetectorDetection:
         detector = NewValueComboDetector(config=config, name="AllDetector")
 
         # Train with a value
-        train_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        train_data = schemas.ParserSchema({
             "parserType": "test",
             "EventID": 1,
             "template": "test template",
@@ -209,7 +209,7 @@ class TestNewValueComboDetectorDetection:
         })
         detector.train(train_data)
 
-        train_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        train_data = schemas.ParserSchema({
             "parserType": "test",
             "EventID": 1,
             "template": "test template",
@@ -223,7 +223,7 @@ class TestNewValueComboDetectorDetection:
         detector.train(train_data)
 
         # Detect with the same value
-        test_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        test_data = schemas.ParserSchema({
             "parserType": "test",
             "EventID": 12,
             "template": "test template",
@@ -234,7 +234,7 @@ class TestNewValueComboDetectorDetection:
             "log": "test log message",
             "logFormatVariables": {"level": "INFO"}
         })
-        output = schemas.initialize(schemas.DETECTOR_SCHEMA)
+        output = schemas.DetectorSchema()
 
         result = detector.detect(test_data, output)
 
@@ -246,7 +246,7 @@ class TestNewValueComboDetectorDetection:
         detector = NewValueComboDetector(config=config, name="AllDetector")
 
         # Train with a value
-        train_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        train_data = schemas.ParserSchema({
             "parserType": "test",
             "EventID": 1,
             "template": "test template",
@@ -259,7 +259,7 @@ class TestNewValueComboDetectorDetection:
         })
         detector.train(train_data)
 
-        train_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        train_data = schemas.ParserSchema({
             "parserType": "test",
             "EventID": 1,
             "template": "test template",
@@ -273,7 +273,7 @@ class TestNewValueComboDetectorDetection:
         detector.train(train_data)
 
         # Detect with the same value
-        test_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        test_data = schemas.ParserSchema({
             "parserType": "test",
             "EventID": 12,
             "template": "test template",
@@ -284,7 +284,7 @@ class TestNewValueComboDetectorDetection:
             "log": "test log message",
             "logFormatVariables": {"level": "CRITICAL"}
         })
-        output = schemas.initialize(schemas.DETECTOR_SCHEMA)
+        output = schemas.DetectorSchema()
 
         result = detector.detect(test_data, output)
 
@@ -295,7 +295,7 @@ class TestNewValueComboDetectorDetection:
         detector = NewValueComboDetector(config=config, name="MultipleDetector")
 
         # Train with a value
-        train_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        train_data = schemas.ParserSchema({
             "parserType": "test",
             "EventID": 1,
             "template": "test template",
@@ -308,7 +308,7 @@ class TestNewValueComboDetectorDetection:
         })
         detector.train(train_data)
 
-        train_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        train_data = schemas.ParserSchema({
             "parserType": "test",
             "EventID": 1,
             "template": "test template",
@@ -322,7 +322,7 @@ class TestNewValueComboDetectorDetection:
         detector.train(train_data)
 
         # Detect with the same value
-        test_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        test_data = schemas.ParserSchema({
             "parserType": "test",
             "EventID": 12,
             "template": "test template",
@@ -333,7 +333,7 @@ class TestNewValueComboDetectorDetection:
             "log": "test log message",
             "logFormatVariables": {"level": "CRITICAL"}
         })
-        output = schemas.initialize(schemas.DETECTOR_SCHEMA)
+        output = schemas.DetectorSchema()
 
         result = detector.detect(test_data, output)
 
@@ -344,7 +344,7 @@ class TestNewValueComboDetectorDetection:
         detector = NewValueComboDetector(config=config, name="MultipleDetector")
 
         # Train with a value
-        train_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        train_data = schemas.ParserSchema({
             "parserType": "test",
             "EventID": 1,
             "template": "test template",
@@ -357,7 +357,7 @@ class TestNewValueComboDetectorDetection:
         })
         detector.train(train_data)
 
-        train_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        train_data = schemas.ParserSchema({
             "parserType": "test",
             "EventID": 1,
             "template": "test template",
@@ -371,7 +371,7 @@ class TestNewValueComboDetectorDetection:
         detector.train(train_data)
 
         # Detect with the same value
-        test_data = schemas.initialize(schemas.PARSER_SCHEMA, **{
+        test_data = schemas.ParserSchema({
             "parserType": "test",
             "EventID": 1,
             "template": "test template",
@@ -382,7 +382,7 @@ class TestNewValueComboDetectorDetection:
             "log": "test log message",
             "logFormatVariables": {"level": "CRITICAL"}
         })
-        output = schemas.initialize(schemas.DETECTOR_SCHEMA)
+        output = schemas.DetectorSchema()
 
         result = detector.detect(test_data, output)
 

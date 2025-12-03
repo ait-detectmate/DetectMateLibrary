@@ -1,33 +1,25 @@
-from detectmatelibrary.common._config import BasicConfig
-
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas._op as op_schemas
 
 import pytest
 
 
-class MockConfig(BasicConfig):
-    score: float = 0.4
-    detectorID: str = "test"
-    no_field: str = "should not appear"
-
-
 class TestCaseSchemas:
     def test_initialize_basic(self):
-        schema = schemas.initialize(schemas.BASE_SCHEMA, **{})
+        schema = op_schemas.initialize(op_schemas.BASE_SCHEMA, **{})
 
         assert schema.__version__ == "1.0.0"
 
     def test_initialize_not_support_schema(self) -> None:
         try:
-            schemas.initialize(b"1111", **{})
-        except schemas.NotSupportedSchema:
+            op_schemas.initialize(b"1111", **{})
+        except op_schemas.NotSupportedSchema:
             pass
 
     def test_initialize_log_schema(self) -> None:
         values = {
             "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
         }
-        schema = schemas.initialize(schemas.LOG_SCHEMA, **values)
+        schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
 
         assert schema.__version__ == "1.0.0"
         assert schema.logID == 1
@@ -47,7 +39,7 @@ class TestCaseSchemas:
             "log": "test log",
             "logFormatVariables": {"TimeStamp": "test timestamp"}
         }
-        schema = schemas.initialize(schemas.PARSER_SCHEMA, **values)
+        schema = op_schemas.initialize(op_schemas.PARSER_SCHEMA, **values)
 
         assert schema.__version__ == "1.0.0"
         assert schema.EventID == 5
@@ -69,7 +61,7 @@ class TestCaseSchemas:
             "score": 0.5,
             "extractedTimestamps": [4, 5, 6]
         }
-        schema = schemas.initialize(schemas.DETECTOR_SCHEMA, **values)
+        schema = op_schemas.initialize(op_schemas.DETECTOR_SCHEMA, **values)
 
         assert schema.__version__ == "1.0.0"
         assert schema.detectorID == "test id"
@@ -80,20 +72,12 @@ class TestCaseSchemas:
         assert schema.score == 0.5
         assert schema.extractedTimestamps == [4, 5, 6]
 
-    def test_initialize_with_default(self) -> None:
-        schema = schemas.initialize_with_default(schemas.DETECTOR_SCHEMA, MockConfig())
-        expected_schema = schemas.initialize(
-            schema_id=schemas.DETECTOR_SCHEMA, **{"score": 0.4, "detectorID": "test"}
-        )
-
-        assert schema == expected_schema
-
     def test_copy(self) -> None:
         values = {
             "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
         }
-        schema = schemas.initialize(schemas.LOG_SCHEMA, **values)
-        schema2 = schemas.copy(schemas.LOG_SCHEMA, schema)
+        schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
+        schema2 = op_schemas.copy(op_schemas.LOG_SCHEMA, schema)
 
         assert schema == schema2
         schema.log = "hello"
@@ -103,28 +87,28 @@ class TestCaseSchemas:
         values = {
             "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
         }
-        schema = schemas.initialize(schemas.LOG_SCHEMA, **values)
-        with pytest.raises(schemas.IncorrectSchema):
-            schemas.copy(schemas.PARSER_SCHEMA, schema)
+        schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
+        with pytest.raises(op_schemas.IncorrectSchema):
+            op_schemas.copy(op_schemas.PARSER_SCHEMA, schema)
 
     def test_copy_incompatible_schema(self) -> None:
         values = {
             "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
         }
-        schema = schemas.initialize(schemas.LOG_SCHEMA, **values)
-        with pytest.raises(schemas.NotSupportedSchema):
-            schemas.copy(b"213123213123", schema)
+        schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
+        with pytest.raises(op_schemas.NotSupportedSchema):
+            op_schemas.copy(b"213123213123", schema)
 
     def test_serialize_method(self) -> None:
         values = {
             "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
         }
-        schema = schemas.initialize(schemas.LOG_SCHEMA, **values)
-        bschema = schemas.serialize(schemas.LOG_SCHEMA, schema=schema)
+        schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
+        bschema = op_schemas.serialize(op_schemas.LOG_SCHEMA, schema=schema)
 
-        schema_id, new_schema = schemas.deserialize(bschema)
+        schema_id, new_schema = op_schemas.deserialize(bschema)
 
-        assert schema_id == schemas.LOG_SCHEMA
+        assert schema_id == op_schemas.LOG_SCHEMA
 
         assert new_schema.__version__ == "1.0.0"
         assert new_schema.logID == 1
@@ -136,24 +120,35 @@ class TestCaseSchemas:
         values = {
             "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
         }
-        schema = schemas.initialize(schemas.LOG_SCHEMA, **values)
+        schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
 
-        with pytest.raises(schemas.NotSupportedSchema):
-            schemas.serialize(b"1111", schema=schema)
+        with pytest.raises(op_schemas.NotSupportedSchema):
+            op_schemas.serialize(b"1111", schema=schema)
 
     def test_check_is_same_schema(self) -> None:
-        schemas.check_is_same_schema(schemas.LOG_SCHEMA, schemas.LOG_SCHEMA)
+        op_schemas.check_is_same_schema(op_schemas.LOG_SCHEMA, op_schemas.LOG_SCHEMA)
 
-        with pytest.raises(schemas.IncorrectSchema):
-            schemas.check_is_same_schema(schemas.BASE_SCHEMA, schemas.LOG_SCHEMA)
+        with pytest.raises(op_schemas.IncorrectSchema):
+            op_schemas.check_is_same_schema(op_schemas.BASE_SCHEMA, op_schemas.LOG_SCHEMA)
 
     def test_check_is_schema_complete(self) -> None:
-        schema = schemas.initialize(schemas.LOG_SCHEMA, **{})
-        with pytest.raises(schemas.NotCompleteSchema):
-            schemas.check_if_schema_is_complete(schema)
+        schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **{})
+        with pytest.raises(op_schemas.NotCompleteSchema):
+            op_schemas.check_if_schema_is_complete(schema)
 
         values = {
             "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
         }
-        schema = schemas.initialize(schemas.LOG_SCHEMA, **values)
-        schemas.check_if_schema_is_complete(schema)
+        schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
+        op_schemas.check_if_schema_is_complete(schema)
+
+    def test_get_variables(self) -> None:
+        values = {
+            "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
+        }
+        schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
+        vars = op_schemas.get_variables_names(schema)
+        expected_vars = ["logID", "log", "logSource", "hostname", "__version__"]
+
+        assert set(vars) == set(expected_vars), f"{vars}"
+        assert len(vars) == len(expected_vars), f"{vars}"
