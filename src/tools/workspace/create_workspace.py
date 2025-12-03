@@ -3,7 +3,7 @@ import shutil
 import sys
 from pathlib import Path
 
-from .utils import create_readme, create_pyproject
+from .utils import create_readme, create_pyproject, normalize
 
 # resolve paths relative to this file
 BASE_DIR = Path(__file__).resolve().parent.parent  # tools/
@@ -41,7 +41,7 @@ def create_workspace(type_: str, name: str, target_dir: Path) -> None:
     workspace_root.mkdir(parents=True, exist_ok=True)
 
     # Package directory inside the workspace
-    pkg_dir = workspace_root / name
+    pkg_dir = workspace_root / normalize(name)
 
     # Fail if the package directory already exists
     if pkg_dir.exists():

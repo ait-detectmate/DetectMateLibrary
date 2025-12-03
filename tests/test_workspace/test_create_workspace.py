@@ -14,7 +14,7 @@ def temp_dir(tmp_path):
 def test_create_parser_workspace(temp_dir):
     ws_name = "myParser"
     workspace_root = temp_dir
-    pkg_dir = workspace_root / ws_name
+    pkg_dir = workspace_root / "myparser"
 
     # Run the CLI tool
     subprocess.check_call([
@@ -47,7 +47,7 @@ def test_create_parser_workspace(temp_dir):
 def test_create_detector_workspace(temp_dir):
     ws_name = "myDetector"
     workspace_root = temp_dir
-    pkg_dir = workspace_root / ws_name
+    pkg_dir = workspace_root / "mydetector"
 
     subprocess.check_call([
         *CLI,

@@ -3,6 +3,11 @@ import re
 from pathlib import Path
 
 
+def normalize(name: str) -> str:
+    """Normalize name for project name (PEP 621 style)."""
+    return re.sub(r"[-_.]+", "-", name).lower()
+
+
 def create_readme(name: str, ws_type: str, target_impl: Path, target_dir: Path) -> None:
     """Create a README.md file for the generated workspace.
 
@@ -124,8 +129,7 @@ def create_pyproject(name: str, ws_type: str, target_dir: Path) -> None:
     - Leaves a dependencies list ready for you to fill with the necessary libraries.
     """
 
-    # Normalize name for project name (PEP 621 style)
-    project_name = re.sub(r"[-_.]+", "-", name).lower()
+    project_name = normalize(name)
 
     pyproject_text = textwrap.dedent(
         f"""
@@ -144,6 +148,7 @@ def create_pyproject(name: str, ws_type: str, target_dir: Path) -> None:
         # Add dependencies in this section with: uv add --optional dev <package>
         # Install with all the dev dependencies:  uv pip install -e .[dev]
         dev = [
+            "detectmateservice @ git+https://github.com/ait-detectmate/DetectMateService.git
             "prek>=0.2.8",
         ]
 
@@ -152,8 +157,8 @@ def create_pyproject(name: str, ws_type: str, target_dir: Path) -> None:
         build-backend = "setuptools.build_meta"
 
         [tool.setuptools]
-        # Treat the '{name}' directory as the package
-        packages = ["{name}"]
+        # Treat the '{project_name}' directory as the package
+        packages = ["{project_name}"]
         """
     ).strip() + "\n"
 
