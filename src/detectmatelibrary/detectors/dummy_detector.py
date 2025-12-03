@@ -31,13 +31,13 @@ class DummyDetector(CoreDetector):
         input_: List[schemas.ParserSchema] | schemas.ParserSchema,
         output_: schemas.DetectorSchema
     ) -> bool | None:
-        output_.description = "Dummy detection process"
+        output_["description"] = "Dummy detection process"
 
         # Alternating pattern: True, False, True, False, etc
         self._call_count += 1
         pattern = [True, False]
         result = pattern[self._call_count % len(pattern)]
         if result:
-            output_.score = 1.0
-            output_.alertsObtain["type"] = "Anomaly detected by DummyDetector"
+            output_["score"] = 1.0
+            output_["alertsObtain"]["type"] = "Anomaly detected by DummyDetector"
         return result

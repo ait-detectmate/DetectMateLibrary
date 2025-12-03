@@ -37,8 +37,8 @@ class TestMatcherParserBasic:
             }
         }
         parser = MatcherParser(name="MatcherParser", config=config_dict)
-        input_log = schemas.initialize(schemas.LOG_SCHEMA, **{"log": test_log_match})
-        output_data = schemas.initialize(schemas.PARSER_SCHEMA)
+        input_log = schemas.LogSchema({"log": test_log_match})
+        output_data = schemas.ParserSchema()
         parser.parse(input_log, output_data)
 
         assert output_data.template == test_template[0]
@@ -56,8 +56,8 @@ class TestMatcherParserBasic:
             }
         }
         parser = MatcherParser(name="MatcherParser", config=config_dict)
-        input_log = schemas.initialize(schemas.LOG_SCHEMA, **{"log": test_log_no_match})
-        output_data = schemas.initialize(schemas.PARSER_SCHEMA)
+        input_log = schemas.LogSchema({"log": test_log_no_match})
+        output_data = schemas.ParserSchema()
         parser.parse(input_log, output_data)
 
         assert output_data.template == "<Not Found>"
@@ -72,8 +72,8 @@ class TestMatcherParserBasic:
             path_templates="tests/test_folder/test_templates.txt"
         )
         parser = MatcherParser(name="MatcherParser", config=config)
-        input_log = schemas.initialize(schemas.LOG_SCHEMA, **{"log": test_log_match})
-        output_data = schemas.initialize(schemas.PARSER_SCHEMA)
+        input_log = schemas.LogSchema({"log": test_log_match})
+        output_data = schemas.ParserSchema()
         parser.parse(input_log, output_data)
         # Still matches template even with preprocessing disabled
         assert output_data.template == test_template[0]

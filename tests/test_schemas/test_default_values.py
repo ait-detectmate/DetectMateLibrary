@@ -1,4 +1,4 @@
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas._op as op_schemas
 
 
 class TestCaseDefaultValues:
@@ -7,8 +7,8 @@ class TestCaseDefaultValues:
         values = {
             "logID": 0, "log": "test", "logSource": "example", "hostname": "example@org"
         }
-        schema = schemas.initialize(schemas.LOG_SCHEMA, **values)
-        schemas.check_if_schema_is_complete(schema)
+        schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
+        op_schemas.check_if_schema_is_complete(schema)
 
     def test_initialize_parser_schema(self) -> None:
         values = {
@@ -24,8 +24,8 @@ class TestCaseDefaultValues:
             "receivedTimestamp": 0,
             "parsedTimestamp": 0,
         }
-        schema = schemas.initialize(schemas.PARSER_SCHEMA, **values)
-        schemas.check_if_schema_is_complete(schema)
+        schema = op_schemas.initialize(op_schemas.PARSER_SCHEMA, **values)
+        op_schemas.check_if_schema_is_complete(schema)
 
     def test_initialize_detector_schema(self) -> None:
         values = {
@@ -39,8 +39,8 @@ class TestCaseDefaultValues:
             "description": "",
             "receivedTimestamp": 0,
         }
-        schema = schemas.initialize(schemas.DETECTOR_SCHEMA, **values)
-        schemas.check_if_schema_is_complete(schema)
+        schema = op_schemas.initialize(op_schemas.DETECTOR_SCHEMA, **values)
+        op_schemas.check_if_schema_is_complete(schema)
 
     def test_initialize_parser_schema_empty_list_dict(self) -> None:
         values = {
@@ -54,8 +54,8 @@ class TestCaseDefaultValues:
             "receivedTimestamp": 0,
             "parsedTimestamp": 0,
         }
-        schema = schemas.initialize(schemas.PARSER_SCHEMA, **values)
-        schemas.check_if_schema_is_complete(schema)
+        schema = op_schemas.initialize(op_schemas.PARSER_SCHEMA, **values)
+        op_schemas.check_if_schema_is_complete(schema)
 
         assert len(schema.logFormatVariables) == 0
         assert len(schema.variables) == 0

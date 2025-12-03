@@ -18,7 +18,6 @@ class TypeNotFoundError(Exception):
         super().__init__(f"Type '{type_name}' not found in configuration.")
 
 
-
 class MethodTypeNotMatch(Exception):
     def __init__(self, expected_type: str, actual_type: str) -> None:
         super().__init__(
@@ -44,8 +43,8 @@ class MissingFormat(Exception):
 class ConfigMethods:
     @staticmethod
     def get_method(
-        config: Dict[str, Any], method_id: str, comp_type: str
-    ) -> Dict[str, Any] | MethodNotFoundError | TypeNotFoundError:
+        config: Dict[str, Dict[str, Dict[str, Any]]], method_id: str, comp_type: str
+    ) -> Dict[str, Any]:
 
         if comp_type not in config:
             raise TypeNotFoundError(comp_type)
@@ -54,16 +53,16 @@ class ConfigMethods:
         if method_id not in args:
             raise MethodNotFoundError(method_id, comp_type)
 
-        return args[method_id]    # type: ignore
+        return args[method_id]
 
     @staticmethod
-    def check_type(config: Dict[str, Any], method_type: str) ->  MethodTypeNotMatch | None:
+    def check_type(config: Dict[str, Any], method_type: str) -> MethodTypeNotMatch | None:
         if config["method_type"] != method_type:
-           raise MethodTypeNotMatch( expected_type=method_type, actual_type=config["method_type"])
+            raise MethodTypeNotMatch(expected_type=method_type, actual_type=config["method_type"])
         return None
 
     @staticmethod
-    def process(config: Dict[str, Any]) -> Dict[str, Any] | AutoConfigError | MissingFormat:
+    def process(config: Dict[str, Any]) -> Dict[str, Any]:
         if "params" not in config and not config["auto_config"]:
             raise AutoConfigError()
 

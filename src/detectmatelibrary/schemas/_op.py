@@ -1,6 +1,4 @@
 """" Interface between the code base and the protobuf code."""
-from detectmatelibrary.common._config import BasicConfig
-
 import detectmatelibrary.schemas.schemas_pb2 as s
 
 
@@ -11,19 +9,17 @@ from google.protobuf.message import Message
 
 #  Main variables ************************************
 # Use Union of actual protobuf classes for better type hints
-SchemaT = Union[s.Schema, s.LogSchema, s.ParserSchema, s.DetectorSchema]   # type: ignore
+SchemaT = Union[s.Schema, s.LogSchema, s.ParserSchema, s.DetectorSchema]  # type: ignore
 SchemaID = NewType("SchemaID", bytes)
-
 
 BASE_SCHEMA: SchemaID = SchemaID(b"0")
 LOG_SCHEMA: SchemaID = SchemaID(b"1")
 PARSER_SCHEMA: SchemaID = SchemaID(b"2")
 DETECTOR_SCHEMA: SchemaID = SchemaID(b"3")
 
-
 __current_version = "1.0.0"
 __id_codes: Dict[SchemaID, Type[Message]] = {
-    BASE_SCHEMA: s.Schema,   # type: ignore
+    BASE_SCHEMA: s.Schema,  # type: ignore
     LOG_SCHEMA: s.LogSchema,  # type: ignore
     PARSER_SCHEMA: s.ParserSchema,  # type: ignore
     DETECTOR_SCHEMA: s.DetectorSchema,  # type: ignore
@@ -57,30 +53,16 @@ def __get_schema_class(schema_id: SchemaID) -> Type[Message]:
 
 def __is_repeated_field(field: Any) -> bool:
     """Check if a field in the message is a repeated element."""
-    return field.is_repeated   # type: ignore
+    return bool(field.is_repeated)
 
 
 # Main methods *****************************************
-def initialize(schema_id: SchemaID, **kwargs: dict[str, Any]) -> SchemaT | NotSupportedSchema:
+def initialize(schema_id: SchemaID, **kwargs: Any) -> SchemaT | NotSupportedSchema:
     """Initialize a protobuf schema, it use its arguments and the assigned
     id."""
-    kwargs["__version__"] = __current_version   # type: ignore
+    kwargs["__version__"] = __current_version
     schema_class = __get_schema_class(schema_id)
     return schema_class(**kwargs)
-
-
-def initialize_with_default(
-    schema_id: SchemaID, config: BasicConfig
-) -> SchemaT | NotSupportedSchema:
-    """Initialize schema with default fields in a Config instance."""
-    fields = initialize(schema_id=schema_id, **{}).DESCRIPTOR.fields    # type: ignore
-    args = {}
-    dict_config = config.get_config()
-    for field in fields:
-        if field.name in dict_config:
-            args[field.name] = dict_config[field.name]
-
-    return initialize(schema_id=schema_id, **args)
 
 
 def copy(
@@ -89,7 +71,7 @@ def copy(
     """Make a copy of the schema."""
     new_schema = initialize(schema_id=schema_id, **{})
     try:
-        new_schema.CopyFrom(schema)    # type: ignore
+        new_schema.CopyFrom(schema)  # type: ignore
         return new_schema
     except TypeError:
         raise IncorrectSchema()
@@ -103,7 +85,7 @@ def serialize(id_schema: SchemaID, schema: SchemaT) -> bytes:
     if id_schema not in __id_codes:
         raise NotSupportedSchema()
 
-    return id_schema + schema.SerializeToString()    # type: ignore
+    return bytes(id_schema + schema.SerializeToString())
 
 
 def deserialize(message: bytes) -> Tuple[SchemaID, SchemaT]:
@@ -115,6 +97,7 @@ def deserialize(message: bytes) -> Tuple[SchemaID, SchemaT]:
     return schema_id, schema
 
 
+# Auxiliar methods *****************************************
 def check_is_same_schema(
     id_schema_1: SchemaID, id_schema_2: SchemaID
 ) -> None | IncorrectSchema:
@@ -135,3 +118,8 @@ def check_if_schema_is_complete(schema: SchemaT) -> None | NotCompleteSchema:
         raise NotCompleteSchema(f"Missing fields: {missing_fields}")
 
     return None
+
+
+def get_variables_names(schema: SchemaT) -> list[str]:
+    """Get the variable names of the schema."""
+    return [field.name for field in schema.DESCRIPTOR.fields]
