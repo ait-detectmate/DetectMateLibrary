@@ -40,6 +40,6 @@ class CustomParser(CoreParser):
         """
 
         # Dummy implementation example (replace with real logic)
-        output_.EventID = 2
-        output_.variables.extend(["dummy_variable"])
-        output_.template = "This is a dummy template"
+        output_["EventID"] = 2  # Number of the log template
+        output_["variables"].extend(["dummy_variable"])  # Variables found in the log
+        output_["template"] = "This is a dummy template"  # Log template

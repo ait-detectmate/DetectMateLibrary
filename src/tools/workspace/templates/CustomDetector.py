@@ -43,14 +43,14 @@ class CustomDetector(CoreDetector):
         :return: Detection result (True/False) or None
         """
 
-        output_.description = "Dummy detection process"
+        output_["description"] = "Dummy detection process"  # Description of the detection
 
         # Alternating pattern: True, False, True, False, etc
         self._call_count += 1
         pattern = [True, False]
         result = pattern[self._call_count % len(pattern)]
         if result:
-            output_.score = 1.0
-            output_.alertsObtain["type"] = "Anomaly detected by CustomDetector"
+            output_["score"] = 1.0  # Score of the detector
+            output_["alertsObtain"]["type"] = "Anomaly detected by CustomDetector"  # Aditional info
 
         return result
