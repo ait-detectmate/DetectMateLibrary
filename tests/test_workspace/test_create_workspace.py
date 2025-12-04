@@ -1,3 +1,5 @@
+import os
+import sys
 import subprocess
 import pytest
 from pathlib import Path
@@ -97,3 +99,72 @@ def test_fail_if_dir_exists(temp_dir: Path):
 
     assert result.returncode != 0
     assert "already exists" in result.stderr
+
+
+def test_generated_detector_tests_pass(temp_dir: Path):
+    """Run pytest inside the generated workspace on the generated detector test
+    file."""
+
+    ws_name = "MyCoolThing"
+    workspace_root = temp_dir
+    pkg_dir = workspace_root / "mycoolthing"
+    tests_dir = workspace_root / "tests"
+    test_file = tests_dir / f"test_{ws_name}.py"
+
+    subprocess.check_call([
+        *CLI,
+        "create",
+        "--type", "detector",
+        "--name", ws_name,
+        "--dir", str(workspace_root),
+    ])
+
+    assert workspace_root.exists()
+    assert pkg_dir.exists()
+    assert tests_dir.exists()
+    assert test_file.exists()
+
+    # run pytest on the generated test file
+    # and make sure the workspace root is on sys.path so "import mycoolthing" works
+    old_cwd = os.getcwd()
+    old_sys_path = list(sys.path)
+    try:
+        os.chdir(workspace_root)
+        sys.path.insert(0, str(workspace_root))
+        result = pytest.main(["-q", str(test_file.relative_to(workspace_root))])
+        assert result == 0
+    finally:
+        os.chdir(old_cwd)
+        sys.path[:] = old_sys_path
+
+
+def test_generated_parser_tests_pass(temp_dir: Path):
+    ws_name = "MyCoolParser"
+    workspace_root = temp_dir
+    pkg_dir = workspace_root / "mycoolparser"
+    tests_dir = workspace_root / "tests"
+    test_file = tests_dir / f"test_{ws_name}.py"
+
+    subprocess.check_call([
+        *CLI,
+        "create",
+        "--type", "parser",
+        "--name", ws_name,
+        "--dir", str(workspace_root),
+    ])
+
+    assert workspace_root.exists()
+    assert pkg_dir.exists()
+    assert tests_dir.exists()
+    assert test_file.exists()
+
+    old_cwd = os.getcwd()
+    old_sys_path = list(sys.path)
+    try:
+        os.chdir(workspace_root)
+        sys.path.insert(0, str(workspace_root))
+        result = pytest.main(["-q", str(test_file.relative_to(workspace_root))])
+        assert result == 0
+    finally:
+        os.chdir(old_cwd)
+        sys.path[:] = old_sys_path
