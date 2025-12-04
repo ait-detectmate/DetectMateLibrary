@@ -29,11 +29,16 @@ def camelize(name: str) -> str:
 
 
 def create_tests(type_: str, name: str, workspace_root: Path, pkg_name: str) -> None:
-    """Create a tests/ directory with a basic pytest file for the component."""
+    """Create a tests/ directory with a basic pytest file for the component.
+
+    - Reads template tests from src/tools/workspace/templates/test_templates/
+    - Rewrites the import to point to <pkg_name>.<name>
+    - Renames CustomParser/CustomDetector to the camelized class name
+    """
 
     tests_dir = workspace_root / "tests"
     tests_dir.mkdir(parents=True, exist_ok=True)
-    template_file = TEMPLATE_DIR / f"test_Custom{type_.capitalize()}.py"
+    template_file = TEMPLATE_DIR / "test_templates" / f"test_Custom{type_.capitalize()}.py"
     test_file = tests_dir / f"test_{name}.py"
 
     if not template_file.exists():
@@ -42,13 +47,21 @@ def create_tests(type_: str, name: str, workspace_root: Path, pkg_name: str) -> 
         return
 
     template_content = template_file.read_text()
-    original_class = f"Custom{type_.capitalize()}"
+    base_class = f"Custom{type_.capitalize()}"  # base names in the template (CustomParser/CustomDetector)
+    # The exact import line in the template, e.g:
+    # from ..CustomParser import CustomParser, CustomParserConfig
+    # from ..CustomDetector import CustomDetector, CustomDetectorConfig
+    original_import = f"from ..{base_class} import {base_class}, {base_class}Config"
     new_class = camelize(name)
-
-    # Replace placeholders
-    content = template_content.replace(original_class, new_class)  # CustomParser/Detector -> actual class
-    content = content.replace("custom_component", pkg_name)  # custom_component -> package directory
-    content = content.replace("custom_module", name)  # custom_module -> module (file) name
+    # new import line for the generated workspace:
+    # from <pkg_name>.<name> import <NewClass>, <NewClass>Config
+    new_import = f"from {pkg_name}.{name} import {new_class}, {new_class}Config"
+    # replace the import line
+    content = template_content.replace(original_import, new_import)
+    # replace the remaining occurrences of CustomParser/CustomDetector
+    # with the new class name (inside the tests)
+    content = content.replace(base_class, new_class)
+    content = content.rstrip() + "\n"
 
     test_file.write_text(content)
     print(f"- Added tests file: {test_file}")

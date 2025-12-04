@@ -1,6 +1,6 @@
+from typing import Any
 from detectmatelibrary import schemas
-
-from custom_component.custom_module import CustomParser, CustomParserConfig
+from ..CustomParser import CustomParser, CustomParserConfig
 
 
 default_args = {
@@ -17,7 +17,6 @@ default_args = {
 class TestCustomParser:
     def test_initialize_default(self) -> None:
         parser = CustomParser(name="CustomParser", config=default_args)
-
         assert isinstance(parser, CustomParser)
         assert parser.name == "CustomParser"
         assert isinstance(parser.config, CustomParserConfig)
@@ -25,7 +24,7 @@ class TestCustomParser:
     def test_run_parse_method(self) -> None:
         parser = CustomParser()
         input_data = schemas.LogSchema({"log": "test log"})
-        output_data = schemas.ParserSchema()
+        output_data: Any = schemas.ParserSchema()
 
         parser.parse(input_data, output_data)
 

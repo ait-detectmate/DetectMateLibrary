@@ -1,20 +1,22 @@
 import subprocess
 import pytest
+from pathlib import Path
 
 # Path to the CLI entry point
 CLI = ["mate"]  # installed as console script
 
 
 @pytest.fixture
-def temp_dir(tmp_path):
+def temp_dir(tmp_path: Path) -> Path:
     # Creates an isolated directory for each test (workspace root)
     return tmp_path
 
 
-def test_create_parser_workspace(temp_dir):
+def test_create_parser_workspace(temp_dir: Path):
     ws_name = "myParser"
     workspace_root = temp_dir
     pkg_dir = workspace_root / "myparser"
+    tests_dir = workspace_root / "tests"
 
     # Run the CLI tool
     subprocess.check_call([
@@ -42,12 +44,15 @@ def test_create_parser_workspace(temp_dir):
     assert len(py_files) == 2  # __init__.py + myParser.py
     assert (pkg_dir / f"{ws_name}.py").exists()
     assert (pkg_dir / "__init__.py").exists()
+    assert tests_dir.exists()
+    assert (tests_dir / f"test_{ws_name}.py").exists()
 
 
-def test_create_detector_workspace(temp_dir):
+def test_create_detector_workspace(temp_dir: Path):
     ws_name = "myDetector"
     workspace_root = temp_dir
     pkg_dir = workspace_root / "mydetector"
+    tests_dir = workspace_root / "tests"
 
     subprocess.check_call([
         *CLI,
@@ -69,9 +74,11 @@ def test_create_detector_workspace(temp_dir):
     assert len(py_files) == 2  # __init__.py + myDetector.py
     assert (pkg_dir / f"{ws_name}.py").exists()
     assert (pkg_dir / "__init__.py").exists()
+    assert tests_dir.exists()
+    assert (tests_dir / f"test_{ws_name}.py").exists()
 
 
-def test_fail_if_dir_exists(temp_dir):
+def test_fail_if_dir_exists(temp_dir: Path):
     ws_name = "existing"
     workspace_root = temp_dir
     pkg_dir = workspace_root / ws_name

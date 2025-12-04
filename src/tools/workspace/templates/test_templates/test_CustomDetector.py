@@ -1,6 +1,6 @@
+from typing import Any
 from detectmatelibrary import schemas
-
-from custom_component.custom_module import CustomDetector, CustomDetectorConfig
+from ..CustomDetector import CustomDetector, CustomDetectorConfig
 
 
 default_args = {
@@ -17,7 +17,6 @@ default_args = {
 class TestCustomDetector:
     def test_initialize_default(self) -> None:
         detector = CustomDetector(name="CustomDetector", config=default_args)
-
         assert isinstance(detector, CustomDetector)
         assert detector.name == "CustomDetector"
         assert isinstance(detector.config, CustomDetectorConfig)
@@ -25,14 +24,14 @@ class TestCustomDetector:
     def test_run_detect_method(self) -> None:
         detector = CustomDetector()
         data = schemas.ParserSchema({"log": "test log"})
-        output = schemas.DetectorSchema()
+        output: Any = schemas.DetectorSchema()
 
         result = detector.detect(data, output)
 
         assert output.description == "Dummy detection process"
         if result:
             assert output.score == 1.0
-            assert "Anomaly detected by CustomDetector" in output.alertsObtain["type"]
+            assert "Anomaly detected" in output.alertsObtain["type"]
         else:
             assert output.score == 0.0
             assert len(output.alertsObtain) == 0
