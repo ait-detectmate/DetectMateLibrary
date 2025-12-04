@@ -171,6 +171,7 @@ def create_pyproject(name: str, ws_type: str, target_dir: Path) -> None:
 
         # Add the libraries your workspace needs below
         dependencies = [
+            "detectmatelibrary @ git+https://github.com/ait-detectmate/DetectMateLibrary.git",
         ]
 
         [project.optional-dependencies]
