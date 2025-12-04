@@ -177,8 +177,9 @@ def create_pyproject(name: str, ws_type: str, target_dir: Path) -> None:
         # Add dependencies in this section with: uv add --optional dev <package>
         # Install with all the dev dependencies:  uv pip install -e .[dev]
         dev = [
-            "detectmateservice @ git+https://github.com/ait-detectmate/DetectMateService.git
+            "detectmateservice @ git+https://github.com/ait-detectmate/DetectMateService.git",
             "prek>=0.2.8",
+            "pytest>=8.4.2",
         ]
 
         [build-system]

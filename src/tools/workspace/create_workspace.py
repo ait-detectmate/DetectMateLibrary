@@ -28,6 +28,32 @@ def camelize(name: str) -> str:
     return name[0].upper() + name[1:]
 
 
+def create_tests(type_: str, name: str, workspace_root: Path, pkg_name: str) -> None:
+    """Create a tests/ directory with a basic pytest file for the component."""
+
+    tests_dir = workspace_root / "tests"
+    tests_dir.mkdir(parents=True, exist_ok=True)
+    template_file = TEMPLATE_DIR / f"test_Custom{type_.capitalize()}.py"
+    test_file = tests_dir / f"test_{name}.py"
+
+    if not template_file.exists():
+        print(f"WARNING: Test template {template_file} not found. Creating empty test file.", file=sys.stderr)
+        test_file.touch()
+        return
+
+    template_content = template_file.read_text()
+    original_class = f"Custom{type_.capitalize()}"
+    new_class = camelize(name)
+
+    # Replace placeholders
+    content = template_content.replace(original_class, new_class)  # CustomParser/Detector -> actual class
+    content = content.replace("custom_component", pkg_name)  # custom_component -> package directory
+    content = content.replace("custom_module", name)  # custom_module -> module (file) name
+
+    test_file.write_text(content)
+    print(f"- Added tests file: {test_file}")
+
+
 def create_workspace(type_: str, name: str, target_dir: Path) -> None:
     """Main workspace creation logic.
 
@@ -41,7 +67,8 @@ def create_workspace(type_: str, name: str, target_dir: Path) -> None:
     workspace_root.mkdir(parents=True, exist_ok=True)
 
     # Package directory inside the workspace
-    pkg_dir = workspace_root / normalize(name)
+    pkg_name = normalize(name)
+    pkg_dir = workspace_root / pkg_name
 
     # Fail if the package directory already exists
     if pkg_dir.exists():
@@ -56,8 +83,7 @@ def create_workspace(type_: str, name: str, target_dir: Path) -> None:
     target_code_file = pkg_dir / f"{name}.py"
 
     if not template_file.exists():
-        print(f"WARNING: Template not found: {template_file}. Creating empty file.",
-              file=sys.stderr)
+        print(f"WARNING: Template not found: {template_file}. Creating empty file.", file=sys.stderr)
         target_code_file.touch()
     else:
         template_content = template_file.read_text()
@@ -73,6 +99,8 @@ def create_workspace(type_: str, name: str, target_dir: Path) -> None:
 
     # Make the package importable
     (pkg_dir / "__init__.py").touch()
+
+    create_tests(type_=type_, name=name, workspace_root=workspace_root, pkg_name=pkg_name)
 
     # Copy meta/root files
     for file_name in META_FILES:
