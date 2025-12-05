@@ -3,7 +3,7 @@ import shutil
 import sys
 from pathlib import Path
 
-from .utils import create_readme, create_pyproject, normalize
+from .utils import create_readme, create_pyproject, normalize_package_name
 
 # resolve paths relative to this file
 BASE_DIR = Path(__file__).resolve().parent.parent  # tools/
@@ -55,7 +55,7 @@ def create_tests(type_: str, name: str, workspace_root: Path, pkg_name: str) -> 
     new_class = camelize(name)
     # new import line for the generated workspace:
     # from <pkg_name>.<name> import <NewClass>, <NewClass>Config
-    new_import = f"from {pkg_name}.{name} import {new_class}, {new_class}Config"
+    new_import = f"from {pkg_name}.{normalize_package_name(name)} import {new_class}, {new_class}Config"
     # replace the import line
     content = template_content.replace(original_import, new_import)
     # replace the remaining occurrences of CustomParser/CustomDetector
@@ -80,7 +80,7 @@ def create_workspace(type_: str, name: str, target_dir: Path) -> None:
     workspace_root.mkdir(parents=True, exist_ok=True)
 
     # Package directory inside the workspace
-    pkg_name = normalize(name)
+    pkg_name = normalize_package_name(name)
     pkg_dir = workspace_root / pkg_name
 
     # Fail if the package directory already exists
@@ -93,7 +93,8 @@ def create_workspace(type_: str, name: str, target_dir: Path) -> None:
 
     # Template selection
     template_file = TEMPLATE_DIR / f"Custom{type_.capitalize()}.py"
-    target_code_file = pkg_dir / f"{name}.py"
+    module_name = normalize_package_name(name)
+    target_code_file = pkg_dir / f"{module_name}.py"
 
     if not template_file.exists():
         print(f"WARNING: Template not found: {template_file}. Creating empty file.", file=sys.stderr)

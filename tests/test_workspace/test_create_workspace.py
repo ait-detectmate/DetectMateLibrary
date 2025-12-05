@@ -3,6 +3,8 @@ import sys
 import subprocess
 import pytest
 from pathlib import Path
+from tools.workspace.utils import normalize_package_name
+
 
 # Path to the CLI entry point
 CLI = ["mate"]  # installed as console script
@@ -17,7 +19,9 @@ def temp_dir(tmp_path: Path) -> Path:
 def test_create_parser_workspace(temp_dir: Path):
     ws_name = "myParser"
     workspace_root = temp_dir
-    pkg_dir = workspace_root / "myparser"
+    pkg_name = normalize_package_name(ws_name)  # myparser
+    module_name = normalize_package_name(ws_name)  # myparser
+    pkg_dir = workspace_root / pkg_name
     tests_dir = workspace_root / "tests"
 
     # Run the CLI tool
@@ -44,7 +48,7 @@ def test_create_parser_workspace(temp_dir: Path):
     # Python files live in package directory
     py_files = list(pkg_dir.glob("*.py"))
     assert len(py_files) == 2  # __init__.py + myParser.py
-    assert (pkg_dir / f"{ws_name}.py").exists()
+    assert (pkg_dir / f"{module_name}.py").exists()
     assert (pkg_dir / "__init__.py").exists()
     assert tests_dir.exists()
     assert (tests_dir / f"test_{ws_name}.py").exists()
@@ -53,7 +57,9 @@ def test_create_parser_workspace(temp_dir: Path):
 def test_create_detector_workspace(temp_dir: Path):
     ws_name = "myDetector"
     workspace_root = temp_dir
-    pkg_dir = workspace_root / "mydetector"
+    pkg_name = normalize_package_name(ws_name)  # mydetector
+    module_name = normalize_package_name(ws_name)  # mydetector
+    pkg_dir = workspace_root / pkg_name
     tests_dir = workspace_root / "tests"
 
     subprocess.check_call([
@@ -74,10 +80,39 @@ def test_create_detector_workspace(temp_dir: Path):
 
     py_files = list(pkg_dir.glob("*.py"))
     assert len(py_files) == 2  # __init__.py + myDetector.py
-    assert (pkg_dir / f"{ws_name}.py").exists()
+    assert (pkg_dir / f"{module_name}.py").exists()
     assert (pkg_dir / "__init__.py").exists()
     assert tests_dir.exists()
     assert (tests_dir / f"test_{ws_name}.py").exists()
+
+
+def test_create_workspace_with_dash_name(temp_dir: Path):
+    ws_name = "custom-parser"
+    workspace_root = temp_dir
+    pkg_name = normalize_package_name(ws_name)  # custom_parser
+    module_name = normalize_package_name(ws_name)  # custom_parser
+    pkg_dir = workspace_root / pkg_name
+    tests_dir = workspace_root / "tests"
+    test_file = tests_dir / f"test_{ws_name}.py"
+
+    subprocess.check_call([
+        *CLI,
+        "create",
+        "--type", "parser",
+        "--name", ws_name,
+        "--dir", str(workspace_root),
+    ])
+
+    assert workspace_root.exists()
+    assert pkg_dir.exists()
+    assert tests_dir.exists()
+    assert test_file.exists()
+    assert (pkg_dir / "__init__.py").exists()
+    assert (pkg_dir / f"{module_name}.py").exists()
+
+    # check that the generated test imports use the normalized names
+    content = test_file.read_text()
+    assert f"from {pkg_name}.{module_name} import " in content
 
 
 def test_fail_if_dir_exists(temp_dir: Path):

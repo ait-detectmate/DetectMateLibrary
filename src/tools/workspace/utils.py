@@ -8,6 +8,15 @@ def normalize(name: str) -> str:
     return re.sub(r"[-_.]+", "-", name).lower()
 
 
+def normalize_package_name(name: str) -> str:
+    """Normalize to a valid Python package name: lowercase, underscores only."""
+    name = name.lower()
+    name = re.sub(r"[^a-z0-9]+", "_", name)  # replace non-alphanumerics w/ _
+    name = re.sub(r"_+", "_", name)  # collapse repeated _
+    name = name.strip("_")
+    return name
+
+
 def create_readme(name: str, ws_type: str, target_impl: Path, target_dir: Path) -> None:
     """Create a README.md file for the generated workspace.
 
@@ -144,12 +153,12 @@ def create_pyproject(name: str, ws_type: str, target_dir: Path) -> None:
     - Leaves a dependencies list ready for you to fill with the necessary libraries.
     """
 
-    project_name = normalize(name)
+    package_name = normalize_package_name(name)
 
     pyproject_text = textwrap.dedent(
         f"""
         [project]
-        name = "{project_name}"
+        name = "{normalize(name)}"
         version = "0.1.0"
         description = "Generated {ws_type} workspace '{name}'"
         readme = "README.md"
@@ -174,8 +183,8 @@ def create_pyproject(name: str, ws_type: str, target_dir: Path) -> None:
         build-backend = "setuptools.build_meta"
 
         [tool.setuptools]
-        # Treat the '{project_name}' directory as the package
-        packages = ["{project_name}"]
+        # Treat the '{package_name}' directory as the package
+        packages = ["{package_name}"]
         """
     ).strip() + "\n"
 
