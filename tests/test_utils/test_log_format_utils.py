@@ -39,7 +39,7 @@ def test_epoch_seconds_and_millis():
 def test_syslog_without_year_assumes_current_year():
     # Expect that a string like 'Nov 11 12:13:14' is parsed with current year
     s = "Nov 11 12:13:14"
-    year = datetime.utcnow().year
+    year = datetime.now().year
     dt = datetime.strptime(f"{year} {s}", "%Y %b %d %H:%M:%S")
     dt = dt.replace(tzinfo=timezone.utc)
     assert tfh.parse_timestamp(s) == str(int(dt.timestamp()))

@@ -58,7 +58,7 @@ repos:
   rev: 1.8.6
   hooks:
     - id: bandit
-      exclude: ^tests/
+      exclude: (^tests/|.*/test_.*|^test_.*)
 
 # Unused code detection
 - repo: https://github.com/jendrikseipp/vulture
