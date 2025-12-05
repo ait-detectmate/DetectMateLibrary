@@ -24,22 +24,17 @@ def create_readme(name: str, ws_type: str, target_impl: Path, target_dir: Path) 
         f"""
         # {name}
 
-        This is a generated **{ws_type}** workspace created with:
-
-        ```bash
-        mate create --type {ws_type} --name {name} --dir {target_dir.parent}
-        ```
-
+        This is an auto-generated workspace for implementing your custom {ws_type}.
         The directory containing this `README.md` is referred to as the *workspace root* below.
 
         ## Contents
 
-        - `{target_impl.name}`: starting point for your `{ws_type}` implementation.
-        - `LICENSE.md`: copied from the main project.
-        - `.pre-commit-config.yaml`: pre-commit hook configuration from the main project.
-        - `.gitignore`: standard ignore rules from the main project.
+        - `{normalize(name)}/{target_impl.name}`: starting point for your `{ws_type}` implementation.
+        - `tests/test_{target_impl.name}`: unit tests for your `{ws_type}`.
+        - `LICENSE.md`: EUPL-1.2 license copied from the main project.
+        - `.pre-commit-config.yaml`: recommended pre-commit hook configuration.
+        - `.gitignore`: standard ignore rules.
         - `pyproject.toml`: Python project metadata, dependencies, and dev extras.
-        - `__init__.py`: makes this directory importable as a package.
 
         ## Recommended setup (uv + prek)
 
@@ -60,22 +55,16 @@ def create_readme(name: str, ws_type: str, target_impl: Path, target_dir: Path) 
 
         # Activate it
         source .venv/bin/activate         # Linux/macOS
-        # .venv\\Scripts\\activate        # Windows (PowerShell / CMD)
+        # .venv\\Scripts\\activate          # Windows
         ```
 
-        ### 2. Install the project and dev dependencies (including prek)
+        ### 2. Install the project and dev dependencies
 
         ```bash
         uv pip install -e .[dev]
         ```
 
-        To add new dev-only dependencies later:
-
-        ```bash
-        uv add --optional dev <package>
-        ```
-
-        ### 3. Install and run Git hooks with prek
+        ### 3. Install and run Git hooks with prek (optional but recommended)
 
         With the virtual environment activated:
 
@@ -83,8 +72,8 @@ def create_readme(name: str, ws_type: str, target_impl: Path, target_dir: Path) 
         # Install Git hooks from .pre-commit-config.yaml using prek
         prek install
 
-        # (Optional but recommended) Run all hooks once on the full codebase
-        prek run --all-files
+        # You can run all hooks on the full codebase with:
+        # prek run --all-files
         ```
 
         After this, hooks will run automatically on each commit.
@@ -101,19 +90,14 @@ def create_readme(name: str, ws_type: str, target_impl: Path, target_dir: Path) 
 
         # Activate it
         source .venv/bin/activate         # Linux/macOS
-        # .venv\\Scripts\\activate        # Windows (PowerShell / CMD)
+        # .venv\\Scripts\\activate          # Windows
 
         # Install the project in editable mode with dev dependencies
         pip install -e .[dev]
         ```
 
         With `pip`, `prek` will still be available from the virtual environment,
-        and you can use the same commands to install hooks:
-
-        ```bash
-        prek install
-        prek run --all-files
-        ```
+        and you can use the same `prek install` command to install hooks.
 
         ## Next steps
 
@@ -142,6 +126,8 @@ def create_readme(name: str, ws_type: str, target_impl: Path, target_dir: Path) 
         ```bash
         detectmate start --settings service_settings.yaml
         ```
+
+        For more info about DetectMate Service, see https://github.com/ait-detectmate/DetectMateService.
 
         Make sure you run this command from within the virtual environment where you installed
         this workspace (e.g. after `uv venv && source .venv/bin/activate`).
