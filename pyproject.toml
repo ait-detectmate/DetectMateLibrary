@@ -13,7 +13,6 @@ dependencies = [
     "regex>=2025.11.3",
 ]
 
-
 [project.optional-dependencies]
 # add dependencies in this section with: uv add --optional dev <package>
 # install with all the dev dependencies:  uv pip install -e .[dev]
@@ -29,3 +28,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[project.scripts]
+mate = "tools.workspace.create_workspace:main"

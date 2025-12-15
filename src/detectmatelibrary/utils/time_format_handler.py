@@ -40,7 +40,7 @@ class TimeFormatHandler:
         try:
             # handle syslog-like formats that lack a year by prepending the current year
             if fmt == "%b %d %H:%M:%S" and re.match(r"^[A-Za-z]{3} \d{1,2} ", time_str):
-                year = datetime.utcnow().year
+                year = datetime.now().year
                 dt = datetime.strptime(f"{year} {time_str}", f"%Y {fmt}")
             else:
                 dt = datetime.strptime(time_str, fmt)
