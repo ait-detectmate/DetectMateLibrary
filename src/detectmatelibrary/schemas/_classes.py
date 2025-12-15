@@ -62,6 +62,9 @@ class BaseSchema(SchemaVariables):
     ) -> None:
         super().__init__(schema_id=schema_id, kwargs=kwargs)
 
+    def __str__(self) -> str:
+        return str(self.get_schema())
+
     def copy(self) -> "BaseSchema":
         """Create a deep copy of the schema instance."""
         copy_schema = op.copy(schema_id=self.schema_id, schema=self.get_schema())
