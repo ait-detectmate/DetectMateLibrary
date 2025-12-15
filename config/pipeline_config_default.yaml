@@ -17,6 +17,17 @@ parsers:
             lowercase: True
             path_templates: tests/test_folder/audit_templates.txt
 
+    JsonMatcherParser:
+        method_type: matcher_parser
+        auto_config: False
+        log_format: "<Content>"
+        time_format: null
+        params:
+            remove_spaces: True
+            remove_punctuation: True
+            lowercase: True
+            path_templates: local/miranda_templates.txt
+
     JsonParser:
         method_type: json_parser
         time_format: null
@@ -24,6 +35,7 @@ parsers:
         params:
             timestamp_name: "time"
             content_name: "message"
+            content_parser: JsonMatcherParser
 
 detectors:
     RandomDetector:
