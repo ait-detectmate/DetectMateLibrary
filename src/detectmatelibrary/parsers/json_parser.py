@@ -47,6 +47,7 @@ class JsonParserConfig(CoreParserConfig):
     method_type: str = "json_parser"
     timestamp_name: str = "time"
     content_name: str = "message"
+    content_parser: str = "JsonMatcherParser"
 
 
 class JsonParser(CoreParser):
@@ -57,7 +58,8 @@ class JsonParser(CoreParser):
     ) -> None:
 
         if isinstance(config, dict):
-            content_parser_config = MatcherParserConfig.from_dict(config, "MatcherParser")
+            content_parser_name = config.get("content_parser", "JsonMatcherParser")
+            content_parser_config = MatcherParserConfig.from_dict(config, content_parser_name)
             self.content_parser = MatcherParser(config=content_parser_config)
             config = JsonParserConfig.from_dict(config, name)
         super().__init__(name=name, config=config)
