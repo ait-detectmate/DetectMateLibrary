@@ -135,7 +135,7 @@ class TestJsonParser:
                     "timestamp_name": "time",
                     "content_name": "message",
                 },
-                "MatcherParser": {
+                "JsonMatcherParser": {
                     "auto_config": True,
                     "method_type": "matcher_parser",
                     "path_templates": "tests/test_folder/test_templates.txt"
