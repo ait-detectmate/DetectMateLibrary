@@ -9,13 +9,14 @@ from google.protobuf.message import Message
 
 #  Main variables ************************************
 # Use Union of actual protobuf classes for better type hints
-SchemaT = Union[s.Schema, s.LogSchema, s.ParserSchema, s.DetectorSchema]  # type: ignore
+SchemaT = Union[s.Schema, s.LogSchema, s.ParserSchema, s.DetectorSchema, s.OutputSchema]  # type: ignore
 SchemaID = NewType("SchemaID", bytes)
 
 BASE_SCHEMA: SchemaID = SchemaID(b"0")
 LOG_SCHEMA: SchemaID = SchemaID(b"1")
 PARSER_SCHEMA: SchemaID = SchemaID(b"2")
 DETECTOR_SCHEMA: SchemaID = SchemaID(b"3")
+OUTPUT_SCHEMA: SchemaID = SchemaID(b"4")
 
 __current_version = "1.0.0"
 __id_codes: Dict[SchemaID, Type[Message]] = {
@@ -23,6 +24,7 @@ __id_codes: Dict[SchemaID, Type[Message]] = {
     LOG_SCHEMA: s.LogSchema,  # type: ignore
     PARSER_SCHEMA: s.ParserSchema,  # type: ignore
     DETECTOR_SCHEMA: s.DetectorSchema,  # type: ignore
+    OUTPUT_SCHEMA: s.OutputSchema,  # type: ignore
 }
 
 

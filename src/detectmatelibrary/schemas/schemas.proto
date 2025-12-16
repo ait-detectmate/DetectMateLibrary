@@ -45,7 +45,7 @@ message OutputSchema {
     optional string __version__ = 1;
     repeated string detectorIDs = 2;
     repeated string detectorTypes = 3;
-    repeated int32 alertID = 4;
+    repeated int32 alertIDs = 4;
     optional int32 outputTimestamp = 5;
     repeated int32 logIDs = 6;
     repeated int32 extractedTimestamps = 9;

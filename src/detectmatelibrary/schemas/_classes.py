@@ -149,3 +149,15 @@ class DetectorSchema(BaseSchema):
     def copy(self) -> "DetectorSchema":
         schema: DetectorSchema = super().copy()  # type: ignore
         return schema
+
+
+class OutputSchema(BaseSchema):
+    """Output schema class."""
+    def __init__(
+        self, kwargs: dict[str, Any] | None = None
+    ) -> None:
+        super().__init__(schema_id=op.OUTPUT_SCHEMA, kwargs=kwargs)
+
+    def copy(self) -> "OutputSchema":
+        schema: OutputSchema = super().copy()  # type: ignore
+        return schema

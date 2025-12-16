@@ -7,8 +7,9 @@ from detectmatelibrary.schemas._classes import (
     BaseSchema,
     LogSchema,
     ParserSchema,
-    DetectorSchema
+    DetectorSchema,
+    OutputSchema
 )
 
 
-__all__ = ["BaseSchema", "LogSchema", "ParserSchema", "DetectorSchema"]
+__all__ = ["BaseSchema", "LogSchema", "ParserSchema", "DetectorSchema", "OutputSchema"]

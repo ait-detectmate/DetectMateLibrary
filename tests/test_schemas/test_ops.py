@@ -72,6 +72,30 @@ class TestCaseSchemas:
         assert schema.score == 0.5
         assert schema.extractedTimestamps == [4, 5, 6]
 
+    def test_initialize_output_schema(self) -> None:
+        values = {
+            "detectorIDs": ["test id", "another id"],
+            "detectorTypes": ["type test", "another type"],
+            "alertIDs": [1, 2],
+            "outputTimestamp": 2,
+            "logIDs": [1, 2, 3],
+            "extractedTimestamps": [4, 5, 6],
+            "description": "test description",
+            "alertsObtain": {"key": "value"}
+        }
+        schema = op_schemas.initialize(op_schemas.OUTPUT_SCHEMA, **values)
+
+        assert schema.__version__ == "1.0.0"
+        assert schema.detectorIDs == ["test id", "another id"]
+        assert schema.detectorTypes == ["type test", "another type"]
+        assert schema.alertIDs == [1, 2]
+        assert schema.outputTimestamp == 2
+        assert schema.logIDs == [1, 2, 3]
+        assert schema.extractedTimestamps == [4, 5, 6]
+        assert schema.description == "test description"
+        assert schema.alertsObtain == {"key": "value"}
+        assert schema.extractedTimestamps == [4, 5, 6]
+
     def test_copy(self) -> None:
         values = {
             "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
