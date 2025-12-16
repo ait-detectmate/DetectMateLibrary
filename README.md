@@ -36,7 +36,7 @@ protoc --version
 
 This dependency is only needed if a proto file is modified. To compile the proto file do:
 ```bash
-protoc --proto_path=src/schemas/ --python_out=src/schemas/ src/schemas/schemas.proto
+protoc --proto_path=src/detectmatelibrary/schemas/ --python_out=src/detectmatelibrary/schemas/ src/schemas/schemas.proto
 ```
 
 ### Step 3: Run unit tests
