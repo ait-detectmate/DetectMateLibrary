@@ -2,6 +2,8 @@ from detectmatelibrary.common.core import CoreComponent, CoreConfig, SchemaPipel
 
 from detectmatelibrary import schemas
 
+from tools.logging import logger
+
 from typing import Optional, Any
 
 
@@ -44,8 +46,10 @@ class CoreReader(CoreComponent):
     def process(self, as_bytes: bool = True) -> schemas.LogSchema | bytes | None:  # type: ignore
         is_new_log = self.read(log := self.__init_logs())
         if not is_new_log:
+            logger.info(f"<<{self.name}>> returns None")
             return None
 
+        logger.info(f"<<{self.name}>> read:\n{log}")
         return SchemaPipeline.postprocess(log, is_byte=as_bytes) if is_new_log else None  # type: ignore
 
     def read(self, output_: schemas.LogSchema) -> bool:
