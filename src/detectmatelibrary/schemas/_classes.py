@@ -32,12 +32,13 @@ class SchemaVariables:
     def __contains__(self, idx: str) -> bool:
         return idx in self.var_names
 
+    def as_dict(self) -> dict[str, Any]:
+        """Return the schema variables as a dictionary."""
+        return {var: getattr(self, var) for var in self.var_names}
+
     def get_schema(self) -> op.SchemaT:
         """Retrieve the current schema instance."""
-        return _initialize_schema(
-            schema_id=self.schema_id,
-            kwargs={var: getattr(self, var) for var in self.var_names}
-        )
+        return _initialize_schema(schema_id=self.schema_id, kwargs=self.as_dict())
 
     def set_schema(self, schema: op.SchemaT) -> None:
         """Set the schema instance and update attributes."""
