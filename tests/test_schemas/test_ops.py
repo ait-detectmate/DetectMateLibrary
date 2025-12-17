@@ -176,3 +176,20 @@ class TestCaseSchemas:
 
         assert set(vars) == set(expected_vars), f"{vars}"
         assert len(vars) == len(expected_vars), f"{vars}"
+
+    def test_is_repeated(self) -> None:
+        values = {
+            "detectorID": "test id",
+            "detectorType": "type test",
+            "alertID": 1,
+            "detectionTimestamp": 2,
+            "logIDs": [1, 2, 3],
+            "score": 0.5,
+            "extractedTimestamps": [4, 5, 6]
+        }
+        schema = op_schemas.initialize(op_schemas.DETECTOR_SCHEMA, **values)
+
+        assert not op_schemas.is_repeated(schema, "detectorID")
+        assert not op_schemas.is_repeated(schema, "score")
+        assert op_schemas.is_repeated(schema, "logIDs")
+        assert op_schemas.is_repeated(schema, "extractedTimestamps")

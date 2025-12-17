@@ -156,3 +156,12 @@ class TestBaseSchema:
 
         with pytest.raises(IncorrectSchema):
             log_schema1.check_is_same(parser_schema)
+
+    def test_is_field_list(self):
+        detector_schema = DetectorSchema()
+        assert detector_schema.is_field_list("logIDs") is True
+        assert detector_schema.is_field_list("detectorID") is False
+
+        # Check that that the memory works
+        assert detector_schema.is_field_list("logIDs") is True
+        assert detector_schema.is_field_list("detectorID") is False

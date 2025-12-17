@@ -53,9 +53,45 @@ def __get_schema_class(schema_id: SchemaID) -> Type[Message]:
     return __id_codes[schema_id]
 
 
-def __is_repeated_field(field: Any) -> bool:
+def __is_repeated(field: Any) -> bool:
     """Check if a field in the message is a repeated element."""
     return bool(field.is_repeated)
+
+
+# Auxiliar methods *****************************************
+def is_repeated(schema: SchemaT, field_name: str) -> bool:
+    """Check if a field is a repeated element."""
+    for field in schema.DESCRIPTOR.fields:
+        if field.name == field_name:
+            return __is_repeated(field)
+    raise NotSupportedSchema()
+
+
+def check_is_same_schema(
+    id_schema_1: SchemaID, id_schema_2: SchemaID
+) -> None | IncorrectSchema:
+    """Raise exception if two schemas do not match."""
+    if id_schema_1 != id_schema_2:
+        raise IncorrectSchema()
+    return None
+
+
+def check_if_schema_is_complete(schema: SchemaT) -> None | NotCompleteSchema:
+    """Check if the schema is complete."""
+    missing_fields = []
+    for field in schema.DESCRIPTOR.fields:
+        if not __is_repeated(field) and not schema.HasField(field.name):
+            missing_fields.append(field.name)
+
+    if len(missing_fields) > 0:
+        raise NotCompleteSchema(f"Missing fields: {missing_fields}")
+
+    return None
+
+
+def get_variables_names(schema: SchemaT) -> list[str]:
+    """Get the variable names of the schema."""
+    return [field.name for field in schema.DESCRIPTOR.fields]
 
 
 # Main methods *****************************************
@@ -97,31 +133,3 @@ def deserialize(message: bytes) -> Tuple[SchemaID, SchemaT]:
     schema = schema_class()
     schema.ParseFromString(message[1:])
     return schema_id, schema
-
-
-# Auxiliar methods *****************************************
-def check_is_same_schema(
-    id_schema_1: SchemaID, id_schema_2: SchemaID
-) -> None | IncorrectSchema:
-    """Raise exception if two schemas do not match."""
-    if id_schema_1 != id_schema_2:
-        raise IncorrectSchema()
-    return None
-
-
-def check_if_schema_is_complete(schema: SchemaT) -> None | NotCompleteSchema:
-    """Check if the schema is complete."""
-    missing_fields = []
-    for field in schema.DESCRIPTOR.fields:
-        if not __is_repeated_field(field) and not schema.HasField(field.name):
-            missing_fields.append(field.name)
-
-    if len(missing_fields) > 0:
-        raise NotCompleteSchema(f"Missing fields: {missing_fields}")
-
-    return None
-
-
-def get_variables_names(schema: SchemaT) -> list[str]:
-    """Get the variable names of the schema."""
-    return [field.name for field in schema.DESCRIPTOR.fields]
