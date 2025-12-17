@@ -12,7 +12,6 @@ from typing import List, Optional, Any
 class CoreOutputConfig(CoreConfig):
     comp_type: str = "outputs"
     method_type: str = "core_output"
-    parser: str = "<PLACEHOLDER>"
 
     auto_config: bool = False
 
@@ -60,7 +59,7 @@ class CoreOutput(CoreComponent):
         output_["detectorIDs"] = get_field(input_, "detectorID")
         output_["detectorTypes"] = get_field(input_, "detectorType")
         output_["alertIDs"] = get_field(input_, "alertID")
-        output_["logIDs"] = get_field(input_, "logID")
+        output_["logIDs"] = get_field(input_, "logIDs")
         output_["extractedTimestamps"] = get_field(input_, "extractedTimestamps")
 
         do_output = self.do_output(input_, output_)

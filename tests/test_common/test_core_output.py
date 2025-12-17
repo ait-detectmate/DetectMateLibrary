@@ -1,5 +1,6 @@
 
 from detectmatelibrary.common.output import CoreOutput, CoreOutputConfig, get_field, DetectorFieldNotFound
+from detectmatelibrary.utils.data_buffer import BufferMode
 import detectmatelibrary.schemas as schemas
 
 import pytest
@@ -11,10 +12,13 @@ class MockupConfig(CoreOutputConfig):
 
 class MockupOutput(CoreOutput):
     def __init__(self, name: str, config: CoreOutputConfig) -> None:
-        super().__init__(name=name, config=config)
+        super().__init__(
+            name=name, config=config, buffer_mode=BufferMode.WINDOW, buffer_size=2
+        )
 
     def do_output(self, input_, output_):
-        pass
+        output_["description"] = "hi"
+        output_["alertsObtain"] = {"ciao": "bella"}
 
 
 values = {
@@ -67,3 +71,50 @@ class TestGetField:
         input_ = [schemas.DetectorSchema(values), schemas.DetectorSchema(values2)]
         result = get_field(input_, "logIDs")
         assert result == [0, 0, 0, 1, 1]
+
+
+class TestCoreOutput:
+    def test_initialization(self):
+        config = MockupConfig()
+        output = MockupOutput(name="TestOutput", config=config)
+
+        assert output.name == "TestOutput"
+        assert output.config == config
+        assert output.input_schema == schemas.DetectorSchema
+        assert output.output_schema == schemas.OutputSchema
+
+    def test_run(self):
+        config = MockupConfig()
+        output = MockupOutput(name="TestOutput", config=config)
+
+        input_ = [
+            schemas.DetectorSchema(values),
+            schemas.DetectorSchema(values2)
+        ]
+        output_ = schemas.OutputSchema()
+
+        output.run(input_=input_, output_=output_)
+
+        assert output_.detectorIDs == ["test id", "test id2"]
+        assert output_.detectorTypes == ["type test", "type test2"]
+        assert output_.alertIDs == [0, 1]
+        assert output_.logIDs == [0, 0, 0, 1, 1]
+        assert output_.extractedTimestamps == [0, 0, 0, 1, 1]
+        assert output_.description == "hi"
+        assert output_.alertsObtain == {"ciao": "bella"}
+
+    def test_process(self):
+        config = MockupConfig()
+        output = MockupOutput(name="TestOutput", config=config)
+
+        assert output.process(schemas.DetectorSchema(values)) is None
+
+        result = output.process(schemas.DetectorSchema(values2))
+
+        assert result.detectorIDs == ["test id", "test id2"]
+        assert result.detectorTypes == ["type test", "type test2"]
+        assert result.alertIDs == [0, 1]
+        assert result.logIDs == [0, 0, 0, 1, 1]
+        assert result.extractedTimestamps == [0, 0, 0, 1, 1]
+        assert result.description == "hi"
+        assert result.alertsObtain == {"ciao": "bella"}
