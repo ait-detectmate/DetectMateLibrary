@@ -1,6 +1,8 @@
+from detectmatelibrary.common.core import CoreConfig, CoreComponent, TrainState
 from detectmatelibrary.common._config import BasicConfig
-from detectmatelibrary.common.core import CoreConfig, CoreComponent
+
 from detectmatelibrary.utils.data_buffer import ArgsBuffer
+
 import detectmatelibrary.schemas._op as op_schemas
 import detectmatelibrary.schemas as schemas
 
@@ -181,3 +183,36 @@ class TestCoreComponent:
                 "hostname": "test_hostname"
             })
             assert expected == log
+
+    def test_training_force_stop(self) -> None:
+        component = MockComponentWithTraining(name="Dummy5")
+
+        for i in range(10):
+            if i == 2:
+                component.train_state = TrainState.STOP_TRAINING
+            component.process(
+                schemas.LogSchema({
+                    "__version__": "1.0.0",
+                    "logID": i,
+                    "logSource": "test",
+                    "hostname": "test_hostname"
+                })
+            )
+
+        assert len(component.train_data) == 2
+
+    def test_training_keep_training(self) -> None:
+        component = MockComponentWithTraining(name="Dummy6")
+        component.train_state = TrainState.KEEP_TRAINING
+
+        for i in range(10):
+            component.process(
+                schemas.LogSchema({
+                    "__version__": "1.0.0",
+                    "logID": i,
+                    "logSource": "test",
+                    "hostname": "test_hostname"
+                })
+            )
+
+        assert len(component.train_data) == 10
