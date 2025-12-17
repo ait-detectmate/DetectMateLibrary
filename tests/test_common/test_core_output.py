@@ -1,6 +1,7 @@
 
 from detectmatelibrary.common.output import CoreOutput, CoreOutputConfig, get_field, DetectorFieldNotFound
 from detectmatelibrary.utils.data_buffer import BufferMode
+from detectmatelibrary.utils.aux import time_test_mode
 import detectmatelibrary.schemas as schemas
 
 import pytest
@@ -73,6 +74,9 @@ class TestGetField:
         assert result == [0, 0, 0, 1, 1]
 
 
+time_test_mode()
+
+
 class TestCoreOutput:
     def test_initialization(self):
         config = MockupConfig()
@@ -100,6 +104,7 @@ class TestCoreOutput:
         assert output_.alertIDs == [0, 1]
         assert output_.logIDs == [0, 0, 0, 1, 1]
         assert output_.extractedTimestamps == [0, 0, 0, 1, 1]
+        assert output_.outputTimestamp == 0
         assert output_.description == "hi"
         assert output_.alertsObtain == {"ciao": "bella"}
 
@@ -118,3 +123,4 @@ class TestCoreOutput:
         assert result.extractedTimestamps == [0, 0, 0, 1, 1]
         assert result.description == "hi"
         assert result.alertsObtain == {"ciao": "bella"}
+        assert result.outputTimestamp == 0
