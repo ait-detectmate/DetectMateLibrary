@@ -26,17 +26,19 @@ class SchemaVariables:
     ) -> None:
         self.schema_id = schema_id
         self.var_names: set[str]
+        self.__is_list: dict[str, bool] = {}
         self.init_schema(kwargs=kwargs)
 
     def __contains__(self, idx: str) -> bool:
         return idx in self.var_names
 
+    def as_dict(self) -> dict[str, Any]:
+        """Return the schema variables as a dictionary."""
+        return {var: getattr(self, var) for var in self.var_names}
+
     def get_schema(self) -> op.SchemaT:
         """Retrieve the current schema instance."""
-        return _initialize_schema(
-            schema_id=self.schema_id,
-            kwargs={var: getattr(self, var) for var in self.var_names}
-        )
+        return _initialize_schema(schema_id=self.schema_id, kwargs=self.as_dict())
 
     def set_schema(self, schema: op.SchemaT) -> None:
         """Set the schema instance and update attributes."""
@@ -52,6 +54,16 @@ class SchemaVariables:
             setattr(self, var, getattr(_schema, var))
             var_names.append(var)
         self.var_names = set(var_names)
+
+    def is_field_list(self, field_name: str) -> bool:
+        """Check if a field is a list."""
+        if field_name in self.__is_list:  # Avoid recomputation
+            return self.__is_list[field_name]
+
+        schema = self.get_schema()
+        is_list = op.is_repeated(schema=schema, field_name=field_name)
+        self.__is_list[field_name] = is_list
+        return is_list
 
 
 class BaseSchema(SchemaVariables):
@@ -148,4 +160,16 @@ class DetectorSchema(BaseSchema):
 
     def copy(self) -> "DetectorSchema":
         schema: DetectorSchema = super().copy()  # type: ignore
+        return schema
+
+
+class OutputSchema(BaseSchema):
+    """Output schema class."""
+    def __init__(
+        self, kwargs: dict[str, Any] | None = None
+    ) -> None:
+        super().__init__(schema_id=op.OUTPUT_SCHEMA, kwargs=kwargs)
+
+    def copy(self) -> "OutputSchema":
+        schema: OutputSchema = super().copy()  # type: ignore
         return schema

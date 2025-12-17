@@ -1,4 +1,3 @@
-import re
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig, get_format_variables
 from detectmatelibrary.utils.aux import time_test_mode
 import detectmatelibrary.schemas._op as op_schemas
@@ -6,6 +5,7 @@ import detectmatelibrary.schemas as schemas
 
 import pydantic
 import pytest
+import re
 
 
 class MockupConfig(CoreParserConfig):

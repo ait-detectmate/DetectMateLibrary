@@ -156,3 +156,28 @@ class TestBaseSchema:
 
         with pytest.raises(IncorrectSchema):
             log_schema1.check_is_same(parser_schema)
+
+    def test_is_field_list(self):
+        detector_schema = DetectorSchema()
+        assert detector_schema.is_field_list("logIDs") is True
+        assert detector_schema.is_field_list("detectorID") is False
+
+        # Check that that the memory works
+        assert detector_schema.is_field_list("logIDs") is True
+        assert detector_schema.is_field_list("detectorID") is False
+
+    def test_as_dict(self):
+        detector_schema = DetectorSchema()
+        assert detector_schema.as_dict() == {
+            "__version__": "1.0.0",
+            "detectorID": detector_schema.detectorID,
+            "detectorType": detector_schema.detectorType,
+            "alertID": detector_schema.alertID,
+            "detectionTimestamp": detector_schema.detectionTimestamp,
+            "logIDs": detector_schema.logIDs,
+            "score": detector_schema.score,
+            "extractedTimestamps": detector_schema.extractedTimestamps,
+            "description": detector_schema.description,
+            "receivedTimestamp": detector_schema.receivedTimestamp,
+            "alertsObtain": detector_schema.alertsObtain,
+        }

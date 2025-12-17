@@ -72,6 +72,30 @@ class TestCaseSchemas:
         assert schema.score == 0.5
         assert schema.extractedTimestamps == [4, 5, 6]
 
+    def test_initialize_output_schema(self) -> None:
+        values = {
+            "detectorIDs": ["test id", "another id"],
+            "detectorTypes": ["type test", "another type"],
+            "alertIDs": [1, 2],
+            "outputTimestamp": 2,
+            "logIDs": [1, 2, 3],
+            "extractedTimestamps": [4, 5, 6],
+            "description": "test description",
+            "alertsObtain": {"key": "value"}
+        }
+        schema = op_schemas.initialize(op_schemas.OUTPUT_SCHEMA, **values)
+
+        assert schema.__version__ == "1.0.0"
+        assert schema.detectorIDs == ["test id", "another id"]
+        assert schema.detectorTypes == ["type test", "another type"]
+        assert schema.alertIDs == [1, 2]
+        assert schema.outputTimestamp == 2
+        assert schema.logIDs == [1, 2, 3]
+        assert schema.extractedTimestamps == [4, 5, 6]
+        assert schema.description == "test description"
+        assert schema.alertsObtain == {"key": "value"}
+        assert schema.extractedTimestamps == [4, 5, 6]
+
     def test_copy(self) -> None:
         values = {
             "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
@@ -152,3 +176,20 @@ class TestCaseSchemas:
 
         assert set(vars) == set(expected_vars), f"{vars}"
         assert len(vars) == len(expected_vars), f"{vars}"
+
+    def test_is_repeated(self) -> None:
+        values = {
+            "detectorID": "test id",
+            "detectorType": "type test",
+            "alertID": 1,
+            "detectionTimestamp": 2,
+            "logIDs": [1, 2, 3],
+            "score": 0.5,
+            "extractedTimestamps": [4, 5, 6]
+        }
+        schema = op_schemas.initialize(op_schemas.DETECTOR_SCHEMA, **values)
+
+        assert not op_schemas.is_repeated(schema, "detectorID")
+        assert not op_schemas.is_repeated(schema, "score")
+        assert op_schemas.is_repeated(schema, "logIDs")
+        assert op_schemas.is_repeated(schema, "extractedTimestamps")
