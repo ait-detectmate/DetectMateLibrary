@@ -8,6 +8,7 @@ from detectmatelibrary.schemas import BaseSchema
 from tools.logging import logger, setup_logging
 
 from typing import Any, Dict, Tuple, List
+from enum import Enum
 
 
 setup_logging()
@@ -38,12 +39,32 @@ class SchemaPipeline:
         return data if not is_byte else data.serialize()
 
 
+class TrainState(Enum):
+    DEFAULT = 0
+    STOP_TRAINING = 1
+    KEEP_TRAINING = 2
+
+    def describe(self) -> str:
+        descriptions = [
+            "Follow default training behavior.",
+            "Force stop training.",
+            "Keep training regardless of default behavior."
+        ]
+
+        return descriptions[self.value]
+
+
 class CoreConfig(BasicConfig):
     start_id: int = 10
     data_use_training: int | None = None
 
 
-def do_training(config: CoreConfig, index: int) -> bool:
+def do_training(config: CoreConfig, index: int, train_state: TrainState) -> bool:
+    if train_state == TrainState.STOP_TRAINING:
+        return False
+    elif train_state == TrainState.KEEP_TRAINING:
+        return True
+
     return config.data_use_training is not None and config.data_use_training > index
 
 
@@ -65,6 +86,7 @@ class CoreComponent:
         self.data_buffer = DataBuffer(args_buffer)
         self.id_generator = SimpleIDGenerator(self.config.start_id)
         self.data_used_train = 0
+        self.train_state: TrainState = TrainState.DEFAULT
 
     def __repr__(self) -> str:
         return f"<{self.type_}> {self.name}: {self.config}"
@@ -86,7 +108,7 @@ class CoreComponent:
         if (data_buffered := self.data_buffer.add(data)) is None:  # type: ignore
             return None
 
-        if do_training(config=self.config, index=self.data_used_train):
+        if do_training(config=self.config, index=self.data_used_train, train_state=self.train_state):
             self.data_used_train += 1
             logger.info(f"<<{self.name}>> use data for training")
             self.train(input_=data_buffered)
