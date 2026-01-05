@@ -101,8 +101,15 @@ class DataBuffer:
             buf.clear()
         return result
 
+    def get_buffer(self) -> deque[Any]:
+        """Get the current buffer."""
+        return self.buffer
+
     def flush(self) -> Any:
         """Process remaining data_points."""
         if self.buffer:
             clear = self.mode != BufferMode.WINDOW
             return self._process_and_clear(self.buffer, clear=clear)
+
+    def __repr__(self) -> str:
+        return f"DataBuffer(mode={self.mode}, capacity={self.size}, current_length={len(self.buffer)})"
