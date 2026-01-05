@@ -1,7 +1,7 @@
-from typing import Any, Dict, List, Set
+from typing import Any, Dict
 
 
-def list_preview_str(listlike: List[Any] | Set[Any], bool_to_int: bool = True) -> list[Any]:
+def list_preview_str(listlike: Any, bool_to_int: bool = True) -> list[Any]:
     """Show a preview of a listlike sequence."""
     series_start = list(listlike)[:3]
     if len(listlike) > 6:

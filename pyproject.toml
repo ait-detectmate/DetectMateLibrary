@@ -6,7 +6,9 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "drain3>=0.9.11",
+    "numpy>=2.3.2",
     "pandas>=2.3.2",
+    "polars>=1.36.1",
     "protobuf>=6.32.1",
     "pydantic>=2.11.7",
     "pyyaml>=6.0.3",
