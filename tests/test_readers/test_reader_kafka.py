@@ -1,9 +1,11 @@
 from detectmatelibrary.readers.kafka_consumer import KafkaConfig, KafkaReader
 
+import pytest
 import time
 
 
 class TestCaseKafka:
+    @pytest.mark.skip(reason="Only run when the kafka server is running")
     def test_normal(self) -> None:
         config = KafkaConfig(
             server="localhost:9092", topic="test_topic", group_id="b"
