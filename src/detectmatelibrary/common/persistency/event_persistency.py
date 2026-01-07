@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Type
+from typing import Any, Dict, List, Optional, Type
 
 from .event_data_structures.base import EventDataStructure
 
@@ -11,19 +11,24 @@ class EventPersistency:
     - manages multiple EventDataStructure instances, one per event ID
     - doesn't know retention strategy
     - only delegates to EventDataStructure
+
+    Args:
+        event_data_class: The EventDataStructure subclass to use for storing event data.
+        variable_blacklist: Variable names to exclude from storage. "Content" is excluded by default.
+        event_data_kwargs: Additional keyword arguments to pass to the EventDataStructure constructor.
     """
 
     def __init__(
         self,
         event_data_class: Type[EventDataStructure],
-        variable_blacklist: Optional[set[str | int]] = None,
+        variable_blacklist: Optional[List[str | int]] = ["Content"],
         *,
         event_data_kwargs: Optional[dict[str, Any]] = None,
     ):
         self.events_data: Dict[int, EventDataStructure] = {}
         self.event_data_class = event_data_class
         self.event_data_kwargs = event_data_kwargs or {}
-        self.variable_blacklist = variable_blacklist or set()
+        self.variable_blacklist = variable_blacklist or []
 
     def ingest_event(
         self,
@@ -51,7 +56,7 @@ class EventPersistency:
     def get_all_variables(
         variables: list[Any],
         log_format_variables: Dict[str, Any],
-        variable_blacklist: set[str | int],
+        variable_blacklist: List[str | int],
         event_var_prefix: str = "var_",
     ) -> dict[str, list[Any]]:
         """Combine log format variables and event variables into a single

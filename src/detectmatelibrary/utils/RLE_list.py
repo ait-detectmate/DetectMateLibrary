@@ -49,15 +49,15 @@ class RLEList(Generic[T]):
 
 
 # example usage
-if __name__ == "__main__":
-    r = RLEList[str]()
 
-    r.append("A")
-    r.append("A")
-    r.append("B")
-    r.extend(["B", "B", "C"])
+# r = RLEList[str]()
 
-    print(len(r))        # 6
-    print(list(r))       # ['A', 'A', 'B', 'B', 'B', 'C']
-    print(r.runs())      # [('A', 2), ('B', 3), ('C', 1)]
-    print(r)             # RLEList(len=6, runs=[('A', 2), ('B', 3), ('C', 1)])
+# r.append("A")
+# r.append("A")
+# r.append("B")
+# r.extend(["B", "B", "C"])
+
+# print(len(r))        # 6
+# print(list(r))       # ['A', 'A', 'B', 'B', 'B', 'C']
+# print(r.runs())      # [('A', 2), ('B', 3), ('C', 1)]
+# print(r)             # RLEList(len=6, runs=[('A', 2), ('B', 3), ('C', 1)])
