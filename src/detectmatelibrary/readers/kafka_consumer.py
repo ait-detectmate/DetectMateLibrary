@@ -9,7 +9,7 @@ import threading
 
 class KafkaConfig(CoreReaderConfig):
     file: str = "<PLACEHOLDER>"
-    method_type: str = "log_file_reader"
+    method_type: str = "kafka_reader"
 
     server: str = "<PLACEHOLDER>"
     topic: str = "<PLACEHOLDER>"

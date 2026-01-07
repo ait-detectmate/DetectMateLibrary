@@ -8,7 +8,7 @@ class TestCaseKafka:
     @pytest.mark.skip(reason="Only run when the kafka server is running")
     def test_normal(self) -> None:
         config = KafkaConfig(
-            server="localhost:9092", topic="test_topic", group_id="b"
+            server="localhost:9092", topic="test_topic", group_id="bs"
         )
         reader = KafkaReader(config=config)
 
