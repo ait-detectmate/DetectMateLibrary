@@ -12,10 +12,14 @@ from typing import List, Optional, Any
 def _extract_timestamp(
     input_: List[ParserSchema] | ParserSchema
 ) -> List[int]:
+    def format_time(time: str) -> int:
+        time_ = time.split(":")[0]
+        return int(float(time_))
+
     if not isinstance(input_, list):
         input_ = [input_]
 
-    return [int(float(i["logFormatVariables"]["Time"])) for i in input_]
+    return [format_time(i["logFormatVariables"]["Time"]) for i in input_]
 
 
 def _extract_logIDs(
