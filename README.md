@@ -12,9 +12,9 @@ The library contains the next components:
 * **Outputs**: return alerts as outputs.
 * **Schemas**: standard data classes use in DetectMate.
 ```
-+---------+     +--------+     +-----------+     +---------+
-| Reader  | --> | Parser | --> |  Detector | --> |  Output |
-+---------+     +--------+     +-----------+     +---------+
++---------+     +--------+     +-----------+     +--------+
+| Reader  | --> | Parser | --> |  Detector | --> | Output |
++---------+     +--------+     +-----------+     +--------+
 ```
 ## Developer setup:
 
