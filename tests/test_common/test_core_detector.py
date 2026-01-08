@@ -72,7 +72,7 @@ dummy_schema = {
     "parsedLogID": 22,
     "parserID": "test",
     "log": "This is a parsed log.",
-    "logFormatVariables": {"Time": "12121.12"},
+    "logFormatVariables": {"Time": "12121.12:20"},
 }
 
 
