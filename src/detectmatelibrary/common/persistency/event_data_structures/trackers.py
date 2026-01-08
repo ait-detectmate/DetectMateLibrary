@@ -159,7 +159,7 @@ class StabilityTracker:
         unique_set_str = "{" + ", ".join(map(str, list_preview_str(self.unique_set))) + "}"
         RLE_str = list_preview_str(self.change_series.runs())
         return (
-            f"StabilityTracker(classification={self.classify()}, series={series_str}, "
+            f"StabilityTracker(classification={self.classify()}, change_series={series_str}, "
             f"unique_set={unique_set_str}, RLE={RLE_str})"
         )
 
