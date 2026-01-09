@@ -29,14 +29,17 @@ class EventPersistency:
         self.event_data_class = event_data_class
         self.event_data_kwargs = event_data_kwargs or {}
         self.variable_blacklist = variable_blacklist or []
+        self.event_templates: Dict[int, str] = {}
 
     def ingest_event(
         self,
         event_id: int,
+        event_template: str,
         variables: list[Any],
         log_format_variables: Dict[str, Any],
     ) -> None:
         """Ingest event data into the appropriate EventData store."""
+        self.event_templates[event_id] = event_template
         all_variables = self.get_all_variables(variables, log_format_variables, self.variable_blacklist)
         data = self.event_data_class.to_data(all_variables)
 
@@ -51,6 +54,18 @@ class EventPersistency:
         """Retrieve the data for a specific event ID."""
         data_structure = self.events_data.get(event_id)
         return data_structure.get_data() if data_structure is not None else None
+
+    def get_events_data(self) -> Any | None:
+        """Retrieve the events' data."""
+        return self.events_data
+
+    def get_event_template(self, event_id: int) -> str | None:
+        """Retrieve the template for a specific event ID."""
+        return self.event_templates.get(event_id)
+
+    def get_event_templates(self) -> Dict[int, str]:
+        """Retrieve all event templates."""
+        return self.event_templates
 
     @staticmethod
     def get_all_variables(
@@ -78,4 +93,7 @@ class EventPersistency:
         return self.events_data.get(event_id)
 
     def __repr__(self) -> str:
-        return f"EventPersistency(num_event_types={len(self.events_data)})"
+        return (
+            f"EventPersistency(num_event_types={len(self.events_data)}, "
+            f"keys={list(self.events_data.keys())})"
+        )

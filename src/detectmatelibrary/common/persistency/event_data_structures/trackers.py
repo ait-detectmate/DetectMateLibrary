@@ -5,7 +5,7 @@
 
 # from src.detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
 from typing import Any, Dict, Set, Type, List
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import numpy as np
 
 from detectmatelibrary.utils.preview_helpers import list_preview_str, format_dict_repr
@@ -189,18 +189,29 @@ class VariableTrackers:
             classifications[var_name] = tracker.classify()
         return classifications
 
+    def get_stable_variables(self) -> List[str]:
+        """Get a list of variable names that are classified as stable."""
+        stable_vars = []
+        for var_name, tracker in self.trackers.items():
+            classification = tracker.classify()
+            if classification.type == "STABLE":
+                stable_vars.append(var_name)
+        return stable_vars
+
     def __repr__(self) -> str:
         strs = format_dict_repr(self.trackers, indent="\t")
         return f"VariableTrackers{{\n\t{strs}\n}}\n"
 
 
+@dataclass
 class EventVariableTracker(EventDataStructure):
-    """Event data structure that tracks variable behaviors over time (or rather
-    events)."""
+    """Event data structure that tracks variable behaviors over time/events."""
 
-    def __init__(self, tracker_type: Type[StabilityTracker] = StabilityTracker) -> None:
-        self.variable_trackers = VariableTrackers(tracker_type=tracker_type)
-        self.current_data = None
+    tracker_type: Type[StabilityTracker] = StabilityTracker
+    variable_trackers: VariableTrackers = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.variable_trackers = VariableTrackers(tracker_type=self.tracker_type)
 
     def add_data(self, data_object: Any) -> None:
         """Add data to the variable trackers."""
@@ -213,6 +224,10 @@ class EventVariableTracker(EventDataStructure):
     def get_variables(self) -> list[str]:
         """Get the list of tracked variable names."""
         return list(self.variable_trackers.get_trackers().keys())
+
+    def get_stable_variables(self) -> List[str]:
+        """Get a list of variable names that are classified as stable."""
+        return self.variable_trackers.get_stable_variables()
 
     @staticmethod
     def to_data(raw_data: Dict[str, Any]) -> Dict[str, Any]:

@@ -17,9 +17,7 @@ class EventDataFrame(EventDataStructure):
     - Retention is not handled (can be extended)
     - DataFrame is always materialized
     """
-
-    def __init__(self) -> None:
-        self.data: pd.DataFrame = pd.DataFrame()
+    data: pd.DataFrame = field(default_factory=pd.DataFrame)
 
     def add_data(self, data: pd.DataFrame) -> None:
         if len(self.data) > 0:
