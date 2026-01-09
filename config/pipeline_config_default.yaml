@@ -97,11 +97,8 @@ detectors:
                   variables:
                     - pos: 0
                       name: var1
-                      params:
-                        threshold: 0.
                   header_variables:
                     - pos: level
-                      params: {}
     NewValueComboDetector_All:
         method_type: new_value_combo_detector
         auto_config: False
