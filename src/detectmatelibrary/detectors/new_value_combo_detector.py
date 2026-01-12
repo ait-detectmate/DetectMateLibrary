@@ -5,11 +5,67 @@ from detectmatelibrary.common.detector import CoreDetector
 
 from detectmatelibrary.utils.data_buffer import BufferMode
 
+from detectmatelibrary.common.persistency.event_data_structures.trackers import (
+    EventVariableTracker, StabilityTracker
+)
+from detectmatelibrary.common.persistency.event_persistency import EventPersistency
+
 import detectmatelibrary.schemas as schemas
 
 from itertools import combinations
 
 from typing import Any, Set, Dict, cast
+
+from copy import deepcopy
+from typing import List, Optional
+
+
+def generate_detector_config(
+    variable_selection: Dict[int, List[str]],
+    templates: Dict[Any, str | None],
+    detector_name: str,
+    method_type: str,
+    base_config: Optional[Dict[str, Any]] = None,
+    max_combo_size: int = 6,
+) -> Dict[str, Any]:
+
+    if base_config is None:
+        base_config = {
+            "detectors": {
+                detector_name: {
+                    "method_type": method_type,
+                    "auto_config": False,
+                    "params": {
+                        "log_variables": []
+                    },
+                }
+            }
+        }
+    config = deepcopy(base_config)
+
+    detectors = config.setdefault("detectors", {})
+    detector = detectors.setdefault(detector_name, {})
+    detector.setdefault("method_type", method_type)
+    detector.setdefault("auto_config", False)
+    params = detector.setdefault("params", {})
+    params["comb_size"] = max_combo_size
+    log_variables = params.setdefault("log_variables", [])
+
+    for event_id, all_variables in variable_selection.items():
+        variables = [
+            {"pos": int(name.split("_")[1]), "name": name}
+            for name in all_variables if name.startswith("var_")
+        ]
+        header_variables = [{"pos": name} for name in all_variables if not name.startswith("var_")]
+
+        log_variables.append({
+            "id": f"id_{event_id}",
+            "event": event_id,
+            "template": templates.get(event_id, ""),
+            "variables": variables,
+            "header_variables": header_variables,
+        })
+    return config
 
 
 # Auxiliar methods ********************************************************
@@ -42,7 +98,7 @@ def _get_combos(
         return set()
 
     relevant_log_fields = relevant_log_fields.get_all().keys()  # type: ignore
-    _check_size(combo_size, len(relevant_log_fields))  # type: ignore
+    # _check_size(combo_size, len(relevant_log_fields))  # type: ignore
 
     return set(combinations([
         _get_element(input_, var_pos=field) for field in relevant_log_fields  # type: ignore
@@ -120,8 +176,18 @@ class NewValueComboDetector(CoreDetector):
 
         self.config = cast(NewValueComboDetectorConfig, self.config)
         self.known_combos: Dict[str | int, Set[Any]] = {"all": set()}
+        self.persistency = EventPersistency(
+            event_data_class=EventVariableTracker,
+            event_data_kwargs={"tracker_type": StabilityTracker}
+        )
 
     def train(self, input_: schemas.ParserSchema) -> None:  # type: ignore
+        # self.persistency.ingest_event(
+        #     event_id=input_["EventID"],
+        #     event_template=input_["template"],
+        #     variables=input_["variables"],
+        #     log_format_variables=input_["logFormatVariables"],
+        # )
         train_combo_detector(
             input_=input_,
             known_combos=self.known_combos,
@@ -148,3 +214,29 @@ class NewValueComboDetector(CoreDetector):
             output_["alertsObtain"].update(alerts)
             return True
         return False
+
+    def configure(self, input_: schemas.ParserSchema) -> None:
+        self.persistency.ingest_event(
+            event_id=input_["EventID"],
+            event_template=input_["template"],
+            variables=input_["variables"],
+            log_format_variables=input_["logFormatVariables"],
+        )
+
+    def set_configuration(self, max_combo_size: int = 6) -> None:
+        variable_combos = {}
+        templates = {}
+        for event_id, tracker in self.persistency.get_events_data().items():
+            stable_vars = tracker.get_stable_variables()  # type: ignore
+            if len(stable_vars) > 1:
+                variable_combos[event_id] = stable_vars
+                templates[event_id] = self.persistency.get_event_template(event_id)
+        config_dict = generate_detector_config(
+            variable_selection=variable_combos,
+            templates=templates,
+            detector_name=self.name,
+            method_type=self.config.method_type,
+            max_combo_size=max_combo_size
+        )
+        # Update the config object from the dictionary instead of replacing it
+        self.config = NewValueComboDetectorConfig.from_dict(config_dict, self.name)

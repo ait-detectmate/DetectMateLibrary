@@ -55,7 +55,7 @@ class EventPersistency:
         data_structure = self.events_data.get(event_id)
         return data_structure.get_data() if data_structure is not None else None
 
-    def get_events_data(self) -> Any | None:
+    def get_events_data(self) -> Dict[int, EventDataStructure]:
         """Retrieve the events' data."""
         return self.events_data
 

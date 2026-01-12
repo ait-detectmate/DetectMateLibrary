@@ -57,3 +57,7 @@ class LogFileReader(CoreReader):
                 output_.log = log
 
         return not self.is_over
+
+    def reset(self) -> None:
+        self.__log_generator = self.read_logs()
+        self.is_over = False
