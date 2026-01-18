@@ -3,7 +3,7 @@ readers:
         method_type: log_file_reader
         auto_config: False
         params:
-            file: local/miranda.json
+            file: tests/test_folder/audit.log
 
 parsers:
     MatcherParser:

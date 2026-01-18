@@ -149,7 +149,7 @@ def detect_combo_detector(
         if not unique_combos.issubset(combos_set):
             for combo in unique_combos - combos_set:
                 overall_score += 1
-                alerts.update({"Not found combo": str(combo)})
+                alerts.update({f"EventID_{input_['EventID']}": f"Values: {combo}"})
 
     return overall_score
 
@@ -210,7 +210,9 @@ class NewValueComboDetector(CoreDetector):
 
         if overall_score > 0:
             output_["score"] = overall_score
-            output_["description"] = f"The detector check combinations of {self.config.comb_size} variables"
+            output_["description"] = (
+                f"The detector checks for new value combinations of size {self.config.comb_size}."
+            )
             output_["alertsObtain"].update(alerts)
             return True
         return False
