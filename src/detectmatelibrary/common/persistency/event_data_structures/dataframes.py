@@ -33,7 +33,8 @@ class EventDataFrame(EventDataStructure):
 
     @staticmethod
     def to_data(raw_data: Dict[int | str, Any]) -> pd.DataFrame:
-        return pd.DataFrame(raw_data)
+        data = {key: [value] for key, value in raw_data.items()}
+        return pd.DataFrame(data)
 
     def __repr__(self) -> str:
         return f"EventDataFrame(df=..., rows={len(self.data)}, variables={self.get_variables()})"
@@ -110,6 +111,6 @@ class ChunkedEventDataFrame(EventDataStructure):
 
     def __repr__(self) -> str:
         return (
-            f"ChunkedEventDataFrame(rows={self._rows}, chunks={len(self.chunks)}, "
+            f"ChunkedEventDataFrame(df=..., rows={self._rows}, chunks={len(self.chunks)}, "
             f"variables={self.get_variables()})"
         )
