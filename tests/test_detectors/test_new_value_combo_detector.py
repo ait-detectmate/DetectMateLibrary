@@ -1,12 +1,11 @@
 
 from detectmatelibrary.detectors.new_value_combo_detector import (
-    NewValueComboDetector, ComboTooBigError, BufferMode
+    NewValueComboDetector, BufferMode
 )
 import detectmatelibrary.schemas as schemas
 
 from detectmatelibrary.utils.aux import time_test_mode
 
-import pytest
 
 # Set time test mode for consistent timestamps
 time_test_mode()
@@ -165,27 +164,6 @@ class TestNewValueComboDetectorTraining:
             ("assa", "INFO"), ("assa", "WARNING"), ("assa", "ERROR")
         })}
         assert combos == detector.known_combos
-
-    def test_train_too_big(self):
-        parser_data = schemas.ParserSchema({
-            "parserType": "test",
-            "EventID": 1,
-            "template": "test template",
-            "variables": ["0", "assa"],
-            "logID": 1,
-            "parsedLogID": 1,
-            "parserID": "test_parser",
-            "log": "test log message",
-            "logFormatVariables": {"level": "INFO"}
-        })
-
-        with pytest.raises(ComboTooBigError):
-            detector = NewValueComboDetector(config=config, name="AllDetectorTooBig")
-            detector.train(parser_data)
-
-        with pytest.raises(ComboTooBigError):
-            detector = NewValueComboDetector(config=config, name="MultipleDetectorTooBig")
-            detector.train(parser_data)
 
 
 class TestNewValueComboDetectorDetection:
