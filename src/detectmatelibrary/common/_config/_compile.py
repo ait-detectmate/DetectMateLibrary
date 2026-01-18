@@ -2,7 +2,8 @@
 from detectmatelibrary.common._config._formats import apply_format
 
 
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional
+from copy import deepcopy
 import warnings
 
 
@@ -82,3 +83,61 @@ class ConfigMethods:
             config.update(config["params"])
             config.pop("params")
         return config
+
+
+def generate_detector_config(
+    variable_selection: Dict[int, List[str]],
+    templates: Dict[Any, str | None],
+    detector_name: str,
+    method_type: str,
+    base_config: Optional[Dict[str, Any]] = None,
+    **additional_params: Any,
+) -> Dict[str, Any]:
+    """Generate the configuration for detectors. Output is a dictionary.
+
+    Args:
+        variable_selection (Dict[int, List[str]]): Mapping of event IDs to variable names.
+        templates (Dict[Any, str | None]): Mapping of event IDs to their templates.
+        detector_name (str): Name of the detector.
+        method_type (str): Type of the detection method.
+        base_config (Optional[Dict[str, Any]]): Base configuration to build upon.
+        **additional_params: Additional parameters for the detector.
+    """
+
+    if base_config is None:
+        base_config = {
+            "detectors": {
+                detector_name: {
+                    "method_type": method_type,
+                    "auto_config": False,
+                    "params": {
+                        "log_variables": []
+                    },
+                }
+            }
+        }
+    config = deepcopy(base_config)
+
+    detectors = config.setdefault("detectors", {})
+    detector = detectors.setdefault(detector_name, {})
+    detector.setdefault("method_type", method_type)
+    detector.setdefault("auto_config", False)
+    params = detector.setdefault("params", {})
+    params.update(additional_params)
+    log_variables = params.setdefault("log_variables", [])
+
+    for event_id, all_variables in variable_selection.items():
+        variables = [
+            {"pos": int(name.split("_")[1]), "name": name}
+            for name in all_variables if name.startswith("var_")
+        ]
+        header_variables = [{"pos": name} for name in all_variables if not name.startswith("var_")]
+
+        log_variables.append({
+            "id": f"id_{event_id}",
+            "event": event_id,
+            "template": templates.get(event_id, ""),
+            "variables": variables,
+            "header_variables": header_variables,
+        })
+    return config

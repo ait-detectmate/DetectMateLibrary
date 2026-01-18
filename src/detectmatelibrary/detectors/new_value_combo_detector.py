@@ -1,4 +1,5 @@
 from detectmatelibrary.common._config._formats import LogVariables, AllLogVariables
+from detectmatelibrary.common._config import generate_detector_config
 
 from detectmatelibrary.common.detector import CoreDetectorConfig
 from detectmatelibrary.common.detector import CoreDetector
@@ -12,60 +13,8 @@ from detectmatelibrary.common.persistency.event_persistency import EventPersiste
 
 import detectmatelibrary.schemas as schemas
 
-from itertools import combinations
-
 from typing import Any, Set, Dict, cast
-
-from copy import deepcopy
-from typing import List, Optional
-
-
-def generate_detector_config(
-    variable_selection: Dict[int, List[str]],
-    templates: Dict[Any, str | None],
-    detector_name: str,
-    method_type: str,
-    base_config: Optional[Dict[str, Any]] = None,
-    max_combo_size: int = 6,
-) -> Dict[str, Any]:
-
-    if base_config is None:
-        base_config = {
-            "detectors": {
-                detector_name: {
-                    "method_type": method_type,
-                    "auto_config": False,
-                    "params": {
-                        "log_variables": []
-                    },
-                }
-            }
-        }
-    config = deepcopy(base_config)
-
-    detectors = config.setdefault("detectors", {})
-    detector = detectors.setdefault(detector_name, {})
-    detector.setdefault("method_type", method_type)
-    detector.setdefault("auto_config", False)
-    params = detector.setdefault("params", {})
-    params["comb_size"] = max_combo_size
-    log_variables = params.setdefault("log_variables", [])
-
-    for event_id, all_variables in variable_selection.items():
-        variables = [
-            {"pos": int(name.split("_")[1]), "name": name}
-            for name in all_variables if name.startswith("var_")
-        ]
-        header_variables = [{"pos": name} for name in all_variables if not name.startswith("var_")]
-
-        log_variables.append({
-            "id": f"id_{event_id}",
-            "event": event_id,
-            "template": templates.get(event_id, ""),
-            "variables": variables,
-            "header_variables": header_variables,
-        })
-    return config
+from itertools import combinations
 
 
 # Auxiliar methods ********************************************************
@@ -238,7 +187,7 @@ class NewValueComboDetector(CoreDetector):
             templates=templates,
             detector_name=self.name,
             method_type=self.config.method_type,
-            max_combo_size=max_combo_size
+            comb_size=max_combo_size
         )
         # Update the config object from the dictionary instead of replacing it
         self.config = NewValueComboDetectorConfig.from_dict(config_dict, self.name)
