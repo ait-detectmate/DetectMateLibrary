@@ -6,7 +6,7 @@ message Schema {
 
 message LogSchema {
     optional string __version__ = 1;
-    optional int32 logID = 2;
+    optional string logID = 2;
     optional string log = 3;
     optional string logSource = 4;
     optional string hostname = 5;
@@ -19,8 +19,8 @@ message ParserSchema {
     optional int32 EventID = 4;
     optional string template = 5;
     repeated string variables = 6;
-    optional int32 parsedLogID = 7;
-    optional int32 logID = 8;
+    optional string parsedLogID = 7;
+    optional string logID = 8;
     optional string log = 9;
     map<string, string> logFormatVariables = 10;
     optional int32 receivedTimestamp = 11;
@@ -31,9 +31,9 @@ message DetectorSchema {
     optional string __version__ = 1;
     optional string detectorID = 2;
     optional string detectorType = 3;
-    optional int32 alertID = 4;
+    optional string alertID = 4;
     optional int32 detectionTimestamp = 5;
-    repeated int32 logIDs = 6;
+    repeated string logIDs = 6;
     optional float score = 8;
     repeated int32 extractedTimestamps = 9;
     optional string description = 10;
@@ -45,9 +45,9 @@ message OutputSchema {
     optional string __version__ = 1;
     repeated string detectorIDs = 2;
     repeated string detectorTypes = 3;
-    repeated int32 alertIDs = 4;
+    repeated string alertIDs = 4;
     optional int32 outputTimestamp = 5;
-    repeated int32 logIDs = 6;
+    repeated string logIDs = 6;
     repeated int32 extractedTimestamps = 9;
     optional string description = 10;
     map<string, string> alertsObtain = 12;
