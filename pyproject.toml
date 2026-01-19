@@ -32,3 +32,7 @@ where = ["src"]
 
 [project.scripts]
 mate = "tools.workspace.create_workspace:main"
+
+[[tool.mypy.overrides]]
+module = "detectmatelibrary.schemas.schemas_pb2"
+ignore_errors = true
