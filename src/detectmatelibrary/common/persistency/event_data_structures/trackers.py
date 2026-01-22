@@ -4,7 +4,7 @@
 # It is interchangable with other EventDataStructure implementations.
 
 # from src.detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
-from typing import Any, Dict, Set, Type, List
+from typing import Any, Dict, Literal, Set, Type, List
 from dataclasses import dataclass, field
 import numpy as np
 
@@ -189,14 +189,18 @@ class VariableTrackers:
             classifications[var_name] = tracker.classify()
         return classifications
 
-    def get_stable_variables(self) -> List[str]:
-        """Get a list of variable names that are classified as stable."""
-        stable_vars = []
+    def get_variables_by_classification(
+        self,
+        classification_type: Literal["INSUFFICIENT_DATA", "STATIC", "RANDOM", "STABLE", "UNSTABLE"]
+    ) -> List[str]:
+        """Get a list of variable names that are classified as the given
+        type."""
+        variables = []
         for var_name, tracker in self.trackers.items():
             classification = tracker.classify()
-            if classification.type == "STABLE":
-                stable_vars.append(var_name)
-        return stable_vars
+            if classification.type == classification_type:
+                variables.append(var_name)
+        return variables
 
     def __repr__(self) -> str:
         strs = format_dict_repr(self.trackers, indent="\t")
@@ -225,9 +229,12 @@ class EventVariableTracker(EventDataStructure):
         """Get the list of tracked variable names."""
         return list(self.variable_trackers.get_trackers().keys())
 
-    def get_stable_variables(self) -> List[str]:
-        """Get a list of variable names that are classified as stable."""
-        return self.variable_trackers.get_stable_variables()
+    def get_variables_by_classification(
+        self, classification_type: Literal["INSUFFICIENT_DATA", "STATIC", "RANDOM", "STABLE", "UNSTABLE"]
+    ) -> List[str]:
+        """Get a list of variable names that are classified as the given
+        type."""
+        return self.variable_trackers.get_variables_by_classification(classification_type)
 
     @staticmethod
     def to_data(raw_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -236,4 +243,4 @@ class EventVariableTracker(EventDataStructure):
 
     def __repr__(self) -> str:
         strs = format_dict_repr(self.variable_trackers.get_trackers(), indent="\t")
-        return f"EventVariableTracker(data={{\n\t{strs}\n}}"
+        return f"EventVariableTracker(data={{\n\t{strs}\n}})"
