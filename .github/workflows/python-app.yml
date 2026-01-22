@@ -20,7 +20,7 @@ jobs:
         uses: astral-sh/setup-uv@v6.6.0
         with:
           python-version: "3.12"
-          activate-environment: false
+          activate-environment: true
           enable-cache: true
 
       - name: Set timezone
@@ -45,6 +45,10 @@ jobs:
           # remove the git-based dependency so we don't override the local lib
           sed -i '/detectmatelibrary @ git+/d' pyproject.toml
 
+      - name: Prepare packages
+        working-directory: DetectMateService
+        run: uv pip install .
+
       - name: Run DetectMateService library integration tests
         working-directory: DetectMateService
-        run: uv run --dev pytest tests/library_integration
+        run: pytest tests/library_integration
