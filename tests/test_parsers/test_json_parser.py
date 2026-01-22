@@ -134,6 +134,7 @@ class TestJsonParser:
                     "method_type": "json_parser",
                     "timestamp_name": "time",
                     "content_name": "message",
+                    "content_parser": "JsonMatcherParser"
                 },
                 "JsonMatcherParser": {
                     "auto_config": True,
