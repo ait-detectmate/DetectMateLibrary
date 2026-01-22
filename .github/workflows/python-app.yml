@@ -20,7 +20,7 @@ jobs:
         uses: astral-sh/setup-uv@v6.6.0
         with:
           python-version: "3.12"
-          activate-environment: true
+          activate-environment: false
           enable-cache: true
 
       - name: Set timezone
