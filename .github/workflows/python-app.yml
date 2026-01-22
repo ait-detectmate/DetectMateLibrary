@@ -42,13 +42,12 @@ jobs:
           repository: ait-detectmate/DetectMateService
           path: DetectMateService
 
-      - name: Install DetectMateService (using local DetectMateLibrary)
+      - name: Prepare DetectMateService (using local DetectMateLibrary)
         working-directory: DetectMateService
         run: |
           # remove the git-based dependency so we don't override the local lib
           sed -i '/detectmatelibrary @ git+/d' pyproject.toml
-          uv pip install .[dev]
 
       - name: Run DetectMateService library integration tests
         working-directory: DetectMateService
-        run: uv run pytest tests/library_integration
+        run: uv run --dev pytest tests/library_integration
