@@ -14,6 +14,150 @@ def safe_search(pattern: str, string: str, timeout: int = 1) -> regex.Match[str]
     return result
 
 
+def tokenize_template(string: str) -> List[str]:
+    """Split template string treating <*> as tokens."""
+    # Split by <*> but keep <*> in the result, then filter empty strings
+    return [token for token in re.split(r'(<\*>)', string) if token]
+
+
+def exclude_digits(string: str) -> bool:
+    """Exclude the digits-domain words from partial constant."""
+    pattern = r'\d'
+    digits = re.findall(pattern, string)
+    if len(digits) == 0 or string[0].isalpha() or any(c.isupper() for c in string):
+        return False
+    elif len(digits) >= 4:
+        return True
+    else:
+        return len(digits) / len(string) > 0.3
+
+
+def normalize_spaces(text: str) -> str:
+    """Replace consecutive spaces with a single space."""
+    return re.sub(r' +', ' ', text)
+
+
+def correct_single_template(template: str, user_strings: set[str] | None = None) -> str:
+    """Apply all rules to process a template.
+
+    DS (Double Space) BL (Boolean) US (User String) DG (Digit) PS (Path-
+    like String) WV (Word concatenated with Variable) DV (Dot-separated
+    Variables) CV (Consecutive Variables)
+    """
+
+    boolean = {'true', 'false'}
+    default_strings = {'null', 'root'}  # 'null', 'root', 'admin'
+    path_delimiters = {  # reduced set of delimiters for tokenizing for checking the path-like strings
+        r'\s', r'\,', r'\!', r'\;', r'\:',
+        r'\=', r'\|', r'\"', r'\'', r'\+',
+        r'\[', r'\]', r'\(', r'\)', r'\{', r'\}'
+    }
+    token_delimiters = path_delimiters.union({  # all delimiters for tokenizing the remaining rules
+        r'\.', r'\-', r'\@', r'\#', r'\$', r'\%', r'\&', r'\/'
+    })
+
+    if user_strings:
+        default_strings = default_strings.union(user_strings)
+
+    # apply DS
+    template = template.strip()
+    template = re.sub(r'\s+', ' ', template)
+
+    # apply PS
+    p_tokens = re.split('(' + '|'.join(path_delimiters) + ')', template)
+    new_p_tokens = []
+    for p_token in p_tokens:
+        if (
+            re.match(r'^(\/[^\/]+)+\/?$', p_token) or
+            re.match(r'.*/.*\..*', p_token) or
+            re.match(r'^([a-zA-Z0-9-]+\.){3,}[a-z]+$', p_token)
+        ):
+            p_token = '<*>'  # nosec B105
+
+        new_p_tokens.append(p_token)
+    template = ''.join(new_p_tokens)
+    # tokenize for the remaining rules
+    tokens = re.split('(' + '|'.join(token_delimiters) + ')', template)  # tokenizing while keeping delimiters
+    new_tokens = []
+    for token in tokens:
+        # apply BL, US
+        for to_replace in boolean.union(default_strings):
+            # if token.lower() == to_replace.lower():
+            if token == to_replace:
+                token = '<*>'  # nosec B105
+
+        # apply DG
+        # Note: hexadecimal num also appears a lot in the logs
+        # if re.match(r'^\d+$', token) or re.match(r'\b0[xX][0-9a-fA-F]+\b', token):
+        #     token = '<*>'
+        if exclude_digits(token):
+            token = '<*>'  # nosec B105
+
+        # apply WV
+        if re.match(r'^[^\s\/]*<\*>[^\s\/]*$', token) or re.match(r'^<\*>.*<\*>$', token):
+            token = '<*>'  # nosec B105
+        # collect the result
+        new_tokens.append(token)
+
+    # make the template using new_tokens
+    template = ''.join(new_tokens)
+
+    # Substitute consecutive variables only if separated with any delimiter including "." (DV)
+    while True:
+        prev = template
+        template = re.sub(r'<\*>\.<\*>', '<*>', template)
+        if prev == template:
+            break
+
+    # Substitute consecutive variables only if not separated with any delimiter including space (CV)
+    # NOTE: this should be done at the end
+    while True:
+        prev = template
+        template = re.sub(r'<\*><\*>', '<*>', template)
+        if prev == template:
+            break
+
+    while "#<*>#" in template:
+        template = template.replace("#<*>#", "<*>")
+
+    while "<*>:<*>" in template:
+        template = template.replace("<*>:<*>", "<*>")
+
+    while "<*>/<*>" in template:
+        template = template.replace("<*>/<*>", "<*>")
+
+    while " #<*> " in template:
+        template = template.replace(" #<*> ", " <*> ")
+
+    while "<*>:<*>" in template:
+        template = template.replace("<*>:<*>", "<*>")
+
+    while "<*>#<*>" in template:
+        template = template.replace("<*>#<*>", "<*>")
+
+    while "<*>/<*>" in template:
+        template = template.replace("<*>/<*>", "<*>")
+
+    while "<*>@<*>" in template:
+        template = template.replace("<*>@<*>", "<*>")
+
+    while "<*>.<*>" in template:
+        template = template.replace("<*>.<*>", "<*>")
+
+    while ' "<*>" ' in template:
+        template = template.replace(' "<*>" ', ' <*> ')
+
+    while " '<*>' " in template:
+        template = template.replace(" '<*>' ", " <*> ")
+
+    while "<*><*>" in template:
+        template = template.replace("<*><*>", "<*>")
+
+    template = re.sub(r'<\*> [KGTM]?B\b', '<*>', template)
+
+    return template
+
+
 class Preprocess:
     def __init__(
         self,
@@ -43,7 +187,7 @@ class Preprocess:
 
     def __call__(self, text: str) -> str:
         if self.__re_spaces:
-            text = text.replace(" ", "")
+            text = normalize_spaces(text)
 
         if self.__re_punctuation:
             text = text.replace("<*>", "WILDCARD")
@@ -80,7 +224,7 @@ class TemplatesManager:
         event_id = 0
         for tpl in template_list:
             cleaned_tpl = self.preprocess(tpl)
-            tokens = cleaned_tpl.split("<*>")
+            tokens = tokenize_template(cleaned_tpl)
             min_len = sum(len(t) for t in tokens)  # lower bound to skip impossibles
 
             info = {
@@ -137,14 +281,21 @@ class TemplateMatcher:
         else:
             return None
 
+    @staticmethod
+    def correct_single_template(template: str) -> str:
+        """Apply all rules to process a template."""
+        return correct_single_template(template)
+
     def match_template_with_params(self, log: str) -> tuple[str, tuple[str, ...]] | None:
         """Return (template_string, [param1, param2, ...]) or None."""
-        s, candidates = self.manager.candidate_indices(log)
-        for i in candidates:
+        for i in range(len(self.manager.templates)):
             t = self.manager.templates[i]
-            if len(s) < t["min_len"]:
+            if len(log) < t["min_len"]:
                 continue
-            params = self.extract_parameters(log, t["raw"])
+            t = self.manager.templates[i]
+            preprocessed_log = self.manager.preprocess(log)
+            preprocessed_template = self.correct_single_template(self.manager.preprocess(t["raw"]))
+            params = self.extract_parameters(preprocessed_log, preprocessed_template)
             if params is not None:
                 t["count"] += 1
                 return t["raw"], params
