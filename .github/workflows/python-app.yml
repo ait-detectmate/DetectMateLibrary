@@ -26,14 +26,11 @@ jobs:
       - name: Set timezone
         run: sudo timedatectl set-timezone Europe/Vienna
 
-      - name: Install project deps
-        run: uv pip install .[dev]
-
       - name: Run pre-commit with prek
-        run: uv run prek run -a
+        run: uv run --dev prek run -a
 
       - name: Test with pytest
-        run: uv run pytest
+        run: uv run --dev pytest
 
       # integration tests for DetectMateService
       - name: Checkout DetectMateService
