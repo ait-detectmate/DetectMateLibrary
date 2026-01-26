@@ -62,7 +62,7 @@ class CoreParser(CoreComponent):
         )
 
         output_["parserID"] = self.name
-        output_["parsedLogID"] = self.id_generator()
+        output_["parsedLogID"] = str(self.id_generator())
         output_["parserType"] = self.config.method_type
         output_["logID"] = input_["logID"]
         output_["log"] = input_["log"]

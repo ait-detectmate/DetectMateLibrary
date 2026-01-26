@@ -96,7 +96,7 @@ def get_variables_names(schema: SchemaT) -> list[str]:
 
 # Main methods *****************************************
 def initialize(schema_id: SchemaID, **kwargs: Any) -> SchemaT | NotSupportedSchema:
-    """Initialize a protobuf schema, it use its arguments and the assigned
+    """Initialize a protobuf schema, it uses its arguments and the assigned
     id."""
     kwargs["__version__"] = __current_version
     schema_class = __get_schema_class(schema_id)
