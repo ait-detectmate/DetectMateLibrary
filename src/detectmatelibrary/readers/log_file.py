@@ -61,3 +61,16 @@ class LogFileReader(CoreReader):
     def reset(self) -> None:
         self.__log_generator = self.read_logs()
         self.is_over = False
+
+    def get_number_of_logs(self) -> int:
+        """Returns the number of lines in the log file."""
+        path = self.config.file
+        if not os.path.exists(path):
+            raise LogsNotFoundError(f"Logs file not found at: {path}")
+        if not os.access(path, os.R_OK):
+            raise LogsNoPermissionError(
+                f"You do not have the permission to access logs: {path}"
+            )
+        
+        with open(path, "r") as file:
+            return sum(1 for _ in file)
