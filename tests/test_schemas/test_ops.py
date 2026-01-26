@@ -17,12 +17,12 @@ class TestCaseSchemas:
 
     def test_initialize_log_schema(self) -> None:
         values = {
-            "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
+            "logID": "1", "log": "test", "logSource": "example", "hostname": "example@org"
         }
         schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
 
         assert schema.__version__ == "1.0.0"
-        assert schema.logID == 1
+        assert schema.logID == "1"
         assert schema.log == "test"
         assert schema.logSource == "example"
         assert schema.hostname == "example@org"
@@ -34,8 +34,8 @@ class TestCaseSchemas:
             "EventID": 5,
             "template": "test template",
             "variables": ["a", "b"],
-            "parsedLogID": 2,
-            "logID": 4,
+            "parsedLogID": "2",
+            "logID": "4",
             "log": "test log",
             "logFormatVariables": {"TimeStamp": "test timestamp"}
         }
@@ -46,8 +46,8 @@ class TestCaseSchemas:
         assert schema.template == "test template"
         assert schema.variables == ["a", "b"]
         assert schema.parserID == "test"
-        assert schema.logID == 4
-        assert schema.parsedLogID == 2
+        assert schema.logID == "4"
+        assert schema.parsedLogID == "2"
         assert schema.log == "test log"
         assert schema.logFormatVariables == {"TimeStamp": "test timestamp"}
 
@@ -55,9 +55,9 @@ class TestCaseSchemas:
         values = {
             "detectorID": "test id",
             "detectorType": "type test",
-            "alertID": 1,
+            "alertID": "1",
             "detectionTimestamp": 2,
-            "logIDs": [1, 2, 3],
+            "logIDs": ["1", "2", "3"],
             "score": 0.5,
             "extractedTimestamps": [4, 5, 6]
         }
@@ -66,9 +66,9 @@ class TestCaseSchemas:
         assert schema.__version__ == "1.0.0"
         assert schema.detectorID == "test id"
         assert schema.detectorType == "type test"
-        assert schema.alertID == 1
+        assert schema.alertID == "1"
         assert schema.detectionTimestamp == 2
-        assert schema.logIDs == [1, 2, 3]
+        assert schema.logIDs == ["1", "2", "3"]
         assert schema.score == 0.5
         assert schema.extractedTimestamps == [4, 5, 6]
 
@@ -76,9 +76,9 @@ class TestCaseSchemas:
         values = {
             "detectorIDs": ["test id", "another id"],
             "detectorTypes": ["type test", "another type"],
-            "alertIDs": [1, 2],
+            "alertIDs": ["1", "2"],
             "outputTimestamp": 2,
-            "logIDs": [1, 2, 3],
+            "logIDs": ["1", "2", "3"],
             "extractedTimestamps": [4, 5, 6],
             "description": "test description",
             "alertsObtain": {"key": "value"}
@@ -88,9 +88,9 @@ class TestCaseSchemas:
         assert schema.__version__ == "1.0.0"
         assert schema.detectorIDs == ["test id", "another id"]
         assert schema.detectorTypes == ["type test", "another type"]
-        assert schema.alertIDs == [1, 2]
+        assert schema.alertIDs == ["1", "2"]
         assert schema.outputTimestamp == 2
-        assert schema.logIDs == [1, 2, 3]
+        assert schema.logIDs == ["1", "2", "3"]
         assert schema.extractedTimestamps == [4, 5, 6]
         assert schema.description == "test description"
         assert schema.alertsObtain == {"key": "value"}
@@ -98,7 +98,7 @@ class TestCaseSchemas:
 
     def test_copy(self) -> None:
         values = {
-            "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
+            "logID": "1", "log": "test", "logSource": "example", "hostname": "example@org"
         }
         schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
         schema2 = op_schemas.copy(op_schemas.LOG_SCHEMA, schema)
@@ -109,7 +109,7 @@ class TestCaseSchemas:
 
     def test_copy_incorrect_schema(self) -> None:
         values = {
-            "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
+            "logID": "1", "log": "test", "logSource": "example", "hostname": "example@org"
         }
         schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
         with pytest.raises(op_schemas.IncorrectSchema):
@@ -117,7 +117,7 @@ class TestCaseSchemas:
 
     def test_copy_incompatible_schema(self) -> None:
         values = {
-            "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
+            "logID": "1", "log": "test", "logSource": "example", "hostname": "example@org"
         }
         schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
         with pytest.raises(op_schemas.NotSupportedSchema):
@@ -125,7 +125,7 @@ class TestCaseSchemas:
 
     def test_serialize_method(self) -> None:
         values = {
-            "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
+            "logID": "1", "log": "test", "logSource": "example", "hostname": "example@org"
         }
         schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
         bschema = op_schemas.serialize(op_schemas.LOG_SCHEMA, schema=schema)
@@ -135,14 +135,14 @@ class TestCaseSchemas:
         assert schema_id == op_schemas.LOG_SCHEMA
 
         assert new_schema.__version__ == "1.0.0"
-        assert new_schema.logID == 1
+        assert new_schema.logID == "1"
         assert new_schema.log == "test"
         assert new_schema.logSource == "example"
         assert new_schema.hostname == "example@org"
 
     def test_serialize_not_supported(self) -> None:
         values = {
-            "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
+            "logID": "1", "log": "test", "logSource": "example", "hostname": "example@org"
         }
         schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
 
@@ -161,14 +161,14 @@ class TestCaseSchemas:
             op_schemas.check_if_schema_is_complete(schema)
 
         values = {
-            "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
+            "logID": "1", "log": "test", "logSource": "example", "hostname": "example@org"
         }
         schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
         op_schemas.check_if_schema_is_complete(schema)
 
     def test_get_variables(self) -> None:
         values = {
-            "logID": 1, "log": "test", "logSource": "example", "hostname": "example@org"
+            "logID": "1", "log": "test", "logSource": "example", "hostname": "example@org"
         }
         schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
         vars = op_schemas.get_variables_names(schema)
@@ -181,9 +181,9 @@ class TestCaseSchemas:
         values = {
             "detectorID": "test id",
             "detectorType": "type test",
-            "alertID": 1,
+            "alertID": "1",
             "detectionTimestamp": 2,
-            "logIDs": [1, 2, 3],
+            "logIDs": ["1", "2", "3"],
             "score": 0.5,
             "extractedTimestamps": [4, 5, 6]
         }

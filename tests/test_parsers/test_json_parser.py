@@ -52,7 +52,7 @@ class TestJsonParser:
         }
 
         input_log = schemas.LogSchema({
-            "logID": 1,
+            "logID": "1",
             "log": json.dumps(json_log)
         })
 
@@ -87,7 +87,7 @@ class TestJsonParser:
         }
 
         input_log = schemas.LogSchema({
-            "logID": 1,
+            "logID": "1",
             "log": json.dumps(json_log)
         })
 
@@ -112,7 +112,7 @@ class TestJsonParser:
         }
 
         input_log = schemas.LogSchema({
-            "logID": 1,
+            "logID": "1",
             "log": json.dumps(json_log)
         })
 
@@ -151,7 +151,7 @@ class TestJsonParser:
         }
 
         input_log = schemas.LogSchema({
-            "logID": 1,
+            "logID": "1",
             "log": json.dumps(json_log)
         })
 
@@ -174,7 +174,7 @@ class TestJsonParser:
         }
 
         input_log = schemas.LogSchema({
-            "logID": 1,
+            "logID": "1",
             "log": json.dumps(json_log)
         })
 
@@ -198,7 +198,7 @@ class TestJsonParser:
         }
 
         input_log = schemas.LogSchema({
-            "logID": 1,
+            "logID": "1",
             "log": json.dumps(json_log)
         })
 
