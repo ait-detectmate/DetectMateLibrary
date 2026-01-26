@@ -14,7 +14,7 @@ dependencies = [
     "kafka-python>=2.3.0",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 # add dependencies in this section with: uv add --optional dev <package>
 # install with all the dev dependencies:  uv pip install -e .[dev]
 dev = [
