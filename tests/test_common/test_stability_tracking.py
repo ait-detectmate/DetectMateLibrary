@@ -12,6 +12,10 @@ from detectmatelibrary.common.persistency.event_data_structures.trackers import 
     EventTracker,
     Classification,
 )
+from detectmatelibrary.common.persistency.event_data_structures.trackers.converter import (
+    InvariantConverter,
+    ComboConverter,
+)
 from detectmatelibrary.utils.RLE_list import RLEList
 
 
@@ -422,14 +426,13 @@ class TestEventVariableTrackerData:
         assert "ip" in trackers
 
     def test_conversion_function_assignment(self):
-        """Test that conversion_function is correctly assigned based on
-        level."""
+        """Test that converter is correctly assigned based on feature_type."""
         evt_var = EventTracker(tracker_type=StabilityTracker, feature_type="variable")
         evt_combo = EventTracker(tracker_type=StabilityTracker, feature_type="variable_combo")
 
-        # Check that the correct conversion functions are assigned
-        assert evt_var.conversion_function == evt_var.invariant_conversion
-        assert evt_combo.conversion_function == evt_combo.combo_conversion
+        # Check that the correct converters are assigned
+        assert isinstance(evt_var.converter, InvariantConverter)
+        assert isinstance(evt_combo.converter, ComboConverter)
 
 
 class TestClassification:

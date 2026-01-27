@@ -190,7 +190,7 @@ class TestEventDataFrame:
         """Test adding single data entry."""
         edf = EventDataFrame()
         data_dict = {"user": "alice", "ip": "192.168.1.1"}
-        data_df = EventDataFrame.to_data(data_dict)
+        data_df = edf.to_data(data_dict)
         edf.add_data(data_df)
 
         assert edf.data is not None
@@ -200,8 +200,8 @@ class TestEventDataFrame:
     def test_add_multiple_data(self):
         """Test adding multiple data entries."""
         edf = EventDataFrame()
-        edf.add_data(EventDataFrame.to_data({"user": "alice", "ip": "192.168.1.1"}))
-        edf.add_data(EventDataFrame.to_data({"user": "bob", "ip": "192.168.1.2"}))
+        edf.add_data(edf.to_data({"user": "alice", "ip": "192.168.1.1"}))
+        edf.add_data(edf.to_data({"user": "bob", "ip": "192.168.1.2"}))
 
         assert len(edf.data) == 2
         assert edf.data["user"].tolist() == ["alice", "bob"]
@@ -209,7 +209,7 @@ class TestEventDataFrame:
     def test_get_data(self):
         """Test retrieving data."""
         edf = EventDataFrame()
-        edf.add_data(EventDataFrame.to_data({"user": "alice", "ip": "192.168.1.1"}))
+        edf.add_data(edf.to_data({"user": "alice", "ip": "192.168.1.1"}))
 
         data = edf.get_data()
         assert isinstance(data, pd.DataFrame)
@@ -218,7 +218,7 @@ class TestEventDataFrame:
     def test_get_variable_names(self):
         """Test retrieving variable names."""
         edf = EventDataFrame()
-        edf.add_data(EventDataFrame.to_data({"user": "alice", "ip": "192.168.1.1", "port": "22"}))
+        edf.add_data(edf.to_data({"user": "alice", "ip": "192.168.1.1", "port": "22"}))
 
         var_names = edf.get_variables()
         assert "user" in var_names
@@ -246,7 +246,7 @@ class TestChunkedEventDataFrame:
         """Test adding single data entry."""
         cedf = ChunkedEventDataFrame(max_rows=10)
         data_dict = {"user": ["alice"], "ip": ["192.168.1.1"]}
-        data_df = ChunkedEventDataFrame.to_data(data_dict)
+        data_df = cedf.to_data(data_dict)
         cedf.add_data(data_df)
 
         data = cedf.get_data()
@@ -259,7 +259,7 @@ class TestChunkedEventDataFrame:
 
         # Add 6 entries (should trigger compaction at 5)
         for i in range(6):
-            cedf.add_data(ChunkedEventDataFrame.to_data({"user": [f"user{i}"], "value": [i]}))
+            cedf.add_data(cedf.to_data({"user": [f"user{i}"], "value": [i]}))
 
         # After compaction, should have 1 chunk
         data = cedf.get_data()
@@ -271,7 +271,7 @@ class TestChunkedEventDataFrame:
 
         # Add more than max_rows
         for i in range(8):
-            cedf.add_data(ChunkedEventDataFrame.to_data({"user": [f"user{i}"], "value": [i]}))
+            cedf.add_data(cedf.to_data({"user": [f"user{i}"], "value": [i]}))
 
         # Should have evicted oldest to stay within max_rows
         data = cedf.get_data()
@@ -282,7 +282,7 @@ class TestChunkedEventDataFrame:
         """Test retrieving variable names from chunks."""
         cedf = ChunkedEventDataFrame()
         cedf.add_data(
-            ChunkedEventDataFrame.to_data({"user": ["alice"], "ip": ["192.168.1.1"], "port": ["22"]})
+            cedf.to_data({"user": ["alice"], "ip": ["192.168.1.1"], "port": ["22"]})
         )
 
         var_names = cedf.get_variables()
@@ -291,9 +291,10 @@ class TestChunkedEventDataFrame:
         assert "port" in var_names
 
     def test_dict_to_dataframe_conversion(self):
-        """Test static method to_data."""
+        """Test to_data method."""
+        cedf = ChunkedEventDataFrame()
         data_dict = {"user": ["alice"], "ip": ["192.168.1.1"]}
-        df = ChunkedEventDataFrame.to_data(data_dict)
+        df = cedf.to_data(data_dict)
 
         assert isinstance(df, pl.DataFrame)
         assert len(df) == 1
