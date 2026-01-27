@@ -31,8 +31,7 @@ class EventDataFrame(EventDataStructure):
     def get_variables(self) -> List[str]:
         return list(self.data.columns)
 
-    @staticmethod
-    def to_data(raw_data: Dict[int | str, Any]) -> pd.DataFrame:
+    def to_data(self, raw_data: Dict[int | str, Any]) -> pd.DataFrame:
         data = {key: [value] for key, value in raw_data.items()}
         return pd.DataFrame(data)
 
@@ -105,8 +104,7 @@ class ChunkedEventDataFrame(EventDataStructure):
             return []
         return self.chunks[0].columns
 
-    @staticmethod
-    def to_data(raw_data: Dict[str, List[Any]]) -> pl.DataFrame:
+    def to_data(self, raw_data: Dict[str, List[Any]]) -> pl.DataFrame:
         return pl.DataFrame(raw_data)
 
     def __repr__(self) -> str:

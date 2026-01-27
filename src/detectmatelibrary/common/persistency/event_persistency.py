@@ -41,13 +41,13 @@ class EventPersistency:
         """Ingest event data into the appropriate EventData store."""
         self.event_templates[event_id] = event_template
         all_variables = self.get_all_variables(variables, log_format_variables, self.variable_blacklist)
-        data = self.event_data_class.to_data(all_variables)
 
         data_structure = self.events_data.get(event_id)
         if data_structure is None:
             data_structure = self.event_data_class(**self.event_data_kwargs)
             self.events_data[event_id] = data_structure
 
+        data = data_structure.to_data(all_variables)
         data_structure.add_data(data)
 
     def get_event_data(self, event_id: int) -> Any | None:

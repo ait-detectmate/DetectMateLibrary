@@ -19,9 +19,8 @@ class EventDataStructure(ABC):
     @abstractmethod
     def get_variables(self) -> List[str]: ...
 
-    @classmethod
     @abstractmethod
-    def to_data(cls, raw_data: Any) -> Any:
+    def to_data(self, raw_data: Any) -> Any:
         """Convert raw data into the appropriate data format for storage."""
         pass
 

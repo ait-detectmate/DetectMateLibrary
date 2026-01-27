@@ -7,7 +7,7 @@ from detectmatelibrary.common.detector import CoreDetector
 from detectmatelibrary.utils.data_buffer import BufferMode
 
 from detectmatelibrary.common.persistency.event_data_structures.trackers import (
-    EventVariableTracker, StabilityTracker
+    EventTracker, StabilityTracker
 )
 from detectmatelibrary.common.persistency.event_persistency import EventPersistency
 
@@ -126,8 +126,11 @@ class NewValueComboDetector(CoreDetector):
         self.config = cast(NewValueComboDetectorConfig, self.config)
         self.known_combos: Dict[str | int, Set[Any]] = {"all": set()}
         self.persistency = EventPersistency(
-            event_data_class=EventVariableTracker,
-            event_data_kwargs={"tracker_type": StabilityTracker}
+            event_data_class=EventTracker,
+            event_data_kwargs={
+                "tracker_type": StabilityTracker,
+                "feature_type": "variable_combo"
+            }
         )
 
     def train(self, input_: schemas.ParserSchema) -> None:  # type: ignore
@@ -160,7 +163,8 @@ class NewValueComboDetector(CoreDetector):
         if overall_score > 0:
             output_["score"] = overall_score
             output_["description"] = (
-                f"The detector checks for new value combinations of size {self.config.comb_size}."
+                f"Monitoring value combinations of size {self.config.comb_size}. "
+                "Unseen combinations lead to alerts"
             )
             output_["alertsObtain"].update(alerts)
             return True
@@ -178,7 +182,7 @@ class NewValueComboDetector(CoreDetector):
         variable_combos = {}
         templates = {}
         for event_id, tracker in self.persistency.get_events_data().items():
-            stable_vars = tracker.get_stable_variables()  # type: ignore
+            stable_vars = tracker.get_variables_by_classification("STABLE")  # type: ignore
             if len(stable_vars) > 1:
                 variable_combos[event_id] = stable_vars
                 templates[event_id] = self.persistency.get_event_template(event_id)

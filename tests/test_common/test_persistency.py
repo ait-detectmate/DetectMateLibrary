@@ -13,7 +13,7 @@ from detectmatelibrary.common.persistency.event_data_structures.dataframes impor
     ChunkedEventDataFrame,
 )
 from detectmatelibrary.common.persistency.event_data_structures.trackers import (
-    EventVariableTracker,
+    EventTracker,
     StabilityTracker,
 )
 
@@ -60,13 +60,13 @@ class TestEventPersistency:
         assert persistency.event_data_class == ChunkedEventDataFrame
 
     def test_initialization_with_tracker_backend(self):
-        """Test initialization with EventVariableTracker backend."""
+        """Test initialization with EventVariableTrackerData backend."""
         persistency = EventPersistency(
-            event_data_class=EventVariableTracker,
+            event_data_class=EventTracker,
             event_data_kwargs={"tracker_type": StabilityTracker},
         )
         assert persistency is not None
-        assert persistency.event_data_class == EventVariableTracker
+        assert persistency.event_data_class == EventTracker
 
     def test_ingest_single_event(self):
         """Test ingesting a single event."""
@@ -349,7 +349,7 @@ class TestEventPersistencyIntegration:
     def test_tracker_backend_full_workflow(self):
         """Test complete workflow with Tracker backend."""
         persistency = EventPersistency(
-            event_data_class=EventVariableTracker,
+            event_data_class=EventTracker,
             event_data_kwargs={"tracker_type": StabilityTracker},
         )
 
@@ -364,7 +364,7 @@ class TestEventPersistencyIntegration:
 
         # Verify tracker functionality
         data_structure = persistency.events_data["E001"]
-        assert isinstance(data_structure, EventVariableTracker)
+        assert isinstance(data_structure, EventTracker)
 
     def test_mixed_event_ids_and_templates(self):
         """Test handling mixed event IDs and templates."""
