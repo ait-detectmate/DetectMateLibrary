@@ -103,24 +103,24 @@ class CoreComponent:
 
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
         is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)
-        logger.info(f"<<{self.name}>> received:\n{data}")
+        logger.debug(f"<<{self.name}>> received:\n{data}")
 
         if (data_buffered := self.data_buffer.add(data)) is None:  # type: ignore
             return None
 
         if do_training(config=self.config, index=self.data_used_train, train_state=self.train_state):
             self.data_used_train += 1
-            logger.info(f"<<{self.name}>> use data for training")
+            logger.debug(f"<<{self.name}>> use data for training")
             self.train(input_=data_buffered)
 
         output_ = self.output_schema()
-        logger.info(f"<<{self.name}>> processing data")
+        logger.debug(f"<<{self.name}>> processing data")
         return_schema = self.run(input_=data_buffered, output_=output_)
         if not return_schema:
-            logger.info(f"<<{self.name}>> returns None")
+            logger.debug(f"<<{self.name}>> returns None")
             return None
 
-        logger.info(f"<<{self.name}>> processed:\n{output_}")
+        logger.debug(f"<<{self.name}>> processed:\n{output_}")
         return SchemaPipeline.postprocess(output_, is_byte=is_byte)
 
     def get_config(self) -> Dict[str, Any]:
