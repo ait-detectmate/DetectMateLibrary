@@ -1,4 +1,6 @@
-demo/*
+*demo/data/miranda.json
+*demo/data/miranda_templates_improved.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 .vscode/*

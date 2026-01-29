@@ -1,0 +1,45 @@
+readers:
+    File_reader:
+        method_type: log_file_reader
+        auto_config: False
+        params:
+            file: data/miranda.json
+
+parsers:
+    JsonMatcherParser:
+        method_type: matcher_parser
+        auto_config: False
+        log_format: "<Content>"
+        time_format: null
+        params:
+            remove_spaces: True
+            remove_punctuation: True
+            lowercase: True
+            path_templates: data/miranda_templates_improved.txt
+
+    JsonParser:
+        method_type: json_parser
+        time_format: null
+        auto_config: False
+        params:
+            timestamp_name: "time"
+            content_name: "message"
+            remove_content_key: False
+            content_parser: JsonMatcherParser
+
+detectors:
+    NewValueComboDetector:
+        method_type: new_value_combo_detector
+        auto_config: False
+        params:
+            comb_size: 1
+            log_variables:
+              - id: id_9
+                event: 9
+                template: 'WHO: <*>'
+                header_variables:
+                  - pos: _source.message
+                    id: id_9
+                variables:
+                  - pos: 0
+                    name: var_0
