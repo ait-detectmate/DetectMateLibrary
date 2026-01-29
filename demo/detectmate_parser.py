@@ -1,4 +1,6 @@
 # type: ignore
+import os
+
 from detectmatelibrary.parsers.json_parser import JsonParser
 
 from detectmatelibrary.utils.load_save import From2To
@@ -12,15 +14,14 @@ def get_config(path: str):
     return config
 
 
-path = "data/miranda_demo_config.yaml"
+path = "demo/data/miranda_demo_config.yaml"
 parser = JsonParser(config=get_config(path))
 
 
 log_topic = "logs_miranda"
 parsed_topic = "parsed_miranda"
-server = "localhost:9092"
+server = os.environ.get("KAFKA_SERVER", "localhost:9092")
 group_id = "test"
-
 
 try:
     print("Parser")
@@ -34,8 +35,8 @@ try:
         as_log=True,
         do_process=True,
     )
-    for msg in loader:
-        pass
+    for i, msg in enumerate(loader):
+        parser.process(msg)
 
 except KeyboardInterrupt:
     print("Parser has been stopped")

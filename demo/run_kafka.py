@@ -3,7 +3,7 @@ from kafka import KafkaProducer
 
 # Load data into kafka
 
-path = "data/miranda.json"
+path = "demo/data/miranda.json"
 logs, n = [], 5
 with open(path, "r") as f:
     i = 0

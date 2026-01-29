@@ -3,7 +3,7 @@ readers:
         method_type: log_file_reader
         auto_config: False
         params:
-            file: data/miranda.json
+            file: demo/data/miranda.json
 
 parsers:
     JsonMatcherParser:
@@ -15,7 +15,7 @@ parsers:
             remove_spaces: True
             remove_punctuation: True
             lowercase: True
-            path_templates: data/miranda_templates_improved.txt
+            path_templates: demo/data/miranda_templates_improved.txt
 
     JsonParser:
         method_type: json_parser
@@ -37,9 +37,6 @@ detectors:
               - id: id_9
                 event: 9
                 template: 'WHO: <*>'
-                header_variables:
-                  - pos: _source.message
-                    id: id_9
                 variables:
                   - pos: 0
                     name: var_0

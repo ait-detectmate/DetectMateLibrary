@@ -1,4 +1,6 @@
 # type: ignore
+import os
+
 from detectmatelibrary.detectors.new_value_combo_detector import NewValueComboDetector
 
 from detectmatelibrary.utils.load_save import From
@@ -12,15 +14,15 @@ def get_config(path: str):
     return config
 
 
-path = "data/miranda_demo_config.yaml"
+path = "demo/data/miranda_demo_config.yaml"
 detector = NewValueComboDetector(config=get_config(path))
 
 
 log_topic = "logs_miranda"
 parsed_topic = "parsed_miranda"
-server = "localhost:9092"
+server = os.environ.get("KAFKA_SERVER", "localhost:9092")
 group_id = "test"
-
+training_size = 1000
 
 try:
     print("Detector")
@@ -33,9 +35,11 @@ try:
         as_log=False,
         do_process=False,
     )
-    for msg in loader:
-        print(msg.log)
-        # Used the parsed logs as you like :D
+    for i, msg in enumerate(loader):
+        if i < training_size:
+            detector.train(msg)
+        else:
+            detector.process(msg)
 
 except KeyboardInterrupt:
-    print("Parser has been stopped")
+    print("Detector has been stopped")
