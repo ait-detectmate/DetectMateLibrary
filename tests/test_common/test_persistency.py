@@ -14,7 +14,7 @@ from detectmatelibrary.common.persistency.event_data_structures.dataframes impor
 )
 from detectmatelibrary.common.persistency.event_data_structures.trackers import (
     EventTracker,
-    StabilityTracker,
+    SingleStabilityTracker,
 )
 
 
@@ -63,7 +63,7 @@ class TestEventPersistency:
         """Test initialization with EventVariableTrackerData backend."""
         persistency = EventPersistency(
             event_data_class=EventTracker,
-            event_data_kwargs={"tracker_type": StabilityTracker},
+            event_data_kwargs={"tracker_type": SingleStabilityTracker},
         )
         assert persistency is not None
         assert persistency.event_data_class == EventTracker
@@ -351,7 +351,7 @@ class TestEventPersistencyIntegration:
         """Test complete workflow with Tracker backend."""
         persistency = EventPersistency(
             event_data_class=EventTracker,
-            event_data_kwargs={"tracker_type": StabilityTracker},
+            event_data_kwargs={"tracker_type": SingleStabilityTracker},
         )
 
         # Ingest events with patterns

@@ -1,16 +1,16 @@
 """Tracks whether a variable is converging to a constant value."""
 
-from typing import Any, Set
+from typing import Any, Callable, List, Literal, Set
 
 from detectmatelibrary.utils.preview_helpers import list_preview_str
 from detectmatelibrary.utils.RLE_list import RLEList
 
-from ..classifiers.stability_classifier import StabilityClassifier
-from .base import SingleTracker, Classification
+from ..base import SingleTracker, MultiTracker, EventTracker, Classification
+from .stability_classifier import StabilityClassifier
 
 
-class StabilityTracker(SingleTracker):
-    """Tracks whether a single variable is converging to a constant value."""
+class SingleStabilityTracker(SingleTracker):
+    """Tracks stability of a single feature."""
 
     def __init__(self, min_samples: int = 3) -> None:
         self.min_samples = min_samples
@@ -67,3 +67,41 @@ class StabilityTracker(SingleTracker):
             f"{self.__class__.__name__}(classification={self.classify()}, change_series={series_str}, "
             f"unique_set={unique_set_str}, RLE={RLE_str})"
         )
+
+
+class MultiStabilityTracker(MultiTracker):
+    """Tracks multiple features (e.g. variables or variable combos) using
+    individual trackers."""
+
+    def get_variables_by_classification(
+        self,
+        classification_type: Literal["INSUFFICIENT_DATA", "STATIC", "RANDOM", "STABLE", "UNSTABLE"]
+    ) -> List[str]:
+        """Get a list of variable names that are classified as the given
+        type."""
+        variables = []
+        for name, tracker in self.single_trackers.items():
+            classification = tracker.classify()
+            if classification.type == classification_type:
+                variables.append(name)
+        return variables
+
+
+class EventStabilityTracker(EventTracker):
+    """Event data structure that tracks the stability of each event over time /
+    number of events."""
+
+    def __init__(self, converter_function: Callable[[Any], Any] = lambda x: x) -> None:
+        self.multi_tracker:  MultiStabilityTracker  # for type hinting
+        super().__init__(
+            single_tracker_type=SingleStabilityTracker,
+            multi_tracker_type=MultiStabilityTracker,
+            converter_function=converter_function,
+        )
+
+    def get_variables_by_classification(
+        self, classification_type: Literal["INSUFFICIENT_DATA", "STATIC", "RANDOM", "STABLE", "UNSTABLE"]
+    ) -> List[str]:
+        """Get a list of variable names that are classified as the given
+        type."""
+        return self.multi_tracker.get_variables_by_classification(classification_type)

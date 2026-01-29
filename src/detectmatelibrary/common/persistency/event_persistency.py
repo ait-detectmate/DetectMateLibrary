@@ -40,7 +40,7 @@ class EventPersistency:
     ) -> None:
         """Ingest event data into the appropriate EventData store."""
         self.event_templates[event_id] = event_template
-        all_variables = self.get_all_variables(variables, log_format_variables, self.variable_blacklist)
+        all_variables = self.get_all_variables(variables, log_format_variables)
 
         data_structure = self.events_data.get(event_id)
         if data_structure is None:
@@ -67,11 +67,11 @@ class EventPersistency:
         """Retrieve all event templates."""
         return self.event_templates
 
-    @staticmethod
     def get_all_variables(
+        self,
         variables: list[Any],
         log_format_variables: Dict[str, Any],
-        variable_blacklist: List[str | int],
+        # variable_blacklist: List[str | int],
         event_var_prefix: str = "var_",
     ) -> dict[str, list[Any]]:
         """Combine log format variables and event variables into a single
@@ -81,11 +81,11 @@ class EventPersistency:
         """
         all_vars: dict[str, list[Any]] = {
             k: v for k, v in log_format_variables.items()
-            if k not in variable_blacklist
+            if k not in self.variable_blacklist
         }
         all_vars.update({
             f"{event_var_prefix}{i}": val for i, val in enumerate(variables)
-            if i not in variable_blacklist
+            if i not in self.variable_blacklist
         })
         return all_vars
 

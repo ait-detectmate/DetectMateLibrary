@@ -66,8 +66,8 @@ class CoreDetector(CoreComponent):
 
         output_["detectorID"] = self.name
         output_["detectorType"] = self.config.method_type
-        output_["logIDs"].extend(_extract_logIDs(input_))
-        output_["extractedTimestamps"].extend(_extract_timestamp(input_))
+        output_["logIDs"] = _extract_logIDs(input_)
+        output_["extractedTimestamps"] = _extract_timestamp(input_)
         output_["alertID"] = self.id_generator()
         output_["receivedTimestamp"] = get_timestamp()
 

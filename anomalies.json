@@ -1,0 +1,87 @@
+[
+  {
+    "logIDs": [
+      342759
+    ],
+    "detectionTimestamp": 1769673821,
+    "description": "Monitoring value combinations of size 1. Unseen combinations lead to alerts",
+    "alertID": 51421,
+    "detectorID": "NewValueComboDetector",
+    "extractedTimestamps": [
+      1762273708
+    ],
+    "__version__": "1.0.0",
+    "alertsObtain": "{'EventID_9': \"Values: ('fakeuser',)\"}",
+    "detectorType": "new_value_combo_detector",
+    "score": 2,
+    "receivedTimestamp": 1769673821
+  },
+  {
+    "logIDs": [
+      342759
+    ],
+    "detectionTimestamp": 1769673821,
+    "description": "Monitoring value combinations of size 1. Unseen combinations lead to alerts",
+    "alertID": 51421,
+    "detectorID": "NewValueComboDetector",
+    "extractedTimestamps": [
+      1762273708
+    ],
+    "__version__": "1.0.0",
+    "alertsObtain": "{'EventID_9': \"Values: ('fakeuser',)\"}",
+    "detectorType": "new_value_combo_detector",
+    "score": 2,
+    "receivedTimestamp": 1769673821
+  },
+  {
+    "logIDs": [
+      342759
+    ],
+    "detectionTimestamp": 1769673821,
+    "description": "Monitoring value combinations of size 1. Unseen combinations lead to alerts",
+    "alertID": 51421,
+    "detectorID": "NewValueComboDetector",
+    "extractedTimestamps": [
+      1762273708
+    ],
+    "__version__": "1.0.0",
+    "alertsObtain": "{'EventID_9': \"Values: ('fakeuser',)\"}",
+    "detectorType": "new_value_combo_detector",
+    "score": 2,
+    "receivedTimestamp": 1769673821
+  },
+  {
+    "logIDs": [
+      342759
+    ],
+    "detectionTimestamp": 1769673821,
+    "description": "Monitoring value combinations of size 1. Unseen combinations lead to alerts",
+    "alertID": 51421,
+    "detectorID": "NewValueComboDetector",
+    "extractedTimestamps": [
+      1762273708
+    ],
+    "__version__": "1.0.0",
+    "alertsObtain": "{'EventID_9': \"Values: ('fakeuser',)\"}",
+    "detectorType": "new_value_combo_detector",
+    "score": 2,
+    "receivedTimestamp": 1769673821
+  },
+  {
+    "logIDs": [
+      342759
+    ],
+    "detectionTimestamp": 1769673821,
+    "description": "Monitoring value combinations of size 1. Unseen combinations lead to alerts",
+    "alertID": 51421,
+    "detectorID": "NewValueComboDetector",
+    "extractedTimestamps": [
+      1762273708
+    ],
+    "__version__": "1.0.0",
+    "alertsObtain": "{'EventID_9': \"Values: ('fakeuser',)\"}",
+    "detectorType": "new_value_combo_detector",
+    "score": 2,
+    "receivedTimestamp": 1769673821
+  }
+]

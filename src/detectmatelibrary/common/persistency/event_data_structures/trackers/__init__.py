@@ -7,16 +7,26 @@ evolve. It is interchangable with other EventDataStructure
 implementations.
 """
 
-from .classifiers.stability_classifier import StabilityClassifier
-from .single_trackers.stability_tracker import StabilityTracker
-from .single_trackers.base import Classification
-from .multi_tracker import MultiTracker
-from .event_tracker import EventTracker
+from .stability import (
+    StabilityClassifier,
+    SingleStabilityTracker,
+    MultiStabilityTracker,
+    EventStabilityTracker
+)
+from .base import (
+    EventTracker,
+    MultiTracker,
+    SingleTracker,
+    Classification,
+)
 
 __all__ = [
-    "StabilityClassifier",
-    "StabilityTracker",
-    "Classification",
-    "MultiTracker",
     "EventTracker",
+    "SingleTracker",
+    "MultiTracker",
+    "Classification",
+    "StabilityClassifier",
+    "SingleStabilityTracker",
+    "MultiStabilityTracker",
+    "EventStabilityTracker",
 ]
