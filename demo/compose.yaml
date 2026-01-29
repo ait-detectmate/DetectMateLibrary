@@ -39,14 +39,3 @@ services:
 
       # Required for a single node cluster
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-
-#   kafka-ui:
-#     image: kafbat/kafka-ui:main
-#     ports:
-#       - 8080:8080
-#     environment:
-#       DYNAMIC_CONFIG_ENABLED: "true"
-#       KAFKA_CLUSTERS_0_NAME: local
-#       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9093
-#     depends_on:
-#       - kafka
