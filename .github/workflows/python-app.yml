@@ -37,11 +37,11 @@ jobs:
           CURRENT_BRANCH="${{ github.ref_name }}"
           REPO_URL="https://github.com/ait-detectmate/DetectMateService.git"
           if [ "$CURRENT_BRANCH" = "main" ]; then
-            echo "DETECTMATE_BRANCH=main" >> $GITHUB_ENV
+            echo "SERVICE_BRANCH=main" >> $GITHUB_ENV
           elif git ls-remote --heads "$REPO_URL" "$CURRENT_BRANCH" | grep -q .; then
-            echo "DETECTMATE_BRANCH=$CURRENT_BRANCH" >> $GITHUB_ENV
+            echo "SERVICE_BRANCH=$CURRENT_BRANCH" >> $GITHUB_ENV
           else
-            echo "DETECTMATE_BRANCH=development" >> $GITHUB_ENV
+            echo "SERVICE_BRANCH=development" >> $GITHUB_ENV
           fi
 
       # integration tests for DetectMateService
@@ -49,7 +49,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ait-detectmate/DetectMateService
-          ref: ${{ env.DETECTMATE_BRANCH }}
+          ref: ${{ env.SERVICE_BRANCH }}
           path: DetectMateService
 
       - name: Prepare DetectMateService (using local DetectMateLibrary)
