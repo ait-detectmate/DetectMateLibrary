@@ -81,14 +81,15 @@ class TestNewValueDetectorInitialization:
         assert detector.data_buffer.mode == BufferMode.NO_BUF
         assert detector.input_schema == schemas.ParserSchema
         assert detector.output_schema == schemas.DetectorSchema
-        assert hasattr(detector, 'known_values')
+        assert hasattr(detector, 'persistency')
 
     def test_custom_config_initialization(self):
         """Test detector initialization with custom configuration."""
         detector = NewValueDetector(name="CustomInit", config=config)
 
         assert detector.name == "CustomInit"
-        assert isinstance(detector.known_values, dict)
+        assert hasattr(detector, 'persistency')
+        assert isinstance(detector.persistency.events_data, dict)
 
 
 class TestNewValueDetectorTraining:
@@ -113,17 +114,22 @@ class TestNewValueDetectorTraining:
             })
             detector.train(parser_data)
 
-        # Verify all values were learned
-        assert len(detector.known_values) == 2
-        assert "INFO" in detector.known_values["level"]
-        assert "WARNING" in detector.known_values["level"]
-        assert "ERROR" in detector.known_values["level"]
-        assert "assa" in detector.known_values[1]
+        # Verify all values were learned via persistency
+        event_data = detector.persistency.get_event_data(1)
+        assert event_data is not None
+        # Check that we track 2 variables: "level" (header) and "test" (from pos 1)
+        assert len(event_data) == 2
+        # Check the level values
+        assert "INFO" in event_data["level"].unique_set
+        assert "WARNING" in event_data["level"].unique_set
+        assert "ERROR" in event_data["level"].unique_set
+        # Check the variable at position 1 (named "test")
+        assert "assa" in event_data["test"].unique_set
 
     def test_train_multiple_values(self):
         """Test training with multiple different values."""
         detector = NewValueDetector(config=config, name="MultipleDetector")
-        # Train with multiple values
+        # Train with multiple values (only event 1 should be tracked per config)
         for event in range(3):
             for level in ["INFO", "WARNING", "ERROR"]:
                 parser_data = schemas.ParserSchema({
@@ -139,11 +145,16 @@ class TestNewValueDetectorTraining:
                 })
                 detector.train(parser_data)
 
-        assert len(detector.known_values) == 1
-        assert "INFO" in detector.known_values[1]["level"]
-        assert "WARNING" in detector.known_values[1]["level"]
-        assert "ERROR" in detector.known_values[1]["level"]
-        assert "assa" in detector.known_values[1][1]
+        # Only event 1 should be tracked (based on log_variables config)
+        assert len(detector.persistency.events_data) == 1
+        event_data = detector.persistency.get_event_data(1)
+        assert event_data is not None
+        # Check the level values
+        assert "INFO" in event_data["level"].unique_set
+        assert "WARNING" in event_data["level"].unique_set
+        assert "ERROR" in event_data["level"].unique_set
+        # Check the variable at position 1 (named "test")
+        assert "assa" in event_data["test"].unique_set
 
 
 class TestNewValueDetectorDetection:

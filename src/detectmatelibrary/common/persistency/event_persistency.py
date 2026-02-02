@@ -35,12 +35,14 @@ class EventPersistency:
         self,
         event_id: int,
         event_template: str,
-        variables: list[Any],
-        log_format_variables: Dict[str, Any],
+        variables: list[Any] = [],
+        named_variables: Dict[str, Any] = {}
     ) -> None:
         """Ingest event data into the appropriate EventData store."""
+        if not variables and not named_variables:
+            return
         self.event_templates[event_id] = event_template
-        all_variables = self.get_all_variables(variables, log_format_variables)
+        all_variables = self.get_all_variables(variables, named_variables)
 
         data_structure = self.events_data.get(event_id)
         if data_structure is None:

@@ -1,3 +1,4 @@
+from detectmatelibrary.common._config._formats import AllLogVariables, LogVariables
 from detectmatelibrary.common.core import CoreComponent, CoreConfig
 
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
@@ -6,7 +7,7 @@ from detectmatelibrary.utils.aux import get_timestamp
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
 from typing_extensions import override
-from typing import List, Optional, Any
+from typing import Dict, List, Optional, Any
 
 
 def _extract_timestamp(
@@ -36,7 +37,7 @@ class CoreDetectorConfig(CoreConfig):
     method_type: str = "core_detector"
     parser: str = "<PLACEHOLDER>"
 
-    auto_config: bool = False
+    auto_config: bool = True
 
 
 class CoreDetector(CoreComponent):
@@ -88,3 +89,39 @@ class CoreDetector(CoreComponent):
         self, input_: ParserSchema | list[ParserSchema]  # type: ignore
     ) -> None:
         pass
+
+    @staticmethod
+    def get_configured_variables(
+        input_: ParserSchema,
+        log_variables: LogVariables | AllLogVariables | dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Extract variables from input based on what's defined in the config.
+
+        Args:
+            input_: Parser schema containing variables and logFormatVariables
+            log_variables: Config specifying which variables to extract per EventID
+
+        Returns:
+            Dict mapping variable names to their values from the input
+        """
+        event_id = input_["EventID"]
+        result: Dict[str, Any] = {}
+
+        # Get the config for this event
+        event_config = log_variables[event_id] if event_id in log_variables else None
+        if event_config is None:
+            return result
+
+        # Extract template variables by position
+        if hasattr(event_config, "variables"):
+            for pos, var in event_config.variables.items():
+                if pos < len(input_["variables"]):
+                    result[var.name] = input_["variables"][pos]
+
+        # Extract header/log format variables by name
+        if hasattr(event_config, "header_variables"):
+            for name in event_config.header_variables:
+                if name in input_["logFormatVariables"]:
+                    result[name] = input_["logFormatVariables"][name]
+
+        return result

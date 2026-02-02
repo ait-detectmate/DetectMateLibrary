@@ -1,13 +1,18 @@
+from detectmatelibrary.common._config import generate_detector_config
 from detectmatelibrary.common._config._formats import LogVariables, AllLogVariables
 
 from detectmatelibrary.common.detector import CoreDetectorConfig
 from detectmatelibrary.common.detector import CoreDetector
 
+from detectmatelibrary.common.persistency.event_data_structures.trackers.stability.stability_tracker import (
+    EventStabilityTracker
+)
+from detectmatelibrary.common.persistency.event_persistency import EventPersistency
 from detectmatelibrary.utils.data_buffer import BufferMode
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
-from typing import Any, cast
+from typing import Any
 
 
 # *************** New value methods ****************************************
@@ -82,7 +87,9 @@ class NewValueDetector(CoreDetector):
     """Detect new values in log data as anomalies based on learned values."""
 
     def __init__(
-        self, name: str = "NewValueDetector", config: CoreDetectorConfig = CoreDetectorConfig()
+        self,
+        name: str = "NewValueDetector",
+        config: NewValueDetectorConfig = NewValueDetectorConfig()
     ) -> None:
 
         if isinstance(config, dict):
@@ -90,13 +97,23 @@ class NewValueDetector(CoreDetector):
 
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
 
-        self.config = cast(NewValueDetectorConfig, self.config)
-        self.known_values: dict[str, Any] = {}
+        self.config: NewValueDetectorConfig  # type narrowing for IDE
+
+        self.persistency = EventPersistency(
+            event_data_class=EventStabilityTracker,
+        )
+        # auto config checks if individual variables are stable to select combos from
+        self.auto_conf_persistency = EventPersistency(
+            event_data_class=EventStabilityTracker
+        )
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by learning values from the input data."""
-        train_new_values(
-            known_values=self.known_values, input_=input_, variables=self.config.log_variables  # type: ignore
+        configured_variables = self.get_configured_variables(input_, self.config.log_variables)
+        self.persistency.ingest_event(
+            event_id=input_["EventID"],
+            event_template=input_["template"],
+            named_variables=configured_variables
         )
 
     def detect(
@@ -105,17 +122,49 @@ class NewValueDetector(CoreDetector):
         """Detect new values in the input data."""
         alerts: dict[str, str] = {}
 
-        overall_score = detect_new_values(
-            known_values=self.known_values,
-            input_=input_,
-            variables=self.config.log_variables,  # type: ignore
-            alerts=alerts
-        )
+        configured_variables = self.get_configured_variables(input_, self.config.log_variables)
+
+        overall_score = 0.0
+
+        for event_id, event_tracker in self.persistency.get_events_data().items():
+            for event_id, multi_tracker in event_tracker.get_data().items():
+                value = configured_variables.get(event_id)
+                if value is None:
+                    continue
+                if value not in multi_tracker.unique_set:
+                    alerts[f"EventID {event_id}"] = (
+                        f"Unknown value: {value} detected."
+                    )
+                    overall_score += 1.0
 
         if overall_score > 0:
             output_["score"] = overall_score
-            output_["description"] = "Method that detect new value in the logs"
+            output_["description"] = "Method that detect new values in the logs"
             output_["alertsObtain"].update(alerts)
             return True
 
         return False
+
+    def configure(self, input_: ParserSchema) -> None:
+        self.auto_conf_persistency.ingest_event(
+            event_id=input_["EventID"],
+            event_template=input_["template"],
+            variables=input_["variables"],
+            named_variables=input_["logFormatVariables"],
+        )
+
+    def set_configuration(self) -> None:
+        variables = {}
+        templates = {}
+        for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
+            stable_vars = tracker.get_variables_by_classification("STABLE")  # type: ignore
+            variables[event_id] = stable_vars
+            templates[event_id] = self.auto_conf_persistency.get_event_template(event_id)
+        config_dict = generate_detector_config(
+            variable_selection=variables,
+            templates=templates,
+            detector_name=self.name,
+            method_type=self.config.method_type,
+        )
+        # Update the config object from the dictionary instead of replacing it
+        self.config = NewValueDetectorConfig.from_dict(config_dict, self.name)
