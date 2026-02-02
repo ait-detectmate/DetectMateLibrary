@@ -83,7 +83,7 @@ class TestCoreParser:
 
     def test_process_correct_input_schema(self) -> None:
         parser = MockupParser(name="TestParser", config=default_args)
-        data = schemas.LogSchema({"logID": 1, "log": "This is a log."}).serialize()
+        data = schemas.LogSchema({"logID": "1", "log": "This is a log."}).serialize()
         result = parser.process(data)  # no error should be produced
         assert isinstance(result, bytes)  # and result should be bytes
 
@@ -102,8 +102,8 @@ class TestCoreParser:
             "parserID": "TestParser",
             "EventID": 1,
             "template": "hello",
-            "parsedLogID": 10,
-            "logID": 1,
+            "parsedLogID": "10",
+            "logID": "1",
             "log": "This is a log.",
             "receivedTimestamp": 0,
             "parsedTimestamp": 0,
@@ -111,7 +111,7 @@ class TestCoreParser:
         expected_result.variables = ["a", "b"]
         expected_result.logFormatVariables["Time"] = "0"
 
-        data = schemas.LogSchema({"logID": 1, "log": "This is a log."})
+        data = schemas.LogSchema({"logID": "1", "log": "This is a log."})
         result = parser.process(data)
 
         assert result == expected_result, f"results {result} and expected {expected_result}"
@@ -119,19 +119,19 @@ class TestCoreParser:
     def test_process_ids(self) -> None:
         parser = MockupParser(name="TestParser", config=MockupConfig())
         data = schemas.LogSchema({
-            "logID": 1, "log": "This is a log.", "logSource": "", "hostname": ""
+            "logID": "1", "log": "This is a log.", "logSource": "", "hostname": ""
         })
 
         result = parser.process(data)
-        assert result.parsedLogID == 10
+        assert result.parsedLogID == "10"
 
         result = parser.process(data)
-        assert result.parsedLogID == 11
+        assert result.parsedLogID == "11"
 
     def test_none_parser(self) -> None:
         parser = NoneMockupParser(name="TestParser", config=MockupConfig())
         data = schemas.LogSchema({
-            "logID": 1, "log": "This is a log.", "logSource": "", "hostname": ""
+            "logID": "1", "log": "This is a log.", "logSource": "", "hostname": ""
         })
 
         assert parser.process(data) is None
