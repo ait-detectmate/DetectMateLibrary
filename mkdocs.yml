@@ -1,0 +1,17 @@
+site_name: DetectMate Library
+site_url: https://ait-detectmate.github.io/DetectMateLibrary/
+
+theme:
+  name: readthedocs
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: installation.md
+    - Basic usage: basic_usage.md
+    - Create new component: create_components.md
+    - Implement new component: implement_components.md
+  - Components:
+    - Schemas: schemas.md
+    - Parsers: parsers.md
+    - Detectors: detectors.md
