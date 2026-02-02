@@ -17,6 +17,7 @@ List of steps to follow for new users of the library.
 
 Documentation of the different components:
 
+* [Overall architecture](overall_architecture.md): overall architecture of the library.
 * [Schemas](schemas.md): documentation of the different schemas in the library.
 * [Parsers](parsers.md): documentation of the different parsers.
 * [Detectors](detectors.md): documentation of the different detectors.
