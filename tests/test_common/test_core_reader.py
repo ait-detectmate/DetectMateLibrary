@@ -86,7 +86,7 @@ class TestCoreDetector:
     def test_process_logid_default(self) -> None:
         reader = MockupReader(name="TestReader", config=default_args)
         for i in range(10):
-            assert reader.process(as_bytes=False).logID == 10 + i
+            assert reader.process(as_bytes=False).logID == str(10 + i)
 
     def test_process_None(self) -> None:
         reader = MockupNoneReader(name="TestReader", config=default_args)

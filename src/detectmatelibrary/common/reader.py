@@ -38,7 +38,7 @@ class CoreReader(CoreComponent):
     def __init_logs(self) -> schemas.LogSchema:
         return self.output_schema({  # type: ignore
                 "__version__": "1.0.0",
-                "logID": self.id_generator(),
+                "logID": str(self.id_generator()),
                 "logSource": self.config.logSource,
                 "hostname": self.config.hostname,
         })
