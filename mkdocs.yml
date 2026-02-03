@@ -16,3 +16,5 @@ nav:
     - Schemas: schemas.md
     - Parsers: parsers.md
     - Detectors: detectors.md
+  - Parsers Methods:
+    - Template Matcher: parsers/template_matcher.md
