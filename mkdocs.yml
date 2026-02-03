@@ -18,3 +18,8 @@ nav:
     - Detectors: detectors.md
   - Parsers Methods:
     - Template Matcher: parsers/template_matcher.md
+  - Detectors Methods:
+    - New Value: detectors/new_value.md
+    - Combo Detector: detectors/combo.md
+  - Auxiliar:
+    - Input buffer: auxiliar/input_buffer.md

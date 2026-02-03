@@ -35,9 +35,9 @@ class CoreParser(CoreComponent):
         """Empty, must be define in the specific parser"""
 
     def train(self, input_: schemas.LogSchema) -> None:
-        """Train the parser"""
+        """Empty, can be define in the parser. It trains the parser"""
 ```
-To generate a new dummy parser the next structure must be follow
+To generate a new parser the next structure must be follow
 
 
 ```python
