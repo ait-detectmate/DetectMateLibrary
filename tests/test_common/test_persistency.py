@@ -15,6 +15,7 @@ from detectmatelibrary.common.persistency.event_data_structures.dataframes impor
 from detectmatelibrary.common.persistency.event_data_structures.trackers import (
     EventTracker,
     SingleStabilityTracker,
+    EventStabilityTracker
 )
 
 
@@ -23,21 +24,21 @@ SAMPLE_EVENT_1 = {
     "event_id": "E001",
     "event_template": "User <*> logged in from <*>",
     "variables": ["alice", "192.168.1.1"],
-    "log_format_variables": {"timestamp": "2024-01-01 10:00:00"},
+    "named_variables": {"timestamp": "2024-01-01 10:00:00"},
 }
 
 SAMPLE_EVENT_2 = {
     "event_id": "E002",
     "event_template": "Error in module <*>: <*>",
     "variables": ["auth", "timeout"],
-    "log_format_variables": {"timestamp": "2024-01-01 10:01:00"},
+    "named_variables": {"timestamp": "2024-01-01 10:01:00"},
 }
 
 SAMPLE_EVENT_3 = {
     "event_id": "E001",
     "event_template": "User <*> logged in from <*>",
     "variables": ["bob", "192.168.1.2"],
-    "log_format_variables": {"timestamp": "2024-01-01 10:02:00"},
+    "named_variables": {"timestamp": "2024-01-01 10:02:00"},
 }
 
 
@@ -151,15 +152,17 @@ class TestEventPersistency:
         assert "var_0" in data.columns  # First variable should be present
         assert "var_1" not in data.columns  # Second variable should be blocked
 
-    def test_get_all_variables_static_method(self):
-        """Test the get_all_variables static method."""
+    def test_get_all_variables_method(self):
+        """Test the get_all_variables instance method."""
         variables = ["value1", "value2", "value3"]
-        log_format_variables = {"timestamp": "2024-01-01", "level": "INFO"}
+        named_variables = {"timestamp": "2024-01-01", "level": "INFO"}
         blacklist = [1]  # Blacklist index 1
 
-        combined = EventPersistency.get_all_variables(
-            variables, log_format_variables, blacklist
+        persistency = EventPersistency(
+            event_data_class=EventDataFrame,
+            variable_blacklist=blacklist,
         )
+        combined = persistency.get_all_variables(variables, named_variables)
 
         assert "timestamp" in combined
         assert "level" in combined
@@ -314,7 +317,7 @@ class TestEventPersistencyIntegration:
                 event_id=f"E{i % 3}",
                 event_template=f"Template {i % 3}",
                 variables=[str(i), str(i * 10)],
-                log_format_variables={},
+                named_variables={},
             )
 
         # Verify all events stored
@@ -339,7 +342,7 @@ class TestEventPersistencyIntegration:
                 event_id="E001",
                 event_template="Test template",
                 variables=[str(i)],
-                log_format_variables={},
+                named_variables={},
             )
 
         # Verify data retrieval works
@@ -350,8 +353,7 @@ class TestEventPersistencyIntegration:
     def test_tracker_backend_full_workflow(self):
         """Test complete workflow with Tracker backend."""
         persistency = EventPersistency(
-            event_data_class=EventTracker,
-            event_data_kwargs={"tracker_type": SingleStabilityTracker},
+            event_data_class=EventStabilityTracker,
         )
 
         # Ingest events with patterns
@@ -360,7 +362,7 @@ class TestEventPersistencyIntegration:
                 event_id="E001",
                 event_template="Test template",
                 variables=["constant", str(i)],
-                log_format_variables={},
+                named_variables={},
             )
 
         # Verify tracker functionality
@@ -384,7 +386,7 @@ class TestEventPersistencyIntegration:
                 event_id=event_id,
                 event_template=template,
                 variables=variables,
-                log_format_variables={},
+                named_variables={},
             )
 
         # Verify correct storage
@@ -410,7 +412,7 @@ class TestEventPersistencyIntegration:
                 event_id=f"E{i % 10}",
                 event_template=f"Template {i % 10}",
                 variables=[str(i), str(i * 2)],
-                log_format_variables={"timestamp": f"2024-01-01 10:{i % 60}:00"},
+                named_variables={"timestamp": f"2024-01-01 10:{i % 60}:00"},
             )
 
         # Verify all data stored
@@ -437,7 +439,7 @@ class TestEventPersistencyIntegration:
             event_id="E001",
             event_template="Test",
             variables=["alice", "1234"],
-            log_format_variables={"timestamp": "2024-01-01"},
+            named_variables={"timestamp": "2024-01-01"},
         )
         data1 = p1.get_event_data("E001")
         assert "var_0" in data1.columns  # First variable
@@ -453,7 +455,7 @@ class TestEventPersistencyIntegration:
             event_id="E001",
             event_template="Test",
             variables=["bob", "5678"],
-            log_format_variables={"timestamp": "2024-01-02"},
+            named_variables={"timestamp": "2024-01-02"},
         )
         data2 = p2.get_event_data("E001")
         assert "var_0" in data2.columns  # First variable

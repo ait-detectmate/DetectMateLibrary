@@ -431,7 +431,7 @@ class TestNewValueComboDetectorConfiguration:
             detector.configure(parser_data)
 
         # Verify events were ingested
-        events_data = detector.persistency.get_events_data()
+        events_data = detector.auto_conf_persistency.get_events_data()
         assert len(events_data) == 3
         assert 1 in events_data
         assert 2 in events_data
