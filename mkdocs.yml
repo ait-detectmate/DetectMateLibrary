@@ -19,6 +19,7 @@ nav:
   - Parsers Methods:
     - Template Matcher: parsers/template_matcher.md
   - Detectors Methods:
+    - Random Detector: detectors/random_detector.md
     - New Value: detectors/new_value.md
     - Combo Detector: detectors/combo.md
   - Auxiliar:

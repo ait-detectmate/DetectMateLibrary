@@ -57,3 +57,5 @@ print(buf.add(1) is None)  # True
 print(buf.add(2))  # 3
 print(buf.add(5))  # 7
 ```
+
+Go back [Index](../index.md)
