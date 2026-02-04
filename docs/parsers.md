@@ -41,6 +41,9 @@ To generate a new parser the next structure must be follow
 
 
 ```python
+from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
+from detectmatelibrary import schemas
+
 class ParserConfig(CoreParserConfig):
     method_type: str = "parser"
 

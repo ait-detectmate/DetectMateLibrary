@@ -119,6 +119,8 @@ Small tutorials of the different schemas.
 You can initialize a schema by using a dictionary with the same structure as the protobuf.
 
 ```python
+from detectmatelibrary import schemas
+
 kwargs = load_somewhere()  # load the dict
 kwargs["log"] = "Test log"
 
@@ -132,6 +134,8 @@ print(log_schema.log == "Test log")  # True
 Schema classes have a friendly way to assign variables.
 
 ```python
+from detectmatelibrary import schemas
+
 log_schema = LogSchema()
 log_schema.log = "Test log"
 print(log_schema["log"] == log_schema.log)  # True
@@ -148,6 +152,8 @@ print(log_schema == log_schema2)  # True
 The schemas have internal methods to serialize and deserialize the classes. Note that for this it will use the internal protobuf class, so if a variable contain a wrong value it will break.
 
 ```python
+from detectmatelibrary import schemas
+
 log_schema = LogSchema()
 log_schema.log = "Test log"
 serialized = log_schema.serialize()

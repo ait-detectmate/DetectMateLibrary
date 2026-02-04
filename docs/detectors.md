@@ -41,10 +41,16 @@ class CoreDetector(CoreComponent):
     ) -> None:
         """Empty, can be define in the detector. It trains the detector"""
 ```
-To generate a new detector the next structure must be follow
+To generate a new detector the next structure must be follow:
 
 
 ```python
+from detectmatelibrary.common.detector import CoreDetectorConfig
+from detectmatelibrary.common.detector import CoreDetector
+
+from detectmatelibrary import schemas
+
+
 class DetectorConfig(CoreDetectorConfig):
     method_type: str = "detector"
 
@@ -81,6 +87,7 @@ To configure the number of logs receive as input, you need to configure the [buf
 
 List of detectors:
 
+* [Random detector](detectors/random_detector.md): Generates random alerts.
 * [New Value](detectors/new_value.md): Detect new values in the variables in the logs.
 * [Combo Detector](detectors/combo.md): Detect new combination of variables in the logs.
 
