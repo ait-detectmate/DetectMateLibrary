@@ -42,6 +42,7 @@ To generate a new parser the next structure must be follow
 
 ```python
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
+
 from detectmatelibrary import schemas
 
 class ParserConfig(CoreParserConfig):
@@ -77,5 +78,6 @@ The **run** method of the **CoreParser** will call the **parse** method you defi
 List of parsers:
 
  * [Template Matcher](parsers/template_matcher.md): match logs with a set of templates.
+ * [Json Parser](parsers/json_parser.md): parse json logs.
 
 Go back [Index](index.md)
