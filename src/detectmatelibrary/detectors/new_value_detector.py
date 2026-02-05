@@ -15,68 +15,6 @@ from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 from typing import Any
 
 
-# *************** New value methods ****************************************
-def _get_element(input_: ParserSchema, var_pos: str | int) -> Any:
-    if isinstance(var_pos, str):
-        return input_["logFormatVariables"][var_pos]
-    elif len(input_["variables"]) > var_pos:
-        return input_["variables"][var_pos]
-
-
-def train_new_values(
-    known_values: dict[str, set[Any] | dict[str, Any]],
-    input_: ParserSchema,
-    variables: AllLogVariables | LogVariables
-) -> None:
-
-    if (relevant_log_fields := variables[input_["EventID"]]) is None:
-        return
-    relevant_log_fields = relevant_log_fields.get_all()  # type: ignore
-
-    kn_v = known_values
-    if isinstance(variables, LogVariables):
-        if input_["EventID"] not in known_values:
-            known_values[input_["EventID"]] = {}
-        kn_v = known_values[input_["EventID"]]  # type: ignore
-
-    for var_pos in relevant_log_fields.keys():  # type: ignore
-        if var_pos not in kn_v:
-            kn_v[var_pos] = set()
-
-        kn_v[var_pos].add(_get_element(input_, var_pos=var_pos))  # type: ignore
-
-
-def detect_new_values(
-    known_values: dict[str, Any],
-    input_: ParserSchema,
-    variables: AllLogVariables | LogVariables,
-    alerts: dict[str, str],
-) -> float:
-
-    overall_score = 0.0
-    if (relevant_log_fields := variables[input_["EventID"]]) is None:
-        return 0.
-    relevant_log_fields = relevant_log_fields.get_all()  # type: ignore
-
-    kn_v = known_values
-    if isinstance(variables, LogVariables):
-        if input_["EventID"] not in known_values:
-            return overall_score
-        kn_v = known_values[input_["EventID"]]
-
-    for var_pos in relevant_log_fields.keys():  # type: ignore
-        score = 0.0
-        value = _get_element(input_, var_pos=var_pos)
-
-        if value not in kn_v[var_pos]:
-            score = 1.0
-            alerts.update({f"New variable in {var_pos}": str(value)})
-        overall_score += score
-
-    return overall_score
-
-
-#  ************************************************************************
 class NewValueDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_value_detector"
 
