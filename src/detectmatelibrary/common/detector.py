@@ -69,7 +69,7 @@ class CoreDetector(CoreComponent):
         output_["detectorType"] = self.config.method_type
         output_["logIDs"] = _extract_logIDs(input_)
         output_["extractedTimestamps"] = _extract_timestamp(input_)
-        output_["alertID"] = self.id_generator()
+        output_["alertID"] = str(self.id_generator())
         output_["receivedTimestamp"] = get_timestamp()
 
         anomaly_detected = self.detect(input_=input_, output_=output_)

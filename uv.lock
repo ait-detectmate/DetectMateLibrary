@@ -120,7 +120,7 @@ dependencies = [
     { name = "ujson" },
 ]
 
-[package.optional-dependencies]
+[package.dev-dependencies]
 dev = [
     { name = "prek" },
     { name = "pytest" },
@@ -134,16 +134,19 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.3.2" },
     { name = "pandas", specifier = ">=2.3.2" },
     { name = "polars", specifier = ">=1.36.1" },
-    { name = "prek", marker = "extra == 'dev'", specifier = ">=0.2.8" },
     { name = "protobuf", specifier = ">=6.32.1" },
     { name = "pydantic", specifier = ">=2.11.7" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.4.2" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=6.2.1" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "regex", specifier = ">=2025.11.3" },
     { name = "ujson", specifier = ">=5.11.0" },
 ]
-provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "prek", specifier = ">=0.2.8" },
+    { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-cov", specifier = ">=6.2.1" },
+]
 
 [[package]]
 name = "drain3"
