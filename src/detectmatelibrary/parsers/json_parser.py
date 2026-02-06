@@ -5,7 +5,7 @@ from detectmatelibrary import schemas
 
 from collections.abc import Mapping
 from typing import Any, Iterable, Optional
-import ujson as json  # type: ignore
+import ujson as json  # type: ignore[import-untyped]
 
 
 def iter_flatten(obj: dict[str, Any], sep: str = '.') -> Iterable[tuple[str, Any]]:

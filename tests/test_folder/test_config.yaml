@@ -1,3 +1,9 @@
+readers:
+  File_reader:
+    method_type: log_file_reader
+    params:
+      file: "<PLACEHOLDER>"
+
 parsers:
   example_parser:
     method_type: ExampleParser
@@ -6,38 +12,22 @@ parsers:
       log_format: "[<Time>] [<Level>] <Content>" # if None, log format is <Content>
       depth: 4
 
-detectors:
-  detector_all:
-    method_type: ExampleDetector
-    parser: example_parser_1 # must match an instance id from parsers
-    auto_config: false # if false, explicit instances must be given
+  MatcherParser:
+    method_type: matcher_parser
+    auto_config: false
     params:
-      all_log_variables:
-          variables: # optional; each variable spawns a detector instance
-            - pos: 0 # int
-              name: child_process # optional; if not defined, posx is used as name
-              params: # optional; can be defined depending on what params the detector required
-                threshold: 0.5
-            - pos: 1 # int
-              name: slot_number # optional
-              params: # optional
-                threshold: 0.7
-          header_variables: # optional; could be part of variables but separated for clarity
-            - pos: Level # str
-              params: # optional
-                threshold: 0.2
-            - pos: Time # str
-              params: # optional
-                threshold: 0.4
+      path_templates: "tests/test_folder/test_templates.txt"
+
+detectors:
   detector_variables:
     method_type: ExampleDetector
     parser: example_parser_1 # must match an instance id from parsers
     auto_config: false # if false, explicit instances must be given
-    params:
-      log_variables:
-        - id: example_detector_1
-          event: 1 # can be int or "all"
-          template: "jk2_init() Found child <*>"  # optional
+    params: {}
+    events:
+      1:  # event_id
+        example_detector_1:  # instance_id
+          params: {}
           variables: # optional; each variable spawns a detector instance
             - pos: 0 # int
               name: child_process # optional; if not defined, posx is used as name
@@ -59,11 +49,11 @@ detectors:
     method_type: ExampleDetector
     parser: example_parser_1 # must match an instance id from parsers
     auto_config: false # if false, explicit instances must be given
-    params:
-      log_variables:
-        - id: example_detector_1
-          event: 1 # can be int or "all"
-          template: "jk2_init() Found child <*>"  # optional
+    params: {}
+    events:
+      1:  # event_id
+        example_detector_1:  # instance_id
+          params: {}
           header_variables: # optional; could be part of variables but separated for clarity
             - pos: Level # str
               params: # optional
@@ -72,42 +62,15 @@ detectors:
               params: # optional
                 threshold: 0.4
 
-  detector_missing_format:
-    method_type: ExampleDetector
-    parser: example_parser_1 # must match an instance id from parsers
-    auto_config: false # if false, explicit instances must be given
-    params:
-      - id: example_detector_1
-        event: 1 # can be int or "all"
-        template: "jk2_init() Found child <*> in scoreboard slot <*>" # optional
-        variables: # optional; each variable spawns a detector instance
-          - pos: 0 # int
-            name: child_process # optional; if not defined, posx is used as name
-            params: # optional; can be defined depending on what params the detector required
-              threshold: 0.5
-          - pos: 1 # int
-            name: slot_number # optional
-            params: # optional
-              threshold: 0.7
-          - pos: 99 # out of range index will be ignored but produces warning
-            name: ignored_variable # optional
-        header_variables: # optional; could be part of variables but separated for clarity
-          - pos: Level # str
-            params: # optional
-              threshold: 0.2
-          - pos: Time # str
-            params: # optional
-              threshold: 0.4
-
   detector_incorrect_format1:
     method_type: ExampleDetector
     parser: example_parser_1 # must match an instance id from parsers
     auto_config: false # if false, explicit instances must be given
-    params:
-      log_variables:
-        - id: example_detector_1
-          event: 1 # can be int or "all"
-          template: "jk2_init() Found child <*> in scoreboard slot <*>" # optional
+    params: {}
+    events:
+      1:
+        example_detector_1:
+          params: {}
           variables: # optional; each variable spawns a detector instance
             - pos: 0 # int
               name: child_process # optional; if not defined, posx is used as name
@@ -120,23 +83,24 @@ detectors:
             - pos: 99 # out of range index will be ignored but produces warning
               name: ignored_variable # optional
           header_variables: # optional; could be part of variables but separated for clarity
-            - pos1: Level # str
+            - pos1: Level # WRONG KEY - should be 'pos'
               params: # optional
                 threshold: 0.2
             - pos: Time # str
               params: # optional
                 threshold: 0.4
 
-  detector_incorrect_format2:
+  detector_missing_events:
     method_type: ExampleDetector
     parser: example_parser_1 # must match an instance id from parsers
     auto_config: false # if false, explicit instances must be given
-    params:
-      log_variables:
-        - id: example_detector_1
-          template: "jk2_init() Found child <*> in scoreboard slot <*>" # optional
+    params: {}
+    events:
+      1:
+        example_detector_1:
+          # Missing 'params' field is OK since it defaults to {}
           variables: # optional; each variable spawns a detector instance
-            - pos: 0 # int
+            - pox: 0 # WRONG KEY - should be 'pos'
               name: child_process # optional; if not defined, posx is used as name
               params: # optional; can be defined depending on what params the detector required
                 threshold: 0.5
@@ -163,3 +127,28 @@ detectors:
     auto_config: true # if false, explicit instances must be given
     params:
       hello: a
+
+  RandomDetector:
+    method_type: random_detector
+    parser: example_parser_1
+    auto_config: true
+
+  NewValueDetector:
+    method_type: new_value_detector
+    parser: example_parser_1
+    auto_config: true
+
+  NewValueDetector_All:
+    method_type: new_value_detector
+    parser: example_parser_1
+    auto_config: true
+
+  NewValueComboDetector:
+    method_type: new_value_combo_detector
+    parser: example_parser_1
+    auto_config: true
+
+  NewValueComboDetector_All:
+    method_type: new_value_combo_detector
+    parser: example_parser_1
+    auto_config: true

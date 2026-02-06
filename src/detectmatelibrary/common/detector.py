@@ -1,4 +1,4 @@
-from detectmatelibrary.common._config._formats import AllLogVariables, LogVariables
+from detectmatelibrary.common._config._formats import EventsConfig
 from detectmatelibrary.common.core import CoreComponent, CoreConfig
 
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
@@ -93,7 +93,7 @@ class CoreDetector(CoreComponent):
     @staticmethod
     def get_configured_variables(
         input_: ParserSchema,
-        log_variables: LogVariables | AllLogVariables | dict[str, Any],
+        log_variables: EventsConfig | dict[str, Any],
     ) -> Dict[str, Any]:
         """Extract variables from input based on what's defined in the config.
 

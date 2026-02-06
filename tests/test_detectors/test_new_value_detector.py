@@ -4,7 +4,7 @@ This module tests the NewValueDetector implementation including:
 - Initialization and configuration
 - Training functionality to learn known values
 - Detection logic for new/unknown values
-- Hierarchical configuration handling (event-specific and "all" events)
+- Event-specific configuration handling
 - Input/output schema validation
 """
 
@@ -23,46 +23,34 @@ config = {
         "CustomInit": {
             "method_type": "new_value_detector",
             "auto_config": False,
-            "params": {
-                "log_variables": [{
-                    "id": "instanace1",
-                    "event": 1,
-                    "template": "adsdas",
-                    "variables": [{
-                        "pos": 0, "name": "sad", "params": {}
-                    }]
-                }]
-            }
-        },
-        "AllDetector": {
-            "method_type": "new_value_detector",
-            "auto_config": False,
-            "params": {
-                "all_log_variables": {
-                    "variables": [{
-                        "pos": 1, "name": "test", "params": {}
-                    }],
-                    "header_variables": [{
-                        "pos": "level", "params": {}
-                    }]
+            "params": {},
+            "events": {
+                1: {
+                    "instance1": {
+                        "params": {},
+                        "variables": [{
+                            "pos": 0, "name": "sad", "params": {}
+                        }]
+                    }
                 }
             }
         },
         "MultipleDetector": {
             "method_type": "new_value_detector",
             "auto_config": False,
-            "params": {
-                "log_variables": [{
-                    "id": "test",
-                    "event": 1,
-                    "template": "qwewqe",
-                    "variables": [{
-                        "pos": 1, "name": "test", "params": {}
-                    }],
-                    "header_variables": [{
-                        "pos": "level", "params": {}
-                    }]
-                }]
+            "params": {},
+            "events": {
+                1: {
+                    "test": {
+                        "params": {},
+                        "variables": [{
+                            "pos": 1, "name": "test", "params": {}
+                        }],
+                        "header_variables": [{
+                            "pos": "level", "params": {}
+                        }]
+                    }
+                }
             }
         }
     }
@@ -95,37 +83,6 @@ class TestNewValueDetectorInitialization:
 class TestNewValueDetectorTraining:
     """Test NewValueDetector training functionality."""
 
-    def test_train_all_multiple_values(self):
-        """Test training with multiple different values."""
-        detector = NewValueDetector(config=config, name="AllDetector")
-
-        # Train with multiple values
-        for level in ["INFO", "WARNING", "ERROR"]:
-            parser_data = schemas.ParserSchema({
-                "parserType": "test",
-                "EventID": 1,
-                "template": "test template",
-                "variables": ["0", "assa"],
-                "logID": 1,
-                "parsedLogID": 1,
-                "parserID": "test_parser",
-                "log": "test log message",
-                "logFormatVariables": {"level": level}
-            })
-            detector.train(parser_data)
-
-        # Verify all values were learned via persistency
-        event_data = detector.persistency.get_event_data(1)
-        assert event_data is not None
-        # Check that we track 2 variables: "level" (header) and "test" (from pos 1)
-        assert len(event_data) == 2
-        # Check the level values
-        assert "INFO" in event_data["level"].unique_set
-        assert "WARNING" in event_data["level"].unique_set
-        assert "ERROR" in event_data["level"].unique_set
-        # Check the variable at position 1 (named "test")
-        assert "assa" in event_data["test"].unique_set
-
     def test_train_multiple_values(self):
         """Test training with multiple different values."""
         detector = NewValueDetector(config=config, name="MultipleDetector")
@@ -145,7 +102,7 @@ class TestNewValueDetectorTraining:
                 })
                 detector.train(parser_data)
 
-        # Only event 1 should be tracked (based on log_variables config)
+        # Only event 1 should be tracked (based on events config)
         assert len(detector.persistency.events_data) == 1
         event_data = detector.persistency.get_event_data(1)
         assert event_data is not None
@@ -159,80 +116,6 @@ class TestNewValueDetectorTraining:
 
 class TestNewValueDetectorDetection:
     """Test NewValueDetector detection functionality."""
-
-    def test_detect_known_value_no_alert_all(self):
-        """Test that known values don't trigger alerts."""
-        detector = NewValueDetector(config=config, name="AllDetector")
-
-        # Train with a value
-        train_data = schemas.ParserSchema({
-            "parserType": "test",
-            "EventID": 1,
-            "template": "test template",
-            "variables": ["adsasd", "asdasd"],
-            "logID": 1,
-            "parsedLogID": 1,
-            "parserID": "test_parser",
-            "log": "test log message",
-            "logFormatVariables": {"level": "INFO"}
-        })
-        detector.train(train_data)
-
-        # Detect with the same value
-        test_data = schemas.ParserSchema({
-            "parserType": "test",
-            "EventID": 12,
-            "template": "test template",
-            "variables": ["adsasd", "asdasd"],
-            "logID": 2,
-            "parsedLogID": 2,
-            "parserID": "test_parser",
-            "log": "test log message",
-            "logFormatVariables": {"level": "INFO"}
-        })
-        output = schemas.DetectorSchema()
-
-        result = detector.detect(test_data, output)
-
-        # Should not trigger alert for known value
-        assert not result
-        assert output.score == 0.0
-
-    def test_detect_known_value_alert_all(self):
-        detector = NewValueDetector(config=config, name="AllDetector")
-
-        # Train with a value
-        train_data = schemas.ParserSchema({
-            "parserType": "test",
-            "EventID": 1,
-            "template": "test template",
-            "variables": ["adsasd", "asdasd"],
-            "logID": 1,
-            "parsedLogID": 1,
-            "parserID": "test_parser",
-            "log": "test log message",
-            "logFormatVariables": {"level": "INFO"}
-        })
-        detector.train(train_data)
-
-        # Detect with the same value
-        test_data = schemas.ParserSchema({
-            "parserType": "test",
-            "EventID": 12,
-            "template": "test template",
-            "variables": ["adsasd", "asdasd"],
-            "logID": 2,
-            "parsedLogID": 2,
-            "parserID": "test_parser",
-            "log": "test log message",
-            "logFormatVariables": {"level": "CRITICAL"}
-        })
-        output = schemas.DetectorSchema()
-
-        result = detector.detect(test_data, output)
-
-        assert result
-        assert output.score == 1.0
 
     def test_detect_known_value_no_alert(self):
         detector = NewValueDetector(config=config, name="MultipleDetector")

@@ -1,7 +1,8 @@
 
 from detectmatelibrary.detectors.new_value_combo_detector import (
-    NewValueComboDetector, BufferMode, generate_detector_config
+    NewValueComboDetector, BufferMode
 )
+from detectmatelibrary.common._config import generate_detector_config
 import detectmatelibrary.schemas as schemas
 
 from detectmatelibrary.utils.aux import time_test_mode
@@ -17,44 +18,16 @@ config = {
             "method_type": "new_value_combo_detector",
             "auto_config": False,
             "params": {
-                "comb_size": 4,
-                "log_variables": [{
-                    "id": "instance1",
-                    "event": 1,
-                    "template": "adsdas",
-                    "variables": [{
-                        "pos": 0, "name": "sad", "params": {}
-                    }]
-                }]
-            }
-        },
-        "AllDetector": {
-            "method_type": "new_value_combo_detector",
-            "auto_config": False,
-            "params": {
-                "comb_size": 2,
-                "all_log_variables": {
-                    "variables": [{
-                        "pos": 1, "name": "test", "params": {}
-                    }],
-                    "header_variables": [{
-                        "pos": "level", "params": {}
-                    }]
-                }
-            }
-        },
-        "AllDetectorTooBig": {
-            "method_type": "new_value_combo_detector",
-            "auto_config": False,
-            "params": {
-                "comb_size": 5,
-                "all_log_variables": {
-                    "variables": [{
-                        "pos": 1, "name": "test", "params": {}
-                    }],
-                    "header_variables": [{
-                        "pos": "level", "params": {}
-                    }]
+                "comb_size": 4
+            },
+            "events": {
+                1: {
+                    "instance1": {
+                        "params": {},
+                        "variables": [{
+                            "pos": 0, "name": "sad", "params": {}
+                        }]
+                    }
                 }
             }
         },
@@ -62,36 +35,20 @@ config = {
             "method_type": "new_value_combo_detector",
             "auto_config": False,
             "params": {
-                "comb_size": 2,
-                "log_variables": [{
-                    "id": "test",
-                    "event": 1,
-                    "template": "qwewqe",
-                    "variables": [{
-                        "pos": 1, "name": "test", "params": {}
-                    }],
-                    "header_variables": [{
-                        "pos": "level", "params": {}
-                    }]
-                }]
-            }
-        },
-        "MultipleDetectorTooBig": {
-            "method_type": "new_value_combo_detector",
-            "auto_config": False,
-            "params": {
-                "comb_size": 5,
-                "log_variables": [{
-                    "id": "test",
-                    "event": 1,
-                    "template": "qwewqe",
-                    "variables": [{
-                        "pos": 1, "name": "test", "params": {}
-                    }],
-                    "header_variables": [{
-                        "pos": "level", "params": {}
-                    }]
-                }]
+                "comb_size": 2
+            },
+            "events": {
+                1: {
+                    "test": {
+                        "params": {},
+                        "variables": [{
+                            "pos": 1, "name": "test", "params": {}
+                        }],
+                        "header_variables": [{
+                            "pos": "level", "params": {}
+                        }]
+                    }
+                }
             }
         }
     }
@@ -113,33 +70,9 @@ class TestNewValueComboDetectorInitialization:
 
         assert detector.name == "CustomInit"
         assert detector.config.comb_size == 4
-        assert isinstance(detector.known_combos, dict)
 
 
 class TestNewValueComboDetectorTraining:
-
-    def test_train_all_multiple_values(self):
-        detector = NewValueComboDetector(config=config, name="AllDetector")
-
-        # Train with multiple values
-        for level in ["INFO", "WARNING", "ERROR"]:
-            parser_data = schemas.ParserSchema({
-                "parserType": "test",
-                "EventID": 1,
-                "template": "test template",
-                "variables": ["0", "assa"],
-                "logID": 1,
-                "parsedLogID": 1,
-                "parserID": "test_parser",
-                "log": "test log message",
-                "logFormatVariables": {"level": level}
-            })
-            detector.train(parser_data)
-
-        combos = {"all": set({
-            ("assa", "INFO"), ("assa", "WARNING"), ("assa", "ERROR")
-        })}
-        assert combos == detector.known_combos
 
     def test_train_multiple_values(self):
         detector = NewValueComboDetector(config=config, name="MultipleDetector")
@@ -160,114 +93,12 @@ class TestNewValueComboDetectorTraining:
                 })
                 detector.train(parser_data)
 
-        combos = {"all": set(), 1: set({
-            ("assa", "INFO"), ("assa", "WARNING"), ("assa", "ERROR")
-        })}
-        assert combos == detector.known_combos
+        # Only event 1 should be tracked (based on events config)
+        assert len(detector.persistency.events_data) == 1
 
 
 class TestNewValueComboDetectorDetection:
-    """Test NewValueDetector detection functionality."""
-
-    def test_detect_known_value_no_alert_all(self):
-        """Test that known values don't trigger alerts."""
-        detector = NewValueComboDetector(config=config, name="AllDetector")
-
-        # Train with a value
-        train_data = schemas.ParserSchema({
-            "parserType": "test",
-            "EventID": 1,
-            "template": "test template",
-            "variables": ["adsasd", "asdasd"],
-            "logID": 1,
-            "parsedLogID": 1,
-            "parserID": "test_parser",
-            "log": "test log message",
-            "logFormatVariables": {"level": "INFO"}
-        })
-        detector.train(train_data)
-
-        train_data = schemas.ParserSchema({
-            "parserType": "test",
-            "EventID": 1,
-            "template": "test template",
-            "variables": ["adsasd", "other_value"],
-            "logID": 1,
-            "parsedLogID": 1,
-            "parserID": "test_parser",
-            "log": "test log message",
-            "logFormatVariables": {"level": "CRITICAL"}
-        })
-        detector.train(train_data)
-
-        # Detect with the same value
-        test_data = schemas.ParserSchema({
-            "parserType": "test",
-            "EventID": 12,
-            "template": "test template",
-            "variables": ["adsasd", "asdasd"],
-            "logID": 2,
-            "parsedLogID": 2,
-            "parserID": "test_parser",
-            "log": "test log message",
-            "logFormatVariables": {"level": "INFO"}
-        })
-        output = schemas.DetectorSchema()
-
-        result = detector.detect(test_data, output)
-
-        # Should not trigger alert for known value
-        assert not result
-        assert output.score == 0.0
-
-    def test_detect_known_value_alert_all(self):
-        detector = NewValueComboDetector(config=config, name="AllDetector")
-
-        # Train with a value
-        train_data = schemas.ParserSchema({
-            "parserType": "test",
-            "EventID": 1,
-            "template": "test template",
-            "variables": ["adsasd", "asdasd"],
-            "logID": 1,
-            "parsedLogID": 1,
-            "parserID": "test_parser",
-            "log": "test log message",
-            "logFormatVariables": {"level": "INFO"}
-        })
-        detector.train(train_data)
-
-        train_data = schemas.ParserSchema({
-            "parserType": "test",
-            "EventID": 1,
-            "template": "test template",
-            "variables": ["adsasd", "other_value"],
-            "logID": 1,
-            "parsedLogID": 1,
-            "parserID": "test_parser",
-            "log": "test log message",
-            "logFormatVariables": {"level": "CRITICAL"}
-        })
-        detector.train(train_data)
-
-        # Detect with the same value
-        test_data = schemas.ParserSchema({
-            "parserType": "test",
-            "EventID": 12,
-            "template": "test template",
-            "variables": ["adsasd", "asdasd"],
-            "logID": 2,
-            "parsedLogID": 2,
-            "parserID": "test_parser",
-            "log": "test log message",
-            "logFormatVariables": {"level": "CRITICAL"}
-        })
-        output = schemas.DetectorSchema()
-
-        result = detector.detect(test_data, output)
-
-        assert result
-        assert output.score == 1.0
+    """Test NewValueComboDetector detection functionality."""
 
     def test_detect_known_value_no_alert(self):
         detector = NewValueComboDetector(config=config, name="MultipleDetector")
@@ -348,12 +179,12 @@ class TestNewValueComboDetectorDetection:
         })
         detector.train(train_data)
 
-        # Detect with the same value
+        # Detect with an unknown combination (pos 1 has a new value)
         test_data = schemas.ParserSchema({
             "parserType": "test",
             "EventID": 1,
             "template": "test template",
-            "variables": ["adsasd"],
+            "variables": ["adsasd", "new_unknown_value"],
             "logID": 2,
             "parsedLogID": 2,
             "parserID": "test_parser",
@@ -376,11 +207,9 @@ class TestNewValueComboDetectorConfiguration:
         variable_selection = {
             1: ["var_0", "var_1"]
         }
-        templates = {1: "Test template"}
 
         config_dict = generate_detector_config(
             variable_selection=variable_selection,
-            templates=templates,
             detector_name="TestDetector",
             method_type="new_value_combo_detector",
             comb_size=2
@@ -391,7 +220,7 @@ class TestNewValueComboDetectorConfiguration:
         detector_config = config_dict["detectors"]["TestDetector"]
         assert detector_config["method_type"] == "new_value_combo_detector"
         assert detector_config["params"]["comb_size"] == 2
-        assert len(detector_config["params"]["log_variables"]) == 1
+        assert len(detector_config["events"]) == 1
 
     def test_generate_detector_config_multiple_events(self):
         """Test config generation with multiple events."""
@@ -400,16 +229,14 @@ class TestNewValueComboDetectorConfiguration:
             2: ["var_0", "var_2", "var_3"],
             3: ["level"]
         }
-        templates = {1: "Template 1", 2: "Template 2", 3: "Template 3"}
 
         config_dict = generate_detector_config(
             variable_selection=variable_selection,
-            templates=templates,
             detector_name="MultiEventDetector",
             method_type="new_value_combo_detector"
         )
 
-        assert len(config_dict["detectors"]["MultiEventDetector"]["params"]["log_variables"]) == 3
+        assert len(config_dict["detectors"]["MultiEventDetector"]["events"]) == 3
 
     def test_configure_method_ingests_events(self):
         """Test that configure method properly ingests events."""
@@ -460,7 +287,7 @@ class TestNewValueComboDetectorConfiguration:
         detector.set_configuration(max_combo_size=2)
 
         # Verify config was updated
-        assert detector.config.log_variables is not None
+        assert detector.config.events is not None
         assert detector.config.comb_size == 2
 
     def test_configuration_workflow(self):

@@ -1,9 +1,12 @@
-from detectmatelibrary.common._config._compile import ConfigMethods
+from detectmatelibrary.common._config._compile import ConfigMethods, generate_detector_config
+from detectmatelibrary.common._config._formats import EventsConfig
+
+__all__ = ["ConfigMethods", "generate_detector_config", "EventsConfig", "BasicConfig"]
 
 from pydantic import BaseModel, ConfigDict
 
 from typing_extensions import Self
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 from copy import deepcopy
 
 
@@ -36,60 +39,54 @@ class BasicConfig(BaseModel):
 
         return cls(**ConfigMethods.process(config_))
 
+    def to_dict(self, method_id: str) -> Dict[str, Any]:
+        """Convert the config back to YAML-compatible dictionary format.
 
-def generate_detector_config(
-    variable_selection: Dict[int, List[str]],
-    templates: Dict[Any, str | None],
-    detector_name: str,
-    method_type: str,
-    base_config: Optional[Dict[str, Any]] = None,
-    **additional_params: Any,
-) -> Dict[str, Any]:
-    """Generate the configuration for detectors. Output is a dictionary.
+        This is the inverse of from_dict() and ensures yaml -> pydantic -> yaml preservation.
 
-    Args:
-        variable_selection (Dict[int, List[str]]): Mapping of event IDs to variable names.
-        templates (Dict[Any, str | None]): Mapping of event IDs to their templates.
-        detector_name (str): Name of the detector.
-        method_type (str): Type of the detection method.
-        base_config (Optional[Dict[str, Any]]): Base configuration to build upon.
-        **additional_params: Additional parameters for the detector.
-    """
+        Args:
+            method_id: The method identifier to use in the output structure
 
-    if base_config is None:
-        base_config = {
-            "detectors": {
-                detector_name: {
-                    "method_type": method_type,
-                    "auto_config": False,
-                    "params": {
-                        "log_variables": []
-                    },
-                }
+        Returns:
+            Dictionary with structure: {comp_type: {method_id: config_data}}
+        """
+        # Build the config in the format expected by from_dict
+        result: Dict[str, Any] = {
+            "method_type": self.method_type,
+            "auto_config": self.auto_config,
+        }
+
+        # Collect all non-meta fields for params
+        params = {}
+        events_data = None
+
+        for field_name, field_value in self:
+            # Skip meta fields
+            if field_name in ("comp_type", "method_type", "auto_config"):
+                continue
+
+            # Handle EventsConfig specially
+            if field_name == "events":
+                if field_value is not None:
+                    if isinstance(field_value, EventsConfig):
+                        events_data = field_value.to_dict()
+                    else:
+                        events_data = field_value
+            else:
+                # All other fields go into params
+                params[field_name] = field_value
+
+        # Add params if there are any
+        if params:
+            result["params"] = params
+
+        # Add events if they exist
+        if events_data is not None:
+            result["events"] = events_data
+
+        # Wrap in the comp_type and method_id structure
+        return {
+            self.comp_type: {
+                method_id: result
             }
         }
-    config = deepcopy(base_config)
-
-    detectors = config.setdefault("detectors", {})
-    detector = detectors.setdefault(detector_name, {})
-    detector.setdefault("method_type", method_type)
-    detector.setdefault("auto_config", False)
-    params = detector.setdefault("params", {})
-    params.update(additional_params)
-    log_variables = params.setdefault("log_variables", [])
-
-    for event_id, all_variables in variable_selection.items():
-        variables = [
-            {"pos": int(name.split("_")[1]), "name": name}
-            for name in all_variables if name.startswith("var_")
-        ]
-        header_variables = [{"pos": name} for name in all_variables if not name.startswith("var_")]
-
-        log_variables.append({
-            "id": f"id_{event_id}",
-            "event": event_id,
-            "template": templates.get(event_id, ""),
-            "variables": variables,
-            "header_variables": header_variables,
-        })
-    return config

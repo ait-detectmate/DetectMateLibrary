@@ -1,5 +1,5 @@
-from detectmatelibrary.common._config import generate_detector_config
-from detectmatelibrary.common._config._formats import LogVariables, AllLogVariables
+from detectmatelibrary.common._config._compile import generate_detector_config
+from detectmatelibrary.common._config._formats import EventsConfig
 
 from detectmatelibrary.common.detector import CoreDetectorConfig
 from detectmatelibrary.common.detector import CoreDetector
@@ -18,7 +18,7 @@ from typing import Any
 class NewValueDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_value_detector"
 
-    log_variables: LogVariables | AllLogVariables | dict[str, Any] = {}
+    events: EventsConfig | dict[str, Any] = {}
 
 
 class NewValueDetector(CoreDetector):
@@ -47,7 +47,7 @@ class NewValueDetector(CoreDetector):
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by learning values from the input data."""
-        configured_variables = self.get_configured_variables(input_, self.config.log_variables)
+        configured_variables = self.get_configured_variables(input_, self.config.events)
         self.persistency.ingest_event(
             event_id=input_["EventID"],
             event_template=input_["template"],
@@ -60,7 +60,7 @@ class NewValueDetector(CoreDetector):
         """Detect new values in the input data."""
         alerts: dict[str, str] = {}
 
-        configured_variables = self.get_configured_variables(input_, self.config.log_variables)
+        configured_variables = self.get_configured_variables(input_, self.config.events)
 
         overall_score = 0.0
 
@@ -71,13 +71,13 @@ class NewValueDetector(CoreDetector):
                     continue
                 if value not in multi_tracker.unique_set:
                     alerts[f"EventID {event_id}"] = (
-                        f"Unknown value: {value} detected."
+                        f"Unknown value: '{value}'"
                     )
                     overall_score += 1.0
 
         if overall_score > 0:
             output_["score"] = overall_score
-            output_["description"] = "Method that detect new values in the logs"
+            output_["description"] = f"{self.name} detects values not encountered in training as anomalies."
             output_["alertsObtain"].update(alerts)
             return True
 
@@ -93,14 +93,11 @@ class NewValueDetector(CoreDetector):
 
     def set_configuration(self) -> None:
         variables = {}
-        templates = {}
         for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
             stable_vars = tracker.get_variables_by_classification("STABLE")  # type: ignore
             variables[event_id] = stable_vars
-            templates[event_id] = self.auto_conf_persistency.get_event_template(event_id)
         config_dict = generate_detector_config(
             variable_selection=variables,
-            templates=templates,
             detector_name=self.name,
             method_type=self.config.method_type,
         )

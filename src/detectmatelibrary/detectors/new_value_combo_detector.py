@@ -1,4 +1,4 @@
-from detectmatelibrary.common._config._formats import LogVariables, AllLogVariables
+from detectmatelibrary.common._config._formats import EventsConfig
 from detectmatelibrary.common._config import generate_detector_config
 
 from detectmatelibrary.common.detector import CoreDetectorConfig
@@ -11,21 +11,46 @@ from detectmatelibrary.common.persistency.event_data_structures.trackers import 
 )
 from detectmatelibrary.common.persistency.event_persistency import EventPersistency
 
-import detectmatelibrary.schemas as schemas
+from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
-from typing import Any, Set, Dict, cast, Tuple
+from typing import Any, Dict, Sequence, cast, Tuple
+from itertools import combinations
 
 
-def get_combo(variables: Dict[str, Any]) -> Dict[str, Tuple[Any, ...]]:
+def get_combo(variables: Dict[str, Any]) -> Dict[Tuple[str, ...], Tuple[Any, ...]]:
     """Get a single combination of all variables as a key-value pair."""
-    return {"-".join(variables.keys()): tuple(variables.values())}
+    return {tuple(variables.keys()): tuple(variables.values())}
+
+
+def _combine(
+    iterable: Sequence[str], max_combo_length: int = 2
+) -> list[Tuple[str, ...]]:
+    """Get all possible combinations of an iterable."""
+    combos: list[Tuple[str, ...]] = []
+    for i in range(2, min(len(iterable), max_combo_length, 5) + 1):
+        combo = list(combinations(iterable, i))
+        combos.extend(combo)
+    return combos
+
+
+def get_all_possible_combos(
+    variables: Dict[str, Any], max_combo_length: int = 2
+) -> Dict[Tuple[str, ...], Tuple[Any, ...]]:
+    """Get all combinations of specified variables as key-value pairs."""
+    combo_dict = {}
+    combos = _combine(list(variables.keys()), max_combo_length)
+    for combo in combos:
+        key = tuple(combo)  # Use tuple of variable names as key
+        value = tuple(variables[var] for var in combo)
+        combo_dict[key] = value
+    return combo_dict
 
 
 #  *********************************************************************
 class NewValueComboDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_value_combo_detector"
 
-    log_variables: LogVariables | AllLogVariables | dict[str, Any] = {}
+    events: EventsConfig | dict[str, Any] = {}
     comb_size: int = 2
 
 
@@ -41,7 +66,6 @@ class NewValueComboDetector(CoreDetector):
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
 
         self.config = cast(NewValueComboDetectorConfig, self.config)
-        self.known_combos: Dict[str | int, Set[Any]] = {"all": set()}
         self.persistency = EventPersistency(
             event_data_class=EventStabilityTracker,
             event_data_kwargs={"converter_function": get_combo}
@@ -50,56 +74,110 @@ class NewValueComboDetector(CoreDetector):
         self.auto_conf_persistency = EventPersistency(
             event_data_class=EventStabilityTracker
         )
+        self.auto_conf_persistency_combos = EventPersistency(
+            event_data_class=EventStabilityTracker,
+            event_data_kwargs={"converter_function": get_all_possible_combos}
+        )
 
-    def train(self, input_: schemas.ParserSchema) -> None:  # type: ignore
+        # TEMPORARY:
+        self.inputs: list[ParserSchema] = []
+
+    def train(self, input_: ParserSchema) -> None:  # type: ignore
+        # print("EVENT_ID:", input_["EventID"])
+        # print(f"INPUT VARIABLES: {input_['variables']}")
+        # print(f"INPUT LOG FORMAT VARIABLES: {input_['logFormatVariables']}")
+        config = cast(NewValueComboDetectorConfig, self.config)
+        configured_variables = self.get_configured_variables(input_, config.events)
+        # print(f"Configured variables for training: {configured_variables}\n")
         self.persistency.ingest_event(
             event_id=input_["EventID"],
             event_template=input_["template"],
-            variables=input_["variables"],
-            log_format_variables=input_["logFormatVariables"],
+            # variables=input_["variables"],
+            # named_variables=input_["logFormatVariables"],
+            named_variables=configured_variables
         )
 
     def detect(
-        self, input_: schemas.ParserSchema, output_: schemas.DetectorSchema  # type: ignore
+        self, input_: ParserSchema, output_: DetectorSchema  # type: ignore
     ) -> bool:
         alerts: Dict[str, str] = {}
+        config = cast(NewValueComboDetectorConfig, self.config)
+        configured_variables = self.get_configured_variables(input_, config.events)
 
-        all_variables = self.persistency.get_all_variables(
-            variables=input_["variables"],
-            log_format_variables=input_["logFormatVariables"],
-        )
-        combo = tuple(get_combo(all_variables).items())[0]
+        combo_dict = get_combo(configured_variables)
+
+        overall_score = 0.0
 
         for event_id, event_tracker in self.persistency.get_events_data().items():
-            for event_id, multi_tracker in event_tracker.get_data().items():
-                if combo not in multi_tracker.unique_set:
+            for combo_key, multi_tracker in event_tracker.get_data().items():
+                # Get the value tuple for this combo key
+                value_tuple = combo_dict.get(combo_key)
+                if value_tuple is None:
+                    continue
+                if value_tuple not in multi_tracker.unique_set:
                     alerts[f"EventID {event_id}"] = (
-                        f"Unknown value combination: {combo}"
+                        f"Unknown value combination: {value_tuple}"
                     )
-        if alerts:
-            output_["alertsObtain"] = alerts
+                    overall_score += 1.0
+
+        if overall_score > 0:
+            output_["score"] = overall_score
+            output_["description"] = (
+                f"{self.name} detects value combinations not encountered "
+                "in training as anomalies."
+            )
+            output_["alertsObtain"].update(alerts)
             return True
         return False
 
-    def configure(self, input_: schemas.ParserSchema) -> None:
+    def configure(self, input_: ParserSchema) -> None:
+        # TEMPORARY:
+        self.inputs.append(input_)
+
         self.auto_conf_persistency.ingest_event(
             event_id=input_["EventID"],
             event_template=input_["template"],
             variables=input_["variables"],
-            log_format_variables=input_["logFormatVariables"],
+            named_variables=input_["logFormatVariables"],
         )
 
-    def set_configuration(self, max_combo_size: int = 6) -> None:
+    def set_configuration(self, max_combo_size: int = 3) -> None:
+
+        # run WITH auto_conf_persistency
         variable_combos = {}
-        templates = {}
         for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
             stable_vars = tracker.get_variables_by_classification("STABLE")  # type: ignore
             if len(stable_vars) > 1:
                 variable_combos[event_id] = stable_vars
-                templates[event_id] = self.auto_conf_persistency.get_event_template(event_id)
         config_dict = generate_detector_config(
             variable_selection=variable_combos,
-            templates=templates,
+            detector_name=self.name,
+            method_type=self.config.method_type,
+            comb_size=max_combo_size
+        )
+        # Update the config object from the dictionary instead of replacing it
+        self.config = NewValueComboDetectorConfig.from_dict(config_dict, self.name)
+
+        # TEMPORARY:
+        # Re-ingest all inputs to learn combos based on new configuration
+        for input_ in self.inputs:
+            configured_variables = self.get_configured_variables(input_, self.config.events)
+            # print(f"All POSSIBLE COMBOS: EVENT {input_['EventID']}: {all_possible_combos}\n")
+            self.auto_conf_persistency_combos.ingest_event(
+                event_id=input_["EventID"],
+                event_template=input_["template"],
+                named_variables=configured_variables
+            )
+
+        # rerun to set final config WITH auto_conf_persistency_combos
+        combo_selection = {}
+        for event_id, tracker in self.auto_conf_persistency_combos.get_events_data().items():
+            stable_combos = tracker.get_variables_by_classification("STABLE")  # type: ignore
+            # Keep combos as tuples - each will become a separate config entry
+            if len(stable_combos) >= 1:
+                combo_selection[event_id] = stable_combos
+        config_dict = generate_detector_config(
+            variable_selection=combo_selection,
             detector_name=self.name,
             method_type=self.config.method_type,
             comb_size=max_combo_size
@@ -204,7 +282,7 @@ class NewValueComboDetector(CoreDetector):
 #     ]
 
 #     # Create ParserSchema objects from sample data
-#     parser_schemas = [schemas.ParserSchema(kwargs=event) for event in sample_events]
+#     parser_schemas = [ParserSchema(kwargs=event) for event in sample_events]
 
 #     # Initialize the detector
 #     detector = NewValueComboDetector(name="TestComboDetector")
@@ -219,10 +297,8 @@ class NewValueComboDetector(CoreDetector):
 #         detector.configure(schema)
 
 #     # Set configuration based on learned stable variables
+#     print("PERSISTENCY",detector.auto_conf_persistency.get_events_data())
 #     detector.set_configuration(max_combo_size=2)
-
-#     print(f"Configured log_variables: {detector.config.log_variables}")
-#     print(f"Combo size: {detector.config.comb_size}")
 
 #     # Phase 2: Training - learn normal value combinations
 #     print("\n[Phase 2] Running training phase...")
@@ -231,12 +307,10 @@ class NewValueComboDetector(CoreDetector):
 
 #     # Show what the detector learned
 #     print("\nLearned event data:")
-#     for event_id, tracker in detector.persistency.get_events_data().items():
-#         print(f"  EventID {event_id}: {tracker}")
+#     print(detector.persistency.get_events_data())
 
 #     # Phase 3: Detection (note: detect method is incomplete in current code)
 #     print("\n[Phase 3] Detection phase...")
-#     print("Note: The detect() method is currently incomplete.")
 
 #     # Example anomalous event - user1 logging in from unusual IP
 #     anomalous_event = {
@@ -245,14 +319,22 @@ class NewValueComboDetector(CoreDetector):
 #         "variables": ["MALICIOUS_USER", "MALICIOUS_IP"],
 #         "logFormatVariables": {"username": "MALICIOUS_USER", "src_ip": "MALICIOUS_IP"},
 #     }
-#     anomalous_schema = schemas.ParserSchema(kwargs=anomalous_event)
-
+#     benign_event = {
+#         "EventID": 4624,
+#         "template": "User <*> logged in from <*>",
+#         "variables": ["user1", "192.168.1.100"],
+#         "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"},
+#     }
+#     anomalous_schema = ParserSchema(kwargs=anomalous_event)
+#     benign_schema = ParserSchema(kwargs=benign_event)
 
 #     # Create output schema for detection results
-#     output_schema = schemas.DetectorSchema(kwargs={"alertsObtain": {}})
+#     output_schema = DetectorSchema(kwargs={"alertsObtain": {}})
 
-#     for schema in [anomalous_schema]:
-#         detector.detect(schema, output_=output_schema)
+#     anomalies = []
+#     for schema in [anomalous_schema, benign_schema]:
+#         anomalous = detector.detect(schema, output_=output_schema)
+#         anomalies.append(anomalous)
 
 #     print("\nDetection output:")
-#     print(output_schema)
+#     print(anomalies)

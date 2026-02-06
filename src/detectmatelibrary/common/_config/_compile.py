@@ -1,10 +1,43 @@
+from detectmatelibrary.common._config._formats import EventsConfig
 
-from detectmatelibrary.common._config._formats import apply_format
-
-
-from typing import Any, Dict, List, Optional
-from copy import deepcopy
+from typing import Any, Dict, List, Sequence, Tuple, Union
 import warnings
+import re
+
+
+def _classify_variables(
+    var_names: Sequence[str], var_pattern: re.Pattern[str]
+) -> Dict[str, Any]:
+    """Classify variable names into positional and header variables.
+
+    Returns an instance config dict with 'params', 'variables', and
+    'header_variables' keys.
+    """
+    positional_variables = []
+    header_variables = []
+
+    for var_name in var_names:
+        match = var_pattern.match(var_name)
+        if match:
+            position = int(match.group(1))
+            positional_variables.append({
+                "pos": position,
+                "name": var_name,
+                "params": {}
+            })
+        else:
+            header_variables.append({
+                "pos": var_name,
+                "params": {}
+            })
+
+    instance_config: Dict[str, Any] = {"params": {}}
+    if positional_variables:
+        instance_config["variables"] = positional_variables
+    if header_variables:
+        instance_config["header_variables"] = header_variables
+
+    return instance_config
 
 
 class MethodNotFoundError(Exception):
@@ -26,19 +59,14 @@ class MethodTypeNotMatch(Exception):
         )
 
 
-class AutoConfigError(Exception):
+class MissingParamsWarning(UserWarning):
     def __init__(self) -> None:
-        super().__init__("When auto_config = False, there must be a params field.")
+        super().__init__("'auto_config = False' and no 'params' or 'events' provided. Is that intended?")
 
 
 class AutoConfigWarning(UserWarning):
     def __init__(self) -> None:
-        super().__init__("auto_config = True will overwrite your params.")
-
-
-class MissingFormat(Exception):
-    def __init__(self) -> None:
-        super().__init__("params is a list an is missing its format id")
+        super().__init__("'auto_config = True' will overwrite 'events' and 'params'.")
 
 
 class ConfigMethods:
@@ -57,87 +85,114 @@ class ConfigMethods:
         return args[method_id]
 
     @staticmethod
-    def check_type(config: Dict[str, Any], method_type: str) -> MethodTypeNotMatch | None:
+    def check_type(config: Dict[str, Any], method_type: str) -> None:
         if config["method_type"] != method_type:
             raise MethodTypeNotMatch(expected_type=method_type, actual_type=config["method_type"])
-        return None
 
     @staticmethod
     def process(config: Dict[str, Any]) -> Dict[str, Any]:
-        if "params" not in config and not config["auto_config"]:
-            raise AutoConfigError()
+        has_params = "params" in config
+        has_events = "events" in config
 
-        if "params" in config:
-            if config["auto_config"]:
+        if not has_params and not has_events and not config.get("auto_config", False):
+            warnings.warn(MissingParamsWarning())
+
+        if has_params:
+            if config.get("auto_config", False):
                 warnings.warn(AutoConfigWarning())
-            if isinstance(config["params"], list):
-                raise MissingFormat()
-
-            for param in config["params"].copy():
-                config["params"][param.replace("all_", "")] = apply_format(
-                    param, config["params"][param]
-                )
-                if "all_" in param:
-                    config["params"].pop(param)
 
             config.update(config["params"])
             config.pop("params")
+
+        # Handle "events" key at top level
+        if has_events:
+            config["events"] = EventsConfig._init(config["events"])
+
         return config
 
 
 def generate_detector_config(
-    variable_selection: Dict[int, List[str]],
-    templates: Dict[Any, str | None],
+    variable_selection: Dict[int, List[Union[str, Tuple[str, ...]]]],
     detector_name: str,
     method_type: str,
-    base_config: Optional[Dict[str, Any]] = None,
-    **additional_params: Any,
+    **additional_params: Any
 ) -> Dict[str, Any]:
-    """Generate the configuration for detectors. Output is a dictionary.
+    """Generate a detector configuration dictionary from variable selections.
+
+    Transforms a variable selection mapping into the nested configuration
+    structure required by detector configs. Supports both individual variable
+    names (strings) and tuples of variable names. Each tuple produces a
+    separate detector instance in the config.
 
     Args:
-        variable_selection (Dict[int, List[str]]): Mapping of event IDs to variable names.
-        templates (Dict[Any, str | None]): Mapping of event IDs to their templates.
-        detector_name (str): Name of the detector.
-        method_type (str): Type of the detection method.
-        base_config (Optional[Dict[str, Any]]): Base configuration to build upon.
-        **additional_params: Additional parameters for the detector.
-    """
+        variable_selection: Maps event_id to list of variable names or tuples
+            of variable names. Strings are grouped into a single instance.
+            Each tuple becomes its own instance. Variable names matching
+            'var_\\d+' are positional template variables; others are header
+            variables.
+        detector_name: Name of the detector, used as the base instance_id.
+        method_type: Type of detection method (e.g., "new_value_detector").
+        **additional_params: Additional parameters for the detector's params
+            dict (e.g., comb_size=3).
 
-    if base_config is None:
-        base_config = {
-            "detectors": {
-                detector_name: {
-                    "method_type": method_type,
-                    "auto_config": False,
-                    "params": {
-                        "log_variables": []
-                    },
-                }
+    Returns:
+        Dictionary with structure compatible with detector config classes.
+
+    Examples:
+        Single variable names (one instance per event)::
+
+            config = generate_detector_config(
+                variable_selection={1: ["var_0", "var_1", "level"]},
+                detector_name="MyDetector",
+                method_type="new_value_detector",
+            )
+
+        Tuples of variable names (one instance per tuple)::
+
+            config = generate_detector_config(
+                variable_selection={1: [("username", "src_ip"), ("var_0", "var_1")]},
+                detector_name="MyDetector",
+                method_type="new_value_combo_detector",
+                comb_size=2,
+            )
+    """
+    var_pattern = re.compile(r"^var_(\d+)$")
+
+    events_config: Dict[int, Dict[str, Any]] = {}
+
+    for event_id, variable_names in variable_selection.items():
+        instances: Dict[str, Any] = {}
+
+        # Separate plain strings from tuples
+        single_vars: List[str] = []
+        tuple_vars: List[Tuple[str, ...]] = []
+
+        for entry in variable_names:
+            if isinstance(entry, tuple):
+                tuple_vars.append(entry)
+            else:
+                single_vars.append(entry)
+
+        # Plain strings -> single instance keyed by detector_name
+        if single_vars:
+            instances[detector_name] = _classify_variables(single_vars, var_pattern)
+
+        # Each tuple -> its own instance, keyed by joined variable names
+        for combo in tuple_vars:
+            instance_id = f"{detector_name}_{'_'.join(combo)}"
+            instances[instance_id] = _classify_variables(combo, var_pattern)
+
+        events_config[event_id] = instances
+
+    config_dict = {
+        "detectors": {
+            detector_name: {
+                "method_type": method_type,
+                "auto_config": False,
+                "params": additional_params,
+                "events": events_config
             }
         }
-    config = deepcopy(base_config)
+    }
 
-    detectors = config.setdefault("detectors", {})
-    detector = detectors.setdefault(detector_name, {})
-    detector.setdefault("method_type", method_type)
-    detector.setdefault("auto_config", False)
-    params = detector.setdefault("params", {})
-    params.update(additional_params)
-    log_variables = params.setdefault("log_variables", [])
-
-    for event_id, all_variables in variable_selection.items():
-        variables = [
-            {"pos": int(name.split("_")[1]), "name": name}
-            for name in all_variables if name.startswith("var_")
-        ]
-        header_variables = [{"pos": name} for name in all_variables if not name.startswith("var_")]
-
-        log_variables.append({
-            "id": f"id_{event_id}",
-            "event": event_id,
-            "template": templates.get(event_id, ""),
-            "variables": variables,
-            "header_variables": header_variables,
-        })
-    return config
+    return config_dict
