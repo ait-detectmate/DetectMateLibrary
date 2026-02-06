@@ -53,8 +53,8 @@ class TestRandomDetectorEdgeCases:
             "EventID": 1,
             "template": "test template",
             "variables": ["var1"],
-            "logID": 1,
-            "parsedLogID": 1,
+            "logID": "1",
+            "parsedLogID": "1",
             "parserID": "test_parser",
             "log": "test log message",
             "logFormatVariables": {"timestamp": "123456"}

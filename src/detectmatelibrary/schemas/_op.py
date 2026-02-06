@@ -2,7 +2,7 @@
 import detectmatelibrary.schemas.schemas_pb2 as s
 
 
-from typing import NewType, Tuple, Dict, Type, Union, Any
+from typing import NewType, Tuple, Dict, Type, Union, Any, Callable
 
 from google.protobuf.message import Message
 
@@ -26,6 +26,53 @@ __id_codes: Dict[SchemaID, Type[Message]] = {
     DETECTOR_SCHEMA: s.DetectorSchema,  # type: ignore
     OUTPUT_SCHEMA: s.OutputSchema,  # type: ignore
 }
+_validation_methods = {}
+
+
+def register(schema_id: SchemaID
+             ) -> Callable[[Callable[[Dict[str, Any]], None]], Callable[[Dict[str, Any]], None]]:
+    def decorator(fn: Callable[[Dict[str, Any]], None]) -> Callable[[Dict[str, Any]], None]:
+        _validation_methods[schema_id] = fn
+        return fn
+    return decorator
+
+
+def check_id_var(id_var: str, data: Dict[str, Any]) -> None:
+    if data is not None:
+        var = data.get(id_var)
+        if var:
+            if isinstance(var, list) and not all(str(x).isnumeric() for x in var):
+                raise ValueError(f"{id_var} must be a list with numeric values of type string.")
+            elif isinstance(var, str) and not str(var).isnumeric():
+                raise ValueError(f"{id_var} must be of type string and have numeric values only.")
+
+
+@register(BASE_SCHEMA)
+def validate_base(data: Dict[str, Any]) -> None:
+    pass
+
+
+@register(LOG_SCHEMA)
+def validate_log(data: Dict[str, Any]) -> None:
+    check_id_var("logID", data)
+
+
+@register(PARSER_SCHEMA)
+def validate_parser(data: Dict[str, Any]) -> None:
+    check_id_var("parsedLogID", data)
+    check_id_var("logID", data)
+
+
+@register(DETECTOR_SCHEMA)
+def validate_detector(data: Dict[str, Any]) -> None:
+    check_id_var("alertID", data)
+    check_id_var("logIDs", data)
+
+
+@register(OUTPUT_SCHEMA)
+def validate_output(data: Dict[str, Any]) -> None:
+    check_id_var("alertIDs", data)
+    check_id_var("logIDs", data)
 
 
 #  Exceptions ****************************************
@@ -94,12 +141,23 @@ def get_variables_names(schema: SchemaT) -> list[str]:
     return [field.name for field in schema.DESCRIPTOR.fields]
 
 
+def validate(schema_id: SchemaID, data: Dict[str, Any]) -> Any:
+    validator = _validation_methods.get(schema_id)
+
+    if validator is None:
+        raise KeyError(f"No validator registered for schema {schema_id.decode()}")
+
+    return validator(data)
+
+
 # Main methods *****************************************
 def initialize(schema_id: SchemaID, **kwargs: Any) -> SchemaT | NotSupportedSchema:
-    """Initialize a protobuf schema, it use its arguments and the assigned
+    """Initialize a protobuf schema, it uses its arguments and the assigned
     id."""
     kwargs["__version__"] = __current_version
     schema_class = __get_schema_class(schema_id)
+    data = {**kwargs}
+    validate(schema_id, data)
     return schema_class(**kwargs)
 
 
