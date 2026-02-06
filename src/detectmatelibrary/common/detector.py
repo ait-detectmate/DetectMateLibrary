@@ -25,11 +25,11 @@ def _extract_timestamp(
 
 def _extract_logIDs(
     input_: List[ParserSchema] | ParserSchema
-) -> List[int]:
+) -> List[str]:
     if not isinstance(input_, list):
         input_ = [input_]
 
-    return [i["logID"] for i in input_]
+    return [str(i["logID"]) for i in input_]
 
 
 class CoreDetectorConfig(CoreConfig):

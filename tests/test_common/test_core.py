@@ -168,7 +168,7 @@ class TestCoreComponent:
             component.process(
                 schemas.LogSchema({
                     "__version__": "1.0.0",
-                    "logID": i,
+                    "logID": str(i),
                     "logSource": "test",
                     "hostname": "test_hostname"
                 })
@@ -178,7 +178,7 @@ class TestCoreComponent:
         for i, log in enumerate(component.train_data):
             expected = schemas.LogSchema({
                 "__version__": "1.0.0",
-                "logID": i,
+                "logID": str(i),
                 "logSource": "test",
                 "hostname": "test_hostname"
             })
@@ -193,7 +193,7 @@ class TestCoreComponent:
             component.process(
                 schemas.LogSchema({
                     "__version__": "1.0.0",
-                    "logID": i,
+                    "logID": str(i),
                     "logSource": "test",
                     "hostname": "test_hostname"
                 })
@@ -209,7 +209,7 @@ class TestCoreComponent:
             component.process(
                 schemas.LogSchema({
                     "__version__": "1.0.0",
-                    "logID": i,
+                    "logID": str(i),
                     "logSource": "test",
                     "hostname": "test_hostname"
                 })
