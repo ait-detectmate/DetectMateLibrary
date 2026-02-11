@@ -6,7 +6,6 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "drain3>=0.9.11",
-    "pandas>=2.3.2",
     "protobuf>=6.32.1",
     "pydantic>=2.11.7",
     "pyyaml>=6.0.3",
@@ -36,3 +35,17 @@ mate = "tools.workspace.create_workspace:main"
 [[tool.mypy.overrides]]
 module = "detectmatelibrary.schemas.schemas_pb2"
 ignore_errors = true
+
+[project.optional-dependencies]
+pandas = [
+    "pandas>=2.0"
+]
+
+polars = [
+    "polars>=1.38.1"
+]
+
+all = [
+    "pandas>=2.3.2",
+    "polars>=1.38.1",
+]
