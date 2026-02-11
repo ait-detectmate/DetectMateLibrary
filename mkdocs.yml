@@ -24,4 +24,5 @@ nav:
     - New Value: detectors/new_value.md
     - Combo Detector: detectors/combo.md
   - Auxiliar:
+    - Persistency: auxiliar/persistency.md
     - Data buffer: auxiliar/input_buffer.md
