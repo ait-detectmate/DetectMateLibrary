@@ -1,0 +1,94 @@
+from detectmatelibrary.utils.from_to import From, To, FromTo
+
+from detectmatelibrary.parsers.dummy_parser import DummyParser
+
+import detectmatelibrary.schemas as schemas
+
+import os
+
+expected_log = "pid=<*> uid=<*> auid=<*> ses=<*> msg='op=<*> "
+expected_log += "acct=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'"
+log_path = "tests/test_folder/audit_templates.txt"
+
+binary_path = "tests/test_folder/dummy.txt"
+
+
+class TestCaseTo:
+    def test_tobinary(self):
+        if os.path.exists(binary_path):
+            os.remove(binary_path)
+
+        parser = DummyParser()
+        gen = From.log(parser, in_path=log_path, do_process=False)
+
+        log = next(gen)
+        assert To.binary_file(log, binary_path) == log.serialize()
+
+        log = next(gen)
+        assert To.binary_file(log.serialize(), binary_path) == log.serialize()
+
+        assert To.binary_file(None, binary_path) is None
+
+        with open(binary_path, "r") as f:
+            assert len(f.readlines()) == 2
+
+
+class TestCaseFrom:
+    def test_fromlog_no_process(self):
+        parser = DummyParser()
+
+        log = next(From.log(parser, in_path=log_path, do_process=False))
+
+        assert log.log == expected_log
+        assert isinstance(log, schemas.LogSchema)
+
+    def test_fromlog(self):
+        parser = DummyParser()
+
+        log = next(From.log(parser, in_path=log_path, do_process=True))
+
+        assert log.log == expected_log
+        assert isinstance(log, schemas.ParserSchema)
+
+    def test_frombinary(self):
+        if os.path.exists(binary_path):
+            os.remove(binary_path)
+
+        parser = DummyParser()
+        gen = From.log(parser, in_path=log_path, do_process=False)
+
+        log1 = To.binary_file(next(gen), binary_path)
+        log2 = next(From.binary_file(parser, binary_path, do_process=False))
+
+        assert log1 == log2.serialize()
+
+
+class TestCaseFromTo:
+    def test_log2binary(self):
+        if os.path.exists(binary_path):
+            os.remove(binary_path)
+
+        parser = DummyParser()
+        gen = FromTo.log2binary_file(parser, log_path, binary_path)
+
+        values = []
+        for _ in range(5):
+            values.append(next(gen))
+
+        with open(binary_path) as f:
+            assert 5 == len(f.readlines())
+
+    def test_binary2binary(self):
+        if os.path.exists(binary_path):
+            os.remove(binary_path)
+
+        parser = DummyParser()
+        gen = From.log(parser, log_path, do_process=False)
+        values = []
+        for _ in range(5):
+            values.append(To.binary_file(next(gen), binary_path))
+
+        gen = FromTo.binary_file2binary_file(parser, binary_path, binary_path)
+
+        with open(binary_path) as f:
+            assert 5 == len(f.readlines())
