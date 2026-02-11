@@ -2,23 +2,13 @@
 from detectmatelibrary.common.detector import CoreDetector, BufferMode
 from detectmatelibrary.common.parser import CoreParser
 
-from detectmatelibrary.readers.log_file import LogFileReader
-
 import detectmatelibrary.schemas._op as op_schemas
+from detectmatelibrary.utils.from_to import From
 
 import pytest
 
 
 config = {
-    "readers": {
-        "File_reader": {
-            "method_type": "log_file_reader",
-            "auto_config": False,
-            "params": {
-                "file": "tests/test_folder/logs.log"
-            }
-        }
-    },
     "parsers": {
         "dummy_parser": {
             "method_type": "core_parser",
@@ -34,6 +24,8 @@ config = {
         }
     },
 }
+
+log_path = "tests/test_folder/logs.log"
 
 
 class MockupBadParser(CoreParser):
@@ -56,18 +48,16 @@ class MockupDetector(CoreDetector):
 class TestCaseBasicPipelines:
     """This pipelines should not crash."""
     def test_compromise_messages(self) -> None:
-        reader = LogFileReader(config=config)
 
         parser = MockupBadParser(name="dummy_parser", config=config)
 
-        log = reader.process(as_bytes=False)
+        log = next(From.log(parser, log_path, do_process=False))
         msg = log.log
         parser.process(log)
 
         assert msg == log.log
 
     def test_get_incorrect_schema(self) -> None:
-        reader = LogFileReader(config=config)
 
         detector = MockupDetector(
             name="dummy_detector",
@@ -76,6 +66,5 @@ class TestCaseBasicPipelines:
             buffer_size=None,
         )
 
-        log = reader.process(as_bytes=False)
         with pytest.raises(op_schemas.IncorrectSchema):
-            detector.process(log)
+            next(From.log(detector, log_path))

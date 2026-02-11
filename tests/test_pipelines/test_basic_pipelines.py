@@ -5,7 +5,8 @@ from detectmatelibrary.detectors.new_value_combo_detector import NewValueComboDe
 from detectmatelibrary.detectors.new_value_detector import NewValueDetector
 from detectmatelibrary.detectors.random_detector import RandomDetector
 from detectmatelibrary.parsers.template_matcher import MatcherParser
-from detectmatelibrary.readers.log_file import LogFileReader
+
+from detectmatelibrary.utils.from_to import From
 
 import yaml
 
@@ -26,15 +27,6 @@ class MockupDetector(CoreDetector):
 
 
 config = {
-    "readers": {
-        "File_reader": {
-            "method_type": "log_file_reader",
-            "auto_config": False,
-            "params": {
-                "file": "tests/test_folder/logs.log"
-            }
-        }
-    },
     "parsers": {
         "dummy_parser": {
             "method_type": "core_parser",
@@ -52,11 +44,12 @@ config = {
 }
 
 
+log_path = "tests/test_folder/logs.log"
+
+
 class TestCaseBasicPipelines:
     """This pipelines should not crash."""
     def test_basic_pipeline(self) -> None:
-        reader = LogFileReader(config=config)
-
         parser = MockupParser(name="dummy_parser", config=config)
         detector = MockupDetector(
             name="dummy_detector",
@@ -65,12 +58,10 @@ class TestCaseBasicPipelines:
             buffer_size=None,
         )
 
-        assert (log := reader.process(as_bytes=False)) is not None
-        assert (parsed_log := parser.process(log)) is not None
+        assert (parsed_log := next(From.log(parser, log_path))) is not None
         assert detector.process(parsed_log) is not None
 
     def test_window_pipeline(self) -> None:
-        reader = LogFileReader(config=config)
 
         parser = MockupParser(name="dummy_parser", config=config)
         detector = MockupDetector(
@@ -79,17 +70,15 @@ class TestCaseBasicPipelines:
             buffer_mode=BufferMode.WINDOW,
             buffer_size=3,
         )
+        gen = From.log(parser, log_path)
         for _ in range(2):
-            log = reader.process(as_bytes=False)
-            parsed_log = parser.process(log)
+            parsed_log = next(gen)
             assert detector.process(parsed_log) is None
 
-        assert (log := reader.process(as_bytes=False)) is not None
-        assert (parsed_log := parser.process(log)) is not None
+        parsed_log = next(gen)
         assert detector.process(parsed_log) is not None
 
     def test_batch_pipeline(self) -> None:
-        reader = LogFileReader(config=config)
 
         parser = MockupParser(name="dummy_parser", config=config)
         detector = MockupDetector(
@@ -99,13 +88,12 @@ class TestCaseBasicPipelines:
             buffer_size=3,
         )
 
+        gen = From.log(parser, log_path)
         for _ in range(2):
-            log = reader.process(as_bytes=False)
-            parsed_log = parser.process(log)
+            parsed_log = next(gen)
             assert detector.process(parsed_log) is None
 
-        assert (log := reader.process(as_bytes=False)) is not None
-        assert (parsed_log := parser.process(log)) is not None
+        parsed_log = next(gen)
         assert detector.process(parsed_log) is not None
 
 
@@ -115,9 +103,6 @@ class TestExamples:
             config = yaml.safe_load(file)
 
         # Nothing should crash
-
-        # Readers
-        LogFileReader(config=config)
 
         # Parsers
         MatcherParser(config=config)
