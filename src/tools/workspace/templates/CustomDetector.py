@@ -35,12 +35,12 @@ class CustomDetector(CoreDetector):
         self,
         input_: List[schemas.ParserSchema] | schemas.ParserSchema,
         output_: schemas.DetectorSchema,
-    ) -> bool | None:
+    ) -> bool:
         """Run detection on parser output and populate the detector schema.
 
         :param input_: One or many ParserSchema instances
         :param output_: DetectorSchema instance to be mutated in-place
-        :return: Detection result (True/False) or None
+        :return: Detection result (True/False)
         """
 
         output_["description"] = "Dummy detection process"  # Description of the detection
