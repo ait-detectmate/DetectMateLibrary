@@ -22,6 +22,8 @@ class MockupDetector(CoreDetector):
         output_.score = 0.9
         output_.description = "ciao"
 
+        return True
+
 
 config = {
     "readers": {
