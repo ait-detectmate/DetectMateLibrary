@@ -7,12 +7,12 @@ EventDataFrame (Pandas) and ChunkedEventDataFrame (Polars).
 
 import pandas as pd
 import polars as pl
-from detectmatelibrary.common.persistency.event_persistency import EventPersistency
-from detectmatelibrary.common.persistency.event_data_structures.dataframes import (
+from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
+from detectmatelibrary.utils.persistency.event_data_structures.dataframes import (
     EventDataFrame,
     ChunkedEventDataFrame,
 )
-from detectmatelibrary.common.persistency.event_data_structures.trackers import (
+from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
     EventTracker,
     SingleStabilityTracker,
     EventStabilityTracker

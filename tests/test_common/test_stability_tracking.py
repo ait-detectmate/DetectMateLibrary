@@ -5,7 +5,7 @@ MultiVariableTracker, and EventVariableTrackerData for variable
 convergence and stability analysis.
 """
 
-from detectmatelibrary.common.persistency.event_data_structures.trackers import (
+from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
     StabilityClassifier,
     SingleStabilityTracker,
     MultiStabilityTracker,
