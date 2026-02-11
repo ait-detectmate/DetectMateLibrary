@@ -1,108 +1,53 @@
-from detectmatelibrary.common._config._formats import LogVariables, AllLogVariables
+from detectmatelibrary.common._config import generate_detector_config
+from detectmatelibrary.common._config._formats import EventsConfig
 
-from detectmatelibrary.common.detector import CoreDetectorConfig
-from detectmatelibrary.common.detector import CoreDetector
+from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector, get_configured_variables
 
 from detectmatelibrary.utils.data_buffer import BufferMode
+from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
+    EventStabilityTracker
+)
+from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 
-import detectmatelibrary.schemas as schemas
+from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
+from typing import Any, Dict, Sequence, cast, Tuple
 from itertools import combinations
 
-from typing import Any, Set, Dict, cast
+
+def get_combo(variables: Dict[str, Any]) -> Dict[Tuple[str, ...], Tuple[Any, ...]]:
+    """Get a single combination of all variables as a key-value pair."""
+    return {tuple(variables.keys()): tuple(variables.values())}
 
 
-# Auxiliar methods ********************************************************
-class ComboTooBigError(Exception):
-    def __init__(self, exp_size: int, max_size: int) -> None:
-        super().__init__(f"Expected size {exp_size} but the max it got {max_size}")
+def _combine(
+    iterable: Sequence[str], max_combo_length: int = 2
+) -> list[Tuple[str, ...]]:
+    """Get all possible combinations of an iterable."""
+    combos: list[Tuple[str, ...]] = []
+    for i in range(2, min(len(iterable), max_combo_length, 5) + 1):
+        combo = list(combinations(iterable, i))
+        combos.extend(combo)
+    return combos
 
 
-def _check_size(exp_size: int, max_size: int) -> None | ComboTooBigError:
-    if max_size < exp_size:
-        raise ComboTooBigError(exp_size, max_size)
-    return None
+def get_all_possible_combos(
+    variables: Dict[str, Any], max_combo_length: int = 2
+) -> Dict[Tuple[str, ...], Tuple[Any, ...]]:
+    """Get all combinations of specified variables as key-value pairs."""
+    combo_dict = {}
+    combos = _combine(list(variables.keys()), max_combo_length)
+    for combo in combos:
+        key = tuple(combo)  # Use tuple of variable names as key
+        value = tuple(variables[var] for var in combo)
+        combo_dict[key] = value
+    return combo_dict
 
 
-def _get_element(input_: schemas.ParserSchema, var_pos: str | int) -> Any:
-    if isinstance(var_pos, str):
-        return input_["logFormatVariables"][var_pos]
-    elif len(input_["variables"]) > var_pos:
-        return input_["variables"][var_pos]
-
-
-def _get_combos(
-    input_: schemas.ParserSchema,
-    combo_size: int,
-    log_variables: LogVariables | AllLogVariables
-) -> Set[Any]:
-
-    relevant_log_fields = log_variables[input_["EventID"]]
-    if relevant_log_fields is None:
-        return set()
-
-    relevant_log_fields = relevant_log_fields.get_all().keys()  # type: ignore
-    _check_size(combo_size, len(relevant_log_fields))  # type: ignore
-
-    return set(combinations([
-        _get_element(input_, var_pos=field) for field in relevant_log_fields  # type: ignore
-    ], combo_size))
-
-
-# Combo detector methods ********************************************************
-def train_combo_detector(
-    input_: schemas.ParserSchema,
-    known_combos: Dict[str | int, Set[Any]],
-    combo_size: int,
-    log_variables: LogVariables | AllLogVariables
-) -> None:
-
-    if input_["EventID"] not in log_variables:
-        return None
-    unique_combos = _get_combos(
-        input_=input_, combo_size=combo_size, log_variables=log_variables
-    )
-
-    if isinstance(log_variables, LogVariables):
-        if input_["EventID"] not in known_combos:
-            known_combos[input_["EventID"]] = set()
-        known_combos[input_["EventID"]] = known_combos[input_["EventID"]].union(unique_combos)
-    else:
-        known_combos["all"] = known_combos["all"].union(unique_combos)
-
-
-def detect_combo_detector(
-    input_: schemas.ParserSchema,
-    known_combos: Dict[str | int, Set[Any]],
-    combo_size: int,
-    log_variables: LogVariables | AllLogVariables,
-    alerts: dict[str, str],
-) -> int:
-
-    overall_score = 0
-    if input_["EventID"] in log_variables:
-        unique_combos = _get_combos(
-            input_=input_, combo_size=combo_size, log_variables=log_variables
-        )
-
-        if isinstance(log_variables, AllLogVariables):
-            combos_set = known_combos["all"]
-        else:
-            combos_set = known_combos[input_["EventID"]]
-
-        if not unique_combos.issubset(combos_set):
-            for combo in unique_combos - combos_set:
-                overall_score += 1
-                alerts.update({"Not found combo": str(combo)})
-
-    return overall_score
-
-
-#  *********************************************************************
 class NewValueComboDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_value_combo_detector"
 
-    log_variables: LogVariables | AllLogVariables | dict[str, Any] = {}
+    events: EventsConfig | dict[str, Any] = {}
     comb_size: int = 2
 
 
@@ -116,35 +61,280 @@ class NewValueComboDetector(CoreDetector):
         if isinstance(config, dict):
             config = NewValueComboDetectorConfig.from_dict(config, name)
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
-        self.config: NewValueComboDetectorConfig
 
         self.config = cast(NewValueComboDetectorConfig, self.config)
-        self.known_combos: Dict[str | int, Set[Any]] = {"all": set()}
+        self.persistency = EventPersistency(
+            event_data_class=EventStabilityTracker,
+            event_data_kwargs={"converter_function": get_combo}
+        )
+        # auto config checks if individual variables are stable to select combos from
+        self.auto_conf_persistency = EventPersistency(
+            event_data_class=EventStabilityTracker
+        )
+        self.auto_conf_persistency_combos = EventPersistency(
+            event_data_class=EventStabilityTracker,
+            event_data_kwargs={"converter_function": get_all_possible_combos}
+        )
 
-    def train(self, input_: schemas.ParserSchema) -> None:  # type: ignore
-        train_combo_detector(
-            input_=input_,
-            known_combos=self.known_combos,
-            combo_size=self.config.comb_size,
-            log_variables=self.config.log_variables  # type: ignore
+        # TEMPORARY:
+        self.inputs: list[ParserSchema] = []
+
+    def train(self, input_: ParserSchema) -> None:  # type: ignore
+        config = cast(NewValueComboDetectorConfig, self.config)
+        configured_variables = get_configured_variables(input_, config.events)
+        self.persistency.ingest_event(
+            event_id=input_["EventID"],
+            event_template=input_["template"],
+            named_variables=configured_variables
         )
 
     def detect(
-        self, input_: schemas.ParserSchema, output_: schemas.DetectorSchema  # type: ignore
+        self, input_: ParserSchema, output_: DetectorSchema  # type: ignore
     ) -> bool:
         alerts: Dict[str, str] = {}
+        config = cast(NewValueComboDetectorConfig, self.config)
+        configured_variables = get_configured_variables(input_, config.events)
+        combo_dict = get_combo(configured_variables)
 
-        overall_score = detect_combo_detector(
-            input_=input_,
-            known_combos=self.known_combos,
-            combo_size=self.config.comb_size,
-            log_variables=self.config.log_variables,  # type: ignore
-            alerts=alerts,
-        )
+        overall_score = 0.0
+        for event_id, event_tracker in self.persistency.get_events_data().items():
+            for combo_key, multi_tracker in event_tracker.get_data().items():
+                # Get the value tuple for this combo key
+                value_tuple = combo_dict.get(combo_key)
+                if value_tuple is None:
+                    continue
+                if value_tuple not in multi_tracker.unique_set:
+                    alerts[f"EventID {event_id}"] = (
+                        f"Unknown value combination: {value_tuple}"
+                    )
+                    overall_score += 1.0
 
         if overall_score > 0:
             output_["score"] = overall_score
-            output_["description"] = f"The detector check combinations of {self.config.comb_size} variables"
+            output_["description"] = (
+                f"{self.name} detects value combinations not encountered "
+                "in training as anomalies."
+            )
             output_["alertsObtain"].update(alerts)
             return True
         return False
+
+    def configure(self, input_: ParserSchema) -> None:
+        """Configure the detector based on the stability of individual
+        variables, then learn value combinations based on that
+        configuration."""
+        # store inputs to re-ingest after the first step of the configuration process
+        self.inputs.append(input_)
+
+        # first pass to learn variable stability of all variables
+        self.auto_conf_persistency.ingest_event(
+            event_id=input_["EventID"],
+            event_template=input_["template"],
+            variables=input_["variables"],
+            named_variables=input_["logFormatVariables"],
+        )
+
+    def set_configuration(self, max_combo_size: int = 3) -> None:
+        """Set the detector configuration based on the stability of variable
+        combinations.
+
+        The process is as follows:
+        1. Analyze the stability of individual variables to identify which are stable.
+        2. Generate an initial config with combos of stable variables.
+        3. Re-ingest all events to learn the stability of these combos (testing all possible combos right away
+        would explode combinatorially).
+        """
+        # run WITH auto_conf_persistency
+        variable_combos = {}
+        for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
+            stable_vars = tracker.get_variables_by_classification("STABLE")  # type: ignore
+            if len(stable_vars) > 1:
+                variable_combos[event_id] = stable_vars
+        config_dict = generate_detector_config(
+            variable_selection=variable_combos,
+            detector_name=self.name,
+            method_type=self.config.method_type,
+            comb_size=max_combo_size
+        )
+        # Update the config object from the dictionary instead of replacing it
+        self.config = NewValueComboDetectorConfig.from_dict(config_dict, self.name)
+
+        # Re-ingest all inputs to learn combos based on new configuration
+        for input_ in self.inputs:
+            configured_variables = get_configured_variables(input_, self.config.events)
+            # print(f"All POSSIBLE COMBOS: EVENT {input_['EventID']}: {all_possible_combos}\n")
+            self.auto_conf_persistency_combos.ingest_event(
+                event_id=input_["EventID"],
+                event_template=input_["template"],
+                named_variables=configured_variables
+            )
+
+        # rerun to set final config WITH auto_conf_persistency_combos
+        combo_selection = {}
+        for event_id, tracker in self.auto_conf_persistency_combos.get_events_data().items():
+            stable_combos = tracker.get_variables_by_classification("STABLE")  # type: ignore
+            # Keep combos as tuples - each will become a separate config entry
+            if len(stable_combos) >= 1:
+                combo_selection[event_id] = stable_combos
+        config_dict = generate_detector_config(
+            variable_selection=combo_selection,
+            detector_name=self.name,
+            method_type=self.config.method_type,
+            comb_size=max_combo_size
+        )
+        # Update the config object from the dictionary instead of replacing it
+        self.config = NewValueComboDetectorConfig.from_dict(config_dict, self.name)
+
+
+# if __name__ == "__main__":
+#     # Example: Testing the NewValueComboDetector
+#     # This demonstrates the configuration and training workflow
+
+#     # Create sample parsed log events (simulating authentication logs)
+#     sample_events = [
+#         # Normal login patterns - user1 always logs in from office IP
+#         {"EventID": 4624, "template": "User <*> logged in from <*>",
+#          "variables": ["user1", "192.168.1.100"],
+#          "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"}},
+#         {"EventID": 4624, "template": "User <*> logged in from <*>",
+#          "variables": ["user1", "192.168.1.100"],
+#          "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"}},
+#         {"EventID": 4624, "template": "User <*> logged in from <*>",
+#          "variables": ["user1", "192.168.1.100"],
+#          "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"}},
+
+#         # user2 always logs in from home IP
+#         {"EventID": 4624, "template": "User <*> logged in from <*>",
+#          "variables": ["user2", "10.0.0.50"],
+#          "logFormatVariables": {"username": "user2", "src_ip": "10.0.0.50"}},
+#         {"EventID": 4624, "template": "User <*> logged in from <*>",
+#          "variables": ["user2", "10.0.0.50"],
+#          "logFormatVariables": {"username": "user2", "src_ip": "10.0.0.50"}},
+#         {"EventID": 4624, "template": "User <*> logged in from <*>",
+#          "variables": ["user2", "10.0.0.50"],
+#          "logFormatVariables": {"username": "user2", "src_ip": "10.0.0.50"}},
+
+#         # Different event type - file access
+#         {"EventID": 4663, "template": "User <*> accessed file <*>",
+#          "variables": ["user1", "/data/report.pdf"],
+#          "logFormatVariables": {"username": "user1", "filepath": "/data/report.pdf"}},
+#         {"EventID": 4663, "template": "User <*> accessed file <*>",
+#          "variables": ["user1", "/data/report.pdf"],
+#          "logFormatVariables": {"username": "user1", "filepath": "/data/report.pdf"}},
+#                  # Normal login patterns - user1 always logs in from office IP
+#         {"EventID": 4624, "template": "User <*> logged in from <*>",
+#          "variables": ["user1", "192.168.1.100"],
+#          "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"}},
+#         {"EventID": 4624, "template": "User <*> logged in from <*>",
+#          "variables": ["user1", "192.168.1.100"],
+#          "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"}},
+#         {"EventID": 4624, "template": "User <*> logged in from <*>",
+#          "variables": ["user1", "192.168.1.100"],
+#          "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"}},
+
+#         # user2 always logs in from home IP
+#         {"EventID": 4624, "template": "User <*> logged in from <*>",
+#          "variables": ["user2", "10.0.0.50"],
+#          "logFormatVariables": {"username": "user2", "src_ip": "10.0.0.50"}},
+#         {"EventID": 4624, "template": "User <*> logged in from <*>",
+#          "variables": ["user2", "10.0.0.50"],
+#          "logFormatVariables": {"username": "user2", "src_ip": "10.0.0.50"}},
+#         {"EventID": 4624, "template": "User <*> logged in from <*>",
+#          "variables": ["user2", "10.0.0.50"],
+#          "logFormatVariables": {"username": "user2", "src_ip": "10.0.0.50"}},
+
+#         # Different event type - file access
+#         {"EventID": 4663, "template": "User <*> accessed file <*>",
+#          "variables": ["user1", "/data/report.pdf"],
+#          "logFormatVariables": {"username": "user1", "filepath": "/data/report.pdf"}},
+#         {"EventID": 4663, "template": "User <*> accessed file <*>",
+#          "variables": ["user1", "/data/report.pdf"],
+#          "logFormatVariables": {"username": "user1", "filepath": "/data/report.pdf"}},
+#                  # Normal login patterns - user1 always logs in from office IP
+#         {"EventID": 4624, "template": "User <*> logged in from <*>",
+#          "variables": ["user1", "192.168.1.100"],
+#          "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"}},
+#         {"EventID": 4624, "template": "User <*> logged in from <*>",
+#          "variables": ["user1", "192.168.1.100"],
+#          "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"}},
+#         {"EventID": 4624, "template": "User <*> logged in from <*>",
+#          "variables": ["user1", "192.168.1.100"],
+#          "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"}},
+
+#         # user2 always logs in from home IP
+#         {"EventID": 4624, "template": "User <*> logged in from <*>",
+#          "variables": ["user2", "10.0.0.50"],
+#          "logFormatVariables": {"username": "user2", "src_ip": "10.0.0.50"}},
+#         {"EventID": 4624, "template": "User <*> logged in from <*>",
+#          "variables": ["user2", "10.0.0.50"],
+#          "logFormatVariables": {"username": "user2", "src_ip": "10.0.0.50"}},
+#         {"EventID": 4624, "template": "User <*> logged in from <*>",
+#          "variables": ["user2", "10.0.0.50"],
+#          "logFormatVariables": {"username": "user2", "src_ip": "10.0.0.50"}},
+
+#         # Different event type - file access
+#         {"EventID": 4663, "template": "User <*> accessed file <*>",
+#          "variables": ["user1", "/data/report.pdf"],
+#          "logFormatVariables": {"username": "user1", "filepath": "/data/report.pdf"}},
+#         {"EventID": 4663, "template": "User <*> accessed file <*>",
+#          "variables": ["user1", "/data/report.pdf"],
+#          "logFormatVariables": {"username": "user1", "filepath": "/data/report.pdf"}},
+#     ]
+
+#     # Create ParserSchema objects from sample data
+#     parser_schemas = [ParserSchema(kwargs=event) for event in sample_events]
+
+#     # Initialize the detector
+#     detector = NewValueComboDetector(name="TestComboDetector")
+
+#     print("=" * 60)
+#     print("NewValueComboDetector Example")
+#     print("=" * 60)
+
+#     # Phase 1: Configuration - learn which variables are stable
+#     print("\n[Phase 1] Running configuration phase...")
+#     for schema in parser_schemas:
+#         detector.configure(schema)
+
+#     # Set configuration based on learned stable variables
+#     print("PERSISTENCY",detector.auto_conf_persistency.get_events_data())
+#     detector.set_configuration(max_combo_size=2)
+
+#     # Phase 2: Training - learn normal value combinations
+#     print("\n[Phase 2] Running training phase...")
+#     for schema in parser_schemas:
+#         detector.train(schema)
+
+#     # Show what the detector learned
+#     print("\nLearned event data:")
+#     print(detector.persistency.get_events_data())
+
+#     # Phase 3: Detection (note: detect method is incomplete in current code)
+#     print("\n[Phase 3] Detection phase...")
+
+#     # Example anomalous event - user1 logging in from unusual IP
+#     anomalous_event = {
+#         "EventID": 4624,
+#         "template": "User <*> logged in from <*>",
+#         "variables": ["MALICIOUS_USER", "MALICIOUS_IP"],
+#         "logFormatVariables": {"username": "MALICIOUS_USER", "src_ip": "MALICIOUS_IP"},
+#     }
+#     benign_event = {
+#         "EventID": 4624,
+#         "template": "User <*> logged in from <*>",
+#         "variables": ["user1", "192.168.1.100"],
+#         "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"},
+#     }
+#     anomalous_schema = ParserSchema(kwargs=anomalous_event)
+#     benign_schema = ParserSchema(kwargs=benign_event)
+
+#     # Create output schema for detection results
+#     output_schema = DetectorSchema(kwargs={"alertsObtain": {}})
+
+#     anomalies = []
+#     for schema in [anomalous_schema, benign_schema]:
+#         anomalous = detector.detect(schema, output_=output_schema)
+#         anomalies.append(anomalous)
+
+#     print("\nDetection output:")
+#     print(anomalies)

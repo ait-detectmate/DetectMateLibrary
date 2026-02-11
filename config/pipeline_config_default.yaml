@@ -3,7 +3,7 @@ readers:
         method_type: log_file_reader
         auto_config: False
         params:
-            file: local/miranda.json
+            file: tests/test_folder/audit.log
 
 parsers:
     MatcherParser:
@@ -41,78 +41,48 @@ detectors:
     RandomDetector:
         method_type: random_detector
         auto_config: False
-        params:
-            log_variables:
-                - id: test
-                  event: 1
-                  template: dummy_template
-                  variables:
-                    - pos: 0
-                      name: var1
-                      params:
-                        threshold: 0.
-                  header_variables:
-                    - pos: level
-                      params: {}
+        params: {}
+        events:
+            1:
+                test:
+                    params: {}
+                    variables:
+                        - pos: 0
+                          name: var1
+                          params:
+                              threshold: 0.
+                    header_variables:
+                        - pos: level
+                          params: {}
 
     NewValueDetector:
         method_type: new_value_detector
         auto_config: False
-        params:
-            log_variables:
-                - id: test
-                  event: 1
-                  template: dummy_template
-                  variables:
-                    - pos: 0
-                      name: var1
-                      params:
-                        threshold: 0.
-                  header_variables:
-                    - pos: level
-                      params: {}
-    NewValueDetector_All:
-        method_type: new_value_detector
-        auto_config: False
-        params:
-            all_log_variables:
-                  variables:
-                    - pos: 0
-                      name: var1
-                      params:
-                        threshold: 0.
-                  header_variables:
-                    - pos: level
-                      params: {}
+        params: {}
+        events:
+            1:
+                test:
+                    params: {}
+                    variables:
+                        - pos: 0
+                          name: var1
+                          params:
+                              threshold: 0.
+                    header_variables:
+                        - pos: level
+                          params: {}
 
     NewValueComboDetector:
         method_type: new_value_combo_detector
         auto_config: False
         params:
-            comb_size: 2
-            log_variables:
-                - id: test
-                  event: 1
-                  template: dummy_template
-                  variables:
-                    - pos: 0
-                      name: var1
-                      params:
-                        threshold: 0.
-                  header_variables:
-                    - pos: level
-                      params: {}
-    NewValueComboDetector_All:
-        method_type: new_value_combo_detector
-        auto_config: False
-        params:
-            comb_size: 2
-            all_log_variables:
-                  variables:
-                    - pos: 0
-                      name: var1
-                      params:
-                        threshold: 0.
-                  header_variables:
-                    - pos: level
-                      params: {}
+            comb_size: 3
+        events:
+            1:
+                test:
+                    params: {}
+                    variables:
+                        - pos: 0
+                          name: var1
+                    header_variables:
+                        - pos: level
