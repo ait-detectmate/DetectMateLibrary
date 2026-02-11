@@ -110,6 +110,7 @@ source = { editable = "." }
 dependencies = [
     { name = "drain3" },
     { name = "kafka-python" },
+    { name = "numpy" },
     { name = "protobuf" },
     { name = "pydantic" },
     { name = "pyyaml" },
@@ -139,6 +140,7 @@ dev = [
 requires-dist = [
     { name = "drain3", specifier = ">=0.9.11" },
     { name = "kafka-python", specifier = ">=2.3.0" },
+    { name = "numpy", specifier = ">=2.3.2" },
     { name = "pandas", marker = "extra == 'all'", specifier = ">=2.3.2" },
     { name = "pandas", marker = "extra == 'pandas'", specifier = ">=2.0" },
     { name = "polars", marker = "extra == 'all'", specifier = ">=1.38.1" },
