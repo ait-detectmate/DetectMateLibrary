@@ -1,5 +1,6 @@
 from detectmatelibrary.utils.from_to import From, To, FromTo
 
+from detectmatelibrary.detectors.dummy_detector import DummyDetector
 from detectmatelibrary.parsers.dummy_parser import DummyParser
 
 import detectmatelibrary.schemas as schemas
@@ -307,3 +308,61 @@ class TestCaseFromTo:
 
         with open(yaml_path2) as f:
             assert 5 == len(yaml.safe_load(f))
+
+
+class TestUseCase:
+    # The idea of this tests is to check that they do not crash in normal use
+    def test_case1(self):
+        detector = DummyDetector()
+        parser = DummyParser()
+
+        alerts = []
+        i = 0
+        for parsed_log in From.log(parser, in_path=log_path):
+            alerts.append(detector.process(parsed_log))
+            if i >= 5:
+                break
+            i += 1
+
+        assert len(alerts) == 6
+
+    @remove_files
+    def test_case2(self):
+        detector = DummyDetector()
+        parser = DummyParser()
+
+        parsed_logs = []
+        i = 0
+        for parsed_log in From.log(parser, in_path=log_path):
+            parsed_logs.append(parsed_log)
+            if i >= 5:
+                break
+            i += 1
+
+        assert len(parsed_logs) == 6
+
+        for parsed_log in parsed_logs:
+            To.json(detector.process(parsed_log), out_path=json_path)
+
+        assert os.path.exists(json_path)
+
+    @remove_files
+    def test_case3(self):
+        detector = DummyDetector()
+        parser = DummyParser()
+
+        parsed_logs = []
+        i = 0
+        for parsed_log in FromTo.log2json(parser, in_path=log_path, out_path=json_path):
+            parsed_logs.append(parsed_log)
+            if i >= 5:
+                break
+            i += 1
+
+        assert len(parsed_logs) == 6
+
+        for _ in FromTo.json2json(detector, in_path=json_path, out_path=json_path2):
+            pass
+
+        assert os.path.exists(json_path)
+        assert os.path.exists(json_path2)
