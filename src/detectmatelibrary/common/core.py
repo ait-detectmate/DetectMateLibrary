@@ -103,7 +103,7 @@ class CoreComponent:
 
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
         is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)
-        logger.info(f"<<{self.name}>> received:\n{data}")
+        logger.debug(f"<<{self.name}>> received:\n{data}")
 
         if (data_buffered := self.data_buffer.add(data)) is None:  # type: ignore
             return None
