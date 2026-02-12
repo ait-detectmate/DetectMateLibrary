@@ -4,13 +4,18 @@ from detectmatelibrary.parsers.dummy_parser import DummyParser
 
 import detectmatelibrary.schemas as schemas
 
+import json
 import os
+
 
 expected_log = "pid=<*> uid=<*> auid=<*> ses=<*> msg='op=<*> "
 expected_log += "acct=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'"
 log_path = "tests/test_folder/audit_templates.txt"
 
 binary_path = "tests/test_folder/dummy.txt"
+binary_path2 = "tests/test_folder/dummy2.txt"
+json_path = "tests/test_folder/dummy.json"
+json_path2 = "tests/test_folder/dummy2.json"
 
 
 class TestCaseTo:
@@ -31,6 +36,24 @@ class TestCaseTo:
 
         with open(binary_path, "r") as f:
             assert len(f.readlines()) == 2
+
+    def test_tojson(self):
+        if os.path.exists(json_path):
+            os.remove(json_path)
+
+        parser = DummyParser()
+        gen = From.log(parser, in_path=log_path, do_process=False)
+
+        log = next(gen)
+        assert To.json(log, json_path) == log
+
+        log = next(gen)
+        assert To.json(log, json_path) == log
+
+        assert To.json(None, json_path) is None
+
+        with open(json_path, "r") as f:
+            assert len(json.load(f)) == 2
 
 
 class TestCaseFrom:
@@ -62,6 +85,18 @@ class TestCaseFrom:
 
         assert log1 == log2.serialize()
 
+    def test_fromjson(self):
+        if os.path.exists(json_path):
+            os.remove(json_path)
+
+        parser = DummyParser()
+        gen = From.log(parser, in_path=log_path, do_process=False)
+
+        log1 = To.json(next(gen), json_path)
+        log2 = next(From.json(parser, json_path, do_process=False))
+
+        assert log1 == log2
+
 
 class TestCaseFromTo:
     def test_log2binary(self):
@@ -78,9 +113,25 @@ class TestCaseFromTo:
         with open(binary_path) as f:
             assert 5 == len(f.readlines())
 
+    def test_log2json(self):
+        if os.path.exists(json_path):
+            os.remove(json_path)
+
+        parser = DummyParser()
+        gen = FromTo.log2bjson(parser, log_path, json_path)
+
+        values = []
+        for _ in range(5):
+            values.append(next(gen))
+
+        with open(json_path) as f:
+            assert 5 == len(json.load(f))
+
     def test_binary2binary(self):
         if os.path.exists(binary_path):
             os.remove(binary_path)
+        if os.path.exists(binary_path2):
+            os.remove(binary_path2)
 
         parser = DummyParser()
         gen = From.log(parser, log_path, do_process=False)
@@ -88,7 +139,66 @@ class TestCaseFromTo:
         for _ in range(5):
             values.append(To.binary_file(next(gen), binary_path))
 
-        gen = FromTo.binary_file2binary_file(parser, binary_path, binary_path)
+        gen = FromTo.binary_file2binary_file(parser, binary_path, binary_path2)
+        for _ in gen:
+            pass
+
+        with open(binary_path2) as f:
+            assert 5 == len(f.readlines())
+
+    def test_binary2json(self):
+        if os.path.exists(binary_path):
+            os.remove(binary_path)
+        if os.path.exists(json_path):
+            os.remove(json_path)
+
+        parser = DummyParser()
+        gen = From.log(parser, log_path, do_process=False)
+        values = []
+        for _ in range(5):
+            values.append(To.binary_file(next(gen), binary_path))
+
+        gen = FromTo.binary_file2json(parser, binary_path, json_path)
+        for _ in gen:
+            pass
+
+        with open(json_path) as f:
+            assert 5 == len(json.load(f))
+
+    def test_json2binary(self):
+        if os.path.exists(binary_path):
+            os.remove(binary_path)
+        if os.path.exists(json_path):
+            os.remove(json_path)
+
+        parser = DummyParser()
+        gen = From.log(parser, log_path, do_process=False)
+        values = []
+        for _ in range(5):
+            values.append(To.json(next(gen), json_path))
+
+        gen = FromTo.json2binary_file(parser, json_path, binary_path)
+        for _ in gen:
+            pass
 
         with open(binary_path) as f:
             assert 5 == len(f.readlines())
+
+    def test_json2json(self):
+        if os.path.exists(json_path):
+            os.remove(json_path)
+        if os.path.exists(json_path2):
+            os.remove(json_path2)
+
+        parser = DummyParser()
+        gen = From.log(parser, log_path, do_process=False)
+        values = []
+        for _ in range(5):
+            values.append(To.json(next(gen), json_path))
+
+        gen = FromTo.json2json(parser, json_path, json_path2)
+        for _ in gen:
+            pass
+
+        with open(json_path) as f:
+            assert 5 == len(json.load(f))
