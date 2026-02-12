@@ -5,6 +5,7 @@ from detectmatelibrary.parsers.dummy_parser import DummyParser
 import detectmatelibrary.schemas as schemas
 
 import json
+import yaml
 import os
 
 
@@ -16,11 +17,15 @@ binary_path = "tests/test_folder/dummy.txt"
 binary_path2 = "tests/test_folder/dummy2.txt"
 json_path = "tests/test_folder/dummy.json"
 json_path2 = "tests/test_folder/dummy2.json"
+yaml_path = "tests/test_folder/dummy.yaml"
+yaml_path2 = "tests/test_folder/dummy2.yaml"
 
 
 def remove_files(func):
     def remove():
-        files = [binary_path, binary_path2, json_path, json_path2]
+        files = [
+            binary_path, binary_path2, json_path, json_path2, yaml_path, yaml_path2
+        ]
         for f in files:
             if os.path.exists(f):
                 os.remove(f)
@@ -66,6 +71,22 @@ class TestCaseTo:
         with open(json_path, "r") as f:
             assert len(json.load(f)) == 2
 
+    @remove_files
+    def test_toyaml(self):
+        parser = DummyParser()
+        gen = From.log(parser, in_path=log_path, do_process=False)
+
+        log = next(gen)
+        assert To.yaml(log, yaml_path) == log
+
+        log = next(gen)
+        assert To.yaml(log, yaml_path) == log
+
+        assert To.yaml(None, yaml_path) is None
+
+        with open(yaml_path, "r") as f:
+            assert len(yaml.safe_load(f)) == 2
+
 
 class TestCaseFrom:
     def test_fromlog_no_process(self):
@@ -104,6 +125,16 @@ class TestCaseFrom:
 
         assert log1 == log2
 
+    @remove_files
+    def test_fromyaml(self):
+        parser = DummyParser()
+        gen = From.log(parser, in_path=log_path, do_process=False)
+
+        log1 = To.yaml(next(gen), yaml_path)
+        log2 = next(From.yaml(parser, yaml_path, do_process=False))
+
+        assert log1 == log2
+
 
 class TestCaseFromTo:
     @remove_files
@@ -121,7 +152,7 @@ class TestCaseFromTo:
     @remove_files
     def test_log2json(self):
         parser = DummyParser()
-        gen = FromTo.log2bjson(parser, log_path, json_path)
+        gen = FromTo.log2json(parser, log_path, json_path)
 
         values = []
         for _ in range(5):
@@ -129,6 +160,18 @@ class TestCaseFromTo:
 
         with open(json_path) as f:
             assert 5 == len(json.load(f))
+
+    @remove_files
+    def test_log2yaml(self):
+        parser = DummyParser()
+        gen = FromTo.log2yaml(parser, log_path, yaml_path)
+
+        values = []
+        for _ in range(5):
+            values.append(next(gen))
+
+        with open(yaml_path) as f:
+            assert 5 == len(yaml.safe_load(f))
 
     @remove_files
     def test_binary2binary(self):
@@ -161,6 +204,21 @@ class TestCaseFromTo:
             assert 5 == len(json.load(f))
 
     @remove_files
+    def test_binary2yaml(self):
+        parser = DummyParser()
+        gen = From.log(parser, log_path, do_process=False)
+        values = []
+        for _ in range(5):
+            values.append(To.binary_file(next(gen), binary_path))
+
+        gen = FromTo.binary_file2yaml(parser, binary_path, yaml_path)
+        for _ in gen:
+            pass
+
+        with open(yaml_path) as f:
+            assert 5 == len(yaml.safe_load(f))
+
+    @remove_files
     def test_json2binary(self):
         parser = DummyParser()
         gen = From.log(parser, log_path, do_process=False)
@@ -189,3 +247,63 @@ class TestCaseFromTo:
 
         with open(json_path) as f:
             assert 5 == len(json.load(f))
+
+    @remove_files
+    def test_json2yaml(self):
+        parser = DummyParser()
+        gen = From.log(parser, log_path, do_process=False)
+        values = []
+        for _ in range(5):
+            values.append(To.json(next(gen), json_path))
+
+        gen = FromTo.json2yaml(parser, json_path, yaml_path)
+        for _ in gen:
+            pass
+
+        with open(yaml_path) as f:
+            assert 5 == len(yaml.safe_load(f))
+
+    @remove_files
+    def test_yaml2binary(self):
+        parser = DummyParser()
+        gen = From.log(parser, log_path, do_process=False)
+        values = []
+        for _ in range(5):
+            values.append(To.yaml(next(gen), yaml_path))
+
+        gen = FromTo.yaml2binary_file(parser, yaml_path, binary_path)
+        for _ in gen:
+            pass
+
+        with open(binary_path) as f:
+            assert 5 == len(f.readlines())
+
+    @remove_files
+    def test_yaml2json(self):
+        parser = DummyParser()
+        gen = From.log(parser, log_path, do_process=False)
+        values = []
+        for _ in range(5):
+            values.append(To.yaml(next(gen), yaml_path))
+
+        gen = FromTo.yaml2json(parser, yaml_path, json_path)
+        for _ in gen:
+            pass
+
+        with open(json_path) as f:
+            assert 5 == len(json.load(f))
+
+    @remove_files
+    def test_yaml2yaml(self):
+        parser = DummyParser()
+        gen = From.log(parser, log_path, do_process=False)
+        values = []
+        for _ in range(5):
+            values.append(To.yaml(next(gen), yaml_path))
+
+        gen = FromTo.yaml2yaml(parser, yaml_path, yaml_path2)
+        for _ in gen:
+            pass
+
+        with open(yaml_path2) as f:
+            assert 5 == len(yaml.safe_load(f))

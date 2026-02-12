@@ -6,6 +6,7 @@ from ast import literal_eval
 import os
 
 from typing import Iterator
+import yaml
 import json
 
 
@@ -41,6 +42,23 @@ class To:
         with open(out_path, "w") as f:
             obj = literal_eval(str(data))
             json.dump(obj, f, indent=4, ensure_ascii=False)
+
+        return out_
+
+    @staticmethod
+    def yaml(out_: BaseSchema | None, out_path: str) -> BaseSchema | None:
+        if out_ is None:
+            return None
+
+        data = {}
+        if os.path.exists(out_path):
+            with open(out_path) as f:
+                data = yaml.safe_load(f)
+
+        data[len(data)] = out_.as_dict()
+        with open(out_path, "w") as f:
+            obj = literal_eval(str(data))
+            yaml.safe_dump(obj, f, indent=4, default_flow_style=False)
 
         return out_
 
@@ -98,6 +116,19 @@ class From:
 
         return From._yield(component, __generator(), do_process=do_process)  # type: ignore
 
+    @staticmethod
+    def yaml(
+        component: CoreComponent, in_path: str, do_process: bool = True
+    ) -> Iterator[BaseSchema]:
+        def __generator():  # type: ignore
+            with open(in_path, "r") as f:
+                data = yaml.safe_load(f)
+            for i in range(len(data)):
+                schema = component.input_schema(data[i])
+                yield schema
+
+        return From._yield(component, __generator(), do_process=do_process)  # type: ignore
+
 
 class FromTo:
     @staticmethod
@@ -109,11 +140,18 @@ class FromTo:
             yield log
 
     @staticmethod
-    def log2bjson(component: CoreComponent, in_path: str, out_path: str) -> Iterator[BaseSchema]:
+    def log2json(component: CoreComponent, in_path: str, out_path: str) -> Iterator[BaseSchema]:
         gen = From.log(component, in_path=in_path, do_process=True)
 
         for log in gen:
             yield To.json(log, out_path=out_path)  # type: ignore
+
+    @staticmethod
+    def log2yaml(component: CoreComponent, in_path: str, out_path: str) -> Iterator[BaseSchema]:
+        gen = From.log(component, in_path=in_path, do_process=True)
+
+        for log in gen:
+            yield To.yaml(log, out_path=out_path)  # type: ignore
 
     @staticmethod
     def binary_file2binary_file(
@@ -136,6 +174,15 @@ class FromTo:
             yield To.json(log, out_path=out_path)  # type: ignore
 
     @staticmethod
+    def binary_file2yaml(
+        component: CoreComponent, in_path: str, out_path: str
+    ) -> Iterator[BaseSchema]:
+        gen = From.binary_file(component, in_path=in_path, do_process=True)
+
+        for log in gen:
+            yield To.yaml(log, out_path=out_path)  # type: ignore
+
+    @staticmethod
     def json2binary_file(
         component: CoreComponent, in_path: str, out_path: str
     ) -> Iterator[BaseSchema]:
@@ -153,3 +200,40 @@ class FromTo:
 
         for log in gen:
             yield To.json(log, out_path=out_path)  # type: ignore
+
+    @staticmethod
+    def json2yaml(
+        component: CoreComponent, in_path: str, out_path: str
+    ) -> Iterator[BaseSchema]:
+        gen = From.json(component, in_path=in_path, do_process=True)
+
+        for log in gen:
+            yield To.yaml(log, out_path=out_path)  # type: ignore
+
+    @staticmethod
+    def yaml2binary_file(
+        component: CoreComponent, in_path: str, out_path: str
+    ) -> Iterator[BaseSchema]:
+        gen = From.yaml(component, in_path=in_path, do_process=True)
+
+        for log in gen:
+            To.binary_file(log, out_path=out_path)
+            yield log
+
+    @staticmethod
+    def yaml2json(
+        component: CoreComponent, in_path: str, out_path: str
+    ) -> Iterator[BaseSchema]:
+        gen = From.yaml(component, in_path=in_path, do_process=True)
+
+        for log in gen:
+            yield To.json(log, out_path=out_path)  # type: ignore
+
+    @staticmethod
+    def yaml2yaml(
+        component: CoreComponent, in_path: str, out_path: str
+    ) -> Iterator[BaseSchema]:
+        gen = From.yaml(component, in_path=in_path, do_process=True)
+
+        for log in gen:
+            yield To.yaml(log, out_path=out_path)  # type: ignore
