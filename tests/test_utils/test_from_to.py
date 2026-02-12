@@ -18,11 +18,24 @@ json_path = "tests/test_folder/dummy.json"
 json_path2 = "tests/test_folder/dummy2.json"
 
 
-class TestCaseTo:
-    def test_tobinary(self):
-        if os.path.exists(binary_path):
-            os.remove(binary_path)
+def remove_files(func):
+    def remove():
+        files = [binary_path, binary_path2, json_path, json_path2]
+        for f in files:
+            if os.path.exists(f):
+                os.remove(f)
 
+    def do(*args, **kwargs):
+        remove()
+        func(*args, **kwargs)
+        remove()
+
+    return do
+
+
+class TestCaseTo:
+    @remove_files
+    def test_tobinary(self):
         parser = DummyParser()
         gen = From.log(parser, in_path=log_path, do_process=False)
 
@@ -37,10 +50,8 @@ class TestCaseTo:
         with open(binary_path, "r") as f:
             assert len(f.readlines()) == 2
 
+    @remove_files
     def test_tojson(self):
-        if os.path.exists(json_path):
-            os.remove(json_path)
-
         parser = DummyParser()
         gen = From.log(parser, in_path=log_path, do_process=False)
 
@@ -73,10 +84,8 @@ class TestCaseFrom:
         assert log.log == expected_log
         assert isinstance(log, schemas.ParserSchema)
 
+    @remove_files
     def test_frombinary(self):
-        if os.path.exists(binary_path):
-            os.remove(binary_path)
-
         parser = DummyParser()
         gen = From.log(parser, in_path=log_path, do_process=False)
 
@@ -85,10 +94,8 @@ class TestCaseFrom:
 
         assert log1 == log2.serialize()
 
+    @remove_files
     def test_fromjson(self):
-        if os.path.exists(json_path):
-            os.remove(json_path)
-
         parser = DummyParser()
         gen = From.log(parser, in_path=log_path, do_process=False)
 
@@ -99,10 +106,8 @@ class TestCaseFrom:
 
 
 class TestCaseFromTo:
+    @remove_files
     def test_log2binary(self):
-        if os.path.exists(binary_path):
-            os.remove(binary_path)
-
         parser = DummyParser()
         gen = FromTo.log2binary_file(parser, log_path, binary_path)
 
@@ -113,10 +118,8 @@ class TestCaseFromTo:
         with open(binary_path) as f:
             assert 5 == len(f.readlines())
 
+    @remove_files
     def test_log2json(self):
-        if os.path.exists(json_path):
-            os.remove(json_path)
-
         parser = DummyParser()
         gen = FromTo.log2bjson(parser, log_path, json_path)
 
@@ -127,12 +130,8 @@ class TestCaseFromTo:
         with open(json_path) as f:
             assert 5 == len(json.load(f))
 
+    @remove_files
     def test_binary2binary(self):
-        if os.path.exists(binary_path):
-            os.remove(binary_path)
-        if os.path.exists(binary_path2):
-            os.remove(binary_path2)
-
         parser = DummyParser()
         gen = From.log(parser, log_path, do_process=False)
         values = []
@@ -146,12 +145,8 @@ class TestCaseFromTo:
         with open(binary_path2) as f:
             assert 5 == len(f.readlines())
 
+    @remove_files
     def test_binary2json(self):
-        if os.path.exists(binary_path):
-            os.remove(binary_path)
-        if os.path.exists(json_path):
-            os.remove(json_path)
-
         parser = DummyParser()
         gen = From.log(parser, log_path, do_process=False)
         values = []
@@ -165,12 +160,8 @@ class TestCaseFromTo:
         with open(json_path) as f:
             assert 5 == len(json.load(f))
 
+    @remove_files
     def test_json2binary(self):
-        if os.path.exists(binary_path):
-            os.remove(binary_path)
-        if os.path.exists(json_path):
-            os.remove(json_path)
-
         parser = DummyParser()
         gen = From.log(parser, log_path, do_process=False)
         values = []
@@ -184,12 +175,8 @@ class TestCaseFromTo:
         with open(binary_path) as f:
             assert 5 == len(f.readlines())
 
+    @remove_files
     def test_json2json(self):
-        if os.path.exists(json_path):
-            os.remove(json_path)
-        if os.path.exists(json_path2):
-            os.remove(json_path2)
-
         parser = DummyParser()
         gen = From.log(parser, log_path, do_process=False)
         values = []
