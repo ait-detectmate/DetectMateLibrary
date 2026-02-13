@@ -1,4 +1,4 @@
-from detectmatelibrary.utils.from_to import From, To, FromTo
+from detectmatelibrary.helper.from_to import From, To, FromTo
 
 from detectmatelibrary.detectors.dummy_detector import DummyDetector
 from detectmatelibrary.parsers.dummy_parser import DummyParser

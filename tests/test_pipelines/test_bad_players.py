@@ -3,7 +3,7 @@ from detectmatelibrary.common.detector import CoreDetector, BufferMode
 from detectmatelibrary.common.parser import CoreParser
 
 import detectmatelibrary.schemas._op as op_schemas
-from detectmatelibrary.utils.from_to import From
+from detectmatelibrary.helper.from_to import From
 
 import pytest
 
