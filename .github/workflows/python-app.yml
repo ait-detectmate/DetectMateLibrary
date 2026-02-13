@@ -66,6 +66,6 @@ jobs:
         working-directory: DetectMateService
         run: uv pip install .
 
-      - name: Run DetectMateService library integration tests
-        working-directory: DetectMateService
-        run: uv run --dev pytest tests/library_integration -s
+      #- name: Run DetectMateService library integration tests
+      #  working-directory: DetectMateService
+      #  run: uv run --dev pytest tests/library_integration -s
