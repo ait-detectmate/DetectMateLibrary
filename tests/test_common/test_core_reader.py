@@ -76,9 +76,8 @@ class TestCoreDetector:
         config = CoreReaderConfig(**{"logSource": "TestSource", "hostname": "0.0.0.0"})
 
         reader = MockupReader(name="TestReader", config=config)
-        schema_id, output = op_schemas.deserialize(reader.process(as_bytes=True))
+        output = op_schemas.deserialize(op_schemas.LOG_SCHEMA, reader.process(as_bytes=True))
 
-        assert schema_id == op_schemas.LOG_SCHEMA
         assert output.log == "Hello"
         assert output.logSource == "TestSource"
         assert output.hostname == "0.0.0.0"

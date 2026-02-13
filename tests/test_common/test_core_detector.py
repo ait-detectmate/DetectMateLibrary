@@ -1,7 +1,6 @@
 from detectmatelibrary.common.detector import CoreDetectorConfig, BufferMode
 from detectmatelibrary.common.detector import CoreDetector
 from detectmatelibrary.utils.aux import time_test_mode
-import detectmatelibrary.schemas._op as op_schemas
 import detectmatelibrary.schemas as schemas
 
 import pydantic
@@ -118,12 +117,6 @@ class TestCoreDetector:
         data = schemas.ParserSchema(dummy_schema).serialize()
         result = detector.process(data)  # no error should be produced
         assert isinstance(result, bytes)  # and result should be bytes
-
-    def test_process_incorrect_input_schema(self) -> None:
-        detector = MockupDetector(name="TestDetector", config=dummy_config)
-        data = schemas.LogSchema({"log": "This is a log."}).serialize()
-        with pytest.raises(op_schemas.IncorrectSchema):
-            detector.process(data)
 
     def test_process_input_schema_not_serialized(self) -> None:
         detector = MockupDetector(name="TestDetector", config=MockupConfig())
