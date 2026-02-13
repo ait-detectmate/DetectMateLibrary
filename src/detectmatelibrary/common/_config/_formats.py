@@ -134,6 +134,9 @@ class EventsConfig(BaseModel):
         """
         result = {}
         for event_id, event_config in self.events.items():
+            # Skip events with no instances
+            if not event_config.instances:
+                continue
             # Convert string keys back to int if they were originally int
             try:
                 key = int(event_id)
