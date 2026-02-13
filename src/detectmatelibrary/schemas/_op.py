@@ -86,7 +86,7 @@ def initialize(schema: SchemaT, **kwargs: Any) -> SchemaT:
 
 def copy(
     schema_class: SchemaT, schema: SchemaT
-) -> SchemaT | IncorrectSchema | NotSupportedSchema:
+) -> SchemaT | IncorrectSchema:
     """Make a copy of the schema."""
     new_schema = initialize(schema_class, **{})
     try:
