@@ -33,22 +33,22 @@ jobs:
         run: uv run --dev pytest
 
       # integration tests for DetectMateService
-      #- name: Checkout DetectMateService
-      #  uses: actions/checkout@v4
-      #  with:
-      #    repository: ait-detectmate/DetectMateService
-      #    path: DetectMateService
+      - name: Checkout DetectMateService
+        uses: actions/checkout@v4
+        with:
+          repository: ait-detectmate/DetectMateService
+          path: DetectMateService
 
-      #- name: Prepare DetectMateService (using local DetectMateLibrary)
-      #  working-directory: DetectMateService
-      #  run: |
+      - name: Prepare DetectMateService (using local DetectMateLibrary)
+        working-directory: DetectMateService
+        run: |
           # remove the git-based dependency so we don't override the local lib
-      #    sed -i '/detectmatelibrary @ git+/d' pyproject.toml
+          sed -i '/detectmatelibrary @ git+/d' pyproject.toml
 
-      #- name: Prepare packages
-      #  working-directory: DetectMateService
-      #  run: uv pip install .
+      - name: Prepare packages
+        working-directory: DetectMateService
+        run: uv pip install .
 
-      #- name: Run DetectMateService library integration tests
-      # working-directory: DetectMateService
-      #  run: pytest tests/library_integration
+      - name: Run DetectMateService library integration tests
+        working-directory: DetectMateService
+        run: pytest tests/library_integration

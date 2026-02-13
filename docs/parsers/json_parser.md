@@ -1,43 +1,44 @@
-# Json Parser
+# JSON Parser
 
-Extracts the log from a json format. It can use a second parser to parse the log information.
+Extracts structured information from JSON-formatted logs. Optionally delegates parsing of a specific JSON field (the "content") to another parser (for example, the Template matcher).
 
-|            | Schema                 | Description        |
-|------------|------------------------|--------------------|
-| **Input**  | [LogSchema](../schemas.md)| Unstructured log   |
-| **Output** | [ParserSchema](../schemas.md)| Structured log  |
+|            | Schema                     | Description        |
+|------------|----------------------------|--------------------|
+| **Input**  | [LogSchema](../schemas.md) | Raw log (JSON string) |
+| **Output** | [ParserSchema](../schemas.md) | Structured log with extracted fields |
 
+## Configuration
 
-## Configuration file
+Relevant config options (example names used by the implementation):
 
-Example of a configuration file:
+- `method_type` (string): parser type identifier (e.g. `json_parser`).
+- `params.timestamp_name` (string | null): JSON key to use as the received/parsed timestamp.
+- `params.content_name` (string): JSON key that contains the textual content to parse further (default `"message"` or `"content"`).
+- `params.flatten_nested` (bool, default True): flatten nested objects into dot-separated keys in `logFormatVariables`.
+- `params.content_parser` (string | dict): optional parser spec (name or config) to parse the extracted content.
+- `params.ignore_parse_errors` (bool, default True): if True, parser returns gracefully on JSON errors instead of raising.
+
+Example YAML fragment:
 
 ```yaml
 parsers:
-    JsonMatcherParser:
+  JsonParser:
+    method_type: json_parser
+    params:
+      timestamp_name: "time"
+      content_name: "message"
+      flatten_nested: True
+      content_parser:
         method_type: matcher_parser
-        auto_config: False
-        log_format: "<Content>"
-        time_format: null
         params:
-            remove_spaces: True
-            remove_punctuation: True
-            lowercase: True
-            path_templates: local/miranda_templates.txt
-
-    JsonParser:
-        method_type: json_parser
-        time_format: null
-        auto_config: False
-        params:
-            timestamp_name: "time"
-            content_name: "message"
-            content_parser: JsonMatcherParser
+          path_templates: tests/test_templates.txt
+      ignore_parse_errors: True
 ```
 
-## Example
 
-Code examples of normal use cases of the parser:
+## Usage examples
+
+Basic usage — parse JSON and extract fields:
 
 ```python
 from detectmatelibrary.parsers.json_parser import JsonParser
