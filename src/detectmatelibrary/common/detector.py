@@ -68,19 +68,19 @@ class CoreDetector(CoreComponent):
         output_["detectorType"] = self.config.method_type
         output_["logIDs"].extend(_extract_logIDs(input_))
         output_["extractedTimestamps"].extend(_extract_timestamp(input_))
-        output_["alertID"] = str(self.id_generator())
         output_["receivedTimestamp"] = get_timestamp()
 
-        anomaly_detected = self.detect(input_=input_, output_=output_)
-        output_["detectionTimestamp"] = get_timestamp()
+        if (anomaly_detected := self.detect(input_=input_, output_=output_)):
+            output_["alertID"] = str(self.id_generator())
+            output_["detectionTimestamp"] = get_timestamp()
 
-        return True if anomaly_detected is None else anomaly_detected
+        return anomaly_detected
 
     def detect(
         self,
         input_: List[ParserSchema] | ParserSchema,
         output_: DetectorSchema,
-    ) -> bool | None:
+    ) -> bool:
         return True
 
     @override

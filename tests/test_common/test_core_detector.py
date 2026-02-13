@@ -19,6 +19,8 @@ class MockupDetector(CoreDetector):
         output_.score = 0.9
         output_.description = "hii"
 
+        return True
+
 
 class MockupDetector_window(CoreDetector):
     def __init__(self, name: str, config: CoreDetectorConfig) -> None:
@@ -29,6 +31,8 @@ class MockupDetector_window(CoreDetector):
     def detect(self, input_, output_):
         output_.score = 0.9
         output_.description = "hii"
+
+        return True
 
 
 class MockupDetector_buffer(CoreDetector):
@@ -41,6 +45,8 @@ class MockupDetector_buffer(CoreDetector):
         output_.score = 0.9
         output_.description = "hii"
 
+        return True
+
 
 class IncompleteMockupDetector(CoreDetector):
     def __init__(self, name: str, config: CoreDetectorConfig) -> None:
@@ -48,6 +54,8 @@ class IncompleteMockupDetector(CoreDetector):
 
     def detect(self, input_, output_):
         output_.description = "hii"
+
+        return True
 
 
 class NoneMockupDetector(CoreDetector):
