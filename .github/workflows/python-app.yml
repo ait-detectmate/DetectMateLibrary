@@ -33,7 +33,7 @@ jobs:
         run: uv run --dev prek run -a
 
       - name: Test with pytest
-        run: uv run --dev pytest
+        run: uv run --dev pytest -s
 
       # include following code into the run section to match DetectMateService and DetectMateLibrary branches, if the name matches.
       # REPO_URL="https://github.com/ait-detectmate/DetectMateService.git"
@@ -68,4 +68,4 @@ jobs:
 
       - name: Run DetectMateService library integration tests
         working-directory: DetectMateService
-        run: uv run --dev pytest tests/library_integration
+        run: uv run --dev pytest tests/library_integration -s
