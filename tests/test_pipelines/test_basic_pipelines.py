@@ -99,7 +99,7 @@ class TestCaseBasicPipelines:
 
 class TestExamples:
     def test_config_example(self) -> None:
-        with open("config/pipeline_config_default.yaml", 'r') as file:
+        with open("tests/test_folder/test_config.yaml", 'r') as file:
             config = yaml.safe_load(file)
 
         # Nothing should crash

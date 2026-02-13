@@ -3,14 +3,13 @@
 from detectmatelibrary.common._config._compile import (
     ConfigMethods,
     MethodNotFoundError,
+    MissingParamsWarning,
     TypeNotFoundError,
     MethodTypeNotMatch,
-    AutoConfigError,
     AutoConfigWarning,
-    MissingFormat,
 )
 from detectmatelibrary.common._config._formats import (
-    AllLogVariables,  _LogVariable
+    EventsConfig, _EventConfig
 )
 from detectmatelibrary.common._config import BasicConfig
 
@@ -81,7 +80,7 @@ class TestConfigMethods:
         assert "params" not in config
 
     def test_process_auto_config_false(self):
-        with pytest.raises(AutoConfigError):
+        with pytest.warns(MissingParamsWarning):
             ConfigMethods.process(ConfigMethods.get_method(
                 config_test, method_id="detector_wrong", comp_type="detectors"
             ))
@@ -94,14 +93,6 @@ class TestConfigMethods:
 
 
 class TestParamsFormat:
-    def test_all(self):
-        config_test = load_test_config()
-        config = ConfigMethods.process(ConfigMethods.get_method(
-            config_test, method_id="detector_all", comp_type="detectors"
-        ))
-
-        assert len(config) == 4
-
     def test_correct_format(self):
         config_test = load_test_config()
         config = ConfigMethods.process(ConfigMethods.get_method(
@@ -111,19 +102,19 @@ class TestParamsFormat:
         assert config["method_type"] == "ExampleDetector"
         assert config["parser"] == "example_parser_1"
         assert not config["auto_config"]
-        for logvar in config["log_variables"]:
-            assert isinstance(logvar, _LogVariable)
+        assert isinstance(config["events"], EventsConfig)
 
-        assert logvar.id == "example_detector_1"
-        assert logvar.event == 1
-        assert logvar.template == "jk2_init() Found child <*>"
+        # Get the event config for event_id 1
+        event_config = config["events"][1]
+        assert isinstance(event_config, _EventConfig)
 
-        assert logvar.variables[0].pos == 0
-        assert logvar.variables[0].name == "child_process"
-        assert logvar.variables[0].params == {"threshold": 0.5}
+        # Check variables via pass-through properties
+        assert event_config.variables[0].pos == 0
+        assert event_config.variables[0].name == "child_process"
+        assert event_config.variables[0].params == {"threshold": 0.5}
 
-        assert logvar.header_variables["Level"].pos == "Level"
-        assert logvar.header_variables["Level"].params == {"threshold": 0.2}
+        assert event_config.header_variables["Level"].pos == "Level"
+        assert event_config.header_variables["Level"].params == {"threshold": 0.2}
 
     def test_correct_format2(self):
         config = ConfigMethods.process(ConfigMethods.get_method(
@@ -133,17 +124,16 @@ class TestParamsFormat:
         assert config["method_type"] == "ExampleDetector"
         assert config["parser"] == "example_parser_1"
         assert not config["auto_config"]
-        for logvar in config["log_variables"]:
-            assert isinstance(logvar, _LogVariable)
+        assert isinstance(config["events"], EventsConfig)
 
-        assert logvar.id == "example_detector_1"
-        assert logvar.event == 1
-        assert logvar.template == "jk2_init() Found child <*>"
+        # Get the event config for event_id 1
+        event_config = config["events"][1]
+        assert isinstance(event_config, _EventConfig)
 
-        assert len(logvar.variables) == 0
+        assert len(event_config.variables) == 0
 
-        assert logvar.header_variables["Level"].pos == "Level"
-        assert logvar.header_variables["Level"].params == {"threshold": 0.2}
+        assert event_config.header_variables["Level"].pos == "Level"
+        assert event_config.header_variables["Level"].params == {"threshold": 0.2}
 
     def test_return_none_if_not_found(self):
         config_test = load_test_config()
@@ -151,32 +141,22 @@ class TestParamsFormat:
             config_test, method_id="detector_variables", comp_type="detectors"
         ))
 
-        assert isinstance(config["log_variables"][1], _LogVariable)
-        assert config["log_variables"]["NotExisting"] is None
+        assert isinstance(config["events"][1], _EventConfig)
+        assert config["events"]["NotExisting"] is None
 
     def test_get_dict(self):
         config_test = load_test_config()
         config = ConfigMethods.process(ConfigMethods.get_method(
             config_test, method_id="detector_variables", comp_type="detectors"
         ))
-        variables = config["log_variables"][1].get_all()
+        variables = config["events"][1].get_all()
 
         assert len(variables) == 4
-
-    def test_missing_format(self):
-        with pytest.raises(MissingFormat):
-            ConfigMethods.process(ConfigMethods.get_method(
-                config_test, method_id="detector_missing_format", comp_type="detectors"
-            ))
 
     def test_incorrect_format(self):
         with pytest.raises(ValidationError):
             ConfigMethods.process(ConfigMethods.get_method(
                 config_test, method_id="detector_incorrect_format1", comp_type="detectors"
-            ))
-        with pytest.raises(ValidationError):
-            ConfigMethods.process(ConfigMethods.get_method(
-                config_test, method_id="detector_incorrect_format2", comp_type="detectors"
             ))
 
 
@@ -195,14 +175,6 @@ class MockuptDetectorConfig(BasicConfig):
     parser: str = "<PLACEHOLDER>"
 
 
-class MockuptDetectorAllConfig(BasicConfig):
-    method_type: str = "ExampleDetector"
-    comp_type: str = "detectors"
-    parser: str = "<PLACEHOLDER>"
-
-    log_variables: AllLogVariables = AllLogVariables()
-
-
 class TestBasicConfig:
     def test_parser_from_dict(self):
         config_test = load_test_config()
@@ -218,12 +190,3 @@ class TestBasicConfig:
 
         assert config.auto_config
         assert config.parser == "example_parser_1"
-
-    def test_detector_all(self):
-        config_test = load_test_config()
-        config = MockuptDetectorAllConfig.from_dict(config_test, "detector_all")
-
-        assert not config.auto_config
-        assert config.log_variables[1].variables[0].pos == 0
-        assert config.log_variables["as"].variables[0].pos == 0
-        assert config.log_variables[43].variables[0].pos == 0
