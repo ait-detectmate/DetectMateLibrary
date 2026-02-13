@@ -75,8 +75,6 @@ class NewValueComboDetector(CoreDetector):
             event_data_class=EventStabilityTracker,
             event_data_kwargs={"converter_function": get_all_possible_combos}
         )
-
-        # TEMPORARY:
         self.inputs: list[ParserSchema] = []
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
@@ -162,7 +160,6 @@ class NewValueComboDetector(CoreDetector):
         # Re-ingest all inputs to learn combos based on new configuration
         for input_ in self.inputs:
             configured_variables = get_configured_variables(input_, self.config.events)
-            # print(f"All POSSIBLE COMBOS: EVENT {input_['EventID']}: {all_possible_combos}\n")
             self.auto_conf_persistency_combos.ingest_event(
                 event_id=input_["EventID"],
                 event_template=input_["template"],
@@ -184,157 +181,3 @@ class NewValueComboDetector(CoreDetector):
         )
         # Update the config object from the dictionary instead of replacing it
         self.config = NewValueComboDetectorConfig.from_dict(config_dict, self.name)
-
-
-# if __name__ == "__main__":
-#     # Example: Testing the NewValueComboDetector
-#     # This demonstrates the configuration and training workflow
-
-#     # Create sample parsed log events (simulating authentication logs)
-#     sample_events = [
-#         # Normal login patterns - user1 always logs in from office IP
-#         {"EventID": 4624, "template": "User <*> logged in from <*>",
-#          "variables": ["user1", "192.168.1.100"],
-#          "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"}},
-#         {"EventID": 4624, "template": "User <*> logged in from <*>",
-#          "variables": ["user1", "192.168.1.100"],
-#          "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"}},
-#         {"EventID": 4624, "template": "User <*> logged in from <*>",
-#          "variables": ["user1", "192.168.1.100"],
-#          "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"}},
-
-#         # user2 always logs in from home IP
-#         {"EventID": 4624, "template": "User <*> logged in from <*>",
-#          "variables": ["user2", "10.0.0.50"],
-#          "logFormatVariables": {"username": "user2", "src_ip": "10.0.0.50"}},
-#         {"EventID": 4624, "template": "User <*> logged in from <*>",
-#          "variables": ["user2", "10.0.0.50"],
-#          "logFormatVariables": {"username": "user2", "src_ip": "10.0.0.50"}},
-#         {"EventID": 4624, "template": "User <*> logged in from <*>",
-#          "variables": ["user2", "10.0.0.50"],
-#          "logFormatVariables": {"username": "user2", "src_ip": "10.0.0.50"}},
-
-#         # Different event type - file access
-#         {"EventID": 4663, "template": "User <*> accessed file <*>",
-#          "variables": ["user1", "/data/report.pdf"],
-#          "logFormatVariables": {"username": "user1", "filepath": "/data/report.pdf"}},
-#         {"EventID": 4663, "template": "User <*> accessed file <*>",
-#          "variables": ["user1", "/data/report.pdf"],
-#          "logFormatVariables": {"username": "user1", "filepath": "/data/report.pdf"}},
-#                  # Normal login patterns - user1 always logs in from office IP
-#         {"EventID": 4624, "template": "User <*> logged in from <*>",
-#          "variables": ["user1", "192.168.1.100"],
-#          "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"}},
-#         {"EventID": 4624, "template": "User <*> logged in from <*>",
-#          "variables": ["user1", "192.168.1.100"],
-#          "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"}},
-#         {"EventID": 4624, "template": "User <*> logged in from <*>",
-#          "variables": ["user1", "192.168.1.100"],
-#          "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"}},
-
-#         # user2 always logs in from home IP
-#         {"EventID": 4624, "template": "User <*> logged in from <*>",
-#          "variables": ["user2", "10.0.0.50"],
-#          "logFormatVariables": {"username": "user2", "src_ip": "10.0.0.50"}},
-#         {"EventID": 4624, "template": "User <*> logged in from <*>",
-#          "variables": ["user2", "10.0.0.50"],
-#          "logFormatVariables": {"username": "user2", "src_ip": "10.0.0.50"}},
-#         {"EventID": 4624, "template": "User <*> logged in from <*>",
-#          "variables": ["user2", "10.0.0.50"],
-#          "logFormatVariables": {"username": "user2", "src_ip": "10.0.0.50"}},
-
-#         # Different event type - file access
-#         {"EventID": 4663, "template": "User <*> accessed file <*>",
-#          "variables": ["user1", "/data/report.pdf"],
-#          "logFormatVariables": {"username": "user1", "filepath": "/data/report.pdf"}},
-#         {"EventID": 4663, "template": "User <*> accessed file <*>",
-#          "variables": ["user1", "/data/report.pdf"],
-#          "logFormatVariables": {"username": "user1", "filepath": "/data/report.pdf"}},
-#                  # Normal login patterns - user1 always logs in from office IP
-#         {"EventID": 4624, "template": "User <*> logged in from <*>",
-#          "variables": ["user1", "192.168.1.100"],
-#          "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"}},
-#         {"EventID": 4624, "template": "User <*> logged in from <*>",
-#          "variables": ["user1", "192.168.1.100"],
-#          "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"}},
-#         {"EventID": 4624, "template": "User <*> logged in from <*>",
-#          "variables": ["user1", "192.168.1.100"],
-#          "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"}},
-
-#         # user2 always logs in from home IP
-#         {"EventID": 4624, "template": "User <*> logged in from <*>",
-#          "variables": ["user2", "10.0.0.50"],
-#          "logFormatVariables": {"username": "user2", "src_ip": "10.0.0.50"}},
-#         {"EventID": 4624, "template": "User <*> logged in from <*>",
-#          "variables": ["user2", "10.0.0.50"],
-#          "logFormatVariables": {"username": "user2", "src_ip": "10.0.0.50"}},
-#         {"EventID": 4624, "template": "User <*> logged in from <*>",
-#          "variables": ["user2", "10.0.0.50"],
-#          "logFormatVariables": {"username": "user2", "src_ip": "10.0.0.50"}},
-
-#         # Different event type - file access
-#         {"EventID": 4663, "template": "User <*> accessed file <*>",
-#          "variables": ["user1", "/data/report.pdf"],
-#          "logFormatVariables": {"username": "user1", "filepath": "/data/report.pdf"}},
-#         {"EventID": 4663, "template": "User <*> accessed file <*>",
-#          "variables": ["user1", "/data/report.pdf"],
-#          "logFormatVariables": {"username": "user1", "filepath": "/data/report.pdf"}},
-#     ]
-
-#     # Create ParserSchema objects from sample data
-#     parser_schemas = [ParserSchema(kwargs=event) for event in sample_events]
-
-#     # Initialize the detector
-#     detector = NewValueComboDetector(name="TestComboDetector")
-
-#     print("=" * 60)
-#     print("NewValueComboDetector Example")
-#     print("=" * 60)
-
-#     # Phase 1: Configuration - learn which variables are stable
-#     print("\n[Phase 1] Running configuration phase...")
-#     for schema in parser_schemas:
-#         detector.configure(schema)
-
-#     # Set configuration based on learned stable variables
-#     print("PERSISTENCY",detector.auto_conf_persistency.get_events_data())
-#     detector.set_configuration(max_combo_size=2)
-
-#     # Phase 2: Training - learn normal value combinations
-#     print("\n[Phase 2] Running training phase...")
-#     for schema in parser_schemas:
-#         detector.train(schema)
-
-#     # Show what the detector learned
-#     print("\nLearned event data:")
-#     print(detector.persistency.get_events_data())
-
-#     # Phase 3: Detection (note: detect method is incomplete in current code)
-#     print("\n[Phase 3] Detection phase...")
-
-#     # Example anomalous event - user1 logging in from unusual IP
-#     anomalous_event = {
-#         "EventID": 4624,
-#         "template": "User <*> logged in from <*>",
-#         "variables": ["MALICIOUS_USER", "MALICIOUS_IP"],
-#         "logFormatVariables": {"username": "MALICIOUS_USER", "src_ip": "MALICIOUS_IP"},
-#     }
-#     benign_event = {
-#         "EventID": 4624,
-#         "template": "User <*> logged in from <*>",
-#         "variables": ["user1", "192.168.1.100"],
-#         "logFormatVariables": {"username": "user1", "src_ip": "192.168.1.100"},
-#     }
-#     anomalous_schema = ParserSchema(kwargs=anomalous_event)
-#     benign_schema = ParserSchema(kwargs=benign_event)
-
-#     # Create output schema for detection results
-#     output_schema = DetectorSchema(kwargs={"alertsObtain": {}})
-
-#     anomalies = []
-#     for schema in [anomalous_schema, benign_schema]:
-#         anomalous = detector.detect(schema, output_=output_schema)
-#         anomalies.append(anomalous)
-
-#     print("\nDetection output:")
-#     print(anomalies)
