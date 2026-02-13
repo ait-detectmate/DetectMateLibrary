@@ -1,25 +1,39 @@
 # Overall architecture
 
-The overall architecture is divided in multiple components that can be run in the same script or separated into a micro-service architecture. All the components are design to use stream log data and have as input and output an [Schema](schemas.md).
+This document describes the high-level design of DetectMateLibrary, how components interact, the data contracts they use, and guidance for deploying and extending the system. The library is built around small, composable components that operate on streaming log data and exchange strongly-typed Schema objects.
+
+Key goals
+
+- Clear separation of concerns (reading, parsing, detection, output).
+- Stream-friendly processing with minimal buffering.
+- Well-defined schema contracts so components can be composed or run as microservices.
+- Easy extensibility: add new readers, parsers or detectors by subclassing core base classes.
 
 ## Components flow
 
-The data flow only into a specific direction, logs are process by the parsers that generated parsed logs. After that the detectors use the parsed logs to generate alerts.
+The pipeline is strictly directional:
+
+- **Parser**: consumes raw logs and produces parsed log objects (structured fields, timestamps, variables).
+- **Detector**: consumes parsed logs and generates alerts / findings when rules or models match anomalous behavior.
+
+
+Each arrow represents a stream of [Schema objects](schemas.md). Components are designed to run in the same process for lightweight setups or as separate services for scalable deployments.
 
 ![DIAGRAM](img/diagrams_structure.png)
 
+
 ## Components architecture
 
-Every component inherent from a CoreComponent class. This class contains all the functionality need it for the DetectMate to function (UMl bellow). Every [Detector](detectors.md) must inherent from the CoreDetector and evey [Parser](parsers.md) must inherent from the CoreParser for them to be compatible with DetectMate.
+All components inherit from a `CoreComponent` class. This class provides all the essential functionality required for DetectMate to operate (see UML diagram below). Every [Detector](detectors.md) must inherit from `CoreDetector`, and every [Parser](parsers.md) must inherit from `CoreParser` to ensure compatibility with DetectMate.
 
-All the arguments of each component must be store in their respective config class. The config classes share same pattern design from the components and must inherent from the CoreConfig.
+Each component’s arguments must be stored in its corresponding configuration class. These config classes follow the same design pattern as their components and must inherit from `CoreConfig`.
 
 ![UML](img/uml_structure.png)
 
 
 ## Components methods
 
-Bellow show a dummy code of the class structure of a component.
+Each Core* base class exposes a small, stable API that implementations must implement or may override.
 
 ```python
 class ConfigComponent(CoreConfig):
