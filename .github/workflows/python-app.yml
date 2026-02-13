@@ -30,7 +30,7 @@ jobs:
         run: uv run --dev prek run -a
 
       - name: Test with pytest
-        run: uv run --dev pytest
+        run: uv run --dev pytest -s
 
       # integration tests for DetectMateService
       - name: Checkout DetectMateService
@@ -51,4 +51,4 @@ jobs:
 
       - name: Run DetectMateService library integration tests
         working-directory: DetectMateService
-        run: pytest tests/library_integration
+        run: uv run --dev pytest tests/library_integration -s
