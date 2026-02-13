@@ -1,0 +1,40 @@
+detectors:
+  NewValueDetector:
+    auto_config: false
+    events:
+      0:
+        NewValueDetector:
+          header_variables:
+          - pos: Type
+          params: {}
+          variables:
+          - name: var_2
+            pos: 2
+          - name: var_4
+            pos: 4
+          - name: var_5
+            pos: 5
+          - name: var_6
+            pos: 6
+          - name: var_7
+            pos: 7
+          - name: var_8
+            pos: 8
+          - name: var_9
+            pos: 9
+      1:
+        NewValueDetector:
+          header_variables:
+          - pos: Type
+          params: {}
+      2:
+        NewValueDetector:
+          params: {}
+          variables:
+          - name: var_3
+            pos: 3
+    method_type: new_value_detector
+    params:
+      data_use_training: null
+      parser: <PLACEHOLDER>
+      start_id: 10
