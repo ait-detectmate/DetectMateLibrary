@@ -1,17 +1,17 @@
 
 # Components: Detectors
 
-Detectors are components of DetectMate as show in [overall architecture](overall_architecture.md). They process structured logs from the [parsers](parsers.md) and return alerts if they find anomalies in the data.
+Detectors process structured logs from Parsers and emit alerts when anomalies are detected.
 
-|            | Schema                 | Description        |
-|------------|------------------------|--------------------|
-| **Input**  | [ParserSchema](schemas.md)| Structured log  |
-| **Output** | [DetectorSchema](schemas.md) | Alerts produced |
+|            | Schema                     | Description        |
+|------------|----------------------------|--------------------|
+| **Input**  | [ParserSchema](schemas.md) | Structured log     |
+| **Output** | [DetectorSchema](schemas.md)| Alert / finding    |
 
+This document describes the minimal API, implementation guidance, a short example detector and a unit test pattern.
 
-## Detectors overall
+## CoreDetector — minimal API
 
-New detectors must inherent from the CoreDetector class and define the **detect** and **train** method. The class structure of the **CoreDetect** can be see bellow.
 
 
 ```python
@@ -41,46 +41,43 @@ class CoreDetector(CoreComponent):
     ) -> None:
         """Empty, can be define in the detector. It trains the detector"""
 ```
-To generate a new detector the next structure must be follow:
 
+## Implementing a detector — example
+
+Simple detector that raises an alert when a numeric variable exceeds a threshold.
 
 ```python
-from detectmatelibrary.common.detector import CoreDetectorConfig
-from detectmatelibrary.common.detector import CoreDetector
+class SimpleThresholdConfig(CoreDetectorConfig):
+    method_type: str = "simple_threshold"
+    threshold: float = 0.0
 
-from detectmatelibrary import schemas
-
-
-class DetectorConfig(CoreDetectorConfig):
-    method_type: str = "detector"
-
-
-class Detector(CoreDetector):
+class SimpleThresholdDetector(CoreDetector):
     def __init__(
-        self,
-        name: str = "Detector",
-        config: DetectorConfig | dict[str, Any] = DetectorConfig()
-    ) -> None:
+        self, name: str = "SimpleThreshold",
+        config: SimpleThresholdConfig | dict[str, Any] = SimpleThresholdConfig()
+    ):
 
         if isinstance(config, dict):
-            config = DetectorConfig.from_dict(config, name)
+            config = SimpleThresholdConfig.from_dict(config, name)
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
 
     def detect(
         self,
-        input_: List[schemas.ParserSchema] | schemas.ParserSchema,
+        input_: schemas.ParserSchema,
         output_: schemas.DetectorSchema
     ) -> bool:
 
-        output_["description"] = ...  # (Str) Description of the detector
-        output_["score"] = ...  # (Float) Score of the alert
-        output_["alertsObtain"] = ... # (Dict[str, str] Extra information of the alert)
+        # calculate is a dummy method
+        if calculate(input_) > self.config.threshold:
 
-        return True  # True if an alert was found, else False
+            output_["alertID"] = f"{self.name}-{int(time.time())}"
+            output_["logIDs"].extend([ev.logID] if ev.logID else [])
+            output_["score"] = float(value)
+            output_["description"] = f"Value {value} > threshold {self.config.threshold}"
+            return True
+
+        return False
 ```
-
-The **run** method of the **CoreParser** will call the **parse** method you define here. **run** also take case of the rest of preprocessing and postprocessing of the logs.
-
 To configure the number of logs receive as input, you need to configure the [buffer](auxiliar/input_buffer.md) in the initialization of the Detector.
 
 ## Detectors methods
