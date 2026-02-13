@@ -1,15 +1,24 @@
+# Schemas
 
-# Components: Schemas
+Schemas are the typed message objects used to transmit data between components (Parser → Detector). Each schema class wraps a Protobuf message and provides a small, convenient Python API for creation, inspection, (de)serialization and validation.
 
-The schemas are the "packages" that are used to transmit the data between the different components.
+This document summarizes the available schema classes, the BaseSchema API and common usage patterns.
+
+## Design goals
+
+- Strongly-typed contracts between components.
+- Lightweight wrapper over generated Protobuf types.
+- Simple API for tests and runtime wiring.
+- Safe (de)serialization for transport and persistence.
+
 
 ## Architecture
 
-Schemas are use to transmit the data between components. Every schema follows the methods from **BaseSchema**. This class is a wrapper of the Protobuf classes (op.SchemaT).
+Schemas are used to transfer data between components. Each schema implements the methods defined in `BaseSchema`. This class acts as a wrapper around the underlying Protobuf classes (`op.SchemaT`).
 
 ![UML](img/uml_schemas.png)
 
-The different methods that the schemas have are describe bellow:
+All concrete schema classes inherit from `BaseSchema`. Key utility methods:
 
 ```python
 class BaseSchema:
@@ -50,73 +59,62 @@ class BaseSchema:
 
 ## Schema Clases
 
-The different schema classes and their different variable types are listed bellow:
+Below are the primary schema classes and their main fields. All fields are optional at the Protobuf level; components should document which fields they require.
 
 ### LogSchema
+Represents a raw log message.
 
-LogSchema is the class that contain the raw logs.
+Fields:
 
-```proto
-// Protobuf class
-message LogSchema {
-    optional string __version__ = 1;
-    optional string logID = 2;
-    optional string log = 3;
-    optional string logSource = 4;
-    optional string hostname = 5;
-}
-```
+| Field | Type | Notes |
+|---|---|---|
+| logID | string | Unique identifier for the raw log. |
+| log | string | Raw log text. |
+| logSource | string | Source of the log (file, topic, etc.). |
+| hostname | string | Hostname where log originated. |
 
 ### ParserSchema
+Output of a Parser. Contains parsed fields and template information.
 
-LogSchema is the class that contain the raw logs.
+Fields:
 
-```proto
-// Protobuf class
-message ParserSchema {
-    optional string __version__ = 1;
-    optional string parserType = 2;
-    optional string parserID = 3;
-    optional int32 EventID = 4;
-    optional string template = 5;
-    repeated string variables = 6;
-    optional string parsedLogID = 7;
-    optional string logID = 8;
-    optional string log = 9;
-    map<string, string> logFormatVariables = 10;
-    optional int32 receivedTimestamp = 11;
-    optional int32 parsedTimestamp = 12;
-}
-```
+| Field | Type | Notes |
+|---|---|---|
+| parserType | string | Parser type. |
+| parserID | string | Parser instance identifier. |
+| EventID | int32 | Template/event identifier. |
+| template | string | Event template text. |
+| variables | repeated string | Parameters extracted from the template. |
+| parsedLogID | string | ID assigned after parsing (optional). |
+| logID | string | Original raw log ID (link to LogSchema). |
+| log | string | Raw log text. |
+| logFormatVariables | map<string,string> | Key/value pairs from format extraction. |
+| receivedTimestamp | int32 | Timestamp when log was received. |
+| parsedTimestamp | int32 | Timestamp when parsing completed. |
 
 ### DetectorSchema
+Output from Detectors (alerts / findings).
 
-LogSchema is the class that contain the raw logs.
+Fields:
 
-```proto
-// Protobuf class
-message DetectorSchema {
-    optional string __version__ = 1;
-    optional string detectorID = 2;
-    optional string detectorType = 3;
-    optional string alertID = 4;
-    optional int32 detectionTimestamp = 5;
-    repeated string logIDs = 6;
-    optional float score = 8;
-    repeated int32 extractedTimestamps = 9;
-    optional string description = 10;
-    optional int32 receivedTimestamp = 11;
-    map<string, string> alertsObtain = 12;
-}
-```
+| Field | Type | Notes |
+|---|---|---|
+| detectorID | string | Detector instance identifier. |
+| detectorType | string | Type/name of detector. |
+| alertID | string | Unique alert identifier. |
+| detectionTimestamp | int32 | When the alert was produced. |
+| logIDs | repeated string | IDs of logs related to the alert. |
+| score | float | Confidence/score (if applicable). |
+| extractedTimestamps | repeated int32 | Timestamps extracted from logs. |
+| description | string | Human-readable description of the alert. |
+| receivedTimestamp | int32 | When inputs were received by detector. |
+| alertsObtain | map<string,string> | Additional alert metadata. |
 
 ## Tutorial
 
 Small tutorials of the different schemas.
 
 ### Initialize a schema
-
-You can initialize a schema by using a dictionary with the same structure as the protobuf.
 
 ```python
 from detectmatelibrary import schemas
@@ -130,8 +128,6 @@ print(log_schema.log == "Test log")  # True
 
 
 ### Assign values
-
-Schema classes have a friendly way to assign variables.
 
 ```python
 from detectmatelibrary import schemas
@@ -149,8 +145,6 @@ print(log_schema == log_schema2)  # True
 
 ### Serialization
 
-The schemas have internal methods to serialize and deserialize the classes. Note that for this it will use the internal protobuf class, so if a variable contain a wrong value it will break.
-
 ```python
 from detectmatelibrary import schemas
 
@@ -164,6 +158,5 @@ new_log_schema.deserialize(serialized)
 print(new_log_schema.schema_id == log_schema.schema_id)  # True
 ```
 
-**Note**: The binary created is a concatenation of an ID byte and the bytes generated by the protobuf. If you not remove the first buff it will not work by default with protobuf.
 
 Go back [Index](index.md)
