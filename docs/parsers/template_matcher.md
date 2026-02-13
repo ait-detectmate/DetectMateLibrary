@@ -1,58 +1,90 @@
 # Template matcher
 
-Parser that take a set of templates an match them to a sequence of logs.
+Parser that takes a set of templates and matches them to incoming logs. It extracts parameters from positions marked with the <*> wildcard and returns a ParserSchema with the matched template and the extracted variables.
 
-|            | Schema                 | Description        |
-|------------|------------------------|--------------------|
-| **Input**  | [LogSchema](../schemas.md)| Unstructured log   |
-| **Output** | [ParserSchema](../schemas.md)| Structured log  |
+|            | Schema                     | Description        |
+|------------|----------------------------|--------------------|
+| **Input**  | [LogSchema](../schemas.md) | Unstructured log   |
+| **Output** | [ParserSchema](../schemas.md) | Structured log   |
 
+## Overview
 
-## Configuration file
+The template matcher is a lightweight, fast parser intended for logs that follow stable textual templates with variable fields. Templates use the token `<*>` to mark wildcard slots. The matcher:
 
-Example of a configuration file:
+- Preprocesses logs and templates (remove spaces, punctuation, lowercase) based on config.
+- Finds the first template that matches and extracts all wildcard parameters in order.
+- Populates ParserSchema fields: `EventID`, `template`, `variables`,  `logID`, and related fields.
 
-```yaml
-parsers:
-    MatcherParser:
-        method_type: matcher_parser
-        auto_config: False
-        log_format: "type=<Type> msg=audit(<Time>): <Content>"
-        time_format: null
-        params:
-            remove_spaces: True
-            remove_punctuation: True
-            lowercase: True
-            path_templates: tests/test_folder/audit_templates.txt
+This parser is deterministic and designed for high-throughput use when templates are known in advance.
+
+## Template format
+
+- Templates are plain text lines in a template file.
+- Use `<*>` for wildcard slots.
+
+Example template file (templates.txt):
+```text
+pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>
+login success: user=<*> source=<*>
 ```
 
-## Example
+## Configuration
 
-Code examples of normal use cases of the parser:
+Typical MatcherParser config options (fields in config class):
+
+- `method_type`: must match the parser type ("matcher_parser" or configured name).
+- `path_templates`: path to the newline-delimited template file.
+- `remove_spaces` (bool, default True): remove all spaces during matching.
+- `remove_punctuation` (bool, default True): strip punctuation except the `<*>` token.
+- `lowercase` (bool, default True): lowercase logs and templates before matching.
+- `auto_config` (bool): whether to attempt any auto-configuration phase (not required).
+
+Example YAML entry:
+```yaml
+parsers:
+  MatcherParser:
+    method_type: matcher_parser
+    auto_config: False
+    params:
+      remove_spaces: True
+      remove_punctuation: True
+      lowercase: True
+      path_templates: path/to/templates.txt
+```
+
+## Usage examples
+
+Simple usage — load templates and match a log:
 
 ```python
 from detectmatelibrary.parsers.template_matcher import MatcherParser
-
 from detectmatelibrary import schemas
 
-
-config_dict = {
+# instantiate parser (config can be a dict or config object)
+cfg = {
     "parsers": {
         "MatcherParser": {
-            "auto_config": True,
             "method_type": "matcher_parser",
-            "path_templates": "tests/test_folder/test_templates.txt"
+            "params": {
+                "path_templates": "tests/test_folder/test_templates.txt",
+                "remove_spaces": True,
+                "remove_punctuation": True,
+                "lowercase": True
+            }
         }
     }
 }
 
-test_template = "pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>"
-test_log_match = 'pid=9699 uid=0 auid=4294967295 ses=4294967295 msg=\'op=PAM:accounting acct="root"'
+parser = MatcherParser(name="MatcherParser", config=cfg)
 
-parser = MatcherParser(name="MatcherParser", config=config_dict)
-input_log = schemas.LogSchema({"log": test_log_match})
-parser.process(input_log)
+# match a log
+input_log = schemas.LogSchema({"logID": "0", "log": "pid=9699 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\"'"})
+parsed = parser.process(input_log)  # or parser.parse / parser.match depending on wrapper API
 
-print(output_data.template == test_template)  # True
+# parsed is a ParserSchema (or an output container). Check fields:
+print(parsed.template)         # matched template text
+print(parsed.variables)        # list of extracted params
 ```
-Go back [Index](../index.md)
+
+
+Go back to [Index](../index.md)
