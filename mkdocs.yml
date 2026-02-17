@@ -26,3 +26,5 @@ nav:
   - Auxiliar:
     - Persistency: auxiliar/persistency.md
     - Data buffer: auxiliar/input_buffer.md
+  - Helpers:
+    - From to: helper/from_to.md
