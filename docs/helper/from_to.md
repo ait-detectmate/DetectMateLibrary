@@ -239,4 +239,4 @@ Example output data after parsing:
     }
 }
 ```
-Go back to [Index](index.md)
+Go back to [Index](../index.md)
