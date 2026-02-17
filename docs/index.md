@@ -6,7 +6,7 @@ Welcome to the documentation for the DetectMate Library . DetectMate is a flexib
 
 ## Getting started
 
-List of steps to follow for new users of the library.
+List of steps to follow for new users of the library:
 
 * [Installation](installation.md): steps to install all the components need it.
 * [Basic usage](basic_usage.md): create a basic script with the different components.
@@ -21,4 +21,13 @@ Documentation of the different components:
 * [Schemas](schemas.md): documentation of the different schemas in the library.
 * [Parsers](parsers.md): documentation of the different parsers.
 * [Detectors](detectors.md): documentation of the different detectors.
-* etc....
+
+## Utils
+
+Tools that are use in the different components:
+
+* [Data Buffer](auxiliar/input_buffer.md): it takes the stream data and formated to the specifications given.
+* [Persistency](auxiliar/persistency.md): provides event-based state management for detectors.
+
+## Helper
+Tools that their main objective is to help the developer:
