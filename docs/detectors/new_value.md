@@ -19,19 +19,19 @@ detectors:
     NewValueDetector:
         method_type: new_value_detector
         auto_config: False
-        params:
-            log_variables:
-                - id: test
-                  event: 1
-                  template: dummy_template
-                  variables:
-                    - pos: 0
-                      name: var1
-                      params:
-                        threshold: 0.
-                  header_variables:
-                    - pos: level
-                      params: {}
+        params: {}
+        events:
+            1:
+                test:
+                    params: {}
+                    variables:
+                        - pos: 0
+                          name: var1
+                          params:
+                              threshold: 0.
+                    header_variables:
+                        - pos: level
+                          params: {}
 ```
 
 

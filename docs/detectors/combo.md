@@ -18,19 +18,16 @@ detectors:
         method_type: new_value_combo_detector
         auto_config: False
         params:
-            comb_size: 2
-            log_variables:
-                - id: test
-                  event: 1
-                  template: dummy_template
-                  variables:
-                    - pos: 0
-                      name: var1
-                      params:
-                        threshold: 0.
-                  header_variables:
-                    - pos: level
-                      params: {}
+            comb_size: 3
+        events:
+            1:
+                test:
+                    params: {}
+                    variables:
+                        - pos: 0
+                          name: var1
+                    header_variables:
+                        - pos: level
 ```
 
 ## Example usage
