@@ -14,23 +14,22 @@ The detector inspects incoming ParserSchema instances and, according to its conf
 ## Configuration example
 
 ```yaml
-detectors:
-  RandomDetector:
-    method_type: random_detector
-    auto_config: False
-    params:
-      log_variables:
-        - id: test
-          event: 1
-          template: dummy_template
-          variables:
-            - pos: 0
-              name: var1
-              params:
-                threshold: 0.0
-          header_variables:
-            - pos: level
-              params: {}
+    RandomDetector:
+        method_type: random_detector
+        auto_config: False
+        params: {}
+        events:
+            1:
+                test:
+                    params: {}
+                    variables:
+                        - pos: 0
+                          name: var1
+                          params:
+                              threshold: 0.
+                    header_variables:
+                        - pos: level
+                          params: {}
 ```
 
 ## Example usage
