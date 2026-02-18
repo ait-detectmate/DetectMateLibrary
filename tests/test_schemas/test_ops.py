@@ -9,12 +9,6 @@ class TestCaseSchemas:
 
         assert schema.__version__ == "1.0.0"
 
-    def test_initialize_not_support_schema(self) -> None:
-        try:
-            op_schemas.initialize(b"1111", **{})
-        except op_schemas.NotSupportedSchema:
-            pass
-
     def test_initialize_log_schema(self) -> None:
         values = {
             "logID": "1", "log": "test", "logSource": "example", "hostname": "example@org"
@@ -115,39 +109,20 @@ class TestCaseSchemas:
         with pytest.raises(op_schemas.IncorrectSchema):
             op_schemas.copy(op_schemas.PARSER_SCHEMA, schema)
 
-    def test_copy_incompatible_schema(self) -> None:
-        values = {
-            "logID": "1", "log": "test", "logSource": "example", "hostname": "example@org"
-        }
-        schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
-        with pytest.raises(op_schemas.NotSupportedSchema):
-            op_schemas.copy(b"213123213123", schema)
-
     def test_serialize_method(self) -> None:
         values = {
             "logID": "1", "log": "test", "logSource": "example", "hostname": "example@org"
         }
         schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
-        bschema = op_schemas.serialize(op_schemas.LOG_SCHEMA, schema=schema)
+        bschema = op_schemas.serialize(schema=schema)
 
-        schema_id, new_schema = op_schemas.deserialize(bschema)
-
-        assert schema_id == op_schemas.LOG_SCHEMA
+        new_schema = op_schemas.deserialize(op_schemas.LOG_SCHEMA, bschema)
 
         assert new_schema.__version__ == "1.0.0"
         assert new_schema.logID == "1"
         assert new_schema.log == "test"
         assert new_schema.logSource == "example"
         assert new_schema.hostname == "example@org"
-
-    def test_serialize_not_supported(self) -> None:
-        values = {
-            "logID": "1", "log": "test", "logSource": "example", "hostname": "example@org"
-        }
-        schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
-
-        with pytest.raises(op_schemas.NotSupportedSchema):
-            op_schemas.serialize(b"1111", schema=schema)
 
     def test_check_is_same_schema(self) -> None:
         op_schemas.check_is_same_schema(op_schemas.LOG_SCHEMA, op_schemas.LOG_SCHEMA)

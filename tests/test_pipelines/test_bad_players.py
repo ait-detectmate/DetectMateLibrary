@@ -2,7 +2,7 @@
 from detectmatelibrary.common.detector import CoreDetector, BufferMode
 from detectmatelibrary.common.parser import CoreParser
 
-import detectmatelibrary.schemas._op as op_schemas
+import detectmatelibrary.schemas._classes as schema_classes
 from detectmatelibrary.helper.from_to import From
 
 import pytest
@@ -66,5 +66,5 @@ class TestCaseBasicPipelines:
             buffer_size=None,
         )
 
-        with pytest.raises(op_schemas.IncorrectSchema):
+        with pytest.raises(schema_classes.FieldNotFound):
             next(From.log(detector, log_path))

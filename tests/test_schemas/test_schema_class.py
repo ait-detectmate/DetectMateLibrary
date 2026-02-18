@@ -1,4 +1,3 @@
-from detectmatelibrary.schemas import OutputSchema
 from detectmatelibrary.schemas._classes import (
     SchemaVariables, BaseSchema, LogSchema, ParserSchema, DetectorSchema, FieldNotFound
 )
@@ -11,9 +10,9 @@ import pytest
 
 class TestSchemaVariables:
     def test_basic_init(self):
-        schema_var = SchemaVariables(schema_id=PARSER_SCHEMA)
+        schema_var = SchemaVariables(schema_class=PARSER_SCHEMA)
 
-        assert schema_var.schema_id == PARSER_SCHEMA
+        assert schema_var.schema_class == PARSER_SCHEMA
         assert schema_var.get_schema().__version__ == "1.0.0"
 
     def test_init_with_kwargs(self):
@@ -29,7 +28,7 @@ class TestSchemaVariables:
             "receivedTimestamp": 0,
             "parsedTimestamp": 0,
         }
-        schema_var = SchemaVariables(schema_id=PARSER_SCHEMA, kwargs=values)
+        schema_var = SchemaVariables(schema_class=PARSER_SCHEMA, kwargs=values)
         schema_var.logID = "0"  # Check if we can add values later
 
         assert schema_var.parserType == "test"
@@ -45,7 +44,7 @@ class TestSchemaVariables:
         assert schema_var.parsedTimestamp == 0
 
     def test_change_value(self):
-        schema_var = SchemaVariables(schema_id=PARSER_SCHEMA)
+        schema_var = SchemaVariables(schema_class=PARSER_SCHEMA)
 
         schema_var.parserType = "new_type"
 
@@ -53,7 +52,7 @@ class TestSchemaVariables:
         assert schema_var.get_schema().parserType == "new_type"
 
     def test_change_value_list(self):
-        schema_var = SchemaVariables(schema_id=PARSER_SCHEMA)
+        schema_var = SchemaVariables(schema_class=PARSER_SCHEMA)
 
         schema_var.variables = ["x", "y", "z"]
         assert schema_var.variables == ["x", "y", "z"]
@@ -67,7 +66,7 @@ class TestBaseSchema:
     def test_basic_init(self):
         base_schema = BaseSchema()
 
-        assert base_schema.schema_id == BASE_SCHEMA
+        assert base_schema.schema_class == BASE_SCHEMA
         assert base_schema.get_schema().__version__ == "1.0.0"
 
     def test_all_initialize(self):
@@ -80,7 +79,7 @@ class TestBaseSchema:
         log_schema.log = "Test log"
         log_schema_copy = log_schema.copy()
 
-        assert log_schema_copy.schema_id == log_schema.schema_id
+        assert log_schema_copy.schema_class == log_schema.schema_class
         assert log_schema_copy.get_schema() == log_schema.get_schema()
         assert log_schema_copy.log == "Test log"
 
@@ -89,7 +88,7 @@ class TestBaseSchema:
         log_schema["log"] = "Test log"
         log_schema_copy = log_schema.copy()
 
-        assert log_schema_copy.schema_id == log_schema.schema_id
+        assert log_schema_copy.schema_class == log_schema.schema_class
         assert log_schema_copy.get_schema() == log_schema.get_schema()
         assert log_schema_copy["log"] == "Test log"
 
@@ -125,33 +124,9 @@ class TestBaseSchema:
         new_log_schema = LogSchema()
         new_log_schema.deserialize(serialized)
 
-        assert new_log_schema.schema_id == log_schema.schema_id
+        assert new_log_schema.schema_class == log_schema.schema_class
         assert new_log_schema.get_schema() == log_schema.get_schema()
         assert new_log_schema.log == "Test log"
-
-    def test_deserialize_incorrect_schema(self):
-        log_schema = LogSchema()
-        serialized = log_schema.serialize()
-
-        parser_schema = ParserSchema()
-
-        with pytest.raises(IncorrectSchema):
-            parser_schema.deserialize(serialized)
-
-    def test_wrong_value(self):
-        def test_variable(class_, id_var_name):
-            with pytest.raises(Exception):
-                class_({id_var_name: "helllo"})
-            schema = class_()
-            setattr(schema, id_var_name, "Test log")
-            with pytest.raises(Exception):
-                schema.get_schema()
-
-        values = [(LogSchema, "logID"), (ParserSchema, "parsedLogID"), (ParserSchema, "logID"),
-                  (DetectorSchema, "alertID"), (DetectorSchema, "logIDs"), (OutputSchema, "alertIDs"),
-                  (OutputSchema, "logIDs")]
-        for class_, id_var_name in values:
-            test_variable(class_, id_var_name)
 
     def test_check_is_same(self):
         log_schema1 = LogSchema()

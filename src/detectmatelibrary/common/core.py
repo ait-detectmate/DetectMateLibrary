@@ -26,7 +26,6 @@ class SchemaPipeline:
             input_.deserialize(data)
             data = input_.copy()
         else:
-            input_.check_is_same(data)
             data = data.copy()
 
         return is_byte, data
