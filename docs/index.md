@@ -24,7 +24,7 @@ Documentation of the different components:
 
 ## Utils
 
-Tools that are use in the different components:
+Tools that are used in the different components:
 
 * [Data Buffer](auxiliar/input_buffer.md): it takes the stream data and formated to the specifications given.
 * [Persistency](auxiliar/persistency.md): provides event-based state management for detectors.
