@@ -20,7 +20,7 @@ The library contains the next components:
 Set up the dev environment and install pre-commit hooks:
 
 ```bash
-uv pip install -e .[dev]
+uv sync --dev
 uv run prek install
 ```
 

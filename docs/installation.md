@@ -11,7 +11,7 @@ This document explains how to set up and run DetectMateLibrary for users and dev
 Install the package in editable mode:
 
 ```bash
-uv pip install -e .
+uv sync
 ```
 
 **Result**: the package is installed into the active Python environment and changes to the source tree are reflected immediately.
@@ -25,7 +25,7 @@ uv pip install -e .
 - Install dev dependencies (testing, linters, formatters):
 
 ```bash
-uv pip install -e .[dev]
+uv sync --dev
 ```
 
 - Install pre-commit hooks (this repository uses `prek` to run pre-commit tooling):
@@ -36,7 +36,7 @@ uv run --dev prek install
 
 **Notes**:
 
-- Ensure `uv` is available in PATH. If not, use your system Python + virtualenv and then `pip install -e .[dev]`.
+- Ensure `uv` is available in PATH. If not, use your system Python + virtualenv and then `uv sync --dev`.
 - Run the pre-commit hooks locally with `uv run --dev prek run -a` before committing to catch style/typing issues early.
 
 ### Step 2: Install Protobuf toolchain (only if you change proto files)
@@ -67,7 +67,7 @@ protoc \
 Run the full test suite:
 
 ```bash
-uv run --dev pytest -q
+uv run --dev pytest -s
 ```
 
 Run tests with coverage (terminal summary):
