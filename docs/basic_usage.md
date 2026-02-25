@@ -1,7 +1,7 @@
 
 # Getting started:  Basic usage
 
-In this section we will show different examples of the basic usage of the DetectMate Library.
+In this section, we will show different examples of the basic usage of the DetectMate Library.
 
 ## Parser
 
