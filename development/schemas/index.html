@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/schemas/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Schemas - DetectMate Library</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Schemas";
+        var mkdocs_page_input_path = "schemas.md";
+        var mkdocs_page_url = "/DetectMateLibrary/development/schemas/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> DetectMate Library
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../installation/">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../basic_usage/">Basic usage</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../create_components/">Create new component</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../implement_components/">Implement new component</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Components</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../overall_architecture/">Overall architecture</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Schemas</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#design-goals">Design goals</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#architecture">Architecture</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#schema-clases">Schema Clases</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#logschema">LogSchema</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#parserschema">ParserSchema</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#detectorschema">DetectorSchema</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#tutorial">Tutorial</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#initialize-a-schema">Initialize a schema</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#assign-values">Assign values</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#serialization">Serialization</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/">Parsers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/">Detectors</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Parsers Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/template_matcher/">Template Matcher</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/json_parser/">Json Parser</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Detectors Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/random_detector/">Random Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/new_value/">New Value</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/combo/">Combo Detector</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Auxiliar</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../auxiliar/persistency/">Persistency</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../auxiliar/input_buffer/">Data buffer</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Helpers</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../helper/from_to/">From to</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">DetectMate Library</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Components</li>
+      <li class="breadcrumb-item active">Schemas</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="schemas">Schemas</h1>
+<p>Schemas are the typed message objects used to transmit data between components (Parser → Detector). Each schema class wraps a Protobuf message and provides a small, convenient Python API for creation, inspection, (de)serialization and validation.</p>
+<p>This document summarizes the available schema classes, the BaseSchema API and common usage patterns.</p>
+<h2 id="design-goals">Design goals</h2>
+<ul>
+<li>Strongly-typed contracts between components.</li>
+<li>Lightweight wrapper over generated Protobuf types.</li>
+<li>Simple API for tests and runtime wiring.</li>
+<li>Safe (de)serialization for transport and persistence.</li>
+</ul>
+<h2 id="architecture">Architecture</h2>
+<p>Schemas are used to transfer data between components. Each schema implements the methods defined in <code>BaseSchema</code>. This class acts as a wrapper around the underlying Protobuf classes (<code>op.SchemaT</code>).</p>
+<p><img alt="UML" src="../img/uml_schemas.png" /></p>
+<p>All concrete schema classes inherit from <code>BaseSchema</code>. Key utility methods:</p>
+<pre><code class="language-python">class BaseSchema:
+    def __contains__(self, idx: str) -&gt; bool:
+        &quot;&quot;&quot;Return if a variable is in the schema&quot;&quot;&quot;
+
+    def as_dict(self) -&gt; dict[str, Any]:
+        &quot;&quot;&quot;Return the schema variables as a dictionary.&quot;&quot;&quot;
+
+    def get_schema(self) -&gt; op.SchemaT:
+        &quot;&quot;&quot;Retrieve the current schema instance.&quot;&quot;&quot;
+
+    def set_schema(self, schema: op.SchemaT) -&gt; None:
+        &quot;&quot;&quot;Set the schema instance and update attributes.&quot;&quot;&quot;
+
+    def init_schema(self, kwargs: dict[str, Any] | None) -&gt; None:
+        &quot;&quot;&quot;Initialize the schema instance and set attributes.&quot;&quot;&quot;
+        self.var_names = set(var_names)
+
+    def is_field_list(self, field_name: str) -&gt; bool:
+        &quot;&quot;&quot;Check if a field is a list.&quot;&quot;&quot;
+
+    def copy(self) -&gt; &quot;BaseSchema&quot;:
+        &quot;&quot;&quot;Create a deep copy of the schema instance.&quot;&quot;&quot;
+
+    def serialize(self) -&gt; bytes:
+        &quot;&quot;&quot;Serialize the schema instance to bytes.&quot;&quot;&quot;
+
+    def deserialize(self, message: bytes) -&gt; None | op.IncorrectSchema:
+        &quot;&quot;&quot;Deserialize bytes to populate the schema instance.&quot;&quot;&quot;
+
+    def check_is_same(self, other: Self) -&gt; None | op.IncorrectSchema:
+        &quot;&quot;&quot;Check if another schema instance is of the same schema type.&quot;&quot;&quot;
+
+    def __eq__(self, other: object) -&gt; bool:
+        &quot;&quot;&quot;Check equality between two schema instances.&quot;&quot;&quot;
+</code></pre>
+<h2 id="schema-clases">Schema Clases</h2>
+<p>Below are the primary schema classes and their main fields. All fields are optional at the Protobuf level; components should document which fields they require.</p>
+<h3 id="logschema">LogSchema</h3>
+<p>Represents a raw log message.</p>
+<p>Fields:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>logID</td>
+<td>string</td>
+<td>Unique identifier for the raw log.</td>
+</tr>
+<tr>
+<td>log</td>
+<td>string</td>
+<td>Raw log text.</td>
+</tr>
+<tr>
+<td>logSource</td>
+<td>string</td>
+<td>Source of the log (file, topic, etc.).</td>
+</tr>
+<tr>
+<td>hostname</td>
+<td>string</td>
+<td>Hostname where log originated.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="parserschema">ParserSchema</h3>
+<p>Output of a Parser. Contains parsed fields and template information.</p>
+<p>Fields:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>parserType</td>
+<td>string</td>
+<td>Parser type.</td>
+</tr>
+<tr>
+<td>parserID</td>
+<td>string</td>
+<td>Parser instance identifier.</td>
+</tr>
+<tr>
+<td>EventID</td>
+<td>int32</td>
+<td>Template/event identifier.</td>
+</tr>
+<tr>
+<td>template</td>
+<td>string</td>
+<td>Event template text.</td>
+</tr>
+<tr>
+<td>variables</td>
+<td>repeated string</td>
+<td>Parameters extracted from the template.</td>
+</tr>
+<tr>
+<td>parsedLogID</td>
+<td>string</td>
+<td>ID assigned after parsing (optional).</td>
+</tr>
+<tr>
+<td>logID</td>
+<td>string</td>
+<td>Original raw log ID (link to LogSchema).</td>
+</tr>
+<tr>
+<td>log</td>
+<td>string</td>
+<td>Raw log text.</td>
+</tr>
+<tr>
+<td>logFormatVariables</td>
+<td>map<string,string></td>
+<td>Key/value pairs from format extraction.</td>
+</tr>
+<tr>
+<td>receivedTimestamp</td>
+<td>int32</td>
+<td>Timestamp when log was received.</td>
+</tr>
+<tr>
+<td>parsedTimestamp</td>
+<td>int32</td>
+<td>Timestamp when parsing completed.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="detectorschema">DetectorSchema</h3>
+<p>Output from Detectors (alerts / findings).</p>
+<p>Fields:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>detectorID</td>
+<td>string</td>
+<td>Detector instance identifier.</td>
+</tr>
+<tr>
+<td>detectorType</td>
+<td>string</td>
+<td>Type/name of detector.</td>
+</tr>
+<tr>
+<td>alertID</td>
+<td>string</td>
+<td>Unique alert identifier.</td>
+</tr>
+<tr>
+<td>detectionTimestamp</td>
+<td>int32</td>
+<td>When the alert was produced.</td>
+</tr>
+<tr>
+<td>logIDs</td>
+<td>repeated string</td>
+<td>IDs of logs related to the alert.</td>
+</tr>
+<tr>
+<td>score</td>
+<td>float</td>
+<td>Confidence/score (if applicable).</td>
+</tr>
+<tr>
+<td>extractedTimestamps</td>
+<td>repeated int32</td>
+<td>Timestamps extracted from logs.</td>
+</tr>
+<tr>
+<td>description</td>
+<td>string</td>
+<td>Human-readable description of the alert.</td>
+</tr>
+<tr>
+<td>receivedTimestamp</td>
+<td>int32</td>
+<td>When inputs were received by detector.</td>
+</tr>
+<tr>
+<td>alertsObtain</td>
+<td>map<string,string></td>
+<td>Additional alert metadata.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="tutorial">Tutorial</h2>
+<p>Small tutorials of the different schemas.</p>
+<h3 id="initialize-a-schema">Initialize a schema</h3>
+<pre><code class="language-python">from detectmatelibrary import schemas
+
+kwargs = load_somewhere()  # load the dict
+kwargs[&quot;log&quot;] = &quot;Test log&quot;
+
+log_schema = LogSchema(kwargs)
+print(log_schema.log == &quot;Test log&quot;)  # True
+</code></pre>
+<h3 id="assign-values">Assign values</h3>
+<pre><code class="language-python">from detectmatelibrary import schemas
+
+log_schema = LogSchema()
+log_schema.log = &quot;Test log&quot;
+print(log_schema[&quot;log&quot;] == log_schema.log)  # True
+
+log_schema2 = LogSchema()
+print(log_schema == log_schema2)  # False
+
+log_schema2.log = &quot;Test log&quot;
+print(log_schema == log_schema2)  # True
+</code></pre>
+<h3 id="serialization">Serialization</h3>
+<pre><code class="language-python">from detectmatelibrary import schemas
+
+log_schema = LogSchema()
+log_schema.log = &quot;Test log&quot;
+serialized = log_schema.serialize()
+print(isinstance(serialized, bytes))  # True
+
+new_log_schema = LogSchema()
+new_log_schema.deserialize(serialized)
+print(new_log_schema.schema_id == log_schema.schema_id)  # True
+</code></pre>
+<p>Go back <a href="../">Index</a></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../overall_architecture/" class="btn btn-neutral float-left" title="Overall architecture"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../parsers/" class="btn btn-neutral float-right" title="Parsers">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../overall_architecture/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../parsers/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+      <script src="../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/detectors/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Detectors - DetectMate Library</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Detectors";
+        var mkdocs_page_input_path = "detectors.md";
+        var mkdocs_page_url = "/DetectMateLibrary/development/detectors/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> DetectMate Library
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../installation/">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../basic_usage/">Basic usage</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../create_components/">Create new component</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../implement_components/">Implement new component</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Components</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../overall_architecture/">Overall architecture</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../schemas/">Schemas</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/">Parsers</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Detectors</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#coredetector-minimal-api">CoreDetector — minimal API</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#implementing-a-detector-example">Implementing a detector — example</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#detectors-methods">Detectors methods</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#auto-configuration-optional">Auto-configuration (optional)</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#enabling-auto-configuration">Enabling auto-configuration</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#how-it-works">How it works</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#implementation-pattern">Implementation pattern</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#full-lifecycle-with-auto-configuration">Full lifecycle with auto-configuration</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Parsers Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/template_matcher/">Template Matcher</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/json_parser/">Json Parser</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Detectors Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="random_detector/">Random Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="new_value/">New Value</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="combo/">Combo Detector</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Auxiliar</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../auxiliar/persistency/">Persistency</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../auxiliar/input_buffer/">Data buffer</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Helpers</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../helper/from_to/">From to</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">DetectMate Library</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Components</li>
+      <li class="breadcrumb-item active">Detectors</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="components-detectors">Components: Detectors</h1>
+<p>Detectors process structured logs from Parsers and emit alerts when anomalies are detected.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Schema</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Input</strong></td>
+<td><a href="../schemas/">ParserSchema</a></td>
+<td>Structured log</td>
+</tr>
+<tr>
+<td><strong>Output</strong></td>
+<td><a href="../schemas/">DetectorSchema</a></td>
+<td>Alert / finding</td>
+</tr>
+</tbody>
+</table>
+<p>This document describes the minimal API, implementation guidance, a short example detector and a unit test pattern.</p>
+<h2 id="coredetector-minimal-api">CoreDetector — minimal API</h2>
+<pre><code class="language-python">class CoreDetectorConfig(CoreConfig):
+    comp_type: str = &quot;detectors&quot;
+    method_type: str = &quot;core_detector&quot;
+    parser: str = &quot;&lt;PLACEHOLDER&gt;&quot;
+
+    auto_config: bool = False
+
+
+class CoreDetector(CoreComponent):
+    def run(
+        self, input_: List[ParserSchema] | ParserSchema, output_: DetectorSchema
+    ) -&gt; bool:
+        &quot;&quot;&quot;Define in the Core detector&quot;&quot;&quot;
+
+    def detect(
+        self,
+        input_: List[ParserSchema] | ParserSchema,
+        output_: DetectorSchema,
+    ) -&gt; bool:
+        &quot;&quot;&quot;Empty, must be define in the specific detector&quot;&quot;&quot;
+
+    def train(
+        self, input_: ParserSchema | list[ParserSchema]
+    ) -&gt; None:
+        &quot;&quot;&quot;Empty, can be define in the detector. It trains the detector&quot;&quot;&quot;
+</code></pre>
+<h2 id="implementing-a-detector-example">Implementing a detector — example</h2>
+<p>Simple detector that raises an alert when a numeric variable exceeds a threshold.</p>
+<pre><code class="language-python">class SimpleThresholdConfig(CoreDetectorConfig):
+    method_type: str = &quot;simple_threshold&quot;
+    threshold: float = 0.0
+
+class SimpleThresholdDetector(CoreDetector):
+    def __init__(
+        self, name: str = &quot;SimpleThreshold&quot;,
+        config: SimpleThresholdConfig | dict[str, Any] = SimpleThresholdConfig()
+    ):
+
+        if isinstance(config, dict):
+            config = SimpleThresholdConfig.from_dict(config, name)
+        super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
+
+    def detect(
+        self,
+        input_: schemas.ParserSchema,
+        output_: schemas.DetectorSchema
+    ) -&gt; bool:
+
+        # calculate is a dummy method
+        if calculate(input_) &gt; self.config.threshold:
+
+            output_[&quot;alertID&quot;] = f&quot;{self.name}-{int(time.time())}&quot;
+            output_[&quot;logIDs&quot;].extend([ev.logID] if ev.logID else [])
+            output_[&quot;score&quot;] = float(value)
+            output_[&quot;description&quot;] = f&quot;Value {value} &gt; threshold {self.config.threshold}&quot;
+            return True
+
+        return False
+</code></pre>
+<p>To configure the number of logs receive as input, you need to configure the <a href="../auxiliar/input_buffer/">buffer</a> in the initialization of the Detector.</p>
+<h2 id="detectors-methods">Detectors methods</h2>
+<p>List of detectors:</p>
+<ul>
+<li><a href="random_detector/">Random detector</a>: Generates random alerts.</li>
+<li><a href="new_value/">New Value</a>: Detect new values in the variables in the logs.</li>
+<li><a href="combo/">Combo Detector</a>: Detect new combination of variables in the logs.</li>
+</ul>
+<h2 id="auto-configuration-optional">Auto-configuration (optional)</h2>
+<p>Detectors can optionally support <strong>auto-configuration</strong> — a process where the detector automatically discovers which variables are worth monitoring, instead of requiring the user to specify them manually.</p>
+<h3 id="enabling-auto-configuration">Enabling auto-configuration</h3>
+<p>Auto-configuration is controlled by the <code>auto_config</code> flag in the pipeline config (e.g. <code>config/pipeline_config_default.yaml</code>):</p>
+<pre><code class="language-yaml">detectors:
+  NewValueDetector:
+    method_type: new_value_detector
+    auto_config: True       # enable auto-configuration
+    params: {}
+    # no &quot;events&quot; block needed — it will be generated automatically
+</code></pre>
+<p>When <code>auto_config</code> is set to <code>False</code>, the detector expects an explicit <code>events</code> block that specifies exactly which variables to monitor:</p>
+<pre><code class="language-yaml">detectors:
+  NewValueDetector:
+    method_type: new_value_detector
+    auto_config: False
+    params: {}
+    events:
+      1:
+        instance1:
+          params: {}
+          variables:
+            - pos: 0
+              name: var1
+          header_variables:
+            - pos: level
+</code></pre>
+<h3 id="how-it-works">How it works</h3>
+<p>When auto-configuration is enabled, the detector goes through two extra phases before training:</p>
+<p><strong>Phase 1 — <code>configure(input_)</code></strong>: The detector ingests events into an <code>EventPersistency</code> instance that uses a tracker backend to analyze variable behavior — for example, whether each variable is stable, random, or still has insufficient data. This instance is typically separate from the one used for training, because the configuration phase needs to observe <em>all</em> variables to decide which ones are worth monitoring, while training only tracks the variables that were selected as a result.</p>
+<p><strong>Phase 2 — <code>set_configuration()</code></strong>: After enough data has been ingested, the detector queries the tracker to select variables that meet its criteria (e.g. only stable variables). It then generates a full <code>events</code> configuration from those results and updates its own config. At this point <code>auto_config</code> is set to <code>False</code> in the generated config, since the configuration is now explicit.</p>
+<p>After these two phases, the detector proceeds with the normal <code>train()</code> and <code>detect()</code> lifecycle using the generated configuration.</p>
+<h3 id="implementation-pattern">Implementation pattern</h3>
+<p>A detector that supports auto-configuration typically creates a separate <code>EventPersistency</code> instance for this purpose (but doesn't have to):</p>
+<pre><code class="language-python">class MyDetector(CoreDetector):
+    def __init__(self, ...):
+        super().__init__(...)
+
+        # main persistency for training / detection
+        self.persistency = EventPersistency(
+            event_data_class=EventStabilityTracker,
+        )
+        # separate persistency for auto-configuration
+        self.auto_conf_persistency = EventPersistency(
+            event_data_class=EventStabilityTracker,
+        )
+</code></pre>
+<p>The <code>configure()</code> method ingests all available variables (not just configured ones) so the tracker can assess each one:</p>
+<pre><code class="language-python">def configure(self, input_):
+    self.auto_conf_persistency.ingest_event(
+        event_id=input_[&quot;EventID&quot;],
+        event_template=input_[&quot;template&quot;],
+        variables=input_[&quot;variables&quot;],
+        named_variables=input_[&quot;logFormatVariables&quot;],
+    )
+</code></pre>
+<p>The <code>set_configuration()</code> method queries the tracker results and generates the final config:</p>
+<pre><code class="language-python">def set_configuration(self):
+    variables = {}
+    for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
+        stable_vars = tracker.get_variables_by_classification(&quot;STABLE&quot;)
+        variables[event_id] = stable_vars
+
+    config_dict = generate_detector_config(
+        variable_selection=variables,
+        detector_name=self.name,
+        method_type=self.config.method_type,
+    )
+    self.config = MyDetectorConfig.from_dict(config_dict, self.name)
+</code></pre>
+<h3 id="full-lifecycle-with-auto-configuration">Full lifecycle with auto-configuration</h3>
+<pre><code class="language-python">1. configure(input_)         # call for each event in the dataset
+2. set_configuration()       # finalize which variables to monitor
+3. train(input_)             # call for each event in the dataset
+4. detect(input_, output_)   # call for each event to detect anomalies
+</code></pre>
+<p>When <code>auto_config</code> is <code>False</code>, steps 1 and 2 are skipped entirely.</p>
+<p>Go back <a href="../">Index</a></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../parsers/" class="btn btn-neutral float-left" title="Parsers"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../parsers/template_matcher/" class="btn btn-neutral float-right" title="Template Matcher">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../parsers/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../parsers/template_matcher/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+      <script src="../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

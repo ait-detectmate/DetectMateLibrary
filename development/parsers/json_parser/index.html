@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/parsers/json_parser/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Json Parser - DetectMate Library</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Json Parser";
+        var mkdocs_page_input_path = "parsers/json_parser.md";
+        var mkdocs_page_url = "/DetectMateLibrary/development/parsers/json_parser/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> DetectMate Library
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../installation/">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../basic_usage/">Basic usage</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../create_components/">Create new component</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../implement_components/">Implement new component</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Components</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../overall_architecture/">Overall architecture</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../schemas/">Schemas</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../">Parsers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/">Detectors</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Parsers Methods</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../template_matcher/">Template Matcher</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Json Parser</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#usage-examples">Usage examples</a>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Detectors Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/random_detector/">Random Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/new_value/">New Value</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/combo/">Combo Detector</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Auxiliar</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../auxiliar/persistency/">Persistency</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../auxiliar/input_buffer/">Data buffer</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Helpers</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../helper/from_to/">From to</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">DetectMate Library</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Parsers Methods</li>
+      <li class="breadcrumb-item active">Json Parser</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="json-parser">JSON Parser</h1>
+<p>Extracts structured information from JSON-formatted logs. Optionally delegates parsing of a specific JSON field (the "content") to another parser (for example, the Template matcher).</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Schema</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Input</strong></td>
+<td><a href="../../schemas/">LogSchema</a></td>
+<td>Raw log (JSON string)</td>
+</tr>
+<tr>
+<td><strong>Output</strong></td>
+<td><a href="../../schemas/">ParserSchema</a></td>
+<td>Structured log with extracted fields</td>
+</tr>
+</tbody>
+</table>
+<h2 id="configuration">Configuration</h2>
+<p>Relevant config options (example names used by the implementation):</p>
+<ul>
+<li><code>method_type</code> (string): parser type identifier (e.g. <code>json_parser</code>).</li>
+<li><code>params.timestamp_name</code> (string | null): JSON key to use as the received/parsed timestamp.</li>
+<li><code>params.content_name</code> (string): JSON key that contains the textual content to parse further (default <code>"message"</code> or <code>"content"</code>).</li>
+<li><code>params.flatten_nested</code> (bool, default True): flatten nested objects into dot-separated keys in <code>logFormatVariables</code>.</li>
+<li><code>params.content_parser</code> (string | dict): optional parser spec (name or config) to parse the extracted content.</li>
+<li><code>params.ignore_parse_errors</code> (bool, default True): if True, parser returns gracefully on JSON errors instead of raising.</li>
+</ul>
+<p>Example YAML fragment:</p>
+<pre><code class="language-yaml">parsers:
+  JsonParser:
+    method_type: json_parser
+    params:
+      timestamp_name: &quot;time&quot;
+      content_name: &quot;message&quot;
+      flatten_nested: True
+      content_parser:
+        method_type: matcher_parser
+        params:
+          path_templates: tests/test_templates.txt
+      ignore_parse_errors: True
+</code></pre>
+<h2 id="usage-examples">Usage examples</h2>
+<p>Basic usage — parse JSON and extract fields:</p>
+<pre><code class="language-python">from detectmatelibrary.parsers.json_parser import JsonParser
+
+import detectmatelibrary.schemas as schemas
+
+
+config = JsonParserConfig()
+parser = JsonParser(name=&quot;TestParser&quot;, config=config)
+
+json_log = {
+    &quot;time&quot;: &quot;2023-11-18 10:30:00&quot;,
+    &quot;request&quot;: {
+        &quot;method&quot;: &quot;GET&quot;,
+        &quot;path&quot;: &quot;/api/users&quot;,
+        &quot;headers&quot;: {
+            &quot;content-type&quot;: &quot;application/json&quot;
+        }
+    }
+}
+
+input_log = schemas.LogSchema({
+    &quot;logID&quot;: &quot;1&quot;,
+    &quot;log&quot;: json.dumps(json_log)
+})
+
+output = schemas.ParserSchema()
+parser.parse(input_log, output)
+
+print(output.logFormatVariables[&quot;request.method&quot;])  # &quot;GET&quot;
+print(output.logFormatVariables[&quot;request.path&quot;])  #&quot;/api/users&quot;
+</code></pre>
+<p>Go back <a href="../../">Index</a></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../template_matcher/" class="btn btn-neutral float-left" title="Template Matcher"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../detectors/random_detector/" class="btn btn-neutral float-right" title="Random Detector">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../template_matcher/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../../detectors/random_detector/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+      <script src="../../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

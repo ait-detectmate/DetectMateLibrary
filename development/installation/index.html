@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/installation/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Installation - DetectMate Library</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Installation";
+        var mkdocs_page_input_path = "installation.md";
+        var mkdocs_page_url = "/DetectMateLibrary/development/installation/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> DetectMate Library
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Installation</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#user-setup">User setup</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#developer-setup">Developer setup</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#step-1-install-python-development-dependencies-pre-commit-hooks">Step 1: Install Python development dependencies &amp; pre-commit hooks</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#step-2-install-protobuf-toolchain-only-if-you-change-proto-files">Step 2: Install Protobuf toolchain (only if you change proto files)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#step-3-run-unit-tests">Step 3: Run unit tests</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../basic_usage/">Basic usage</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../create_components/">Create new component</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../implement_components/">Implement new component</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Components</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../overall_architecture/">Overall architecture</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../schemas/">Schemas</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/">Parsers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/">Detectors</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Parsers Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/template_matcher/">Template Matcher</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/json_parser/">Json Parser</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Detectors Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/random_detector/">Random Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/new_value/">New Value</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/combo/">Combo Detector</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Auxiliar</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../auxiliar/persistency/">Persistency</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../auxiliar/input_buffer/">Data buffer</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Helpers</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../helper/from_to/">From to</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">DetectMate Library</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Getting Started</li>
+      <li class="breadcrumb-item active">Installation</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="getting-started-installation">Getting started: Installation</h1>
+<p>This document explains how to set up and run DetectMateLibrary for users and developers.</p>
+<h2 id="user-setup">User setup</h2>
+<p><strong>Purpose</strong>: install the library so you can import and use DetectMate in your projects.</p>
+<p><strong>Recommended</strong>: use the provided <code>uv</code> helper (bundled Python environment manager used in this repo). If you prefer pip/venv, create a virtualenv first.</p>
+<p>Install the package in editable mode:</p>
+<pre><code class="language-bash">uv sync
+</code></pre>
+<p><strong>Result</strong>: the package is installed into the active Python environment and changes to the source tree are reflected immediately.</p>
+<h2 id="developer-setup">Developer setup</h2>
+<p><strong>Purpose</strong>: prepare a development environment with test and lint tooling.</p>
+<h3 id="step-1-install-python-development-dependencies-pre-commit-hooks">Step 1: Install Python development dependencies &amp; pre-commit hooks</h3>
+<ul>
+<li>Install dev dependencies (testing, linters, formatters):</li>
+</ul>
+<pre><code class="language-bash">uv sync --dev
+</code></pre>
+<ul>
+<li>Install pre-commit hooks (this repository uses <code>prek</code> to run pre-commit tooling):</li>
+</ul>
+<pre><code class="language-bash">uv run --dev prek install
+</code></pre>
+<p><strong>Notes</strong>:</p>
+<ul>
+<li>Ensure <code>uv</code> is available in PATH. If not, use your system Python + virtualenv and then <code>uv sync --dev</code>.</li>
+<li>Run the pre-commit hooks locally with <code>uv run --dev prek run -a</code> before committing to catch style/typing issues early.</li>
+</ul>
+<h3 id="step-2-install-protobuf-toolchain-only-if-you-change-proto-files">Step 2: Install Protobuf toolchain (only if you change proto files)</h3>
+<p><strong>Purpose</strong>: compile .proto definitions into Python code.</p>
+<p>Install protoc on Debian/Ubuntu:</p>
+<pre><code class="language-bash">sudo apt-get update
+sudo apt-get install -y protobuf-compiler
+protoc --version
+</code></pre>
+<p>Compile the project proto:</p>
+<pre><code class="language-bash">protoc \
+  --proto_path=src/detectmatelibrary/schemas/ \
+  --python_out=src/detectmatelibrary/schemas/ \
+  src/detectmatelibrary/schemas/schemas.proto
+</code></pre>
+<p><strong>Result</strong>: generated Python modules appear under <code>src/detectmatelibrary/schemas/</code>. If you edit proto files, re-run this command and commit generated code if required by your workflow.</p>
+<h3 id="step-3-run-unit-tests">Step 3: Run unit tests</h3>
+<p>Run the full test suite:</p>
+<pre><code class="language-bash">uv run --dev pytest -s
+</code></pre>
+<p>Run tests with coverage (terminal summary):</p>
+<pre><code class="language-bash">uv run --dev pytest --cov=. --cov-report=term-missing
+</code></pre>
+<p><strong>Tips</strong>:</p>
+<ul>
+<li>Run a single test or directory to speed iteration: <code>uv run --dev pytest tests/some_test.py::test_name -q</code></li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li>If <code>uv</code> is unavailable, use a Python virtualenv and the <code>pip</code>/<code>pytest</code> commands directly.</li>
+<li>If <code>protoc</code> is missing, install the system package or download a prebuilt binary for your OS.</li>
+<li>Always run commands from the project root so file paths (pyproject.toml, src/) resolve correctly.</li>
+</ul>
+<p>Go back to <a href="../">Index</a> or proceed to <a href="../basic_usage/">Basic usage</a>.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href=".." class="btn btn-neutral float-left" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../basic_usage/" class="btn btn-neutral float-right" title="Basic usage">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href=".." style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../basic_usage/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+      <script src="../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

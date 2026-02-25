@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/auxiliar/persistency/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Persistency - DetectMate Library</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Persistency";
+        var mkdocs_page_input_path = "auxiliar/persistency.md";
+        var mkdocs_page_url = "/DetectMateLibrary/development/auxiliar/persistency/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> DetectMate Library
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../installation/">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../basic_usage/">Basic usage</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../create_components/">Create new component</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../implement_components/">Implement new component</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Components</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../overall_architecture/">Overall architecture</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../schemas/">Schemas</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/">Parsers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/">Detectors</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Parsers Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/template_matcher/">Template Matcher</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/json_parser/">Json Parser</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Detectors Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/random_detector/">Random Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/new_value/">New Value</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/combo/">Combo Detector</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Auxiliar</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Persistency</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#eventpersistency">EventPersistency</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#creating-an-instance">Creating an instance</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#storing-data">Storing data</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#retrieving-data">Retrieving data</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#storage-backends">Storage backends</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#dataframe-backends">DataFrame backends</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#tracker-backends">Tracker backends</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#usage-in-detectors">Usage in detectors</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#1-initialize-in-__init__">1. Initialize in __init__</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2-accumulate-state-in-train">2. Accumulate state in train()</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#3-query-state-in-detect">3. Query state in detect()</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../input_buffer/">Data buffer</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Helpers</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../helper/from_to/">From to</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">DetectMate Library</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Auxiliar</li>
+      <li class="breadcrumb-item active">Persistency</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="persistency">Persistency</h1>
+<p>The persistency module provides event-based state management for detectors. It allows detectors to accumulate, store, and query data across their lifecycle — during training, detection, and auto-configuration.</p>
+<h2 id="eventpersistency">EventPersistency</h2>
+<p><code>EventPersistency</code> is the main entry point. It manages one storage backend instance per event ID, so each event type maintains its own isolated state.</p>
+<h3 id="creating-an-instance">Creating an instance</h3>
+<pre><code class="language-python">from detectmatelibrary.common.persistency import EventPersistency
+
+persistency = EventPersistency(
+    event_data_class=MyBackend,          # storage backend class (see below)
+    variable_blacklist=[&quot;Content&quot;],      # variable names to exclude (optional)
+    event_data_kwargs={&quot;max_rows&quot;: 1000} # extra kwargs forwarded to the backend (optional)
+)
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>event_data_class</code></td>
+<td>An <code>EventDataStructure</code> subclass that defines how data is stored and queried.</td>
+</tr>
+<tr>
+<td><code>variable_blacklist</code></td>
+<td>Variable names to exclude from storage. Defaults to <code>["Content"]</code>.</td>
+</tr>
+<tr>
+<td><code>event_data_kwargs</code></td>
+<td>A dictionary of keyword arguments forwarded to the backend constructor.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="storing-data">Storing data</h3>
+<pre><code class="language-python">persistency.ingest_event(
+    event_id=event_id,
+    event_template=template,
+    variables=positional_vars,        # optional positional variables
+    named_variables=named_vars        # optional named variables
+)
+</code></pre>
+<p>Each call appends data to the backend associated with the given <code>event_id</code>. If no backend exists for that ID yet, one is created automatically.</p>
+<h3 id="retrieving-data">Retrieving data</h3>
+<pre><code class="language-python"># Single event
+data = persistency.get_event_data(event_id)
+
+# All events
+all_data = persistency.get_events_data()  # dict[event_id -&gt; backend]
+
+# Templates
+template = persistency.get_event_template(event_id)
+all_templates = persistency.get_event_templates()
+
+# Bracket access
+backend = persistency[event_id]
+</code></pre>
+<h2 id="storage-backends">Storage backends</h2>
+<p>The backend determines how ingested data is stored and what queries are available. Choose the backend that fits your detector's needs.</p>
+<h3 id="dataframe-backends">DataFrame backends</h3>
+<p>Store raw event data in tabular form. Useful when a detector needs to query or iterate over historical values.</p>
+<ul>
+<li><strong><code>EventDataFrame</code></strong> — Pandas-backed storage. Simple and familiar.</li>
+<li><strong><code>ChunkedEventDataFrame</code></strong> — Polars-backed storage with configurable row retention and automatic compaction. Suited for high-volume or streaming workloads.</li>
+</ul>
+<pre><code class="language-python">from detectmatelibrary.common.persistency.event_data_structures.dataframes import (
+    EventDataFrame,
+    ChunkedEventDataFrame,
+)
+</code></pre>
+<h3 id="tracker-backends">Tracker backends</h3>
+<p>Track variable behavior over time rather than storing raw data. Useful when a detector needs to understand how variables evolve (e.g., whether they converge to constant values). Is optimized for space efficiency since only extracted features from the logs are stored.</p>
+<ul>
+<li><strong><code>EventStabilityTracker</code></strong> — Classifies each variable as <code>STATIC</code>, <code>STABLE</code>, <code>UNSTABLE</code>, <code>RANDOM</code>, or <code>INSUFFICIENT_DATA</code> based on how its values change over time.</li>
+</ul>
+<pre><code class="language-python">from detectmatelibrary.common.persistency.event_data_structures.trackers import (
+    EventStabilityTracker,
+)
+</code></pre>
+<h2 id="usage-in-detectors">Usage in detectors</h2>
+<p>Persistency is <strong>optional</strong>. A detector can function without it. When a detector does need to maintain state across events — for example, to learn normal values during training and flag deviations during detection — it can integrate persistency by following this pattern:</p>
+<h3 id="1-initialize-in-__init__">1. Initialize in <code>__init__</code></h3>
+<p>Create one or more <code>EventPersistency</code> instances with the appropriate backend.</p>
+<pre><code class="language-python">class MyDetector(CoreDetector):
+    def __init__(self, name=&quot;MyDetector&quot;, config=MyDetectorConfig()):
+        super().__init__(name=name, ...)
+        self.persistency = EventPersistency(
+            event_data_class=EventStabilityTracker,
+        )
+</code></pre>
+<h3 id="2-accumulate-state-in-train">2. Accumulate state in <code>train()</code></h3>
+<p>During training, ingest each event so the backend builds up its internal state.</p>
+<pre><code class="language-python">def train(self, input_):
+    variables = self.get_configured_variables(input_, self.config.events)
+    self.persistency.ingest_event(
+        event_id=input_[&quot;EventID&quot;],
+        event_template=input_[&quot;template&quot;],
+        named_variables=variables,
+    )
+</code></pre>
+<h3 id="3-query-state-in-detect">3. Query state in <code>detect()</code></h3>
+<p>During detection, query the accumulated state to decide whether the incoming event is anomalous.</p>
+<pre><code class="language-python">def detect(self, input_, output_):
+    for event_id, backend in self.persistency.get_events_data().items():
+        stored_data = backend.get_data()
+        # compare input_ against stored_data to produce alerts
+</code></pre>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../../detectors/combo/" class="btn btn-neutral float-left" title="Combo Detector"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../input_buffer/" class="btn btn-neutral float-right" title="Data buffer">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../../detectors/combo/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../input_buffer/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+      <script src="../../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

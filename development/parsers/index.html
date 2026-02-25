@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/parsers/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Parsers - DetectMate Library</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Parsers";
+        var mkdocs_page_input_path = "parsers.md";
+        var mkdocs_page_url = "/DetectMateLibrary/development/parsers/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> DetectMate Library
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../installation/">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../basic_usage/">Basic usage</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../create_components/">Create new component</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../implement_components/">Implement new component</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Components</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../overall_architecture/">Overall architecture</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../schemas/">Schemas</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Parsers</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#coreparser-minimal-api">CoreParser — minimal API</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#parserschema-what-to-populate">ParserSchema — what to populate</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#creating-a-new-parser-step-by-step">Creating a new parser — step by step</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#testing-parsers">Testing parsers</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/">Detectors</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Parsers Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="template_matcher/">Template Matcher</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="json_parser/">Json Parser</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Detectors Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/random_detector/">Random Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/new_value/">New Value</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/combo/">Combo Detector</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Auxiliar</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../auxiliar/persistency/">Persistency</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../auxiliar/input_buffer/">Data buffer</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Helpers</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../helper/from_to/">From to</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">DetectMate Library</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Components</li>
+      <li class="breadcrumb-item active">Parsers</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="components-parsers">Components: Parsers</h1>
+<p>Parsers convert unstructured raw logs into structured ParserSchema objects that downstream detectors consume.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Schema</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Input</strong></td>
+<td><a href="../schemas/">LogSchema</a></td>
+<td>Unstructured log</td>
+</tr>
+<tr>
+<td><strong>Output</strong></td>
+<td><a href="../schemas/">ParserSchema</a></td>
+<td>Structured log</td>
+</tr>
+</tbody>
+</table>
+<p>This document explains expected APIs, how to implement a parser, testing tips and common pitfalls.</p>
+<h2 id="overview">Overview</h2>
+<ul>
+<li>Parsers must inherit from <code>CoreParser</code> and provide a <code>parse()</code> implementation.</li>
+<li><code>CoreParser.run()</code> handles lifecycle and calls <code>parse()</code> for each input; implement pure parsing logic inside <code>parse()</code> where possible.</li>
+<li>Use a typed <code>Config</code> class (subclass of <code>CoreParserConfig</code>) to hold runtime parameters.</li>
+</ul>
+<h2 id="coreparser-minimal-api">CoreParser — minimal API</h2>
+<p>Recommended signatures and behavior:</p>
+<pre><code class="language-python">class CoreParser:
+    def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -&gt; bool:
+        &quot;&quot;&quot;Top-level runner. Calls parse() and performs pre/post processing.
+        Return True when a parsed output was produced, False otherwise.
+        &quot;&quot;&quot;
+
+    def parse(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -&gt; bool:
+        &quot;&quot;&quot;Implement parsing here.
+        - Fill required output_ fields (see ParserSchema table below).
+        - Return True if parsing succeeded and output_ contains a result.
+        &quot;&quot;&quot;
+
+    def train(self, input_: Iterable[schemas.LogSchema]) -&gt; None:
+        &quot;&quot;&quot;Optional: train internal models. Can be a no-op for stateless parsers.&quot;&quot;&quot;
+</code></pre>
+<h2 id="parserschema-what-to-populate">ParserSchema — what to populate</h2>
+<p>Minimum fields commonly expected by downstream components:</p>
+<ul>
+<li><code>EventID</code> (int) — identifier for the matched template/event</li>
+<li><code>template</code> (string) — event template text</li>
+<li><code>variables</code> (repeated string) — extracted parameters (extend the list)</li>
+<li><code>parsedLogID</code> / <code>logID</code> — identifiers linking raw and parsed records</li>
+<li><code>parsedTimestamp</code> / <code>receivedTimestamp</code> — timestamps</li>
+</ul>
+<h2 id="creating-a-new-parser-step-by-step">Creating a new parser — step by step</h2>
+<ol>
+<li>Create a Config class inheriting <code>CoreParserConfig</code>.</li>
+<li>Create parser class inheriting <code>CoreParser</code>.</li>
+<li>Implement <code>parse()</code> to populate <code>output_</code>.</li>
+<li>Add unit tests for <code>parse()</code> behavior.</li>
+</ol>
+<p>Example:</p>
+<pre><code class="language-python"># filepath: src/detectmatelibrary/parsers/my_parser.py
+from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
+from detectmatelibrary import schemas
+from typing import Any
+
+class MyParserConfig(CoreParserConfig):
+    method_type: str = &quot;my_parser&quot;
+    # add parser-specific settings here
+    pattern: str | None = None
+
+class MyParser(CoreParser):
+    def __init__(self, name: str = &quot;MyParser&quot;, config: MyParserConfig | dict[str, Any] = MyParserConfig()):
+        if isinstance(config, dict):
+            config = MyParserConfig.from_dict(config, name)
+        super().__init__(name=name, config=config)
+
+    def parse(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -&gt; bool:
+        text = input_.log or &quot;&quot;
+        # simple example: split on whitespace and treat as variables
+        tokens = text.split()
+        output_[&quot;EventID&quot;] = 1
+        output_[&quot;template&quot;] = &quot; &quot;.join([&quot;&lt;*&gt;&quot;] * len(tokens))
+        output_[&quot;variables&quot;].extend(tokens)
+        output_[&quot;parsedTimestamp&quot;] = int(time.time())
+        return True
+</code></pre>
+<h2 id="testing-parsers">Testing parsers</h2>
+<p>Unit test <code>parse()</code> directly using <code>ParserSchema</code> objects:</p>
+<pre><code class="language-python">def test_my_parser_parse():
+    from detectmatelibrary.parsers.my_parser import MyParser
+    from detectmatelibrary import schemas
+
+    parser = MyParser()
+    raw = schemas.LogSchema({&quot;log&quot;: &quot;a b c&quot;, &quot;logID&quot;: &quot;1&quot;})
+    out = schemas.ParserSchema()
+    ok = parser.parse(raw, out)
+    assert ok is True
+    assert out[&quot;EventID&quot;] == 1
+    assert out[&quot;variables&quot;] == [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]
+</code></pre>
+<p>Go back to <a href="../">Index</a></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../schemas/" class="btn btn-neutral float-left" title="Schemas"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../detectors/" class="btn btn-neutral float-right" title="Detectors">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../schemas/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../detectors/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+      <script src="../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

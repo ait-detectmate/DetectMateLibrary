@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/helper/from_to/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>From to - DetectMate Library</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "From to";
+        var mkdocs_page_input_path = "helper/from_to.md";
+        var mkdocs_page_url = "/DetectMateLibrary/development/helper/from_to/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> DetectMate Library
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../installation/">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../basic_usage/">Basic usage</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../create_components/">Create new component</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../implement_components/">Implement new component</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Components</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../overall_architecture/">Overall architecture</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../schemas/">Schemas</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/">Parsers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/">Detectors</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Parsers Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/template_matcher/">Template Matcher</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/json_parser/">Json Parser</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Detectors Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/random_detector/">Random Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/new_value/">New Value</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/combo/">Combo Detector</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Auxiliar</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../auxiliar/persistency/">Persistency</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../auxiliar/input_buffer/">Data buffer</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Helpers</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">From to</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#from">From</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage">Usage</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#to">To</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_1">Usage</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#fromto">FromTo</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#usage_2">Usage</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">DetectMate Library</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Helpers</li>
+      <li class="breadcrumb-item active">From to</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="from-to-helper">From / To helper</h1>
+<p>Utility methods to help developers load and save different schema objects. Supported formats:</p>
+<ul>
+<li><strong>Log files</strong>: Read-only. Load plain log files and convert entries to LogSchema objects.</li>
+<li><strong>Binary files</strong>: Files that store the serialized bytes of schema objects.</li>
+<li><strong>JSON files</strong>: Files that store schema objects in JSON format.</li>
+<li><strong>YAML files</strong>: Files that store schema objects in YAML format.</li>
+</ul>
+<h2 id="from">From</h2>
+<p>The <code>From</code> class is responsible for loading different input formats.</p>
+<pre><code class="language-python">class From:
+    @staticmethod
+    def log(
+        component: CoreComponent, in_path: str, do_process: bool = True
+    ) -&gt; Iterator[BaseSchema]:
+        &quot;&quot;&quot;Load logs as input schemas.&quot;&quot;&quot;
+
+    @staticmethod
+    def binary_file(
+        component: CoreComponent, in_path: str, do_process: bool = True
+    ) -&gt; Iterator[BaseSchema]:
+        &quot;&quot;&quot;Load binary files as input schemas.&quot;&quot;&quot;
+
+    @staticmethod
+    def json(
+        component: CoreComponent, in_path: str, do_process: bool = True
+    ) -&gt; Iterator[BaseSchema]:
+        &quot;&quot;&quot;Load JSON files as input schemas.&quot;&quot;&quot;
+
+    @staticmethod
+    def yaml(
+        component: CoreComponent, in_path: str, do_process: bool = True
+    ) -&gt; Iterator[BaseSchema]:
+        &quot;&quot;&quot;Load YAML files as input schemas.&quot;&quot;&quot;
+</code></pre>
+<h3 id="usage">Usage</h3>
+<pre><code class="language-python">parser = DummyParser()
+
+for log in From.log(parser, in_path=log_path, do_process=False):
+    print(log)
+</code></pre>
+<h2 id="to">To</h2>
+<p>The <code>To</code> class is responsible for saving schema objects to files.</p>
+<pre><code class="language-python">class To:
+    @staticmethod
+    def binary_file(out_: BaseSchema | bytes | None, out_path: str) -&gt; bytes | None:
+        &quot;&quot;&quot;Save output schema to a binary file.&quot;&quot;&quot;
+
+    @staticmethod
+    def json(out_: BaseSchema | None, out_path: str) -&gt; BaseSchema | None:
+        &quot;&quot;&quot;Save output schema to a JSON file.&quot;&quot;&quot;
+
+    @staticmethod
+    def yaml(out_: BaseSchema | None, out_path: str) -&gt; BaseSchema | None:
+        &quot;&quot;&quot;Save output schema to a YAML file.&quot;&quot;&quot;
+</code></pre>
+<h3 id="usage_1">Usage</h3>
+<pre><code class="language-python">parser = DummyParser()
+for log in From.log(parser, in_path=log_path, do_process=False):
+    assert To.json(log, output_path) == output_schema
+</code></pre>
+<p>Example JSON save file format:</p>
+<pre><code class="language-json">{
+    &quot;0&quot;: {
+        &quot;logID&quot;: &quot;0&quot;,
+        &quot;hostname&quot;: &quot;&quot;,
+        &quot;log&quot;: &quot;pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='op=&lt;*&gt; acct=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;'&quot;,
+        &quot;logSource&quot;: &quot;&quot;,
+        &quot;__version__&quot;: &quot;1.0.0&quot;
+    },
+    &quot;1&quot;: {
+        &quot;logID&quot;: &quot;1&quot;,
+        &quot;hostname&quot;: &quot;&quot;,
+        &quot;log&quot;: &quot;pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='unit=&lt;*&gt; comm=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;'&quot;,
+        &quot;logSource&quot;: &quot;&quot;,
+        &quot;__version__&quot;: &quot;1.0.0&quot;
+    }
+}
+</code></pre>
+<h2 id="fromto">FromTo</h2>
+<p>The <code>FromTo</code> class loads and saves inputs and outputs in a single operation.</p>
+<pre><code class="language-python">class FromTo:
+    @staticmethod
+    def log2binary_file(component: CoreComponent, in_path: str, out_path: str) -&gt; Iterator[BaseSchema]:
+        &quot;&quot;&quot;Load a log file and save it to a binary file.&quot;&quot;&quot;
+
+    @staticmethod
+    def log2json(component: CoreComponent, in_path: str, out_path: str) -&gt; Iterator[BaseSchema]:
+        &quot;&quot;&quot;Load a log file and save it to a JSON file.&quot;&quot;&quot;
+
+    @staticmethod
+    def log2yaml(component: CoreComponent, in_path: str, out_path: str) -&gt; Iterator[BaseSchema]:
+        &quot;&quot;&quot;Load a log file and save it to a YAML file.&quot;&quot;&quot;
+
+    @staticmethod
+    def binary_file2binary_file(
+        component: CoreComponent, in_path: str, out_path: str
+    ) -&gt; Iterator[BaseSchema]:
+        &quot;&quot;&quot;Load a binary file and save it to a binary file.&quot;&quot;&quot;
+
+    @staticmethod
+    def binary_file2json(
+        component: CoreComponent, in_path: str, out_path: str
+    ) -&gt; Iterator[BaseSchema]:
+        &quot;&quot;&quot;Load a binary file and save it to a JSON file.&quot;&quot;&quot;
+
+    @staticmethod
+    def binary_file2yaml(
+        component: CoreComponent, in_path: str, out_path: str
+    ) -&gt; Iterator[BaseSchema]:
+        &quot;&quot;&quot;Load a binary file and save it to a YAML file.&quot;&quot;&quot;
+
+    @staticmethod
+    def json2binary_file(
+        component: CoreComponent, in_path: str, out_path: str
+    ) -&gt; Iterator[BaseSchema]:
+        &quot;&quot;&quot;Load a JSON file and save it to a binary file.&quot;&quot;&quot;
+
+    @staticmethod
+    def json2json(
+        component: CoreComponent, in_path: str, out_path: str
+    ) -&gt; Iterator[BaseSchema]:
+        &quot;&quot;&quot;Load a JSON file and save it to a JSON file.&quot;&quot;&quot;
+
+    @staticmethod
+    def json2yaml(
+        component: CoreComponent, in_path: str, out_path: str
+    ) -&gt; Iterator[BaseSchema]:
+        &quot;&quot;&quot;Load a JSON file and save it to a YAML file.&quot;&quot;&quot;
+
+    @staticmethod
+    def yaml2binary_file(
+        component: CoreComponent, in_path: str, out_path: str
+    ) -&gt; Iterator[BaseSchema]:
+        &quot;&quot;&quot;Load a YAML file and save it to a binary file.&quot;&quot;&quot;
+
+    @staticmethod
+    def yaml2json(
+        component: CoreComponent, in_path: str, out_path: str
+    ) -&gt; Iterator[BaseSchema]:
+        &quot;&quot;&quot;Load a YAML file and save it to a JSON file.&quot;&quot;&quot;
+
+    @staticmethod
+    def yaml2yaml(
+        component: CoreComponent, in_path: str, out_path: str
+    ) -&gt; Iterator[BaseSchema]:
+        &quot;&quot;&quot;Load a YAML file and save it to a YAML file.&quot;&quot;&quot;
+</code></pre>
+<h3 id="usage_2">Usage</h3>
+<pre><code class="language-python">parser = DummyParser()
+for parsed_log in FromTo.json2json(parser, log_path, json_path):
+    pass
+</code></pre>
+<p>Example input data:</p>
+<pre><code class="language-json">{
+    &quot;0&quot;: {
+        &quot;logID&quot;: &quot;0&quot;,
+        &quot;hostname&quot;: &quot;&quot;,
+        &quot;log&quot;: &quot;pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='op=&lt;*&gt; acct=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;'&quot;,
+        &quot;logSource&quot;: &quot;&quot;,
+        &quot;__version__&quot;: &quot;1.0.0&quot;
+    },
+    &quot;1&quot;: {
+        &quot;logID&quot;: &quot;1&quot;,
+        &quot;hostname&quot;: &quot;&quot;,
+        &quot;log&quot;: &quot;pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='unit=&lt;*&gt; comm=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;'&quot;,
+        &quot;logSource&quot;: &quot;&quot;,
+        &quot;__version__&quot;: &quot;1.0.0&quot;
+    }
+}
+</code></pre>
+<p>Example output data after parsing:</p>
+<pre><code class="language-json">{
+    &quot;0&quot;: {
+        &quot;template&quot;: &quot;This is a dummy template&quot;,
+        &quot;parsedTimestamp&quot;: 1771336089,
+        &quot;EventID&quot;: 2,
+        &quot;logFormatVariables&quot;: {
+            &quot;Time&quot;: &quot;0&quot;
+        },
+        &quot;parserID&quot;: &quot;DummyParser&quot;,
+        &quot;parserType&quot;: &quot;dummy_parser&quot;,
+        &quot;log&quot;: &quot;pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='op=&lt;*&gt; acct=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;'&quot;,
+        &quot;variables&quot;: [
+            &quot;dummy_variable&quot;
+        ],
+        &quot;receivedTimestamp&quot;: 1771336089,
+        &quot;logID&quot;: &quot;0&quot;,
+        &quot;__version__&quot;: &quot;1.0.0&quot;,
+        &quot;parsedLogID&quot;: &quot;10&quot;
+    },
+    &quot;1&quot;: {
+        &quot;template&quot;: &quot;This is a dummy template&quot;,
+        &quot;parsedTimestamp&quot;: 1771336089,
+        &quot;EventID&quot;: 2,
+        &quot;logFormatVariables&quot;: {
+            &quot;Time&quot;: &quot;0&quot;
+        },
+        &quot;parserID&quot;: &quot;DummyParser&quot;,
+        &quot;parserType&quot;: &quot;dummy_parser&quot;,
+        &quot;log&quot;: &quot;pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='unit=&lt;*&gt; comm=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;'&quot;,
+        &quot;variables&quot;: [
+            &quot;dummy_variable&quot;
+        ],
+        &quot;receivedTimestamp&quot;: 1771336089,
+        &quot;logID&quot;: &quot;1&quot;,
+        &quot;__version__&quot;: &quot;1.0.0&quot;,
+        &quot;parsedLogID&quot;: &quot;11&quot;
+    }
+}
+</code></pre>
+<p>Go back to <a href="../../">Index</a></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../../auxiliar/input_buffer/" class="btn btn-neutral float-left" title="Data buffer"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../../auxiliar/input_buffer/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+      <script src="../../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
