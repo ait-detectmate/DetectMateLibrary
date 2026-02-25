@@ -1,0 +1,674 @@
+{
+    "0": {
+        "log": "type=USER_ACCT msg=audit(1642723741.072:375): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "0",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "1": {
+        "log": "type=CRED_ACQ msg=audit(1642723741.072:376): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "1",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "2": {
+        "log": "type=LOGIN msg=audit(1642723741.076:377): pid=10125 uid=0 old-auid=4294967295 auid=0 tty=(none) old-ses=4294967295 ses=65 res=1",
+        "logID": "2",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "3": {
+        "log": "type=USER_START msg=audit(1642723741.080:378): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:session_open acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "3",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "4": {
+        "log": "type=CRED_DISP msg=audit(1642723741.084:379): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "4",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "5": {
+        "log": "type=USER_END msg=audit(1642723741.084:380): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:session_close acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "5",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "6": {
+        "log": "type=SERVICE_START msg=audit(1642723752.624:381): pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=phpsessionclean comm=\"systemd\" exe=\"/lib/systemd/systemd\" hostname=? addr=? terminal=? res=success'",
+        "logID": "6",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "7": {
+        "log": "type=SERVICE_STOP msg=audit(1642723752.624:382): pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=phpsessionclean comm=\"systemd\" exe=\"/lib/systemd/systemd\" hostname=? addr=? terminal=? res=success'",
+        "logID": "7",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "8": {
+        "log": "type=USER_ACCT msg=audit(1642724221.094:383): pid=10197 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "8",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "9": {
+        "log": "type=CRED_ACQ msg=audit(1642724221.098:384): pid=10197 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "9",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "10": {
+        "log": "type=LOGIN msg=audit(1642724221.098:385): pid=10197 uid=0 old-auid=4294967295 auid=0 tty=(none) old-ses=4294967295 ses=66 res=1",
+        "logID": "10",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "11": {
+        "log": "type=USER_START msg=audit(1642724221.102:386): pid=10197 uid=0 auid=0 ses=66 msg='op=PAM:session_open acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "11",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "12": {
+        "hostname": "",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=USER_ACCT msg=audit(1642723741.072:375): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "0"
+    },
+    "13": {
+        "hostname": "",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=CRED_ACQ msg=audit(1642723741.072:376): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "1"
+    },
+    "14": {
+        "hostname": "",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=LOGIN msg=audit(1642723741.076:377): pid=10125 uid=0 old-auid=4294967295 auid=0 tty=(none) old-ses=4294967295 ses=65 res=1",
+        "logID": "2"
+    },
+    "15": {
+        "hostname": "",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=USER_START msg=audit(1642723741.080:378): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:session_open acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "3"
+    },
+    "16": {
+        "hostname": "",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=CRED_DISP msg=audit(1642723741.084:379): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "4"
+    },
+    "17": {
+        "hostname": "",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=USER_END msg=audit(1642723741.084:380): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:session_close acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "5"
+    },
+    "18": {
+        "hostname": "",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=SERVICE_START msg=audit(1642723752.624:381): pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=phpsessionclean comm=\"systemd\" exe=\"/lib/systemd/systemd\" hostname=? addr=? terminal=? res=success'",
+        "logID": "6"
+    },
+    "19": {
+        "hostname": "",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=SERVICE_STOP msg=audit(1642723752.624:382): pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=phpsessionclean comm=\"systemd\" exe=\"/lib/systemd/systemd\" hostname=? addr=? terminal=? res=success'",
+        "logID": "7"
+    },
+    "20": {
+        "hostname": "",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=USER_ACCT msg=audit(1642724221.094:383): pid=10197 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "8"
+    },
+    "21": {
+        "hostname": "",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=CRED_ACQ msg=audit(1642724221.098:384): pid=10197 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "9"
+    },
+    "22": {
+        "hostname": "",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=LOGIN msg=audit(1642724221.098:385): pid=10197 uid=0 old-auid=4294967295 auid=0 tty=(none) old-ses=4294967295 ses=66 res=1",
+        "logID": "10"
+    },
+    "23": {
+        "hostname": "",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=USER_START msg=audit(1642724221.102:386): pid=10197 uid=0 auid=0 ses=66 msg='op=PAM:session_open acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "11"
+    },
+    "24": {
+        "__version__": "1.0.0",
+        "logID": "0",
+        "log": "type=USER_ACCT msg=audit(1642723741.072:375): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "hostname": "",
+        "logSource": ""
+    },
+    "25": {
+        "__version__": "1.0.0",
+        "logID": "1",
+        "log": "type=CRED_ACQ msg=audit(1642723741.072:376): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "hostname": "",
+        "logSource": ""
+    },
+    "26": {
+        "__version__": "1.0.0",
+        "logID": "2",
+        "log": "type=LOGIN msg=audit(1642723741.076:377): pid=10125 uid=0 old-auid=4294967295 auid=0 tty=(none) old-ses=4294967295 ses=65 res=1",
+        "hostname": "",
+        "logSource": ""
+    },
+    "27": {
+        "__version__": "1.0.0",
+        "logID": "3",
+        "log": "type=USER_START msg=audit(1642723741.080:378): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:session_open acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "hostname": "",
+        "logSource": ""
+    },
+    "28": {
+        "__version__": "1.0.0",
+        "logID": "4",
+        "log": "type=CRED_DISP msg=audit(1642723741.084:379): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "hostname": "",
+        "logSource": ""
+    },
+    "29": {
+        "__version__": "1.0.0",
+        "logID": "5",
+        "log": "type=USER_END msg=audit(1642723741.084:380): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:session_close acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "hostname": "",
+        "logSource": ""
+    },
+    "30": {
+        "__version__": "1.0.0",
+        "logID": "6",
+        "log": "type=SERVICE_START msg=audit(1642723752.624:381): pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=phpsessionclean comm=\"systemd\" exe=\"/lib/systemd/systemd\" hostname=? addr=? terminal=? res=success'",
+        "hostname": "",
+        "logSource": ""
+    },
+    "31": {
+        "__version__": "1.0.0",
+        "logID": "7",
+        "log": "type=SERVICE_STOP msg=audit(1642723752.624:382): pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=phpsessionclean comm=\"systemd\" exe=\"/lib/systemd/systemd\" hostname=? addr=? terminal=? res=success'",
+        "hostname": "",
+        "logSource": ""
+    },
+    "32": {
+        "__version__": "1.0.0",
+        "logID": "8",
+        "log": "type=USER_ACCT msg=audit(1642724221.094:383): pid=10197 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "hostname": "",
+        "logSource": ""
+    },
+    "33": {
+        "__version__": "1.0.0",
+        "logID": "9",
+        "log": "type=CRED_ACQ msg=audit(1642724221.098:384): pid=10197 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "hostname": "",
+        "logSource": ""
+    },
+    "34": {
+        "__version__": "1.0.0",
+        "logID": "10",
+        "log": "type=LOGIN msg=audit(1642724221.098:385): pid=10197 uid=0 old-auid=4294967295 auid=0 tty=(none) old-ses=4294967295 ses=66 res=1",
+        "hostname": "",
+        "logSource": ""
+    },
+    "35": {
+        "__version__": "1.0.0",
+        "logID": "11",
+        "log": "type=USER_START msg=audit(1642724221.102:386): pid=10197 uid=0 auid=0 ses=66 msg='op=PAM:session_open acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "hostname": "",
+        "logSource": ""
+    },
+    "36": {
+        "log": "type=USER_ACCT msg=audit(1642723741.072:375): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "0",
+        "hostname": "",
+        "__version__": "1.0.0",
+        "logSource": ""
+    },
+    "37": {
+        "log": "type=CRED_ACQ msg=audit(1642723741.072:376): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "1",
+        "hostname": "",
+        "__version__": "1.0.0",
+        "logSource": ""
+    },
+    "38": {
+        "log": "type=LOGIN msg=audit(1642723741.076:377): pid=10125 uid=0 old-auid=4294967295 auid=0 tty=(none) old-ses=4294967295 ses=65 res=1",
+        "logID": "2",
+        "hostname": "",
+        "__version__": "1.0.0",
+        "logSource": ""
+    },
+    "39": {
+        "log": "type=USER_START msg=audit(1642723741.080:378): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:session_open acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "3",
+        "hostname": "",
+        "__version__": "1.0.0",
+        "logSource": ""
+    },
+    "40": {
+        "log": "type=CRED_DISP msg=audit(1642723741.084:379): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "4",
+        "hostname": "",
+        "__version__": "1.0.0",
+        "logSource": ""
+    },
+    "41": {
+        "log": "type=USER_END msg=audit(1642723741.084:380): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:session_close acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "5",
+        "hostname": "",
+        "__version__": "1.0.0",
+        "logSource": ""
+    },
+    "42": {
+        "log": "type=SERVICE_START msg=audit(1642723752.624:381): pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=phpsessionclean comm=\"systemd\" exe=\"/lib/systemd/systemd\" hostname=? addr=? terminal=? res=success'",
+        "logID": "6",
+        "hostname": "",
+        "__version__": "1.0.0",
+        "logSource": ""
+    },
+    "43": {
+        "log": "type=SERVICE_STOP msg=audit(1642723752.624:382): pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=phpsessionclean comm=\"systemd\" exe=\"/lib/systemd/systemd\" hostname=? addr=? terminal=? res=success'",
+        "logID": "7",
+        "hostname": "",
+        "__version__": "1.0.0",
+        "logSource": ""
+    },
+    "44": {
+        "log": "type=USER_ACCT msg=audit(1642724221.094:383): pid=10197 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "8",
+        "hostname": "",
+        "__version__": "1.0.0",
+        "logSource": ""
+    },
+    "45": {
+        "log": "type=CRED_ACQ msg=audit(1642724221.098:384): pid=10197 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "9",
+        "hostname": "",
+        "__version__": "1.0.0",
+        "logSource": ""
+    },
+    "46": {
+        "log": "type=LOGIN msg=audit(1642724221.098:385): pid=10197 uid=0 old-auid=4294967295 auid=0 tty=(none) old-ses=4294967295 ses=66 res=1",
+        "logID": "10",
+        "hostname": "",
+        "__version__": "1.0.0",
+        "logSource": ""
+    },
+    "47": {
+        "log": "type=USER_START msg=audit(1642724221.102:386): pid=10197 uid=0 auid=0 ses=66 msg='op=PAM:session_open acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "11",
+        "hostname": "",
+        "__version__": "1.0.0",
+        "logSource": ""
+    },
+    "48": {
+        "__version__": "1.0.0",
+        "logSource": "",
+        "log": "type=USER_ACCT msg=audit(1642723741.072:375): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "hostname": "",
+        "logID": "0"
+    },
+    "49": {
+        "__version__": "1.0.0",
+        "logSource": "",
+        "log": "type=CRED_ACQ msg=audit(1642723741.072:376): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "hostname": "",
+        "logID": "1"
+    },
+    "50": {
+        "__version__": "1.0.0",
+        "logSource": "",
+        "log": "type=LOGIN msg=audit(1642723741.076:377): pid=10125 uid=0 old-auid=4294967295 auid=0 tty=(none) old-ses=4294967295 ses=65 res=1",
+        "hostname": "",
+        "logID": "2"
+    },
+    "51": {
+        "__version__": "1.0.0",
+        "logSource": "",
+        "log": "type=USER_START msg=audit(1642723741.080:378): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:session_open acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "hostname": "",
+        "logID": "3"
+    },
+    "52": {
+        "__version__": "1.0.0",
+        "logSource": "",
+        "log": "type=CRED_DISP msg=audit(1642723741.084:379): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "hostname": "",
+        "logID": "4"
+    },
+    "53": {
+        "__version__": "1.0.0",
+        "logSource": "",
+        "log": "type=USER_END msg=audit(1642723741.084:380): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:session_close acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "hostname": "",
+        "logID": "5"
+    },
+    "54": {
+        "__version__": "1.0.0",
+        "logSource": "",
+        "log": "type=SERVICE_START msg=audit(1642723752.624:381): pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=phpsessionclean comm=\"systemd\" exe=\"/lib/systemd/systemd\" hostname=? addr=? terminal=? res=success'",
+        "hostname": "",
+        "logID": "6"
+    },
+    "55": {
+        "__version__": "1.0.0",
+        "logSource": "",
+        "log": "type=SERVICE_STOP msg=audit(1642723752.624:382): pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=phpsessionclean comm=\"systemd\" exe=\"/lib/systemd/systemd\" hostname=? addr=? terminal=? res=success'",
+        "hostname": "",
+        "logID": "7"
+    },
+    "56": {
+        "__version__": "1.0.0",
+        "logSource": "",
+        "log": "type=USER_ACCT msg=audit(1642724221.094:383): pid=10197 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "hostname": "",
+        "logID": "8"
+    },
+    "57": {
+        "__version__": "1.0.0",
+        "logSource": "",
+        "log": "type=CRED_ACQ msg=audit(1642724221.098:384): pid=10197 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "hostname": "",
+        "logID": "9"
+    },
+    "58": {
+        "__version__": "1.0.0",
+        "logSource": "",
+        "log": "type=LOGIN msg=audit(1642724221.098:385): pid=10197 uid=0 old-auid=4294967295 auid=0 tty=(none) old-ses=4294967295 ses=66 res=1",
+        "hostname": "",
+        "logID": "10"
+    },
+    "59": {
+        "__version__": "1.0.0",
+        "logSource": "",
+        "log": "type=USER_START msg=audit(1642724221.102:386): pid=10197 uid=0 auid=0 ses=66 msg='op=PAM:session_open acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "hostname": "",
+        "logID": "11"
+    },
+    "60": {
+        "logSource": "",
+        "log": "type=USER_ACCT msg=audit(1642723741.072:375): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "0",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "61": {
+        "logSource": "",
+        "log": "type=CRED_ACQ msg=audit(1642723741.072:376): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "1",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "62": {
+        "logSource": "",
+        "log": "type=LOGIN msg=audit(1642723741.076:377): pid=10125 uid=0 old-auid=4294967295 auid=0 tty=(none) old-ses=4294967295 ses=65 res=1",
+        "logID": "2",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "63": {
+        "logSource": "",
+        "log": "type=USER_START msg=audit(1642723741.080:378): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:session_open acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "3",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "64": {
+        "logSource": "",
+        "log": "type=CRED_DISP msg=audit(1642723741.084:379): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "4",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "65": {
+        "logSource": "",
+        "log": "type=USER_END msg=audit(1642723741.084:380): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:session_close acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "5",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "66": {
+        "logSource": "",
+        "log": "type=SERVICE_START msg=audit(1642723752.624:381): pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=phpsessionclean comm=\"systemd\" exe=\"/lib/systemd/systemd\" hostname=? addr=? terminal=? res=success'",
+        "logID": "6",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "67": {
+        "logSource": "",
+        "log": "type=SERVICE_STOP msg=audit(1642723752.624:382): pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=phpsessionclean comm=\"systemd\" exe=\"/lib/systemd/systemd\" hostname=? addr=? terminal=? res=success'",
+        "logID": "7",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "68": {
+        "logSource": "",
+        "log": "type=USER_ACCT msg=audit(1642724221.094:383): pid=10197 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "8",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "69": {
+        "logSource": "",
+        "log": "type=CRED_ACQ msg=audit(1642724221.098:384): pid=10197 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "9",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "70": {
+        "logSource": "",
+        "log": "type=LOGIN msg=audit(1642724221.098:385): pid=10197 uid=0 old-auid=4294967295 auid=0 tty=(none) old-ses=4294967295 ses=66 res=1",
+        "logID": "10",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "71": {
+        "logSource": "",
+        "log": "type=USER_START msg=audit(1642724221.102:386): pid=10197 uid=0 auid=0 ses=66 msg='op=PAM:session_open acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'",
+        "logID": "11",
+        "__version__": "1.0.0",
+        "hostname": ""
+    },
+    "72": {
+        "hostname": "",
+        "logID": "0",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=USER_ACCT msg=audit(1642723741.072:375): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'"
+    },
+    "73": {
+        "hostname": "",
+        "logID": "1",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=CRED_ACQ msg=audit(1642723741.072:376): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'"
+    },
+    "74": {
+        "hostname": "",
+        "logID": "2",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=LOGIN msg=audit(1642723741.076:377): pid=10125 uid=0 old-auid=4294967295 auid=0 tty=(none) old-ses=4294967295 ses=65 res=1"
+    },
+    "75": {
+        "hostname": "",
+        "logID": "3",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=USER_START msg=audit(1642723741.080:378): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:session_open acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'"
+    },
+    "76": {
+        "hostname": "",
+        "logID": "4",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=CRED_DISP msg=audit(1642723741.084:379): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'"
+    },
+    "77": {
+        "hostname": "",
+        "logID": "5",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=USER_END msg=audit(1642723741.084:380): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:session_close acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'"
+    },
+    "78": {
+        "hostname": "",
+        "logID": "6",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=SERVICE_START msg=audit(1642723752.624:381): pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=phpsessionclean comm=\"systemd\" exe=\"/lib/systemd/systemd\" hostname=? addr=? terminal=? res=success'"
+    },
+    "79": {
+        "hostname": "",
+        "logID": "7",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=SERVICE_STOP msg=audit(1642723752.624:382): pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=phpsessionclean comm=\"systemd\" exe=\"/lib/systemd/systemd\" hostname=? addr=? terminal=? res=success'"
+    },
+    "80": {
+        "hostname": "",
+        "logID": "8",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=USER_ACCT msg=audit(1642724221.094:383): pid=10197 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'"
+    },
+    "81": {
+        "hostname": "",
+        "logID": "9",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=CRED_ACQ msg=audit(1642724221.098:384): pid=10197 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'"
+    },
+    "82": {
+        "hostname": "",
+        "logID": "10",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=LOGIN msg=audit(1642724221.098:385): pid=10197 uid=0 old-auid=4294967295 auid=0 tty=(none) old-ses=4294967295 ses=66 res=1"
+    },
+    "83": {
+        "hostname": "",
+        "logID": "11",
+        "logSource": "",
+        "__version__": "1.0.0",
+        "log": "type=USER_START msg=audit(1642724221.102:386): pid=10197 uid=0 auid=0 ses=66 msg='op=PAM:session_open acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'"
+    },
+    "84": {
+        "logID": "0",
+        "__version__": "1.0.0",
+        "logSource": "",
+        "hostname": "",
+        "log": "type=USER_ACCT msg=audit(1642723741.072:375): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'"
+    },
+    "85": {
+        "logID": "1",
+        "__version__": "1.0.0",
+        "logSource": "",
+        "hostname": "",
+        "log": "type=CRED_ACQ msg=audit(1642723741.072:376): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'"
+    },
+    "86": {
+        "logID": "2",
+        "__version__": "1.0.0",
+        "logSource": "",
+        "hostname": "",
+        "log": "type=LOGIN msg=audit(1642723741.076:377): pid=10125 uid=0 old-auid=4294967295 auid=0 tty=(none) old-ses=4294967295 ses=65 res=1"
+    },
+    "87": {
+        "logID": "3",
+        "__version__": "1.0.0",
+        "logSource": "",
+        "hostname": "",
+        "log": "type=USER_START msg=audit(1642723741.080:378): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:session_open acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'"
+    },
+    "88": {
+        "logID": "4",
+        "__version__": "1.0.0",
+        "logSource": "",
+        "hostname": "",
+        "log": "type=CRED_DISP msg=audit(1642723741.084:379): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'"
+    },
+    "89": {
+        "logID": "5",
+        "__version__": "1.0.0",
+        "logSource": "",
+        "hostname": "",
+        "log": "type=USER_END msg=audit(1642723741.084:380): pid=10125 uid=0 auid=0 ses=65 msg='op=PAM:session_close acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'"
+    },
+    "90": {
+        "logID": "6",
+        "__version__": "1.0.0",
+        "logSource": "",
+        "hostname": "",
+        "log": "type=SERVICE_START msg=audit(1642723752.624:381): pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=phpsessionclean comm=\"systemd\" exe=\"/lib/systemd/systemd\" hostname=? addr=? terminal=? res=success'"
+    },
+    "91": {
+        "logID": "7",
+        "__version__": "1.0.0",
+        "logSource": "",
+        "hostname": "",
+        "log": "type=SERVICE_STOP msg=audit(1642723752.624:382): pid=1 uid=0 auid=4294967295 ses=4294967295 msg='unit=phpsessionclean comm=\"systemd\" exe=\"/lib/systemd/systemd\" hostname=? addr=? terminal=? res=success'"
+    },
+    "92": {
+        "logID": "8",
+        "__version__": "1.0.0",
+        "logSource": "",
+        "hostname": "",
+        "log": "type=USER_ACCT msg=audit(1642724221.094:383): pid=10197 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'"
+    },
+    "93": {
+        "logID": "9",
+        "__version__": "1.0.0",
+        "logSource": "",
+        "hostname": "",
+        "log": "type=CRED_ACQ msg=audit(1642724221.098:384): pid=10197 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:setcred acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'"
+    },
+    "94": {
+        "logID": "10",
+        "__version__": "1.0.0",
+        "logSource": "",
+        "hostname": "",
+        "log": "type=LOGIN msg=audit(1642724221.098:385): pid=10197 uid=0 old-auid=4294967295 auid=0 tty=(none) old-ses=4294967295 ses=66 res=1"
+    },
+    "95": {
+        "logID": "11",
+        "__version__": "1.0.0",
+        "logSource": "",
+        "hostname": "",
+        "log": "type=USER_START msg=audit(1642724221.102:386): pid=10197 uid=0 auid=0 ses=66 msg='op=PAM:session_open acct=\"root\" exe=\"/usr/sbin/cron\" hostname=? addr=? terminal=cron res=success'"
+    }
+}

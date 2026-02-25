@@ -1,6 +1,7 @@
 from typing import Any
 
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
+from detectmatelibrary.helper.from_to import From
 from detectmatelibrary import schemas
 
 
@@ -43,3 +44,12 @@ class CustomParser(CoreParser):
         output_["EventID"] = 2  # Number of the log template
         output_["variables"].extend(["dummy_variable"])  # Variables found in the log
         output_["template"] = "This is a dummy template"  # Log template
+
+
+if __name__ == "__main__":
+
+    print(parser := CustomParser())
+
+    print("Running with data...")
+    for parsed_log in From.json(parser, "../data.json"):
+        print(parsed_log)
