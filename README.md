@@ -89,6 +89,7 @@ workspaces/custom_parser/          # workspace root
 │   └── custom_parser.py           # CoreParser-based template
 ├── tests/
 │   └── test_custom_parser.py      # generated from template to test custom_parser
+├── data.json                      # example data to run the code
 ├── LICENSE.md                     # copied from main project
 ├── .gitignore                     # copied from main project
 ├── .pre-commit-config.yaml        # copied from main project
