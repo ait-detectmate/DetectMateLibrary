@@ -33,7 +33,7 @@ for i, log in enumerate(From.log(parser, "audit.log", do_process=False)):
 
 ```
 
-The `logs.json` will save logs in this format:
+The logs will be save in `lgos.json` in this format:
 
 ```json
 {
@@ -87,5 +87,69 @@ And the `parsed_log.json`:
 ```
 
 ## Detector
+
+In this example, we will use the [`RandomDetector`](detectors/random_detector.md) with the parsed logs from the previous example.
+
+```python
+from detectmatelibrary.parsers.template_matcher import MatcherParser
+from detectmatelibrary.helper.from_to import From, To, FromTo
+
+config_dict = {
+    "detectors": {
+        "RandomDetector": {
+            "auto_config": False,
+            "method_type": "random_detector",
+            "params": {},
+            "events": {
+                1: {
+                    "test": {
+                        "params": {},
+                        "variables": [{
+                            "pos": 0,
+                            "name": "process",
+                            "params": {
+                                "threshold": 0.
+                            }
+                        }]
+                    }
+                }
+            }
+        }
+    }
+}
+detector =  RandomDetector(name="RandomDetector", config=config_dict)
+
+for alert in FromTo.json2json(detector, "parsed_log.json", "alerts.json"):
+    if alert is not None:
+        print("Anomaly detected!")
+```
+
+The alerts will be save in `alerts.json` in this format:
+
+```json
+{
+    "0": {
+        "extractedTimestamps": [
+            1642723752
+        ],
+        "receivedTimestamp": 1772032073,
+        "score": 1.0,
+        "detectionTimestamp": 1772032073,
+        "alertID": "10",
+        "detectorType": "random_detector",
+        "detectorID": "RandomDetector",
+        "description": "",
+        "__version__": "1.0.0",
+        "logIDs": [
+            "6"
+        ],
+        "alertsObtain": {
+            "process": "1.0"
+        }
+    },
+...
+}
+```
+
 
 Go back to [Index](index.md), to previous step: [Installation](installation.md) or to next step: [Create new component](create_components.md).
