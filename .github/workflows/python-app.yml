@@ -5,7 +5,7 @@ name: Python application
 
 on:
   push:
-    branches: [ "main", "development" ]
+    branches: [ "main", "development"]
   pull_request:
 
 permissions:
@@ -23,9 +23,6 @@ jobs:
           activate-environment: true
           enable-cache: true
 
-      - name: Force shared uv virtual environment
-        run: echo "UV_PROJECT_ENVIRONMENT=$GITHUB_WORKSPACE/.venv" >> $GITHUB_ENV
-
       - name: Set timezone
         run: sudo timedatectl set-timezone Europe/Vienna
 
@@ -35,25 +32,11 @@ jobs:
       - name: Test with pytest
         run: uv run --dev pytest -s
 
-      # include following code into the run section to match DetectMateService and DetectMateLibrary branches, if the name matches.
-      # REPO_URL="https://github.com/ait-detectmate/DetectMateService.git"
-      # elif git ls-remote --heads "$REPO_URL" "$CURRENT_BRANCH" | grep -q .; then
-      #   echo "SERVICE_BRANCH=$CURRENT_BRANCH" >> $GITHUB_ENV
-      - name: Resolve DetectMateService branch
-        run: |
-          CURRENT_BRANCH="${{ github.ref_name }}"
-          if [ "$CURRENT_BRANCH" = "main" ]; then
-            echo "SERVICE_BRANCH=main" >> $GITHUB_ENV
-          else
-            echo "SERVICE_BRANCH=development" >> $GITHUB_ENV
-          fi
-
       # integration tests for DetectMateService
       - name: Checkout DetectMateService
         uses: actions/checkout@v4
         with:
           repository: ait-detectmate/DetectMateService
-          ref: ${{ env.SERVICE_BRANCH }}
           path: DetectMateService
 
       - name: Prepare DetectMateService (using local DetectMateLibrary)

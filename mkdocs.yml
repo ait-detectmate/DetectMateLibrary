@@ -1,0 +1,30 @@
+site_name: DetectMate Library
+site_url: https://ait-detectmate.github.io/DetectMateLibrary/
+
+theme:
+  name: readthedocs
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Installation: installation.md
+    - Basic usage: basic_usage.md
+    - Create new component: create_components.md
+    - Implement new component: implement_components.md
+  - Components:
+    - Overall architecture: overall_architecture.md
+    - Schemas: schemas.md
+    - Parsers: parsers.md
+    - Detectors: detectors.md
+  - Parsers Methods:
+    - Template Matcher: parsers/template_matcher.md
+    - Json Parser: parsers/json_parser.md
+  - Detectors Methods:
+    - Random Detector: detectors/random_detector.md
+    - New Value: detectors/new_value.md
+    - Combo Detector: detectors/combo.md
+  - Auxiliar:
+    - Persistency: auxiliar/persistency.md
+    - Data buffer: auxiliar/input_buffer.md
+  - Helpers:
+    - From to: helper/from_to.md

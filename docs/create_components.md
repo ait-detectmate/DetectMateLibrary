@@ -1,57 +1,5 @@
-# DetectMateLibrary
 
-Main library to run the different components in DetectMate.
-
-## Main structure
-
-The library contains the next components:
-
-* **Parsers**: parse the logs receive from the reader.
-* **Detectors**: return alerts if anomalies are detected.
-* **Schemas**: standard data classes use in DetectMate.
-```
- +--------+     +-----------+
- | Parser | --> |  Detector |
- +--------+     +-----------+
-```
-## Developer setup:
-
-### Step 1: Install python dependencies
-Set up the dev environment and install pre-commit hooks:
-
-```bash
-uv sync --dev
-uv run prek install
-```
-
-### Step 2: Install Protobuf dependencies
-
-To install in Linux do:
-
-```bash
-sudo apt install -y protobuf-compiler
-protoc --version
-```
-
-This dependency is only needed if a proto file is modified. To compile the proto file do:
-```bash
-protoc --proto_path=src/detectmatelibrary/schemas/ --python_out=src/detectmatelibrary/schemas/ src/detectmatelibrary/schemas/schemas.proto
-```
-
-### Step 3: Run unit tests
-Run the tests:
-
-```bash
-uv run pytest -q
-```
-
-Run the tests with coverage (add --cov-report=html to generate an HTML report):
-
-```bash
-uv run pytest --cov=. --cov-report=term-missing
-```
-
-## Workspace generator (`mate create`)
+# Getting started:  Create new component
 
 DetectMateLibrary includes a small CLI helper to bootstrap standalone workspaces
 for custom parsers and detectors. This is useful if you want to develop and test
@@ -95,3 +43,8 @@ workspaces/custom_parser/          # workspace root
 ├── pyproject.toml                 # minimal project + dev extras
 └── README.md                      # setup instructions
 ```
+
+
+
+
+Go back to [Index](index.md), to previous step: [Basic usage](basic_usage.md) or to next step: [Implement new component](implement_components.md).
