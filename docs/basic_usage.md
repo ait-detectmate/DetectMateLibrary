@@ -33,7 +33,7 @@ for i, log in enumerate(From.log(parser, "audit.log", do_process=False)):
 
 ```
 
-The logs will be save in `lgos.json` in this format:
+The logs will be save in `logs.json` in this format:
 
 ```json
 {
