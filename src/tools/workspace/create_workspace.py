@@ -65,6 +65,7 @@ def create_tests(type_: str, name: str, workspace_root: Path, pkg_name: str) -> 
     # replace the remaining occurrences of CustomParser/CustomDetector
     # with the new class name (inside the tests)
     content = content.replace(base_class, new_class)
+    content = content.replace(f"custom_{type_}", f"{name}_{type_}")
     content = content.rstrip() + "\n"
 
     test_file.write_text(content)
@@ -110,6 +111,7 @@ def create_workspace(type_: str, name: str, target_dir: Path) -> None:
         original_class = f"Custom{type_.capitalize()}"
         new_class = camelize(name)
         template_content = template_content.replace(original_class, new_class)
+        template_content = template_content.replace(f"custom_{type_}", f"{name}_{type_}")
 
         target_code_file.write_text(template_content)
 
