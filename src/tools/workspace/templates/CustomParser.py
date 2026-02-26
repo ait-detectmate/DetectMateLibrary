@@ -51,5 +51,5 @@ if __name__ == "__main__":
     print(parser := CustomParser())
 
     print("Running with data...")
-    for parsed_log in From.json(parser, "../data.json"):
+    for parsed_log in From.json(parser, "data.json"):
         print(parsed_log)

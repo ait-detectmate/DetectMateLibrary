@@ -62,5 +62,5 @@ if __name__ == "__main__":
     print(detector := CustomDetector())
 
     print("Running with data...")
-    for alerts in From.json(detector, "../data.json"):
+    for alerts in From.json(detector, "data.json"):
         print(alerts)
