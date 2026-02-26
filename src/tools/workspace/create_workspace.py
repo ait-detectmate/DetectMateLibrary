@@ -65,7 +65,7 @@ def create_tests(type_: str, name: str, workspace_root: Path, pkg_name: str) -> 
     # replace the remaining occurrences of CustomParser/CustomDetector
     # with the new class name (inside the tests)
     content = content.replace(base_class, new_class)
-    content = content.replace(f"custom_{type_}", f"{name}_{type_}")
+    content = content.replace(f'"custom_{type_}"', f'"{name}_{type_}"')
     content = content.rstrip() + "\n"
 
     test_file.write_text(content)
