@@ -100,10 +100,10 @@ def create_readme(name: str, ws_type: str, target_impl: Path, target_dir: Path) 
         python -m pytest
         ```
 
-        For more info about DetectMate Service, see https://github.com/ait-detectmate/DetectMateService.
+        For more information check the official documentation:
 
-        Make sure you run this command from within the virtual environment where you installed
-        this workspace (e.g. after `uv venv && source .venv/bin/activate`).
+        * [DetectMateLibrary](https://ait-detectmate.github.io/DetectMateLibrary/latest/)
+        * [DetectMateService](https://ait-detectmate.github.io/DetectMateService/latest/)
         """
     ).strip() + "\n"
 
