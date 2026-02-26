@@ -113,7 +113,6 @@ def test_create_workspace_with_dash_name(temp_dir: Path):
 
     # check that the generated test imports use the normalized names
     content = test_file.read_text()
-    print(content)
     assert f"from {pkg_name}.{module_name} import " in content
 
 

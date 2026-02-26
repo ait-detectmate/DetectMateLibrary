@@ -10,7 +10,6 @@ nav:
     - Installation: installation.md
     - Basic usage: basic_usage.md
     - Create new component: create_components.md
-    - Implement new component: implement_components.md
   - Components:
     - Overall architecture: overall_architecture.md
     - Schemas: schemas.md
