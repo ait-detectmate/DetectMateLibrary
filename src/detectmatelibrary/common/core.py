@@ -119,7 +119,7 @@ class CoreComponent:
             logger.info(f"<<{self.name}>> returns None")
             return None
 
-        logger.info(f"<<{self.name}>> processed:\n{output_}")
+        logger.debug(f"<<{self.name}>> processed:\n{output_}")
         return SchemaPipeline.postprocess(output_, is_byte=is_byte)
 
     def get_config(self) -> Dict[str, Any]:

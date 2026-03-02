@@ -27,7 +27,6 @@ def create_readme(name: str, ws_type: str, target_impl: Path, target_dir: Path) 
         target_dir (Path): Directory where the README will be created.
     """
     # Import path to the implementation module, e.g. "MyCoolThing.MyCoolThing"
-    impl_module = f"{target_dir.name}.{target_impl.stem}"
 
     readme_text = textwrap.dedent(
         f"""
@@ -79,7 +78,7 @@ def create_readme(name: str, ws_type: str, target_impl: Path, target_dir: Path) 
 
         ```bash
         # Install Git hooks from .pre-commit-config.yaml using prek
-        prek install
+        uv sync
 
         # You can run all hooks on the full codebase with:
         # prek run --all-files
@@ -87,59 +86,24 @@ def create_readme(name: str, ws_type: str, target_impl: Path, target_dir: Path) 
 
         After this, hooks will run automatically on each commit.
 
-        ## Alternative setup (pip instead of uv)
-
-        If you prefer plain `pip`, you can set things up like this instead:
-
-        ```bash
-        cd <workspace-root>
-
-        # Create a virtual environment
-        python -m venv .venv
-
-        # Activate it
-        source .venv/bin/activate         # Linux/macOS
-        # .venv\\Scripts\\activate          # Windows
-
-        # Install the project in editable mode with dev dependencies
-        pip install -e .[dev]
-        ```
-
-        With `pip`, `prek` will still be available from the virtual environment,
-        and you can use the same `prek install` command to install hooks.
 
         ## Next steps
 
-        Open `{target_impl.name}` and implement your custom {ws_type}.
+        Open `{target_impl.name}` and implement your custom {ws_type}. Execute it with example data doing:
 
-        ## (Optional) Run it as a Service
+        ```python
+        python {target_impl.name.replace('.py', '')}/{target_impl.name}
+        ```
+        and run the custom unit tests doing:
 
-        You can run your {ws_type} as a Service using the DetectMateService, which is added as
-        an optional dependency in the `dev` extras.
-
-        For this, create a settings file (e.g., `service_settings.yaml`) in the workspace root,
-        which could look like this:
-
-        ```yaml
-        component_name: {name}
-        component_type: {impl_module}.{name}
-        component_config_class: {impl_module}.{name}Config
-        log_level: DEBUG
-        log_dir: ./logs
-        manager_addr: ipc:///tmp/{name.lower()}_cmd.ipc
-        engine_addr: ipc:///tmp/{name.lower()}_engine.ipc
+        ```python
+        python -m pytest
         ```
 
-        Then start your {ws_type} service with:
+        For more information check the official documentation:
 
-        ```bash
-        detectmate start --settings service_settings.yaml
-        ```
-
-        For more info about DetectMate Service, see https://github.com/ait-detectmate/DetectMateService.
-
-        Make sure you run this command from within the virtual environment where you installed
-        this workspace (e.g. after `uv venv && source .venv/bin/activate`).
+        * [DetectMateLibrary](https://ait-detectmate.github.io/DetectMateLibrary/latest/)
+        * [DetectMateService](https://ait-detectmate.github.io/DetectMateService/latest/)
         """
     ).strip() + "\n"
 
