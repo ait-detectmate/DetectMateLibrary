@@ -94,7 +94,7 @@ def create_readme(name: str, ws_type: str, target_impl: Path, target_dir: Path) 
         ```python
         python {target_impl.name.replace('.py', '')}/{target_impl.name}
         ```
-        and run the custom unitests doing:
+        and run the custom unit tests doing:
 
         ```python
         python -m pytest
