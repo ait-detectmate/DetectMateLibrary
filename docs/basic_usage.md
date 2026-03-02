@@ -124,7 +124,7 @@ for alert in FromTo.json2json(detector, "parsed_log.json", "alerts.json"):
         print("Anomaly detected!")
 ```
 
-The alerts will be save in `alerts.json` in this format:
+The alerts will be saved in `alerts.json` in this format:
 
 ```json
 {
