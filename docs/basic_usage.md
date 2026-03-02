@@ -5,7 +5,7 @@ In this section, we will show different examples of the basic usage of the Detec
 
 ## Parser
 
-In this example, we will use the [`MatcherParser`](parsers/template_matcher.md) to parser audit data from the [AIT Log Data Set V2.0](https://zenodo.org/records/5789064). The code loads the logs, parse them and save the input and output in json files using [`from_to`](helper/from_to.md) module.
+In this example, we will use the [`MatcherParser`](parsers/template_matcher.md) to parse audit data from the [AIT Log Data Set V2.0](https://zenodo.org/records/5789064). The code loads the logs, parse them and save the input and output in json files using [`from_to`](helper/from_to.md) module.
 
 ```python
 from detectmatelibrary.parsers.template_matcher import MatcherParser
