@@ -95,14 +95,17 @@ class NewValueComboDetector(CoreDetector):
         combo_dict = get_combo(configured_variables)
 
         overall_score = 0.0
-        for event_id, event_tracker in self.persistency.get_events_data().items():
+        current_event_id = input_["EventID"]
+        known_events = self.persistency.get_events_data()
+
+        if current_event_id in known_events:
+            event_tracker = known_events[current_event_id]
             for combo_key, multi_tracker in event_tracker.get_data().items():
-                # Get the value tuple for this combo key
                 value_tuple = combo_dict.get(combo_key)
                 if value_tuple is None:
                     continue
                 if value_tuple not in multi_tracker.unique_set:
-                    alerts[f"EventID {event_id}"] = (
+                    alerts[f"EventID {current_event_id} - {combo_key}"] = (
                         f"Unknown value combination: {value_tuple}"
                     )
                     overall_score += 1.0

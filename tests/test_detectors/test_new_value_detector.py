@@ -9,6 +9,8 @@ This module tests the NewValueDetector implementation including:
 """
 
 from detectmatelibrary.detectors.new_value_detector import NewValueDetector, BufferMode
+from detectmatelibrary.parsers.template_matcher import MatcherParser
+from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
 
 from detectmatelibrary.utils.aux import time_test_mode
@@ -188,3 +190,46 @@ class TestNewValueDetectorDetection:
 
         assert result
         assert output.score == 1.0
+
+
+_PARSER_CONFIG = {
+    "parsers": {
+        "MatcherParser": {
+            "method_type": "matcher_parser",
+            "auto_config": False,
+            "log_format": "type=<Type> msg=audit\\(<Time>\\): <Content>",
+            "time_format": None,
+            "params": {
+                "remove_spaces": True,
+                "remove_punctuation": True,
+                "lowercase": True,
+                "path_templates": "tests/test_folder/audit_templates.txt",
+            },
+        }
+    }
+}
+
+
+class TestNewValueDetectorEndToEnd:
+    """Regression test: full configure/train/detect pipeline on audit.log."""
+
+    def test_audit_log_anomalies(self):
+        parser = MatcherParser(config=_PARSER_CONFIG)
+        detector = NewValueDetector()
+
+        logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
+
+        for log in logs[:1800]:
+            detector.configure(log)
+        detector.set_configuration()
+
+        for log in logs[:1800]:
+            detector.train(log)
+
+        detected_ids: set[str] = set()
+        for log in logs[1800:]:
+            output = schemas.DetectorSchema()
+            if detector.detect(log, output_=output):
+                detected_ids.add(log["logID"])
+
+        assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
