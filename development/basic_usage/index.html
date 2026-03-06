@@ -50,11 +50,13 @@
                   </li>
                   <li class="toctree-l1 current"><a class="reference internal current" href="#">Basic usage</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#parser">Parser</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#detector">Detector</a>
+    </li>
     </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../create_components/">Create new component</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../implement_components/">Implement new component</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Components</span></p>
@@ -121,7 +123,139 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="getting-started-basic-usage">Getting started:  Basic usage</h1>
-<p>Basic usage of the DetectMate Library.</p>
+<p>In this section, we will show different examples of the basic usage of the DetectMate Library.</p>
+<h2 id="parser">Parser</h2>
+<p>In this example, we will use the <a href="../parsers/template_matcher/"><code>MatcherParser</code></a> to parse audit data from the <a href="https://zenodo.org/records/5789064">AIT Log Data Set V2.0</a>. The code loads the logs, parse them and save the input and output in json files using <a href="../helper/from_to/"><code>from_to</code></a> module.</p>
+<pre><code class="language-python">from detectmatelibrary.parsers.template_matcher import MatcherParser
+from detectmatelibrary.helper.from_to import From, To
+
+
+config_dict = {
+    &quot;parsers&quot;: {
+        &quot;MatcherParser&quot;: {
+            &quot;auto_config&quot;: True,
+            &quot;method_type&quot;: &quot;matcher_parser&quot;,
+            &quot;path_templates&quot;: &quot;ait_audit.txt&quot;,
+            &quot;log_format&quot;: r'type=&lt;Type&gt; msg=audit\(&lt;Time&gt;:&lt;Serial&gt;\): &lt;Content&gt;'
+        }
+    }
+}
+parser = MatcherParser(name=&quot;MatcherParser&quot;, config=config_dict)
+
+
+for i, log in enumerate(From.log(parser, &quot;audit.log&quot;, do_process=False)):
+    To.json(log, &quot;logs.json&quot;)
+
+    parsed_log = parser.process(log)
+    To.json(parsed_log, &quot;parsed_log.json&quot;)
+
+</code></pre>
+<p>The logs will be saved in <code>logs.json</code> in this format:</p>
+<pre><code class="language-json">{
+&quot;0&quot;: {
+        &quot;log&quot;: &quot;type=USER_ACCT msg=audit(1642723741.072:375): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\&quot;root\&quot; exe=\&quot;/usr/sbin/cron\&quot; hostname=? addr=? terminal=cron res=success'&quot;,
+        &quot;__version__&quot;: &quot;1.0.0&quot;,
+        &quot;hostname&quot;: &quot;&quot;,
+        &quot;logSource&quot;: &quot;&quot;,
+        &quot;logID&quot;: &quot;0&quot;
+    },
+...
+}
+</code></pre>
+<p>And the <code>parsed_log.json</code>:</p>
+<pre><code class="language-json">{
+    &quot;0&quot;: {
+        &quot;parserID&quot;: &quot;MatcherParser&quot;,
+        &quot;parsedLogID&quot;: &quot;10&quot;,
+        &quot;logID&quot;: &quot;0&quot;,
+        &quot;parsedTimestamp&quot;: 1772027171,
+        &quot;logFormatVariables&quot;: {
+            &quot;Type&quot;: &quot;USER_ACCT&quot;,
+            &quot;Serial&quot;: &quot;375&quot;,
+            &quot;Time&quot;: &quot;1642723741.072&quot;,
+            &quot;Content&quot;: &quot;pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\&quot;root\&quot; exe=\&quot;/usr/sbin/cron\&quot; hostname=? addr=? terminal=cron res=success'&quot;
+        },
+        &quot;__version__&quot;: &quot;1.0.0&quot;,
+        &quot;receivedTimestamp&quot;: 1772027171,
+        &quot;variables&quot;: [
+            &quot;10125&quot;,
+            &quot;0&quot;,
+            &quot;4294967295&quot;,
+            &quot;4294967295&quot;,
+            &quot;PAM:accounting&quot;,
+            &quot;\&quot;root\&quot;&quot;,
+            &quot;\&quot;/usr/sbin/cron\&quot;&quot;,
+            &quot;?&quot;,
+            &quot;?&quot;,
+            &quot;cron&quot;,
+            &quot;success&quot;
+        ],
+        &quot;log&quot;: &quot;type=USER_ACCT msg=audit(1642723741.072:375): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\&quot;root\&quot; exe=\&quot;/usr/sbin/cron\&quot; hostname=? addr=? terminal=cron res=success'&quot;,
+        &quot;parserType&quot;: &quot;matcher_parser&quot;,
+        &quot;EventID&quot;: 0,
+        &quot;template&quot;: &quot;pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='op=&lt;*&gt; acct=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;'&quot;
+    },
+...
+}
+</code></pre>
+<h2 id="detector">Detector</h2>
+<p>In this example, we will use the <a href="../detectors/random_detector/"><code>RandomDetector</code></a> with the parsed logs from the previous example.</p>
+<pre><code class="language-python">from detectmatelibrary.parsers.template_matcher import MatcherParser
+from detectmatelibrary.helper.from_to import From, To, FromTo
+
+config_dict = {
+    &quot;detectors&quot;: {
+        &quot;RandomDetector&quot;: {
+            &quot;auto_config&quot;: False,
+            &quot;method_type&quot;: &quot;random_detector&quot;,
+            &quot;params&quot;: {},
+            &quot;events&quot;: {
+                1: {
+                    &quot;test&quot;: {
+                        &quot;params&quot;: {},
+                        &quot;variables&quot;: [{
+                            &quot;pos&quot;: 0,
+                            &quot;name&quot;: &quot;process&quot;,
+                            &quot;params&quot;: {
+                                &quot;threshold&quot;: 0.
+                            }
+                        }]
+                    }
+                }
+            }
+        }
+    }
+}
+detector =  RandomDetector(name=&quot;RandomDetector&quot;, config=config_dict)
+
+for alert in FromTo.json2json(detector, &quot;parsed_log.json&quot;, &quot;alerts.json&quot;):
+    if alert is not None:
+        print(&quot;Anomaly detected!&quot;)
+</code></pre>
+<p>The alerts will be saved in <code>alerts.json</code> in this format:</p>
+<pre><code class="language-json">{
+    &quot;0&quot;: {
+        &quot;extractedTimestamps&quot;: [
+            1642723752
+        ],
+        &quot;receivedTimestamp&quot;: 1772032073,
+        &quot;score&quot;: 1.0,
+        &quot;detectionTimestamp&quot;: 1772032073,
+        &quot;alertID&quot;: &quot;10&quot;,
+        &quot;detectorType&quot;: &quot;random_detector&quot;,
+        &quot;detectorID&quot;: &quot;RandomDetector&quot;,
+        &quot;description&quot;: &quot;&quot;,
+        &quot;__version__&quot;: &quot;1.0.0&quot;,
+        &quot;logIDs&quot;: [
+            &quot;6&quot;
+        ],
+        &quot;alertsObtain&quot;: {
+            &quot;process&quot;: &quot;1.0&quot;
+        }
+    },
+...
+}
+</code></pre>
 <p>Go back to <a href="../">Index</a>, to previous step: <a href="../installation/">Installation</a> or to next step: <a href="../create_components/">Create new component</a>.</p>
               
             </div>
