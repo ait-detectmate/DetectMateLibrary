@@ -11,7 +11,6 @@ List of steps to follow for new users of the library:
 * [Installation](installation.md): steps to install all the components need it.
 * [Basic usage](basic_usage.md): create a basic script with the different components.
 * [Create new component](create_components.md): guide to use the mate commands.
-* [Implement new component](implement_components.md): guide to implement your own component.
 
 ## Components
 
