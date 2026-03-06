@@ -125,3 +125,13 @@ class CoreDetector(CoreComponent):
         self, input_: ParserSchema | list[ParserSchema]  # type: ignore
     ) -> None:
         pass
+
+    @override
+    def configure(
+        self, input_: ParserSchema | list[ParserSchema]  # type: ignore
+    ) -> None:
+        pass
+
+    @override
+    def set_configuration(self) -> None:
+        pass

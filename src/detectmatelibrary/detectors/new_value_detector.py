@@ -82,7 +82,7 @@ class NewValueDetector(CoreDetector):
 
         return False
 
-    def configure(self, input_: ParserSchema) -> None:
+    def configure(self, input_: ParserSchema) -> None:  # type: ignore
         self.auto_conf_persistency.ingest_event(
             event_id=input_["EventID"],
             event_template=input_["template"],

@@ -120,7 +120,7 @@ class NewValueComboDetector(CoreDetector):
             return True
         return False
 
-    def configure(self, input_: ParserSchema) -> None:
+    def configure(self, input_: ParserSchema) -> None:  # type: ignore
         """Configure the detector based on the stability of individual
         variables, then learn value combinations based on that
         configuration."""
