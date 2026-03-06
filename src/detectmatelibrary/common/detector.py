@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from detectmatelibrary.common._config._formats import EventsConfig
 from detectmatelibrary.common.core import CoreComponent, CoreConfig
 
@@ -14,8 +16,26 @@ def _extract_timestamp(
     input_: List[ParserSchema] | ParserSchema
 ) -> List[int]:
     def format_time(time: str) -> int:
-        time_ = time.split(":")[0]
-        return int(float(time_))
+        # try Unix timestamp first 
+        try:
+            return int(float(time))
+        except ValueError:
+            pass
+        
+        # human-readable formats
+        formats = [
+            "%d/%b/%Y:%H:%M:%S %z",    # 04/Mar/2026:14:18:00 +0000
+            "%d/%b/%Y:%H:%M:%S",       # 04/Mar/2026:14:18:00
+            "%Y-%m-%dT%H:%M:%S%z",     # 2026-03-04T14:18:00+0000
+            "%Y-%m-%d %H:%M:%S",       # 2026-03-04 14:18:00
+        ]
+        for format in formats:
+            try:
+                return int(datetime.strptime(time, format).timestamp())
+            except ValueError:
+                continue
+        
+        raise ValueError(f"Unrecognised time format: '{time}'")
 
     if not isinstance(input_, list):
         input_ = [input_]
