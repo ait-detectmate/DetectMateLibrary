@@ -12,12 +12,11 @@ from typing_extensions import override
 from typing import Dict, List, Optional, Any
 
 
-
 def _extract_timestamp(
     input_: List[ParserSchema] | ParserSchema
 ) -> List[int]:
     def format_time(time: str) -> int:
-        #try Unix timestamp first 
+        # try Unix timestamp first 
         try:
             return int(float(time))
         except ValueError:
