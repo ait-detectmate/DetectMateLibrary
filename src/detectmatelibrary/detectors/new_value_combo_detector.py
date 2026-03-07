@@ -1,7 +1,12 @@
 from detectmatelibrary.common._config import generate_detector_config
-from detectmatelibrary.common._config._formats import EventsConfig
+from detectmatelibrary.common._config._formats import EventsConfig, _EventInstance
 
-from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector, get_configured_variables
+from detectmatelibrary.common.detector import (
+    CoreDetectorConfig,
+    CoreDetector,
+    get_configured_variables,
+    get_global_variables
+)
 
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
@@ -10,6 +15,7 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
+from detectmatelibrary.constants import GLOBAL_EVENT_ID
 
 from typing import Any, Dict, Sequence, cast, Tuple
 from itertools import combinations
@@ -48,6 +54,7 @@ class NewValueComboDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_value_combo_detector"
 
     events: EventsConfig | dict[str, Any] = {}
+    global_instances: Dict[str, _EventInstance] = {}
     comb_size: int = 2
 
 
@@ -85,6 +92,14 @@ class NewValueComboDetector(CoreDetector):
             event_template=input_["template"],
             named_variables=configured_variables
         )
+        if config.global_instances:
+            global_vars = get_global_variables(input_, config.global_instances)
+            if global_vars:
+                self.persistency.ingest_event(
+                    event_id=GLOBAL_EVENT_ID,
+                    event_template=input_["template"],
+                    named_variables=global_vars
+                )
 
     def detect(
         self, input_: ParserSchema, output_: DetectorSchema  # type: ignore
@@ -108,6 +123,18 @@ class NewValueComboDetector(CoreDetector):
                     alerts[f"EventID {current_event_id} - {combo_key}"] = (
                         f"Unknown value combination: {value_tuple}"
                     )
+                    overall_score += 1.0
+
+        if config.global_instances and GLOBAL_EVENT_ID in known_events:
+            global_vars = get_global_variables(input_, config.global_instances)
+            global_combo_dict = get_combo(global_vars)
+            global_tracker = known_events[GLOBAL_EVENT_ID]
+            for combo_key, multi_tracker in global_tracker.get_data().items():
+                value_tuple = global_combo_dict.get(combo_key)
+                if value_tuple is None:
+                    continue
+                if value_tuple not in multi_tracker.unique_set:
+                    alerts[f"Global - {combo_key}"] = f"Unknown value combination: {value_tuple}"
                     overall_score += 1.0
 
         if overall_score > 0:
