@@ -35,7 +35,7 @@ import signal
 class TimeoutException(Exception):
     pass
 
-def timeout_handler(signum: int, frame: Optional[FrameType]) -> None:
+def timeout_handler(_signum: int, _frame: Optional[FrameType]) -> None:
     raise TimeoutException()
 
 def safe_search(pattern: str, string: str, timeout: float = 0.5) -> Optional[re.Match[str]]:

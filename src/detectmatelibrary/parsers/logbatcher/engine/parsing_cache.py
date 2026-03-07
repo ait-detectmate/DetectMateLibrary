@@ -38,7 +38,7 @@ import signal
 class TimeoutException(Exception):
     pass
 
-def timeout_handler(signum: int, frame: Optional[FrameType]) -> None:
+def timeout_handler(_signum: int, _frame: Optional[FrameType]) -> None:
     raise TimeoutException()
 
 def safe_search(pattern: str, string: str, timeout: int = 1) -> Optional[Match[str]]:
@@ -248,8 +248,8 @@ def post_process_tokens(tokens: List[str], punc: str) -> List[str]:
 
 
 def message_split(message: str) -> List[str]:
-    punc = "!\"#$%&'()+,-/;:=?@.[\]^_`{|}~"
-    splitters = "\s\\" + "\\".join(punc)
+    punc = "!\"#$%&'()+,-/;:=?@.[\\]^_`{|}~"
+    splitters = "\\s\\" + "\\".join(punc)
     splitter_regex = re.compile("([{}])".format(splitters))
     tokens = re.split(splitter_regex, message)
 

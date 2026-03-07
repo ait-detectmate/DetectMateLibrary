@@ -96,7 +96,7 @@ def generate_logformat_regex(logformat: str) -> Tuple[List[str], str]:
         regex = ''
         for k in range(len(splitters)):
             if k % 2 == 0:
-                splitter = re.sub(' +', '\\\s+', splitters[k])
+                splitter = re.sub(' +', r'\\s+', splitters[k])
                 regex += splitter
             else:
                 header = splitters[k].strip('<').strip('>')
