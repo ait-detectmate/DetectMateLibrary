@@ -25,15 +25,15 @@ class EventPersistency:
         *,
         event_data_kwargs: Optional[dict[str, Any]] = None,
     ):
-        self.events_data: Dict[int, EventDataStructure] = {}
+        self.events_data: Dict[int | str, EventDataStructure] = {}
         self.event_data_class = event_data_class
         self.event_data_kwargs = event_data_kwargs or {}
         self.variable_blacklist = variable_blacklist or []
-        self.event_templates: Dict[int, str] = {}
+        self.event_templates: Dict[int | str, str] = {}
 
     def ingest_event(
         self,
-        event_id: int,
+        event_id: int | str,
         event_template: str,
         variables: list[Any] = [],
         named_variables: Dict[str, Any] = {}
@@ -52,12 +52,12 @@ class EventPersistency:
         data = data_structure.to_data(all_variables)
         data_structure.add_data(data)
 
-    def get_event_data(self, event_id: int) -> Any | None:
+    def get_event_data(self, event_id: int | str) -> Any | None:
         """Retrieve the data for a specific event ID."""
         data_structure = self.events_data.get(event_id)
         return data_structure.get_data() if data_structure is not None else None
 
-    def get_events_data(self) -> Dict[int, EventDataStructure]:
+    def get_events_data(self) -> Dict[int | str, EventDataStructure]:
         """Retrieve the events data that is currently stored.
 
         Returns:
@@ -77,11 +77,11 @@ class EventPersistency:
         """
         return self.events_data
 
-    def get_event_template(self, event_id: int) -> str | None:
+    def get_event_template(self, event_id: int | str) -> str | None:
         """Retrieve the template for a specific event ID."""
         return self.event_templates.get(event_id)
 
-    def get_event_templates(self) -> Dict[int, str]:
+    def get_event_templates(self) -> Dict[int | str, str]:
         """Retrieve all event templates."""
         return self.event_templates
 
@@ -107,7 +107,7 @@ class EventPersistency:
         })
         return all_vars
 
-    def __getitem__(self, event_id: int) -> EventDataStructure | None:
+    def __getitem__(self, event_id: int | str) -> EventDataStructure | None:
         return self.events_data.get(event_id)
 
     def __repr__(self) -> str:

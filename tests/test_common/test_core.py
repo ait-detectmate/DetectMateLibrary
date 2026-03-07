@@ -27,7 +27,8 @@ default_args = {
     "comp_type": "default_type",
     "auto_config": False,
     "start_id": 10,
-    "data_use_training": None
+    "data_use_training": None,
+    "data_use_configure": None
 }
 
 
