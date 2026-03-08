@@ -3,6 +3,8 @@ from detectmatelibrary.detectors.new_value_combo_detector import (
     NewValueComboDetector, BufferMode
 )
 from detectmatelibrary.common._config import generate_detector_config
+from detectmatelibrary.parsers.template_matcher import MatcherParser
+from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
 
 from detectmatelibrary.utils.aux import time_test_mode
@@ -541,3 +543,46 @@ class TestNewValueComboDetectorEndToEnd:
         output = schemas.DetectorSchema()
         result = detector.detect(file_event, output)
         assert result is False
+
+
+_PARSER_CONFIG = {
+    "parsers": {
+        "MatcherParser": {
+            "method_type": "matcher_parser",
+            "auto_config": False,
+            "log_format": "type=<Type> msg=audit\\(<Time>\\): <Content>",
+            "time_format": None,
+            "params": {
+                "remove_spaces": True,
+                "remove_punctuation": True,
+                "lowercase": True,
+                "path_templates": "tests/test_folder/audit_templates.txt",
+            },
+        }
+    }
+}
+
+
+class TestNewValueComboDetectorEndToEndWithRealData:
+    """Regression test: full configure/train/detect pipeline on audit.log."""
+
+    def test_audit_log_anomalies(self):
+        parser = MatcherParser(config=_PARSER_CONFIG)
+        detector = NewValueComboDetector()
+
+        logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
+
+        for log in logs[:1800]:
+            detector.configure(log)
+        detector.set_configuration()
+
+        for log in logs[:1800]:
+            detector.train(log)
+
+        detected_ids: set[str] = set()
+        for log in logs[1800:]:
+            output = schemas.DetectorSchema()
+            if detector.detect(log, output_=output):
+                detected_ids.add(log["logID"])
+
+        print(detected_ids)

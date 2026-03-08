@@ -59,13 +59,17 @@ class NewValueDetector(CoreDetector):
         configured_variables = get_configured_variables(input_, self.config.events)
         overall_score = 0.0
 
-        for event_id, event_tracker in self.persistency.get_events_data().items():
-            for event_id, multi_tracker in event_tracker.get_data().items():
-                value = configured_variables.get(event_id)
+        current_event_id = input_["EventID"]
+        known_events = self.persistency.get_events_data()
+
+        if current_event_id in known_events:
+            event_tracker = known_events[current_event_id]
+            for var_name, multi_tracker in event_tracker.get_data().items():
+                value = configured_variables.get(var_name)
                 if value is None:
                     continue
                 if value not in multi_tracker.unique_set:
-                    alerts[f"EventID {event_id}"] = (
+                    alerts[f"EventID {current_event_id} - {var_name}"] = (
                         f"Unknown value: '{value}'"
                     )
                     overall_score += 1.0

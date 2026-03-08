@@ -44,6 +44,7 @@ def test_create_parser_workspace(temp_dir: Path):
     assert (workspace_root / ".gitignore").exists()
     assert (workspace_root / ".pre-commit-config.yaml").exists()
     assert (workspace_root / "README.md").exists()
+    assert (workspace_root / "data.json").exists()
 
     # Python files live in package directory
     py_files = list(pkg_dir.glob("*.py"))

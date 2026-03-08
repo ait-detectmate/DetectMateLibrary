@@ -58,7 +58,23 @@ class EventPersistency:
         return data_structure.get_data() if data_structure is not None else None
 
     def get_events_data(self) -> Dict[int, EventDataStructure]:
-        """Retrieve the events' data."""
+        """Retrieve the events data that is currently stored.
+
+        Returns:
+            A dictionary mapping event IDs to their corresponding EventDataStructure instances.
+
+            Example:
+            {
+                1: EventTracker(data={
+                    'var_0': SingleTracker(...),
+                    'var_1': SingleTracker(...),
+                }),
+                2: EventTracker(data={
+                    'var_0': SingleTracker(...)
+                }),
+                ...
+            }
+        """
         return self.events_data
 
     def get_event_template(self, event_id: int) -> str | None:
