@@ -1,9 +1,10 @@
 from detectmatelibrary.common.detector import _extract_timestamp
 import detectmatelibrary.schemas as schemas
 
-class TestCoreDetector:    
+class TestCoreDetector:
     def test_various_time_formats(self) -> None:
-            """Test that _extract_timestamp handles a wide range of realistic time formats."""
+            """Test that _extract_timestamp handles a wide range of realistic
+            time formats."""
             dummy_schema = {
                 "parserType": "a",
                 "EventID": 0,
@@ -22,7 +23,7 @@ class TestCoreDetector:
                 ("0",                           0),
                 ("1772812294",                  1772812294),
                 ("1772812294.5",                1772812294),
-                # Apache/nginx format 
+                # Apache/nginx format
                 ("04/Mar/2026:14:18:00 +0000",  EXPECTED_UTC),
                 ("04/Mar/2026:14:18:00",        EXPECTED_UTC),
                 # ISO 8601 formats
@@ -45,7 +46,7 @@ class TestCoreDetector:
                 ("Wednesday, March 4, 2026 14:18:00", EXPECTED_UTC),
             ]
 
-            
+
 
             for time_str, expected in test_cases:
                 schema = schemas.ParserSchema({**dummy_schema, "logFormatVariables": {"Time": time_str}})
