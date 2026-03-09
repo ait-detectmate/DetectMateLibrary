@@ -18,7 +18,7 @@ def _extract_timestamp(
     def format_time(time: str) -> int:
         # try Unix timestamp first
         try:
-            return int(float(time))
+            return int(float(time.split(":")[0]))
         except ValueError:
             pass
 
