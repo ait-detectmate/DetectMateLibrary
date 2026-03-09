@@ -2,6 +2,7 @@ from typing import Any, List
 
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 from detectmatelibrary.utils.data_buffer import BufferMode
+from detectmatelibrary.helper.from_to import From
 from detectmatelibrary import schemas
 
 
@@ -54,3 +55,12 @@ class CustomDetector(CoreDetector):
             output_["alertsObtain"]["type"] = "Anomaly detected by CustomDetector"  # Additional info
 
         return result
+
+
+if __name__ == "__main__":
+
+    print(detector := CustomDetector())
+
+    print("Running with data...")
+    for alerts in From.json(detector, "data.json"):
+        print(alerts)

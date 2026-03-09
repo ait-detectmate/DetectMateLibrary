@@ -201,7 +201,7 @@ _PARSER_CONFIG = {
         "MatcherParser": {
             "method_type": "matcher_parser",
             "auto_config": False,
-            "log_format": "type=<Type> msg=audit\\(<Time>\\): <Content>",
+            "log_format": "type=<Type> msg=audit(<Time>): <Content>",
             "time_format": None,
             "params": {
                 "remove_spaces": True,
