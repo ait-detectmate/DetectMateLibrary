@@ -16,12 +16,12 @@ def _extract_timestamp(
     input_: List[ParserSchema] | ParserSchema
 ) -> List[int]:
     def format_time(time: str) -> int:
-        # try Unix timestamp first 
+        # try Unix timestamp first
         try:
             return int(float(time))
         except ValueError:
             pass
-        
+
         # human-readable formats
         formats = [
             "%d/%b/%Y:%H:%M:%S %z",    # 04/Mar/2026:14:18:00 +0000
@@ -34,7 +34,7 @@ def _extract_timestamp(
                 return int(datetime.strptime(time, format).timestamp())
             except ValueError:
                 continue
-        
+
         raise ValueError(f"Unrecognised time format: '{time}'")
 
     if not isinstance(input_, list):
