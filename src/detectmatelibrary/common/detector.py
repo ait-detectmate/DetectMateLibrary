@@ -14,6 +14,7 @@ from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 
 _time_handler = TimeFormatHandler()
 
+
 def _extract_timestamp(
     input_: List[ParserSchema] | ParserSchema
 ) -> List[int]:
