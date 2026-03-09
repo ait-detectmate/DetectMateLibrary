@@ -1,4 +1,4 @@
-from detectmatelibrary.common.core import CoreConfig, CoreComponent, TrainState
+from detectmatelibrary.common.core import CoreConfig, CoreComponent, TrainState, ConfigState
 from detectmatelibrary.common._config import BasicConfig
 
 from detectmatelibrary.utils.data_buffer import ArgsBuffer
@@ -50,6 +50,54 @@ class MockComponentWithTraining(CoreComponent):
         self.train_data.append(input_)
 
     def run(self, input_, output_) -> None:
+        return False
+
+
+class MockConfigWithConfigure(CoreConfig):
+    thresholds: float = 0.7
+    max_iter: int = 50
+    data_use_configure: int | None = 3
+
+
+class MockComponentWithConfigure(CoreComponent):
+    def __init__(
+        self, name: str, config: MockConfigWithConfigure = MockConfigWithConfigure()
+    ) -> None:
+        super().__init__(
+            name=name, type_="Dummy", config=config, input_schema=schemas.LogSchema
+        )
+        self.configure_data: list = []
+        self.set_configuration_called: int = 0
+
+    def configure(self, input_) -> None:
+        self.configure_data.append(input_)
+
+    def set_configuration(self) -> None:
+        self.set_configuration_called += 1
+
+    def run(self, input_, output_) -> bool:
+        return False
+
+
+class MockComponentWithConfigureAndTraining(CoreComponent):
+    def __init__(self, name: str, config: CoreConfig = CoreConfig()) -> None:
+        super().__init__(
+            name=name, type_="Dummy", config=config, input_schema=schemas.LogSchema
+        )
+        self.configure_data: list = []
+        self.train_data: list = []
+        self.set_configuration_called: int = 0
+
+    def configure(self, input_) -> None:
+        self.configure_data.append(input_)
+
+    def set_configuration(self) -> None:
+        self.set_configuration_called += 1
+
+    def train(self, input_) -> None:
+        self.train_data.append(input_)
+
+    def run(self, input_, output_) -> bool:
         return False
 
 
@@ -217,3 +265,67 @@ class TestCoreComponent:
             )
 
         assert len(component.train_data) == 10
+
+    def _make_log(self, i: int) -> schemas.LogSchema:
+        return schemas.LogSchema({
+            "__version__": "1.0.0",
+            "logID": str(i),
+            "logSource": "test",
+            "hostname": "test_hostname"
+        })
+
+    def test_configuration(self) -> None:
+        component = MockComponentWithConfigure(name="DummyCfg1")
+
+        results = [component.process(self._make_log(i)) for i in range(10)]
+
+        assert component.data_used_configure == 3
+        assert len(component.configure_data) == 3
+        assert all(r is None for r in results[:3])
+        assert component.set_configuration_called == 1
+
+    def test_configuration_returns_none_during_configure(self) -> None:
+        component = MockComponentWithConfigure(name="DummyCfg2")
+
+        results = [component.process(self._make_log(i)) for i in range(3)]
+
+        assert all(r is None for r in results)
+
+    def test_configuration_force_stop(self) -> None:
+        component = MockComponentWithConfigure(name="DummyCfg3")
+        component.configure_state = ConfigState.STOP_CONFIGURE
+
+        for i in range(10):
+            component.process(self._make_log(i))
+
+        assert len(component.configure_data) == 0
+        assert component.set_configuration_called == 0
+
+    def test_configuration_keep_configure(self) -> None:
+        component = MockComponentWithConfigure(name="DummyCfg4")
+        component.configure_state = ConfigState.KEEP_CONFIGURE
+
+        for i in range(10):
+            component.process(self._make_log(i))
+
+        assert len(component.configure_data) == 10
+        assert component.set_configuration_called == 0
+
+    def test_configuration_before_training(self) -> None:
+        config = CoreConfig(data_use_configure=2, data_use_training=3)
+        component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
+
+        for i in range(10):
+            component.process(self._make_log(i))
+
+        assert len(component.configure_data) == 2
+        assert len(component.train_data) == 3
+        assert component.set_configuration_called == 1
+
+    def test_set_configuration_called_once(self) -> None:
+        component = MockComponentWithConfigure(name="DummyCfg6")
+
+        for i in range(component.config.data_use_configure + 5):  # type: ignore[operator]
+            component.process(self._make_log(i))
+
+        assert component.set_configuration_called == 1

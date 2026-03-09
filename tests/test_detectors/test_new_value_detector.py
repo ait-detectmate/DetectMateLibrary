@@ -11,6 +11,7 @@ This module tests the NewValueDetector implementation including:
 from detectmatelibrary.detectors.new_value_detector import (
     NewValueDetector, NewValueDetectorConfig, BufferMode
 )
+from detectmatelibrary.common.core import ConfigState, TrainState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
@@ -233,6 +234,39 @@ class TestNewValueDetectorEndToEnd:
         for log in logs[1800:]:
             output = schemas.DetectorSchema()
             if detector.detect(log, output_=output):
+                detected_ids.add(log["logID"])
+
+        assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
+
+
+class TestNewValueDetectorAutoConfig:
+    """Test that process() drives configure/set_configuration/train/detect
+    automatically."""
+
+    def test_audit_log_anomalies_via_process(self):
+        parser = MatcherParser(config=_PARSER_CONFIG)
+        detector = NewValueDetector()
+
+        logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
+
+        # Phase 1: configure — keep configuring for logs[:1800]
+        detector.configure_state = ConfigState.KEEP_CONFIGURE
+        for log in logs[:1800]:
+            detector.process(log)
+
+        # Transition: stop configure so next process() call triggers set_configuration()
+        detector.configure_state = ConfigState.STOP_CONFIGURE
+
+        # Phase 2: train — keep training for logs[:1800]
+        detector.train_state = TrainState.KEEP_TRAINING
+        for log in logs[:1800]:
+            detector.process(log)
+
+        # Phase 3: detect — stop training so process() only calls detect()
+        detector.train_state = TrainState.STOP_TRAINING
+        detected_ids: set[str] = set()
+        for log in logs[1800:]:
+            if detector.process(log) is not None:
                 detected_ids.add(log["logID"])
 
         assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
