@@ -7,7 +7,7 @@ import json
 AUDIT_LOG = "tests/test_folder/audit.log"
 AUDIT_TEMPLATES = "tests/test_folder/audit_templates.txt"
 ANOMALY_LABELS = "tests/test_folder/audit_anomaly_labels.log"
-LOG_FORMAT = "type=<Type> msg=audit\\(<Time>\\): <Content>"
+LOG_FORMAT = "type=<Type> msg=audit(<Time>): <Content>"
 TRAIN_UNTIL = 1800
 
 
