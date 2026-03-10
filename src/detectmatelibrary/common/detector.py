@@ -52,6 +52,7 @@ def get_configured_variables(
     event_config = log_variables[event_id] if event_id in log_variables else None
     if event_config is None:
         return result
+   # print(event_id, event_config, log_variables)
 
     # Extract template variables by position
     if hasattr(event_config, "variables"):

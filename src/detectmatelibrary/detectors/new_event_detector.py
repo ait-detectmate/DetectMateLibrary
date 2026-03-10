@@ -15,7 +15,7 @@ from typing import Any
 
 
 class NewEventDetectorConfig(CoreDetectorConfig):
-    method_type: str = "new_value_detector"
+    method_type: str = "new_event_detector"
 
     events: EventsConfig | dict[str, Any] = {}
 
@@ -25,7 +25,7 @@ class NewEventDetector(CoreDetector):
 
     def __init__(
         self,
-        name: str = "NewValueDetector",
+        name: str = "NewEventDetector",
         config: NewEventDetectorConfig = NewEventDetectorConfig()
     ) -> None:
 
@@ -34,6 +34,7 @@ class NewEventDetector(CoreDetector):
 
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: NewEventDetectorConfig  # type narrowing for IDE
+        #print(self.config, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
         self.persistency = EventPersistency(
             event_data_class=EventStabilityTracker,
         )
@@ -45,6 +46,15 @@ class NewEventDetector(CoreDetector):
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by learning values from the input data."""
         configured_variables = get_configured_variables(input_, self.config.events)
+        #print(input_)
+        #print(self.config.events)
+        #print(input_["logFormatVariables"]["Type"], self.config.events)
+        d = self.config.events[input_["EventID"]]
+        #print("bbb", d)
+        #print("ccc", hasattr(d, "header_variables"), d.header_variables.keys())
+        #print("ccc", configured_variables)
+        configured_variables = {k: v for k, v in configured_variables.items() if k in d.header_variables}
+        print("conf", configured_variables)
         self.persistency.ingest_event(
             event_id=input_["EventID"],
             event_template=input_["template"],
@@ -57,10 +67,13 @@ class NewEventDetector(CoreDetector):
         """Detect new values in the input data."""
         alerts: dict[str, str] = {}
         configured_variables = get_configured_variables(input_, self.config.events)
+        #print("br", configured_variables)
         overall_score = 0.0
 
         current_event_id = input_["EventID"]
         known_events = self.persistency.get_events_data()
+        #print(input_["logFormatVariables"]["Type"])
+        #print(current_event_id, input_)
 
         if current_event_id in known_events:
             event_tracker = known_events[current_event_id]
@@ -98,7 +111,7 @@ class NewEventDetector(CoreDetector):
         config_dict = generate_detector_config(
             variable_selection=variables,
             detector_name=self.name,
-            method_type=self.config.method_type,
+            method_type=self.config.method_type
         )
         # Update the config object from the dictionary instead of replacing it
         self.config = NewEventDetectorConfig.from_dict(config_dict, self.name)
