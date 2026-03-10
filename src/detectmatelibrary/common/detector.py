@@ -9,18 +9,18 @@ from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 from typing_extensions import override
 from typing import Dict, List, Optional, Any
 
+from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
+
+
+_time_handler = TimeFormatHandler()
+
 
 def _extract_timestamp(
     input_: List[ParserSchema] | ParserSchema
 ) -> List[int]:
-    def format_time(time: str) -> int:
-        time_ = time.split(":")[0]
-        return int(float(time_))
-
     if not isinstance(input_, list):
         input_ = [input_]
-
-    return [format_time(i["logFormatVariables"]["Time"]) for i in input_]
+    return [int(_time_handler.parse_timestamp(i["logFormatVariables"]["Time"])) for i in input_]
 
 
 def _extract_logIDs(
