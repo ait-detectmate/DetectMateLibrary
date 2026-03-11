@@ -30,7 +30,7 @@ class DummyDetector(CoreDetector):
         self,
         input_: List[schemas.ParserSchema] | schemas.ParserSchema,
         output_: schemas.DetectorSchema
-    ) -> bool | None:
+    ) -> bool:
         output_["description"] = "Dummy detection process"
 
         # Alternating pattern: True, False, True, False, etc

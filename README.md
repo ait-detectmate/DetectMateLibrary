@@ -6,15 +6,13 @@ Main library to run the different components in DetectMate.
 
 The library contains the next components:
 
-* **Readers**: insert logs into the system.
 * **Parsers**: parse the logs receive from the reader.
 * **Detectors**: return alerts if anomalies are detected.
-* **Outputs**: return alerts as outputs.
 * **Schemas**: standard data classes use in DetectMate.
 ```
-+---------+     +--------+     +-----------+     +--------+
-| Reader  | --> | Parser | --> |  Detector | --> | Output |
-+---------+     +--------+     +-----------+     +--------+
+ +--------+     +-----------+
+ | Parser | --> |  Detector |
+ +--------+     +-----------+
 ```
 ## Developer setup:
 
@@ -22,7 +20,7 @@ The library contains the next components:
 Set up the dev environment and install pre-commit hooks:
 
 ```bash
-uv pip install -e .[dev]
+uv sync --dev
 uv run prek install
 ```
 
@@ -91,6 +89,7 @@ workspaces/custom_parser/          # workspace root
 │   └── custom_parser.py           # CoreParser-based template
 ├── tests/
 │   └── test_custom_parser.py      # generated from template to test custom_parser
+├── data.json                      # example data to run the code
 ├── LICENSE.md                     # copied from main project
 ├── .gitignore                     # copied from main project
 ├── .pre-commit-config.yaml        # copied from main project

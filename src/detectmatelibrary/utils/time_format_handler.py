@@ -21,8 +21,10 @@ class TimeFormatHandler:
         "%Y-%m-%d %H:%M:%S",
         "%Y/%m/%d %H:%M:%S",
         "%d/%b/%Y:%H:%M:%S %z",  # Apache style: 10/Oct/2000:13:55:36 -0700
+        "%d/%b/%Y:%H:%M:%S",  # Apache style without timezone
         "%b %d %H:%M:%S",  # syslog without year
         "%H:%M:%S",
+        "%A, %B %d, %Y %H:%M:%S",  # "Wednesday, March 4, 2026 14:18:00"
     ]
 
     def __init__(self) -> None:
