@@ -46,7 +46,9 @@ def generate_logformat_regex(log_format: str) -> Tuple[list[str], re.Pattern[str
     regex_str = ''
     for k in range(len(splitters)):
         if k % 2 == 0:
-            splitter = re.sub(r' +', r'\\s+', splitters[k])
+            # Split on runs of spaces, escape each part, then rejoin with \s+
+            parts = re.split(r' +', splitters[k])
+            splitter = r'\s+'.join(re.escape(p) for p in parts)
             regex_str += splitter
         else:
             header = splitters[k].strip('<').strip('>')
