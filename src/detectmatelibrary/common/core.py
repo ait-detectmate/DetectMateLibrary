@@ -107,13 +107,12 @@ class CoreComponent:
         self.name, self.type_, self.config = name, type_, config
         self.input_schema, self.output_schema = input_schema, output_schema
 
+        self.train_state, self.configure_state = TrainState.DEFAULT, ConfigState.DEFAULT
+        self.data_used_train, self.data_used_configure = 0, 0
+        self._configuration_done = False
+
         self.data_buffer = DataBuffer(args_buffer)
         self.id_generator = SimpleIDGenerator(self.config.start_id)
-        self.data_used_train = 0
-        self.train_state: TrainState = TrainState.DEFAULT
-        self.data_used_configure = 0
-        self.configure_state: ConfigState = ConfigState.DEFAULT
-        self._configuration_done = False
 
     def __repr__(self) -> str:
         return f"<{self.type_}> {self.name}: {self.config}"
