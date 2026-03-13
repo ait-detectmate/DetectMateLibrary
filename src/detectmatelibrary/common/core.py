@@ -141,24 +141,14 @@ class FitLogic:
         return FitLogicState.NOTHING
 
 
-class CoreComponent:
-    """Base class for all components in the system."""
+class Component:
     def __init__(
         self,
         name: str,
         type_: str = "Core",
         config: CoreConfig = CoreConfig(),
-        args_buffer: ArgsBuffer = ArgsBuffer(BufferMode.NO_BUF),
-        input_schema: type[BaseSchema] = BaseSchema,
-        output_schema: type[BaseSchema] = BaseSchema
     ) -> None:
-
         self.name, self.type_, self.config = name, type_, config
-        self.input_schema, self.output_schema = input_schema, output_schema
-
-        self.data_buffer = DataBuffer(args_buffer)
-        self.id_generator = SimpleIDGenerator(self.config.start_id)
-        self.fitlogic = FitLogic(self.config)
 
     def __repr__(self) -> str:
         return f"<{self.type_}> {self.name}: {self.config}"
@@ -180,6 +170,31 @@ class CoreComponent:
 
     def set_configuration(self) -> None:
         pass
+
+    def get_config(self) -> Dict[str, Any]:
+        return self.config.get_config()
+
+    def update_config(self, new_config: Dict[str, Any]) -> None:
+        self.config.update_config(new_config)
+
+
+class CoreComponent(Component):
+    """Base class for all components in the system."""
+    def __init__(
+        self,
+        name: str,
+        type_: str = "Core",
+        config: CoreConfig = CoreConfig(),
+        args_buffer: ArgsBuffer = ArgsBuffer(BufferMode.NO_BUF),
+        input_schema: type[BaseSchema] = BaseSchema,
+        output_schema: type[BaseSchema] = BaseSchema
+    ) -> None:
+        super().__init__(name=name, type_=type_, config=config)
+        self.input_schema, self.output_schema = input_schema, output_schema
+
+        self.data_buffer = DataBuffer(args_buffer)
+        self.id_generator = SimpleIDGenerator(self.config.start_id)
+        self.fitlogic = FitLogic(self.config)
 
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
         is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)
@@ -209,9 +224,3 @@ class CoreComponent:
 
         logger.debug(f"<<{self.name}>> processed:\n{output_}")
         return SchemaPipeline.postprocess(output_, is_byte=is_byte)
-
-    def get_config(self) -> Dict[str, Any]:
-        return self.config.get_config()
-
-    def update_config(self, new_config: Dict[str, Any]) -> None:
-        self.config.update_config(new_config)
