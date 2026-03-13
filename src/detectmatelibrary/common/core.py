@@ -1,4 +1,7 @@
+from detectmatelibrary.common._core_op.fit_config_logic import FitLogicState
 from detectmatelibrary.common._core_op.schema_pipeline import SchemaPipeline
+from detectmatelibrary.common._core_op.fit_config_logic import FitLogic
+
 from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
 from detectmatelibrary.utils.id_generator import SimpleIDGenerator
 
@@ -9,113 +12,15 @@ from detectmatelibrary.schemas import BaseSchema
 from tools.logging import logger, setup_logging
 
 from typing import Any, Dict, List
-from enum import Enum
 
 
 setup_logging()
-
-
-class TrainState(Enum):
-    DEFAULT = 0
-    STOP_TRAINING = 1
-    KEEP_TRAINING = 2
-
-    def describe(self) -> str:
-        descriptions = [
-            "Follow default training behavior.",
-            "Force stop training.",
-            "Keep training regardless of default behavior."
-        ]
-
-        return descriptions[self.value]
-
-
-class ConfigState(Enum):
-    DEFAULT = 0
-    STOP_CONFIGURE = 1
-    KEEP_CONFIGURE = 2
-
-    def describe(self) -> str:
-        descriptions = [
-            "Follow default configuration behavior.",
-            "Force stop configuration.",
-            "Keep configuring regardless of default behavior."
-        ]
-
-        return descriptions[self.value]
 
 
 class CoreConfig(BasicConfig):
     start_id: int = 10
     data_use_training: int | None = None
     data_use_configure: int | None = None
-
-
-def do_training(config: CoreConfig, index: int, train_state: TrainState) -> bool:
-    if train_state == TrainState.STOP_TRAINING:
-        return False
-    elif train_state == TrainState.KEEP_TRAINING:
-        return True
-
-    return config.data_use_training is not None and config.data_use_training > index
-
-
-def do_configure(config: CoreConfig, index: int, configure_state: ConfigState) -> bool:
-    if configure_state == ConfigState.STOP_CONFIGURE:
-        return False
-    elif configure_state == ConfigState.KEEP_CONFIGURE:
-        return True
-
-    return config.data_use_configure is not None and config.data_use_configure > index
-
-
-class FitLogicState(Enum):
-    DO_CONFIG = 0
-    DO_TRAIN = 1
-    NOTHING = 2
-
-
-class FitLogic:
-    def __init__(self, config: CoreConfig) -> None:
-        self.train_state = TrainState.DEFAULT
-        self.configure_state = ConfigState.DEFAULT
-
-        self.data_used_train = 0
-        self.data_used_configure = 0
-
-        self._configuration_done = False
-        self.config_finished = False
-
-        self.config = config
-
-    def finish_config(self) -> bool:
-        if self._configuration_done and not self.config_finished:
-            self.config_finished = True
-            return True
-
-        return False
-
-    def run(self) -> FitLogicState:
-        if do_configure(
-            config=self.config,
-            index=self.data_used_configure,
-            configure_state=self.configure_state
-        ):
-            self.data_used_configure += 1
-            return FitLogicState.DO_CONFIG
-        else:
-            if self.data_used_configure > 0 and not self._configuration_done:
-                self._configuration_done = True
-
-            if do_training(
-                config=self.config,
-                index=self.data_used_train,
-                train_state=self.train_state
-            ):
-                self.data_used_train += 1
-                return FitLogicState.DO_TRAIN
-
-        return FitLogicState.NOTHING
 
 
 class Component:
@@ -172,7 +77,10 @@ class CoreComponent(Component):
 
         self.data_buffer = DataBuffer(args_buffer)
         self.id_generator = SimpleIDGenerator(self.config.start_id)
-        self.fitlogic = FitLogic(self.config)
+        self.fitlogic = FitLogic(
+            data_use_configure=self.config.data_use_configure,
+            data_use_training=self.config.data_use_training,
+        )
 
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
         is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)

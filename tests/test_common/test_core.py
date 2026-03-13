@@ -1,4 +1,5 @@
-from detectmatelibrary.common.core import CoreConfig, CoreComponent, TrainState, ConfigState
+from detectmatelibrary.common._core_op.fit_config_logic import ConfigState, TrainState
+from detectmatelibrary.common.core import CoreConfig, CoreComponent
 from detectmatelibrary.common._config import BasicConfig
 
 from detectmatelibrary.utils.data_buffer import ArgsBuffer
