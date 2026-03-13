@@ -1,3 +1,4 @@
+from detectmatelibrary.common._core_op.schema_pipeline import SchemaPipeline
 from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
 from detectmatelibrary.utils.id_generator import SimpleIDGenerator
 
@@ -7,35 +8,11 @@ from detectmatelibrary.schemas import BaseSchema
 
 from tools.logging import logger, setup_logging
 
-from typing import Any, Dict, Tuple, List
+from typing import Any, Dict, List
 from enum import Enum
 
 
 setup_logging()
-
-
-class SchemaPipeline:
-    @staticmethod
-    def preprocess(
-        input_: BaseSchema, data: BaseSchema | bytes
-    ) -> Tuple[bool, BaseSchema]:
-
-        is_byte = False
-        if isinstance(data, bytes):
-            is_byte = True
-            input_.deserialize(data)
-            data = input_.copy()
-        else:
-            data = data.copy()
-
-        return is_byte, data
-
-    @staticmethod
-    def postprocess(
-        data: BaseSchema, is_byte: bool
-    ) -> BaseSchema | bytes:
-
-        return data if not is_byte else data.serialize()
 
 
 class TrainState(Enum):
@@ -142,6 +119,7 @@ class FitLogic:
 
 
 class Component:
+    """Empty methods."""
     def __init__(
         self,
         name: str,
