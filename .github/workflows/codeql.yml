@@ -107,8 +107,8 @@ jobs:
     - name: Fail if CodeQL found issues
       shell: bash
       run: |
-        if [ -f results.sarif ]; then
-          count=$(jq '.runs[].results | length' results.sarif)
+        if [ -f /home/runner/work/DetectMateLibrary/results/python.sarif ]; then
+          count=$(jq '.runs[].results | length' /home/runner/work/DetectMateLibrary/results/python.sarif)
           if [ "$count" -gt 0 ]; then
             echo "CodeQL found $count issue(s)!"
             jq -r '.runs[].results[] | "Rule: \(.ruleId)\nSeverity: \(.level)\nMessage: \(.message.text)\nFile: \(.locations[0].physicalLocation.artifactLocation.uri)\nLine: \(.locations[0].physicalLocation.region.startLine)\n---"' results.sarif
@@ -118,4 +118,5 @@ jobs:
           fi
         else
           echo "SARIF file not found. Analysis may have failed."
+          exit 1
         fi
