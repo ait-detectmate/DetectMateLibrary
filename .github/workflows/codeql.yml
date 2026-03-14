@@ -114,6 +114,7 @@ jobs:
         else
           echo "SARIF file not found. Analysis may have failed."
           exit 1
+        fi
         count=$(jq '.runs[].results | length' $SARIF)
         if [ "$count" -gt 0 ]; then
           echo "CodeQL found $count issue(s)!"
