@@ -118,3 +118,4 @@ jobs:
           fi
         else
           echo "SARIF file not found. Analysis may have failed."
+        fi
