@@ -109,8 +109,8 @@ jobs:
       run: |
         if [ -f /home/runner/work/DetectMateLibrary/results/python.sarif ]; then
           SARIF=/home/runner/work/DetectMateLibrary/results/python.sarif
-        elif [ -f results.sarif ]; then
-          SARIF=results.sarif
+        elif [ -f /home/runner/work/DetectMateLibrary/results/actions.sarif ]; then
+          SARIF=/home/runner/work/DetectMateLibrary/results/actions.sarif
         else
           echo "SARIF file not found. Analysis may have failed."
           exit 1
