@@ -99,3 +99,22 @@ jobs:
       uses: github/codeql-action/analyze@v4
       with:
         category: "/language:${{matrix.language}}"
+
+    - name: Install jq
+      if: runner.os == 'Linux'
+      run: sudo apt-get update && sudo apt-get install -y jq
+
+    - name: Fail if CodeQL found issues
+      shell: bash
+      run: |
+        if [ -f results.sarif ]; then
+          count=$(jq '.runs[].results | length' results.sarif)
+          if [ "$count" -gt 0 ]; then
+            echo "CodeQL found $count issue(s)!"
+            jq -r '.runs[].results[] | "Rule: \(.ruleId)\nSeverity: \(.level)\nMessage: \(.message.text)\nFile: \(.locations[0].physicalLocation.artifactLocation.uri)\nLine: \(.locations[0].physicalLocation.region.startLine)\n---"' results.sarif
+            exit 1
+          else
+            echo "No CodeQL issues found"
+          fi
+        else
+          echo "SARIF file not found. Analysis may have failed."
