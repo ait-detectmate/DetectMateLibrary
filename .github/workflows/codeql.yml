@@ -114,6 +114,7 @@ jobs:
             jq -r '.runs[].results[] | "Rule: \(.ruleId)\nSeverity: \(.level)\nMessage: \(.message.text)\nFile: \(.locations[0].physicalLocation.artifactLocation.uri)\nLine: \(.locations[0].physicalLocation.region.startLine)\n---"' results.sarif
             exit 1
           else
+            cat /home/runner/work/DetectMateLibrary/results/python.sarif
             echo "No CodeQL issues found"
           fi
         else
