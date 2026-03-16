@@ -1,4 +1,4 @@
-from detectmatelibrary.common._core_op.fit_config_logic import ConfigState, TrainState
+from detectmatelibrary.common._core_op._fit_config_logic import ConfigState, TrainState
 from detectmatelibrary.common.core import CoreConfig, CoreComponent
 from detectmatelibrary.common._config import BasicConfig
 
