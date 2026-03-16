@@ -141,6 +141,9 @@
 <pre><code class="language-bash">uv sync
 </code></pre>
 <p><strong>Result</strong>: the package is installed into the active Python environment and changes to the source tree are reflected immediately.</p>
+<p>To install it in a different venv as a library:</p>
+<pre><code class="language-bash">uv pip install --no-cache-dir &lt;directory_detectmatelibrary&gt;
+</code></pre>
 <h2 id="developer-setup">Developer setup</h2>
 <p><strong>Purpose</strong>: prepare a development environment with test and lint tooling.</p>
 <h3 id="step-1-install-python-development-dependencies-pre-commit-hooks">Step 1: Install Python development dependencies &amp; pre-commit hooks</h3>

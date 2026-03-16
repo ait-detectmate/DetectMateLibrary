@@ -368,17 +368,17 @@
 kwargs = load_somewhere()  # load the dict
 kwargs[&quot;log&quot;] = &quot;Test log&quot;
 
-log_schema = LogSchema(kwargs)
+log_schema = schemas.LogSchema(kwargs)
 print(log_schema.log == &quot;Test log&quot;)  # True
 </code></pre>
 <h3 id="assign-values">Assign values</h3>
 <pre><code class="language-python">from detectmatelibrary import schemas
 
-log_schema = LogSchema()
+log_schema = schemas.LogSchema()
 log_schema.log = &quot;Test log&quot;
 print(log_schema[&quot;log&quot;] == log_schema.log)  # True
 
-log_schema2 = LogSchema()
+log_schema2 = schemas.LogSchema()
 print(log_schema == log_schema2)  # False
 
 log_schema2.log = &quot;Test log&quot;
@@ -387,12 +387,12 @@ print(log_schema == log_schema2)  # True
 <h3 id="serialization">Serialization</h3>
 <pre><code class="language-python">from detectmatelibrary import schemas
 
-log_schema = LogSchema()
+log_schema = schemas.LogSchema()
 log_schema.log = &quot;Test log&quot;
 serialized = log_schema.serialize()
 print(isinstance(serialized, bytes))  # True
 
-new_log_schema = LogSchema()
+new_log_schema = schemas.LogSchema()
 new_log_schema.deserialize(serialized)
 print(new_log_schema.schema_id == log_schema.schema_id)  # True
 </code></pre>
