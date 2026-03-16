@@ -95,8 +95,8 @@ class NewEventDetector(CoreDetector):
     def set_configuration(self) -> None:
         variables = {}
         for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
-            classified_vars = tracker.get_variables_by_classification("STABLE") + \
-                              tracker.get_variables_by_classification("STATIC")  # type: ignore
+            classified_vars = (tracker.get_variables_by_classification("STABLE") +  # type: ignore
+                               tracker.get_variables_by_classification("STATIC"))  # type: ignore
             variables[event_id] = classified_vars
         config_dict = generate_detector_config(
             variable_selection=variables,

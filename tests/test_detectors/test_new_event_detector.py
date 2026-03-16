@@ -8,7 +8,7 @@ This module tests the NewEventDetector implementation including:
 - Input/output schema validation
 """
 
-from detectmatelibrary.detectors.new_event_detector import NewEventDetector, BufferMode
+from detectmatelibrary.detectors.new_event_detector import NewEventDetector  # , BufferMode
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
@@ -251,4 +251,4 @@ class TestNewEventDetectorEndToEnd:
             if detector.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
-        #assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
+        # assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
