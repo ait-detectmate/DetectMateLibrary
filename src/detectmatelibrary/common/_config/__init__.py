@@ -1,5 +1,5 @@
-from detectmatelibrary.common._config._compile import ConfigMethods, generate_detector_config
-from detectmatelibrary.common._config._formats import EventsConfig
+from ._compile import ConfigMethods, generate_detector_config
+from ._formats import EventsConfig
 
 __all__ = ["ConfigMethods", "generate_detector_config", "EventsConfig", "BasicConfig"]
 
@@ -59,6 +59,7 @@ class BasicConfig(BaseModel):
         # Collect all non-meta fields for params
         params = {}
         events_data = None
+        instances_data = None
 
         for field_name, field_value in self:
             # Skip meta fields
@@ -72,6 +73,13 @@ class BasicConfig(BaseModel):
                         events_data = field_value.to_dict()
                     else:
                         events_data = field_value
+            # Handle global instances specially (top-level, not in params)
+            # Serialized as "global" in YAML (Python field is "global_instances")
+            elif field_name == "global_instances" and field_value:
+                instances_data = {
+                    name: inst.to_dict()
+                    for name, inst in field_value.items()
+                }
             else:
                 # All other fields go into params
                 params[field_name] = field_value
@@ -79,6 +87,10 @@ class BasicConfig(BaseModel):
         # Add params if there are any
         if params:
             result["params"] = params
+
+        # Add global instances if they exist (serialized as "global" in YAML)
+        if instances_data is not None:
+            result["global"] = instances_data
 
         # Add events if they exist
         if events_data is not None:

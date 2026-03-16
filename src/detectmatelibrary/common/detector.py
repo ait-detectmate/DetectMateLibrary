@@ -1,4 +1,4 @@
-from detectmatelibrary.common._config._formats import EventsConfig
+from detectmatelibrary.common._config._formats import EventsConfig, _EventInstance
 from detectmatelibrary.common.core import CoreComponent, CoreConfig
 
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
@@ -9,18 +9,18 @@ from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 from typing_extensions import override
 from typing import Dict, List, Optional, Any
 
+from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
+
+
+_time_handler = TimeFormatHandler()
+
 
 def _extract_timestamp(
     input_: List[ParserSchema] | ParserSchema
 ) -> List[int]:
-    def format_time(time: str) -> int:
-        time_ = time.split(":")[0]
-        return int(float(time_))
-
     if not isinstance(input_, list):
         input_ = [input_]
-
-    return [format_time(i["logFormatVariables"]["Time"]) for i in input_]
+    return [int(_time_handler.parse_timestamp(i["logFormatVariables"]["Time"])) for i in input_]
 
 
 def _extract_logIDs(
@@ -67,6 +67,27 @@ def get_configured_variables(
             if name in input_["logFormatVariables"]:
                 result[name] = input_["logFormatVariables"][name]
 
+    return result
+
+
+def get_global_variables(
+        input_: ParserSchema,
+        global_instances: Dict[str, _EventInstance],
+) -> Dict[str, Any]:
+    """Extract header variables from event-ID-independent instances.
+
+    Args:
+        input_: Parser schema containing logFormatVariables
+        global_instances: Dict of instance_name -> _EventInstance configs
+
+    Returns:
+        Dict mapping variable names to their values from the input
+    """
+    result: Dict[str, Any] = {}
+    for instance in global_instances.values():
+        for name in instance.header_variables:
+            if name in input_["logFormatVariables"]:
+                result[name] = input_["logFormatVariables"][name]
     return result
 
 
@@ -126,4 +147,14 @@ class CoreDetector(CoreComponent):
     def train(
         self, input_: ParserSchema | list[ParserSchema]  # type: ignore
     ) -> None:
+        pass
+
+    @override
+    def configure(
+        self, input_: ParserSchema | list[ParserSchema]  # type: ignore
+    ) -> None:
+        pass
+
+    @override
+    def set_configuration(self) -> None:
         pass

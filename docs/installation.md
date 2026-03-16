@@ -16,6 +16,12 @@ uv sync
 
 **Result**: the package is installed into the active Python environment and changes to the source tree are reflected immediately.
 
+To install it in a different venv as a library:
+
+```bash
+uv pip install --no-cache-dir <directory_detectmatelibrary>
+```
+
 ## Developer setup
 
 **Purpose**: prepare a development environment with test and lint tooling.

@@ -133,6 +133,19 @@ detectors:
     parser: example_parser_1
     auto_config: true
 
+  detector_global_instance:
+    method_type: ExampleDetector
+    parser: example_parser_1
+    auto_config: false
+    params: {}
+    global:
+      global_monitor:
+        header_variables:
+          - pos: Level
+            params:
+              threshold: 0.2
+          - pos: Time
+
   NewValueDetector:
     method_type: new_value_detector
     parser: example_parser_1

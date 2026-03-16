@@ -1,8 +1,9 @@
 """Test that YAML -> Pydantic -> YAML is preserved (round-trip test)."""
 
 from detectmatelibrary.common._config import BasicConfig
-from detectmatelibrary.common._config._formats import EventsConfig
+from detectmatelibrary.common._config._formats import EventsConfig, _EventInstance
 
+from typing import Dict
 import yaml
 
 
@@ -20,6 +21,7 @@ class MockupDetectorConfig(BasicConfig):
     auto_config: bool = False
     parser: str = "<PLACEHOLDER>"
     events: EventsConfig | None = None
+    global_instances: Dict[str, _EventInstance] = {}
 
 
 def load_test_config() -> dict:
@@ -232,6 +234,40 @@ class TestConfigRoundtrip:
 
         # The two dicts should be identical
         assert dict1 == dict2
+
+    def test_global_instance_roundtrip(self):
+        """Test that a detector config with a global instance round-trips
+        correctly."""
+        config_yaml = load_test_config()
+        method_id = "detector_global_instance"
+
+        # Load from YAML
+        config = MockupDetectorConfig.from_dict(config_yaml, method_id)
+
+        # global_instances must be populated
+        assert "global_monitor" in config.global_instances
+        instance = config.global_instances["global_monitor"]
+        assert "Level" in instance.header_variables
+        assert "Time" in instance.header_variables
+
+        # Convert back to dict
+        result_dict = config.to_dict(method_id)
+        result = result_dict["detectors"][method_id]
+
+        # Serialised as "global" key
+        assert "global" in result
+        assert "global_monitor" in result["global"]
+        assert "header_variables" in result["global"]["global_monitor"]
+        hv_positions = [hv["pos"] for hv in result["global"]["global_monitor"]["header_variables"]]
+        assert "Level" in hv_positions
+        assert "Time" in hv_positions
+
+        # True round-trip: yaml -> pydantic -> yaml -> pydantic
+        config2 = MockupDetectorConfig.from_dict(result_dict, method_id)
+        dict2 = config2.to_dict(method_id)
+
+        assert config.global_instances.keys() == config2.global_instances.keys()
+        assert result_dict == dict2
 
     def test_parser_true_roundtrip(self):
         """Test parser yaml -> pydantic -> yaml -> pydantic roundtrip."""
