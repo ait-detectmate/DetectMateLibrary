@@ -1,4 +1,4 @@
-from detectmatelibrary.common._config._formats import EventsConfig
+from detectmatelibrary.common._config._formats import EventsConfig, _EventInstance
 
 from typing import Any, Dict, List, Sequence, Tuple, Union
 import warnings
@@ -93,8 +93,9 @@ class ConfigMethods:
     def process(config: Dict[str, Any]) -> Dict[str, Any]:
         has_params = "params" in config
         has_events = "events" in config
+        has_instances = "global" in config
 
-        if not has_params and not has_events and not config.get("auto_config", False):
+        if not has_params and not has_events and not has_instances and not config.get("auto_config", False):
             warnings.warn(MissingParamsWarning())
 
         if has_params:
@@ -108,11 +109,19 @@ class ConfigMethods:
         if has_events:
             config["events"] = EventsConfig._init(config["events"])
 
+        # Handle "global" key: event-ID-independent global instances
+        # Renamed to "global_instances" to avoid collision with Python keyword
+        if has_instances:
+            config["global_instances"] = {
+                name: _EventInstance._init(**data)
+                for name, data in config.pop("global").items()
+            }
+
         return config
 
 
 def generate_detector_config(
-    variable_selection: Dict[int, List[Union[str, Tuple[str, ...]]]],
+    variable_selection: Dict[int | str, List[Union[str, Tuple[str, ...]]]],
     detector_name: str,
     method_type: str,
     **additional_params: Any
@@ -158,7 +167,7 @@ def generate_detector_config(
     """
     var_pattern = re.compile(r"^var_(\d+)$")
 
-    events_config: Dict[int, Dict[str, Any]] = {}
+    events_config: Dict[int | str, Dict[str, Any]] = {}
 
     for event_id, variable_names in variable_selection.items():
         instances: Dict[str, Any] = {}
