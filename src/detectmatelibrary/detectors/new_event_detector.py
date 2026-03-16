@@ -46,7 +46,7 @@ class NewEventDetector(CoreDetector):
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by learning values from the input data."""
         configured_variables = get_configured_variables(input_, self.config.events)
-        #print(input_)
+        #print("AAAAAAAAAAAAAAAAA", input_, "BBBBBBBBBBBBB\n", self.config.events)
         #print(self.config.events)
         #print(input_["logFormatVariables"]["Type"], self.config.events)
         d = self.config.events[input_["EventID"]]
@@ -96,6 +96,7 @@ class NewEventDetector(CoreDetector):
         return False
 
     def configure(self, input_: ParserSchema) -> None:
+        #print("DDDDDDDDDDDDDDDDDDDDDDDDD", input_)
         self.auto_conf_persistency.ingest_event(
             event_id=input_["EventID"],
             event_template=input_["template"],
@@ -105,6 +106,8 @@ class NewEventDetector(CoreDetector):
 
     def set_configuration(self) -> None:
         variables = {}
+        #print("LLEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEN", self.auto_conf_persistency.get_events_data().items())
+        #print("LLEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEN", len(self.auto_conf_persistency.get_events_data().items()))
         for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
             stable_vars = tracker.get_variables_by_classification("STABLE")  # type: ignore
             variables[event_id] = stable_vars

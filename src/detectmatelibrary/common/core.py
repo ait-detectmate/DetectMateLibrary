@@ -115,11 +115,13 @@ class CoreComponent:
         output_ = self.output_schema()
         logger.info(f"<<{self.name}>> processing data")
         return_schema = self.run(input_=data_buffered, output_=output_)
+        #print(return_schema)
         if not return_schema:
             logger.info(f"<<{self.name}>> returns None")
             return None
 
         logger.debug(f"<<{self.name}>> processed:\n{output_}")
+        #print(SchemaPipeline.postprocess(output_, is_byte=is_byte))
         return SchemaPipeline.postprocess(output_, is_byte=is_byte)
 
     def get_config(self) -> Dict[str, Any]:

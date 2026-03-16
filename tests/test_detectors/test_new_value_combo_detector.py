@@ -550,7 +550,7 @@ _PARSER_CONFIG = {
         "MatcherParser": {
             "method_type": "matcher_parser",
             "auto_config": False,
-            "log_format": "type=<Type> msg=audit\\(<Time>\\): <Content>",
+            "log_format": "type=<Type> msg=audit(<Time>): <Content>",
             "time_format": None,
             "params": {
                 "remove_spaces": True,
@@ -585,4 +585,4 @@ class TestNewValueComboDetectorEndToEndWithRealData:
             if detector.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
-        print(detected_ids)
+        assert detected_ids == {'1859', '1862', '1866', '1865'}

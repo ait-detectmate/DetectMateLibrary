@@ -125,12 +125,19 @@ class TemplateMatcher:
     def extract_parameters(log: str, template: str) -> tuple[str, ...] | None:
         """Extract parameters from the log based on the template."""
         log = re.sub(r'\s+', ' ', log.strip())
+        #print("log", log)
         pattern_parts = template.split("<*>")
+        #print("pattern_parts", pattern_parts)
         pattern_parts_escaped = [re.escape(part) for part in pattern_parts]
+        #pattern_parts_escaped = [part.replace(" ", "\\ ") for part in pattern_parts]
+        #pattern_parts_escaped = pattern_parts
+        #print(pattern_parts_escaped)
         regex_pattern = "(.*?)".join(pattern_parts_escaped)
+        #print(regex_pattern)
         regex = "^" + regex_pattern + "$"
         # matches = re.search(regex, log)
         matches = safe_search(regex, log, 1)
+        #print("matches", matches)
         if matches:
             groups: tuple[str, ...] = matches.groups()
             return groups
@@ -145,6 +152,7 @@ class TemplateMatcher:
             if len(s) < t["min_len"]:
                 continue
             params = self.extract_parameters(log, t["raw"])
+            #print("params", params)
             if params is not None:
                 t["count"] += 1
                 return t["raw"], params
@@ -154,6 +162,7 @@ class TemplateMatcher:
         """Batch matching that also returns the params list."""
         output: dict[str, Any] = {}
         res = self.match_template_with_params(log)
+        #print("res", res)
         if res is None:
             output["EventTemplate"] = "<Not Found>"
             output["Params"] = []
@@ -163,4 +172,5 @@ class TemplateMatcher:
             output["Params"] = params
         tpl_to_id = {t["raw"]: i for i, t in enumerate(self.manager.templates)}
         output["EventId"] = tpl_to_id.get(tpl, -1) if output["EventTemplate"] != "<Not Found>" else -1
+        #print("output", output)
         return output
