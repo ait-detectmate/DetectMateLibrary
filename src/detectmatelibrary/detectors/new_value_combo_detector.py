@@ -175,9 +175,10 @@ class NewValueComboDetector(CoreDetector):
         # run WITH auto_conf_persistency
         variable_combos = {}
         for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
-            stable_vars = tracker.get_variables_by_classification("STABLE")  # type: ignore
-            if len(stable_vars) > 1:
-                variable_combos[event_id] = stable_vars
+            classified_vars = (tracker.get_variables_by_classification("STABLE") +  # type: ignore
+                               tracker.get_variables_by_classification("STATIC"))  # type: ignore
+            if len(classified_vars) > 1:
+                variable_combos[event_id] = classified_vars
         config_dict = generate_detector_config(
             variable_selection=variable_combos,
             detector_name=self.name,

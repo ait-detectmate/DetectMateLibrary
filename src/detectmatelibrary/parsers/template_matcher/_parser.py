@@ -81,9 +81,7 @@ class MatcherParser(CoreParser):
     ) -> None:
 
         parsed = self.template_matcher(input_["log"])
-        #print("parsed", parsed)
 
         output_["template"] = parsed["EventTemplate"]
         output_["variables"] = parsed["Params"]
         output_["EventID"] = parsed["EventId"]
-        #print("output", output_)

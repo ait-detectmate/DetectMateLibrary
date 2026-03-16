@@ -237,9 +237,6 @@ class TestNewEventDetectorEndToEnd:
         detector = NewEventDetector(config=config, name="NewEventDetector")
 
         logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
-        print("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", logs[2], type(logs[2]), dir(logs[2]))
-        print("GGGGGGGGGGGGGGG", logs[2]["logFormatVariables"])
-        print("HHHHHHHHHHHHHHH", logs[2]["variables"])
 
         for log in logs[:1800]:
             detector.configure(log)

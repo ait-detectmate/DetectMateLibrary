@@ -39,7 +39,6 @@ class EventPersistency:
         named_variables: Dict[str, Any] = {}
     ) -> None:
         """Ingest event data into the appropriate EventData store."""
-        #print("VARIABLES", not variables, not named_variables)
         if not variables and not named_variables:
             return
         self.event_templates[event_id] = event_template
@@ -51,8 +50,6 @@ class EventPersistency:
             self.events_data[event_id] = data_structure
 
         data = data_structure.to_data(all_variables)
-        #print("Ingesting event", event_id, event_template, variables, named_variables, all_variables, "\n")
-        #print("INGESTING EVENT", data_structure, data, "\n")
         data_structure.add_data(data)
 
     def get_event_data(self, event_id: int | str) -> Any | None:
