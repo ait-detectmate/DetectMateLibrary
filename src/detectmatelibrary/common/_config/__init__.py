@@ -1,5 +1,5 @@
-from detectmatelibrary.common._config._compile import ConfigMethods, generate_detector_config
-from detectmatelibrary.common._config._formats import EventsConfig
+from ._compile import ConfigMethods, generate_detector_config
+from ._formats import EventsConfig
 
 __all__ = ["ConfigMethods", "generate_detector_config", "EventsConfig", "BasicConfig"]
 
