@@ -1,4 +1,5 @@
-from detectmatelibrary.common.core import CoreConfig, CoreComponent, TrainState, ConfigState
+from detectmatelibrary.common._core_op._fit_logic import ConfigState, TrainState
+from detectmatelibrary.common.core import CoreConfig, CoreComponent
 from detectmatelibrary.common._config import BasicConfig
 
 from detectmatelibrary.utils.data_buffer import ArgsBuffer
@@ -223,7 +224,7 @@ class TestCoreComponent:
                 })
             )
 
-        assert len(component.train_data) == component.data_used_train
+        assert len(component.train_data) == component.fitlogic.data_used_train
         for i, log in enumerate(component.train_data):
             expected = schemas.LogSchema({
                 "__version__": "1.0.0",
@@ -238,7 +239,7 @@ class TestCoreComponent:
 
         for i in range(10):
             if i == 2:
-                component.train_state = TrainState.STOP_TRAINING
+                component.fitlogic.train_state = TrainState.STOP_TRAINING
             component.process(
                 schemas.LogSchema({
                     "__version__": "1.0.0",
@@ -252,7 +253,7 @@ class TestCoreComponent:
 
     def test_training_keep_training(self) -> None:
         component = MockComponentWithTraining(name="Dummy6")
-        component.train_state = TrainState.KEEP_TRAINING
+        component.fitlogic.train_state = TrainState.KEEP_TRAINING
 
         for i in range(10):
             component.process(
@@ -279,7 +280,7 @@ class TestCoreComponent:
 
         results = [component.process(self._make_log(i)) for i in range(10)]
 
-        assert component.data_used_configure == 3
+        assert component.fitlogic.data_used_configure == 3
         assert len(component.configure_data) == 3
         assert all(r is None for r in results[:3])
         assert component.set_configuration_called == 1
@@ -293,7 +294,7 @@ class TestCoreComponent:
 
     def test_configuration_force_stop(self) -> None:
         component = MockComponentWithConfigure(name="DummyCfg3")
-        component.configure_state = ConfigState.STOP_CONFIGURE
+        component.fitlogic.configure_state = ConfigState.STOP_CONFIGURE
 
         for i in range(10):
             component.process(self._make_log(i))
@@ -303,7 +304,7 @@ class TestCoreComponent:
 
     def test_configuration_keep_configure(self) -> None:
         component = MockComponentWithConfigure(name="DummyCfg4")
-        component.configure_state = ConfigState.KEEP_CONFIGURE
+        component.fitlogic.configure_state = ConfigState.KEEP_CONFIGURE
 
         for i in range(10):
             component.process(self._make_log(i))

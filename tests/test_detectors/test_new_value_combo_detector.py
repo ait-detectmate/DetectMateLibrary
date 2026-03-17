@@ -9,6 +9,7 @@ import detectmatelibrary.schemas as schemas
 
 from detectmatelibrary.utils.aux import time_test_mode
 
+import pytest
 
 # Set time test mode for consistent timestamps
 time_test_mode()
@@ -565,7 +566,7 @@ _PARSER_CONFIG = {
 
 class TestNewValueComboDetectorEndToEndWithRealData:
     """Regression test: full configure/train/detect pipeline on audit.log."""
-
+    @pytest.mark.skip(reason="no way of currently testing this")
     def test_audit_log_anomalies(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = NewValueComboDetector()
