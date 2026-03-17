@@ -28,7 +28,6 @@ import time
 from typing import Dict, List, Tuple
 
 from openai import OpenAI
-# from together import Together
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 from tools.logging import logger
 from .cluster import Cluster
@@ -47,19 +46,12 @@ class Parser:
         self.dataset: str = 'null'
         self.token_list: List[int] = [0, 0]
         self.time_consumption_llm: float = 0
-        if config['api_key_from_openai'] == '<OpenAI_API_KEY>' and config['api_key_from_together'] == '<Together_API_KEY>':
-            raise ValueError("Please provide your OpenAI API key and Together API key in the config.json file.")
-        if 'gpt' in self.model:
-            self.api_key = config['api_key_from_openai']
-            self.client = OpenAI(
-                api_key=self.api_key
-            )
-        else:
-            # self.api_key = config['api_key_from_together']
-            # self.client = Together(
-            #     api_key=self.api_key
-            # )
-            raise ValueError("Only OpenAI API is supported for now.")
+        self.api_key = config['api_key']
+        base_url = config.get('base_url') or None
+        self.client = OpenAI(
+            api_key=self.api_key,
+            base_url=base_url,
+        )
 
     @retry(wait=wait_random_exponential(min=1, max=8), stop=stop_after_attempt(10))
     def chat(self, messages: List[Dict[str, str]]) -> str:

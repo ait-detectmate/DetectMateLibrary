@@ -13,6 +13,7 @@ class LogBatcherParserConfig(CoreParserConfig):
     method_type: str = "logbatcher_parser"
     model: str = "gpt-4o-mini"
     api_key: str = ""
+    base_url: str = ""
     batch_size: int = 10
 
 
@@ -30,8 +31,8 @@ class LogBatcherParser(CoreParser):
         super().__init__(name=name, config=config)
 
         llm_config = {
-            "api_key_from_openai": config.api_key,
-            "api_key_from_together": "<Together_API_KEY>",
+            "api_key": config.api_key,
+            "base_url": config.base_url,
         }
         self._llm_parser = LLMParser(model=config.model, theme="default", config=llm_config)
         self._cache = ParsingCache()
