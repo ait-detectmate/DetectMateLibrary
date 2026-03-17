@@ -203,8 +203,12 @@ class NewValueComboDetector(CoreDetector):
         # rerun to set final config WITH auto_conf_persistency_combos
         combo_selection = {}
         for event_id, tracker in self.auto_conf_persistency_combos.get_events_data().items():
-            stable_combos = tracker.get_features_by_classification("STABLE") if self.config.use_stable_vars else []  # type: ignore
-            static_combos = tracker.get_features_by_classification("STATIC") if self.config.use_static_vars else []  # type: ignore
+            stable_combos = []
+            if self.config.use_stable_vars:
+                stable_combos = tracker.get_features_by_classification("STABLE")  # type: ignore
+            static_combos = []
+            if self.config.use_static_vars:
+                static_combos = tracker.get_features_by_classification("STATIC")  # type: ignore
             combos = stable_combos + static_combos
             # Keep combos as tuples - each will become a separate config entry
             if len(combos) > 0:
