@@ -10,21 +10,39 @@ class Variable(BaseModel):
     name: str
     params: Dict[str, Any] = {}
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert Variable to YAML-compatible dictionary."""
+        result: Dict[str, Any] = {
+            "pos": self.pos,
+            "name": self.name,
+        }
+        if self.params:
+            result["params"] = self.params
+        return result
+
 
 class Header(BaseModel):
     pos: str
     params: Dict[str, Any] = {}
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert Header to YAML-compatible dictionary."""
+        result: Dict[str, Any] = {
+            "pos": self.pos,
+        }
+        if self.params:
+            result["params"] = self.params
+        return result
 
-class _LogVariable(BaseModel):
-    id: str
-    event: int
-    template: str
+
+class _EventInstance(BaseModel):
+    """Configuration for a specific instance within an event."""
+    params: Dict[str, Any] = {}
     variables: Dict[int, Variable] = {}
     header_variables: Dict[str, Header] = {}
 
     @classmethod
-    def _init(cls, **kwargs: dict[str, Any]) -> "_LogVariable":
+    def _init(cls, **kwargs: dict[str, Any]) -> "_EventInstance":
         for var, cl in zip(["variables", "header_variables"], [Variable, Header]):
             if var in kwargs:
                 new_dict = {}
@@ -37,74 +55,92 @@ class _LogVariable(BaseModel):
     def get_all(self) -> Dict[Any, Header | Variable]:
         return {**self.variables, **self.header_variables}
 
-
-# Main-formats ********************************************************+
-class LogVariables(BaseModel):
-    logvars: Dict[Any, _LogVariable]
-    __index: int = 0
-
-    @classmethod
-    def _init(cls, params: list[Dict[str, Any]]) -> Self:
-        new_dict = {}
-        for param in params:
-            aux = _LogVariable._init(**param)
-            new_dict[aux.event] = aux
-
-        return cls(logvars=new_dict)
-
-    def __next__(self) -> Any | StopIteration:
-        if len(keys := list(self.logvars.keys())) > self.__index:
-            value = self.logvars[keys[self.__index]]
-            self.__index += 1
-            return value
-        raise StopIteration
-
-    def __iter__(self) -> Self:  # type: ignore
-        return self
-
-    def __getitem__(self, idx: str | int) -> _LogVariable | None:
-        if idx not in self.logvars:
-            return None
-        return self.logvars[idx]
-
-    def __contains__(self, idx: str | int) -> bool:
-        return idx in self.logvars
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert _EventInstance to YAML-compatible dictionary."""
+        result: Dict[str, Any] = {}
+        # Always include params even if empty (to match YAML structure)
+        result["params"] = self.params
+        if self.variables:
+            result["variables"] = [var.to_dict() for var in self.variables.values()]
+        if self.header_variables:
+            result["header_variables"] = [header.to_dict() for header in self.header_variables.values()]
+        return result
 
 
-class AllLogVariables(BaseModel):
-    variables: Dict[int, Variable] = {}
-    header_variables: Dict[str, Header] = {}
+class _EventConfig(BaseModel):
+    """Configuration for all instances of a specific event."""
+    instances: Dict[str, _EventInstance]
 
     @classmethod
-    def _init(cls, kwargs: Dict[str, Any]) -> "AllLogVariables":
-        for var, cl in zip(["variables", "header_variables"], [Variable, Header]):
-            if var in kwargs:
-                new_dict = {}
-                for v in kwargs[var]:
-                    aux = cl(**v)
-                    new_dict[aux.pos] = aux
-                kwargs[var] = new_dict
-        return cls(**kwargs)
+    def _init(cls, instances_dict: Dict[str, Dict[str, Any]]) -> "_EventConfig":
+        instances = {}
+        for instance_id, instance_data in instances_dict.items():
+            instances[instance_id] = _EventInstance._init(**instance_data)
+        return cls(instances=instances)
+
+    @property
+    def variables(self) -> Dict[int, Variable]:
+        """Pass-through to first instance for compatibility."""
+        if self.instances:
+            return next(iter(self.instances.values())).variables
+        return {}
+
+    @property
+    def header_variables(self) -> Dict[str, Header]:
+        """Pass-through to first instance for compatibility."""
+        if self.instances:
+            return next(iter(self.instances.values())).header_variables
+        return {}
 
     def get_all(self) -> Dict[Any, Header | Variable]:
-        return {**self.variables, **self.header_variables}
+        """Pass-through to first instance for compatibility."""
+        if self.instances:
+            return next(iter(self.instances.values())).get_all()
+        return {}
 
-    def __getitem__(self, idx: Any) -> Self:
-        return self
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert _EventConfig to YAML-compatible dictionary."""
+        return {
+            instance_id: instance.to_dict()
+            for instance_id, instance in self.instances.items()
+        }
+
+
+# Main-formats ********************************************************+
+class EventsConfig(BaseModel):
+    """Events configuration dict keyed by event_id."""
+    events: Dict[Any, _EventConfig]
+
+    @classmethod
+    def _init(cls, events_dict: Dict[Any, Dict[str, Any]]) -> Self:
+        new_dict = {}
+        for event_id, instances in events_dict.items():
+            new_dict[event_id] = _EventConfig._init(instances)
+        return cls(events=new_dict)
+
+    def __getitem__(self, idx: str | int) -> _EventConfig | None:
+        if idx not in self.events:
+            return None
+        return self.events[idx]
 
     def __contains__(self, idx: str | int) -> bool:
-        return True
+        return idx in self.events
 
+    def to_dict(self) -> Dict[Any, Any]:
+        """Convert EventsConfig to YAML-compatible dictionary.
 
-# Initialize ********************************************************+
-_formats: dict[str, type[LogVariables | AllLogVariables]] = {
-    "log_variables": LogVariables,
-    "all_log_variables": AllLogVariables
-}
-
-
-def apply_format(format: str, params: Any) -> Any:
-    if format in _formats:
-        f_cls = _formats[format]
-        return f_cls._init(params)
-    return params
+        This unwraps the internal 'events' dict structure to match YAML
+        format.
+        """
+        result = {}
+        for event_id, event_config in self.events.items():
+            # Skip events with no instances
+            if not event_config.instances:
+                continue
+            # Convert string keys back to int if they were originally int
+            try:
+                key = int(event_id)
+            except (ValueError, TypeError):
+                key = event_id
+            result[key] = event_config.to_dict()
+        return result

@@ -26,7 +26,6 @@ class SchemaPipeline:
             input_.deserialize(data)
             data = input_.copy()
         else:
-            input_.check_is_same(data)
             data = data.copy()
 
         return is_byte, data
@@ -54,9 +53,25 @@ class TrainState(Enum):
         return descriptions[self.value]
 
 
+class ConfigState(Enum):
+    DEFAULT = 0
+    STOP_CONFIGURE = 1
+    KEEP_CONFIGURE = 2
+
+    def describe(self) -> str:
+        descriptions = [
+            "Follow default configuration behavior.",
+            "Force stop configuration.",
+            "Keep configuring regardless of default behavior."
+        ]
+
+        return descriptions[self.value]
+
+
 class CoreConfig(BasicConfig):
     start_id: int = 10
     data_use_training: int | None = None
+    data_use_configure: int | None = None
 
 
 def do_training(config: CoreConfig, index: int, train_state: TrainState) -> bool:
@@ -66,6 +81,15 @@ def do_training(config: CoreConfig, index: int, train_state: TrainState) -> bool
         return True
 
     return config.data_use_training is not None and config.data_use_training > index
+
+
+def do_configure(config: CoreConfig, index: int, configure_state: ConfigState) -> bool:
+    if configure_state == ConfigState.STOP_CONFIGURE:
+        return False
+    elif configure_state == ConfigState.KEEP_CONFIGURE:
+        return True
+
+    return config.data_use_configure is not None and config.data_use_configure > index
 
 
 class CoreComponent:
@@ -87,6 +111,9 @@ class CoreComponent:
         self.id_generator = SimpleIDGenerator(self.config.start_id)
         self.data_used_train = 0
         self.train_state: TrainState = TrainState.DEFAULT
+        self.data_used_configure = 0
+        self.configure_state: ConfigState = ConfigState.DEFAULT
+        self._configuration_done = False
 
     def __repr__(self) -> str:
         return f"<{self.type_}> {self.name}: {self.config}"
@@ -101,17 +128,40 @@ class CoreComponent:
     ) -> None:
         pass
 
+    def configure(
+        self, input_: List[BaseSchema] | BaseSchema,
+    ) -> None:
+        pass
+
+    def set_configuration(self) -> None:
+        pass
+
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
         is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)
-        logger.info(f"<<{self.name}>> received:\n{data}")
+        logger.debug(f"<<{self.name}>> received:\n{data}")
 
         if (data_buffered := self.data_buffer.add(data)) is None:  # type: ignore
             return None
 
-        if do_training(config=self.config, index=self.data_used_train, train_state=self.train_state):
-            self.data_used_train += 1
-            logger.info(f"<<{self.name}>> use data for training")
-            self.train(input_=data_buffered)
+        if do_configure(
+            config=self.config,
+            index=self.data_used_configure,
+            configure_state=self.configure_state
+        ):
+            self.data_used_configure += 1
+            logger.info(f"<<{self.name}>> use data for configuration")
+            self.configure(input_=data_buffered)
+            return None
+        else:
+            if self.data_used_configure > 0 and not self._configuration_done:
+                self._configuration_done = True
+                logger.info(f"<<{self.name}>> finalizing configuration")
+                self.set_configuration()
+
+            if do_training(config=self.config, index=self.data_used_train, train_state=self.train_state):
+                self.data_used_train += 1
+                logger.info(f"<<{self.name}>> use data for training")
+                self.train(input_=data_buffered)
 
         output_ = self.output_schema()
         logger.info(f"<<{self.name}>> processing data")
@@ -120,7 +170,7 @@ class CoreComponent:
             logger.info(f"<<{self.name}>> returns None")
             return None
 
-        logger.info(f"<<{self.name}>> processed:\n{output_}")
+        logger.debug(f"<<{self.name}>> processed:\n{output_}")
         return SchemaPipeline.postprocess(output_, is_byte=is_byte)
 
     def get_config(self) -> Dict[str, Any]:

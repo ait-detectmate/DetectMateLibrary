@@ -44,10 +44,10 @@ def generate_logformat_regex(log_format: str) -> Tuple[list[str], re.Pattern[str
     headers = []
     splitters = re.split(r'(<[^<>]+>)', log_format)
     regex_str = ''
-    for k in range(len(splitters)):
+    for k, part in enumerate(splitters):
         if k % 2 == 0:
-            splitter = re.sub(r' +', r'\\s+', splitters[k])
-            regex_str += splitter
+            escaped = ''.join('\\' + c if c in '().[]{}?+|^$\\' else c for c in part)
+            regex_str += re.sub(r' +', r'\\s+', escaped)
         else:
             header = splitters[k].strip('<').strip('>')
             regex_str += '(?P<%s>.*?)' % header

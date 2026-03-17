@@ -11,19 +11,20 @@ config = {
         "TestDetector": {
             "auto_config": False,
             "method_type": "random_detector",
-            "params": {
-                "log_variables": [{
-                    "id": "test",
-                    "event": 1,
-                    "template": "dummy template",
-                    "variables": [{
-                        "pos": 0,
-                        "name": "process",
-                        "params": {
-                            "threshold": 0.
-                        }
-                    }]
-                }]
+            "params": {},
+            "events": {
+                1: {
+                    "test": {
+                        "params": {},
+                        "variables": [{
+                            "pos": 0,
+                            "name": "process",
+                            "params": {
+                                "threshold": 0.
+                            }
+                        }]
+                    }
+                }
             }
         }
     }
@@ -39,7 +40,7 @@ class TestRandomDetectorIntegration:
 
         assert detector is not None
         assert detector.name == "TestDetector"
-        assert detector.config.log_variables[1].variables[0].name == "process"
+        assert detector.config.events[1].variables[0].name == "process"
 
 
 class TestRandomDetectorEdgeCases:

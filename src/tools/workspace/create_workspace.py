@@ -11,6 +11,10 @@ PROJECT_ROOT = BASE_DIR.parent.parent  # root of project
 TEMPLATE_DIR = BASE_DIR / "workspace" / "templates"
 
 META_FILES = ["LICENSE.md", ".gitignore", ".pre-commit-config.yaml"]
+DATA_FILES = {
+    "parser": "src/tools/workspace/templates/data/logs.json",
+    "detector": "src/tools/workspace/templates/data/parsed_log.json"
+}
 
 
 def copy_file(src: Path, dst: Path) -> None:
@@ -61,6 +65,7 @@ def create_tests(type_: str, name: str, workspace_root: Path, pkg_name: str) -> 
     # replace the remaining occurrences of CustomParser/CustomDetector
     # with the new class name (inside the tests)
     content = content.replace(base_class, new_class)
+    content = content.replace(f'"custom_{type_}"', f'"{name}_{type_}"')
     content = content.rstrip() + "\n"
 
     test_file.write_text(content)
@@ -106,6 +111,7 @@ def create_workspace(type_: str, name: str, target_dir: Path) -> None:
         original_class = f"Custom{type_.capitalize()}"
         new_class = camelize(name)
         template_content = template_content.replace(original_class, new_class)
+        template_content = template_content.replace(f"custom_{type_}", f"{name}_{type_}")
 
         target_code_file.write_text(template_content)
 
@@ -115,6 +121,9 @@ def create_workspace(type_: str, name: str, target_dir: Path) -> None:
     (pkg_dir / "__init__.py").touch()
 
     create_tests(type_=type_, name=name, workspace_root=workspace_root, pkg_name=pkg_name)
+
+    # Copy data
+    copy_file(PROJECT_ROOT / DATA_FILES[type_], workspace_root / "data.json")
 
     # Copy meta/root files
     for file_name in META_FILES:

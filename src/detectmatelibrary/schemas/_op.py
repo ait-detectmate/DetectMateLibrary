@@ -2,77 +2,20 @@
 import detectmatelibrary.schemas.schemas_pb2 as s
 
 
-from typing import NewType, Tuple, Dict, Type, Union, Any, Callable
-
-from google.protobuf.message import Message
+from typing import NewType, Union, Any
 
 
-#  Main variables ************************************
 # Use Union of actual protobuf classes for better type hints
 SchemaT = Union[s.Schema, s.LogSchema, s.ParserSchema, s.DetectorSchema, s.OutputSchema]  # type: ignore
 SchemaID = NewType("SchemaID", bytes)
 
-BASE_SCHEMA: SchemaID = SchemaID(b"0")
-LOG_SCHEMA: SchemaID = SchemaID(b"1")
-PARSER_SCHEMA: SchemaID = SchemaID(b"2")
-DETECTOR_SCHEMA: SchemaID = SchemaID(b"3")
-OUTPUT_SCHEMA: SchemaID = SchemaID(b"4")
+BASE_SCHEMA: SchemaT = s.Schema  # type: ignore
+LOG_SCHEMA: SchemaT = s.LogSchema  # type: ignore
+PARSER_SCHEMA: SchemaT = s.ParserSchema  # type: ignore
+DETECTOR_SCHEMA: SchemaT = s.DetectorSchema  # type: ignore
+OUTPUT_SCHEMA: SchemaT = s.OutputSchema  # type: ignore
 
 __current_version = "1.0.0"
-__id_codes: Dict[SchemaID, Type[Message]] = {
-    BASE_SCHEMA: s.Schema,  # type: ignore
-    LOG_SCHEMA: s.LogSchema,  # type: ignore
-    PARSER_SCHEMA: s.ParserSchema,  # type: ignore
-    DETECTOR_SCHEMA: s.DetectorSchema,  # type: ignore
-    OUTPUT_SCHEMA: s.OutputSchema,  # type: ignore
-}
-_validation_methods = {}
-
-
-def register(schema_id: SchemaID
-             ) -> Callable[[Callable[[Dict[str, Any]], None]], Callable[[Dict[str, Any]], None]]:
-    def decorator(fn: Callable[[Dict[str, Any]], None]) -> Callable[[Dict[str, Any]], None]:
-        _validation_methods[schema_id] = fn
-        return fn
-    return decorator
-
-
-def check_id_var(id_var: str, data: Dict[str, Any]) -> None:
-    if data is not None:
-        var = data.get(id_var)
-        if var:
-            if isinstance(var, list) and not all(str(x).isnumeric() for x in var):
-                raise ValueError(f"{id_var} must be a list with numeric values of type string.")
-            elif isinstance(var, str) and not str(var).isnumeric():
-                raise ValueError(f"{id_var} must be of type string and have numeric values only.")
-
-
-@register(BASE_SCHEMA)
-def validate_base(data: Dict[str, Any]) -> None:
-    pass
-
-
-@register(LOG_SCHEMA)
-def validate_log(data: Dict[str, Any]) -> None:
-    check_id_var("logID", data)
-
-
-@register(PARSER_SCHEMA)
-def validate_parser(data: Dict[str, Any]) -> None:
-    check_id_var("parsedLogID", data)
-    check_id_var("logID", data)
-
-
-@register(DETECTOR_SCHEMA)
-def validate_detector(data: Dict[str, Any]) -> None:
-    check_id_var("alertID", data)
-    check_id_var("logIDs", data)
-
-
-@register(OUTPUT_SCHEMA)
-def validate_output(data: Dict[str, Any]) -> None:
-    check_id_var("alertIDs", data)
-    check_id_var("logIDs", data)
 
 
 #  Exceptions ****************************************
@@ -92,14 +35,6 @@ class NotCompleteSchema(Exception):
 
 
 # Private methods *************************************
-def __get_schema_class(schema_id: SchemaID) -> Type[Message]:
-    """Get the schema class for the given schema ID."""
-    if schema_id not in __id_codes:
-        raise NotSupportedSchema()
-
-    return __id_codes[schema_id]
-
-
 def __is_repeated(field: Any) -> bool:
     """Check if a field in the message is a repeated element."""
     return bool(field.is_repeated)
@@ -141,53 +76,35 @@ def get_variables_names(schema: SchemaT) -> list[str]:
     return [field.name for field in schema.DESCRIPTOR.fields]
 
 
-def validate(schema_id: SchemaID, data: Dict[str, Any]) -> Any:
-    validator = _validation_methods.get(schema_id)
-
-    if validator is None:
-        raise KeyError(f"No validator registered for schema {schema_id.decode()}")
-
-    return validator(data)
-
-
 # Main methods *****************************************
-def initialize(schema_id: SchemaID, **kwargs: Any) -> SchemaT | NotSupportedSchema:
+def initialize(schema: SchemaT, **kwargs: Any) -> SchemaT:
     """Initialize a protobuf schema, it uses its arguments and the assigned
     id."""
     kwargs["__version__"] = __current_version
-    schema_class = __get_schema_class(schema_id)
-    data = {**kwargs}
-    validate(schema_id, data)
-    return schema_class(**kwargs)
+    return schema(**kwargs)
 
 
 def copy(
-    schema_id: SchemaID,  schema: SchemaT
-) -> SchemaT | IncorrectSchema | NotSupportedSchema:
+    schema_class: SchemaT, schema: SchemaT
+) -> SchemaT | IncorrectSchema:
     """Make a copy of the schema."""
-    new_schema = initialize(schema_id=schema_id, **{})
+    new_schema = initialize(schema_class, **{})
     try:
-        new_schema.CopyFrom(schema)  # type: ignore
+        new_schema.CopyFrom(schema)
         return new_schema
     except TypeError:
         raise IncorrectSchema()
 
 
-def serialize(id_schema: SchemaID, schema: SchemaT) -> bytes:
-    """Convert the protobuf schema into a binary serialization.
-
-    First 4 bits are the schema id
-    """
-    if id_schema not in __id_codes:
-        raise NotSupportedSchema()
-
-    return bytes(id_schema + schema.SerializeToString())
+def serialize(schema: SchemaT) -> bytes:
+    return schema.SerializeToString()  # type: ignore
 
 
-def deserialize(message: bytes) -> Tuple[SchemaID, SchemaT]:
+def deserialize(schema_class: SchemaT, message: bytes) -> SchemaT | NotSupportedSchema:
     """Return the schema and id from a serialize message."""
-    schema_id = SchemaID(message[:1])
-    schema_class = __get_schema_class(schema_id)
     schema = schema_class()
-    schema.ParseFromString(message[1:])
-    return schema_id, schema
+    try:
+        schema.ParseFromString(message)
+        return schema
+    except Exception:
+        raise NotSupportedSchema()
