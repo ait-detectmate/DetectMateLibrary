@@ -199,3 +199,6 @@ cython_debug/
 local/
 test.ipynb
 test.py
+
+# claude code
+CLAUDE.md
