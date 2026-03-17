@@ -97,16 +97,20 @@ detectors:
   NewValueDetector:
     method_type: new_value_detector
     auto_config: False
-    params: {}
-    events:
-      1:
-        instance1:
-          params: {}
+    params: {}  # global parameters
+    events:  # event-specific configuration
+      1:  # event_id
+        instance1:  # name of instance (arbitrary)
+          params: {}  # additional params
           variables:
-            - pos: 0
-              name: var1
+            - pos: 0  # location of an unnamed variable from the log message
+              name: var1  # name of variable (arbitrary)
           header_variables:
-            - pos: level
+            - pos: level  # location of a named variable (defined in log_format of parser)
+    global:  # define global instance for new_value_detector similar to "events"
+      global_instance1:  # define instance name
+        header_variables:  # same logic as header_variables in "events"
+          - pos: Status
 ```
 
 
