@@ -14,8 +14,22 @@ The template matcher is a lightweight, fast parser intended for logs that follow
 - Preprocesses logs and templates (remove spaces, punctuation, lowercase) based on config.
 - Finds the first template that matches and extracts all wildcard parameters in order.
 - Populates ParserSchema fields: `EventID`, `template`, `variables`,  `logID`, and related fields.
+- **`EventID` is the 0-indexed line number of the matched template** in the template file (first line → `EventID: 0`, second line → `EventID: 1`, etc.).
 
 This parser is deterministic and designed for high-throughput use when templates are known in advance.
+
+## EventID assignment (preliminary)
+
+The `EventID` (or `event_id`) field in the output `ParserSchema` identifies which template was matched. It equals the **0-indexed line number** of the matching template in the template file:
+
+| Line in template file | EventID |
+|-----------------------|---------|
+| 1st line              | 0       |
+| 2nd line              | 1       |
+| 3rd line              | 2       |
+| ...                   | ...     |
+
+This `EventID` is the integer key used in detector configurations (e.g., `NewValueDetector`) to scope detection rules to logs of a particular template type.
 
 ## Template format
 
