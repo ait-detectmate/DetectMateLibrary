@@ -20,8 +20,6 @@ import detectmatelibrary.schemas as schemas
 
 from detectmatelibrary.utils.aux import time_test_mode
 
-import pytest
-
 # Set time test mode for consistent timestamps
 time_test_mode()
 
@@ -245,7 +243,6 @@ class TestNewValueDetectorAutoConfig:
     """Test that process() drives configure/set_configuration/train/detect
     automatically."""
 
-    @pytest.mark.skip(reason="This test is too late")
     def test_audit_log_anomalies_via_process(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = NewValueDetector()
@@ -278,7 +275,6 @@ class TestNewValueDetectorAutoConfig:
 class TestNewValueDetectorGlobalInstances:
     """Tests event-ID-independent global instance detection."""
 
-    @pytest.mark.skip(reason="This test is too late")
     def test_global_instance_detects_new_type(self):
         """Global instance monitoring Type detects CRED_REFR, USER_AUTH,
         USER_CMD which only appear after the training window (line 1800+)."""

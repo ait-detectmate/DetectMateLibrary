@@ -18,7 +18,7 @@ detectors:
         method_type: new_value_combo_detector
         auto_config: False
         params:
-            comb_size: 3
+            max_combo_size: 3
         events:
             1:
                 test:

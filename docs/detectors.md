@@ -172,7 +172,7 @@ The `set_configuration()` method queries the tracker results and generates the f
 def set_configuration(self):
     variables = {}
     for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
-        stable_vars = tracker.get_variables_by_classification("STABLE")
+        stable_vars = tracker.get_features_by_classification("STABLE")
         variables[event_id] = stable_vars
 
     config_dict = generate_detector_config(

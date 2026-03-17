@@ -24,6 +24,8 @@ class NewValueDetectorConfig(CoreDetectorConfig):
 
     events: EventsConfig | dict[str, Any] = {}
     global_instances: Dict[str, _EventInstance] = {}
+    use_stable_vars: bool = True
+    use_static_vars: bool = True
 
 
 class NewValueDetector(CoreDetector):
@@ -118,8 +120,11 @@ class NewValueDetector(CoreDetector):
     def set_configuration(self) -> None:
         variables = {}
         for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
-            stable_vars = tracker.get_variables_by_classification("STABLE")  # type: ignore
-            variables[event_id] = stable_vars
+            stable = tracker.get_features_by_classification("STABLE") if self.config.use_stable_vars else []  # type: ignore
+            static = tracker.get_features_by_classification("STATIC") if self.config.use_static_vars else []  # type: ignore
+            vars_ = stable + static
+            if len(vars_) > 0:
+                variables[event_id] = vars_
         config_dict = generate_detector_config(
             variable_selection=variables,
             detector_name=self.name,
