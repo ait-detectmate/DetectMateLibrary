@@ -102,4 +102,10 @@ def test_my_parser_parse():
     assert out["variables"] == ["a", "b", "c"]
 ```
 
+## Available parsers
+
+- [JSON Parser](parsers/json_parser.md): extracts structured fields from JSON-formatted logs.
+- [Template Matcher](parsers/template_matcher.md): matches logs against a predefined set of `<*>` templates.
+- [LogBatcher Parser](parsers/logbatcher_parser.md): LLM-based parser that infers templates from raw logs with no training data.
+
 Go back to [Index](index.md)
