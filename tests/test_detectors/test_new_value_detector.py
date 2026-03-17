@@ -8,11 +8,11 @@ This module tests the NewValueDetector implementation including:
 - Input/output schema validation
 """
 
-from detectmatelibrary.common._core_op._fit_config_logic import TrainState
+from detectmatelibrary.common._core_op._fit_logic import TrainState
 from detectmatelibrary.detectors.new_value_detector import (
     NewValueDetector, NewValueDetectorConfig, BufferMode
 )
-from detectmatelibrary.common._core_op._fit_config_logic import ConfigState
+from detectmatelibrary.common._core_op._fit_logic import ConfigState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From

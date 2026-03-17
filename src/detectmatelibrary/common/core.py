@@ -1,6 +1,6 @@
-from detectmatelibrary.common._core_op._fit_config_logic import FitLogicState
+from detectmatelibrary.common._core_op._fit_logic import FitLogicState
 from detectmatelibrary.common._core_op._schema_pipeline import SchemaPipeline
-from detectmatelibrary.common._core_op._fit_config_logic import FitLogic
+from detectmatelibrary.common._core_op._fit_logic import FitLogic
 
 from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
 from detectmatelibrary.utils.id_generator import SimpleIDGenerator
