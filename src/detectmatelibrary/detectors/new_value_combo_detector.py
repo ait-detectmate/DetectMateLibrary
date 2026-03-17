@@ -1,5 +1,4 @@
 from detectmatelibrary.common._config import generate_detector_config
-from detectmatelibrary.common._config._formats import EventsConfig, _EventInstance
 
 from detectmatelibrary.common.detector import (
     CoreDetectorConfig,
@@ -53,8 +52,6 @@ def get_all_possible_combos(
 class NewValueComboDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_value_combo_detector"
 
-    events: EventsConfig | dict[str, Any] = {}
-    global_instances: Dict[str, _EventInstance] = {}
     comb_size: int = 2
 
 

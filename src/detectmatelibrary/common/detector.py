@@ -95,6 +95,8 @@ class CoreDetectorConfig(CoreConfig):
     parser: str = "<PLACEHOLDER>"
 
     auto_config: bool = True
+    events: EventsConfig | dict[str, Any] = {}
+    global_instances: Dict[str, _EventInstance] = {}
 
 
 class CoreDetector(CoreComponent):
