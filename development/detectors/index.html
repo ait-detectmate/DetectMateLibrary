@@ -69,9 +69,11 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#detectors-methods">Detectors methods</a>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#auto-configuration-optional">Auto-configuration (optional)</a>
+    <li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a>
         <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#enabling-auto-configuration">Enabling auto-configuration</a>
+    <li class="toctree-l3"><a class="reference internal" href="#configuration-semantics-preliminary">Configuration semantics (preliminary)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#auto-configuration-optional">Auto-configuration (optional)</a>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#how-it-works">How it works</a>
     </li>
@@ -230,9 +232,36 @@ class SimpleThresholdDetector(CoreDetector):
 <li><a href="new_value/">New Value</a>: Detect new values in the variables in the logs.</li>
 <li><a href="combo/">Combo Detector</a>: Detect new combination of variables in the logs.</li>
 </ul>
-<h2 id="auto-configuration-optional">Auto-configuration (optional)</h2>
+<h2 id="configuration">Configuration</h2>
+<p>When <code>auto_config</code> is set to <code>False</code>, the detector expects an explicit <code>events</code> block that specifies exactly which variables to monitor:</p>
+<pre><code class="language-yaml">detectors:
+  NewValueDetector:
+    method_type: new_value_detector
+    auto_config: False
+    params: {}  # global parameters
+    events:  # event-specific configuration
+      1:  # event_id
+        instance1:  # name of instance (arbitrary)
+          params: {}  # additional params
+          variables:
+            - pos: 0  # location of an unnamed variable from the log message
+              name: var1  # name of variable (arbitrary)
+          header_variables:
+            - pos: level  # location of a named variable (defined in log_format of parser)
+    global:  # define global instance for new_value_detector similar to &quot;events&quot;
+      global_instance1:  # define instance name
+        header_variables:  # same logic as header_variables in &quot;events&quot;
+          - pos: Status
+</code></pre>
+<h3 id="configuration-semantics-preliminary">Configuration semantics (preliminary)</h3>
+<p><strong><code>events</code> key</strong> — The integer key is the <code>EventID</code> (or <code>event_id</code>) to monitor (see the MatcherParser docs for how EventID is assigned).</p>
+<p><strong><code>variables[].pos</code></strong> — The 0-indexed position of the <code>&lt;*&gt;</code> wildcard in the matched template, counting from left to right starting at 0. For example, given:</p>
+<pre><code class="language-text">pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='op=&lt;*&gt; acct=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;'
+</code></pre>
+<p><code>pos: 0</code> captures <code>pid=</code>, <code>pos: 6</code> captures <code>exe=</code>, etc.</p>
+<p><strong><code>header_variables[].pos</code></strong> — A named field from the log format string (e.g., <code>Type</code>, <code>Time</code>, <code>Content</code>) rather than a wildcard position.</p>
+<h3 id="auto-configuration-optional">Auto-configuration (optional)</h3>
 <p>Detectors can optionally support <strong>auto-configuration</strong> — a process where the detector automatically discovers which variables are worth monitoring, instead of requiring the user to specify them manually.</p>
-<h3 id="enabling-auto-configuration">Enabling auto-configuration</h3>
 <p>Auto-configuration is controlled by the <code>auto_config</code> flag in the pipeline config (e.g. <code>config/pipeline_config_default.yaml</code>):</p>
 <pre><code class="language-yaml">detectors:
   NewValueDetector:
@@ -240,22 +269,6 @@ class SimpleThresholdDetector(CoreDetector):
     auto_config: True       # enable auto-configuration
     params: {}
     # no &quot;events&quot; block needed — it will be generated automatically
-</code></pre>
-<p>When <code>auto_config</code> is set to <code>False</code>, the detector expects an explicit <code>events</code> block that specifies exactly which variables to monitor:</p>
-<pre><code class="language-yaml">detectors:
-  NewValueDetector:
-    method_type: new_value_detector
-    auto_config: False
-    params: {}
-    events:
-      1:
-        instance1:
-          params: {}
-          variables:
-            - pos: 0
-              name: var1
-          header_variables:
-            - pos: level
 </code></pre>
 <h3 id="how-it-works">How it works</h3>
 <p>When auto-configuration is enabled, the detector goes through two extra phases before training:</p>

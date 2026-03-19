@@ -70,6 +70,8 @@
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#eventid-assignment-preliminary">EventID assignment (preliminary)</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#template-format">Template format</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a>
@@ -157,8 +159,38 @@
 <li>Preprocesses logs and templates (remove spaces, punctuation, lowercase) based on config.</li>
 <li>Finds the first template that matches and extracts all wildcard parameters in order.</li>
 <li>Populates ParserSchema fields: <code>EventID</code>, <code>template</code>, <code>variables</code>,  <code>logID</code>, and related fields.</li>
+<li><strong><code>EventID</code> is the 0-indexed line number of the matched template</strong> in the template file (first line → <code>EventID: 0</code>, second line → <code>EventID: 1</code>, etc.).</li>
 </ul>
 <p>This parser is deterministic and designed for high-throughput use when templates are known in advance.</p>
+<h2 id="eventid-assignment-preliminary">EventID assignment (preliminary)</h2>
+<p>The <code>EventID</code> (or <code>event_id</code>) field in the output <code>ParserSchema</code> identifies which template was matched. It equals the <strong>0-indexed line number</strong> of the matching template in the template file:</p>
+<table>
+<thead>
+<tr>
+<th>Line in template file</th>
+<th>EventID</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1st line</td>
+<td>0</td>
+</tr>
+<tr>
+<td>2nd line</td>
+<td>1</td>
+</tr>
+<tr>
+<td>3rd line</td>
+<td>2</td>
+</tr>
+<tr>
+<td>...</td>
+<td>...</td>
+</tr>
+</tbody>
+</table>
+<p>This <code>EventID</code> is the integer key used in detector configurations (e.g., <code>NewValueDetector</code>) to scope detection rules to logs of a particular template type.</p>
 <h2 id="template-format">Template format</h2>
 <ul>
 <li>Templates are plain text lines in a template file.</li>
