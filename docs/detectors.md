@@ -88,12 +88,50 @@ List of detectors:
 * [New Value](detectors/new_value.md): Detect new values in the variables in the logs.
 * [Combo Detector](detectors/combo.md): Detect new combination of variables in the logs.
 
+## Configuration
 
-## Auto-configuration (optional)
+When `auto_config` is set to `False`, the detector expects an explicit `events` block that specifies exactly which variables to monitor:
+
+```yaml
+detectors:
+  NewValueDetector:
+    method_type: new_value_detector
+    auto_config: False
+    params: {}  # global parameters
+    events:  # event-specific configuration
+      1:  # event_id
+        instance1:  # name of instance (arbitrary)
+          params: {}  # additional params
+          variables:
+            - pos: 0  # location of an unnamed variable from the log message
+              name: var1  # name of variable (arbitrary)
+          header_variables:
+            - pos: level  # location of a named variable (defined in log_format of parser)
+    global:  # define global instance for new_value_detector similar to "events"
+      global_instance1:  # define instance name
+        header_variables:  # same logic as header_variables in "events"
+          - pos: Status
+```
+
+
+### Configuration semantics (preliminary)
+
+**`events` key** — The integer key is the `EventID` (or `event_id`) to monitor (see the MatcherParser docs for how EventID is assigned).
+
+**`variables[].pos`** — The 0-indexed position of the `<*>` wildcard in the matched template, counting from left to right starting at 0. For example, given:
+
+```text
+pid=<*> uid=<*> auid=<*> ses=<*> msg='op=<*> acct=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'
+```
+
+`pos: 0` captures `pid=`, `pos: 6` captures `exe=`, etc.
+
+**`header_variables[].pos`** — A named field from the log format string (e.g., `Type`, `Time`, `Content`) rather than a wildcard position.
+
+
+### Auto-configuration (optional)
 
 Detectors can optionally support **auto-configuration** — a process where the detector automatically discovers which variables are worth monitoring, instead of requiring the user to specify them manually.
-
-### Enabling auto-configuration
 
 Auto-configuration is controlled by the `auto_config` flag in the pipeline config (e.g. `config/pipeline_config_default.yaml`):
 
@@ -106,24 +144,6 @@ detectors:
     # no "events" block needed — it will be generated automatically
 ```
 
-When `auto_config` is set to `False`, the detector expects an explicit `events` block that specifies exactly which variables to monitor:
-
-```yaml
-detectors:
-  NewValueDetector:
-    method_type: new_value_detector
-    auto_config: False
-    params: {}
-    events:
-      1:
-        instance1:
-          params: {}
-          variables:
-            - pos: 0
-              name: var1
-          header_variables:
-            - pos: level
-```
 
 ### How it works
 
