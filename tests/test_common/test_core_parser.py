@@ -1,6 +1,5 @@
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig, get_format_variables
 from detectmatelibrary.utils.aux import time_test_mode
-import detectmatelibrary.schemas._op as op_schemas
 import detectmatelibrary.schemas as schemas
 
 import pydantic
@@ -86,13 +85,6 @@ class TestCoreParser:
         data = schemas.LogSchema({"logID": "1", "log": "This is a log."}).serialize()
         result = parser.process(data)  # no error should be produced
         assert isinstance(result, bytes)  # and result should be bytes
-
-    def test_process_incorrect_input_schema(self) -> None:
-        parser = MockupParser(name="TestParser", config=default_args)
-        data = schemas.DetectorSchema({"score": 0.99}).serialize()
-
-        with pytest.raises(op_schemas.IncorrectSchema):
-            parser.process(data)
 
     def test_process_correct_input_schema_not_serialize(self) -> None:
         parser = MockupParser(name="TestParser", config=MockupConfig())

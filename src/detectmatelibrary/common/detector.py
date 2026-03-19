@@ -1,3 +1,4 @@
+from detectmatelibrary.common._config._formats import EventsConfig, _EventInstance
 from detectmatelibrary.common.core import CoreComponent, CoreConfig
 
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
@@ -6,20 +7,20 @@ from detectmatelibrary.utils.aux import get_timestamp
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
 from typing_extensions import override
-from typing import List, Optional, Any
+from typing import Dict, List, Optional, Any
+
+from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
+
+
+_time_handler = TimeFormatHandler()
 
 
 def _extract_timestamp(
     input_: List[ParserSchema] | ParserSchema
 ) -> List[int]:
-    def format_time(time: str) -> int:
-        time_ = time.split(":")[0]
-        return int(float(time_))
-
     if not isinstance(input_, list):
         input_ = [input_]
-
-    return [format_time(i["logFormatVariables"]["Time"]) for i in input_]
+    return [int(_time_handler.parse_timestamp(i["logFormatVariables"]["Time"])) for i in input_]
 
 
 def _extract_logIDs(
@@ -31,12 +32,71 @@ def _extract_logIDs(
     return [str(i["logID"]) for i in input_]
 
 
+def get_configured_variables(
+        input_: ParserSchema,
+        log_variables: EventsConfig | dict[str, Any],
+) -> Dict[str, Any]:
+    """Extract variables from input based on what's defined in the config.
+
+    Args:
+        input_: Parser schema containing variables and logFormatVariables
+        log_variables: Config specifying which variables to extract per EventID
+
+    Returns:
+        Dict mapping variable names to their values from the input
+    """
+    event_id = input_["EventID"]
+    result: Dict[str, Any] = {}
+
+    # Get the config for this event
+    event_config = log_variables[event_id] if event_id in log_variables else None
+    if event_config is None:
+        return result
+
+    # Extract template variables by position
+    if hasattr(event_config, "variables"):
+        for pos, var in event_config.variables.items():
+            if pos < len(input_["variables"]):
+                result[var.name] = input_["variables"][pos]
+
+    # Extract header/log format variables by name
+    if hasattr(event_config, "header_variables"):
+        for name in event_config.header_variables:
+            if name in input_["logFormatVariables"]:
+                result[name] = input_["logFormatVariables"][name]
+
+    return result
+
+
+def get_global_variables(
+        input_: ParserSchema,
+        global_instances: Dict[str, _EventInstance],
+) -> Dict[str, Any]:
+    """Extract header variables from event-ID-independent instances.
+
+    Args:
+        input_: Parser schema containing logFormatVariables
+        global_instances: Dict of instance_name -> _EventInstance configs
+
+    Returns:
+        Dict mapping variable names to their values from the input
+    """
+    result: Dict[str, Any] = {}
+    for instance in global_instances.values():
+        for name in instance.header_variables:
+            if name in input_["logFormatVariables"]:
+                result[name] = input_["logFormatVariables"][name]
+    return result
+
+
 class CoreDetectorConfig(CoreConfig):
     comp_type: str = "detectors"
     method_type: str = "core_detector"
     parser: str = "<PLACEHOLDER>"
 
-    auto_config: bool = False
+    auto_config: bool = True
+    events: EventsConfig | dict[str, Any] = {}
+    global_instances: Dict[str, _EventInstance] = {}
 
 
 class CoreDetector(CoreComponent):
@@ -66,25 +126,35 @@ class CoreDetector(CoreComponent):
 
         output_["detectorID"] = self.name
         output_["detectorType"] = self.config.method_type
-        output_["logIDs"].extend(_extract_logIDs(input_))
-        output_["extractedTimestamps"].extend(_extract_timestamp(input_))
-        output_["alertID"] = str(self.id_generator())
+        output_["logIDs"] = _extract_logIDs(input_)
+        output_["extractedTimestamps"] = _extract_timestamp(input_)
         output_["receivedTimestamp"] = get_timestamp()
 
-        anomaly_detected = self.detect(input_=input_, output_=output_)
-        output_["detectionTimestamp"] = get_timestamp()
+        if (anomaly_detected := self.detect(input_=input_, output_=output_)):
+            output_["alertID"] = str(self.id_generator())
+            output_["detectionTimestamp"] = get_timestamp()
 
-        return True if anomaly_detected is None else anomaly_detected
+        return anomaly_detected
 
     def detect(
         self,
         input_: List[ParserSchema] | ParserSchema,
         output_: DetectorSchema,
-    ) -> bool | None:
+    ) -> bool:
         return True
 
     @override
     def train(
         self, input_: ParserSchema | list[ParserSchema]  # type: ignore
     ) -> None:
+        pass
+
+    @override
+    def configure(
+        self, input_: ParserSchema | list[ParserSchema]  # type: ignore
+    ) -> None:
+        pass
+
+    @override
+    def set_configuration(self) -> None:
         pass

@@ -10,21 +10,21 @@ class FieldNotFound(Exception):
 
 
 def _initialize_schema(
-    schema_id: op.SchemaID, kwargs: dict[str, Any] | None
+    schema_class: op.SchemaT, kwargs: dict[str, Any] | None
 ) -> op.SchemaT:
 
     if kwargs is None:
-        _schema = op.initialize(schema_id=schema_id, **{})
+        _schema = op.initialize(schema=schema_class, **{})
     else:
-        _schema = op.initialize(schema_id=schema_id, **kwargs)
+        _schema = op.initialize(schema=schema_class, **kwargs)
     return _schema
 
 
 class SchemaVariables:
     def __init__(
-        self, schema_id: op.SchemaID, kwargs: dict[str, Any] | None = None
+        self, schema_class: op.SchemaT, kwargs: dict[str, Any] | None = None
     ) -> None:
-        self.schema_id = schema_id
+        self.schema_class = schema_class
         self.var_names: set[str]
         self.__is_list: dict[str, bool] = {}
         self.init_schema(kwargs=kwargs)
@@ -38,7 +38,7 @@ class SchemaVariables:
 
     def get_schema(self) -> op.SchemaT:
         """Retrieve the current schema instance."""
-        return _initialize_schema(schema_id=self.schema_id, kwargs=self.as_dict())
+        return _initialize_schema(schema_class=self.schema_class, kwargs=self.as_dict())
 
     def set_schema(self, schema: op.SchemaT) -> None:
         """Set the schema instance and update attributes."""
@@ -47,7 +47,7 @@ class SchemaVariables:
 
     def init_schema(self, kwargs: dict[str, Any] | None) -> None:
         """Initialize the schema instance and set attributes."""
-        _schema = _initialize_schema(schema_id=self.schema_id, kwargs=kwargs)
+        _schema = _initialize_schema(schema_class=self.schema_class, kwargs=kwargs)
 
         var_names = []
         for var in op.get_variables_names(_schema):
@@ -69,42 +69,36 @@ class SchemaVariables:
 class BaseSchema(SchemaVariables):
     def __init__(
         self,
-        schema_id: op.SchemaID = op.BASE_SCHEMA,
+        schema_class: op.SchemaT = op.BASE_SCHEMA,
         kwargs: dict[str, Any] | None = None
     ) -> None:
-        super().__init__(schema_id=schema_id, kwargs=kwargs)
+        super().__init__(schema_class=schema_class, kwargs=kwargs)
 
     def __str__(self) -> str:
         return str(self.get_schema())
 
     def copy(self) -> "BaseSchema":
         """Create a deep copy of the schema instance."""
-        copy_schema = op.copy(schema_id=self.schema_id, schema=self.get_schema())
-        new_instance = BaseSchema(schema_id=self.schema_id)
+        copy_schema = op.copy(schema_class=self.schema_class, schema=self.get_schema())
+        new_instance = BaseSchema(schema_class=self.schema_class)
         new_instance.set_schema(copy_schema)
         return new_instance
 
     def serialize(self) -> bytes:
         """Serialize the schema instance to bytes."""
-        return op.serialize(id_schema=self.schema_id, schema=self.get_schema())
+        return op.serialize(schema=self.get_schema())
 
     def deserialize(self, message: bytes) -> None | op.IncorrectSchema:
         """Deserialize bytes to populate the schema instance."""
-        schema_id, schema = op.deserialize(message=message)
-
-        op.check_is_same_schema(
-            id_schema_1=self.schema_id, id_schema_2=schema_id
-        )
-
-        self.schema_id = schema_id
+        schema = op.deserialize(schema_class=self.schema_class, message=message)
         self.set_schema(schema=schema)
         return None
 
     def check_is_same(self, other: Self) -> None | op.IncorrectSchema:
         """Check if another schema instance is of the same schema type."""
         return op.check_is_same_schema(
-            id_schema_1=self.schema_id,
-            id_schema_2=other.schema_id
+            id_schema_1=self.schema_class,
+            id_schema_2=other.schema_class
         )
 
     def __eq__(self, other: object) -> bool:
@@ -132,7 +126,7 @@ class LogSchema(BaseSchema):
     def __init__(
         self, kwargs: dict[str, Any] | None = None
     ) -> None:
-        super().__init__(schema_id=op.LOG_SCHEMA, kwargs=kwargs)
+        super().__init__(schema_class=op.LOG_SCHEMA, kwargs=kwargs)
 
     def copy(self) -> "LogSchema":
         schema: LogSchema = super().copy()  # type: ignore
@@ -144,7 +138,7 @@ class ParserSchema(BaseSchema):
     def __init__(
         self, kwargs: dict[str, Any] | None = None
     ) -> None:
-        super().__init__(schema_id=op.PARSER_SCHEMA, kwargs=kwargs)
+        super().__init__(schema_class=op.PARSER_SCHEMA, kwargs=kwargs)
 
     def copy(self) -> "ParserSchema":
         schema: ParserSchema = super().copy()  # type: ignore
@@ -156,7 +150,7 @@ class DetectorSchema(BaseSchema):
     def __init__(
         self, kwargs: dict[str, Any] | None = None
     ) -> None:
-        super().__init__(schema_id=op.DETECTOR_SCHEMA, kwargs=kwargs)
+        super().__init__(schema_class=op.DETECTOR_SCHEMA, kwargs=kwargs)
 
     def copy(self) -> "DetectorSchema":
         schema: DetectorSchema = super().copy()  # type: ignore
@@ -168,7 +162,7 @@ class OutputSchema(BaseSchema):
     def __init__(
         self, kwargs: dict[str, Any] | None = None
     ) -> None:
-        super().__init__(schema_id=op.OUTPUT_SCHEMA, kwargs=kwargs)
+        super().__init__(schema_class=op.OUTPUT_SCHEMA, kwargs=kwargs)
 
     def copy(self) -> "OutputSchema":
         schema: OutputSchema = super().copy()  # type: ignore

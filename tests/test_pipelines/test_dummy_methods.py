@@ -66,7 +66,7 @@ class TestDummyMethods:
         parser = DummyParser()
         detector = DummyDetector()
 
-        log_input = schemas.LogSchema({"log": "test log"})
+        log_input = schemas.LogSchema({"log": "test log", "logID": "1"})
         parsed_log = parser.process(log_input)
 
         while (result := detector.process(parsed_log)) is None:

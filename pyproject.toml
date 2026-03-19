@@ -3,21 +3,29 @@ name = "detectmatelibrary"
 version = "0.1.0"
 description = "DetectMate Library for log processing components"
 readme = "README.md"
+dynamic = ["authors"]
 requires-python = ">=3.12"
 dependencies = [
-    "drain3>=0.9.11",
-    "pandas>=2.3.2",
     "protobuf>=6.32.1",
     "pydantic>=2.11.7",
     "pyyaml>=6.0.3",
     "regex>=2025.11.3",
     "kafka-python>=2.3.0",
+    "openai>=2.26.0",
+    "tenacity>=9.1.4",
+    "scipy>=1.17.1",
+    "scikit-learn>=1.8.0",
+    "tiktoken>=0.12.0",
+    "numpy>=2.3.2",
+    "pandas>=2.3.2",
+    "polars>=1.38.1",
 ]
 
 [dependency-groups]
 # add dependencies in this section with: uv add --optional dev <package>
 # install with all the dev dependencies:  uv pip install -e .[dev]
 dev = [
+    "mike>=2.1.3",
     "prek>=0.2.8",
     "pytest>=8.4.2",
     "pytest-cov>=6.2.1",
