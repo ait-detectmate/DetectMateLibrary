@@ -14,8 +14,8 @@ import string
 
 
 def random_id(length: int = 10) -> str:
-    characters = string.ascii_letters + string.digits
-    return "".join(choice(characters) for _ in range(length))
+    characters = [s for s in string.ascii_letters + string.digits]
+    return "".join(str(choice(characters)) for _ in range(length))
 
 
 class BasicConfig(BaseModel):
