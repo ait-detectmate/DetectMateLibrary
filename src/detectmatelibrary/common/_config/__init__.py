@@ -9,6 +9,14 @@ from typing_extensions import Self
 from typing import Any, Dict
 from copy import deepcopy
 
+from numpy.random import choice
+import string
+
+
+def random_id(length: int = 10) -> str:
+    characters = string.ascii_letters + string.digits
+    return "".join(choice(characters) for _ in range(length))
+
 
 class BasicConfig(BaseModel):
     """Base configuration class with helper methods."""
@@ -39,7 +47,7 @@ class BasicConfig(BaseModel):
 
         return cls(**ConfigMethods.process(config_))
 
-    def to_dict(self, method_id: str) -> Dict[str, Any]:
+    def to_dict(self, method_id: str = random_id()) -> Dict[str, Any]:
         """Convert the config back to YAML-compatible dictionary format.
 
         This is the inverse of from_dict() and ensures yaml -> pydantic -> yaml preservation.
