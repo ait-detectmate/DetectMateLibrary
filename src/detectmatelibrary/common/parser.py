@@ -12,7 +12,7 @@ import re
 
 
 class CoreParserConfig(CoreConfig):
-    comp_type: str = "parsers"
+    component_type: str = "parsers"
     method_type: str = "core_parser"
 
     log_format: str | None = None

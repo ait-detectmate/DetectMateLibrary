@@ -16,7 +16,7 @@ This document describes the minimal API, implementation guidance, a short exampl
 
 ```python
 class CoreDetectorConfig(CoreConfig):
-    comp_type: str = "detectors"
+    component_type: str = "detectors"
     method_type: str = "core_detector"
     parser: str = "<PLACEHOLDER>"
 

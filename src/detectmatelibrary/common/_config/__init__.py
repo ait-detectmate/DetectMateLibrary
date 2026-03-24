@@ -24,7 +24,7 @@ class BasicConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     method_type: str = "default_method_type"
-    comp_type: str = "default_type"
+    component_type: str = "default_type"
 
     auto_config: bool = False
 
@@ -41,7 +41,7 @@ class BasicConfig(BaseModel):
     def from_dict(cls, data: Dict[str, Any], method_id: str) -> Self:
         aux = cls()
         config_ = ConfigMethods.get_method(
-            deepcopy(data), comp_type=aux.comp_type, method_id=method_id
+            deepcopy(data), component_type=aux.component_type, method_id=method_id
         )
         ConfigMethods.check_type(config_, method_type=aux.method_type)
 
@@ -56,7 +56,7 @@ class BasicConfig(BaseModel):
             method_id: The method identifier to use in the output structure
 
         Returns:
-            Dictionary with structure: {comp_type: {method_id: config_data}}
+            Dictionary with structure: {component_type: {method_id: config_data}}
         """
         # Build the config in the format expected by from_dict
         result: Dict[str, Any] = {
@@ -71,7 +71,7 @@ class BasicConfig(BaseModel):
 
         for field_name, field_value in self:
             # Skip meta fields
-            if field_name in ("comp_type", "method_type", "auto_config"):
+            if field_name in ("component_type", "method_type", "auto_config"):
                 continue
 
             # Handle EventsConfig specially
@@ -104,9 +104,9 @@ class BasicConfig(BaseModel):
         if events_data is not None:
             result["events"] = events_data
 
-        # Wrap in the comp_type and method_id structure
+        # Wrap in the component_type and method_id structure
         return {
-            self.comp_type: {
+            self.component_type: {
                 method_id: result
             }
         }
