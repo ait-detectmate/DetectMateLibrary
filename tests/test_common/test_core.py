@@ -25,7 +25,7 @@ class MockConfigWithTraining(CoreConfig):
 
 default_args = {
     "method_type": "default_method_type",
-    "comp_type": "default_type",
+    "component_type": "default_type",
     "auto_config": False,
     "start_id": 10,
     "data_use_training": None,

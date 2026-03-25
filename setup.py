@@ -25,4 +25,11 @@ setup(
     author="voice",
     author_email="voice@example.com",
     install_requires=gather_dependencies(),
+    data_files=[(
+        "src/tools/workspace/templates/data",
+        [
+            "src/tools/workspace/templates/data/logs.json",
+            "src/tools/workspace/templates/data/parsed_log.json",
+        ]
+    )]
 )

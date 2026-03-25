@@ -29,7 +29,7 @@ config_test = load_test_config()
 class TestConfigMethods:
     def test_get_method(self):
         config = ConfigMethods.get_method(
-            config_test, method_id="example_parser", comp_type="parsers"
+            config_test, method_id="example_parser", component_type="parsers"
         )
         assert config["method_type"] == "ExampleParser"
         assert not config["auto_config"]
@@ -40,18 +40,18 @@ class TestConfigMethods:
     def test_method_not_found(self):
         with pytest.raises(MethodNotFoundError):
             ConfigMethods.get_method(
-                config_test, method_id="non_existent", comp_type="parsers"
+                config_test, method_id="non_existent", component_type="parsers"
             )
 
     def test_type_not_found(self):
         with pytest.raises(TypeNotFoundError):
             ConfigMethods.get_method(
-                config_test, method_id="example_parser", comp_type="non_existent_type"
+                config_test, method_id="example_parser", component_type="non_existent_type"
             )
 
     def test_check_type(self):
         config = ConfigMethods.get_method(
-            config_test, method_id="example_parser", comp_type="parsers"
+            config_test, method_id="example_parser", component_type="parsers"
         )
         ConfigMethods.check_type(config, method_type="ExampleParser")
 
@@ -60,7 +60,7 @@ class TestConfigMethods:
 
     def test_process_simple(self):
         config = ConfigMethods.process(ConfigMethods.get_method(
-            config_test, method_id="example_parser", comp_type="parsers"
+            config_test, method_id="example_parser", component_type="parsers"
         ))
 
         assert config["method_type"] == "ExampleParser"
@@ -71,7 +71,7 @@ class TestConfigMethods:
 
     def test_process_auto_config(self):
         config = ConfigMethods.process(ConfigMethods.get_method(
-            config_test, method_id="detector_auto", comp_type="detectors"
+            config_test, method_id="detector_auto", component_type="detectors"
         ))
 
         assert config["method_type"] == "ExampleDetector"
@@ -82,13 +82,13 @@ class TestConfigMethods:
     def test_process_auto_config_false(self):
         with pytest.warns(MissingParamsWarning):
             ConfigMethods.process(ConfigMethods.get_method(
-                config_test, method_id="detector_wrong", comp_type="detectors"
+                config_test, method_id="detector_wrong", component_type="detectors"
             ))
 
     def test_process_auto_config_warning(self):
         with pytest.warns(AutoConfigWarning):
             ConfigMethods.process(ConfigMethods.get_method(
-                config_test, method_id="detector_weird", comp_type="detectors"
+                config_test, method_id="detector_weird", component_type="detectors"
             ))
 
 
@@ -96,7 +96,7 @@ class TestParamsFormat:
     def test_correct_format(self):
         config_test = load_test_config()
         config = ConfigMethods.process(ConfigMethods.get_method(
-            config_test, method_id="detector_variables", comp_type="detectors"
+            config_test, method_id="detector_variables", component_type="detectors"
         ))
 
         assert config["method_type"] == "ExampleDetector"
@@ -118,7 +118,7 @@ class TestParamsFormat:
 
     def test_correct_format2(self):
         config = ConfigMethods.process(ConfigMethods.get_method(
-            config_test, method_id="detector_variables2", comp_type="detectors"
+            config_test, method_id="detector_variables2", component_type="detectors"
         ))
 
         assert config["method_type"] == "ExampleDetector"
@@ -138,7 +138,7 @@ class TestParamsFormat:
     def test_return_none_if_not_found(self):
         config_test = load_test_config()
         config = ConfigMethods.process(ConfigMethods.get_method(
-            config_test, method_id="detector_variables", comp_type="detectors"
+            config_test, method_id="detector_variables", component_type="detectors"
         ))
 
         assert isinstance(config["events"][1], _EventConfig)
@@ -147,7 +147,7 @@ class TestParamsFormat:
     def test_get_dict(self):
         config_test = load_test_config()
         config = ConfigMethods.process(ConfigMethods.get_method(
-            config_test, method_id="detector_variables", comp_type="detectors"
+            config_test, method_id="detector_variables", component_type="detectors"
         ))
         variables = config["events"][1].get_all()
 
@@ -156,13 +156,13 @@ class TestParamsFormat:
     def test_incorrect_format(self):
         with pytest.raises(ValidationError):
             ConfigMethods.process(ConfigMethods.get_method(
-                config_test, method_id="detector_incorrect_format1", comp_type="detectors"
+                config_test, method_id="detector_incorrect_format1", component_type="detectors"
             ))
 
 
 class MockupParserConfig(BasicConfig):
     method_type: str = "ExampleParser"
-    comp_type: str = "parsers"
+    component_type: str = "parsers"
 
     auto_config: bool = False
     log_format: str = "<PLACEHOLDER>"
@@ -171,7 +171,7 @@ class MockupParserConfig(BasicConfig):
 
 class MockuptDetectorConfig(BasicConfig):
     method_type: str = "ExampleDetector"
-    comp_type: str = "detectors"
+    component_type: str = "detectors"
     parser: str = "<PLACEHOLDER>"
 
 
