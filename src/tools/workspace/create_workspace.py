@@ -123,7 +123,13 @@ def create_workspace(type_: str, name: str, target_dir: Path) -> None:
     create_tests(type_=type_, name=name, workspace_root=workspace_root, pkg_name=pkg_name)
 
     # Copy data
-    copy_file(PROJECT_ROOT / DATA_FILES[type_], workspace_root / "data.json")
+    try:
+        copy_file(PROJECT_ROOT / DATA_FILES[type_], workspace_root / "data.json")
+    except FileNotFoundError:  # Copy data from pip instead
+        copy_file(
+            PROJECT_ROOT / DATA_FILES[type_].replace("src/", "site-packages/"),
+            workspace_root / "data.json"
+        )
 
     # Copy meta/root files
     for file_name in META_FILES:

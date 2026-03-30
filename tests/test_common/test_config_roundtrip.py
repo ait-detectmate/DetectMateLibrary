@@ -9,7 +9,7 @@ import yaml
 
 class MockupParserConfig(BasicConfig):
     method_type: str = "ExampleParser"
-    comp_type: str = "parsers"
+    component_type: str = "parsers"
     auto_config: bool = False
     log_format: str = "<PLACEHOLDER>"
     depth: int = -1
@@ -17,7 +17,7 @@ class MockupParserConfig(BasicConfig):
 
 class MockupDetectorConfig(BasicConfig):
     method_type: str = "ExampleDetector"
-    comp_type: str = "detectors"
+    component_type: str = "detectors"
     auto_config: bool = False
     parser: str = "<PLACEHOLDER>"
     events: EventsConfig | None = None
@@ -202,7 +202,7 @@ class TestConfigRoundtrip:
 
         # The two configs should be identical
         assert config1.method_type == config2.method_type
-        assert config1.comp_type == config2.comp_type
+        assert config1.component_type == config2.component_type
         assert config1.auto_config == config2.auto_config
         assert config1.parser == config2.parser
 

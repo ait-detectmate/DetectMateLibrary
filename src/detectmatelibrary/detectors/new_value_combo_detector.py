@@ -1,5 +1,4 @@
 from detectmatelibrary.common._config import generate_detector_config
-from detectmatelibrary.common._config._formats import EventsConfig, _EventInstance
 
 from detectmatelibrary.common.detector import (
     CoreDetectorConfig,

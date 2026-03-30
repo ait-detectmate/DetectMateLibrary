@@ -90,11 +90,13 @@ def get_global_variables(
 
 
 class CoreDetectorConfig(CoreConfig):
-    comp_type: str = "detectors"
+    component_type: str = "detectors"
     method_type: str = "core_detector"
     parser: str = "<PLACEHOLDER>"
 
     auto_config: bool = True
+    events: EventsConfig | dict[str, Any] = {}
+    global_instances: Dict[str, _EventInstance] = {}
 
 
 class CoreDetector(CoreComponent):
@@ -110,7 +112,7 @@ class CoreDetector(CoreComponent):
 
         super().__init__(
             name=name,
-            type_=config.comp_type,  # type: ignore
+            type_=config.component_type,  # type: ignore
             config=config,  # type: ignore
             args_buffer=ArgsBuffer(mode=buffer_mode, size=buffer_size),
             input_schema=ParserSchema,
