@@ -52,9 +52,6 @@ def get_all_possible_combos(
 class NewValueComboDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_value_combo_detector"
 
-    events: EventsConfig | dict[str, Any] = {}
-    global_instances: Dict[str, _EventInstance] = {}
-
     max_combo_size: int = 3
     use_stable_vars: bool = True
     use_static_vars: bool = False

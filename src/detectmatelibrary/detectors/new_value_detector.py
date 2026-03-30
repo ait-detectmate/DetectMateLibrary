@@ -19,8 +19,6 @@ from detectmatelibrary.constants import GLOBAL_EVENT_ID
 class NewValueDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_value_detector"
 
-    events: EventsConfig | dict[str, Any] = {}
-    global_instances: Dict[str, _EventInstance] = {}
     use_stable_vars: bool = True
     use_static_vars: bool = True
 
