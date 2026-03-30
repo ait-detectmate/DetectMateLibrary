@@ -13,6 +13,24 @@ test_log_no_match = 'this is not matching'
 
 
 class TestMatcherParserBasic:
+    def test_no_path_templates(self):
+        config_dict = {
+            "parsers": {
+                "MatcherParser": {
+                    "auto_config": True,
+                    "method_type": "matcher_parser",
+                }
+            }
+        }
+        parser = MatcherParser(name="MatcherParser", config=config_dict)
+        input_log = schemas.LogSchema({"log": test_log_match})
+        output_data = schemas.ParserSchema()
+        parser.parse(input_log, output_data)
+
+        assert output_data.template == "<Not Found>"
+        assert output_data.EventID == -1
+        assert output_data.variables == []
+
     def test_templates_not_found(self):
         config_dict = {
             "parsers": {
