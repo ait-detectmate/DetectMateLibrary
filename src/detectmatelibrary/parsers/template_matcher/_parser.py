@@ -52,7 +52,7 @@ class MatcherParserConfig(CoreParserConfig):
     remove_punctuation: bool = True
     lowercase: bool = True
 
-    path_templates: str = "<PLACEHOLDER>"
+    path_templates: str | None = None
 
 
 class MatcherParser(CoreParser):
@@ -67,8 +67,11 @@ class MatcherParser(CoreParser):
         super().__init__(name=name, config=config)
         self.config: MatcherParserConfig
 
+        templates = load_templates(
+            self.config.path_templates
+        ) if self.config.path_templates is not None else []
         self.template_matcher = TemplateMatcher(
-            template_list=load_templates(self.config.path_templates),
+            template_list=templates,
             remove_spaces=self.config.remove_spaces,
             remove_punctuation=self.config.remove_punctuation,
             lowercase=self.config.lowercase,
