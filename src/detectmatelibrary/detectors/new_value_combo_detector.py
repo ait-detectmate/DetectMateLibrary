@@ -1,10 +1,12 @@
 from detectmatelibrary.common._config import generate_detector_config
+from detectmatelibrary.common._config._formats import EventsConfig
 
 from detectmatelibrary.common.detector import (
     CoreDetectorConfig,
     CoreDetector,
     get_configured_variables,
-    get_global_variables
+    get_global_variables,
+    validate_config_coverage,
 )
 
 from detectmatelibrary.utils.data_buffer import BufferMode
@@ -18,6 +20,9 @@ from detectmatelibrary.constants import GLOBAL_EVENT_ID
 
 from typing import Any, Dict, Sequence, cast, Tuple
 from itertools import combinations
+
+from typing_extensions import override
+from tools.logging import logger
 
 
 def get_combo(variables: Dict[str, Any]) -> Dict[Tuple[str, ...], Tuple[Any, ...]]:
@@ -146,6 +151,12 @@ class NewValueComboDetector(CoreDetector):
             return True
         return False
 
+    @override
+    def post_train(self) -> None:
+        config = cast(NewValueComboDetectorConfig, self.config)
+        if not config.auto_config:
+            validate_config_coverage(self.name, config.events, self.persistency)
+
     def configure(self, input_: ParserSchema) -> None:  # type: ignore
         """Configure the detector based on the stability of individual
         variables, then learn value combinations based on that
@@ -217,3 +228,10 @@ class NewValueComboDetector(CoreDetector):
         )
         # Update the config object from the dictionary instead of replacing it
         self.config = NewValueComboDetectorConfig.from_dict(config_dict, self.name)
+        events = self.config.events
+        if isinstance(events, EventsConfig) and not events.events:
+            logger.warning(
+                f"[{self.name}] auto_config=True generated an empty configuration. "
+                "No stable variable combinations were found in configure-phase data. "
+                "The detector will produce no alerts."
+            )

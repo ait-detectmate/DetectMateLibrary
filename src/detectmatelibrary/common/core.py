@@ -54,6 +54,9 @@ class Component:
     def set_configuration(self) -> None:
         pass
 
+    def post_train(self) -> None:
+        pass
+
     def get_config(self) -> Dict[str, Any]:
         return self.config.get_config()
 
@@ -100,6 +103,9 @@ class CoreComponent(Component):
         if fit_state == FitLogicState.DO_TRAIN:
             logger.info(f"<<{self.name}>> use data for training")
             self.train(input_=data_buffered)
+        elif self.fitlogic.finish_training():
+            logger.info(f"<<{self.name}>> finalizing training")
+            self.post_train()
 
         output_ = self.output_schema()
         logger.info(f"<<{self.name}>> processing data")
