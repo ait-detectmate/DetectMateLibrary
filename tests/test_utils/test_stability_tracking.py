@@ -290,7 +290,7 @@ class TestMultiVariableTracker:
                 "random_var": f"unique_{i}",
             })
 
-        stable_vars = trackers.get_variables_by_classification("STABLE")
+        stable_vars = trackers.get_features_by_classification("STABLE")
         assert isinstance(stable_vars, list)
         # "stable_var" should be classified as STATIC
 
@@ -360,7 +360,7 @@ class TestEventVariableTrackerData:
                 "random_var": f"unique_{i}",
             })
 
-        stable_vars = evt.get_variables_by_classification("STABLE")
+        stable_vars = evt.get_features_by_classification("STABLE")
         assert isinstance(stable_vars, list)
 
     def test_integration_with_stability_tracker(self):
@@ -377,7 +377,7 @@ class TestEventVariableTrackerData:
 
         # Get data and variables
         var_names = evt.get_variables()
-        stable_vars = evt.get_variables_by_classification("STABLE")
+        stable_vars = evt.get_features_by_classification("STABLE")
 
         assert len(var_names) == 3
         assert isinstance(stable_vars, list)
@@ -529,7 +529,7 @@ class TestStabilityTrackingIntegration:
             })
 
         var_names = evt.get_variables()
-        stable_vars = evt.get_variables_by_classification("STABLE")
+        stable_vars = evt.get_features_by_classification("STABLE")
 
         assert len(var_names) == 5
         assert isinstance(stable_vars, list)

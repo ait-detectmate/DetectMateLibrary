@@ -19,6 +19,9 @@ from detectmatelibrary.constants import GLOBAL_EVENT_ID
 class NewValueDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_value_detector"
 
+    use_stable_vars: bool = True
+    use_static_vars: bool = True
+
 
 class NewValueDetector(CoreDetector):
     """Detect new values in log data as anomalies based on learned values."""
@@ -112,8 +115,15 @@ class NewValueDetector(CoreDetector):
     def set_configuration(self) -> None:
         variables = {}
         for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
-            stable_vars = tracker.get_variables_by_classification("STABLE")  # type: ignore
-            variables[event_id] = stable_vars
+            stable = []
+            if self.config.use_stable_vars:
+                stable = tracker.get_features_by_classification("STABLE")  # type: ignore
+            static = []
+            if self.config.use_static_vars:
+                static = tracker.get_features_by_classification("STATIC")  # type: ignore
+            vars_ = stable + static
+            if len(vars_) > 0:
+                variables[event_id] = vars_
         config_dict = generate_detector_config(
             variable_selection=variables,
             detector_name=self.name,

@@ -142,7 +142,7 @@ def generate_detector_config(
         detector_name: Name of the detector, used as the base instance_id.
         method_type: Type of detection method (e.g., "new_value_detector").
         **additional_params: Additional parameters for the detector's params
-            dict (e.g., comb_size=3).
+            dict (e.g., max_combo_size=3).
 
     Returns:
         Dictionary with structure compatible with detector config classes.
@@ -162,7 +162,7 @@ def generate_detector_config(
                 variable_selection={1: [("username", "src_ip"), ("var_0", "var_1")]},
                 detector_name="MyDetector",
                 method_type="new_value_combo_detector",
-                comb_size=2,
+                max_combo_size=2,
             )
     """
     var_pattern = re.compile(r"^var_(\d+)$")

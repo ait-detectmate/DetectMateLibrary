@@ -52,7 +52,9 @@ def get_all_possible_combos(
 class NewValueComboDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_value_combo_detector"
 
-    comb_size: int = 2
+    max_combo_size: int = 3
+    use_stable_vars: bool = True
+    use_static_vars: bool = False
 
 
 class NewValueComboDetector(CoreDetector):
@@ -159,7 +161,7 @@ class NewValueComboDetector(CoreDetector):
             named_variables=input_["logFormatVariables"],
         )
 
-    def set_configuration(self, max_combo_size: int = 3) -> None:
+    def set_configuration(self, max_combo_size: int | None = None) -> None:
         """Set the detector configuration based on the stability of variable
         combinations.
 
@@ -169,17 +171,18 @@ class NewValueComboDetector(CoreDetector):
         3. Re-ingest all events to learn the stability of these combos (testing all possible combos right away
         would explode combinatorially).
         """
+        config = cast(NewValueComboDetectorConfig, self.config)
         # run WITH auto_conf_persistency
         variable_combos = {}
         for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
-            stable_vars = tracker.get_variables_by_classification("STABLE")  # type: ignore
+            stable_vars = tracker.get_features_by_classification("STABLE")  # type: ignore
             if len(stable_vars) > 1:
                 variable_combos[event_id] = stable_vars
         config_dict = generate_detector_config(
             variable_selection=variable_combos,
             detector_name=self.name,
             method_type=self.config.method_type,
-            comb_size=max_combo_size
+            max_combo_size=max_combo_size or config.max_combo_size
         )
         # Update the config object from the dictionary instead of replacing it
         self.config = NewValueComboDetectorConfig.from_dict(config_dict, self.name)
@@ -196,15 +199,21 @@ class NewValueComboDetector(CoreDetector):
         # rerun to set final config WITH auto_conf_persistency_combos
         combo_selection = {}
         for event_id, tracker in self.auto_conf_persistency_combos.get_events_data().items():
-            stable_combos = tracker.get_variables_by_classification("STABLE")  # type: ignore
+            stable_combos = []
+            if self.config.use_stable_vars:
+                stable_combos = tracker.get_features_by_classification("STABLE")  # type: ignore
+            static_combos = []
+            if self.config.use_static_vars:
+                static_combos = tracker.get_features_by_classification("STATIC")  # type: ignore
+            combos = stable_combos + static_combos
             # Keep combos as tuples - each will become a separate config entry
-            if len(stable_combos) >= 1:
-                combo_selection[event_id] = stable_combos
+            if len(combos) > 0:
+                combo_selection[event_id] = combos
         config_dict = generate_detector_config(
             variable_selection=combo_selection,
             detector_name=self.name,
             method_type=self.config.method_type,
-            comb_size=max_combo_size
+            max_combo_size=max_combo_size or self.config.max_combo_size
         )
         # Update the config object from the dictionary instead of replacing it
         self.config = NewValueComboDetectorConfig.from_dict(config_dict, self.name)
