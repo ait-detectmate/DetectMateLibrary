@@ -56,7 +56,7 @@ def get_configured_variables(
     # Extract template variables by position
     if hasattr(event_config, "variables"):
         for pos, var in event_config.variables.items():
-            if pos < len(input_["variables"]):
+            if isinstance(pos, int) and pos < len(input_["variables"]):
                 result[var.name] = input_["variables"][pos]
 
     # Extract header/log format variables by name
