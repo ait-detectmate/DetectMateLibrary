@@ -290,3 +290,90 @@ class TestConfigRoundtrip:
 
         # Dicts should be identical
         assert dict1 == dict2
+
+
+class TestNamedVariablesRoundtrip:
+    """Test that named wildcard positions and named event IDs round-trip
+    correctly."""
+
+    def test_named_pos_preserved_as_string(self):
+        """String pos values must survive yaml -> pydantic -> yaml
+        unchanged."""
+        config_yaml = load_test_config()
+        method_id = "detector_named_pos"
+
+        config = MockupDetectorConfig.from_dict(config_yaml, method_id)
+        result_dict = config.to_dict(method_id)
+
+        original = config_yaml["detectors"][method_id]
+        result = result_dict["detectors"][method_id]
+
+        orig_vars = original["events"][1]["example_detector_1"]["variables"]
+        result_vars = result["events"][1]["example_detector_1"]["variables"]
+
+        assert len(result_vars) == len(orig_vars)
+        for orig_var, result_var in zip(orig_vars, result_vars):
+            assert result_var["pos"] == orig_var["pos"]
+            assert isinstance(result_var["pos"], str)  # must stay a string, not coerced to int
+
+    def test_named_pos_no_name_field_when_omitted(self):
+        """Variables with only a label pos must not emit a 'name' key."""
+        config_yaml = load_test_config()
+        config = MockupDetectorConfig.from_dict(config_yaml, "detector_named_pos")
+        result_dict = config.to_dict("detector_named_pos")
+
+        instance = result_dict["detectors"]["detector_named_pos"]["events"][1]["example_detector_1"]
+        no_params_var = instance["variables"][0]  # pos: pid, no params
+
+        assert "pos" in no_params_var
+        assert no_params_var["pos"] == "pid"
+        assert "name" not in no_params_var
+
+    def test_named_pos_params_preserved(self):
+        """Named pos variable with params must preserve those params."""
+        config_yaml = load_test_config()
+        config = MockupDetectorConfig.from_dict(config_yaml, "detector_named_pos")
+        result_dict = config.to_dict("detector_named_pos")
+
+        instance = result_dict["detectors"]["detector_named_pos"]["events"][1]["example_detector_1"]
+        with_params_var = instance["variables"][1]  # pos: op, params: {threshold: 0.5}
+
+        assert with_params_var["pos"] == "op"
+        assert with_params_var["params"] == {"threshold": 0.5}
+
+    def test_named_event_id_preserved_as_string(self):
+        """String event ID keys must survive yaml -> pydantic -> yaml
+        unchanged."""
+        config_yaml = load_test_config()
+        method_id = "detector_named_event_id"
+
+        config = MockupDetectorConfig.from_dict(config_yaml, method_id)
+        result_dict = config.to_dict(method_id)
+
+        result_events = result_dict["detectors"][method_id]["events"]
+        assert "login_failure" in result_events
+        assert isinstance(list(result_events.keys())[0], str)
+
+    def test_named_pos_true_roundtrip(self):
+        """Yaml -> pydantic -> yaml -> pydantic produces identical objects."""
+        config_yaml = load_test_config()
+        method_id = "detector_named_pos"
+
+        config1 = MockupDetectorConfig.from_dict(config_yaml, method_id)
+        dict1 = config1.to_dict(method_id)
+        config2 = MockupDetectorConfig.from_dict(dict1, method_id)
+        dict2 = config2.to_dict(method_id)
+
+        assert dict1 == dict2
+
+    def test_named_event_id_true_roundtrip(self):
+        """Yaml -> pydantic -> yaml -> pydantic produces identical objects."""
+        config_yaml = load_test_config()
+        method_id = "detector_named_event_id"
+
+        config1 = MockupDetectorConfig.from_dict(config_yaml, method_id)
+        dict1 = config1.to_dict(method_id)
+        config2 = MockupDetectorConfig.from_dict(dict1, method_id)
+        dict2 = config2.to_dict(method_id)
+
+        assert dict1 == dict2

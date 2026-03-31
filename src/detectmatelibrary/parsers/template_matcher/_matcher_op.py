@@ -1,7 +1,16 @@
 from collections import defaultdict
-from typing import Dict, List, Any, Tuple
+from typing import Dict, List, Any, Tuple, TypedDict
 import regex
 import re
+
+from detectmatelibrary.common._config._formats import (
+    EventsConfig, _EventConfig, _EventInstance, Variable
+)
+
+
+class TemplateMetadata(TypedDict):
+    event_id_label: str | None
+    labels: list[str]
 
 
 def safe_search(pattern: str, string: str, timeout: int = 1) -> regex.Match[str] | None:
@@ -64,6 +73,7 @@ class TemplatesManager:
     def __init__(
         self,
         template_list: list[str],
+        metadata: dict[int, TemplateMetadata] | None = None,
         remove_spaces: bool = True,
         remove_punctuation: bool = True,
         lowercase: bool = True
@@ -96,6 +106,61 @@ class TemplatesManager:
             first = tokens[0] if tokens else ""
             self._prefix_index[first].append(idx)
 
+        _metadata: dict[int, TemplateMetadata] = metadata or {}
+        self._event_label_to_idx: dict[str, int] = {
+            m["event_id_label"]: i
+            for i, m in _metadata.items()
+            if m["event_id_label"]
+        }
+        self._idx_to_var_map: dict[int, dict[str, int]] = {
+            i: {label: pos for pos, label in enumerate(m["labels"])}
+            for i, m in _metadata.items()
+            if m["labels"]
+        }
+
+    def compile_events_config(self, events_config: EventsConfig) -> EventsConfig:
+        """Resolve named event IDs and named variable labels to positional
+        ints.
+
+        Translates user-friendly named format to the internal positional
+        representation. Returns a new EventsConfig with only int keys
+        and int positions.
+        """
+        new_events: Dict[Any, _EventConfig] = {}
+
+        for event_key, event_config in events_config.events.items():
+            if isinstance(event_key, str) and event_key in self._event_label_to_idx:
+                resolved_key: str | int = self._event_label_to_idx[event_key]
+            else:
+                resolved_key = event_key
+
+            var_map = self._idx_to_var_map.get(resolved_key if isinstance(resolved_key, int) else -1, {})
+
+            new_instances: Dict[str, _EventInstance] = {}
+            for instance_id, instance in event_config.instances.items():
+                new_vars: Dict[str | int, Variable] = {}
+                for pos, var in instance.variables.items():
+                    if isinstance(pos, str):
+                        if pos not in var_map:
+                            raise ValueError(
+                                f"Label '{pos}' not found in template for event '{event_key}'. "
+                                f"Available labels: {list(var_map)}"
+                            )
+                        resolved_pos = var_map[pos]
+                        new_vars[resolved_pos] = Variable(
+                            pos=resolved_pos, name=pos, params=var.params
+                        )
+                    else:
+                        new_vars[pos] = var
+                new_instances[instance_id] = _EventInstance(
+                    params=instance.params,
+                    variables=new_vars,
+                    header_variables=instance.header_variables,
+                )
+            new_events[resolved_key] = _EventConfig(instances=new_instances)
+
+        return EventsConfig(events=new_events)
+
     def candidate_indices(self, s: str) -> Tuple[str, List[int]]:
         pre_s = self.preprocess(s)
         candidates = []
@@ -110,16 +175,27 @@ class TemplateMatcher:
     def __init__(
         self,
         template_list: list[str],
+        metadata: dict[int, TemplateMetadata] | None = None,
         remove_spaces: bool = True,
         remove_punctuation: bool = True,
         lowercase: bool = True
     ) -> None:
         self.manager = TemplatesManager(
             template_list=template_list,
+            metadata=metadata,
             remove_spaces=remove_spaces,
             remove_punctuation=remove_punctuation,
             lowercase=lowercase
         )
+
+    def compile_detector_config(self, events_config: EventsConfig) -> EventsConfig:
+        """Resolve named event IDs and variable labels to positional ints.
+
+        Call once at setup time. Returns a new EventsConfig using the
+        internal positional representation, compatible with
+        get_configured_variables().
+        """
+        return self.manager.compile_events_config(events_config)
 
     @staticmethod
     def extract_parameters(log: str, template: str) -> tuple[str, ...] | None:
