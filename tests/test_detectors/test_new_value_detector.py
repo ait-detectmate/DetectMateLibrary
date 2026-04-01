@@ -8,17 +8,17 @@ This module tests the NewValueDetector implementation including:
 - Input/output schema validation
 """
 
+from detectmatelibrary.common._core_op._fit_logic import TrainState
 from detectmatelibrary.detectors.new_value_detector import (
     NewValueDetector, NewValueDetectorConfig, BufferMode
 )
-from detectmatelibrary.common.core import ConfigState, TrainState
+from detectmatelibrary.common._core_op._fit_logic import ConfigState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
 
 from detectmatelibrary.utils.aux import time_test_mode
-
 
 # Set time test mode for consistent timestamps
 time_test_mode()
@@ -250,20 +250,20 @@ class TestNewValueDetectorAutoConfig:
         logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
 
         # Phase 1: configure — keep configuring for logs[:1800]
-        detector.configure_state = ConfigState.KEEP_CONFIGURE
+        detector.fitlogic.configure_state = ConfigState.KEEP_CONFIGURE
         for log in logs[:1800]:
             detector.process(log)
 
         # Transition: stop configure so next process() call triggers set_configuration()
-        detector.configure_state = ConfigState.STOP_CONFIGURE
+        detector.fitlogic.configure_state = ConfigState.STOP_CONFIGURE
 
         # Phase 2: train — keep training for logs[:1800]
-        detector.train_state = TrainState.KEEP_TRAINING
+        detector.fitlogic.train_state = TrainState.KEEP_TRAINING
         for log in logs[:1800]:
             detector.process(log)
 
         # Phase 3: detect — stop training so process() only calls detect()
-        detector.train_state = TrainState.STOP_TRAINING
+        detector.fitlogic.train_state = TrainState.STOP_TRAINING
         detected_ids: set[str] = set()
         for log in logs[1800:]:
             if detector.process(log) is not None:

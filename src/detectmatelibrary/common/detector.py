@@ -3,6 +3,7 @@ from detectmatelibrary.common.core import CoreComponent, CoreConfig
 
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 from detectmatelibrary.utils.aux import get_timestamp
+from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
@@ -10,6 +11,7 @@ from typing_extensions import override
 from typing import Dict, List, Optional, Any
 
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
+from tools.logging import logger
 
 
 _time_handler = TimeFormatHandler()
@@ -56,7 +58,7 @@ def get_configured_variables(
     # Extract template variables by position
     if hasattr(event_config, "variables"):
         for pos, var in event_config.variables.items():
-            if pos < len(input_["variables"]):
+            if isinstance(pos, int) and pos < len(input_["variables"]):
                 result[var.name] = input_["variables"][pos]
 
     # Extract header/log format variables by name
@@ -89,12 +91,53 @@ def get_global_variables(
     return result
 
 
+def validate_config_coverage(
+        detector_name: str,
+        config_events: EventsConfig | dict[str, Any],
+        persistency: EventPersistency,
+) -> None:
+    """Log warnings when configured EventIDs or variables have no training
+    data.
+
+    Args:
+        detector_name: Name of the detector (used in warning messages).
+        config_events: The detector's events configuration.
+        persistency: The persistency object populated during training.
+    """
+    config_ids = (
+        config_events.events.keys()
+        if isinstance(config_events, EventsConfig)
+        else config_events.keys()
+    )
+    if not config_ids:
+        return
+
+    events_seen = persistency.get_events_seen()
+    events_with_data = set(persistency.get_events_data().keys())
+
+    for event_id in config_ids:
+        if event_id not in events_seen:
+            logger.warning(
+                f"[{detector_name}] EventID {event_id!r} is configured but was "
+                "never observed in training data. Verify that EventIDs in your "
+                "config match those produced by the parser."
+            )
+        elif event_id not in events_with_data:
+            logger.warning(
+                f"[{detector_name}] EventID {event_id!r} was observed in training "
+                "data but no configured variables were extracted. Verify that "
+                "variable names/positions in your config match those in the data."
+            )
+
+
 class CoreDetectorConfig(CoreConfig):
-    comp_type: str = "detectors"
+    component_type: str = "detectors"
     method_type: str = "core_detector"
     parser: str = "<PLACEHOLDER>"
 
     auto_config: bool = True
+    events: EventsConfig | dict[str, Any] = {}
+    global_instances: Dict[str, _EventInstance] = {}
 
 
 class CoreDetector(CoreComponent):
@@ -110,7 +153,7 @@ class CoreDetector(CoreComponent):
 
         super().__init__(
             name=name,
-            type_=config.comp_type,  # type: ignore
+            type_=config.component_type,  # type: ignore
             config=config,  # type: ignore
             args_buffer=ArgsBuffer(mode=buffer_mode, size=buffer_size),
             input_schema=ParserSchema,
@@ -155,4 +198,8 @@ class CoreDetector(CoreComponent):
 
     @override
     def set_configuration(self) -> None:
+        pass
+
+    @override
+    def post_train(self) -> None:
         pass

@@ -41,9 +41,9 @@ def _classify_variables(
 
 
 class MethodNotFoundError(Exception):
-    def __init__(self, method_id: str, comp_type: str) -> None:
+    def __init__(self, method_id: str, component_type: str) -> None:
         super().__init__(
-            f"Method '{method_id}' of type '{comp_type}' not found in configuration."
+            f"Method '{method_id}' of type '{component_type}' not found in configuration."
         )
 
 
@@ -72,15 +72,15 @@ class AutoConfigWarning(UserWarning):
 class ConfigMethods:
     @staticmethod
     def get_method(
-        config: Dict[str, Dict[str, Dict[str, Any]]], method_id: str, comp_type: str
+        config: Dict[str, Dict[str, Dict[str, Any]]], method_id: str, component_type: str
     ) -> Dict[str, Any]:
 
-        if comp_type not in config:
-            raise TypeNotFoundError(comp_type)
+        if component_type not in config:
+            raise TypeNotFoundError(component_type)
 
-        args = config[comp_type]
+        args = config[component_type]
         if method_id not in args:
-            raise MethodNotFoundError(method_id, comp_type)
+            raise MethodNotFoundError(method_id, component_type)
 
         return args[method_id]
 
@@ -142,7 +142,7 @@ def generate_detector_config(
         detector_name: Name of the detector, used as the base instance_id.
         method_type: Type of detection method (e.g., "new_value_detector").
         **additional_params: Additional parameters for the detector's params
-            dict (e.g., comb_size=3).
+            dict (e.g., max_combo_size=3).
 
     Returns:
         Dictionary with structure compatible with detector config classes.
@@ -162,7 +162,7 @@ def generate_detector_config(
                 variable_selection={1: [("username", "src_ip"), ("var_0", "var_1")]},
                 detector_name="MyDetector",
                 method_type="new_value_combo_detector",
-                comb_size=2,
+                max_combo_size=2,
             )
     """
     var_pattern = re.compile(r"^var_(\d+)$")

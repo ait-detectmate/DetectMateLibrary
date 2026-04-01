@@ -6,16 +6,17 @@ from typing import Dict, Any
 
 # Sub-formats ********************************************************+
 class Variable(BaseModel):
-    pos: int
-    name: str
+    pos: str | int
+    name: str = ""
     params: Dict[str, Any] = {}
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert Variable to YAML-compatible dictionary."""
         result: Dict[str, Any] = {
             "pos": self.pos,
-            "name": self.name,
         }
+        if self.name:
+            result["name"] = self.name
         if self.params:
             result["params"] = self.params
         return result
@@ -38,7 +39,7 @@ class Header(BaseModel):
 class _EventInstance(BaseModel):
     """Configuration for a specific instance within an event."""
     params: Dict[str, Any] = {}
-    variables: Dict[int, Variable] = {}
+    variables: Dict[str | int, Variable] = {}
     header_variables: Dict[str, Header] = {}
 
     @classmethod
@@ -79,7 +80,7 @@ class _EventConfig(BaseModel):
         return cls(instances=instances)
 
     @property
-    def variables(self) -> Dict[int, Variable]:
+    def variables(self) -> Dict[str | int, Variable]:
         """Pass-through to first instance for compatibility."""
         if self.instances:
             return next(iter(self.instances.values())).variables

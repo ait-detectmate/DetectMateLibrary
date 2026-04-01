@@ -9,7 +9,6 @@ import detectmatelibrary.schemas as schemas
 
 from detectmatelibrary.utils.aux import time_test_mode
 
-
 # Set time test mode for consistent timestamps
 time_test_mode()
 
@@ -20,7 +19,7 @@ config = {
             "method_type": "new_value_combo_detector",
             "auto_config": False,
             "params": {
-                "comb_size": 4
+                "max_combo_size": 4
             },
             "events": {
                 1: {
@@ -37,7 +36,7 @@ config = {
             "method_type": "new_value_combo_detector",
             "auto_config": False,
             "params": {
-                "comb_size": 2
+                "max_combo_size": 2
             },
             "events": {
                 1: {
@@ -71,7 +70,7 @@ class TestNewValueComboDetectorInitialization:
         detector = NewValueComboDetector(name="CustomInit", config=config)
 
         assert detector.name == "CustomInit"
-        assert detector.config.comb_size == 4
+        assert detector.config.max_combo_size == 4
 
 
 class TestNewValueComboDetectorTraining:
@@ -214,14 +213,14 @@ class TestNewValueComboDetectorConfiguration:
             variable_selection=variable_selection,
             detector_name="TestDetector",
             method_type="new_value_combo_detector",
-            comb_size=2
+            max_combo_size=2
         )
 
         assert "detectors" in config_dict
         assert "TestDetector" in config_dict["detectors"]
         detector_config = config_dict["detectors"]["TestDetector"]
         assert detector_config["method_type"] == "new_value_combo_detector"
-        assert detector_config["params"]["comb_size"] == 2
+        assert detector_config["params"]["max_combo_size"] == 2
         assert len(detector_config["events"]) == 1
 
     def test_generate_detector_config_multiple_events(self):
@@ -290,7 +289,7 @@ class TestNewValueComboDetectorConfiguration:
 
         # Verify config was updated
         assert detector.config.events is not None
-        assert detector.config.comb_size == 2
+        assert detector.config.max_combo_size == 2
 
     def test_configuration_workflow(self):
         """Test complete configuration workflow like in notebook."""
@@ -361,8 +360,8 @@ class TestNewValueComboDetectorConfiguration:
         # Set configuration with specific combo size
         detector.set_configuration(max_combo_size=4)
 
-        # Verify comb_size was updated
-        assert detector.config.comb_size == 4
+        # Verify max_combo_size was updated
+        assert detector.config.max_combo_size == 4
 
     def test_configuration_with_no_stable_variables(self):
         """Test configuration when no stable variables are found."""
@@ -551,13 +550,7 @@ _PARSER_CONFIG = {
             "method_type": "matcher_parser",
             "auto_config": False,
             "log_format": "type=<Type> msg=audit(<Time>): <Content>",
-            "time_format": None,
-            "params": {
-                "remove_spaces": True,
-                "remove_punctuation": True,
-                "lowercase": True,
-                "path_templates": "tests/test_folder/audit_templates.txt",
-            },
+            "params": {"path_templates": "tests/test_folder/audit_templates.txt"},
         }
     }
 }
@@ -565,7 +558,6 @@ _PARSER_CONFIG = {
 
 class TestNewValueComboDetectorEndToEndWithRealData:
     """Regression test: full configure/train/detect pipeline on audit.log."""
-
     def test_audit_log_anomalies(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = NewValueComboDetector()
@@ -585,4 +577,4 @@ class TestNewValueComboDetectorEndToEndWithRealData:
             if detector.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
-        assert detected_ids == {'1859', '1862', '1866', '1865'}
+        assert detected_ids == {"1859", "1862", "1865", "1866"}
