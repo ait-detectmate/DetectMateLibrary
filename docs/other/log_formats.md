@@ -1,6 +1,6 @@
 # Log Format Catalog
 
-This catalog covers 18 common log formats and provides ready-to-use `log_format` patterns for the DetectMate parsers, such as the [MatcherParser](parsers/template_matcher.md).
+This catalog covers 18 common log formats and provides ready-to-use `log_format` patterns for the DetectMate parsers, such as the [MatcherParser](../parsers/template_matcher.md).
 
 **Key concept:** `log_format` splits a raw log line into structured header fields that become entries in `ParserSchema.logFormatVariables`. The special `<Content>` token captures the variable message body, which is then matched against your template file to produce `EventID` and `variables`. Formats without `<Content>` are fully structured — no template file is needed.
 
