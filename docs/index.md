@@ -20,6 +20,7 @@ Documentation of the different components:
 * [Schemas](schemas.md): documentation of the different schemas in the library.
 * [Parsers](parsers.md): documentation of the different parsers.
 * [Detectors](detectors.md): documentation of the different detectors.
+* [Log Formats](log_formats.md): reference catalog of 18 common log formats with parser configuration.
 
 ## Utils
 
