@@ -15,7 +15,6 @@ nav:
     - Schemas: schemas.md
     - Parsers: parsers.md
     - Detectors: detectors.md
-    - Log Formats: log_formats.md
   - Parsers Methods:
     - Template Matcher: parsers/template_matcher.md
     - Json Parser: parsers/json_parser.md
@@ -29,3 +28,5 @@ nav:
     - Data buffer: auxiliar/input_buffer.md
   - Helpers:
     - From to: helper/from_to.md
+  - Other:
+    - Log Formats: other/log_formats.md

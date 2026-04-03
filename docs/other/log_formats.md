@@ -311,4 +311,4 @@ Mobile health application log. Pipe-delimited format from a step-counter app.
 
 ---
 
-Go back to [Index](index.md)
+Go back to [Index](../index.md)
