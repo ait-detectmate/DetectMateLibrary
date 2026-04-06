@@ -1,23 +1,22 @@
 from detectmatelibrary.common._config._compile import generate_detector_config
 from detectmatelibrary.common._config._formats import EventsConfig
-
-from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector, get_configured_variables
-
+from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector, get_configured_variables, \
+    get_global_variables
 from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
     EventStabilityTracker
 )
+from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from detectmatelibrary.utils.data_buffer import BufferMode
-
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
-
-from typing import Any
+from tools.logging import logger
 
 
 class NewEventDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_event_detector"
 
-    events: EventsConfig | dict[str, Any] = {}
+    use_stable_vars: bool = True
+    use_static_vars: bool = True
 
 
 class NewEventDetector(CoreDetector):
@@ -50,6 +49,14 @@ class NewEventDetector(CoreDetector):
             event_template=input_["template"],
             named_variables=configured_variables
         )
+        if self.config.global_instances:
+            global_vars = get_global_variables(input_, self.config.global_instances)
+            if global_vars:
+                self.persistency.ingest_event(
+                    event_id=GLOBAL_EVENT_ID,
+                    event_template=input_["template"],
+                    named_variables=global_vars
+                )
 
     def detect(
         self, input_:  ParserSchema, output_: DetectorSchema  # type: ignore
@@ -74,6 +81,17 @@ class NewEventDetector(CoreDetector):
                     )
                     overall_score += 1.0
 
+        if self.config.global_instances and GLOBAL_EVENT_ID in known_events:
+            global_vars = get_global_variables(input_, self.config.global_instances)
+            global_tracker = known_events[GLOBAL_EVENT_ID]
+            for var_name, multi_tracker in global_tracker.get_data().items():
+                value = global_vars.get(var_name)
+                if value is None:
+                    continue
+                if value not in multi_tracker.unique_set:
+                    alerts[f"Global - {var_name}"] = f"Unknown value: '{value}'"
+                    overall_score += 1.0
+
         if overall_score > 0:
             output_["score"] = overall_score
             output_["description"] = f"{self.name} detects values not encountered in training as anomalies."
@@ -93,13 +111,26 @@ class NewEventDetector(CoreDetector):
     def set_configuration(self) -> None:
         variables = {}
         for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
-            classified_vars = (tracker.get_variables_by_classification("STABLE") +  # type: ignore
-                               tracker.get_variables_by_classification("STATIC"))  # type: ignore
-            variables[event_id] = classified_vars
+            stable = []
+            if self.config.use_stable_vars:
+                stable = tracker.get_features_by_classification("STABLE")  # type: ignore
+            static = []
+            if self.config.use_static_vars:
+                static = tracker.get_features_by_classification("STATIC")  # type: ignore
+            vars_ = stable + static
+            if len(vars_) > 0:
+                variables[event_id] = vars_
         config_dict = generate_detector_config(
             variable_selection=variables,
             detector_name=self.name,
-            method_type=self.config.method_type
+            method_type=self.config.method_type,
         )
         # Update the config object from the dictionary instead of replacing it
         self.config = NewEventDetectorConfig.from_dict(config_dict, self.name)
+        events = self.config.events
+        if isinstance(events, EventsConfig) and not events.events:
+            logger.warning(
+                f"[{self.name}] auto_config=True generated an empty configuration. "
+                "No stable variables were found in configure-phase data. "
+                "The detector will produce no alerts."
+            )
