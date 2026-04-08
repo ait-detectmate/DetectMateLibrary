@@ -1,5 +1,6 @@
 from detectmatelibrary.common._config._formats import EventsConfig, _EventInstance
 from detectmatelibrary.common.core import CoreComponent, CoreConfig
+from detectmatelibrary.exceptions import DetectorRunError
 
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 from detectmatelibrary.utils.aux import get_timestamp
@@ -171,7 +172,14 @@ class CoreDetector(CoreComponent):
         output_["extractedTimestamps"] = _extract_timestamp(input_)
         output_["receivedTimestamp"] = get_timestamp()
 
-        if (anomaly_detected := self.detect(input_=input_, output_=output_)):
+        try:
+            anomaly_detected = self.detect(input_=input_, output_=output_)
+        except Exception as exc:
+            raise DetectorRunError(
+                f"Detector '{self.name}' raised an error in detect(): {exc}"
+            ) from exc
+
+        if anomaly_detected:
             output_["alertID"] = str(self.id_generator())
             output_["detectionTimestamp"] = get_timestamp()
 

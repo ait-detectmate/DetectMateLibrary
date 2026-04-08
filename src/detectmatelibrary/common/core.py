@@ -8,6 +8,7 @@ from detectmatelibrary.utils.id_generator import SimpleIDGenerator
 from detectmatelibrary.common._config import BasicConfig
 
 from detectmatelibrary.schemas import BaseSchema
+from detectmatelibrary.exceptions import ComponentRunError, DetectMateError
 
 from tools.logging import logger, setup_logging
 
@@ -109,7 +110,14 @@ class CoreComponent(Component):
 
         output_ = self.output_schema()
         logger.info(f"<<{self.name}>> processing data")
-        return_schema = self.run(input_=data_buffered, output_=output_)
+        try:
+            return_schema = self.run(input_=data_buffered, output_=output_)
+        except DetectMateError:
+            raise
+        except Exception as exc:
+            raise ComponentRunError(
+                f"Component '{self.name}' raised an error in run(): {exc}"
+            ) from exc
         if not return_schema:
             logger.info(f"<<{self.name}>> returns None")
             return None

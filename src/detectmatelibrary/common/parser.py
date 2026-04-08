@@ -4,6 +4,7 @@ from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 from detectmatelibrary.common.core import CoreComponent, CoreConfig
 from detectmatelibrary.utils.aux import get_timestamp
+from detectmatelibrary.exceptions import ParserRunError
 from detectmatelibrary import schemas
 
 from typing import Any, Optional, cast
@@ -70,7 +71,12 @@ class CoreParser(CoreComponent):
         input_["log"] = content
 
         output_["receivedTimestamp"] = get_timestamp()
-        use_schema = self.parse(input_=input_, output_=output_)
+        try:
+            use_schema = self.parse(input_=input_, output_=output_)
+        except Exception as exc:
+            raise ParserRunError(
+                f"Parser '{self.name}' raised an error in parse(): {exc}"
+            ) from exc
         output_["parsedTimestamp"] = get_timestamp()
 
         return True if use_schema is None else use_schema

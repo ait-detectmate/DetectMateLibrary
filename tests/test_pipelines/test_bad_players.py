@@ -3,6 +3,7 @@ from detectmatelibrary.common.detector import CoreDetector, BufferMode
 from detectmatelibrary.common.parser import CoreParser
 
 import detectmatelibrary.schemas._classes as schema_classes
+from detectmatelibrary.exceptions import ComponentRunError
 from detectmatelibrary.helper.from_to import From
 
 import pytest
@@ -66,5 +67,6 @@ class TestCaseBasicPipelines:
             buffer_size=None,
         )
 
-        with pytest.raises(schema_classes.FieldNotFound):
+        with pytest.raises(ComponentRunError) as exc_info:
             next(From.log(detector, log_path))
+        assert isinstance(exc_info.value.__cause__, schema_classes.FieldNotFound)
