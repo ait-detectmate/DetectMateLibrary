@@ -15,9 +15,6 @@ from tools.logging import logger
 class NewEventDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_event_detector"
 
-    use_stable_vars: bool = True
-    use_static_vars: bool = True
-
 
 class NewEventDetector(CoreDetector):
     """Detect new values in log data as anomalies based on learned values."""
@@ -32,7 +29,7 @@ class NewEventDetector(CoreDetector):
             config = NewEventDetectorConfig.from_dict(config, name)
 
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
-        self.config: NewEventDetectorConfig  # type narrowing for IDE
+        self.config: NewEventDetectorConfig
         self.persistency = EventPersistency(
             event_data_class=EventStabilityTracker,
         )
@@ -43,19 +40,16 @@ class NewEventDetector(CoreDetector):
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by learning values from the input data."""
-        configured_variables = get_configured_variables(input_, self.config.events)
         self.persistency.ingest_event(
             event_id=input_["EventID"],
-            event_template=input_["template"],
-            named_variables=configured_variables
+            event_template=input_["template"]
         )
         if self.config.global_instances:
             global_vars = get_global_variables(input_, self.config.global_instances)
             if global_vars:
                 self.persistency.ingest_event(
                     event_id=GLOBAL_EVENT_ID,
-                    event_template=input_["template"],
-                    named_variables=global_vars
+                    event_template=input_["template"]
                 )
 
     def detect(
@@ -63,38 +57,25 @@ class NewEventDetector(CoreDetector):
     ) -> bool:
         """Detect new values in the input data."""
         alerts: dict[str, str] = {}
-        configured_variables = get_configured_variables(input_, self.config.events)
         overall_score = 0.0
 
         current_event_id = input_["EventID"]
-        known_events = self.persistency.get_events_data()
-
-        if current_event_id in known_events:
-            event_tracker = known_events[current_event_id]
-            for var_name, multi_tracker in event_tracker.get_data().items():
-                value = configured_variables.get(var_name)
-                if value is None:
-                    continue
-                if value not in multi_tracker.unique_set:
-                    alerts[f"EventID {current_event_id} - {var_name}"] = (
-                        f"Unknown value: '{value}'"
-                    )
-                    overall_score += 1.0
+        known_events = self.persistency.get_events_seen()
 
         if self.config.global_instances and GLOBAL_EVENT_ID in known_events:
             global_vars = get_global_variables(input_, self.config.global_instances)
-            global_tracker = known_events[GLOBAL_EVENT_ID]
-            for var_name, multi_tracker in global_tracker.get_data().items():
-                value = global_vars.get(var_name)
-                if value is None:
-                    continue
-                if value not in multi_tracker.unique_set:
-                    alerts[f"Global - {var_name}"] = f"Unknown value: '{value}'"
-                    overall_score += 1.0
+            alerts[f"Global - {global_vars}"] = f"Unknown event ID: '{current_event_id}'"
+            overall_score += 1.0
+        elif current_event_id not in known_events:
+            configured_variables = get_configured_variables(input_, self.config.events)
+            alerts[f"EventID {current_event_id} - {configured_variables}"] = (
+                f"Unknown event ID: '{current_event_id}'"
+            )
+            overall_score += 1.0
 
         if overall_score > 0:
             output_["score"] = overall_score
-            output_["description"] = f"{self.name} detects values not encountered in training as anomalies."
+            output_["description"] = f"{self.name} detects event IDs not encountered in training as anomalies."
             output_["alertsObtain"].update(alerts)
             return True
 
@@ -103,27 +84,17 @@ class NewEventDetector(CoreDetector):
     def configure(self, input_: ParserSchema) -> None:  # type: ignore
         self.auto_conf_persistency.ingest_event(
             event_id=input_["EventID"],
-            event_template=input_["template"],
-            variables=input_["variables"],
-            named_variables=input_["logFormatVariables"],
+            event_template=input_["template"]
         )
 
     def set_configuration(self) -> None:
         variables = {}
-        for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
-            stable = []
-            if self.config.use_stable_vars:
-                stable = tracker.get_features_by_classification("STABLE")  # type: ignore
-            static = []
-            if self.config.use_static_vars:
-                static = tracker.get_features_by_classification("STATIC")  # type: ignore
-            vars_ = stable + static
-            if len(vars_) > 0:
-                variables[event_id] = vars_
+        for event_id in self.auto_conf_persistency.get_events_seen():
+            variables[event_id] = {}
         config_dict = generate_detector_config(
             variable_selection=variables,
             detector_name=self.name,
-            method_type=self.config.method_type,
+            method_type=self.config.method_type
         )
         # Update the config object from the dictionary instead of replacing it
         self.config = NewEventDetectorConfig.from_dict(config_dict, self.name)
