@@ -75,7 +75,8 @@ class NewEventDetector(CoreDetector):
 
         if overall_score > 0:
             output_["score"] = overall_score
-            output_["description"] = f"{self.name} detects event IDs not encountered in training as anomalies."
+            output_["description"] = \
+                f"{self.name} detects event IDs not encountered in training as anomalies."
             output_["alertsObtain"].update(alerts)
             return True
 
@@ -88,7 +89,7 @@ class NewEventDetector(CoreDetector):
         )
 
     def set_configuration(self) -> None:
-        variables = {}
+        variables = {}  # type: ignore
         for event_id in self.auto_conf_persistency.get_events_seen():
             variables[event_id] = {}
         config_dict = generate_detector_config(

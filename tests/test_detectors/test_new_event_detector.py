@@ -8,7 +8,8 @@ This module tests the NewEventDetector implementation including:
 - Input/output schema validation
 """
 
-from detectmatelibrary.detectors.new_event_detector import NewEventDetector, NewEventDetectorConfig, BufferMode
+from detectmatelibrary.detectors.new_event_detector import NewEventDetector, NewEventDetectorConfig, \
+    BufferMode
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
@@ -173,6 +174,7 @@ class TestNewEventDetectorEndToEnd:
                 detected_ids.add(log["logID"])
 
         assert detected_ids == {"1863"}
+
 
 class TestNewEventDetectorAutoConfig:
     """Test that process() drives configure/set_configuration/train/detect
