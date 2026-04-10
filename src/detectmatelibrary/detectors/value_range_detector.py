@@ -29,7 +29,7 @@ class ValueRangeDetectorConfig(CoreDetectorConfig):
 
 
 class ValueRangeDetector(CoreDetector):
-    """Detect new value ranges in log data as anomalies based on learned values."""
+    """Detect new value ranges in logs as anomalies based on learned values."""
 
     def __init__(
         self,
@@ -52,7 +52,7 @@ class ValueRangeDetector(CoreDetector):
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by learning values from the input data."""
-        configured_variables = get_configured_variables(input_, self.config.events)
+        print(configured_variables)
         self.persistency.ingest_event(
             event_id=input_["EventID"],
             event_template=input_["template"],
@@ -110,6 +110,7 @@ class ValueRangeDetector(CoreDetector):
         return False
 
     def configure(self, input_: ParserSchema) -> None:  # type: ignore
+        print(input_["variables"], "AAA")
         self.auto_conf_persistency.ingest_event(
             event_id=input_["EventID"],
             event_template=input_["template"],

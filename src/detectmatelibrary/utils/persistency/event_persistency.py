@@ -45,6 +45,7 @@ class EventPersistency:
             return
         self.event_templates[event_id] = event_template
         all_variables = self.get_all_variables(variables, named_variables)
+        print("ALL", all_variables)
 
         data_structure = self.events_data.get(event_id)
         if data_structure is None:
