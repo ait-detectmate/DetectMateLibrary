@@ -26,7 +26,7 @@ detectors:
 ## Example usage
 
 ```python
-from detectmatelibrary.detectors.new_value_detector import NewValueDetector, BufferMode
+from detectmatelibrary.detectors.new_event_detector import NewEventDetector, BufferMode
 import detectmatelibrary.schemas as schemas
 
 detector = NewEventDetector(name="NewEventTest", config=cfg)
