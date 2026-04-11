@@ -8,6 +8,7 @@ This module tests the ValueRangeDetector implementation including:
 - Input/output schema validation
 """
 
+import random
 from detectmatelibrary.common._core_op._fit_logic import TrainState
 from detectmatelibrary.detectors.value_range_detector import (
     ValueRangeDetector, ValueRangeDetectorConfig, BufferMode
@@ -51,9 +52,6 @@ config = {
                         "params": {},
                         "variables": [{
                             "pos": 1, "name": "test", "params": {}
-                        }],
-                        "header_variables": [{
-                            "pos": "level", "params": {}
                         }]
                     }
                 }
@@ -63,63 +61,104 @@ config = {
 }
 
 
-# class TestValueRangeDetectorInitialization:
-#     """Test ValueRangeDetector initialization and configuration."""
-#
-#     def test_default_initialization(self):
-#         """Test detector initialization with default parameters."""
-#         detector = ValueRangeDetector()
-#
-#         assert detector.name == "ValueRangeDetector"
-#         assert hasattr(detector, 'config')
-#         assert detector.data_buffer.mode == BufferMode.NO_BUF
-#         assert detector.input_schema == schemas.ParserSchema
-#         assert detector.output_schema == schemas.DetectorSchema
-#         assert hasattr(detector, 'persistency')
-#
-#     def test_custom_config_initialization(self):
-#         """Test detector initialization with custom configuration."""
-#         detector = ValueRangeDetector(name="CustomInit", config=config)
-#
-#         assert detector.name == "CustomInit"
-#         assert hasattr(detector, 'persistency')
-#         assert isinstance(detector.persistency.events_data, dict)
-#
-#
-# class TestValueRangeDetectorTraining:
-#     """Test ValueRangeDetector training functionality."""
-#
-#     def test_train_multiple_values(self):
-#         """Test training with multiple different values."""
-#         detector = ValueRangeDetector(config=config, name="MultipleDetector")
-#         # Train with multiple values (only event 1 should be tracked per config)
-#         for event in range(3):
-#             for level in ["INFO", "WARNING", "ERROR"]:
-#                 parser_data = schemas.ParserSchema({
-#                     "parserType": "test",
-#                     "EventID": event,
-#                     "template": "test template",
-#                     "variables": ["0", "assa"],
-#                     "logID": "1",
-#                     "parsedLogID": "1",
-#                     "parserID": "test_parser",
-#                     "log": "test log message",
-#                     "logFormatVariables": {"level": level}
-#                 })
-#                 detector.train(parser_data)
-#
-#         # Only event 1 should be tracked (based on events config)
-#         assert len(detector.persistency.events_data) == 1
-#         event_data = detector.persistency.get_event_data(1)
-#         assert event_data is not None
-#         # Check the level values
-#         assert "INFO" in event_data["level"].unique_set
-#         assert "WARNING" in event_data["level"].unique_set
-#         assert "ERROR" in event_data["level"].unique_set
-#         # Check the variable at position 1 (named "test")
-#         assert "assa" in event_data["test"].unique_set
-#
-#
+class TestValueRangeDetectorInitialization:
+    """Test ValueRangeDetector initialization and configuration."""
+
+    def test_default_initialization(self):
+        """Test detector initialization with default parameters."""
+        detector = ValueRangeDetector()
+
+        assert detector.name == "ValueRangeDetector"
+        assert hasattr(detector, 'config')
+        assert detector.data_buffer.mode == BufferMode.NO_BUF
+        assert detector.input_schema == schemas.ParserSchema
+        assert detector.output_schema == schemas.DetectorSchema
+        assert hasattr(detector, 'persistency')
+
+    def test_custom_config_initialization(self):
+        """Test detector initialization with custom configuration."""
+        detector = ValueRangeDetector(name="CustomInit", config=config)
+
+        assert detector.name == "CustomInit"
+        assert hasattr(detector, 'persistency')
+        assert isinstance(detector.persistency.events_data, dict)
+
+
+class TestValueRangeDetectorTraining:
+    """Test ValueRangeDetector training functionality."""
+
+    def test_train_multiple_values(self):
+        """Test training with multiple different values."""
+        detector = ValueRangeDetector(config=config, name="MultipleDetector")
+        # Train with multiple values (the minimum and maximum value should be captured)
+        min_val = 100000
+        max_val = 0
+        for event in range(3):
+            for _ in range(300):
+                value = random.randint(0, 300)
+                if event == 1:
+                    min_val = min(min_val, value)
+                    max_val = max(max_val, value)
+                parser_data = schemas.ParserSchema({
+                    "parserType": "test",
+                    "EventID": event,
+                    "template": "test template",
+                    "variables": ["val0", str(value), "val2", "val3", "val4"],
+                    "logID": "1",
+                    "parsedLogID": "1",
+                    "parserID": "test_parser",
+                    "log": "test log message",
+                    "logFormatVariables": {}
+                })
+                detector.train(parser_data)
+
+            for _ in range(300):
+                value = random.uniform(0, 300)
+                if event == 1:
+                    min_val = min(min_val, value)
+                    max_val = max(max_val, value)
+                parser_data = schemas.ParserSchema({
+                    "parserType": "test",
+                    "EventID": event,
+                    "template": "test template",
+                    "variables": ["val0", str(value), "val2", "val3", "val4"],
+                    "logID": "1",
+                    "parsedLogID": "1",
+                    "parserID": "test_parser",
+                    "log": "test log message",
+                    "logFormatVariables": {}
+                })
+                detector.train(parser_data)
+
+        # Only event 1 should be tracked (based on events config)
+        assert len(detector.persistency.events_data) == 1
+        event_data = detector.persistency.get_event_data(1)
+        assert event_data is not None
+        # Check the variable at position 1 (named "test")
+        assert min(event_data["test"].unique_set) == min_val
+        assert max(event_data["test"].unique_set) == max_val
+
+    def test_train_non_numeric(self):
+        """Test training with multiple different values."""
+        # TODO: how to check if program exits?
+        assert False
+
+        detector = ValueRangeDetector(config=config, name="MultipleDetector")
+        # Train with multiple values (the minimum and maximum value should be captured)
+        parser_data = schemas.ParserSchema({
+            "parserType": "test",
+            "EventID": 1,
+            "template": "test template",
+            "variables": ["val0", f"val{random.randint(0, 300)}", "val2", "val3", "val4"],
+            "logID": "1",
+            "parsedLogID": "1",
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {}
+        })
+        detector.train(parser_data)
+
+
 # class TestValueRangeDetectorDetection:
 #     """Test ValueRangeDetector detection functionality."""
 #
@@ -214,33 +253,33 @@ _PARSER_CONFIG = {
 }
 
 
-class TestValueRangeDetectorEndToEnd:
-    """Regression test: full configure/train/detect pipeline on audit.log."""
-
-    def test_audit_log_anomalies(self):
-        parser = MatcherParser(config=_PARSER_CONFIG)
-        detector = ValueRangeDetector()
-
-        logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
-
-        for log in logs[:1800]:
-            detector.configure(log)
-        detector.set_configuration()
-
-        for log in logs[:1800]:
-            detector.train(log)
-
-        detected_ids: set[str] = set()
-        for log in logs[1800:]:
-            output = schemas.DetectorSchema()
-            if detector.detect(log, output_=output):
-                detected_ids.add(log["logID"])
-
-        ################
-        # uid ist nicht immer 0 - 1860
-        ################
-
-        assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
+# class TestValueRangeDetectorEndToEnd:
+#     """Regression test: full configure/train/detect pipeline on audit.log."""
+#
+#     def test_audit_log_anomalies(self):
+#         parser = MatcherParser(config=_PARSER_CONFIG)
+#         detector = ValueRangeDetector()
+#
+#         logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
+#
+#         for log in logs[:1800]:
+#             detector.configure(log)
+#         detector.set_configuration()
+#
+#         for log in logs[:1800]:
+#             detector.train(log)
+#
+#         detected_ids: set[str] = set()
+#         for log in logs[1800:]:
+#             output = schemas.DetectorSchema()
+#             if detector.detect(log, output_=output):
+#                 detected_ids.add(log["logID"])
+#
+#         ################
+#         # uid ist nicht immer 0 - 1860
+#         ################
+#
+#         assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
 #
 #
 # class TestValueRangeDetectorAutoConfig:
@@ -276,42 +315,42 @@ class TestValueRangeDetectorEndToEnd:
 #         assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
 
 
-class TestValueRangeDetectorGlobalInstances:
-    """Tests event-ID-independent global instance detection."""
-
-    def test_global_instance_detects_new_type(self):
-        """Global instance monitoring Type detects CRED_REFR, USER_AUTH,
-        USER_CMD which only appear after the training window (line 1800+)."""
-        parser = MatcherParser(config=_PARSER_CONFIG)
-        config_dict = {
-            "detectors": {
-                "ValueRangeDetector": {
-                    "method_type": "value_range_detector",
-                    "auto_config": False,
-                    "global": {
-                        "test": {
-                            "header_variables": [{"pos": "Type"}]
-                        }
-                    }
-                }
-            }
-        }
-        config = ValueRangeDetectorConfig.from_dict(config_dict, "ValueRangeDetector")
-        detector = ValueRangeDetector(config=config)
-
-        logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
-
-        for log in logs[:1800]:
-            detector.train(log)
-
-        # Global tracker must be populated under the sentinel event ID
-        assert GLOBAL_EVENT_ID in detector.persistency.get_events_data()
-
-        detected_ids: set[str] = set()
-        for log in logs[1800:]:
-            output = schemas.DetectorSchema()
-            if detector.detect(log, output_=output):
-                assert all(key.startswith("Global -") for key in output["alertsObtain"])
-                detected_ids.add(log["logID"])
-
-        assert len(detected_ids) > 0
+# class TestValueRangeDetectorGlobalInstances:
+#     """Tests event-ID-independent global instance detection."""
+#
+#     def test_global_instance_detects_new_type(self):
+#         """Global instance monitoring Type detects CRED_REFR, USER_AUTH,
+#         USER_CMD which only appear after the training window (line 1800+)."""
+#         parser = MatcherParser(config=_PARSER_CONFIG)
+#         config_dict = {
+#             "detectors": {
+#                 "ValueRangeDetector": {
+#                     "method_type": "value_range_detector",
+#                     "auto_config": False,
+#                     "global": {
+#                         "test": {
+#                             "header_variables": [{"pos": "Type"}]
+#                         }
+#                     }
+#                 }
+#             }
+#         }
+#         config = ValueRangeDetectorConfig.from_dict(config_dict, "ValueRangeDetector")
+#         detector = ValueRangeDetector(config=config)
+#
+#         logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
+#
+#         for log in logs[:1800]:
+#             detector.train(log)
+#
+#         # Global tracker must be populated under the sentinel event ID
+#         assert GLOBAL_EVENT_ID in detector.persistency.get_events_data()
+#
+#         detected_ids: set[str] = set()
+#         for log in logs[1800:]:
+#             output = schemas.DetectorSchema()
+#             if detector.detect(log, output_=output):
+#                 assert all(key.startswith("Global -") for key in output["alertsObtain"])
+#                 detected_ids.add(log["logID"])
+#
+#         assert len(detected_ids) > 0

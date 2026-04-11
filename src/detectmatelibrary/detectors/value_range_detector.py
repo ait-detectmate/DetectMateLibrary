@@ -52,7 +52,24 @@ class ValueRangeDetector(CoreDetector):
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by learning values from the input data."""
-        print(configured_variables)
+        configured_variables = get_configured_variables(input_, self.config.events)
+        #print(configured_variables)
+        remove = []
+        for k, v in configured_variables.items():
+            if not isinstance(v, (int, float)):
+                try:
+                    configured_variables[k] = int(v)
+                except ValueError:
+                    try:
+                        configured_variables[k] = float(v)
+                    except ValueError:
+                        logger.error(f"Non-numeric value '{v}' appeared in training of {self.__class__.__name__}"
+                                     f" with the name {self.name}.")
+                        exit(1)
+                        # TODO: what to do in this case; exit the program or skipping the data?
+                        remove.append(k)
+        for k in remove:
+            del configured_variables[k]
         self.persistency.ingest_event(
             event_id=input_["EventID"],
             event_template=input_["template"],
@@ -73,10 +90,13 @@ class ValueRangeDetector(CoreDetector):
         """Detect new value ranges in the input data."""
         alerts: dict[str, str] = {}
         configured_variables = get_configured_variables(input_, self.config.events)
+        #print("configured", configured_variables)
+        #print("input", input_)
         overall_score = 0.0
 
         current_event_id = input_["EventID"]
         known_events = self.persistency.get_events_data()
+        print("KNOWN EVENTS", known_events)
 
         if current_event_id in known_events:
             event_tracker = known_events[current_event_id]
@@ -110,12 +130,13 @@ class ValueRangeDetector(CoreDetector):
         return False
 
     def configure(self, input_: ParserSchema) -> None:  # type: ignore
-        print(input_["variables"], "AAA")
+        #print(input_["variables"], "AAA")
         self.auto_conf_persistency.ingest_event(
             event_id=input_["EventID"],
             event_template=input_["template"],
-            variables=input_["variables"],
-            named_variables=input_["logFormatVariables"],
+            # TODO: only store min and max
+            #variables=input_["variables"],
+            #named_variables=input_["logFormatVariables"],
         )
 
     @override
@@ -126,6 +147,7 @@ class ValueRangeDetector(CoreDetector):
     def set_configuration(self) -> None:
         variables = {}
         for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
+            # UNSTABLE VARS ARE POSSIBLE HERE!
             stable = []
             if self.config.use_stable_vars:
                 stable = tracker.get_features_by_classification("STABLE")  # type: ignore

@@ -45,7 +45,7 @@ class EventPersistency:
             return
         self.event_templates[event_id] = event_template
         all_variables = self.get_all_variables(variables, named_variables)
-        print("ALL", all_variables)
+        #print("ALL", all_variables)
 
         data_structure = self.events_data.get(event_id)
         if data_structure is None:
@@ -54,6 +54,8 @@ class EventPersistency:
 
         data = data_structure.to_data(all_variables)
         data_structure.add_data(data)
+        #print("DATA STRUCTURE", data_structure)
+        #print("event data", self.events_data)
 
     def get_events_seen(self) -> set[int | str]:
         """Retrieve all event IDs observed via ingest_event(), regardless of
