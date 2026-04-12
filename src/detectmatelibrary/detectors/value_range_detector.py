@@ -50,24 +50,27 @@ class ValueRangeDetector(CoreDetector):
             event_data_class=EventStabilityTracker
         )
 
+    def cast_val_to_numeric(self, configured_variables, k, remove):
+        v = configured_variables[k]
+        if not isinstance(v, (int, float)):
+            try:
+                configured_variables[k] = int(v)
+            except ValueError:
+                try:
+                    configured_variables[k] = float(v)
+                except ValueError:
+                    logger.error(f"Non-numeric value '{v}' appeared in training of {self.__class__.__name__}"
+                                 f" with the name {self.name}.")
+                    exit(1)
+                    # TODO: what to do in this case; exit the program or skipping the data?
+                    remove.append(k)
+
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by learning values from the input data."""
         configured_variables = get_configured_variables(input_, self.config.events)
-        #print(configured_variables)
         remove = []
-        for k, v in configured_variables.items():
-            if not isinstance(v, (int, float)):
-                try:
-                    configured_variables[k] = int(v)
-                except ValueError:
-                    try:
-                        configured_variables[k] = float(v)
-                    except ValueError:
-                        logger.error(f"Non-numeric value '{v}' appeared in training of {self.__class__.__name__}"
-                                     f" with the name {self.name}.")
-                        exit(1)
-                        # TODO: what to do in this case; exit the program or skipping the data?
-                        remove.append(k)
+        for k in configured_variables.keys():
+            self.cast_val_to_numeric(configured_variables, k, remove)
         for k in remove:
             del configured_variables[k]
         self.persistency.ingest_event(
@@ -101,12 +104,15 @@ class ValueRangeDetector(CoreDetector):
         if current_event_id in known_events:
             event_tracker = known_events[current_event_id]
             for var_name, multi_tracker in event_tracker.get_data().items():
+                self.cast_val_to_numeric(configured_variables, var_name, [])
                 value = configured_variables.get(var_name)
                 if value is None:
                     continue
-                if value not in multi_tracker.unique_set:
+                min_ = min(multi_tracker.unique_set)
+                max_ = max(multi_tracker.unique_set)
+                if value < min_ or value > max_:
                     alerts[f"EventID {current_event_id} - {var_name}"] = (
-                        f"Unknown value: '{value}'"
+                        f"Out of range value: '{value}' ({min_} - {max_})"
                     )
                     overall_score += 1.0
 
@@ -114,10 +120,13 @@ class ValueRangeDetector(CoreDetector):
             global_vars = get_global_variables(input_, self.config.global_instances)
             global_tracker = known_events[GLOBAL_EVENT_ID]
             for var_name, multi_tracker in global_tracker.get_data().items():
+                self.cast_val_to_numeric(global_vars, var_name, [])
                 value = global_vars.get(var_name)
                 if value is None:
                     continue
-                if value not in multi_tracker.unique_set:
+                min_ = min(multi_tracker.unique_set)
+                max_ = max(multi_tracker.unique_set)
+                if value < min_ or value > max_:
                     alerts[f"Global - {var_name}"] = f"Unknown value: '{value}'"
                     overall_score += 1.0
 
@@ -130,13 +139,12 @@ class ValueRangeDetector(CoreDetector):
         return False
 
     def configure(self, input_: ParserSchema) -> None:  # type: ignore
-        #print(input_["variables"], "AAA")
+        print(input_["variables"], "AAA")
         self.auto_conf_persistency.ingest_event(
             event_id=input_["EventID"],
             event_template=input_["template"],
-            # TODO: only store min and max
-            #variables=input_["variables"],
-            #named_variables=input_["logFormatVariables"],
+            variables=input_["variables"],
+            named_variables=input_["logFormatVariables"],
         )
 
     @override

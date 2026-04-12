@@ -9,18 +9,16 @@ This module tests the ValueRangeDetector implementation including:
 """
 
 import random
+import pytest
 from detectmatelibrary.common._core_op._fit_logic import TrainState
-from detectmatelibrary.detectors.value_range_detector import (
-    ValueRangeDetector, ValueRangeDetectorConfig, BufferMode
-)
+from detectmatelibrary.detectors.value_range_detector import (ValueRangeDetector, ValueRangeDetectorConfig, \
+                                                              BufferMode)
 from detectmatelibrary.common._core_op._fit_logic import ConfigState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
-
 from detectmatelibrary.utils.aux import time_test_mode
-
 # Set time test mode for consistent timestamps
 time_test_mode()
 
@@ -138,10 +136,8 @@ class TestValueRangeDetectorTraining:
         assert min(event_data["test"].unique_set) == min_val
         assert max(event_data["test"].unique_set) == max_val
 
-    def test_train_non_numeric(self):
+    def test_train_detect_non_numeric(self):
         """Test training with multiple different values."""
-        # TODO: how to check if program exits?
-        assert False
 
         detector = ValueRangeDetector(config=config, name="MultipleDetector")
         # Train with multiple values (the minimum and maximum value should be captured)
@@ -156,85 +152,124 @@ class TestValueRangeDetectorTraining:
             "log": "test log message",
             "logFormatVariables": {}
         })
-        detector.train(parser_data)
+        with pytest.raises(SystemExit) as excinfo:
+            detector.train(parser_data)
+        assert excinfo.value.code == 1
+        normal_data = schemas.ParserSchema({
+            "parserType": "test",
+            "EventID": 1,
+            "template": "test template",
+            "variables": ["val0", f"{random.randint(0, 300)}", "val2", "val3", "val4"],
+            "logID": "1",
+            "parsedLogID": "1",
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {}
+        })
+        detector.train(normal_data)
+        with pytest.raises(SystemExit) as excinfo:
+            output = schemas.DetectorSchema()
+            detector.detect(parser_data, output)
+        assert excinfo.value.code == 1
 
 
-# class TestValueRangeDetectorDetection:
-#     """Test ValueRangeDetector detection functionality."""
-#
-#     def test_detect_known_value_no_alert(self):
-#         detector = ValueRangeDetector(config=config, name="MultipleDetector")
-#
-#         # Train with a value
-#         train_data = schemas.ParserSchema({
-#             "parserType": "test",
-#             "EventID": 1,
-#             "template": "test template",
-#             "variables": ["adsasd", "asdasd"],
-#             "logID": "1",
-#             "parsedLogID": "1",
-#             "parserID": "test_parser",
-#             "log": "test log message",
-#             "logFormatVariables": {"level": "INFO"}
-#         })
-#         detector.train(train_data)
-#
-#         # Detect with the same value
-#         test_data = schemas.ParserSchema({
-#             "parserType": "test",
-#             "EventID": 12,
-#             "template": "test template",
-#             "variables": ["adsasd"],
-#             "logID": "2",
-#             "parsedLogID": "2",
-#             "parserID": "test_parser",
-#             "log": "test log message",
-#             "logFormatVariables": {"level": "CRITICAL"}
-#         })
-#         output = schemas.DetectorSchema()
-#
-#         result = detector.detect(test_data, output)
-#
-#         assert not result
-#         assert output.score == 0.0
-#
-#     def test_detect_known_value_alert(self):
-#         detector = ValueRangeDetector(config=config, name="MultipleDetector")
-#
-#         # Train with a value
-#         train_data = schemas.ParserSchema({
-#             "parserType": "test",
-#             "EventID": 1,
-#             "template": "test template",
-#             "variables": ["adsasd", "asdasd"],
-#             "logID": "1",
-#             "parsedLogID": "1",
-#             "parserID": "test_parser",
-#             "log": "test log message",
-#             "logFormatVariables": {"level": "INFO"}
-#         })
-#         detector.train(train_data)
-#
-#         # Detect with the same value
-#         test_data = schemas.ParserSchema({
-#             "parserType": "test",
-#             "EventID": 1,
-#             "template": "test template",
-#             "variables": ["adsasd", "asdasd"],
-#             "logID": "2",
-#             "parsedLogID": "2",
-#             "parserID": "test_parser",
-#             "log": "test log message",
-#             "logFormatVariables": {"level": "CRITICAL"}
-#         })
-#         output = schemas.DetectorSchema()
-#
-#         result = detector.detect(test_data, output)
-#
-#         assert result
-#         assert output.score == 1.0
-#
-#
+class TestValueRangeDetectorDetection:
+    """Test ValueRangeDetector detection functionality."""
+
+    def test_detect_learned_value_range_no_alert(self):
+        detector = ValueRangeDetector(config=config, name="MultipleDetector")
+
+        # Train with values
+        for val in ["1", "5000", "2130"]:
+            train_data = schemas.ParserSchema({
+                "parserType": "test",
+                "EventID": 1,
+                "template": "test template",
+                "variables": ["adsasd", val],
+                "logID": "1",
+                "parsedLogID": "1",
+                "parserID": "test_parser",
+                "log": "test log message",
+                "logFormatVariables": {"level": "INFO"}
+            })
+            detector.train(train_data)
+
+        # Detect with the same value
+        test_data = schemas.ParserSchema({
+            "parserType": "test",
+            "EventID": 1,
+            "template": "test template",
+            "variables": ["adsasd", "4321"],
+            "logID": "2",
+            "parsedLogID": "2",
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {"level": "CRITICAL"}
+        })
+        output = schemas.DetectorSchema()
+
+        result = detector.detect(test_data, output)
+
+        assert not result
+        assert output.score == 0.0
+
+    def test_detect_known_value_ranges_alert(self):
+        detector = ValueRangeDetector(config=config, name="MultipleDetector")
+
+        # Train with values
+        for val in ["1", "5000", "2130"]:
+            train_data = schemas.ParserSchema({
+                "parserType": "test",
+                "EventID": 1,
+                "template": "test template",
+                "variables": ["adsasd", val],
+                "logID": "1",
+                "parsedLogID": "1",
+                "parserID": "test_parser",
+                "log": "test log message",
+                "logFormatVariables": {"level": "INFO"}
+            })
+            detector.train(train_data)
+
+        # Detect with the different value
+        test_data = schemas.ParserSchema({
+            "parserType": "test",
+            "EventID": 1,
+            "template": "test template",
+            "variables": ["adsasd", "5001"],
+            "logID": "2",
+            "parsedLogID": "2",
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {"level": "CRITICAL"}
+        })
+        output = schemas.DetectorSchema()
+
+        result = detector.detect(test_data, output)
+
+        assert result
+        assert output.score == 1.0
+
+        # Detect with the different value
+        test_data = schemas.ParserSchema({
+            "parserType": "test",
+            "EventID": 1,
+            "template": "test template",
+            "variables": ["adsasd", "0"],
+            "logID": "2",
+            "parsedLogID": "2",
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {"level": "CRITICAL"}
+        })
+        output = schemas.DetectorSchema()
+
+        result = detector.detect(test_data, output)
+
+        assert result
+        assert output.score == 1.0
+
+
 _PARSER_CONFIG = {
     "parsers": {
         "MatcherParser": {
@@ -253,33 +288,34 @@ _PARSER_CONFIG = {
 }
 
 
-# class TestValueRangeDetectorEndToEnd:
-#     """Regression test: full configure/train/detect pipeline on audit.log."""
-#
-#     def test_audit_log_anomalies(self):
-#         parser = MatcherParser(config=_PARSER_CONFIG)
-#         detector = ValueRangeDetector()
-#
-#         logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
-#
-#         for log in logs[:1800]:
-#             detector.configure(log)
-#         detector.set_configuration()
-#
-#         for log in logs[:1800]:
-#             detector.train(log)
-#
-#         detected_ids: set[str] = set()
-#         for log in logs[1800:]:
-#             output = schemas.DetectorSchema()
-#             if detector.detect(log, output_=output):
-#                 detected_ids.add(log["logID"])
-#
-#         ################
-#         # uid ist nicht immer 0 - 1860
-#         ################
-#
-#         assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
+class TestValueRangeDetectorEndToEnd:
+    """Regression test: full configure/train/detect pipeline on audit.log."""
+
+    def test_audit_log_anomalies(self):
+        parser = MatcherParser(config=_PARSER_CONFIG)
+        detector = ValueRangeDetector()
+
+        logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
+
+        for log in logs[:1800]:
+            detector.configure(log)
+        detector.set_configuration()
+
+        for log in logs[:1800]:
+            detector.train(log)
+
+        detected_ids: set[str] = set()
+        for log in logs[1800:]:
+            output = schemas.DetectorSchema()
+            if detector.detect(log, output_=output):
+                detected_ids.add(log["logID"])
+
+        ################
+        # must implement .configure method properly for this test to work.
+        # uid ist nicht immer 0 - 1860
+        ################
+
+        assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
 #
 #
 # class TestValueRangeDetectorAutoConfig:
