@@ -93,25 +93,25 @@ class CoreComponent(Component):
             return None
 
         if (fit_state := self.fitlogic.run()) == FitLogicState.DO_CONFIG:
-            logger.info(f"<<{self.name}>> use data for configuration")
+            logger.debug(f"<<{self.name}>> use data for configuration")
             self.configure(input_=data_buffered)
             return None
         elif self.fitlogic.finish_config():
-            logger.info(f"<<{self.name}>> finalizing configuration")
+            logger.debug(f"<<{self.name}>> finalizing configuration")
             self.set_configuration()
 
         if fit_state == FitLogicState.DO_TRAIN:
-            logger.info(f"<<{self.name}>> use data for training")
+            logger.debug(f"<<{self.name}>> use data for training")
             self.train(input_=data_buffered)
         elif self.fitlogic.finish_training():
-            logger.info(f"<<{self.name}>> finalizing training")
+            logger.debug(f"<<{self.name}>> finalizing training")
             self.post_train()
 
         output_ = self.output_schema()
-        logger.info(f"<<{self.name}>> processing data")
+        logger.debug(f"<<{self.name}>> processing data")
         return_schema = self.run(input_=data_buffered, output_=output_)
         if not return_schema:
-            logger.info(f"<<{self.name}>> returns None")
+            logger.debug(f"<<{self.name}>> returns None")
             return None
 
         logger.debug(f"<<{self.name}>> processed:\n{output_}")
