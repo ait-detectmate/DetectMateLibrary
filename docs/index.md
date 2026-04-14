@@ -16,6 +16,7 @@ List of steps to follow for new users of the library:
 
 Documentation of the different components:
 
+* [Basic concepts](basic_idea.md): basic concepts need it to understand log anomaly detection.
 * [Overall architecture](overall_architecture.md): overall architecture of the library.
 * [Schemas](schemas.md): documentation of the different schemas in the library.
 * [Parsers](parsers.md): documentation of the different parsers.

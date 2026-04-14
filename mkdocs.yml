@@ -11,6 +11,7 @@ nav:
     - Basic usage: basic_usage.md
     - Create new component: create_components.md
   - Components:
+    - Basic concepts: basic_idea.md
     - Overall architecture: overall_architecture.md
     - Schemas: schemas.md
     - Parsers: parsers.md
