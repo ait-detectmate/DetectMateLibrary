@@ -134,7 +134,7 @@
                 <h1 id="basic-concepts">Basic Concepts</h1>
 <p>DetectMateLibrary is a collection of utilities for detecting anomalies in system logs. This short tutorial explains the core concepts you need to get started.</p>
 <h2 id="what-is-a-log">What is a log?</h2>
-<p>Logs are messages produced by logging statements in code that describe events or state during execution.</p>
+<p>Logs are messages produced by logging statements in code that describe events or states during execution.</p>
 <p>Example code that produces a log:</p>
 <pre><code class="language-python">import logging
 
@@ -146,18 +146,18 @@ logging.info(f&quot;hello I am a log about {var1} and about {var2}&quot;)
 <p>This produces the message:</p>
 <pre><code>hello I am a log about DetectMate getting started and about what is a log
 </code></pre>
-<p>A log message can be split into a constant part (the template) and variable parts. For example:</p>
+<p>A log message can be split into a constant part (the template) and variable parts, for example:</p>
 <ul>
 <li>Template: <code>hello I am a log about &lt;*&gt; and about &lt;*&gt;</code></li>
 <li>Variables: <code>["DetectMate getting started", "what is a log"]</code></li>
 </ul>
-<p>Logs often include a prefix with metadata, for example:</p>
+<p>Logs often include a prefix with metadata, such as time stamp, log level, or hostnamem, for example:</p>
 <pre><code>INFO [18-05-2005] hello I am a log about DetectMate getting started and about what is a log
 </code></pre>
-<p>To extract the metadata we define a log format. For the example above:</p>
+<p>To extract the metadata we define a log format. For the example above this would be:</p>
 <pre><code>&lt;Level&gt; [&lt;Time&gt;] &lt;Content&gt;
 </code></pre>
-<p>Using that format we can separate the message into components:</p>
+<p>Using that format we can separate the message into the components log level <code>Level</code>, time stamp <code>Time</code>, and log message <code>Message</code>:</p>
 <ul>
 <li>Level: <code>INFO</code></li>
 <li>Time: <code>18-05-2005</code></li>
