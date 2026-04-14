@@ -134,7 +134,7 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="overall-architecture">Overall architecture</h1>
-<p>This document describes the high-level design of DetectMateLibrary, how components interact, the data contracts they use, and guidance for deploying and extending the system. The library is built around small, composable components that operate on streaming log data and exchange strongly-typed Schema objects.</p>
+<p>This document describes the high-level design of the DetectMateLibrary, how components interact, the data contracts they use, and guidance for deploying and extending the system. The library is built around small, composable components that operate on streaming log data and exchange strongly-typed Schema objects.</p>
 <p>Key goals</p>
 <ul>
 <li>Clear separation of concerns (reading, parsing, detection, output).</li>
@@ -146,7 +146,7 @@
 <p>The pipeline is strictly directional:</p>
 <ul>
 <li><strong>Parser</strong>: consumes raw logs and produces parsed log objects (structured fields, timestamps, variables).</li>
-<li><strong>Detector</strong>: consumes parsed logs and generates alerts / findings when rules or models match anomalous behavior.</li>
+<li><strong>Detector</strong>: consumes parsed logs and generates alerts/findings when rules or models match anomalous behavior.</li>
 </ul>
 <p>Each arrow represents a stream of <a href="../schemas/">Schema objects</a>. Components are designed to run in the same process for lightweight setups or as separate services for scalable deployments.</p>
 <p><img alt="DIAGRAM" src="../img/diagrams_structure.png" /></p>
