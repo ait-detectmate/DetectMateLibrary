@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/installation/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/basic_idea/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
-    <title>Installation - DetectMate Library</title>
+    <title>Basic concepts - DetectMate Library</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -13,9 +13,9 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Installation";
-        var mkdocs_page_input_path = "installation.md";
-        var mkdocs_page_url = "/DetectMateLibrary/development/installation/";
+        var mkdocs_page_name = "Basic concepts";
+        var mkdocs_page_input_path = "basic_idea.md";
+        var mkdocs_page_url = "/DetectMateLibrary/development/basic_idea/";
       </script>
     
     <!--[if lt IE 9]>
@@ -45,24 +45,8 @@
                 </li>
               </ul>
               <p class="caption"><span class="caption-text">Getting Started</span></p>
-              <ul class="current">
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Installation</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#user-setup">User setup</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#developer-setup">Developer setup</a>
-        <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#step-1-install-python-development-dependencies-pre-commit-hooks">Step 1: Install Python development dependencies &amp; pre-commit hooks</a>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#step-2-install-protobuf-toolchain-only-if-you-change-proto-files">Step 2: Install Protobuf toolchain (only if you change proto files)</a>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#step-3-run-unit-tests">Step 3: Run unit tests</a>
-    </li>
-        </ul>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a>
-    </li>
-    </ul>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../installation/">Installation</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../basic_usage/">Basic usage</a>
                   </li>
@@ -70,8 +54,14 @@
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Components</span></p>
-              <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../basic_idea/">Basic concepts</a>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Basic concepts</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#what-is-a-log">What is a log?</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#what-is-a-parsed-log">What is a parsed log?</a>
+    </li>
+    </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../overall_architecture/">Overall architecture</a>
                   </li>
@@ -131,8 +121,8 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
-          <li class="breadcrumb-item">Getting Started</li>
-      <li class="breadcrumb-item active">Installation</li>
+          <li class="breadcrumb-item">Components</li>
+      <li class="breadcrumb-item active">Basic concepts</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -141,74 +131,75 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="getting-started-installation">Getting started: Installation</h1>
-<p>This document explains how to set up and run DetectMateLibrary for users and developers.</p>
-<h2 id="user-setup">User setup</h2>
-<p><strong>Purpose</strong>: install the library so you can import and use DetectMate in your projects.</p>
-<p><strong>Recommended</strong>: use the provided <code>uv</code> helper (bundled Python environment manager used in this repo). If you prefer pip/venv, create a virtualenv first.</p>
-<p>Install the package in editable mode:</p>
-<pre><code class="language-bash">uv sync
+                <h1 id="basic-concepts">Basic Concepts</h1>
+<p>DetectMateLibrary is a collection of utilities for detecting anomalies in system logs. This short tutorial explains the core concepts you need to get started.</p>
+<h2 id="what-is-a-log">What is a log?</h2>
+<p>Logs are messages produced by logging statements in code that describe events or state during execution.</p>
+<p>Example code that produces a log:</p>
+<pre><code class="language-python">import logging
+
+var1 = &quot;DetectMate getting started&quot;
+var2 = &quot;what is a log&quot;
+
+logging.info(f&quot;hello I am a log about {var1} and about {var2}&quot;)
 </code></pre>
-<p><strong>Result</strong>: the package is installed into the active Python environment and changes to the source tree are reflected immediately.</p>
-<p>To install it in a different venv as a library:</p>
-<pre><code class="language-bash">uv pip install --no-cache-dir &lt;directory_detectmatelibrary&gt;
+<p>This produces the message:</p>
+<pre><code>hello I am a log about DetectMate getting started and about what is a log
 </code></pre>
-<h2 id="developer-setup">Developer setup</h2>
-<p><strong>Purpose</strong>: prepare a development environment with test and lint tooling.</p>
-<h3 id="step-1-install-python-development-dependencies-pre-commit-hooks">Step 1: Install Python development dependencies &amp; pre-commit hooks</h3>
+<p>A log message can be split into a constant part (the template) and variable parts. For example:</p>
 <ul>
-<li>Install dev dependencies (testing, linters, formatters):</li>
+<li>Template: <code>hello I am a log about &lt;*&gt; and about &lt;*&gt;</code></li>
+<li>Variables: <code>["DetectMate getting started", "what is a log"]</code></li>
 </ul>
-<pre><code class="language-bash">uv sync --dev
+<p>Logs often include a prefix with metadata, for example:</p>
+<pre><code>INFO [18-05-2005] hello I am a log about DetectMate getting started and about what is a log
 </code></pre>
+<p>To extract the metadata we define a log format. For the example above:</p>
+<pre><code>&lt;Level&gt; [&lt;Time&gt;] &lt;Content&gt;
+</code></pre>
+<p>Using that format we can separate the message into components:</p>
 <ul>
-<li>Install pre-commit hooks (this repository uses <code>prek</code> to run pre-commit tooling):</li>
+<li>Level: <code>INFO</code></li>
+<li>Time: <code>18-05-2005</code></li>
+<li>Message: <code>hello I am a log about DetectMate getting started and about what is a log</code></li>
 </ul>
-<pre><code class="language-bash">uv run --dev prek install
-</code></pre>
-<p><strong>Notes</strong>:</p>
+<h2 id="what-is-a-parsed-log">What is a parsed log?</h2>
+<p>A parsed log is a log that has been decomposed into structured fields. Based on the example above:</p>
 <ul>
-<li>Ensure <code>uv</code> is available in PATH. If not, use your system Python + virtualenv and then <code>uv sync --dev</code>.</li>
-<li>Run the pre-commit hooks locally with <code>uv run --dev prek run -a</code> before committing to catch style/typing issues early.</li>
+<li>log_format: <code>&lt;Level&gt; [&lt;Time&gt;] &lt;Content&gt;</code></li>
+<li>template: <code>hello I am a log about &lt;*&gt; and about &lt;*&gt;</code></li>
 </ul>
-<h3 id="step-2-install-protobuf-toolchain-only-if-you-change-proto-files">Step 2: Install Protobuf toolchain (only if you change proto files)</h3>
-<p><strong>Purpose</strong>: compile .proto definitions into Python code.</p>
-<p>Install protoc on Debian/Ubuntu:</p>
-<pre><code class="language-bash">sudo apt-get update
-sudo apt-get install -y protobuf-compiler
-protoc --version
-</code></pre>
-<p>Compile the project proto:</p>
-<pre><code class="language-bash">protoc \
-  --proto_path=src/detectmatelibrary/schemas/ \
-  --python_out=src/detectmatelibrary/schemas/ \
-  src/detectmatelibrary/schemas/schemas.proto
-</code></pre>
-<p><strong>Result</strong>: generated Python modules appear under <code>src/detectmatelibrary/schemas/</code>. If you edit proto files, re-run this command and commit generated code if required by your workflow.</p>
-<h3 id="step-3-run-unit-tests">Step 3: Run unit tests</h3>
-<p>Run the full test suite:</p>
-<pre><code class="language-bash">uv run --dev pytest -s
-</code></pre>
-<p>Run tests with coverage (terminal summary):</p>
-<pre><code class="language-bash">uv run --dev pytest --cov=. --cov-report=term-missing
-</code></pre>
-<p><strong>Tips</strong>:</p>
-<ul>
-<li>Run a single test or directory to speed iteration: <code>uv run --dev pytest tests/some_test.py::test_name -q</code></li>
-</ul>
-<h2 id="troubleshooting">Troubleshooting</h2>
-<ul>
-<li>If <code>uv</code> is unavailable, use a Python virtualenv and the <code>pip</code>/<code>pytest</code> commands directly.</li>
-<li>If <code>protoc</code> is missing, install the system package or download a prebuilt binary for your OS.</li>
-<li>Always run commands from the project root so file paths (pyproject.toml, src/) resolve correctly.</li>
-</ul>
-<p>Go back to <a href="../">Index</a> or proceed to <a href="../basic_usage/">Basic usage</a>.</p>
+<p>A parsed log would contain fields like:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Template</td>
+<td><code>hello I am a log about &lt;*&gt; and about &lt;*&gt;</code></td>
+</tr>
+<tr>
+<td>Variables</td>
+<td><code>["DetectMate getting started", "what is a log"]</code></td>
+</tr>
+<tr>
+<td>LogFormatVariables</td>
+<td><code>{"Level": "INFO", "Time": "18-05-2005"}</code></td>
+</tr>
+</tbody>
+</table>
+<p>Parsed logs expose structured data that downstream detection components use for anomaly detection.</p>
+<p>Go back to <a href="../">Index</a></p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href=".." class="btn btn-neutral float-left" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../basic_usage/" class="btn btn-neutral float-right" title="Basic usage">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../create_components/" class="btn btn-neutral float-left" title="Create new component"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../overall_architecture/" class="btn btn-neutral float-right" title="Overall architecture">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -231,10 +222,10 @@ protoc --version
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href=".." style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../create_components/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../basic_usage/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../overall_architecture/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
