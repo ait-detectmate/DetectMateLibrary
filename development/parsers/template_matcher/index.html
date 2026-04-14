@@ -138,7 +138,7 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="template-matcher">Template matcher</h1>
-<p>Parser that takes a set of templates and matches them to incoming logs. It extracts parameters from positions marked with the &lt;*&gt; wildcard and returns a ParserSchema with the matched template and the extracted variables.</p>
+<p>The remplate matcher is a parser that takes a set of templates and matches them to incoming logs. It extracts parameters from positions marked with the &lt;*&gt; wildcard and returns a ParserSchema with the matched template and the extracted variables.</p>
 <table>
 <thead>
 <tr>
@@ -170,7 +170,7 @@
 </ul>
 <p>This parser is deterministic and designed for high-throughput use when templates are known in advance.</p>
 <h2 id="eventid-assignment-preliminary">EventID assignment (preliminary)</h2>
-<p>The <code>EventID</code> (or <code>event_id</code>) field in the output <code>ParserSchema</code> identifies which template was matched. It equals the <strong>0-indexed line number</strong> of the matching template in the template file:</p>
+<p>The <code>EventID</code> (or <code>event_id</code>) field in the output <code>ParserSchema</code> identifies which template was matched. It equals the <strong>0-indexed line number</strong> of the matching template in the template file, for example:</p>
 <table>
 <thead>
 <tr>
@@ -197,11 +197,11 @@
 </tr>
 </tbody>
 </table>
-<p>This <code>EventID</code> is the integer key used in detector configurations (e.g., <code>NewValueDetector</code>) to scope detection rules to logs of a particular template type.</p>
+<p>The <code>EventID</code> is the integer key used in detector configurations (e.g., <code>NewValueDetector</code>) to scope detection rules to logs of a particular template type.</p>
 <h2 id="template-format">Template format</h2>
 <ul>
 <li>Templates are plain text lines in a template file.</li>
-<li>Use <code>&lt;*&gt;</code> for wildcard slots.</li>
+<li>Templates use <code>&lt;*&gt;</code> for wildcard slots.</li>
 </ul>
 <p>Example template file (templates.txt):</p>
 <pre><code class="language-text">pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='op=PAM:&lt;*&gt; acct=&lt;*&gt;
