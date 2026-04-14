@@ -1,5 +1,4 @@
 from detectmatelibrary.common._config._compile import generate_detector_config
-from detectmatelibrary.common._config._formats import EventsConfig
 from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector, get_configured_variables, \
     get_global_variables
 from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
@@ -9,7 +8,6 @@ from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
-from tools.logging import logger
 
 
 class NewEventDetectorConfig(CoreDetectorConfig):
@@ -89,20 +87,10 @@ class NewEventDetector(CoreDetector):
         )
 
     def set_configuration(self) -> None:
-        variables = {}  # type: ignore
-        for event_id in self.auto_conf_persistency.get_events_seen():
-            variables[event_id] = {}
         config_dict = generate_detector_config(
-            variable_selection=variables,
+            variable_selection={},
             detector_name=self.name,
             method_type=self.config.method_type
         )
         # Update the config object from the dictionary instead of replacing it
         self.config = NewEventDetectorConfig.from_dict(config_dict, self.name)
-        events = self.config.events
-        if isinstance(events, EventsConfig) and not events.events:
-            logger.warning(
-                f"[{self.name}] auto_config=True generated an empty configuration. "
-                "No stable variables were found in configure-phase data. "
-                "The detector will produce no alerts."
-            )
