@@ -32,3 +32,7 @@ Tools that are used in the different components:
 Tools that their main objective is to help the developer:
 
 * [From_to](helper/from_to.md): set of methods to save and load inputs and outputs from files.
+
+## Other
+
+* [Log Formats](other/log_formats.md): reference catalog of 18 common log formats with parser configuration.
