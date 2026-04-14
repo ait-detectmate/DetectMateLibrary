@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/other/log_formats/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Log Formats - DetectMate Library</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Log Formats";
+        var mkdocs_page_input_path = "other/log_formats.md";
+        var mkdocs_page_url = "/DetectMateLibrary/development/other/log_formats/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> DetectMate Library
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../installation/">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../basic_usage/">Basic usage</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../create_components/">Create new component</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Components</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../overall_architecture/">Overall architecture</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../schemas/">Schemas</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/">Parsers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/">Detectors</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Parsers Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/template_matcher/">Template Matcher</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/json_parser/">Json Parser</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/logbatcher_parser/">LogBatcher Parser</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Detectors Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/random_detector/">Random Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/new_value/">New Value</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/combo/">Combo Detector</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Auxiliar</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../auxiliar/persistency/">Persistency</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../auxiliar/input_buffer/">Data buffer</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Helpers</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../helper/from_to/">From to</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Other</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Log Formats</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#quick-reference">Quick Reference</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#security">Security</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#audit">audit</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#openssh">OpenSSH</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#web-network">Web &amp; Network</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#apacheaccess">ApacheAccess</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#apache">Apache</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#proxifier">Proxifier</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#distributed-systems">Distributed Systems</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#hdfs">HDFS</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#hadoop">Hadoop</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#spark">Spark</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#zookeeper">Zookeeper</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#openstack">OpenStack</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#hpc-supercomputers">HPC / Supercomputers</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#bgl">BGL</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#hpc">HPC</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#thunderbird">Thunderbird</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#operating-systems">Operating Systems</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#linux">Linux</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#windows">Windows</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#mac">Mac</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#android">Android</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#application">Application</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#healthapp">HealthApp</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">DetectMate Library</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Other</li>
+      <li class="breadcrumb-item active">Log Formats</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="log-format-catalog">Log Format Catalog</h1>
+<p>This catalog covers 18 common log formats and provides ready-to-use <code>log_format</code> patterns for the DetectMate parsers, such as the <a href="../../parsers/template_matcher/">MatcherParser</a>.</p>
+<p><strong>Key concept:</strong> <code>log_format</code> splits a raw log line into structured header fields that become entries in <code>ParserSchema.logFormatVariables</code>. The special <code>&lt;Content&gt;</code> token captures the variable message body, which is then matched against your template file to produce <code>EventID</code> and <code>variables</code>. Formats without <code>&lt;Content&gt;</code> are fully structured — no template file is needed.</p>
+<p><strong>Generic configuration:</strong></p>
+<pre><code class="language-yaml">parsers:
+  MyParser:
+    method_type: matcher_parser
+    auto_config: false
+    log_format: &quot;&lt;Date&gt; &lt;Time&gt; &lt;Level&gt; &lt;Component&gt;: &lt;Content&gt;&quot;
+    params:
+      path_templates: path/to/templates.txt  # only required when log_format contains &lt;Content&gt;
+</code></pre>
+<hr />
+<h2 id="quick-reference">Quick Reference</h2>
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th>Category</th>
+<th>Log source</th>
+<th style="text-align: center;">Has <code>&lt;Content&gt;</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="#audit">audit</a></td>
+<td>Security</td>
+<td>Linux auditd</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><a href="#apacheaccess">ApacheAccess</a></td>
+<td>Web &amp; Network</td>
+<td>Apache httpd access log</td>
+<td style="text-align: center;">no</td>
+</tr>
+<tr>
+<td><a href="#openssh">OpenSSH</a></td>
+<td>Security</td>
+<td>OpenSSH sshd</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><a href="#apache">Apache</a></td>
+<td>Web &amp; Network</td>
+<td>Apache httpd error log</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><a href="#proxifier">Proxifier</a></td>
+<td>Web &amp; Network</td>
+<td>Proxifier proxy client</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><a href="#hdfs">HDFS</a></td>
+<td>Distributed Systems</td>
+<td>Hadoop HDFS daemon</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><a href="#hadoop">Hadoop</a></td>
+<td>Distributed Systems</td>
+<td>Hadoop MapReduce</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><a href="#spark">Spark</a></td>
+<td>Distributed Systems</td>
+<td>Apache Spark</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><a href="#zookeeper">Zookeeper</a></td>
+<td>Distributed Systems</td>
+<td>Apache Zookeeper</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><a href="#openstack">OpenStack</a></td>
+<td>Distributed Systems</td>
+<td>OpenStack Nova/etc.</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><a href="#bgl">BGL</a></td>
+<td>HPC / Supercomputers</td>
+<td>IBM BlueGene/L</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><a href="#hpc">HPC</a></td>
+<td>HPC / Supercomputers</td>
+<td>Generic HPC cluster</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><a href="#thunderbird">Thunderbird</a></td>
+<td>HPC / Supercomputers</td>
+<td>Thunderbird supercomputer</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><a href="#linux">Linux</a></td>
+<td>Operating Systems</td>
+<td>Linux syslog / auth</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><a href="#windows">Windows</a></td>
+<td>Operating Systems</td>
+<td>Windows CBS/Setup</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><a href="#mac">Mac</a></td>
+<td>Operating Systems</td>
+<td>macOS system log</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><a href="#android">Android</a></td>
+<td>Operating Systems</td>
+<td>Android logcat</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><a href="#healthapp">HealthApp</a></td>
+<td>Application</td>
+<td>Mobile health app</td>
+<td style="text-align: center;">yes</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="security">Security</h2>
+<h3 id="audit">audit</h3>
+<p>Linux auditd log. Produced by the kernel audit subsystem; records system calls, authentication, and policy events.</p>
+<pre><code class="language-text">type=USER_ACCT msg=audit(1642723741.072:375): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=&quot;root&quot; exe=&quot;/usr/sbin/cron&quot; hostname=? addr=? terminal=cron res=success'
+</code></pre>
+<p><strong><code>log_format</code>:</strong> <code>type=&lt;Type&gt; msg=audit(&lt;Time&gt;): &lt;Content&gt;</code></p>
+<p><strong>Variable noise patterns:</strong> Numeric field values (<code>=\d+</code>), IP addresses (<code>(\d+\.){3}\d+</code>).</p>
+<hr />
+<h3 id="openssh">OpenSSH</h3>
+<p>OpenSSH <code>sshd</code> authentication log. Records login attempts, key exchanges, and session events.</p>
+<pre><code class="language-text">Dec 10 07:07:38 LabSZ sshd[24206]: Failed password for invalid user test9 from 192.168.1.1 port 20992 ssh2
+</code></pre>
+<p><strong><code>log_format</code>:</strong> <code>&lt;Date&gt; &lt;Day&gt; &lt;Time&gt; &lt;Component&gt; sshd[&lt;Pid&gt;]: &lt;Content&gt;</code></p>
+<p><strong>Variable noise patterns:</strong> IP addresses (<code>(\d+\.){3}\d+</code>), hostnames (<code>([\w-]+\.){2,}[\w-]+</code>).</p>
+<hr />
+<h2 id="web-network">Web &amp; Network</h2>
+<h3 id="apacheaccess">ApacheAccess</h3>
+<p>Apache httpd access log (Combined Log Format). Each line is fully structured — no template file is required.</p>
+<pre><code class="language-text">64.242.88.10 - - [07/Mar/2004:16:10:02 -0800] &quot;GET /twiki/bin/edit/Main/Double_bounce_sender?topicparent=Main.ConfigurationVariables HTTP/1.1&quot; 401 12846 &quot;-&quot; &quot;Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.2) Gecko/20021202&quot;
+</code></pre>
+<p><strong><code>log_format</code>:</strong> <code>&lt;IP&gt; - - [&lt;Time&gt;] "&lt;RequestType&gt; &lt;Request&gt; &lt;Version&gt;" &lt;Status&gt; &lt;ResponseSize&gt; "&lt;Referer&gt;" "&lt;UserAgent&gt;"</code></p>
+<blockquote>
+<p>All fields land directly in <code>logFormatVariables</code>. Use <code>header_variables</code> in your detector config to track e.g. <code>Status</code>, <code>IP</code>, or <code>RequestType</code>.</p>
+</blockquote>
+<hr />
+<h3 id="apache">Apache</h3>
+<p>Apache httpd error log. Records server errors, warnings, and informational notices.</p>
+<pre><code class="language-text">[Sun Dec 04 04:47:44 2005] [notice] workerEnv.init() ok /etc/httpd/conf/workers2.properties
+</code></pre>
+<p><strong><code>log_format</code>:</strong> <code>[&lt;Time&gt;] [&lt;Level&gt;] &lt;Content&gt;</code></p>
+<p><strong>Variable noise patterns:</strong> IP addresses (<code>(\d+\.){3}\d+</code>).</p>
+<hr />
+<h3 id="proxifier">Proxifier</h3>
+<p>Proxifier proxy client log. Records connection open/close events with traffic statistics.</p>
+<pre><code class="language-text">[10:39:55] Skype.exe - www.bing.com:443 open through proxy 1.2.3.4:8080 OK
+</code></pre>
+<p><strong><code>log_format</code>:</strong> <code>[&lt;Time&gt;] &lt;Program&gt; - &lt;Content&gt;</code></p>
+<p><strong>Variable noise patterns:</strong> Duration values (<code>&lt;\d+\ssec</code>), domain:port pairs (<code>([\w-]+\.)+[\w-]+(:\d+)?</code>), transfer sizes (<code>[KGTM]B</code>).</p>
+<hr />
+<h2 id="distributed-systems">Distributed Systems</h2>
+<h3 id="hdfs">HDFS</h3>
+<p>Hadoop Distributed File System daemon log. Emitted by DataNodes, NameNodes, and other HDFS services.</p>
+<pre><code class="language-text">081109 203518 148 INFO dfs.DataNode$DataXceiver: Receiving block blk_-1608999687919862906 src: /10.251.73.220:54106 dest: /10.251.73.220:50010
+</code></pre>
+<p><strong><code>log_format</code>:</strong> <code>&lt;Date&gt; &lt;Time&gt; &lt;Pid&gt; &lt;Level&gt; &lt;Component&gt;: &lt;Content&gt;</code></p>
+<p><strong>Variable noise patterns:</strong> HDFS block IDs (<code>blk_-?\d+</code>), IP addresses with optional port (<code>(\d+\.){3}\d+(:\d+)?</code>).</p>
+<hr />
+<h3 id="hadoop">Hadoop</h3>
+<p>Hadoop MapReduce / YARN log. Produced by the ResourceManager, NodeManager, and application containers.</p>
+<pre><code class="language-text">2015-10-17 15:37:15,811 INFO [main] org.apache.hadoop.mapreduce.v2.app.MRAppMaster: Created MRAppMaster for application appattempt_1443144491176_0001_000001
+</code></pre>
+<p><strong><code>log_format</code>:</strong> <code>&lt;Date&gt; &lt;Time&gt; &lt;Level&gt; [&lt;Process&gt;] &lt;Component&gt;: &lt;Content&gt;</code></p>
+<p><strong>Variable noise patterns:</strong> IP addresses (<code>(\d+\.){3}\d+</code>).</p>
+<hr />
+<h3 id="spark">Spark</h3>
+<p>Apache Spark log. Emitted by driver and executor JVMs.</p>
+<pre><code class="language-text">15/10/16 03:35:11 INFO storage.BlockManagerMasterActor: Registering block manager 192.168.1.1:61698 with 896.4 MB RAM, BlockManagerId(1, 192.168.1.1, 61698)
+</code></pre>
+<p><strong><code>log_format</code>:</strong> <code>&lt;Date&gt; &lt;Time&gt; &lt;Level&gt; &lt;Component&gt;: &lt;Content&gt;</code></p>
+<p><strong>Variable noise patterns:</strong> IP addresses, memory size units (<code>\b[KGTM]?B\b</code>), domain-like names (<code>([\w-]+\.){2,}[\w-]+</code>).</p>
+<hr />
+<h3 id="zookeeper">Zookeeper</h3>
+<p>Apache Zookeeper log. Produced by quorum peers and server threads.</p>
+<pre><code class="language-text">2015-07-29 17:37:13,090 - INFO  [QuorumPeer:NIOServerCnxn@943] - Closed socket connection for client /192.168.1.8:56613 which had sessionid 0x14eb8e0aac70006
+</code></pre>
+<p><strong><code>log_format</code>:</strong> <code>&lt;Date&gt; &lt;Time&gt; - &lt;Level&gt;  [&lt;Node&gt;:&lt;Component&gt;@&lt;Id&gt;] - &lt;Content&gt;</code></p>
+<p><strong>Variable noise patterns:</strong> IP addresses with optional port (<code>(/|)(\d+\.){3}\d+(:\d+)?</code>).</p>
+<hr />
+<h3 id="openstack">OpenStack</h3>
+<p>OpenStack service log (Nova, Neutron, etc.). Structured with a request context field.</p>
+<pre><code class="language-text">nova-manage.log 2016-09-28 03:51:11.899 25746 INFO nova.metadata.handler [req-5a1f3f8a-fd7a-4dc5-bb32-f642b2de2e74 - - - - -] 127.0.0.1 &quot;GET /openstack/2012-08-10/meta-data/local-ipv4&quot; status: 200 len: 14 time: 0.007720
+</code></pre>
+<p><strong><code>log_format</code>:</strong> <code>&lt;Logrecord&gt; &lt;Date&gt; &lt;Time&gt; &lt;Pid&gt; &lt;Level&gt; &lt;Component&gt; [&lt;ADDR&gt;] &lt;Content&gt;</code></p>
+<p><strong>Variable noise patterns:</strong> IP addresses (<code>((\d+\.){3}\d+,?)+</code>), file paths (<code>/.+?\s</code>), numeric values (<code>\d+</code>).</p>
+<hr />
+<h2 id="hpc-supercomputers">HPC / Supercomputers</h2>
+<h3 id="bgl">BGL</h3>
+<p>IBM BlueGene/L supercomputer log. Contains hardware-level diagnostic messages with node location identifiers.</p>
+<pre><code class="language-text">- 1117838570 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.42.50.363779 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected
+</code></pre>
+<p><strong><code>log_format</code>:</strong> <code>&lt;Label&gt; &lt;Timestamp&gt; &lt;Date&gt; &lt;Node&gt; &lt;Time&gt; &lt;NodeRepeat&gt; &lt;Type&gt; &lt;Component&gt; &lt;Level&gt; &lt;Content&gt;</code></p>
+<p><strong>Variable noise patterns:</strong> Core dump references (<code>core\.\d+</code>).</p>
+<hr />
+<h3 id="hpc">HPC</h3>
+<p>Generic HPC cluster log. Produced by batch schedulers and system daemons on compute nodes.</p>
+<pre><code class="language-text">5 hpc-lnx-node11 afs RUNNING 1169880007 OK File transfer: 23 files copied 0 bytes in 0.000 secs
+</code></pre>
+<p><strong><code>log_format</code>:</strong> <code>&lt;LogId&gt; &lt;Node&gt; &lt;Component&gt; &lt;State&gt; &lt;Time&gt; &lt;Flag&gt; &lt;Content&gt;</code></p>
+<p><strong>Variable noise patterns:</strong> Numeric assignments (<code>=\d+</code>).</p>
+<hr />
+<h3 id="thunderbird">Thunderbird</h3>
+<p>Thunderbird supercomputer log. Similar to BGL but from a different cluster; includes user and location fields.</p>
+<pre><code class="language-text">- 1131566401 2005.11.09 admin Nov 9 21:00:01 tbird1 crond[3049]: (root) CMD (/usr/lib/sa/sa1 1 1)
+</code></pre>
+<p><strong><code>log_format</code>:</strong> <code>&lt;Label&gt; &lt;Timestamp&gt; &lt;Date&gt; &lt;User&gt; &lt;Month&gt; &lt;Day&gt; &lt;Time&gt; &lt;Location&gt; &lt;Component&gt;([&lt;PID&gt;])?: &lt;Content&gt;</code></p>
+<p><strong>Variable noise patterns:</strong> IP addresses (<code>(\d+\.){3}\d+</code>).</p>
+<hr />
+<h2 id="operating-systems">Operating Systems</h2>
+<h3 id="linux">Linux</h3>
+<p>Linux syslog format (RFC 3164). Produced by <code>syslog</code>, <code>rsyslog</code>, and <code>syslog-ng</code> — covers auth, cron, kernel messages, and more.</p>
+<pre><code class="language-text">Jun 14 15:16:02 combo sshd(pam_unix)[19939]: authentication failure; logname= uid=0 euid=0 tty=NODEVssh ruser= rhost=218.188.2.4
+</code></pre>
+<p><strong><code>log_format</code>:</strong> <code>&lt;Month&gt; &lt;Date&gt; &lt;Time&gt; &lt;Level&gt; &lt;Component&gt;([&lt;PID&gt;])?: &lt;Content&gt;</code></p>
+<blockquote>
+<p>Note: <code>&lt;Level&gt;</code> captures the <strong>hostname</strong> in standard syslog (the field name follows benchmark convention).</p>
+</blockquote>
+<p><strong>Variable noise patterns:</strong> IP addresses (<code>(\d+\.){3}\d+</code>), embedded timestamps (<code>\d{2}:\d{2}:\d{2}</code>).</p>
+<hr />
+<h3 id="windows">Windows</h3>
+<p>Windows Component-Based Servicing (CBS) / Setup log. Fixed-width columns with variable spacing.</p>
+<pre><code class="language-text">2016-09-28 04:30:22, Info                  CBS    Loaded Servicing Stack v6.1.7601.23505 with Core: C:\Windows\winsxs\amd64_microsoft-windows-servicingstack_31bf3856ad364e35_6.1.7601.23505_none_681aa442f6fed7f0\cbscore.dll
+</code></pre>
+<p><strong><code>log_format</code>:</strong> <code>&lt;Date&gt; &lt;Time&gt;, &lt;Level&gt;                  &lt;Component&gt;    &lt;Content&gt;</code></p>
+<blockquote>
+<p>Note: The multiple spaces between fields are <strong>literal</strong> and must be preserved in the pattern.</p>
+</blockquote>
+<p><strong>Variable noise patterns:</strong> Hexadecimal values (<code>0x.*?\s</code>).</p>
+<hr />
+<h3 id="mac">Mac</h3>
+<p>macOS unified system log (pre-Unified Logging). Produced by system daemons and user-space processes.</p>
+<pre><code class="language-text">Jul  9 00:17:03 calvisitor-10-105-160-95 com.apple.backupd[12396] (Error): VSDBUtil: Failed to change_attributes for volume &quot;/Volumes/SanDisk USB Drive&quot;
+</code></pre>
+<p><strong><code>log_format</code>:</strong> <code>&lt;Month&gt;  &lt;Date&gt; &lt;Time&gt; &lt;User&gt; &lt;Component&gt;[&lt;PID&gt;]( (&lt;Address&gt;))?: &lt;Content&gt;</code></p>
+<blockquote>
+<p>Note: Double space between <code>&lt;Month&gt;</code> and <code>&lt;Date&gt;</code> occurs when the day is single-digit (standard macOS padding).</p>
+</blockquote>
+<p><strong>Variable noise patterns:</strong> Domain names (<code>([\w-]+\.){2,}[\w-]+</code>).</p>
+<hr />
+<h3 id="android">Android</h3>
+<p>Android logcat output. Produced by the Android logging system across all framework and app components.</p>
+<pre><code class="language-text">01-02 12:23:42.768  1632  2044 E ActivityManager: mDVFSHelper is null
+</code></pre>
+<p><strong><code>log_format</code>:</strong> <code>&lt;Date&gt; &lt;Time&gt;  &lt;Pid&gt;  &lt;Tid&gt; &lt;Level&gt; &lt;Component&gt;: &lt;Content&gt;</code></p>
+<p><strong>Variable noise patterns:</strong> File system paths (<code>(/[\w-]+)+</code>), domain names, hex/numeric values (<code>\b(\-?\+?\d+)\b|\b0[Xx][a-fA-F\d]+\b|\b[a-fA-F\d]{4,}\b</code>).</p>
+<hr />
+<h2 id="application">Application</h2>
+<h3 id="healthapp">HealthApp</h3>
+<p>Mobile health application log. Pipe-delimited format from a step-counter app.</p>
+<pre><code class="language-text">20170201-01:15:35:631|Step_StandCounter|4243|step counts since boot=76149; goal=6000; active=0; distance=45
+</code></pre>
+<p><strong><code>log_format</code>:</strong> <code>&lt;Time&gt;|&lt;Component&gt;|&lt;Pid&gt;|&lt;Content&gt;</code></p>
+<hr />
+<p>Go back to <a href="../../">Index</a></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../../helper/from_to/" class="btn btn-neutral float-left" title="From to"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../../helper/from_to/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+      <script src="../../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
