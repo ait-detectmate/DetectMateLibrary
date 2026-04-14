@@ -2,6 +2,7 @@ from detectmatelibrary.parsers.template_matcher import MatcherParser, MatcherPar
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
 from detectmatelibrary.utils.key_extractor import KeyExtractor
 from detectmatelibrary import schemas
+from detectmatelibrary.constants import EVENT_ID
 
 from collections.abc import Mapping
 from typing import Any, Iterable
@@ -73,14 +74,14 @@ class JsonParser(CoreParser):
         timestamp = self.time_extractor.extract(obj=log, delete=True)
         content = self.content_extractor.extract(obj=log, delete=True)
 
-        parsed = {"EventTemplate": "", "Params": [], "EventId": 0}
+        parsed = {"EventTemplate": "", "Params": [], EVENT_ID: 0}
         # if the json also contains a message field, parse it for template and parameters
         if content:
             log_ = schemas.LogSchema({"log": content})
             parsed_content = self.content_parser.process(log_)
             parsed["EventTemplate"] = parsed_content["template"]  # type: ignore
             parsed["Params"] = parsed_content["variables"]  # type: ignore
-            parsed["EventId"] = parsed_content["EventID"]  # type: ignore
+            parsed[EVENT_ID] = parsed_content[EVENT_ID]  # type: ignore
 
         log_flat = flatten_dict(log)
         output_["logFormatVariables"].clear()  # ensure it's empty before updating
@@ -89,4 +90,4 @@ class JsonParser(CoreParser):
         output_["logFormatVariables"].update({"Time": time})
         output_["template"] = parsed["EventTemplate"]
         output_["variables"].extend(parsed["Params"])
-        output_["EventID"] = parsed["EventId"]
+        output_[EVENT_ID] = parsed[EVENT_ID]

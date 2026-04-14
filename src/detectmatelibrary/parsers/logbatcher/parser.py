@@ -4,6 +4,7 @@ from detectmatelibrary.parsers.logbatcher.engine.parsing_cache import ParsingCac
 from detectmatelibrary.parsers.logbatcher.engine.cluster import Cluster
 from detectmatelibrary.parsers.logbatcher.engine.matching import extract_variables
 from detectmatelibrary import schemas
+from detectmatelibrary.constants import EVENT_ID
 
 from typing import Any
 
@@ -63,4 +64,4 @@ class LogBatcherParser(CoreParser):
 
         output_["template"] = template
         output_["variables"].extend(list(variables))
-        output_["EventID"] = event_id
+        output_[EVENT_ID] = event_id

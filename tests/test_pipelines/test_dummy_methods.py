@@ -40,10 +40,10 @@ class TestDummyMethods:
         assert output.description == "Dummy detection process"
         if result:
             assert output.score == 1.0
-            assert "Anomaly detected by DummyDetector" in output.alertsObtain["type"]
+            assert "Anomaly detected by DummyDetector" in output.alerts["type"]
         else:
             assert output.score == 0.0
-            assert len(output.alertsObtain) == 0
+            assert len(output.alerts) == 0
 
     def test_parser_initialize_default(self) -> None:
         parser = DummyParser(name="DummyParser", config=default_args)

@@ -6,6 +6,7 @@ import re
 from detectmatelibrary.common._config._formats import (
     EventsConfig, _EventConfig, _EventInstance, Variable
 )
+from detectmatelibrary.constants import EVENT_ID
 
 
 class TemplateMetadata(TypedDict):
@@ -238,5 +239,5 @@ class TemplateMatcher:
             output["EventTemplate"] = tpl
             output["Params"] = params
         tpl_to_id = {t["raw"]: i for i, t in enumerate(self.manager.templates)}
-        output["EventId"] = tpl_to_id.get(tpl, -1) if output["EventTemplate"] != "<Not Found>" else -1
+        output[EVENT_ID] = tpl_to_id.get(tpl, -1) if output["EventTemplate"] != "<Not Found>" else -1
         return output

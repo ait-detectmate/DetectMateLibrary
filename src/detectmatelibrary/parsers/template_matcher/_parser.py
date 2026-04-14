@@ -1,6 +1,7 @@
 from detectmatelibrary.parsers.template_matcher._matcher_op import TemplateMatcher, TemplateMetadata
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
 from detectmatelibrary import schemas
+from detectmatelibrary.constants import EVENT_ID, CSV_EVENT_ID_COLUMN
 
 from typing import Any
 import csv
@@ -88,7 +89,7 @@ def load_templates(path: str) -> tuple[list[str], list[str | None]]:
             reader = csv.DictReader(f)
             if reader.fieldnames is None or "EventTemplate" not in reader.fieldnames:
                 raise ValueError("CSV file must contain a 'EventTemplate' column.")
-            has_event_id_col = "EventId" in (reader.fieldnames or [])
+            has_event_id_col = CSV_EVENT_ID_COLUMN in (reader.fieldnames or [])
             for row in reader:
                 val = row.get("EventTemplate")
                 if val is None:
@@ -98,7 +99,7 @@ def load_templates(path: str) -> tuple[list[str], list[str | None]]:
                     continue
                 templates.append(s)
                 if has_event_id_col:
-                    eid = str(row.get("EventId", "")).strip()
+                    eid = str(row.get(CSV_EVENT_ID_COLUMN, "")).strip()
                     eid_labels.append(eid or None)
                 else:
                     eid_labels.append(None)
@@ -152,4 +153,4 @@ class MatcherParser(CoreParser):
 
         output_["template"] = parsed["EventTemplate"]
         output_["variables"] = parsed["Params"]
-        output_["EventID"] = parsed["EventId"]
+        output_[EVENT_ID] = parsed[EVENT_ID]

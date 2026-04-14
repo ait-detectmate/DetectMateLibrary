@@ -16,7 +16,7 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
-from detectmatelibrary.constants import GLOBAL_EVENT_ID
+from detectmatelibrary.constants import GLOBAL_EVENT_ID, EVENT_ID, ALERTS
 
 from typing import Any, Dict, Sequence, cast, Tuple
 from itertools import combinations
@@ -92,7 +92,7 @@ class NewValueComboDetector(CoreDetector):
         config = cast(NewValueComboDetectorConfig, self.config)
         configured_variables = get_configured_variables(input_, config.events)
         self.persistency.ingest_event(
-            event_id=input_["EventID"],
+            event_id=input_[EVENT_ID],
             event_template=input_["template"],
             named_variables=configured_variables
         )
@@ -114,7 +114,7 @@ class NewValueComboDetector(CoreDetector):
         combo_dict = get_combo(configured_variables)
 
         overall_score = 0.0
-        current_event_id = input_["EventID"]
+        current_event_id = input_[EVENT_ID]
         known_events = self.persistency.get_events_data()
 
         if current_event_id in known_events:
@@ -147,7 +147,7 @@ class NewValueComboDetector(CoreDetector):
                 f"{self.name} detects value combinations not encountered "
                 "in training as anomalies."
             )
-            output_["alertsObtain"].update(alerts)
+            output_[ALERTS].update(alerts)
             return True
         return False
 
@@ -166,7 +166,7 @@ class NewValueComboDetector(CoreDetector):
 
         # first pass to learn variable stability of all variables
         self.auto_conf_persistency.ingest_event(
-            event_id=input_["EventID"],
+            event_id=input_[EVENT_ID],
             event_template=input_["template"],
             variables=input_["variables"],
             named_variables=input_["logFormatVariables"],
@@ -202,7 +202,7 @@ class NewValueComboDetector(CoreDetector):
         for input_ in self.inputs:
             configured_variables = get_configured_variables(input_, self.config.events)
             self.auto_conf_persistency_combos.ingest_event(
-                event_id=input_["EventID"],
+                event_id=input_[EVENT_ID],
                 event_template=input_["template"],
                 named_variables=configured_variables
             )

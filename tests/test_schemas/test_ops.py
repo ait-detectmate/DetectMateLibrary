@@ -75,7 +75,7 @@ class TestCaseSchemas:
             "logIDs": ["1", "2", "3"],
             "extractedTimestamps": [4, 5, 6],
             "description": "test description",
-            "alertsObtain": {"key": "value"}
+            "alerts": {"key": "value"}
         }
         schema = op_schemas.initialize(op_schemas.OUTPUT_SCHEMA, **values)
 
@@ -87,7 +87,7 @@ class TestCaseSchemas:
         assert schema.logIDs == ["1", "2", "3"]
         assert schema.extractedTimestamps == [4, 5, 6]
         assert schema.description == "test description"
-        assert schema.alertsObtain == {"key": "value"}
+        assert schema.alerts == {"key": "value"}
         assert schema.extractedTimestamps == [4, 5, 6]
 
     def test_copy(self) -> None:

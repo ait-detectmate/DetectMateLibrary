@@ -15,7 +15,7 @@ from detectmatelibrary.utils.persistency.event_persistency import EventPersisten
 from detectmatelibrary.utils.data_buffer import BufferMode
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
-from detectmatelibrary.constants import GLOBAL_EVENT_ID
+from detectmatelibrary.constants import GLOBAL_EVENT_ID, EVENT_ID, ALERTS
 
 from typing_extensions import override
 from tools.logging import logger
@@ -54,7 +54,7 @@ class NewValueDetector(CoreDetector):
         """Train the detector by learning values from the input data."""
         configured_variables = get_configured_variables(input_, self.config.events)
         self.persistency.ingest_event(
-            event_id=input_["EventID"],
+            event_id=input_[EVENT_ID],
             event_template=input_["template"],
             named_variables=configured_variables
         )
@@ -75,7 +75,7 @@ class NewValueDetector(CoreDetector):
         configured_variables = get_configured_variables(input_, self.config.events)
         overall_score = 0.0
 
-        current_event_id = input_["EventID"]
+        current_event_id = input_[EVENT_ID]
         known_events = self.persistency.get_events_data()
 
         if current_event_id in known_events:
@@ -104,14 +104,14 @@ class NewValueDetector(CoreDetector):
         if overall_score > 0:
             output_["score"] = overall_score
             output_["description"] = f"{self.name} detects values not encountered in training as anomalies."
-            output_["alertsObtain"].update(alerts)
+            output_[ALERTS].update(alerts)
             return True
 
         return False
 
     def configure(self, input_: ParserSchema) -> None:  # type: ignore
         self.auto_conf_persistency.ingest_event(
-            event_id=input_["EventID"],
+            event_id=input_[EVENT_ID],
             event_template=input_["template"],
             variables=input_["variables"],
             named_variables=input_["logFormatVariables"],

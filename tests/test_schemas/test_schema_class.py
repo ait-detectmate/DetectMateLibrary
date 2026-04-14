@@ -161,5 +161,5 @@ class TestBaseSchema:
             "extractedTimestamps": detector_schema.extractedTimestamps,
             "description": detector_schema.description,
             "receivedTimestamp": detector_schema.receivedTimestamp,
-            "alertsObtain": detector_schema.alertsObtain,
+            "alerts": detector_schema.alerts,
         }

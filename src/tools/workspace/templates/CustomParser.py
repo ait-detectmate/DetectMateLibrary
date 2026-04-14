@@ -3,6 +3,7 @@ from typing import Any
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
 from detectmatelibrary.helper.from_to import From
 from detectmatelibrary import schemas
+from detectmatelibrary.constants import EVENT_ID
 
 
 class CustomParserConfig(CoreParserConfig):
@@ -41,7 +42,7 @@ class CustomParser(CoreParser):
         """
 
         # Dummy implementation example (replace with real logic)
-        output_["EventID"] = 2  # Number of the log template
+        output_[EVENT_ID] = 2  # Number of the log template
         output_["variables"].extend(["dummy_variable"])  # Variables found in the log
         output_["template"] = "This is a dummy template"  # Log template
 

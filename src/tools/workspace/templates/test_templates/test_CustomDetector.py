@@ -31,7 +31,7 @@ class TestCustomDetector:
         assert output.description == "Dummy detection process"
         if result:
             assert output.score == 1.0
-            assert "Anomaly detected" in output.alertsObtain["type"]
+            assert "Anomaly detected" in output.alerts["type"]
         else:
             assert output.score == 0.0
-            assert len(output.alertsObtain) == 0
+            assert len(output.alerts) == 0

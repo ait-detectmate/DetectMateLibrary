@@ -5,6 +5,7 @@ from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 from detectmatelibrary.utils.data_buffer import BufferMode
 
 import detectmatelibrary.schemas as schemas
+from detectmatelibrary.constants import EVENT_ID, ALERTS
 
 from typing_extensions import override
 from typing import List, Any
@@ -42,7 +43,7 @@ class RandomDetector(CoreDetector):
         overall_score = 0.0
         alerts = {}
 
-        event_config = self.config.events[input_["EventID"]]
+        event_config = self.config.events[input_[EVENT_ID]]
         if event_config is None:
             return False
 
@@ -59,7 +60,7 @@ class RandomDetector(CoreDetector):
 
         if overall_score > 0:
             output_["score"] = overall_score
-            output_["alertsObtain"].update(alerts)
+            output_[ALERTS].update(alerts)
             return True
 
         return False

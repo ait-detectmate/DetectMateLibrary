@@ -4,6 +4,7 @@ from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.helper.from_to import From
 from detectmatelibrary import schemas
+from detectmatelibrary.constants import ALERTS
 
 
 class CustomDetectorConfig(CoreDetectorConfig):
@@ -52,7 +53,7 @@ class CustomDetector(CoreDetector):
         result = pattern[self._call_count % len(pattern)]
         if result:
             output_["score"] = 1.0  # Score of the detector
-            output_["alertsObtain"]["type"] = "Anomaly detected by CustomDetector"  # Additional info
+            output_[ALERTS]["type"] = "Anomaly detected by CustomDetector"  # Additional info
 
         return result
 

@@ -307,7 +307,7 @@ class TestNewValueDetectorGlobalInstances:
         for log in logs[1800:]:
             output = schemas.DetectorSchema()
             if detector.detect(log, output_=output):
-                assert all(key.startswith("Global -") for key in output["alertsObtain"])
+                assert all(key.startswith("Global -") for key in output["alerts"])
                 detected_ids.add(log["logID"])
 
         assert len(detected_ids) > 0

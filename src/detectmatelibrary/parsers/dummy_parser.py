@@ -1,5 +1,6 @@
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
 from detectmatelibrary import schemas
+from detectmatelibrary.constants import EVENT_ID
 
 from typing import Any
 
@@ -28,6 +29,6 @@ class DummyParser(CoreParser):
         output_: schemas.ParserSchema
     ) -> None:
 
-        output_["EventID"] = 2
+        output_[EVENT_ID] = 2
         output_["variables"].extend(["dummy_variable"])
         output_["template"] = "This is a dummy template"

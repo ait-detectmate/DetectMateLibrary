@@ -6,6 +6,7 @@ from detectmatelibrary.utils.aux import get_timestamp
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
+from detectmatelibrary.constants import EVENT_ID
 
 from typing_extensions import override
 from typing import Dict, List, Optional, Any
@@ -47,7 +48,7 @@ def get_configured_variables(
     Returns:
         Dict mapping variable names to their values from the input
     """
-    event_id = input_["EventID"]
+    event_id = input_[EVENT_ID]
     result: Dict[str, Any] = {}
 
     # Get the config for this event

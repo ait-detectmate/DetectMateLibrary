@@ -1,5 +1,7 @@
 CONTENT = "Content"
 TIMESTAMP = "Time"
 EVENT_TEMPLATE = "EventTemplate"
-EVENT_ID = "EventId"
+EVENT_ID = "EventID"
 GLOBAL_EVENT_ID = "*"
+ALERTS = "alerts"
+CSV_EVENT_ID_COLUMN = "EventId"

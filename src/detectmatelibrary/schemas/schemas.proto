@@ -38,7 +38,7 @@ message DetectorSchema {
     repeated int32 extractedTimestamps = 9;
     optional string description = 10;
     optional int32 receivedTimestamp = 11;
-    map<string, string> alertsObtain = 12;
+    map<string, string> alerts = 12;
 }
 
 message OutputSchema {
@@ -50,5 +50,5 @@ message OutputSchema {
     repeated string logIDs = 6;
     repeated int32 extractedTimestamps = 9;
     optional string description = 10;
-    map<string, string> alertsObtain = 12;
+    map<string, string> alerts = 12;
 }

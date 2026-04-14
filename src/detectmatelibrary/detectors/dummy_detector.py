@@ -3,6 +3,7 @@ from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 from detectmatelibrary.utils.data_buffer import BufferMode
 
 from detectmatelibrary import schemas
+from detectmatelibrary.constants import ALERTS
 
 from typing import List, Any
 
@@ -39,5 +40,5 @@ class DummyDetector(CoreDetector):
         result = pattern[self._call_count % len(pattern)]
         if result:
             output_["score"] = 1.0
-            output_["alertsObtain"]["type"] = "Anomaly detected by DummyDetector"
+            output_[ALERTS]["type"] = "Anomaly detected by DummyDetector"
         return result
