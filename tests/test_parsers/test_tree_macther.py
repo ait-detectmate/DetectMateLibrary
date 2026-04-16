@@ -1,5 +1,5 @@
 """Most of the functionality is test it in DetectMatePerformance."""
-from detectmatelibrary.parsers.tree_matcher import TreeMatcherParser
+from detectmatelibrary.parsers.tree_matcher import TemplateTreeMatcher
 from detectmatelibrary import schemas
 
 
@@ -20,7 +20,7 @@ class TestMatcherParserBasic:
                 }
             }
         }
-        parser = TreeMatcherParser(name="TreeMatcher", config=config_dict)
+        parser = TemplateTreeMatcher(name="TreeMatcher", config=config_dict)
         input_log = schemas.LogSchema({"log": test_log_match})
         output_data = schemas.ParserSchema()
         parser.parse(input_log, output_data)
@@ -39,7 +39,7 @@ class TestMatcherParserBasic:
                 }
             }
         }
-        parser = TreeMatcherParser(name="TreeMatcher", config=config_dict)
+        parser = TemplateTreeMatcher(name="TreeMatcher", config=config_dict)
         input_log = schemas.LogSchema({"log": test_log_match})
         output_data = schemas.ParserSchema()
         parser.parse(input_log, output_data)

@@ -8,24 +8,24 @@ from typing import Any
 import warnings
 
 
-class TreeMatcherConfig(CoreParserConfig):
+class TemplateTreeMatcherConfig(CoreParserConfig):
     method_type: str = "tree_matcher"
 
     path_templates: str | None = None
 
 
-class TreeMatcherParser(CoreParser):
+class TemplateTreeMatcher(CoreParser):
     def __init__(
         self,
         name: str = "TreeMatcher",
-        config: TreeMatcherConfig | dict[str, Any] = TreeMatcherConfig()
+        config: TemplateTreeMatcherConfig | dict[str, Any] = TemplateTreeMatcherConfig()
     ) -> None:
 
         if isinstance(config, dict):
-            config = TreeMatcherConfig.from_dict(config, name)
+            config = TemplateTreeMatcherConfig.from_dict(config, name)
         super().__init__(name=name, config=config)
 
-        self.config: TreeMatcherConfig
+        self.config: TemplateTreeMatcherConfig
         if self.config.path_templates is None:
             self.tree = TreeMatcher(LogTemplates([]))
         else:
