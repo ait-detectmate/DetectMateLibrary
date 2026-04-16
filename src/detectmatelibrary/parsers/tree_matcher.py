@@ -36,9 +36,9 @@ class TreeMatcherParser(CoreParser):
         output_: schemas.ParserSchema
     ) -> None:
 
-        parsed = self.tree.match_log(input_["log"], get_vars=True)
+        parsed = self.tree.match_log(input_["log"], get_var=True)
 
         output_["EventID"] = parsed.get_all_events_ids()[0]
         values = parsed[0]
         output_["variables"].extend(values[1].split(" "))
-        output_["template"] = values[0]
+        output_["template"] = values[0].replace("VAR", "<*>")
