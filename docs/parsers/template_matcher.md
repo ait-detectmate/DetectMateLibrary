@@ -47,7 +47,7 @@ login success: user=<*> source=<*>
 Typical MatcherParser config options (fields in config class):
 
 - `method_type`: must match the parser type ("matcher_parser" or configured name).
-- `path_templates`: path to the newline-delimited template file.
+- `path_templates`: path to the newline-delimited template file. If `null`, the matcher runs without templates.
 - `remove_spaces` (bool, default True): remove all spaces during matching.
 - `remove_punctuation` (bool, default True): strip punctuation except the `<*>` token.
 - `lowercase` (bool, default True): lowercase logs and templates before matching.
