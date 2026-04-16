@@ -54,7 +54,6 @@ class RuleDetector(CoreDetector):
         if isinstance(config, dict):
             config = RuleDetectorConfig.from_dict(config, name)
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
-        self._call_count = 0
 
     def detect(
         self,

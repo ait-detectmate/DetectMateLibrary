@@ -18,15 +18,15 @@ class TestCaseRules:
         keywords = ["hello", "ciao"]
 
         parsed_log = schemas.ParserSchema({"log": "hello world"})
-        alert, msg = rd.find_keyword(parsed_log, *keywords)
+        alert, msg = rd.find_keyword(parsed_log, keywords)
         assert alert
         assert "Found word 'hello' in the logs" == msg
 
         parsed_log = schemas.ParserSchema({"log": "ciao world"})
-        alert, msg = rd.find_keyword(parsed_log, *keywords)
+        alert, msg = rd.find_keyword(parsed_log, keywords)
         assert alert
         assert "Found word 'ciao' in the logs" == msg
 
         parsed_log = schemas.ParserSchema({"log": "world"})
-        alert, _ = rd.find_keyword(parsed_log, *keywords)
+        alert, _ = rd.find_keyword(parsed_log, keywords)
         assert not alert
