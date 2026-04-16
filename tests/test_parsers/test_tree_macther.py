@@ -1,3 +1,4 @@
+"""Most of the functionality is test it in DetectMatePerformance."""
 from detectmatelibrary.parsers.tree_matcher import TreeMatcherParser
 from detectmatelibrary import schemas
 
