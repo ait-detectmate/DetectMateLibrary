@@ -1,8 +1,12 @@
 """Copy and paste to create new rules.
 
-def template_rule(input_: schemas.ParserSchema, *args: list[Any]) ->
-tuple[bool, str]:     raise_alert = False  # Add here rule     message =
-""  # Rule message     return raise_alert, message
+def template_rule(
+    input_: schemas.ParserSchema, *args: list[Any]
+) -> tuple[bool, str]:
+
+    raise_alert = False  # Add here rule
+    message = ""  # Rule message
+    return raise_alert, message
 """
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 
