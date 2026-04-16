@@ -15,7 +15,6 @@ class TestMatcherParserBasic:
         config_dict = {
             "parsers": {
                 "TreeMatcher": {
-                    "auto_config": True,
                     "method_type": "tree_matcher",
                 }
             }
@@ -33,7 +32,6 @@ class TestMatcherParserBasic:
         config_dict = {
             "parsers": {
                 "TreeMatcher": {
-                    "auto_config": True,
                     "method_type": "tree_matcher",
                     "path_templates": "tests/test_folder/test_templates.txt"
                 }
