@@ -1,6 +1,6 @@
 # Template matcher
 
-The remplate matcher is a parser that takes a set of templates and matches them to incoming logs. It extracts parameters from positions marked with the <*> wildcard and returns a ParserSchema with the matched template and the extracted variables.
+The template matcher is a parser that takes a set of templates and matches them to incoming logs. It extracts parameters from positions marked with the <*> wildcard and returns a ParserSchema with the matched template and the extracted variables.
 
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
