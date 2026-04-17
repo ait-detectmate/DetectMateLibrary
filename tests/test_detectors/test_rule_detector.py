@@ -30,3 +30,31 @@ class TestCaseRules:
         parsed_log = schemas.ParserSchema({"log": "world"})
         alert, _ = rd.find_keyword(parsed_log, keywords)
         assert not alert
+
+    def test_find_exceptions(self) -> None:
+        parsed_log = schemas.ParserSchema({"log": "hello Exception"})
+        alert, msg = rd.exceptions(parsed_log)
+        assert alert
+        assert "Found word 'exception' in the logs" == msg
+
+        parsed_log = schemas.ParserSchema({"log": "world"})
+        alert, _ = rd.exceptions(parsed_log)
+        assert not alert
+
+    def test_error_log(self) -> None:
+        parsed_log = schemas.ParserSchema(
+            {"logFormatVariables": {"Level": "Error"}}
+        )
+        alert, msg = rd.error_log(parsed_log)
+        assert alert
+        assert "Error found" == msg
+
+        parsed_log = schemas.ParserSchema(
+            {"logFormatVariables": {"Level": "Info"}}
+        )
+        alert, _ = rd.error_log(parsed_log)
+        assert not alert
+
+        parsed_log = schemas.ParserSchema({"log": "hello world"})
+        alert, _ = rd.error_log(parsed_log)
+        assert not alert

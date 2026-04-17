@@ -37,15 +37,29 @@ def exceptions(input_: schemas.ParserSchema, *args: list[Any]) -> tuple[bool, st
     return find_keyword(input_, ["exception", "fail", "error", "raise"])
 
 
+def error_log(input_: schemas.ParserSchema, *args: list[Any]) -> tuple[bool, str]:
+    vars_: dict[str, str] = input_["logFormatVariables"]
+    raise_alert = "Level" in vars_ and "error" == vars_["Level"].lower()
+    message = "Error found"
+    return raise_alert, message
+
+
 rules = {
-    "TemplateNotFound": template_not_found,
-    "SpecificKeyword": find_keyword,
-    "CheckForExceptions": exceptions,
+    "R001 - TemplateNotFound": template_not_found,
+    "R002 - SpecificKeyword": find_keyword,
+    "R003 - CheckForExceptions": exceptions,
+    "R004 - ErrorLevelFound": error_log,
 }
 
 
 class RuleDetectorConfig(CoreDetectorConfig):
     method_type: str = "rule_detector"
+    rules: list[dict[str, list[str] | str]] = [
+        {"rule": "R001 - TemplateNotFound"},
+        {"rule": "R002 - SpecificKeyword", "args": ["searching for wally"]},
+        {"rule": "R003 - CheckForExceptions"},
+        {"rule": "R004 - ErrorLevelFound"},
+    ]
 
 
 class RuleDetector(CoreDetector):
