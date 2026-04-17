@@ -241,7 +241,7 @@ class SimpleThresholdDetector(CoreDetector):
 <li><a href="new_event/">New Event</a>: Detect new events in the variables in the logs.</li>
 </ul>
 <h2 id="configuration">Configuration</h2>
-<p>When <code>auto_config</code> is set to <code>False</code>, the detector expects an explicit <code>events</code> block that specifies exactly which variables to monitor:</p>
+<p>When <code>auto_config</code> is set to <code>False</code>, the detector expects an explicit <code>events</code> or <code>global</code> block that specifies exactly which variables to monitor. <code>events</code>refers to event-specific variables while <code>global</code> refers to variables, that are not bound to events (<code>header_variables</code>can but don't have to be event bound):</p>
 <pre><code class="language-yaml">detectors:
   NewValueDetector:
     method_type: new_value_detector
@@ -262,7 +262,8 @@ class SimpleThresholdDetector(CoreDetector):
           - pos: Status
 </code></pre>
 <h3 id="configuration-semantics-preliminary">Configuration semantics (preliminary)</h3>
-<p><strong><code>events</code> key</strong> — The integer key is the <code>EventID</code> (or <code>event_id</code>) to monitor (see the MatcherParser docs for how EventID is assigned).</p>
+<p><strong><code>events</code> key</strong> — The integer key is the <code>EventID</code> (or <code>event_id</code>) to monitor (see the <a href="../parsers/template_matcher/">Template Matcher</a> docs for how the EventID is assigned.</p>
+<p><strong><code>global</code> key</strong> - This one has a similar functionality as the <code>events</code> key but refers to variables, that are not bound to events (thus can only contain <code>header_variables</code>).</p>
 <p><strong><code>variables[].pos</code></strong> — The 0-indexed position of the <code>&lt;*&gt;</code> wildcard in the matched template, counting from left to right starting at 0. For example, given:</p>
 <pre><code class="language-text">pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='op=&lt;*&gt; acct=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;'
 </code></pre>
