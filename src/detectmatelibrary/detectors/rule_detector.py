@@ -27,6 +27,7 @@ def find_keyword(input_: schemas.ParserSchema, args: list[str]) -> tuple[bool, s
     log: str = input_["log"]
     log = log.lower()
 
+    print(args)
     for k in args:
         if k in log:
             return True, f"Found word '{k}' in the logs"
@@ -52,11 +53,15 @@ rules = {
 }
 
 
+class RuleNotFound(Exception):
+    def __init__(self, rule: str) -> None:
+        super().__init__(f"Rule -> ([{rule}]) not found")
+
+
 class RuleDetectorConfig(CoreDetectorConfig):
     method_type: str = "rule_detector"
     rules: list[dict[str, list[str] | str]] = [
         {"rule": "R001 - TemplateNotFound"},
-        {"rule": "R002 - SpecificKeyword", "args": ["searching for wally"]},
         {"rule": "R003 - CheckForExceptions"},
         {"rule": "R004 - ErrorLevelFound"},
     ]
@@ -72,10 +77,31 @@ class RuleDetector(CoreDetector):
         if isinstance(config, dict):
             config = RuleDetectorConfig.from_dict(config, name)
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
+        self.config: RuleDetectorConfig
+
+        for rule in self.config.rules:
+            if rule["rule"] not in rules:
+                raise RuleNotFound(rule)
 
     def detect(
         self,
         input_: List[schemas.ParserSchema] | schemas.ParserSchema,
         output_: schemas.DetectorSchema
     ) -> bool:
-        return False
+
+        anomaly = False
+        output_["score"] = 0
+
+        for rule in self.config.rules:
+            if "args" in rule:
+                alert, msg = rules[rule["rule"]](input_, rule["args"])  # type: ignore
+            else:
+                alert, msg = rules[rule["rule"]](input_)  # type: ignore
+
+            if alert:
+                output_["alertsObtain"][rule["rule"]] = msg
+                output_["score"] += 1
+
+            anomaly = anomaly or alert
+
+        return anomaly
