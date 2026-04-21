@@ -27,7 +27,6 @@ def find_keyword(input_: schemas.ParserSchema, args: list[str]) -> tuple[bool, s
     log: str = input_["log"]
     log = log.lower()
 
-    print(args)
     for k in args:
         if k in log:
             return True, f"Found word '{k}' in the logs"
