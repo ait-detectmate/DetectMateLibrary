@@ -14,7 +14,7 @@ from detectmatelibrary.utils.data_buffer import BufferMode
 
 from detectmatelibrary import schemas
 
-from typing import List, Any
+from typing import Any, Callable
 
 
 def template_not_found(input_: schemas.ParserSchema, *args: list[Any]) -> tuple[bool, str]:
@@ -44,7 +44,7 @@ def error_log(input_: schemas.ParserSchema, *args: list[Any]) -> tuple[bool, str
     return raise_alert, message
 
 
-rules = {
+rules: dict[str, Callable[[schemas.ParserSchema, list[str]], tuple[bool, str]]] = {
     "R001 - TemplateNotFound": template_not_found,
     "R002 - SpecificKeyword": find_keyword,
     "R003 - CheckForExceptions": exceptions,
@@ -83,9 +83,7 @@ class RuleDetector(CoreDetector):
                 raise RuleNotFound(rule)
 
     def detect(
-        self,
-        input_: List[schemas.ParserSchema] | schemas.ParserSchema,
-        output_: schemas.DetectorSchema
+        self, input_: schemas.ParserSchema, output_: schemas.DetectorSchema  # type: ignore
     ) -> bool:
 
         anomaly = False
