@@ -7,7 +7,6 @@ import pytest
 class TestCaseRules:
     def test_template_not_found(self) -> None:
         parsed_log = schemas.ParserSchema({"EventID": -1})
-
         alert, msg = rd.template_not_found(parsed_log)
         assert alert
         assert "Template was not found by the parser" == msg
