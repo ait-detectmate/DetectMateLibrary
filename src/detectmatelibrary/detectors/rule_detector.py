@@ -82,6 +82,9 @@ class RuleDetector(CoreDetector):
             if rule["rule"] not in rules:
                 raise RuleNotFound(rule)
 
+            if "args" not in rule:
+                rule["args"] = []
+
     def detect(
         self, input_: schemas.ParserSchema, output_: schemas.DetectorSchema  # type: ignore
     ) -> bool:
@@ -90,10 +93,7 @@ class RuleDetector(CoreDetector):
         output_["score"] = 0
 
         for rule in self.config.rules:
-            if "args" in rule:
-                alert, msg = rules[rule["rule"]](input_, rule["args"])  # type: ignore
-            else:
-                alert, msg = rules[rule["rule"]](input_)  # type: ignore
+            alert, msg = rules[rule["rule"]](input_, rule["args"])  # type: ignore
 
             if alert:
                 output_["alertsObtain"][rule["rule"]] = msg
