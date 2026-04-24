@@ -24,6 +24,8 @@ nav:
     - Random Detector: detectors/random_detector.md
     - New Value: detectors/new_value.md
     - Combo Detector: detectors/combo.md
+    - New Event: detectors/new_event.md
+    - Rule Based: detectors/rule_based.md
   - Auxiliar:
     - Persistency: auxiliar/persistency.md
     - Data buffer: auxiliar/input_buffer.md
