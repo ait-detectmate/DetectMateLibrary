@@ -18,6 +18,7 @@ nav:
     - Detectors: detectors.md
   - Parsers Methods:
     - Template Matcher: parsers/template_matcher.md
+    - Template Tree Matcher: parsers/template_tree_matcher.md
     - Json Parser: parsers/json_parser.md
     - LogBatcher Parser: parsers/logbatcher_parser.md
   - Detectors Methods:

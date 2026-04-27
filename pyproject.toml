@@ -10,7 +10,6 @@ dependencies = [
     "pydantic>=2.11.7",
     "pyyaml>=6.0.3",
     "regex>=2025.11.3",
-    "kafka-python>=2.3.0",
     "openai>=2.26.0",
     "tenacity>=9.1.4",
     "scipy>=1.17.1",
@@ -19,6 +18,7 @@ dependencies = [
     "numpy>=2.3.2",
     "pandas>=2.3.2",
     "polars>=1.38.1",
+    "detectmateperformance @ git+https://github.com/ait-detectmate/DetectMatePerformance@main",
 ]
 
 [dependency-groups]
