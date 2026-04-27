@@ -9,7 +9,7 @@ The New Value Detector raises alerts when previously unseen values appear in con
 
 ## Description
 
-This detector maintains a lightweight set of observed values per monitored field and emits an alert when a value not present in the set is seen for the first time (subject to configuration). .
+This detector maintains a lightweight set of observed values per monitored field and emits an alert when a value not present in the set is seen for the first time (subject to configuration).
 
 
 ## Configuration example

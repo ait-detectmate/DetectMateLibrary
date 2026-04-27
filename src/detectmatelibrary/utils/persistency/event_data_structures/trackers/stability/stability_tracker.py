@@ -73,7 +73,7 @@ class MultiStabilityTracker(MultiTracker):
     """Tracks multiple features (e.g. variables or variable combos) using
     individual trackers."""
 
-    def get_variables_by_classification(
+    def get_features_by_classification(
         self,
         classification_type: Literal["INSUFFICIENT_DATA", "STATIC", "RANDOM", "STABLE", "UNSTABLE"]
     ) -> List[str]:
@@ -99,9 +99,9 @@ class EventStabilityTracker(EventTracker):
             converter_function=converter_function,
         )
 
-    def get_variables_by_classification(
+    def get_features_by_classification(
         self, classification_type: Literal["INSUFFICIENT_DATA", "STATIC", "RANDOM", "STABLE", "UNSTABLE"]
     ) -> List[str]:
         """Get a list of variable names that are classified as the given
         type."""
-        return self.multi_tracker.get_variables_by_classification(classification_type)
+        return self.multi_tracker.get_features_by_classification(classification_type)

@@ -25,7 +25,7 @@ class MockConfigWithTraining(CoreConfig):
 
 default_args = {
     "method_type": "default_method_type",
-    "comp_type": "default_type",
+    "component_type": "default_type",
     "auto_config": False,
     "start_id": 10,
     "data_use_training": None,
@@ -330,3 +330,59 @@ class TestCoreComponent:
             component.process(self._make_log(i))
 
         assert component.set_configuration_called == 1
+
+
+class MockConfigWithPostTrain(CoreConfig):
+    data_use_training: int | None = 3
+
+
+class MockComponentWithPostTrain(CoreComponent):
+    def __init__(self, name: str, config: CoreConfig = MockConfigWithPostTrain()) -> None:
+        super().__init__(
+            name=name, type_="Dummy", config=config, input_schema=schemas.LogSchema
+        )
+        self.post_train_called: int = 0
+
+    def train(self, input_) -> None:
+        pass
+
+    def post_train(self) -> None:
+        self.post_train_called += 1
+
+    def run(self, input_, output_) -> bool:
+        return False
+
+
+class TestPostTrain:
+    def _make_log(self, i: int) -> schemas.LogSchema:
+        return schemas.LogSchema({
+            "__version__": "1.0.0",
+            "logID": str(i),
+            "logSource": "test",
+            "hostname": "test_hostname"
+        })
+
+    def test_post_train_called_once_after_training(self) -> None:
+        component = MockComponentWithPostTrain(name="PostTrain1")
+        for i in range(10):
+            component.process(self._make_log(i))
+        assert component.post_train_called == 1
+
+    def test_post_train_not_called_without_training(self) -> None:
+        component = MockComponentWithPostTrain(name="PostTrain2", config=CoreConfig())
+        for i in range(10):
+            component.process(self._make_log(i))
+        assert component.post_train_called == 0
+
+    def test_post_train_called_on_first_detection_item(self) -> None:
+        """post_train fires on the item immediately after training ends."""
+        component = MockComponentWithPostTrain(name="PostTrain3")
+        # data_use_training=3, so 4th item triggers post_train
+        for i in range(3):
+            component.process(self._make_log(i))
+        assert component.post_train_called == 0
+        component.process(self._make_log(3))
+        assert component.post_train_called == 1
+        # subsequent items don't re-trigger it
+        component.process(self._make_log(4))
+        assert component.post_train_called == 1

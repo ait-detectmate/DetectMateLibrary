@@ -46,7 +46,64 @@ All data flows through typed Protobuf-backed schema objects. Components are stat
 - **`CoreComponent`** — base class managing buffering, ID generation, and training state
   - **`CoreParser(CoreComponent)`** — parse raw logs into `ParserSchema`
   - **`CoreDetector(CoreComponent)`** — detect anomalies in `ParserSchema`, emit `DetectorSchema`
-- **`CoreConfig`** / **`CoreParserConfig`** / **`CoreDetectorConfig`** — Pydantic-based configuration hierarchy
+- **`CoreConfig`** / **`CoreParserConfig`** / **`CoreDetectorConfig`** — Pydantic-based configuration hierarchy (`extra="forbid"`)
+
+#### Component Lifecycle (FitLogic)
+
+Each `process()` call passes through a state machine controlled by config fields:
+
+| Config field | Meaning |
+|---|---|
+| `data_use_configure` | How many items to run through `configure()` before training. `None` = skip. |
+| `data_use_training` | How many items to run through `train()` before detection. `None` = skip. |
+
+Phases in order: **CONFIGURE → TRAIN → DETECT** (phases are skipped when the corresponding field is `None`).
+
+State control enums allow overriding automatic transitions: `TrainState.KEEP_TRAINING` / `STOP_TRAINING` and `ConfigState.KEEP_CONFIGURE` / `STOP_CONFIGURE` on the component's `fit_logic`.
+
+#### CoreDetectorConfig: EventsConfig
+
+Detectors use a nested `events` structure to select which variables to track per event ID, plus `global_instances` for event-ID-independent variables (e.g., hostname, level):
+
+```yaml
+detectors:
+  MyDetector:
+    method_type: new_value_detector
+    auto_config: false          # true = auto-discover variables from training data
+    events:
+      login_failure:            # named event ID (string) or integer EventID
+        instance_label:         # arbitrary instance name
+          params: {}
+          variables:
+            - pos: pid          # named wildcard label OR integer position in ParserSchema.variables[]
+              name: pid
+          header_variables:
+            - pos: Type         # key in ParserSchema.logFormatVariables{}
+              params: {}
+    global:                     # event-ID-independent instances (GLOBAL_EVENT_ID = "*")
+      global_monitor:
+        header_variables:
+          - pos: Level
+            params: {}
+```
+
+Named event IDs (strings) and named variable positions require templates loaded from a CSV with an `EventId` column. Call `TemplateMatcher.compile_detector_config(config)` to resolve names to integers at setup time.
+
+Use `generate_detector_config()` (`src/detectmatelibrary/common/_config/_compile.py`) to build this programmatically:
+
+```python
+from detectmatelibrary.common._config import generate_detector_config
+
+config = generate_detector_config(
+    variable_selection={1: ["var_0", "var_1"]},
+    detector_name="MyDetector",
+    method_type="new_value_detector",
+)
+```
+
+Load/save configs via `BasicConfig.from_dict(d, method_id=...)` and `.to_dict(method_id=...)` for YAML round-trip compatibility.
+
+After training completes, detectors with `auto_config=False` automatically call `validate_config_coverage()` (`src/detectmatelibrary/common/detector.py`), which logs warnings when configured EventIDs or variable positions were never observed in training data. This catches config/data mismatches early — check logs after the training phase when adding new detector configs.
 
 ### Schema System (`src/detectmatelibrary/schemas/`)
 
@@ -63,9 +120,10 @@ Three modes via `ArgsBuffer` config:
 
 ### Implementations
 
-- **Parsers** (`src/detectmatelibrary/parsers/`): `JsonParser`, `DummyParser`, `TemplateMatcherParser` (uses Drain3 for template mining)
+- **Parsers** (`src/detectmatelibrary/parsers/`): `JsonParser`, `LogBatcherParser`, `DummyParser`, `TemplateMatcherParser` (Drain3 template mining; supports named wildcards `<username>` alongside positional `<*>`)
 - **Detectors** (`src/detectmatelibrary/detectors/`): `NewValueDetector`, `NewValueComboDetector`, `RandomDetector`, `DummyDetector`
 - **Utilities** (`src/detectmatelibrary/utils/`): `DataBuffer`, `EventPersistency`, `KeyExtractor`, `TimeFormatHandler`, `IdGenerator`
+- Uses the `regex` package (not stdlib `re`) — relevant when writing type annotations or imports involving patterns
 
 ## Extending the Library
 

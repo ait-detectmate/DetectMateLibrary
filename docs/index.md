@@ -16,6 +16,7 @@ List of steps to follow for new users of the library:
 
 Documentation of the different components:
 
+* [Basic concepts](basic_idea.md): basic concepts need it to understand log anomaly detection.
 * [Overall architecture](overall_architecture.md): overall architecture of the library.
 * [Schemas](schemas.md): documentation of the different schemas in the library.
 * [Parsers](parsers.md): documentation of the different parsers.
@@ -32,3 +33,7 @@ Tools that are used in the different components:
 Tools that their main objective is to help the developer:
 
 * [From_to](helper/from_to.md): set of methods to save and load inputs and outputs from files.
+
+## Other
+
+* [Log Formats](other/log_formats.md): reference catalog of 18 common log formats with parser configuration.

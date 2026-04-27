@@ -1,6 +1,6 @@
 # Overall architecture
 
-This document describes the high-level design of DetectMateLibrary, how components interact, the data contracts they use, and guidance for deploying and extending the system. The library is built around small, composable components that operate on streaming log data and exchange strongly-typed Schema objects.
+This document describes the high-level design of the DetectMateLibrary, how components interact, the data contracts they use, and guidance for deploying and extending the system. The library is built around small, composable components that operate on streaming log data and exchange strongly-typed Schema objects.
 
 Key goals
 
@@ -14,7 +14,7 @@ Key goals
 The pipeline is strictly directional:
 
 - **Parser**: consumes raw logs and produces parsed log objects (structured fields, timestamps, variables).
-- **Detector**: consumes parsed logs and generates alerts / findings when rules or models match anomalous behavior.
+- **Detector**: consumes parsed logs and generates alerts/findings when rules or models match anomalous behavior.
 
 
 Each arrow represents a stream of [Schema objects](schemas.md). Components are designed to run in the same process for lightweight setups or as separate services for scalable deployments.

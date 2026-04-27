@@ -26,6 +26,7 @@ class EventPersistency:
         event_data_kwargs: Optional[dict[str, Any]] = None,
     ):
         self.events_data: Dict[int | str, EventDataStructure] = {}
+        self.events_seen: set[int | str] = set()
         self.event_data_class = event_data_class
         self.event_data_kwargs = event_data_kwargs or {}
         self.variable_blacklist = variable_blacklist or []
@@ -39,6 +40,7 @@ class EventPersistency:
         named_variables: Dict[str, Any] = {}
     ) -> None:
         """Ingest event data into the appropriate EventData store."""
+        self.events_seen.add(event_id)
         if not variables and not named_variables:
             return
         self.event_templates[event_id] = event_template
@@ -51,6 +53,11 @@ class EventPersistency:
 
         data = data_structure.to_data(all_variables)
         data_structure.add_data(data)
+
+    def get_events_seen(self) -> set[int | str]:
+        """Retrieve all event IDs observed via ingest_event(), regardless of
+        whether variables were extracted."""
+        return self.events_seen
 
     def get_event_data(self, event_id: int | str) -> Any | None:
         """Retrieve the data for a specific event ID."""

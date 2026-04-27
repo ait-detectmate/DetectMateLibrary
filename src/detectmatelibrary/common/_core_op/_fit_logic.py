@@ -74,12 +74,22 @@ class FitLogic:
         self._configuration_done = False
         self.config_finished = False
 
+        self._training_done = False
+        self.training_finished = False
+
         self.data_use_configure = data_use_configure
         self.data_use_training = data_use_training
 
     def finish_config(self) -> bool:
         if self._configuration_done and not self.config_finished:
             self.config_finished = True
+            return True
+
+        return False
+
+    def finish_training(self) -> bool:
+        if self._training_done and not self.training_finished:
+            self.training_finished = True
             return True
 
         return False
@@ -103,5 +113,7 @@ class FitLogic:
             ):
                 self.data_used_train += 1
                 return FitLogicState.DO_TRAIN
+            elif self.data_used_train > 0 and not self._training_done:
+                self._training_done = True
 
         return FitLogicState.NOTHING
