@@ -29,5 +29,8 @@ nav:
     - Data buffer: auxiliar/input_buffer.md
   - Helpers:
     - From to: helper/from_to.md
+  - Contribution:
+    - Contributing: contribution.md
+      Development: development.md
   - Other:
     - Log Formats: other/log_formats.md
