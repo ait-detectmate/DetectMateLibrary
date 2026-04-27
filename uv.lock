@@ -275,7 +275,7 @@ dev = [
 [[package]]
 name = "detectmateperformance"
 version = "0.1.0"
-source = { git = "https://github.com/ait-detectmate/DetectMatePerformance?rev=main#5b033d68a8f46af071c5528bf03f4b3851053166" }
+source = { git = "https://github.com/ait-detectmate/DetectMatePerformance?rev=main#4d0d31b898712849fb2bca19089d64b9567e5aac" }
 dependencies = [
     { name = "levenshtein" },
     { name = "numpy" },
