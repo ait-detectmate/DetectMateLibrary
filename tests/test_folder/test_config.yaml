@@ -165,3 +165,35 @@ detectors:
     method_type: new_value_combo_detector
     parser: example_parser_1
     auto_config: true
+
+  detector_named_pos:
+    method_type: ExampleDetector
+    parser: example_parser_1
+    auto_config: false
+    params: {}
+    events:
+      1:  # positional event_id; named wildcards in .txt templates use int event keys
+        example_detector_1:
+          params: {}
+          variables:
+            - pos: pid  # named label; no 'name' field needed
+            - pos: op
+              params:
+                threshold: 0.5
+          header_variables:
+            - pos: Level
+              params:
+                threshold: 0.2
+
+  detector_named_event_id:
+    method_type: ExampleDetector
+    parser: example_parser_1
+    auto_config: false
+    params: {}
+    events:
+      login_failure:  # named event_id; only valid for CSV templates with an EventId column
+        example_detector_1:
+          params: {}
+          variables:
+            - pos: pid
+            - pos: uid

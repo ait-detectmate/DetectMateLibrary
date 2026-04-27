@@ -68,8 +68,6 @@ detectors:
     NewValueComboDetector:
         method_type: new_value_combo_detector
         auto_config: False
-        params:
-            comb_size: 3
         events:
             1:
                 test:
@@ -79,3 +77,8 @@ detectors:
                           name: var1
                     header_variables:
                         - pos: level
+
+    NewEventDetector:
+        method_type: new_event_detector
+        auto_config: False
+        params: {}

@@ -2,7 +2,6 @@ from detectmatelibrary.detectors.new_value_detector import NewValueDetector, New
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 
-import pytest
 import json
 
 AUDIT_LOG = "tests/test_folder/audit.log"
@@ -33,7 +32,6 @@ parser_config = {
 
 class TestConfigurationEngineManual:
     """Mirrors the manual flow in 05_configuration_engine/detect.py."""
-    @pytest.mark.skip(reason="no way of currently testing this")
     def test_configure_train_detect(self) -> None:
         parser = MatcherParser(config=parser_config)
         detector = NewValueDetector()
@@ -60,7 +58,6 @@ class TestConfigurationEngineManual:
 class TestConfigurationEngineAutomatic:
     """Tests the automated configure phase via process()."""
 
-    @pytest.mark.skip(reason="no way of currently testing this")
     def test_process_configure_train_detect(self) -> None:
         parser = MatcherParser(config=parser_config)
         config = NewValueDetectorConfig(data_use_configure=TRAIN_UNTIL)

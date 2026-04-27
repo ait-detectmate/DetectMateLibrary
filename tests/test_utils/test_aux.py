@@ -4,8 +4,6 @@ from detectmatelibrary.utils.aux import get_timestamp, time_test_mode
 from datetime import datetime
 from time import sleep
 
-import pytest
-
 
 class TestTimestamp:
     def test_test_mode(self) -> None:
@@ -16,7 +14,6 @@ class TestTimestamp:
         time_test_mode(False)
         assert get_timestamp() != 0
 
-    @pytest.mark.skip(reason="This test is too slow")
     def test_get_timestamp(self) -> None:
         time = get_timestamp()
         sleep(1)
