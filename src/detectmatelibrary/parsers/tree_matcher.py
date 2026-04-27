@@ -7,24 +7,24 @@ from detectmateperformance.types_ import LogTemplates
 from typing import Any
 
 
-class TemplateTreeMatcherConfig(CoreParserConfig):
+class TemplateCppTreeMatcherConfig(CoreParserConfig):
     method_type: str = "tree_matcher"
 
     path_templates: str | None = None
 
 
-class TemplateTreeMatcher(CoreParser):
+class TemplateCppTreeMatcher(CoreParser):
     def __init__(
         self,
         name: str = "TreeMatcher",
-        config: TemplateTreeMatcherConfig | dict[str, Any] = TemplateTreeMatcherConfig()
+        config: TemplateCppTreeMatcherConfig | dict[str, Any] = TemplateCppTreeMatcherConfig()
     ) -> None:
 
         if isinstance(config, dict):
-            config = TemplateTreeMatcherConfig.from_dict(config, name)
+            config = TemplateCppTreeMatcherConfig.from_dict(config, name)
         super().__init__(name=name, config=config)
 
-        self.config: TemplateTreeMatcherConfig
+        self.config: TemplateCppTreeMatcherConfig
         if self.config.path_templates is None:
             self.tree = TreeMatcher(LogTemplates([]))
         else:
