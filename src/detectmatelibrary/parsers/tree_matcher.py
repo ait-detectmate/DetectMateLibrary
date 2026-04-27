@@ -5,7 +5,6 @@ from detectmateperformance.match_tree import TreeMatcher
 from detectmateperformance.types_ import LogTemplates
 
 from typing import Any
-import warnings
 
 
 class TemplateTreeMatcherConfig(CoreParserConfig):
@@ -30,7 +29,6 @@ class TemplateTreeMatcher(CoreParser):
             self.tree = TreeMatcher(LogTemplates([]))
         else:
             self.tree = TreeMatcher.from_file(self.config.path_templates)
-        warnings.warn("Warning, this method is still in prototype phase, it may not be stable")
 
     def parse(
         self,
