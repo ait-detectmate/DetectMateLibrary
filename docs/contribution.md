@@ -5,7 +5,7 @@ We're happily taking patches and other contributions. Below is a summary of the 
 ## Bug reports and enhancement requests
 
 Bug reports and enhancement requests are an important part of making `DetectMateLibrary` more stable and are curated through Github issues.
-Before reporting an issue, check our backlog of open issues to see if anybody else has already reported it. 
+Before reporting an issue, check our backlog of open issues to see if anybody else has already reported it.
 If that is the case, you might be able to give additional information on that issue.
 Bug reports are very helpful to us in improving the software, and therefore, they are very welcome. It is very important to give us
 at least the following information in a bug report:
@@ -19,7 +19,7 @@ at least the following information in a bug report:
 
 ## Working on the codebase
 
-To contribute to this project, you must fork the project and create a pull request to the upstream repository. 
+To contribute to this project, you must fork the project and create a pull request to the upstream repository.
 
 ### 1. Fork
 
@@ -44,7 +44,7 @@ git checkout -b feature-some_important_work
 
 ### 4. Develop your feature and improvements in the feature-branch
 
-Please make sure that you commit only improvements that are related to the workpage you created the feature-branch for. 
+Please make sure that you commit only improvements that are related to the workpage you created the feature-branch for.
 
 ### 5. Fetch and merge from the upstream
 
@@ -120,4 +120,3 @@ Please make sure that you updated your local development branch as described in 
 ```bash
 git push
 ```
-

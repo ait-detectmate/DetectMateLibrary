@@ -18,4 +18,3 @@ Please provide a link to the issue.
 **If the feature request is approved, would you be willing to submit a PR?**
 
 Yes / No _(Help can be provided if you need assistance submitting a PR)_
-

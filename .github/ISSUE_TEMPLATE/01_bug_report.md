@@ -12,7 +12,7 @@ Describe your issue here.
 * Docker or manual installation?
 
 ### Steps to reproduce
-Tell us how to reproduce this issue. 
+Tell us how to reproduce this issue.
 
 ### Expected behaviour
 Tell us what should happen
