@@ -26,7 +26,7 @@ class TestMatcherParserBasic:
 
         assert output_data.template == "template not found"
         assert output_data.EventID == -1
-        assert output_data.variables == [""]
+        assert output_data.variables == []
 
     def test_successful_match(self):
         config_dict = {
