@@ -21,7 +21,7 @@ class CoreConfig(BasicConfig):
     start_id: int = 10
     data_use_training: int | None = None
     data_use_configure: int | None = None
-    use_config_data_as_training: bool = False
+    use_config_data_as_training: bool = True
 
 
 class Component:

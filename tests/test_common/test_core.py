@@ -30,7 +30,7 @@ default_args = {
     "start_id": 10,
     "data_use_training": None,
     "data_use_configure": None,
-    "use_config_data_as_training": False
+    "use_config_data_as_training": True
 }
 
 
@@ -340,7 +340,9 @@ class TestCoreComponent:
         assert component.set_configuration_called == 0
 
     def test_configuration_before_training(self) -> None:
-        config = CoreConfig(data_use_configure=2, data_use_training=3)
+        config = CoreConfig(
+            data_use_configure=2, data_use_training=3, use_config_data_as_training=False
+        )
         component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
 
         for i in range(10):
@@ -348,6 +350,19 @@ class TestCoreComponent:
 
         assert len(component.configure_data) == 2
         assert len(component.train_data) == 3
+        assert component.set_configuration_called == 1
+
+    def test_configuration_before_training_with_buffer(self) -> None:
+        config = CoreConfig(
+            data_use_configure=2, data_use_training=3, use_config_data_as_training=True
+        )
+        component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
+
+        for i in range(10):
+            component.process(self._make_log(i))
+
+        assert len(component.configure_data) == 2
+        assert len(component.train_data) == 5
         assert component.set_configuration_called == 1
 
     def test_set_configuration_called_once(self) -> None:
