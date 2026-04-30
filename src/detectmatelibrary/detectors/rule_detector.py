@@ -19,7 +19,7 @@ from typing import Any, Callable
 
 def template_not_found(input_: schemas.ParserSchema, *args: list[Any]) -> tuple[bool, str]:
     raise_alert = input_["EventID"] == -1
-    message = "Template was not found by the parser"
+    message = "No template found by parser"
     return raise_alert, message
 
 

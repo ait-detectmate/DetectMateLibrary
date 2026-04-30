@@ -9,7 +9,7 @@ class TestCaseRules:
         parsed_log = schemas.ParserSchema({"EventID": -1})
         alert, msg = rd.template_not_found(parsed_log)
         assert alert
-        assert "Template was not found by the parser" == msg
+        assert "No template found by parser" == msg
 
         parsed_log = schemas.ParserSchema({"EventID": 2})
         alert, _ = rd.template_not_found(parsed_log)
