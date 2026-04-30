@@ -96,3 +96,19 @@ workspaces/custom_parser/          # workspace root
 ├── pyproject.toml                 # minimal project + dev extras
 └── README.md                      # setup instructions
 ```
+
+## Documentation
+
+- [Project Documentation](https://ait-detectmate.github.io/DetectMateLibrary/latest/)
+
+## Contribution
+
+We're happily taking patches and other contributions. Please see the following links for how to get started:
+
+- [GitHub Workflow](https://ait-detectmate.github.io/DetectMateLibrary/latest/contribution/)
+
+If you encounter any bugs, please create an issue on [Github](https://github.com/ait-detectmate/DetectMateLibrary/issues).
+
+## License
+
+[EUPL-1.2](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/LICENSE.md)
