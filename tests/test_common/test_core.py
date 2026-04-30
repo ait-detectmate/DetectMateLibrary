@@ -29,7 +29,8 @@ default_args = {
     "auto_config": False,
     "start_id": 10,
     "data_use_training": None,
-    "data_use_configure": None
+    "data_use_configure": None,
+    "use_config_data_as_training": False
 }
 
 
@@ -225,6 +226,32 @@ class TestCoreComponent:
             )
 
         assert len(component.train_data) == component.fitlogic.data_used_train
+        for i, log in enumerate(component.train_data):
+            expected = schemas.LogSchema({
+                "__version__": "1.0.0",
+                "logID": str(i),
+                "logSource": "test",
+                "hostname": "test_hostname"
+            })
+            assert expected == log
+
+    def test_training_use_config_data(self) -> None:
+        config = MockConfigWithTraining(
+            data_use_configure=4, use_config_data_as_training=True
+        )
+        component = MockComponentWithTraining(name="Dummy4.2", config=config)
+
+        for i in range(10):
+            component.process(
+                schemas.LogSchema({
+                    "__version__": "1.0.0",
+                    "logID": str(i),
+                    "logSource": "test",
+                    "hostname": "test_hostname"
+                })
+            )
+        total = component.fitlogic.data_use_training + component.fitlogic.data_use_configure
+        assert len(component.train_data) == total
         for i, log in enumerate(component.train_data):
             expected = schemas.LogSchema({
                 "__version__": "1.0.0",

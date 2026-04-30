@@ -21,6 +21,7 @@ class CoreConfig(BasicConfig):
     start_id: int = 10
     data_use_training: int | None = None
     data_use_configure: int | None = None
+    use_config_data_as_training: bool = False
 
 
 class Component:
@@ -84,6 +85,7 @@ class CoreComponent(Component):
             data_use_configure=self.config.data_use_configure,
             data_use_training=self.config.data_use_training,
         )
+        self.buffer_train: list[BaseSchema | list[BaseSchema]] = []
 
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
         is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)
@@ -95,10 +97,15 @@ class CoreComponent(Component):
         if (fit_state := self.fitlogic.run()) == FitLogicState.DO_CONFIG:
             logger.debug(f"<<{self.name}>> use data for configuration")
             self.configure(input_=data_buffered)
+            if self.config.use_config_data_as_training:
+                self.buffer_train.append(data_buffered)
             return None
         elif self.fitlogic.finish_config():
             logger.debug(f"<<{self.name}>> finalizing configuration")
             self.set_configuration()
+            if self.config.use_config_data_as_training:
+                logger.debug(f"<<{self.name}>> Adding data from config to training")
+                [self.train(input_) for input_ in self.buffer_train]
 
         if fit_state == FitLogicState.DO_TRAIN:
             logger.debug(f"<<{self.name}>> use data for training")
