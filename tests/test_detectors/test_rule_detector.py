@@ -76,7 +76,7 @@ class TestCaseRuleDetector:
         ))
         assert alert1 is not None
         assert alert1["alertsObtain"] == {
-            "R001 - TemplateNotFound": "Template was not found by the parser",
+            "R001 - TemplateNotFound": "No template found by parser",
             "R003 - CheckForExceptions": "Found word 'exception' in the logs",
             "R004 - ErrorLevelFound": "Error found",
         }
@@ -98,7 +98,7 @@ class TestCaseRuleDetector:
 
         (alert := schemas.DetectorSchema()).deserialize(alert1)
         assert alert["alertsObtain"] == {
-            "R001 - TemplateNotFound": "Template was not found by the parser",
+            "R001 - TemplateNotFound": "No template found by parser",
             "R003 - CheckForExceptions": "Found word 'exception' in the logs",
             "R004 - ErrorLevelFound": "Error found",
         }
@@ -133,7 +133,7 @@ class TestCaseRuleDetector:
         ))
         assert alert1 is not None
         assert alert1["alertsObtain"] == {
-            "R001 - TemplateNotFound": "Template was not found by the parser",
+            "R001 - TemplateNotFound": "No template found by parser",
         }
         assert alert1["score"] == 1
 
