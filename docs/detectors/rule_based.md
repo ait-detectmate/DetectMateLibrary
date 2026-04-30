@@ -18,7 +18,7 @@ The detector analyzes parsed logs one by one and checks which rules are triggere
 | **R001 - TemplateNotFound** | Check whether the parser assigned a template to the log | No | Yes |
 | **R002 - SpecificKeyword** | Check for one or more user-specified keywords in the log content | list of words | No |
 | **R003 - CheckForExceptions** | Check for words commonly associated with exceptions or failures | No | Yes |
-| **R004 - ErrorLevelFound** | If a Level field exists, check whether it indicates an error level | No | No |
+| **R004 - ErrorLevelFound** | If a Level field exists, check whether it indicates an error level | No | Yes |
 
 Notes on table columns:
 
