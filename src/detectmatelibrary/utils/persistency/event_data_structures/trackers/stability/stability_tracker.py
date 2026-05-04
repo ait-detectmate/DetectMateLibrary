@@ -1,6 +1,6 @@
 """Tracks whether a variable is converging to a constant value."""
 
-from typing import Any, Callable, List, Literal, Set
+from typing import Any, Callable, Dict, List, Literal, Set
 
 from detectmatelibrary.utils.preview_helpers import list_preview_str
 from detectmatelibrary.utils.RLE_list import RLEList
@@ -57,6 +57,31 @@ class SingleStabilityTracker(SingleTracker):
                 type="UNSTABLE",
                 reason="No classification matched; variable is unstable"
             )
+
+    def to_state(self) -> Dict[str, Any]:
+        """Serialize tracker state to a plain dict (must be msgpack-
+        compatible)."""
+        return {
+            "type": self.__class__.__name__,
+            "module": self.__class__.__module__,
+            "min_samples": self.min_samples,
+            "runs": self.change_series.runs(),
+            "unique_set": list(self.unique_set),
+            "segment_thresholds": self.stability_classifier.segment_threshs,
+        }
+
+    @classmethod
+    def from_state(cls, state: Dict[str, Any]) -> "SingleStabilityTracker":
+        """Restore tracker from a state dict produced by to_state()."""
+        tracker = cls(min_samples=state["min_samples"])
+        runs = [(bool(r[0]), int(r[1])) for r in state["runs"]]
+        tracker.change_series._runs = runs
+        tracker.change_series._len = sum(count for _, count in runs)
+        tracker.unique_set = set(state["unique_set"])
+        tracker.stability_classifier = StabilityClassifier(
+            segment_thresholds=state["segment_thresholds"]
+        )
+        return tracker
 
     def __repr__(self) -> str:
         # show only part of the series for brevity
