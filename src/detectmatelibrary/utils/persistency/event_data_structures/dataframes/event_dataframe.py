@@ -46,7 +46,11 @@ class EventDataFrame(EventDataStructure):
 
     @classmethod
     def load(cls, data: bytes, **kwargs: Any) -> "EventDataFrame":
-        """Restore DataFrame from Parquet bytes."""
+        """Restore DataFrame from Parquet bytes.
+
+        Note: event_id and template (base dataclass fields) are not restored;
+        they remain at defaults (-1 and "") as they are managed by EventPersistency.
+        """
         table = pq.read_table(io.BytesIO(data))
         instance = cls()
         instance.data = table.to_pandas()
