@@ -1,6 +1,9 @@
+import io
+import struct
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
 
+import msgpack
 import polars as pl
 
 from ..base import EventDataStructure
@@ -73,6 +76,37 @@ class ChunkedEventDataFrame(EventDataStructure):
 
     def to_data(self, raw_data: Dict[str, List[Any]]) -> pl.DataFrame:
         return pl.DataFrame(raw_data)
+
+    def dump(self) -> bytes:
+        """Serialize to Parquet bytes with a 4-byte + msgpack config header."""
+        config: bytes = msgpack.packb(
+            {"max_rows": self.max_rows, "compact_every": self.compact_every},
+            use_bin_type=True,
+        )
+        header: bytes = struct.pack(">I", len(config)) + config
+        buf = io.BytesIO()
+        self.get_data().write_parquet(buf)
+        return header + buf.getvalue()
+
+    @classmethod
+    def load(cls, data: bytes, **kwargs: Any) -> "ChunkedEventDataFrame":
+        """Restore from Parquet bytes (with config header).
+
+        Note: event_id and template (base dataclass fields) are not restored;
+        they remain at defaults (-1 and "") as they are managed by EventPersistency.
+        """
+        config_len = struct.unpack(">I", data[:4])[0]
+        config = msgpack.unpackb(data[4:4 + config_len], raw=False)
+        parquet_bytes = data[4 + config_len:]
+        df = pl.read_parquet(io.BytesIO(parquet_bytes)) if parquet_bytes else pl.DataFrame()
+        instance = cls(
+            max_rows=config.get("max_rows", 10_000_000),
+            compact_every=config.get("compact_every", 1000),
+        )
+        if df.height > 0:
+            instance.chunks = [df]
+            instance._rows = df.height
+        return instance
 
     def __repr__(self) -> str:
         return (

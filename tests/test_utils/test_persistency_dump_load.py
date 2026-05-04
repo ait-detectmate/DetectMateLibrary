@@ -1,5 +1,6 @@
 import pytest
 import pandas as pd
+import polars as pl
 from dataclasses import dataclass
 
 from detectmatelibrary.utils.persistency.exceptions import PersistencyLoadError
@@ -8,6 +9,9 @@ from detectmatelibrary.utils.persistency.event_data_structures.base import (
 )
 from detectmatelibrary.utils.persistency.event_data_structures.dataframes.event_dataframe import (
     EventDataFrame,
+)
+from detectmatelibrary.utils.persistency.event_data_structures.dataframes.chunked_event_dataframe import (
+    ChunkedEventDataFrame,
 )
 from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
     SingleStabilityTracker,
@@ -150,3 +154,37 @@ class TestEventDataFrameDumpLoad:
         edf2 = EventDataFrame.load(edf.dump())
         assert isinstance(edf2.get_data(), pd.DataFrame)
         assert len(edf2.get_data()) == 0
+
+
+class TestChunkedEventDataFrameDumpLoad:
+    def _make_cedf(self) -> ChunkedEventDataFrame:
+        cedf = ChunkedEventDataFrame(max_rows=100, compact_every=1000)
+        for i in range(5):
+            cedf.add_data(cedf.to_data({"user": [f"user_{i}"], "val": [i]}))
+        return cedf
+
+    def test_dump_returns_bytes(self):
+        assert isinstance(self._make_cedf().dump(), bytes)
+
+    def test_round_trip_preserves_rows(self):
+        cedf = self._make_cedf()
+        cedf2 = ChunkedEventDataFrame.load(cedf.dump())
+        assert len(cedf2.get_data()) == 5
+
+    def test_round_trip_preserves_columns(self):
+        cedf = self._make_cedf()
+        cedf2 = ChunkedEventDataFrame.load(cedf.dump())
+        assert set(cedf2.get_data().columns) == {"user", "val"}
+
+    def test_round_trip_restores_config(self):
+        cedf = ChunkedEventDataFrame(max_rows=42, compact_every=7)
+        cedf.add_data(cedf.to_data({"x": [1]}))
+        cedf2 = ChunkedEventDataFrame.load(cedf.dump())
+        assert cedf2.max_rows == 42
+        assert cedf2.compact_every == 7
+
+    def test_empty_round_trip(self):
+        cedf = ChunkedEventDataFrame()
+        cedf2 = ChunkedEventDataFrame.load(cedf.dump())
+        assert isinstance(cedf2.get_data(), pl.DataFrame)
+        assert len(cedf2.get_data()) == 0
