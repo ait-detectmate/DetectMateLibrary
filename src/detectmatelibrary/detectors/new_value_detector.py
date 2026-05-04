@@ -43,11 +43,11 @@ class NewValueDetector(CoreDetector):
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: NewValueDetectorConfig  # type narrowing for IDE
         self.persistency = EventPersistency(
-            event_data_class=EventStabilityTracker,
+            event_data_class=EventStabilityTracker,  # type: ignore[type-abstract]
         )
         # auto config checks if individual variables are stable to select combos from
         self.auto_conf_persistency = EventPersistency(
-            event_data_class=EventStabilityTracker
+            event_data_class=EventStabilityTracker  # type: ignore[type-abstract]
         )
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
