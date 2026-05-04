@@ -136,12 +136,12 @@ class From:
         df: DataFrame,
         do_process: bool = True,
         renames: dict[str, str] | None = None
-
     ) -> Iterator[BaseSchema]:
         def __generator():  # type: ignore
             for i in range(len(df)):
                 data = df.row(i, named=True)
                 data["logFormatVariables"] = df_vars.row(i, named=True)
+                data["logID"] = str(i)
                 schema = component.input_schema(data)
                 yield schema
 
@@ -264,3 +264,15 @@ class FromTo:
 
         for log in gen:
             yield To.yaml(log, out_path=out_path)  # type: ignore
+
+    @staticmethod
+    def polars2json(
+        component: CoreComponent,
+        df: DataFrame,
+        out_path: str,
+        renames: dict[str, str] | None = None
+    ) -> Iterator[BaseSchema]:
+        gen = From.polars(component, df=df, renames=renames, do_process=True)
+
+        for log in gen:
+            yield To.json(log, out_path=out_path)  # type: ignore

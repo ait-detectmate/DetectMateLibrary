@@ -157,6 +157,7 @@ class TestCaseFrom:
         })
         for field in ["log", "variables", "template", "EventID", "logFormatVariables"]:
             assert parsed1[field] == schema1[field], field
+        assert parsed1["logID"] == "0"
 
         parsed2 = next(gen)
         schema2 = schemas.ParserSchema({
@@ -168,6 +169,7 @@ class TestCaseFrom:
         })
         for field in ["log", "variables", "template", "EventID", "logFormatVariables"]:
             assert parsed2[field] == schema2[field], field
+        assert parsed2["logID"] == "1"
 
     def test_frompolars_rename(self):
         table = pl.DataFrame({
@@ -365,6 +367,23 @@ class TestCaseFromTo:
 
         with open(yaml_path2) as f:
             assert 5 == len(yaml.safe_load(f))
+
+    @remove_files
+    def test_polars2json(self):
+        detector = DummyDetector()
+        table = pl.DataFrame({
+            "Type": ["A", "B"],
+            "Content": ["hello there", "general kenobi"],
+            "ParamList": [["a", "b"], ["c", "d"]],
+            "Templates": ["hello <*>", "<*> kenobi"],
+            "EventIDs": [0, 1]
+        })
+        gen = FromTo.polars2json(detector, df=table, out_path=json_path)
+        for _ in gen:
+            pass
+
+        with open(json_path) as f:
+            assert 1 == len(json.load(f))
 
 
 class TestUseCase:
