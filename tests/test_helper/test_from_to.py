@@ -402,6 +402,23 @@ class TestCaseFromTo:
         with open(json_path) as f:
             assert 1 == len(json.load(f))
 
+    @remove_files
+    def test_polars2yaml(self):
+        detector = DummyDetector()
+        table = pl.DataFrame({
+            "Type": ["A", "B"],
+            "Content": ["hello there", "general kenobi"],
+            "ParamList": [["a", "b"], ["c", "d"]],
+            "Templates": ["hello <*>", "<*> kenobi"],
+            "EventIDs": [0, 1]
+        })
+        gen = FromTo.polars2yaml(detector, df=table, out_path=yaml_path)
+        for _ in gen:
+            pass
+
+        with open(yaml_path) as f:
+            assert 1 == len(yaml.safe_load(f))
+
 
 class TestUseCase:
     # The idea of this tests is to check that they do not crash in normal use

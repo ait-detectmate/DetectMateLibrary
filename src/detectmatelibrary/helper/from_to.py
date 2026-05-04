@@ -288,3 +288,15 @@ class FromTo:
 
         for log in gen:
             yield To.json(log, out_path=out_path)  # type: ignore
+
+    @staticmethod
+    def polars2yaml(
+        component: CoreComponent,
+        df: DataFrame,
+        out_path: str,
+        renames: dict[str, str] | None = None
+    ) -> Iterator[BaseSchema]:
+        gen = From.polars(component, df=df, renames=renames, do_process=True)
+
+        for log in gen:
+            yield To.yaml(log, out_path=out_path)  # type: ignore
