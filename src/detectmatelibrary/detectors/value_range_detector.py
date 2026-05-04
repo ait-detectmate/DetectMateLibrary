@@ -24,6 +24,7 @@ from tools.logging import logger
 class ValueRangeDetectorConfig(CoreDetectorConfig):
     method_type: str = "value_range_detector"
 
+    ignore_non_numerical_val: bool = True
     use_stable_vars: bool = True
     use_static_vars: bool = True
 
@@ -50,7 +51,7 @@ class ValueRangeDetector(CoreDetector):
             event_data_class=EventStabilityTracker
         )
 
-    def cast_val_to_numeric(self, configured_variables, k, remove):
+    def cast_val_to_numeric(self, configured_variables, k, remove, stage):
         v = configured_variables[k]
         if not isinstance(v, (int, float)):
             try:
@@ -59,18 +60,20 @@ class ValueRangeDetector(CoreDetector):
                 try:
                     configured_variables[k] = float(v)
                 except ValueError:
-                    logger.error(f"Non-numeric value '{v}' appeared in training of {self.__class__.__name__}"
+                    logger.error(f"Non-numeric value '{v}' appeared in {stage} of {self.__class__.__name__}"
                                  f" with the name {self.name}.")
-                    exit(1)
-                    # TODO: what to do in this case; exit the program or skipping the data?
+                    if not self.config.ignore_non_numerical_val:
+                        exit(1)
                     remove.append(k)
+                    return False
+        return True
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by learning values from the input data."""
         configured_variables = get_configured_variables(input_, self.config.events)
         remove = []
         for k in configured_variables.keys():
-            self.cast_val_to_numeric(configured_variables, k, remove)
+            self.cast_val_to_numeric(configured_variables, k, remove, "training")
         for k in remove:
             del configured_variables[k]
         self.persistency.ingest_event(
@@ -99,14 +102,14 @@ class ValueRangeDetector(CoreDetector):
 
         current_event_id = input_["EventID"]
         known_events = self.persistency.get_events_data()
-        print("KNOWN EVENTS", known_events)
+        # print("KNOWN EVENTS", known_events)
 
         if current_event_id in known_events:
             event_tracker = known_events[current_event_id]
             for var_name, multi_tracker in event_tracker.get_data().items():
-                self.cast_val_to_numeric(configured_variables, var_name, [])
+                cast = self.cast_val_to_numeric(configured_variables, var_name, [], "detection")
                 value = configured_variables.get(var_name)
-                if value is None:
+                if value is None or not cast:
                     continue
                 min_ = min(multi_tracker.unique_set)
                 max_ = max(multi_tracker.unique_set)
@@ -120,9 +123,9 @@ class ValueRangeDetector(CoreDetector):
             global_vars = get_global_variables(input_, self.config.global_instances)
             global_tracker = known_events[GLOBAL_EVENT_ID]
             for var_name, multi_tracker in global_tracker.get_data().items():
-                self.cast_val_to_numeric(global_vars, var_name, [])
+                cast = self.cast_val_to_numeric(global_vars, var_name, [], "detection")
                 value = global_vars.get(var_name)
-                if value is None:
+                if value is None or not cast:
                     continue
                 min_ = min(multi_tracker.unique_set)
                 max_ = max(multi_tracker.unique_set)
@@ -139,7 +142,7 @@ class ValueRangeDetector(CoreDetector):
         return False
 
     def configure(self, input_: ParserSchema) -> None:  # type: ignore
-        print(input_["variables"], "AAA")
+        #print(input_["variables"], "AAA")
         self.auto_conf_persistency.ingest_event(
             event_id=input_["EventID"],
             event_template=input_["template"],

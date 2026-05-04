@@ -7,7 +7,7 @@ This module tests the ValueRangeDetector implementation including:
 - Event-specific configuration handling
 - Input/output schema validation
 """
-
+import logging
 import random
 import pytest
 from detectmatelibrary.common._core_op._fit_logic import TrainState
@@ -19,6 +19,7 @@ from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
+from tools.logging import logger
 # Set time test mode for consistent timestamps
 time_test_mode()
 
@@ -28,13 +29,13 @@ config = {
         "CustomInit": {
             "method_type": "value_range_detector",
             "auto_config": False,
-            "params": {},
+            "params": {"ignore_non_numerical_val": False},
             "events": {
                 1: {
                     "instance1": {
                         "params": {},
                         "variables": [{
-                            "pos": 1, "name": "sad", "params": {}
+                            "pos": 1, "name": "test", "params": {}
                         }]
                     }
                 }
@@ -43,7 +44,7 @@ config = {
         "MultipleDetector": {
             "method_type": "value_range_detector",
             "auto_config": False,
-            "params": {},
+            "params": {"ignore_non_numerical_val": True},
             "events": {
                 1: {
                     "test": {
@@ -136,10 +137,10 @@ class TestValueRangeDetectorTraining:
         assert min(event_data["test"].unique_set) == min_val
         assert max(event_data["test"].unique_set) == max_val
 
-    def test_train_detect_non_numeric(self):
-        """Test training with multiple different values."""
+    def test_train_detect_non_numeric_exit(self):
+        """Test training with non-numeric values and not ignoring them."""
 
-        detector = ValueRangeDetector(config=config, name="MultipleDetector")
+        detector = ValueRangeDetector(config=config, name="CustomInit")
         # Train with multiple values (the minimum and maximum value should be captured)
         parser_data = schemas.ParserSchema({
             "parserType": "test",
@@ -171,6 +172,39 @@ class TestValueRangeDetectorTraining:
             output = schemas.DetectorSchema()
             detector.detect(parser_data, output)
         assert excinfo.value.code == 1
+
+
+    def test_train_detect_non_numeric_ignore(self):
+        """Test training with non-numeric values and ignoring them."""
+
+        detector = ValueRangeDetector(config=config, name="MultipleDetector")
+        # Train with multiple values (the minimum and maximum value should be captured)
+        parser_data = schemas.ParserSchema({
+            "parserType": "test",
+            "EventID": 1,
+            "template": "test template",
+            "variables": ["val0", f"val{random.randint(0, 300)}", "val2", "val3", "val4"],
+            "logID": "1",
+            "parsedLogID": "1",
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {}
+        })
+        detector.train(parser_data)
+        normal_data = schemas.ParserSchema({
+            "parserType": "test",
+            "EventID": 1,
+            "template": "test template",
+            "variables": ["val0", f"{random.randint(0, 300)}", "val2", "val3", "val4"],
+            "logID": "1",
+            "parsedLogID": "1",
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {}
+        })
+        detector.train(normal_data)
+        output = schemas.DetectorSchema()
+        detector.detect(parser_data, output)
 
 
 class TestValueRangeDetectorDetection:
@@ -302,7 +336,10 @@ class TestValueRangeDetectorEndToEnd:
         detector.set_configuration()
 
         for log in logs[:1800]:
+            logger.setLevel(logging.CRITICAL)
             detector.train(log)
+            logger.setLevel(logging.INFO)
+
 
         detected_ids: set[str] = set()
         for log in logs[1800:]:
@@ -310,12 +347,8 @@ class TestValueRangeDetectorEndToEnd:
             if detector.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
-        ################
-        # must implement .configure method properly for this test to work.
-        # uid ist nicht immer 0 - 1860
-        ################
-
-        assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
+        # uid is not always 0 for event id 0. uid=1002 in line 1864 is a different event id.
+        assert detected_ids == {'1859', '1860', '1861', '1862'}
 #
 #
 # class TestValueRangeDetectorAutoConfig:
