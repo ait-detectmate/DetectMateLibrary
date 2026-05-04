@@ -210,6 +210,7 @@ class TestPersistencySaverIntegration:
             restored = p2.get_event_data(eid)
             assert len(restored) == len(original)
             assert list(restored.columns) == list(original.columns)
+            assert list(restored["var_0"]) == list(original["var_0"])
 
     def test_full_cycle_tracker_backend(self):
         """Train → save → restore → verify tracker state identical."""
