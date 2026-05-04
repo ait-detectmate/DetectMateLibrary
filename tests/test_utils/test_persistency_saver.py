@@ -129,3 +129,59 @@ class TestPersistencySaverSaveLoad:
         saver = PersistencySaver(p, PersistencySaverConfig(path="memory://nonexistent/path"))
         with pytest.raises(PersistencyLoadError):
             saver.load()
+
+
+class TestPersistencySaverTriggers:
+    def test_timer_triggers_save(self):
+        p = _make_persistency_with_data()
+        cfg = PersistencySaverConfig(
+            path="memory://trigger_test/state",
+            save_interval_seconds=0,  # fire immediately
+        )
+        saver = PersistencySaver(p, cfg)
+        saver.start()
+        time.sleep(0.15)
+        saver.stop()
+        fs = fsspec.filesystem("memory")
+        assert fs.exists("trigger_test/state/metadata.json")
+
+    def test_dirty_threshold_triggers_early_save(self):
+        """Verify dirty count resets after a timed save when threshold is
+        met."""
+        p = EventPersistency(event_data_class=EventDataFrame)
+        cfg = PersistencySaverConfig(
+            path="memory://dirty_test2/state",
+            save_interval_seconds=0,  # fire immediately
+            dirty_threshold=2,
+        )
+        saver = PersistencySaver(p, cfg)
+        saver.start()
+
+        p.ingest_event(event_id="E1", event_template="T", variables=["x"], named_variables={})
+        p.ingest_event(event_id="E1", event_template="T", variables=["y"], named_variables={})
+        time.sleep(0.15)
+        saver.stop()
+
+        assert p._dirty_count == 0  # was reset by save (dirty count >= threshold at tick time)
+
+    def test_stop_does_final_save(self):
+        p = _make_persistency_with_data()
+        cfg = PersistencySaverConfig(
+            path="memory://stop_test/state",
+            save_interval_seconds=9999,
+        )
+        saver = PersistencySaver(p, cfg)
+        saver.start()
+        saver.stop()
+        fs = fsspec.filesystem("memory")
+        assert fs.exists("stop_test/state/metadata.json")
+
+    def test_auto_load_on_init(self):
+        # First: save some state
+        p1 = _make_persistency_with_data()
+        PersistencySaver(p1, PersistencySaverConfig(path="memory://autoload/state")).save()
+
+        # Then: create new persistency with auto_load=True
+        p2 = EventPersistency(event_data_class=EventDataFrame)
+        PersistencySaver(p2, PersistencySaverConfig(path="memory://autoload/state", auto_load=True))
+        assert "E1" in p2.get_events_seen()
