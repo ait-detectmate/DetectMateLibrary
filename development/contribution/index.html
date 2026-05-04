@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/contribution/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Contributing - DetectMate Library</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Contributing";
+        var mkdocs_page_input_path = "contribution.md";
+        var mkdocs_page_url = "/DetectMateLibrary/development/contribution/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> DetectMate Library
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../installation/">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../basic_usage/">Basic usage</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../create_components/">Create new component</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Components</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../basic_idea/">Basic concepts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../overall_architecture/">Overall architecture</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../schemas/">Schemas</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/">Parsers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/">Detectors</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Parsers Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/template_matcher/">Template Matcher</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/template_tree_matcher/">Template Tree Matcher</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/json_parser/">Json Parser</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/logbatcher_parser/">LogBatcher Parser</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Detectors Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/random_detector/">Random Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/new_value/">New Value</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/combo/">Combo Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/new_event/">New Event</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/rule_based/">Rule Based</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Auxiliar</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../auxiliar/persistency/">Persistency</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../auxiliar/input_buffer/">Data buffer</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Helpers</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../helper/from_to/">From to</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribution</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Contributing</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#bug-reports-and-enhancement-requests">Bug reports and enhancement requests</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#working-on-the-codebase">Working on the codebase</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#1-fork">1. Fork</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2-clone">2. Clone</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#3-create-a-feature-branch">3. Create a feature branch</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#4-develop-your-feature-and-improvements-in-the-feature-branch">4. Develop your feature and improvements in the feature-branch</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#5-fetch-and-merge-from-the-upstream">5. Fetch and merge from the upstream</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#6-push-the-changes-to-your-github-repository">6. Push the changes to your GitHub-repository</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#7-submit-your-pull-request">7. Submit your pull-request</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#8-update-your-local-main-branch">8. Update your local main branch</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#9-update-your-main-branch-in-your-github-repository">9. Update your main branch in your github-repository</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../development/">Development</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Other</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../other/log_formats/">Log Formats</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">DetectMate Library</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Contribution</li>
+      <li class="breadcrumb-item active">Contributing</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="contributing">Contributing</h1>
+<p>We're happily taking patches and other contributions. Below is a summary of the processes we follow for any contribution.</p>
+<h2 id="bug-reports-and-enhancement-requests">Bug reports and enhancement requests</h2>
+<p>Bug reports and enhancement requests are an important part of making <code>DetectMateLibrary</code> more stable and are curated through Github issues.
+Before reporting an issue, check our backlog of open issues to see if anybody else has already reported it.
+If that is the case, you might be able to give additional information on that issue.
+Bug reports are very helpful to us in improving the software, and therefore, they are very welcome. It is very important to give us
+at least the following information in a bug report:</p>
+<ol>
+<li>Description of the bug. Describe the problem clearly.</li>
+<li>Steps to reproduce. With the following configuration, go to.., click.., see error</li>
+<li>Expected behavoir. What should happen?</li>
+<li>Environment. What was the environment for the test(version, browser, etc..)</li>
+</ol>
+<p><em>Please don't include any private/sensitive information in your issue! For reporting security-related issues, see <a href="https://github.com/ait-detectmate/DetectMateLibrary/blob/main/SECURITY.md">SECURITY.md</a></em></p>
+<h2 id="working-on-the-codebase">Working on the codebase</h2>
+<p>To contribute to this project, you must fork the project and create a pull request to the upstream repository.</p>
+<h3 id="1-fork">1. Fork</h3>
+<p>Go to <a href="https://github.com/ait-detectmate/DetectMateLibrary.git">https://github.com/ait-detectmate/DetectMateLibrary.git</a> and click on fork. Please note that you must login first to GitHub.</p>
+<h3 id="2-clone">2. Clone</h3>
+<p>After forking the repository into your own workspace, clone the development branch of that repository.</p>
+<pre><code class="language-bash">git clone -b development git@github.com:YOURUSERNAME/DetectMateLibrary.git
+</code></pre>
+<h3 id="3-create-a-feature-branch">3. Create a feature branch</h3>
+<p>Every single workpackage should be developed in it's own feature-branch. Use a name that describes the feature:</p>
+<pre><code class="language-bash">cd DetectMateLibrary
+git checkout -b feature-some_important_work
+</code></pre>
+<h3 id="4-develop-your-feature-and-improvements-in-the-feature-branch">4. Develop your feature and improvements in the feature-branch</h3>
+<p>Please make sure that you commit only improvements that are related to the workpage you created the feature-branch for.</p>
+<h3 id="5-fetch-and-merge-from-the-upstream">5. Fetch and merge from the upstream</h3>
+<p>If your work on this feature-branch is done, make sure that you are in sync with the branch of the upstream:</p>
+<pre><code class="language-bash">git remote add upstream git@github.com:ait-detectmate/DetectMateLibrary.git
+git pull upstream development
+</code></pre>
+<p>If any conflicts occur, fix them and add them using <code>git add</code> and continue with the merge or fast-forward.</p>
+<p>Additional infos:</p>
+<ul>
+<li><a href="https://www.atlassian.com/git/tutorials/merging-vs-rebasing">https://www.atlassian.com/git/tutorials/merging-vs-rebasing</a></li>
+<li><a href="https://www.atlassian.com/git/tutorials/merging-vs-rebasing#the-golden-rule-of-rebasing">https://www.atlassian.com/git/tutorials/merging-vs-rebasing#the-golden-rule-of-rebasing</a></li>
+<li><a href="https://dev.to/toogoodyshoes/mastering-rebasing-and-fast-forwarding-in-git-2j19">https://dev.to/toogoodyshoes/mastering-rebasing-and-fast-forwarding-in-git-2j19</a></li>
+</ul>
+<h3 id="6-push-the-changes-to-your-github-repository">6. Push the changes to your GitHub-repository</h3>
+<p>Before we can push our changes, we have to make sure that we don't have unnecessary commits. First checkout our commits:</p>
+<pre><code class="language-bash">git log
+</code></pre>
+<p>After that we can squash the last n commits together:</p>
+<pre><code class="language-bash">git rebase -i HEAD~n
+</code></pre>
+<p>Finally you can push the changes to YOUR github-repository:</p>
+<pre><code class="language-bash">git push
+</code></pre>
+<p>Additional documentation:</p>
+<ul>
+<li><a href="https://www.atlassian.com/git/tutorials/merging-vs-rebasing">https://www.atlassian.com/git/tutorials/merging-vs-rebasing</a></li>
+</ul>
+<h3 id="7-submit-your-pull-request">7. Submit your pull-request</h3>
+<p>Use the GitHub-Webinterface to create a pull-request. Make sure that the target-repository is <code>ait-detectmate/DetectMateLibrary</code>.</p>
+<p>If your pull-request was accepted and merged into the development branch continue with "8. Update your local development branch". If it wasn't accepted, read the comments and fix the problems. Before pushing the changes make sure that you squashed them with your last commit:</p>
+<pre><code class="language-bash">git rebase -i HEAD~2
+</code></pre>
+<p>Delete your local feature-branch after the pull-request was merged into the development branch.</p>
+<h3 id="8-update-your-local-main-branch">8. Update your local main branch</h3>
+<p>Update your local development branch:</p>
+<pre><code class="language-bash">git fetch upstream development
+git checkout -b development
+git rebase upstream/development
+</code></pre>
+<p>Additional infos:</p>
+<ul>
+<li><a href="https://www.atlassian.com/git/tutorials/merging-vs-rebasing">https://www.atlassian.com/git/tutorials/merging-vs-rebasing</a></li>
+</ul>
+<h3 id="9-update-your-main-branch-in-your-github-repository">9. Update your main branch in your github-repository</h3>
+<p>Please make sure that you updated your local development branch as described in section 8. above. After that push the changes to your github-repository to keep it up2date:</p>
+<pre><code class="language-bash">git push
+</code></pre>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../helper/from_to/" class="btn btn-neutral float-left" title="From to"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../development/" class="btn btn-neutral float-right" title="Development">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../helper/from_to/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../development/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+      <script src="../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

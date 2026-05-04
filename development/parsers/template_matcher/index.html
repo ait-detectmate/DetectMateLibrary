@@ -82,6 +82,8 @@
     </li>
     </ul>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../template_tree_matcher/">Template Tree Matcher</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../json_parser/">Json Parser</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../logbatcher_parser/">LogBatcher Parser</a>
@@ -95,6 +97,10 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../detectors/combo/">Combo Detector</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/new_event/">New Event</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/rule_based/">Rule Based</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Auxiliar</span></p>
               <ul>
@@ -106,6 +112,13 @@
               <p class="caption"><span class="caption-text">Helpers</span></p>
               <ul>
                   <li class="toctree-l1"><a class="reference internal" href="../../helper/from_to/">From to</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribution</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../contribution/">Contributing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../development/">Development</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Other</span></p>
@@ -211,7 +224,7 @@ login success: user=&lt;*&gt; source=&lt;*&gt;
 <p>Typical MatcherParser config options (fields in config class):</p>
 <ul>
 <li><code>method_type</code>: must match the parser type ("matcher_parser" or configured name).</li>
-<li><code>path_templates</code>: path to the newline-delimited template file.</li>
+<li><code>path_templates</code>: path to the newline-delimited template file. If <code>null</code>, the matcher runs without templates.</li>
 <li><code>remove_spaces</code> (bool, default True): remove all spaces during matching.</li>
 <li><code>remove_punctuation</code> (bool, default True): strip punctuation except the <code>&lt;*&gt;</code> token.</li>
 <li><code>lowercase</code> (bool, default True): lowercase logs and templates before matching.</li>
@@ -264,7 +277,7 @@ print(parsed.variables)        # list of extracted params
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
         <a href="../../detectors/" class="btn btn-neutral float-left" title="Detectors"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../json_parser/" class="btn btn-neutral float-right" title="Json Parser">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../template_tree_matcher/" class="btn btn-neutral float-right" title="Template Tree Matcher">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -290,7 +303,7 @@ print(parsed.variables)        # list of extracted params
       <span><a href="../../detectors/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../json_parser/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../template_tree_matcher/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

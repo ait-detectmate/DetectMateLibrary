@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/auxiliar/input_buffer/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/parsers/template_tree_matcher/" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Data buffer - DetectMate Library</title>
+    <title>Template Tree Matcher - DetectMate Library</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -13,9 +13,9 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Data buffer";
-        var mkdocs_page_input_path = "auxiliar/input_buffer.md";
-        var mkdocs_page_url = "/DetectMateLibrary/development/auxiliar/input_buffer/";
+        var mkdocs_page_name = "Template Tree Matcher";
+        var mkdocs_page_input_path = "parsers/template_tree_matcher.md";
+        var mkdocs_page_url = "/DetectMateLibrary/development/parsers/template_tree_matcher/";
       </script>
     
     <!--[if lt IE 9]>
@@ -61,20 +61,28 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../schemas/">Schemas</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/">Parsers</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../">Parsers</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../detectors/">Detectors</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Parsers Methods</span></p>
-              <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/template_matcher/">Template Matcher</a>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../template_matcher/">Template Matcher</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/template_tree_matcher/">Template Tree Matcher</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Template Tree Matcher</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#template-format">Template format</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#usage-example">Usage example</a>
+    </li>
+    </ul>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/json_parser/">Json Parser</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../json_parser/">Json Parser</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/logbatcher_parser/">LogBatcher Parser</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../logbatcher_parser/">LogBatcher Parser</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Detectors Methods</span></p>
@@ -91,22 +99,10 @@
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Auxiliar</span></p>
-              <ul class="current">
-                  <li class="toctree-l1"><a class="reference internal" href="../persistency/">Persistency</a>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../auxiliar/persistency/">Persistency</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Data buffer</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a>
-        <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#no-buffer-mode">No Buffer mode</a>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#batch-mode">Batch mode</a>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#window-mode">Window mode</a>
-    </li>
-        </ul>
-    </li>
-    </ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../auxiliar/input_buffer/">Data buffer</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Helpers</span></p>
@@ -140,8 +136,8 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
-          <li class="breadcrumb-item">Auxiliar</li>
-      <li class="breadcrumb-item active">Data buffer</li>
+          <li class="breadcrumb-item">Parsers Methods</li>
+      <li class="breadcrumb-item active">Template Tree Matcher</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -150,79 +146,93 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="data-buffer">Data Buffer</h1>
-<p>The data buffer is an auxiliar methods that can be use in all the components. It takes the stream data and formated to the specifications given.</p>
-<p>It has different configuration states to configure its behaviour.</p>
+                <h1 id="template-tree-matcher">Template Tree Matcher</h1>
+<p>The Template Tree Matcher is a parser that matches incoming logs against a set of templates using a tree-based depth-first search. It provides faster matching for batch workloads compared with the streaming Template Matcher.</p>
+<p>This parser wraps functionality from the DetectMatePerformance project: https://github.com/ait-detectmate/DetectMatePerformance. Prefer  use the performance implementation when parsing many log lines in non-stream (batch) mode.</p>
 <table>
 <thead>
 <tr>
-<th>Type</th>
-<th>State</th>
+<th></th>
+<th>Schema</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>No buffer</strong></td>
-<td>BufferMode.NO_BUF</td>
-<td>Returns one value at the time.</td>
+<td><strong>Input</strong></td>
+<td><a href="../../schemas/">LogSchema</a></td>
+<td>Unstructured log</td>
 </tr>
 <tr>
-<td><strong>Batch</strong></td>
-<td>BufferMode.BATCH</td>
-<td>Returns values by batches.</td>
-</tr>
-<tr>
-<td><strong>Window</strong></td>
-<td>BufferMode.WINDOW</td>
-<td>Returns values by time windows.</td>
+<td><strong>Output</strong></td>
+<td><a href="../../schemas/">ParserSchema</a></td>
+<td>Structured log</td>
 </tr>
 </tbody>
 </table>
-<h2 id="examples">Examples</h2>
-<p>Code examples to show the behaviour of the <strong>DataBuffer</strong> class.</p>
-<h3 id="no-buffer-mode">No Buffer mode</h3>
-<pre><code class="language-python">from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
-
-results = []
-buf = DataBuffer(ArgsBuffer(mode=BufferMode.NO_BUF, process_function=results.append))
-buf.add(1)
-buf.add(2)
-
-print(results)  # [1, 2]
-
+<p>WARNING: This parser is not yet in a stable release and may behave differently across platforms or hardware.</p>
+<h2 id="template-format">Template format</h2>
+<ul>
+<li>Templates are plain text lines in a template file.</li>
+<li>Use the token <code>&lt;*&gt;</code> to mark wildcard slots.</li>
+</ul>
+<p>Example template file (templates.txt):</p>
+<pre><code class="language-text">pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='op=PAM:&lt;*&gt; acct=&lt;*&gt;
+login success: user=&lt;*&gt; source=&lt;*&gt;
 </code></pre>
-<h3 id="batch-mode">Batch mode</h3>
-<pre><code class="language-python">from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
-
-results = []
-buf = DataBuffer(ArgsBuffer(mode=BufferMode.BATCH, process_function=results.append, size=3))
-
-buf.add(1)
-print(results)  # []
-
-buf.add(1)
-print(results)  # []
-
-buf.add(1)
-print(results)  # [[1, 1, 1]]
+<h2 id="configuration">Configuration</h2>
+<p>Typical TemplateTreeMatcher config options:</p>
+<ul>
+<li><code>method_type</code> (string): parser type identifier (for example <code>"tree_matcher"</code>).</li>
+<li><code>path_templates</code> (string or null): path to the newline-delimited template file. If <code>null</code>, the matcher runs without templates.</li>
+<li><code>auto_config</code> (bool): whether to attempt an optional auto-configuration phase (not required).</li>
+</ul>
+<p>Note: this matcher removes non-alphanumeric characters from logs and templates before matching, except for the <code>&lt;*&gt;</code> token. Ensure your templates are compatible with that normalization.</p>
+<p>Example YAML fragment:</p>
+<pre><code class="language-yaml">parsers:
+  TemplateTreeMatcher:
+    method_type: tree_matcher
+    auto_config: False
+    params:
+      path_templates: path/to/templates.txt
 </code></pre>
-<h3 id="window-mode">Window mode</h3>
-<pre><code class="language-python">from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
+<h2 id="usage-example">Usage example</h2>
+<p>Simple usage — load templates and match a log:</p>
+<pre><code class="language-python">from detectmatelibrary.parsers.tree_matcher import TemplateTreeMatcher
+from detectmatelibrary import schemas
 
-buf = DataBuffer(ArgsBuffer(mode=BufferMode.WINDOW, process_function=sum, size=2))
+# instantiate parser (config can be a dict or a config object)
+cfg = {
+    &quot;parsers&quot;: {
+        &quot;TreeMatcher&quot;: {
+            &quot;method_type&quot;: &quot;tree_matcher&quot;,
+            &quot;params&quot;: {
+                &quot;path_templates&quot;: &quot;tests/test_folder/test_templates.txt&quot;
+            }
+        }
+    }
+}
 
-print(buf.add(1) is None)  # True
-print(buf.add(2))  # 3
-print(buf.add(5))  # 7
+parser = TemplateTreeMatcher(name=&quot;TreeMatcher&quot;, config=cfg)
+
+# match a log
+input_log = schemas.LogSchema({
+    &quot;logID&quot;: &quot;0&quot;,
+    &quot;log&quot;: &quot;pid=9699 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\&quot;root\&quot;'&quot;
+})
+parsed = parser.process(input_log)  # or call parser.parse / parser.match depending on the API
+
+# parsed is a ParserSchema. Inspect fields:
+print(parsed.template)   # matched template text
+print(parsed.variables)  # list of extracted parameters
 </code></pre>
-<p>Go back <a href="../../">Index</a></p>
+<p>Go back to <a href="../../">Index</a></p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../persistency/" class="btn btn-neutral float-left" title="Persistency"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../../helper/from_to/" class="btn btn-neutral float-right" title="From to">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../template_matcher/" class="btn btn-neutral float-left" title="Template Matcher"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../json_parser/" class="btn btn-neutral float-right" title="Json Parser">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -245,10 +255,10 @@ print(buf.add(5))  # 7
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../persistency/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../template_matcher/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../../helper/from_to/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../json_parser/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

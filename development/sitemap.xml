@@ -2,82 +2,98 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/</loc>
-         <lastmod>2026-04-21</lastmod>
+         <lastmod>2026-05-04</lastmod>
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/basic_idea/</loc>
-         <lastmod>2026-04-21</lastmod>
+         <lastmod>2026-05-04</lastmod>
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/basic_usage/</loc>
-         <lastmod>2026-04-21</lastmod>
+         <lastmod>2026-05-04</lastmod>
+    </url>
+    <url>
+         <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/contribution/</loc>
+         <lastmod>2026-05-04</lastmod>
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/create_components/</loc>
-         <lastmod>2026-04-21</lastmod>
+         <lastmod>2026-05-04</lastmod>
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/detectors/</loc>
-         <lastmod>2026-04-21</lastmod>
+         <lastmod>2026-05-04</lastmod>
+    </url>
+    <url>
+         <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/development/</loc>
+         <lastmod>2026-05-04</lastmod>
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/installation/</loc>
-         <lastmod>2026-04-21</lastmod>
+         <lastmod>2026-05-04</lastmod>
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/overall_architecture/</loc>
-         <lastmod>2026-04-21</lastmod>
+         <lastmod>2026-05-04</lastmod>
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/parsers/</loc>
-         <lastmod>2026-04-21</lastmod>
+         <lastmod>2026-05-04</lastmod>
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/schemas/</loc>
-         <lastmod>2026-04-21</lastmod>
+         <lastmod>2026-05-04</lastmod>
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/auxiliar/input_buffer/</loc>
-         <lastmod>2026-04-21</lastmod>
+         <lastmod>2026-05-04</lastmod>
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/auxiliar/persistency/</loc>
-         <lastmod>2026-04-21</lastmod>
+         <lastmod>2026-05-04</lastmod>
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/detectors/combo/</loc>
-         <lastmod>2026-04-21</lastmod>
+         <lastmod>2026-05-04</lastmod>
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/detectors/new_event/</loc>
-         <lastmod>2026-04-21</lastmod>
+         <lastmod>2026-05-04</lastmod>
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/detectors/new_value/</loc>
-         <lastmod>2026-04-21</lastmod>
+         <lastmod>2026-05-04</lastmod>
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/detectors/random_detector/</loc>
-         <lastmod>2026-04-21</lastmod>
+         <lastmod>2026-05-04</lastmod>
+    </url>
+    <url>
+         <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/detectors/rule_based/</loc>
+         <lastmod>2026-05-04</lastmod>
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/helper/from_to/</loc>
-         <lastmod>2026-04-21</lastmod>
+         <lastmod>2026-05-04</lastmod>
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/other/log_formats/</loc>
-         <lastmod>2026-04-21</lastmod>
+         <lastmod>2026-05-04</lastmod>
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/parsers/json_parser/</loc>
-         <lastmod>2026-04-21</lastmod>
+         <lastmod>2026-05-04</lastmod>
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/parsers/logbatcher_parser/</loc>
-         <lastmod>2026-04-21</lastmod>
+         <lastmod>2026-05-04</lastmod>
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/parsers/template_matcher/</loc>
-         <lastmod>2026-04-21</lastmod>
+         <lastmod>2026-05-04</lastmod>
+    </url>
+    <url>
+         <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/parsers/template_tree_matcher/</loc>
+         <lastmod>2026-05-04</lastmod>
     </url>
 </urlset>

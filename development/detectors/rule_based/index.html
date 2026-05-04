@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/auxiliar/input_buffer/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/detectors/rule_based/" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>Data buffer - DetectMate Library</title>
+    <title>Rule Based - DetectMate Library</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -13,9 +13,9 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Data buffer";
-        var mkdocs_page_input_path = "auxiliar/input_buffer.md";
-        var mkdocs_page_url = "/DetectMateLibrary/development/auxiliar/input_buffer/";
+        var mkdocs_page_name = "Rule Based";
+        var mkdocs_page_input_path = "detectors/rule_based.md";
+        var mkdocs_page_url = "/DetectMateLibrary/development/detectors/rule_based/";
       </script>
     
     <!--[if lt IE 9]>
@@ -63,7 +63,7 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../parsers/">Parsers</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/">Detectors</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../">Detectors</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Parsers Methods</span></p>
@@ -78,35 +78,35 @@
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Detectors Methods</span></p>
-              <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/random_detector/">Random Detector</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/new_value/">New Value</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/combo/">Combo Detector</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/new_event/">New Event</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/rule_based/">Rule Based</a>
-                  </li>
-              </ul>
-              <p class="caption"><span class="caption-text">Auxiliar</span></p>
               <ul class="current">
-                  <li class="toctree-l1"><a class="reference internal" href="../persistency/">Persistency</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../random_detector/">Random Detector</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Data buffer</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../new_value/">New Value</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../combo/">Combo Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../new_event/">New Event</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Rule Based</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a>
+    <li class="toctree-l2"><a class="reference internal" href="#description">Description</a>
         <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#no-buffer-mode">No Buffer mode</a>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#batch-mode">Batch mode</a>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#window-mode">Window mode</a>
+    <li class="toctree-l3"><a class="reference internal" href="#available-rules">Available rules</a>
     </li>
         </ul>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#configuration-example">Configuration example</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#example-usage">Example usage</a>
+    </li>
     </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Auxiliar</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../auxiliar/persistency/">Persistency</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../auxiliar/input_buffer/">Data buffer</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Helpers</span></p>
@@ -140,8 +140,8 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
-          <li class="breadcrumb-item">Auxiliar</li>
-      <li class="breadcrumb-item active">Data buffer</li>
+          <li class="breadcrumb-item">Detectors Methods</li>
+      <li class="breadcrumb-item active">Rule Based</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -150,79 +150,115 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="data-buffer">Data Buffer</h1>
-<p>The data buffer is an auxiliar methods that can be use in all the components. It takes the stream data and formated to the specifications given.</p>
-<p>It has different configuration states to configure its behaviour.</p>
+                <h1 id="rule-based-detector">Rule-based Detector</h1>
+<p>The Rule-based Detector raises alerts based on a configurable set of rules.</p>
 <table>
 <thead>
 <tr>
-<th>Type</th>
-<th>State</th>
+<th></th>
+<th>Schema</th>
 <th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>No buffer</strong></td>
-<td>BufferMode.NO_BUF</td>
-<td>Returns one value at the time.</td>
+<td><strong>Input</strong></td>
+<td><a href="../../schemas/">ParserSchema</a></td>
+<td>Structured log</td>
 </tr>
 <tr>
-<td><strong>Batch</strong></td>
-<td>BufferMode.BATCH</td>
-<td>Returns values by batches.</td>
-</tr>
-<tr>
-<td><strong>Window</strong></td>
-<td>BufferMode.WINDOW</td>
-<td>Returns values by time windows.</td>
+<td><strong>Output</strong></td>
+<td><a href="../../schemas/">DetectorSchema</a></td>
+<td>Alert / finding</td>
 </tr>
 </tbody>
 </table>
-<h2 id="examples">Examples</h2>
-<p>Code examples to show the behaviour of the <strong>DataBuffer</strong> class.</p>
-<h3 id="no-buffer-mode">No Buffer mode</h3>
-<pre><code class="language-python">from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
-
-results = []
-buf = DataBuffer(ArgsBuffer(mode=BufferMode.NO_BUF, process_function=results.append))
-buf.add(1)
-buf.add(2)
-
-print(results)  # [1, 2]
-
+<h2 id="description">Description</h2>
+<p>The detector analyzes parsed logs one by one and checks which rules are triggered. When alerts are produced, the triggered rules and their messages are recorded in the <code>alertsObtain</code> field of the output schema. The <code>score</code> field contains the number of rules that triggered.</p>
+<h3 id="available-rules">Available rules</h3>
+<table>
+<thead>
+<tr>
+<th>Rule name</th>
+<th>Description</th>
+<th style="text-align: right;">Requires arguments</th>
+<th style="text-align: center;">Enabled by default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>R001 - TemplateNotFound</strong></td>
+<td>Check whether the parser assigned a template to the log</td>
+<td style="text-align: right;">No</td>
+<td style="text-align: center;">Yes</td>
+</tr>
+<tr>
+<td><strong>R002 - SpecificKeyword</strong></td>
+<td>Check for one or more user-specified keywords in the log content</td>
+<td style="text-align: right;">list of words</td>
+<td style="text-align: center;">No</td>
+</tr>
+<tr>
+<td><strong>R003 - CheckForExceptions</strong></td>
+<td>Check for words commonly associated with exceptions or failures</td>
+<td style="text-align: right;">No</td>
+<td style="text-align: center;">Yes</td>
+</tr>
+<tr>
+<td><strong>R004 - ErrorLevelFound</strong></td>
+<td>If a Level field exists, check whether it indicates an error level</td>
+<td style="text-align: right;">No</td>
+<td style="text-align: center;">Yes</td>
+</tr>
+</tbody>
+</table>
+<p>Notes on table columns:</p>
+<ul>
+<li><strong>Rule name</strong>: Identifier used in configuration.</li>
+<li><strong>Description</strong>: What the rule checks.</li>
+<li><strong>Requires arguments</strong>: Whether the rule needs additional arguments.</li>
+<li><strong>Enabled by default</strong>: Whether the rule is active when not explicitly overridden.</li>
+</ul>
+<h2 id="configuration-example">Configuration example</h2>
+<pre><code class="language-yaml">detectors:
+  RuleDetector:
+    method_type: rule_detector
+    auto_config: False
+    params:
+      rules:
+        - rule: &quot;R001 - TemplateNotFound&quot;
+        - rule: &quot;R002 - SpecificKeyword&quot;
+          args:
+            - &quot;critical&quot;
+            - &quot;anomaly&quot;
 </code></pre>
-<h3 id="batch-mode">Batch mode</h3>
-<pre><code class="language-python">from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
+<h2 id="example-usage">Example usage</h2>
+<pre><code class="language-python">import detectmatelibrary.detectors.rule_detector as rd
+from detectmatelibrary import schemas
 
-results = []
-buf = DataBuffer(ArgsBuffer(mode=BufferMode.BATCH, process_function=results.append, size=3))
+rule_detector = rd.RuleDetector()
 
-buf.add(1)
-print(results)  # []
+parser_data = schemas.ParserSchema({
+    &quot;parserType&quot;: &quot;test&quot;,
+    &quot;EventID&quot;: 1,
+    &quot;template&quot;: &quot;test template&quot;,
+    &quot;variables&quot;: [&quot;var1&quot;],
+    &quot;logID&quot;: &quot;1&quot;,
+    &quot;parsedLogID&quot;: &quot;1&quot;,
+    &quot;parserID&quot;: &quot;test_parser&quot;,
+    &quot;log&quot;: &quot;test log message&quot;,
+    &quot;logFormatVariables&quot;: {&quot;timestamp&quot;: &quot;123456&quot;}
+})
 
-buf.add(1)
-print(results)  # []
-
-buf.add(1)
-print(results)  # [[1, 1, 1]]
-</code></pre>
-<h3 id="window-mode">Window mode</h3>
-<pre><code class="language-python">from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
-
-buf = DataBuffer(ArgsBuffer(mode=BufferMode.WINDOW, process_function=sum, size=2))
-
-print(buf.add(1) is None)  # True
-print(buf.add(2))  # 3
-print(buf.add(5))  # 7
+alert = rule_detector.process(parser_data)
 </code></pre>
 <p>Go back <a href="../../">Index</a></p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../persistency/" class="btn btn-neutral float-left" title="Persistency"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../../helper/from_to/" class="btn btn-neutral float-right" title="From to">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../new_event/" class="btn btn-neutral float-left" title="New Event"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../auxiliar/persistency/" class="btn btn-neutral float-right" title="Persistency">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -245,10 +281,10 @@ print(buf.add(5))  # 7
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../persistency/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../new_event/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../../helper/from_to/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../../auxiliar/persistency/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
