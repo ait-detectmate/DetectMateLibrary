@@ -106,7 +106,7 @@ class CoreComponent(Component):
             if self.config.use_config_data_as_training:
                 logger.debug(f"<<{self.name}>> Adding data from config to training")
                 [self.train(input_) for input_ in self.buffer_train]
-
+                self.buffer_train = []
         if fit_state == FitLogicState.DO_TRAIN:
             logger.debug(f"<<{self.name}>> use data for training")
             self.train(input_=data_buffered)
