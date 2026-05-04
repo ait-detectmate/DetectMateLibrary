@@ -8,8 +8,6 @@ This module tests the NewEventDetector implementation including:
 - Input/output schema validation
 """
 
-import json
-
 from detectmatelibrary.detectors.new_event_detector import NewEventDetector, NewEventDetectorConfig, \
     BufferMode
 from detectmatelibrary.parsers.template_matcher import MatcherParser
@@ -200,8 +198,6 @@ class TestNewEventDetectorAutoConfig:
         detector.fitlogic.train_state = TrainState.KEEP_TRAINING
         for log in logs[:1800]:
             detector.process(log)
-
-        print(json.dumps(detector.config.get_config(), indent=2))
 
         # Phase 3: detect — stop training so process() only calls detect()
         detector.fitlogic.train_state = TrainState.STOP_TRAINING
