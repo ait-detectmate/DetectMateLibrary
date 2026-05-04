@@ -178,6 +178,7 @@ class PersistencySaver:
         """Stop the timer and do a final save."""
         if self._timer is not None:
             self._timer.stop()
+            self._timer.join(timeout=5.0)
             self._timer = None
         self.save()
 
