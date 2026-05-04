@@ -19,6 +19,7 @@ dependencies = [
     "pandas>=2.3.2",
     "polars>=1.38.1",
     "detectmateperformance @ git+https://github.com/ait-detectmate/DetectMatePerformance@main",
+    "msgpack>=1.1.2",
 ]
 
 [dependency-groups]

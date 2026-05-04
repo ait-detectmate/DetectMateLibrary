@@ -1,6 +1,9 @@
 """Event data structure that tracks variable behaviors over time/events."""
 
+import importlib
 from typing import Any, Callable, Dict, Type
+
+import msgpack
 
 from detectmatelibrary.utils.preview_helpers import format_dict_repr
 
@@ -39,6 +42,43 @@ class EventTracker(EventDataStructure):
     def to_data(self, raw_data: Dict[str, Any]) -> Any:
         """Transform raw data into the format expected by the tracker."""
         return self.converter_function(raw_data)
+
+    def dump(self) -> bytes:
+        """Serialize full tracker state to MessagePack bytes."""
+        state = {
+            "single_tracker_type": self.single_tracker_type.__name__,
+            "single_tracker_module": self.single_tracker_type.__module__,
+            "multi_tracker_type": self.multi_tracker_type.__name__,
+            "multi_tracker_module": self.multi_tracker_type.__module__,
+            "trackers": {
+                name: tracker.to_state()
+                for name, tracker in self.multi_tracker.get_trackers().items()
+            },
+        }
+        result: bytes = msgpack.packb(state, use_bin_type=True)
+        return result
+
+    @classmethod
+    def load(cls, data: bytes, **kwargs: Any) -> "EventTracker":
+        """Restore tracker state from MessagePack bytes."""
+        state = msgpack.unpackb(data, raw=False)
+        single_tracker_cls = getattr(
+            importlib.import_module(state["single_tracker_module"]),
+            state["single_tracker_type"],
+        )
+        multi_tracker_cls = getattr(
+            importlib.import_module(state["multi_tracker_module"]),
+            state["multi_tracker_type"],
+        )
+        instance = cls.__new__(cls)
+        EventTracker.__init__(
+            instance,
+            single_tracker_type=single_tracker_cls,
+            multi_tracker_type=multi_tracker_cls,
+        )
+        for name, tracker_state in state["trackers"].items():
+            instance.multi_tracker.single_trackers[name] = single_tracker_cls.from_state(tracker_state)
+        return instance
 
     def __repr__(self) -> str:
         strs = format_dict_repr(self.multi_tracker.get_trackers(), indent="\t")
