@@ -8,8 +8,6 @@ This module tests the NewEventDetector implementation including:
 - Input/output schema validation
 """
 
-import json
-
 from detectmatelibrary.detectors.new_event_detector import NewEventDetector, NewEventDetectorConfig, \
     BufferMode
 from detectmatelibrary.parsers.template_matcher import MatcherParser
