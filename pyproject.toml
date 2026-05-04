@@ -19,9 +19,15 @@ dependencies = [
     "pandas>=2.3.2",
     "polars>=1.38.1",
     "detectmateperformance @ git+https://github.com/ait-detectmate/DetectMatePerformance@main",
-    "msgpack>=1.1.2",
-    "pyarrow>=24.0.0",
+    "msgpack>=1.0.0",
+    "pyarrow>=15.0.0",
+    "fsspec>=2024.1.0",
 ]
+
+[project.optional-dependencies]
+s3 = ["s3fs>=2024.1.0"]
+gcs = ["gcsfs>=2024.1.0"]
+azure = ["adlfs>=2024.1.0"]
 
 [dependency-groups]
 # add dependencies in this section with: uv add --optional dev <package>
