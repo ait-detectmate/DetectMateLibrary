@@ -1,6 +1,6 @@
 # Template matcher
 
-Parser that takes a set of templates and matches them to incoming logs. It extracts parameters from positions marked with the <*> wildcard and returns a ParserSchema with the matched template and the extracted variables.
+The template matcher is a parser that takes a set of templates and matches them to incoming logs. It extracts parameters from positions marked with the <*> wildcard and returns a ParserSchema with the matched template and the extracted variables.
 
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
@@ -20,7 +20,7 @@ This parser is deterministic and designed for high-throughput use when templates
 
 ## EventID assignment (preliminary)
 
-The `EventID` (or `event_id`) field in the output `ParserSchema` identifies which template was matched. It equals the **0-indexed line number** of the matching template in the template file:
+The `EventID` (or `event_id`) field in the output `ParserSchema` identifies which template was matched. It equals the **0-indexed line number** of the matching template in the template file, for example:
 
 | Line in template file | EventID |
 |-----------------------|---------|
@@ -29,12 +29,12 @@ The `EventID` (or `event_id`) field in the output `ParserSchema` identifies whic
 | 3rd line              | 2       |
 | ...                   | ...     |
 
-This `EventID` is the integer key used in detector configurations (e.g., `NewValueDetector`) to scope detection rules to logs of a particular template type.
+The `EventID` is the integer key used in detector configurations (e.g., `NewValueDetector`) to scope detection rules to logs of a particular template type.
 
 ## Template format
 
 - Templates are plain text lines in a template file.
-- Use `<*>` for wildcard slots.
+- Templates use `<*>` for wildcard slots.
 
 Example template file (templates.txt):
 ```text
@@ -47,7 +47,7 @@ login success: user=<*> source=<*>
 Typical MatcherParser config options (fields in config class):
 
 - `method_type`: must match the parser type ("matcher_parser" or configured name).
-- `path_templates`: path to the newline-delimited template file.
+- `path_templates`: path to the newline-delimited template file. If `null`, the matcher runs without templates.
 - `remove_spaces` (bool, default True): remove all spaces during matching.
 - `remove_punctuation` (bool, default True): strip punctuation except the `<*>` token.
 - `lowercase` (bool, default True): lowercase logs and templates before matching.

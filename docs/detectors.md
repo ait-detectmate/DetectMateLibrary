@@ -87,11 +87,12 @@ List of detectors:
 * [Random detector](detectors/random_detector.md): Generates random alerts.
 * [New Value](detectors/new_value.md): Detect new values in the variables in the logs.
 * [Combo Detector](detectors/combo.md): Detect new combination of variables in the logs.
+* [New Event](detectors/new_event.md): Detect new events in the variables in the logs.
 * [Value Range](...): Detect numeric value ranges in variables in the logs.
 
 ## Configuration
 
-When `auto_config` is set to `False`, the detector expects an explicit `events` block that specifies exactly which variables to monitor:
+When `auto_config` is set to `False`, the detector expects an explicit `events` or `global` block that specifies exactly which variables to monitor. `events`refers to event-specific variables while `global` refers to variables, that are not bound to events (`header_variables`can but don't have to be event bound):
 
 ```yaml
 detectors:
@@ -117,7 +118,9 @@ detectors:
 
 ### Configuration semantics (preliminary)
 
-**`events` key** — The integer key is the `EventID` (or `event_id`) to monitor (see the MatcherParser docs for how EventID is assigned).
+**`events` key** — The integer key is the `EventID` (or `event_id`) to monitor (see the [Template Matcher](parsers/template_matcher.md) docs for how the EventID is assigned.
+
+**`global` key** - This one has a similar functionality as the `events` key but refers to variables, that are not bound to events (thus can only contain `header_variables`).
 
 **`variables[].pos`** — The 0-indexed position of the `<*>` wildcard in the matched template, counting from left to right starting at 0. For example, given:
 

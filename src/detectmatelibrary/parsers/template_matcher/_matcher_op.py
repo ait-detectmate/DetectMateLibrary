@@ -205,7 +205,6 @@ class TemplateMatcher:
         pattern_parts_escaped = [re.escape(part) for part in pattern_parts]
         regex_pattern = "(.*?)".join(pattern_parts_escaped)
         regex = "^" + regex_pattern + "$"
-        # matches = re.search(regex, log)
         matches = safe_search(regex, log, 1)
         if matches:
             groups: tuple[str, ...] = matches.groups()
