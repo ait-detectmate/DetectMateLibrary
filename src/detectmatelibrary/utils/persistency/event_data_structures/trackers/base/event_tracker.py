@@ -44,7 +44,11 @@ class EventTracker(EventDataStructure):
         return self.converter_function(raw_data)
 
     def dump(self) -> bytes:
-        """Serialize full tracker state to MessagePack bytes."""
+        """Serialize full tracker state to MessagePack bytes.
+
+        Note: converter_function is not serialized (lambdas cannot be pickled).
+        After load(), converter_function is reset to the identity default.
+        """
         state = {
             "single_tracker_type": self.single_tracker_type.__name__,
             "single_tracker_module": self.single_tracker_type.__module__,
@@ -60,7 +64,11 @@ class EventTracker(EventDataStructure):
 
     @classmethod
     def load(cls, data: bytes, **kwargs: Any) -> "EventTracker":
-        """Restore tracker state from MessagePack bytes."""
+        """Restore tracker state from MessagePack bytes.
+
+        Note: event_id and template (base dataclass fields) are not restored;
+        they remain at defaults (-1 and "") as they are managed by EventPersistency.
+        """
         state = msgpack.unpackb(data, raw=False)
         single_tracker_cls = getattr(
             importlib.import_module(state["single_tracker_module"]),
