@@ -88,6 +88,7 @@ List of detectors:
 * [New Value](detectors/new_value.md): Detect new values in the variables in the logs.
 * [Combo Detector](detectors/combo.md): Detect new combination of variables in the logs.
 * [New Event](detectors/new_event.md): Detect new events in the variables in the logs.
+* [Value Range](...): Detect numeric value ranges in variables in the logs.
 
 ## Configuration
 
