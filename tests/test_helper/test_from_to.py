@@ -5,6 +5,7 @@ from detectmatelibrary.parsers.dummy_parser import DummyParser
 
 import detectmatelibrary.schemas as schemas
 
+import polars as pl
 import json
 import yaml
 import os
@@ -135,6 +136,62 @@ class TestCaseFrom:
         log2 = next(From.yaml(parser, yaml_path, do_process=False))
 
         assert log1 == log2
+
+    def test_frompolars(self):
+        table = pl.DataFrame({
+            "Type": ["A", "B"],
+            "Content": ["hello there", "general kenobi"],
+            "ParamList": [["a", "b"], ["c", "d"]],
+            "Templates": ["hello <*>", "<*> kenobi"],
+            "EventIDs": [0, 1]
+        })
+        gen = From.polars(DummyDetector(), df=table, do_process=False)
+
+        parsed1 = next(gen)
+        schema1 = schemas.ParserSchema({
+            "log": "hello there",
+            "variables": ["a", "b"],
+            "template": "hello <*>",
+            "EventID": 0,
+            "logFormatVariables": {"Type": "A"}
+        })
+        for field in ["log", "variables", "template", "EventID", "logFormatVariables"]:
+            assert parsed1[field] == schema1[field], field
+
+        parsed2 = next(gen)
+        schema2 = schemas.ParserSchema({
+            "log": "general kenobi",
+            "variables": ["c", "d"],
+            "template": "<*> kenobi",
+            "EventID": 1,
+            "logFormatVariables": {"Type": "B"}
+        })
+        for field in ["log", "variables", "template", "EventID", "logFormatVariables"]:
+            assert parsed2[field] == schema2[field], field
+
+    def test_frompolars_rename(self):
+        table = pl.DataFrame({
+            "Type": ["A", "B"],
+            "Content": ["hello there", "general kenobi"],
+            "Vars": [["a", "b"], ["c", "d"]],
+            "Templates": ["hello <*>", "<*> kenobi"],
+            "EventIDs": [0, 1]
+        })
+        renames = {
+            "Content": "log", "Vars": "variables", "EventIDs": "EventID", "Templates": "template"
+        }
+        gen = From.polars(DummyDetector(), df=table, do_process=False, renames=renames)
+
+        parsed1 = next(gen)
+        schema1 = schemas.ParserSchema({
+            "log": "hello there",
+            "variables": ["a", "b"],
+            "template": "hello <*>",
+            "EventID": 0,
+            "logFormatVariables": {"Type": "A"}
+        })
+        for field in ["log", "variables", "template", "EventID", "logFormatVariables"]:
+            assert parsed1[field] == schema1[field], field
 
 
 class TestCaseFromTo:

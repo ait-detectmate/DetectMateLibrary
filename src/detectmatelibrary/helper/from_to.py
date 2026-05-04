@@ -5,6 +5,7 @@ from detectmatelibrary.utils.id_generator import SimpleIDGenerator
 from ast import literal_eval
 import os
 
+from polars import DataFrame
 from typing import Iterator
 import yaml
 import json
@@ -126,6 +127,32 @@ class From:
             for i in range(len(data)):
                 schema = component.input_schema(data[i])
                 yield schema
+
+        return From._yield(component, __generator(), do_process=do_process)  # type: ignore
+
+    @staticmethod
+    def polars(
+        component: CoreComponent,
+        df: DataFrame,
+        do_process: bool = True,
+        renames: dict[str, str] | None = None
+
+    ) -> Iterator[BaseSchema]:
+        def __generator():  # type: ignore
+            for i in range(len(df)):
+                data = df.row(i, named=True)
+                data["logFormatVariables"] = df_vars.row(i, named=True)
+                schema = component.input_schema(data)
+                yield schema
+
+        renames = {
+            "Content": "log", "ParamList": "variables", "EventIDs": "EventID", "Templates": "template"
+        } if renames is None else renames
+
+        columns = list(renames.values())
+        df = df.rename(renames)
+        format_vars = [colum for colum in df.columns if colum not in columns]
+        df_vars, df = df[format_vars], df[columns]
 
         return From._yield(component, __generator(), do_process=do_process)  # type: ignore
 
