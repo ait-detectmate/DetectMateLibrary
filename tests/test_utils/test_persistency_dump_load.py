@@ -1,8 +1,14 @@
 import pytest
+import pandas as pd
 from dataclasses import dataclass
 
 from detectmatelibrary.utils.persistency.exceptions import PersistencyLoadError
-from detectmatelibrary.utils.persistency.event_data_structures.base import EventDataStructure
+from detectmatelibrary.utils.persistency.event_data_structures.base import (
+    EventDataStructure,
+)
+from detectmatelibrary.utils.persistency.event_data_structures.dataframes.event_dataframe import (
+    EventDataFrame,
+)
 from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
     SingleStabilityTracker,
     EventStabilityTracker,
@@ -112,3 +118,35 @@ class TestEventTrackerDumpLoad:
         t = EventStabilityTracker()
         t2 = EventStabilityTracker.load(t.dump())
         assert t2.get_data() == {}
+
+
+class TestEventDataFrameDumpLoad:
+    def _make_edf(self) -> EventDataFrame:
+        edf = EventDataFrame()
+        edf.add_data(edf.to_data({"user": "alice", "ip": "192.168.1.1"}))
+        edf.add_data(edf.to_data({"user": "bob",   "ip": "192.168.1.2"}))
+        return edf
+
+    def test_dump_returns_bytes(self):
+        assert isinstance(self._make_edf().dump(), bytes)
+
+    def test_round_trip_preserves_rows(self):
+        edf = self._make_edf()
+        edf2 = EventDataFrame.load(edf.dump())
+        assert len(edf2.get_data()) == 2
+
+    def test_round_trip_preserves_columns(self):
+        edf = self._make_edf()
+        edf2 = EventDataFrame.load(edf.dump())
+        assert list(edf2.get_data().columns) == ["user", "ip"]
+
+    def test_round_trip_preserves_values(self):
+        edf = self._make_edf()
+        edf2 = EventDataFrame.load(edf.dump())
+        assert edf2.get_data()["user"].tolist() == ["alice", "bob"]
+
+    def test_empty_dataframe_round_trip(self):
+        edf = EventDataFrame()
+        edf2 = EventDataFrame.load(edf.dump())
+        assert isinstance(edf2.get_data(), pd.DataFrame)
+        assert len(edf2.get_data()) == 0
