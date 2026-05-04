@@ -5,6 +5,8 @@ from detectmatelibrary.parsers.dummy_parser import DummyParser
 
 import detectmatelibrary.schemas as schemas
 
+import detectmateperformance as dmp
+
 import polars as pl
 import json
 import yaml
@@ -476,3 +478,20 @@ class TestUseCase:
 
         assert os.path.exists(json_path)
         assert os.path.exists(json_path2)
+
+    @remove_files
+    def test_case4(self):
+        matcher = dmp.match_tree.TreeMatcher(
+            templates=dmp.types_.LogTemplates(["hello <*>"])
+        )
+        detector = DummyDetector()
+
+        df = matcher(["hello there", "general kenobi"], get_var=True)
+        for parsed_log in From.polars(detector, df=df):
+            if parsed_log is not None:
+                assert parsed_log["logIDs"] == ["1"]
+
+        df = matcher(["hello there", "general kenobi"], get_var=False)
+        for parsed_log in From.polars(detector, df=df):
+            if parsed_log is not None:
+                assert parsed_log["logIDs"] == ["1"]

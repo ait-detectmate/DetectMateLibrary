@@ -140,7 +140,8 @@ class From:
         def __generator():  # type: ignore
             for i in range(len(df)):
                 data = df.row(i, named=True)
-                data["logFormatVariables"] = df_vars.row(i, named=True)
+                if len(df_vars) > 0:
+                    data["logFormatVariables"] = df_vars.row(i, named=True)
                 data["logID"] = str(i)
                 schema = component.input_schema(data)
                 yield schema
@@ -148,6 +149,8 @@ class From:
         renames = {
             "Content": "log", "ParamList": "variables", "EventIDs": "EventID", "Templates": "template"
         } if renames is None else renames
+        if "ParamList" not in df.columns and "ParamList" in renames:
+            del renames["ParamList"]
 
         columns = list(renames.values())
         df = df.rename(renames)
