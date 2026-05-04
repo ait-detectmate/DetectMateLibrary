@@ -31,6 +31,7 @@ class EventPersistency:
         self.event_data_kwargs = event_data_kwargs or {}
         self.variable_blacklist = variable_blacklist or []
         self.event_templates: Dict[int | str, str] = {}
+        self._dirty_count: int = 0
 
     def ingest_event(
         self,
@@ -40,6 +41,7 @@ class EventPersistency:
         named_variables: Dict[str, Any] = {}
     ) -> None:
         """Ingest event data into the appropriate EventData store."""
+        self._dirty_count += 1
         self.events_seen.add(event_id)
         if not variables and not named_variables:
             return
@@ -53,6 +55,10 @@ class EventPersistency:
 
         data = data_structure.to_data(all_variables)
         data_structure.add_data(data)
+
+    def reset_dirty_count(self) -> None:
+        """Reset the dirty counter after a successful save."""
+        self._dirty_count = 0
 
     def get_events_seen(self) -> set[int | str]:
         """Retrieve all event IDs observed via ingest_event(), regardless of

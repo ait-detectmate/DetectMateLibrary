@@ -461,3 +461,26 @@ class TestEventPersistencyIntegration:
         assert "var_0" in data2.columns  # First variable
         assert "var_1" not in data2.columns  # Blacklisted
         assert "timestamp" not in data2.columns  # Blacklisted
+
+
+class TestEventPersistencyDirtyCount:
+    def test_dirty_count_starts_at_zero(self):
+        p = EventPersistency(event_data_class=EventDataFrame)
+        assert p._dirty_count == 0
+
+    def test_dirty_count_increments_on_ingest(self):
+        p = EventPersistency(event_data_class=EventDataFrame)
+        p.ingest_event(**SAMPLE_EVENT_1)
+        assert p._dirty_count == 1
+
+    def test_dirty_count_increments_for_no_variable_event(self):
+        p = EventPersistency(event_data_class=EventDataFrame)
+        p.ingest_event(event_id="E999", event_template="no vars")
+        assert p._dirty_count == 1
+
+    def test_reset_dirty_count(self):
+        p = EventPersistency(event_data_class=EventDataFrame)
+        p.ingest_event(**SAMPLE_EVENT_1)
+        p.ingest_event(**SAMPLE_EVENT_2)
+        p.reset_dirty_count()
+        assert p._dirty_count == 0
