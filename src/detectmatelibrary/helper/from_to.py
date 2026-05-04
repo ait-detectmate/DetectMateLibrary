@@ -266,6 +266,18 @@ class FromTo:
             yield To.yaml(log, out_path=out_path)  # type: ignore
 
     @staticmethod
+    def polars2binary_file(
+        component: CoreComponent,
+        df: DataFrame,
+        out_path: str,
+        renames: dict[str, str] | None = None
+    ) -> Iterator[BaseSchema]:
+        gen = From.polars(component, df=df, renames=renames, do_process=True)
+
+        for log in gen:
+            yield To.binary_file(log, out_path=out_path)  # type: ignore
+
+    @staticmethod
     def polars2json(
         component: CoreComponent,
         df: DataFrame,

@@ -369,6 +369,23 @@ class TestCaseFromTo:
             assert 5 == len(yaml.safe_load(f))
 
     @remove_files
+    def test_polars2binary(self):
+        detector = DummyDetector()
+        table = pl.DataFrame({
+            "Type": ["A", "B"],
+            "Content": ["hello there", "general kenobi"],
+            "ParamList": [["a", "b"], ["c", "d"]],
+            "Templates": ["hello <*>", "<*> kenobi"],
+            "EventIDs": [0, 1]
+        })
+        gen = FromTo.polars2binary_file(detector, df=table, out_path=binary_path)
+        for _ in gen:
+            pass
+
+        with open(binary_path) as f:
+            assert 1 == len(f.readlines())
+
+    @remove_files
     def test_polars2json(self):
         detector = DummyDetector()
         table = pl.DataFrame({
