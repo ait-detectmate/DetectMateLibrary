@@ -28,6 +28,14 @@ _BACKEND_REGISTRY: dict[str, type[EventDataStructure]] = {
     "ChunkedEventDataFrame": ChunkedEventDataFrame,
 }
 
+
+def _coerce_event_id(k: str) -> int | str:
+    try:
+        return int(k)
+    except ValueError:
+        return k
+
+
 _EXTENSION_MAP: dict[str, str] = {
     "EventTracker": "msgpack",
     "EventStabilityTracker": "msgpack",
@@ -131,15 +139,20 @@ class PersistencySaver:
 
             self._persistency.events_seen = set(metadata["events_seen"])
             self._persistency.event_templates = {
-                k: v for k, v in metadata["event_templates"].items()
+                _coerce_event_id(k): v for k, v in metadata["event_templates"].items()
             }
             global_kwargs = metadata.get("event_data_kwargs", {})
 
-            for event_id, backend_name in metadata["event_backends"].items():
-                ext = metadata["event_extensions"][event_id]
-                file_path = f"{self._root}/events/{event_id}.{ext}"
+            for event_id_str, backend_name in metadata["event_backends"].items():
+                event_id = _coerce_event_id(event_id_str)
+                ext = metadata["event_extensions"][event_id_str]
+                file_path = f"{self._root}/events/{event_id_str}.{ext}"
                 with self._fs.open(file_path, "rb") as f:
                     data = f.read()
+                if backend_name not in _BACKEND_REGISTRY:
+                    raise PersistencyLoadError(
+                        f"Unknown backend '{backend_name}' — cannot restore event '{event_id}'"
+                    )
                 backend_cls = _BACKEND_REGISTRY[backend_name]
                 self._persistency.events_data[event_id] = backend_cls.load(data, **global_kwargs)
         except PersistencyLoadError:
@@ -165,11 +178,10 @@ class PersistencySaver:
         """Stop the timer and do a final save."""
         if self._timer is not None:
             self._timer.stop()
+            self._timer = None
         self.save()
 
     def _tick(self) -> None:
         """Called by the timer thread each interval."""
-        if self._persistency._dirty_count >= self._config.dirty_threshold:
-            self.save()
-        else:
-            self.save()
+        # dirty_threshold reserved for future optimization
+        self.save()
