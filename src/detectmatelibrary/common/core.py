@@ -32,6 +32,7 @@ class Component:
         config: CoreConfig = CoreConfig(),
     ) -> None:
         self.name, self.type_, self.config = name, type_, config
+        self.saver = None
 
     def __repr__(self) -> str:
         return f"<{self.type_}> {self.name}: {self.config}"
@@ -62,6 +63,13 @@ class Component:
 
     def update_config(self, new_config: Dict[str, Any]) -> None:
         self.config.update_config(new_config)
+
+    def __enter__(self) -> "Component":
+        return self
+
+    def __exit__(self, *_: Any) -> None:
+        if hasattr(self, "saver") and self.saver is not None:
+            self.saver.stop()
 
 
 class CoreComponent(Component):
