@@ -6,6 +6,7 @@ import fsspec
 import pytest
 
 from detectmatelibrary.utils.persistency.event_data_structures.dataframes import EventDataFrame
+from detectmatelibrary.utils.persistency.event_data_structures.trackers import EventStabilityTracker
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from detectmatelibrary.utils.persistency.exceptions import PersistencyLoadError
 from detectmatelibrary.utils.persistency.persistency_saver import (
@@ -182,3 +183,56 @@ class TestPersistencySaverTriggers:
         p2 = EventPersistency(event_data_class=EventDataFrame)
         PersistencySaver(p2, PersistencySaverConfig(path="memory://autoload/state", auto_load=True))
         assert "E1" in p2.get_events_seen()
+
+
+class TestPersistencySaverIntegration:
+    def test_full_cycle_dataframe_backend(self):
+        """Train → save → restore → verify data identical."""
+        p1 = EventPersistency(event_data_class=EventDataFrame)
+        for i in range(20):
+            p1.ingest_event(
+                event_id=f"E{i % 3}",
+                event_template=f"Template {i % 3}",
+                variables=[f"val_{i}"],
+                named_variables={},
+            )
+
+        saver1 = PersistencySaver(p1, PersistencySaverConfig(path="memory://integration/df"))
+        saver1.save()
+
+        p2 = EventPersistency(event_data_class=EventDataFrame)
+        PersistencySaver(p2, PersistencySaverConfig(path="memory://integration/df")).load()
+
+        assert p2.get_events_seen() == p1.get_events_seen()
+        assert p2.get_event_templates() == p1.get_event_templates()
+        for eid in p1.get_events_data():
+            original = p1.get_event_data(eid)
+            restored = p2.get_event_data(eid)
+            assert len(restored) == len(original)
+            assert list(restored.columns) == list(original.columns)
+
+    def test_full_cycle_tracker_backend(self):
+        """Train → save → restore → verify tracker state identical."""
+        p1 = EventPersistency(event_data_class=EventStabilityTracker)
+        for i in range(30):
+            p1.ingest_event(
+                event_id="E1",
+                event_template="Tmpl",
+                variables=[f"v_{i % 5}"],
+                named_variables={},
+            )
+
+        saver1 = PersistencySaver(p1, PersistencySaverConfig(path="memory://integration/tracker"))
+        saver1.save()
+
+        p2 = EventPersistency(event_data_class=EventStabilityTracker)
+        PersistencySaver(p2, PersistencySaverConfig(path="memory://integration/tracker")).load()
+
+        original_tracker = p1.get_events_data()["E1"]
+        restored_tracker = p2.get_events_data()["E1"]
+
+        for var_name in original_tracker.get_variables():
+            orig = original_tracker.get_data()[var_name]
+            rest = restored_tracker.get_data()[var_name]
+            assert list(rest.change_series) == list(orig.change_series)
+            assert rest.unique_set == orig.unique_set
