@@ -201,8 +201,6 @@ class TestNewEventDetectorAutoConfig:
         for log in logs[:1800]:
             detector.process(log)
 
-        print(json.dumps(detector.config.get_config(), indent=2))
-
         # Phase 3: detect — stop training so process() only calls detect()
         detector.fitlogic.train_state = TrainState.STOP_TRAINING
         detected_ids: set[str] = set()
