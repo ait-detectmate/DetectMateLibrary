@@ -1,13 +1,13 @@
+import io
 from typing import Any, Dict, List
-
 from dataclasses import dataclass, field
 
 import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 from ..base import EventDataStructure
 
-
-# -------- Pandas backend --------
 
 @dataclass
 class EventDataFrame(EventDataStructure):
@@ -34,6 +34,27 @@ class EventDataFrame(EventDataStructure):
     def to_data(self, raw_data: Dict[int | str, Any]) -> pd.DataFrame:
         data = {key: [value] for key, value in raw_data.items()}
         return pd.DataFrame(data)
+
+    def dump(self) -> bytes:
+        """Serialize DataFrame to Parquet bytes."""
+        buf = io.BytesIO()
+        if self.data.empty:
+            pq.write_table(pa.table({}), buf)
+        else:
+            pq.write_table(pa.Table.from_pandas(self.data, preserve_index=False), buf)
+        return buf.getvalue()
+
+    @classmethod
+    def load(cls, data: bytes, **kwargs: Any) -> "EventDataFrame":
+        """Restore DataFrame from Parquet bytes.
+
+        Note: event_id and template (base dataclass fields) are not restored;
+        they remain at defaults (-1 and "") as they are managed by EventPersistency.
+        """
+        table = pq.read_table(io.BytesIO(data))
+        instance = cls()
+        instance.data = table.to_pandas()
+        return instance
 
     def __repr__(self) -> str:
         return f"EventDataFrame(df=..., rows={len(self.data)}, variables={self.get_variables()})"

@@ -11,10 +11,14 @@ from detectmatelibrary.schemas import BaseSchema
 
 from tools.logging import logger, setup_logging
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Protocol
 
 
 setup_logging()
+
+
+class _Stoppable(Protocol):
+    def stop(self) -> None: ...
 
 
 class TrainBuffer:
@@ -53,6 +57,7 @@ class Component:
         config: CoreConfig = CoreConfig(),
     ) -> None:
         self.name, self.type_, self.config = name, type_, config
+        self.saver: _Stoppable | None = None
 
     def __repr__(self) -> str:
         return f"<{self.type_}> {self.name}: {self.config}"
@@ -83,6 +88,13 @@ class Component:
 
     def update_config(self, new_config: Dict[str, Any]) -> None:
         self.config.update_config(new_config)
+
+    def __enter__(self) -> "Component":
+        return self
+
+    def __exit__(self, *_: Any) -> None:
+        if self.saver is not None:
+            self.saver.stop()
 
 
 class CoreComponent(Component):

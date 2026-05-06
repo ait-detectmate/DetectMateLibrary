@@ -20,6 +20,10 @@ detectors:
         method_type: new_value_detector
         auto_config: False
         params: {}
+        persist:                      # optional — omit to disable saving
+          path: ./state
+          interval_seconds: 300
+          auto_load: false
         events:
             1:
                 test:

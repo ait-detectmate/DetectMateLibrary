@@ -35,6 +35,7 @@ class NewEventDetector(CoreDetector):
         self.auto_conf_persistency = EventPersistency(
             event_data_class=EventStabilityTracker
         )
+        self._register_persistency(self.persistency)
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by learning values from the input data."""
@@ -87,6 +88,7 @@ class NewEventDetector(CoreDetector):
         )
 
     def set_configuration(self) -> None:
+        old_persist = self.config.persist
         config_dict = generate_detector_config(
             variable_selection={},
             detector_name=self.name,
@@ -94,3 +96,4 @@ class NewEventDetector(CoreDetector):
         )
         # Update the config object from the dictionary instead of replacing it
         self.config = NewEventDetectorConfig.from_dict(config_dict, self.name)
+        self.config.persist = old_persist

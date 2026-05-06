@@ -4,17 +4,30 @@ from detectmatelibrary.common.core import CoreComponent, CoreConfig
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 from detectmatelibrary.utils.aux import get_timestamp
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
+from detectmatelibrary.utils.persistency.persistency_saver import PersistencySaver, PersistencySaverConfig
+
+from pydantic import BaseModel, ConfigDict
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
 from typing_extensions import override
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, cast
 
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 from tools.logging import logger
 
 
 _time_handler = TimeFormatHandler()
+
+
+class PersistConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    path: str = "./state"
+    interval_seconds: int = 300
+    events_until_save: int | None = None
+    auto_load: bool = False
+    storage_options: dict[str, Any] = {}
 
 
 def _extract_timestamp(
@@ -138,6 +151,7 @@ class CoreDetectorConfig(CoreConfig):
     auto_config: bool = True
     events: EventsConfig | dict[str, Any] = {}
     global_instances: Dict[str, _EventInstance] = {}
+    persist: PersistConfig | None = None
 
 
 class CoreDetector(CoreComponent):
@@ -159,6 +173,24 @@ class CoreDetector(CoreComponent):
             input_schema=ParserSchema,
             output_schema=DetectorSchema,
         )
+
+    def _register_persistency(self, persistency: EventPersistency) -> None:
+        config = cast(CoreDetectorConfig, self.config)
+        if config.persist is None:
+            return
+        p = config.persist
+        saver = PersistencySaver(
+            persistency,
+            PersistencySaverConfig(
+                path=f"{p.path}/{self.name}",
+                save_interval_seconds=p.interval_seconds,
+                events_until_save=p.events_until_save,
+                auto_load=p.auto_load,
+                storage_options=p.storage_options,
+            ),
+        )
+        saver.start()
+        self.saver = saver
 
     @override
     def run(

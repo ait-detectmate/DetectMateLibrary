@@ -68,6 +68,7 @@ class BasicConfig(BaseModel):
         params = {}
         events_data = None
         instances_data = None
+        persist_data: dict[str, Any] | None = None
 
         for field_name, field_value in self:
             # Skip meta fields
@@ -88,6 +89,9 @@ class BasicConfig(BaseModel):
                     name: inst.to_dict()
                     for name, inst in field_value.items()
                 }
+            elif field_name == "persist":
+                if field_value is not None:
+                    persist_data = field_value.model_dump()
             else:
                 # All other fields go into params
                 params[field_name] = field_value
@@ -103,6 +107,9 @@ class BasicConfig(BaseModel):
         # Add events if they exist
         if events_data is not None:
             result["events"] = events_data
+
+        if persist_data is not None:
+            result["persist"] = persist_data
 
         # Wrap in the component_type and method_id structure
         return {
