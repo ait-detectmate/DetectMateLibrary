@@ -4,8 +4,9 @@ from detectmatelibrary.common.core import CoreComponent, CoreConfig
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 from detectmatelibrary.utils.aux import get_timestamp
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
-from pydantic import BaseModel, ConfigDict
 from detectmatelibrary.utils.persistency.persistency_saver import PersistencySaver, PersistencySaverConfig
+
+from pydantic import BaseModel, ConfigDict
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
