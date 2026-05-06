@@ -8,9 +8,9 @@ import pytest
 from detectmatelibrary.utils.persistency.event_data_structures.dataframes import EventDataFrame
 from detectmatelibrary.utils.persistency.event_data_structures.trackers import EventStabilityTracker
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
-from detectmatelibrary.utils.persistency.exceptions import PersistencyLoadError
 from detectmatelibrary.utils.persistency.persistency_saver import (
     PersistencySaverConfig,
+    PersistencyLoadError,
     PersistencySaver,
     _SaveTimer,
 )

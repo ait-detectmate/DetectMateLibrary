@@ -24,11 +24,6 @@ dependencies = [
     "fsspec>=2024.1.0",
 ]
 
-[project.optional-dependencies]
-s3 = ["s3fs>=2024.1.0"]
-gcs = ["gcsfs>=2024.1.0"]
-azure = ["adlfs>=2024.1.0"]
-
 [dependency-groups]
 # add dependencies in this section with: uv add --optional dev <package>
 # install with all the dev dependencies:  uv pip install -e .[dev]

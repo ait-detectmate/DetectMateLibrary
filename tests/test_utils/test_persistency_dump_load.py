@@ -3,7 +3,7 @@ import pandas as pd
 import polars as pl
 from dataclasses import dataclass
 
-from detectmatelibrary.utils.persistency.exceptions import PersistencyLoadError
+from detectmatelibrary.utils.persistency.persistency_saver import PersistencyLoadError
 from detectmatelibrary.utils.persistency.event_data_structures.base import (
     EventDataStructure,
 )

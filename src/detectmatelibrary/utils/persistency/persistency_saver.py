@@ -18,7 +18,6 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
     EventStabilityTracker,
 )
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
-from detectmatelibrary.utils.persistency.exceptions import PersistencyLoadError
 from tools.logging import logger
 
 _BACKEND_REGISTRY: dict[str, type[EventDataStructure]] = {
@@ -26,6 +25,13 @@ _BACKEND_REGISTRY: dict[str, type[EventDataStructure]] = {
     "EventStabilityTracker": EventStabilityTracker,
     "EventDataFrame": EventDataFrame,
     "ChunkedEventDataFrame": ChunkedEventDataFrame,
+}
+
+_EXTENSION_MAP: dict[str, str] = {
+    "EventTracker": "msgpack",
+    "EventStabilityTracker": "msgpack",
+    "EventDataFrame": "parquet",
+    "ChunkedEventDataFrame": "parquet",
 }
 
 
@@ -36,12 +42,8 @@ def _coerce_event_id(k: str) -> int | str:
         return k
 
 
-_EXTENSION_MAP: dict[str, str] = {
-    "EventTracker": "msgpack",
-    "EventStabilityTracker": "msgpack",
-    "EventDataFrame": "parquet",
-    "ChunkedEventDataFrame": "parquet",
-}
+class PersistencyLoadError(Exception):
+    """Raised when restoring persisted state fails."""
 
 
 @dataclass
