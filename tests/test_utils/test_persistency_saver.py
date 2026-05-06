@@ -24,7 +24,7 @@ class TestPersistencySaverConfig:
     def test_defaults(self):
         cfg = PersistencySaverConfig(path="file:///tmp/test")
         assert cfg.save_interval_seconds == 300
-        assert cfg.dirty_threshold == 1000
+        assert cfg.dirty_threshold is None
         assert cfg.auto_load is False
         assert cfg.storage_options == {}
 

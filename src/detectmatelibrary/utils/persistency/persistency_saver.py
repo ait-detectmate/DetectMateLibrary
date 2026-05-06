@@ -50,7 +50,7 @@ class PersistencyLoadError(Exception):
 class PersistencySaverConfig:
     path: str
     save_interval_seconds: int = 300
-    dirty_threshold: int = 1000
+    dirty_threshold: int | None = None
     auto_load: bool = False
     storage_options: dict[str, Any] = field(default_factory=dict)
 
