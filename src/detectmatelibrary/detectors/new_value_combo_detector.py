@@ -87,6 +87,7 @@ class NewValueComboDetector(CoreDetector):
             event_data_kwargs={"converter_function": get_all_possible_combos}
         )
         self.inputs: list[ParserSchema] = []
+        self._register_persistency(self.persistency)
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         config = cast(NewValueComboDetectorConfig, self.config)

@@ -49,6 +49,7 @@ class NewValueDetector(CoreDetector):
         self.auto_conf_persistency = EventPersistency(
             event_data_class=EventStabilityTracker
         )
+        self._register_persistency(self.persistency)
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by learning values from the input data."""
