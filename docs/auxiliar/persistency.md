@@ -125,3 +125,47 @@ def detect(self, input_, output_):
         stored_data = backend.get_data()
         # compare input_ against stored_data to produce alerts
 ```
+
+## Saving and restoring state
+
+Detector state (everything accumulated in `EventPersistency` during training) can be
+saved to disk or cloud storage using `PersistencySaver`. The easiest way is to configure
+it directly in the detector's YAML config via the `persist:` block — see
+[Saving state (persist)](../detectors.md#saving-state-persist).
+
+For programmatic use:
+
+```python
+from detectmatelibrary.utils.persistency.persistency_saver import (
+    PersistencySaver,
+    PersistencySaverConfig,
+)
+
+saver = PersistencySaver(
+    persistency,
+    PersistencySaverConfig(
+        path="./state/my-detector",
+        save_interval_seconds=300,
+        auto_load=False,
+    ),
+)
+saver.start()   # starts background save timer
+# ...
+saver.stop()    # final save, stops timer
+```
+
+`PersistencySaver.save()` is thread-safe. `stop()` is idempotent — calling it more
+than once (e.g. from both `__exit__` and an atexit hook) is safe.
+
+### Restoring state
+
+```python
+saver = PersistencySaver(
+    persistency,
+    PersistencySaverConfig(path="./state/my-detector", auto_load=True),
+)
+# persistency is now pre-populated with the saved state
+```
+
+If `auto_load=True` and no saved state exists, `PersistencySaver.__init__` raises
+`PersistencyLoadError` immediately.
