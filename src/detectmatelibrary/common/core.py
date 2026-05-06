@@ -21,10 +21,31 @@ class _Stoppable(Protocol):
     def stop(self) -> None: ...
 
 
+class TrainBuffer:
+    def __init__(self) -> None:
+        self.buffer: list[BaseSchema | list[BaseSchema]] = []
+
+    def __len__(self) -> int:
+        return len(self.buffer)
+
+    def __add__(self, elem: BaseSchema | list[BaseSchema]) -> "TrainBuffer":
+        self.buffer.append(elem)
+        return self
+
+    def __next__(self) -> BaseSchema | list[BaseSchema]:
+        if len(self.buffer) == 0:
+            raise StopIteration
+        return self.buffer.pop(0)
+
+    def __iter__(self) -> "TrainBuffer":
+        return self
+
+
 class CoreConfig(BasicConfig):
     start_id: int = 10
     data_use_training: int | None = None
     data_use_configure: int | None = None
+    use_config_data_as_training: bool = True
 
 
 class Component:
@@ -96,6 +117,7 @@ class CoreComponent(Component):
             data_use_configure=self.config.data_use_configure,
             data_use_training=self.config.data_use_training,
         )
+        self.buffer_train = TrainBuffer()
 
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
         is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)
@@ -107,11 +129,15 @@ class CoreComponent(Component):
         if (fit_state := self.fitlogic.run()) == FitLogicState.DO_CONFIG:
             logger.debug(f"<<{self.name}>> use data for configuration")
             self.configure(input_=data_buffered)
+            if self.config.use_config_data_as_training:
+                self.buffer_train + data_buffered
             return None
         elif self.fitlogic.finish_config():
             logger.debug(f"<<{self.name}>> finalizing configuration")
             self.set_configuration()
-
+            if self.config.use_config_data_as_training:
+                logger.debug(f"<<{self.name}>> Adding data from config to training")
+                [self.train(input_) for input_ in self.buffer_train]
         if fit_state == FitLogicState.DO_TRAIN:
             logger.debug(f"<<{self.name}>> use data for training")
             self.train(input_=data_buffered)
