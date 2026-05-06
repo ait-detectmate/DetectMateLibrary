@@ -463,24 +463,24 @@ class TestEventPersistencyIntegration:
         assert "timestamp" not in data2.columns  # Blacklisted
 
 
-class TestEventPersistencyDirtyCount:
-    def test_dirty_count_starts_at_zero(self):
+class TestEventPersistencyEventsSinceSave:
+    def test_events_since_save_starts_at_zero(self):
         p = EventPersistency(event_data_class=EventDataFrame)
-        assert p._dirty_count == 0
+        assert p._events_since_save == 0
 
-    def test_dirty_count_increments_on_ingest(self):
+    def test_events_since_save_increments_on_ingest(self):
         p = EventPersistency(event_data_class=EventDataFrame)
         p.ingest_event(**SAMPLE_EVENT_1)
-        assert p._dirty_count == 1
+        assert p._events_since_save == 1
 
-    def test_dirty_count_increments_for_no_variable_event(self):
+    def test_events_since_save_increments_for_no_variable_event(self):
         p = EventPersistency(event_data_class=EventDataFrame)
         p.ingest_event(event_id="E999", event_template="no vars")
-        assert p._dirty_count == 1
+        assert p._events_since_save == 1
 
-    def test_reset_dirty_count(self):
+    def test_reset_events_since_save(self):
         p = EventPersistency(event_data_class=EventDataFrame)
         p.ingest_event(**SAMPLE_EVENT_1)
         p.ingest_event(**SAMPLE_EVENT_2)
-        p.reset_dirty_count()
-        assert p._dirty_count == 0
+        p.reset_events_since_save()
+        assert p._events_since_save == 0

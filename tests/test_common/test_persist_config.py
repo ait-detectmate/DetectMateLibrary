@@ -16,7 +16,7 @@ class TestPersistConfig:
         cfg = PersistConfig()
         assert cfg.path == "./state"
         assert cfg.interval_seconds == 300
-        assert cfg.dirty_threshold is None
+        assert cfg.events_until_save is None
         assert cfg.auto_load is False
         assert cfg.storage_options == {}
 
@@ -26,9 +26,9 @@ class TestPersistConfig:
         assert cfg.interval_seconds == 60
         assert cfg.auto_load is True
 
-    def test_dirty_threshold_accepts_int(self):
-        cfg = PersistConfig(dirty_threshold=500)
-        assert cfg.dirty_threshold == 500
+    def test_events_until_save_accepts_int(self):
+        cfg = PersistConfig(events_until_save=500)
+        assert cfg.events_until_save == 500
 
     def test_extra_fields_rejected(self):
         with pytest.raises(ValidationError):

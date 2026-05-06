@@ -24,7 +24,7 @@ class TestPersistencySaverConfig:
     def test_defaults(self):
         cfg = PersistencySaverConfig(path="file:///tmp/test")
         assert cfg.save_interval_seconds == 300
-        assert cfg.dirty_threshold is None
+        assert cfg.events_until_save is None
         assert cfg.auto_load is False
         assert cfg.storage_options == {}
 
@@ -91,11 +91,11 @@ class TestPersistencySaverSaveLoad:
             meta = json.load(f)
         assert set(meta["events_seen"]) == {"E1", "E2"}
 
-    def test_save_resets_dirty_count(self):
+    def test_save_resets_events_since_save(self):
         saver, p = _memory_saver()
-        assert p._dirty_count == 3
+        assert p._events_since_save == 3
         saver.save()
-        assert p._dirty_count == 0
+        assert p._events_since_save == 0
 
     def test_load_restores_events_seen(self):
         saver, _ = _memory_saver()
@@ -146,7 +146,7 @@ class TestPersistencySaverTriggers:
         fs = fsspec.filesystem("memory")
         assert fs.exists("trigger_test/state/metadata.json")
 
-    def test_timed_save_resets_dirty_count(self):
+    def test_timed_save_resets_events_since_save(self):
         p = EventPersistency(event_data_class=EventDataFrame)
         cfg = PersistencySaverConfig(
             path="memory://dirty_test2/state",
@@ -160,7 +160,7 @@ class TestPersistencySaverTriggers:
         time.sleep(0.15)
         saver.stop()
 
-        assert p._dirty_count == 0  # save() was called by the timer, which resets dirty count
+        assert p._events_since_save == 0  # save() was called by the timer, which resets the counter
 
     def test_stop_does_final_save(self):
         p = _make_persistency_with_data()

@@ -25,7 +25,7 @@ class PersistConfig(BaseModel):
 
     path: str = "./state"
     interval_seconds: int = 300
-    dirty_threshold: int | None = None
+    events_until_save: int | None = None
     auto_load: bool = False
     storage_options: dict[str, Any] = {}
 
@@ -184,7 +184,7 @@ class CoreDetector(CoreComponent):
             PersistencySaverConfig(
                 path=f"{p.path}/{self.name}",
                 save_interval_seconds=p.interval_seconds,
-                dirty_threshold=p.dirty_threshold,
+                events_until_save=p.events_until_save,
                 auto_load=p.auto_load,
                 storage_options=p.storage_options,
             ),

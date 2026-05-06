@@ -50,7 +50,7 @@ class PersistencyLoadError(Exception):
 class PersistencySaverConfig:
     path: str
     save_interval_seconds: int = 300
-    dirty_threshold: int | None = None
+    events_until_save: int | None = None
     auto_load: bool = False
     storage_options: dict[str, Any] = field(default_factory=dict)
 
@@ -121,7 +121,7 @@ class PersistencySaver:
                 with self._fs.open(f"{self._root}/metadata.json", "w") as f:
                     json.dump(metadata, f, indent=2)
 
-                self._persistency.reset_dirty_count()
+                self._persistency.reset_events_since_save()
             except Exception as e:
                 logger.warning(f"PersistencySaver: save failed — {e}")
 
@@ -200,5 +200,5 @@ class PersistencySaver:
 
     def _tick(self) -> None:
         """Called by the timer thread each interval."""
-        # dirty_threshold reserved for future optimization
+        # events_until_save reserved for future optimization
         self.save()
