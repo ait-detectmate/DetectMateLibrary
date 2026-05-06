@@ -203,4 +203,5 @@ test.py
 # claude code
 CLAUDE.md
 docs/superpowers/
+docs/design/
 .claude/

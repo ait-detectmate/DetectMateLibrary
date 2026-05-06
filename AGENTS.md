@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -158,3 +158,9 @@ Pre-commit hooks enforce:
 - **docformatter** docstring style
 
 Python 3.12 is required (see `.python-version`).
+
+
+# Git
+NEVER include "Co-Authored-By ..." in your commit or PR messages.
+
+Design documents (files under `docs/design/`) must NEVER be committed to the repository.
