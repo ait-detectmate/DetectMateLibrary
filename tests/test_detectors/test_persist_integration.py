@@ -84,6 +84,38 @@ class TestNewValueComboDetectorPersist:
         assert det.saver is not None
         det.saver.stop()
 
+    def test_save_and_reload(self):
+        base_path = "memory://nvcd_reload/state"
+        det_name = "NVCD_Reload"
+
+        det1 = NewValueComboDetector(
+            name=det_name,
+            config=NewValueComboDetectorConfig(
+                auto_config=False,
+                persist=PersistConfig(path=base_path),
+            ),
+        )
+        det1.persistency.ingest_event(
+            event_id=1,
+            event_template="login <*>",
+            named_variables={"user": "alice"},
+        )
+        assert det1.saver is not None
+        assert isinstance(det1.saver, PersistencySaver)
+        det1.saver.save()
+        det1.saver.stop()
+
+        det2 = NewValueComboDetector(
+            name=det_name,
+            config=NewValueComboDetectorConfig(
+                auto_config=False,
+                persist=PersistConfig(path=base_path, auto_load=True),
+            ),
+        )
+        assert 1 in det2.persistency.get_events_seen()
+        assert det2.saver is not None
+        det2.saver.stop()
+
 
 class TestNewEventDetectorPersist:
     def test_no_saver_by_default(self):

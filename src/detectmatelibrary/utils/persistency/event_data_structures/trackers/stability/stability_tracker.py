@@ -77,7 +77,9 @@ class SingleStabilityTracker(SingleTracker):
         runs = [(bool(r[0]), int(r[1])) for r in state["runs"]]
         tracker.change_series._runs = runs
         tracker.change_series._len = sum(count for _, count in runs)
-        tracker.unique_set = set(state["unique_set"])
+        tracker.unique_set = {
+            tuple(v) if isinstance(v, list) else v for v in state["unique_set"]
+        }
         tracker.stability_classifier = StabilityClassifier(
             segment_thresholds=state["segment_thresholds"]
         )

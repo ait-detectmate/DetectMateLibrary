@@ -116,7 +116,7 @@ class PersistencySaver:
                     },
                     "event_backends": event_backends,
                     "event_extensions": event_extensions,
-                    "event_data_kwargs": self._persistency.event_data_kwargs,
+                    "event_data_kwargs": self._safe_event_data_kwargs(),
                 }
                 with self._fs.open(f"{self._root}/metadata.json", "w") as f:
                     json.dump(metadata, f, indent=2)
@@ -178,11 +178,25 @@ class PersistencySaver:
 
     def stop(self) -> None:
         """Stop the timer and do a final save."""
-        if self._timer is not None:
-            self._timer.stop()
-            self._timer.join(timeout=5.0)
-            self._timer = None
+        if self._timer is None:
+            return
+        self._timer.stop()
+        self._timer.join(timeout=5.0)
+        self._timer = None
+        atexit.unregister(self.stop)
         self.save()
+
+    def _safe_event_data_kwargs(self) -> dict[str, Any]:
+        """Return event_data_kwargs with non-JSON-serializable values
+        excluded."""
+        safe = {}
+        for k, v in self._persistency.event_data_kwargs.items():
+            try:
+                json.dumps(v)
+                safe[k] = v
+            except (TypeError, ValueError):
+                pass
+        return safe
 
     def _tick(self) -> None:
         """Called by the timer thread each interval."""

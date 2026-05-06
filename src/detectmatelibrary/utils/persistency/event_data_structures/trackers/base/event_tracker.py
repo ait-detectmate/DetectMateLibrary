@@ -69,7 +69,18 @@ class EventTracker(EventDataStructure):
         Note: event_id and template (base dataclass fields) are not restored;
         they remain at defaults (-1 and "") as they are managed by EventPersistency.
         """
-        state = msgpack.unpackb(data, raw=False)
+        def _list_keys_to_tuples(pairs: list[tuple[Any, Any]]) -> dict[Any, Any]:
+            """Convert list keys (from msgpack) back to tuples so they can be
+            used as dict keys."""
+            result: dict[Any, Any] = {}
+            for k, v in pairs:
+                if isinstance(k, list):
+                    k = tuple(k)
+                result[k] = v
+            return result
+
+        state = msgpack.unpackb(data, raw=False, strict_map_key=False,
+                                object_pairs_hook=_list_keys_to_tuples)
         single_tracker_cls = getattr(
             importlib.import_module(state["single_tracker_module"]),
             state["single_tracker_type"],
