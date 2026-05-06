@@ -1,8 +1,12 @@
+import warnings
+
 import fsspec
 import pytest
 from pydantic import ValidationError
 
+from detectmatelibrary.common._config._compile import MissingParamsWarning
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig, PersistConfig
+from detectmatelibrary.detectors.new_value_detector import NewValueDetectorConfig
 from detectmatelibrary.utils.persistency.event_data_structures.trackers import EventStabilityTracker
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 
@@ -74,3 +78,68 @@ class TestRegisterPersistency:
         det.saver.stop()  # stop() calls save() as final save
         fs = fsspec.filesystem("memory")
         assert fs.exists("regpersist_path/state/MyDetector/metadata.json")
+
+
+class TestPersistConfigSerialization:
+    def test_to_dict_places_persist_at_top_level(self):
+        config = NewValueDetectorConfig(
+            auto_config=True,
+            persist=PersistConfig(path="./my-state", interval_seconds=60),
+        )
+        result = config.to_dict("MyDet")
+        inner = result["detectors"]["MyDet"]
+        assert "persist" in inner
+        assert inner["persist"]["path"] == "./my-state"
+        assert inner["persist"]["interval_seconds"] == 60
+        assert "persist" not in inner.get("params", {})
+
+    def test_to_dict_omits_persist_when_none(self):
+        config = NewValueDetectorConfig(auto_config=True)
+        result = config.to_dict("MyDet")
+        inner = result["detectors"]["MyDet"]
+        assert "persist" not in inner
+
+    def test_from_dict_loads_persist_block(self):
+        config_dict = {
+            "detectors": {
+                "MyDet": {
+                    "method_type": "new_value_detector",
+                    "auto_config": True,
+                    "persist": {"path": "./my-state", "interval_seconds": 60},
+                }
+            }
+        }
+        config = NewValueDetectorConfig.from_dict(config_dict, "MyDet")
+        assert config.persist is not None
+        assert config.persist.path == "./my-state"
+        assert config.persist.interval_seconds == 60
+
+    def test_roundtrip_yaml_to_pydantic_to_yaml(self):
+        config_dict = {
+            "detectors": {
+                "MyDet": {
+                    "method_type": "new_value_detector",
+                    "auto_config": True,
+                    "persist": {"path": "./my-state"},
+                }
+            }
+        }
+        config = NewValueDetectorConfig.from_dict(config_dict, "MyDet")
+        result = config.to_dict("MyDet")
+        assert result["detectors"]["MyDet"]["persist"]["path"] == "./my-state"
+
+    def test_no_missing_params_warning_with_persist_only(self):
+        config_dict = {
+            "detectors": {
+                "MyDet": {
+                    "method_type": "new_value_detector",
+                    "auto_config": False,
+                    "persist": {"path": "./state"},
+                }
+            }
+        }
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            NewValueDetectorConfig.from_dict(config_dict, "MyDet")
+        missing_params_warnings = [x for x in w if issubclass(x.category, MissingParamsWarning)]
+        assert len(missing_params_warnings) == 0

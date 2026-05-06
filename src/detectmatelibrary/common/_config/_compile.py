@@ -94,8 +94,10 @@ class ConfigMethods:
         has_params = "params" in config
         has_events = "events" in config
         has_instances = "global" in config
+        has_persist = "persist" in config
 
-        if not has_params and not has_events and not has_instances and not config.get("auto_config", False):
+        no_data = not has_params and not has_events and not has_instances and not has_persist
+        if no_data and not config.get("auto_config", False):
             warnings.warn(MissingParamsWarning())
 
         if has_params:
