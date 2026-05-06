@@ -4,6 +4,7 @@ from detectmatelibrary.common.core import CoreComponent, CoreConfig
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 from detectmatelibrary.utils.aux import get_timestamp
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
+from pydantic import BaseModel, ConfigDict
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
@@ -15,6 +16,16 @@ from tools.logging import logger
 
 
 _time_handler = TimeFormatHandler()
+
+
+class PersistConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    path: str = "./state"
+    interval_seconds: int = 300
+    dirty_threshold: int | None = None
+    auto_load: bool = False
+    storage_options: dict[str, Any] = {}
 
 
 def _extract_timestamp(
@@ -138,6 +149,7 @@ class CoreDetectorConfig(CoreConfig):
     auto_config: bool = True
     events: EventsConfig | dict[str, Any] = {}
     global_instances: Dict[str, _EventInstance] = {}
+    persist: PersistConfig | None = None
 
 
 class CoreDetector(CoreComponent):
