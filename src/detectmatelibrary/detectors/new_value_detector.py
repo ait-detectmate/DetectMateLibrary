@@ -135,6 +135,7 @@ class NewValueDetector(CoreDetector):
             vars_ = stable + static
             if len(vars_) > 0:
                 variables[event_id] = vars_
+        old_persist = self.config.persist
         config_dict = generate_detector_config(
             variable_selection=variables,
             detector_name=self.name,
@@ -142,6 +143,7 @@ class NewValueDetector(CoreDetector):
         )
         # Update the config object from the dictionary instead of replacing it
         self.config = NewValueDetectorConfig.from_dict(config_dict, self.name)
+        self.config.persist = old_persist
         events = self.config.events
         if isinstance(events, EventsConfig) and not events.events:
             logger.warning(

@@ -184,6 +184,7 @@ class NewValueComboDetector(CoreDetector):
         would explode combinatorially).
         """
         config = cast(NewValueComboDetectorConfig, self.config)
+        old_persist = config.persist
         # run WITH auto_conf_persistency
         variable_combos = {}
         for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
@@ -229,6 +230,7 @@ class NewValueComboDetector(CoreDetector):
         )
         # Update the config object from the dictionary instead of replacing it
         self.config = NewValueComboDetectorConfig.from_dict(config_dict, self.name)
+        self.config.persist = old_persist
         events = self.config.events
         if isinstance(events, EventsConfig) and not events.events:
             logger.warning(

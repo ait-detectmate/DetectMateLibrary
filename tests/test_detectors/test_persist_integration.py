@@ -54,6 +54,21 @@ class TestNewValueDetectorPersist:
         assert det2.saver is not None
         det2.saver.stop()
 
+    def test_set_configuration_preserves_persist_config(self):
+        """Persist field must survive an auto-config set_configuration()
+        rebuild."""
+        config = NewValueDetectorConfig(
+            auto_config=True,
+            persist=PersistConfig(path="memory://set_config_preserve/state"),
+        )
+        det = NewValueDetector(name="SetConfigTest", config=config)
+        assert det.config.persist is not None  # sanity: persist is set before
+        det.set_configuration()
+        assert det.config.persist is not None  # must survive config rebuild
+        assert det.config.persist.path == "memory://set_config_preserve/state"
+        assert det.saver is not None
+        det.saver.stop()
+
 
 class TestNewValueComboDetectorPersist:
     def test_no_saver_by_default(self):
