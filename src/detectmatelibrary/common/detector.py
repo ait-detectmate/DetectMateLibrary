@@ -5,11 +5,12 @@ from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 from detectmatelibrary.utils.aux import get_timestamp
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from pydantic import BaseModel, ConfigDict
+from detectmatelibrary.utils.persistency.persistency_saver import PersistencySaver, PersistencySaverConfig
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
 from typing_extensions import override
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, cast
 
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 from tools.logging import logger
@@ -171,6 +172,24 @@ class CoreDetector(CoreComponent):
             input_schema=ParserSchema,
             output_schema=DetectorSchema,
         )
+
+    def _register_persistency(self, persistency: EventPersistency) -> None:
+        config = cast(CoreDetectorConfig, self.config)
+        if config.persist is None:
+            return
+        p = config.persist
+        saver = PersistencySaver(
+            persistency,
+            PersistencySaverConfig(
+                path=f"{p.path}/{self.name}",
+                save_interval_seconds=p.interval_seconds,
+                dirty_threshold=p.dirty_threshold,
+                auto_load=p.auto_load,
+                storage_options=p.storage_options,
+            ),
+        )
+        saver.start()
+        self.saver = saver
 
     @override
     def run(

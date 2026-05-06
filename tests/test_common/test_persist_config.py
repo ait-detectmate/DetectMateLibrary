@@ -1,6 +1,10 @@
+import fsspec
 import pytest
 from pydantic import ValidationError
-from detectmatelibrary.common.detector import PersistConfig, CoreDetectorConfig
+
+from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig, PersistConfig
+from detectmatelibrary.utils.persistency.event_data_structures.trackers import EventStabilityTracker
+from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 
 
 class TestPersistConfig:
@@ -40,3 +44,33 @@ class TestCoreDetectorConfigPersistField:
     def test_persist_accepts_none_explicitly(self):
         cfg = CoreDetectorConfig(persist=None)
         assert cfg.persist is None
+
+
+class TestRegisterPersistency:
+    def test_noop_when_persist_is_none(self):
+        det = CoreDetector()
+        p = EventPersistency(event_data_class=EventStabilityTracker)
+        det._register_persistency(p)
+        assert det.saver is None
+
+    def test_creates_saver_when_persist_configured(self):
+        config = CoreDetectorConfig(
+            persist=PersistConfig(path="memory://regpersist_create/state")
+        )
+        det = CoreDetector(config=config)
+        p = EventPersistency(event_data_class=EventStabilityTracker)
+        det._register_persistency(p)
+        assert det.saver is not None
+        det.saver.stop()
+
+    def test_saver_path_includes_detector_name(self):
+        config = CoreDetectorConfig(
+            persist=PersistConfig(path="memory://regpersist_path/state")
+        )
+        det = CoreDetector(name="MyDetector", config=config)
+        p = EventPersistency(event_data_class=EventStabilityTracker)
+        det._register_persistency(p)
+        assert det.saver is not None
+        det.saver.stop()  # stop() calls save() as final save
+        fs = fsspec.filesystem("memory")
+        assert fs.exists("regpersist_path/state/MyDetector/metadata.json")
