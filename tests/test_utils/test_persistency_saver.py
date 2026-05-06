@@ -174,6 +174,45 @@ class TestPersistencySaverTriggers:
         fs = fsspec.filesystem("memory")
         assert fs.exists("stop_test/state/metadata.json")
 
+    def test_events_until_save_triggers_save(self):
+        p = EventPersistency(event_data_class=EventDataFrame)
+        cfg = PersistencySaverConfig(
+            path="memory://events_count_test/state",
+            save_interval_seconds=9999,
+            events_until_save=3,
+        )
+        PersistencySaver(p, cfg)  # no start() needed — callback fires on ingest
+        for i in range(3):
+            p.ingest_event(event_id="E1", event_template="T", variables=[str(i)], named_variables={})
+        fs = fsspec.filesystem("memory")
+        assert fs.exists("events_count_test/state/metadata.json")
+
+    def test_events_until_save_no_save_before_threshold(self):
+        p = EventPersistency(event_data_class=EventDataFrame)
+        cfg = PersistencySaverConfig(
+            path="memory://events_count_test2/state",
+            save_interval_seconds=9999,
+            events_until_save=5,
+        )
+        PersistencySaver(p, cfg)
+        for i in range(4):
+            p.ingest_event(event_id="E1", event_template="T", variables=[str(i)], named_variables={})
+        fs = fsspec.filesystem("memory")
+        assert not fs.exists("events_count_test2/state/metadata.json")
+
+    def test_events_until_save_resets_counter_and_retrigggers(self):
+        p = EventPersistency(event_data_class=EventDataFrame)
+        cfg = PersistencySaverConfig(
+            path="memory://events_count_test3/state",
+            save_interval_seconds=9999,
+            events_until_save=2,
+        )
+        PersistencySaver(p, cfg)
+        for i in range(4):
+            p.ingest_event(event_id="E1", event_template="T", variables=[str(i)], named_variables={})
+        # counter should be 0 — two saves fired (at event 2 and event 4)
+        assert p._events_since_save == 0
+
     def test_auto_load_on_init(self):
         # First: save some state
         p1 = _make_persistency_with_data()

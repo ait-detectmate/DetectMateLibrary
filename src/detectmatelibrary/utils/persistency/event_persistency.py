@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Callable, Dict, List, Optional, Type
 
 from .event_data_structures.base import EventDataStructure
 
@@ -32,6 +32,7 @@ class EventPersistency:
         self.variable_blacklist = variable_blacklist or []
         self.event_templates: Dict[int | str, str] = {}
         self._events_since_save: int = 0
+        self._on_ingest_callbacks: list[Callable[[], None]] = []
 
     def ingest_event(
         self,
@@ -42,6 +43,8 @@ class EventPersistency:
     ) -> None:
         """Ingest event data into the appropriate EventData store."""
         self._events_since_save += 1
+        for _cb in self._on_ingest_callbacks:
+            _cb()
         self.events_seen.add(event_id)
         if not variables and not named_variables:
             return
@@ -59,6 +62,10 @@ class EventPersistency:
     def reset_events_since_save(self) -> None:
         """Reset the events-since-save counter after a successful save."""
         self._events_since_save = 0
+
+    def register_on_ingest(self, callback: Callable[[], None]) -> None:
+        """Register a callback invoked after every ingest_event call."""
+        self._on_ingest_callbacks.append(callback)
 
     def get_events_seen(self) -> set[int | str]:
         """Retrieve all event IDs observed via ingest_event(), regardless of

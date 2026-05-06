@@ -83,6 +83,9 @@ class PersistencySaver:
         self._lock = threading.Lock()
         self._timer: _SaveTimer | None = None
 
+        if config.events_until_save is not None:
+            persistency.register_on_ingest(self._check_event_count)
+
         if config.auto_load:
             self.load()
 
@@ -198,7 +201,15 @@ class PersistencySaver:
                 pass
         return safe
 
+    def _check_event_count(self) -> None:
+        """Trigger a save when ingested-event count reaches
+        events_until_save."""
+        if (
+            self._config.events_until_save is not None
+            and self._persistency._events_since_save >= self._config.events_until_save
+        ):
+            self.save()
+
     def _tick(self) -> None:
         """Called by the timer thread each interval."""
-        # events_until_save reserved for future optimization
         self.save()
