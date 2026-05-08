@@ -337,7 +337,7 @@ class TestValueRangeDetectorEndToEnd:
         for log in logs[:1800]:
             logger.setLevel(logging.CRITICAL)
             detector.train(log)
-            logger.setLevel(logging.INFO)
+            logger.setLevel(logging.DEBUG)
 
         detected_ids: set[str] = set()
         for log in logs[1800:]:
@@ -372,7 +372,7 @@ class TestValueRangeDetectorAutoConfig:
         for log in logs[:1800]:
             logger.setLevel(logging.CRITICAL)
             detector.process(log)
-            logger.setLevel(logging.INFO)
+            logger.setLevel(logging.DEBUG)
 
         # Phase 3: detect — stop training so process() only calls detect()
         detector.fitlogic.train_state = TrainState.STOP_TRAINING
