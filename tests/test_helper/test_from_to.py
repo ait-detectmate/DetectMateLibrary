@@ -5,6 +5,9 @@ from detectmatelibrary.parsers.dummy_parser import DummyParser
 
 import detectmatelibrary.schemas as schemas
 
+import detectmateperformance as dmp
+
+import polars as pl
 import json
 import yaml
 import os
@@ -135,6 +138,64 @@ class TestCaseFrom:
         log2 = next(From.yaml(parser, yaml_path, do_process=False))
 
         assert log1 == log2
+
+    def test_frompolars(self):
+        table = pl.DataFrame({
+            "Type": ["A", "B"],
+            "Content": ["hello there", "general kenobi"],
+            "ParamList": [["a", "b"], ["c", "d"]],
+            "Templates": ["hello <*>", "<*> kenobi"],
+            "EventIDs": [0, 1]
+        })
+        gen = From.polars(DummyDetector(), df=table, do_process=False)
+
+        parsed1 = next(gen)
+        schema1 = schemas.ParserSchema({
+            "log": "hello there",
+            "variables": ["a", "b"],
+            "template": "hello <*>",
+            "EventID": 0,
+            "logFormatVariables": {"Type": "A"}
+        })
+        for field in ["log", "variables", "template", "EventID", "logFormatVariables"]:
+            assert parsed1[field] == schema1[field], field
+        assert parsed1["logID"] == "0"
+
+        parsed2 = next(gen)
+        schema2 = schemas.ParserSchema({
+            "log": "general kenobi",
+            "variables": ["c", "d"],
+            "template": "<*> kenobi",
+            "EventID": 1,
+            "logFormatVariables": {"Type": "B"}
+        })
+        for field in ["log", "variables", "template", "EventID", "logFormatVariables"]:
+            assert parsed2[field] == schema2[field], field
+        assert parsed2["logID"] == "1"
+
+    def test_frompolars_rename(self):
+        table = pl.DataFrame({
+            "Type": ["A", "B"],
+            "Content": ["hello there", "general kenobi"],
+            "Vars": [["a", "b"], ["c", "d"]],
+            "Templates": ["hello <*>", "<*> kenobi"],
+            "EventIDs": [0, 1]
+        })
+        renames = {
+            "Content": "log", "Vars": "variables", "EventIDs": "EventID", "Templates": "template"
+        }
+        gen = From.polars(DummyDetector(), df=table, do_process=False, renames=renames)
+
+        parsed1 = next(gen)
+        schema1 = schemas.ParserSchema({
+            "log": "hello there",
+            "variables": ["a", "b"],
+            "template": "hello <*>",
+            "EventID": 0,
+            "logFormatVariables": {"Type": "A"}
+        })
+        for field in ["log", "variables", "template", "EventID", "logFormatVariables"]:
+            assert parsed1[field] == schema1[field], field
 
 
 class TestCaseFromTo:
@@ -309,6 +370,57 @@ class TestCaseFromTo:
         with open(yaml_path2) as f:
             assert 5 == len(yaml.safe_load(f))
 
+    @remove_files
+    def test_polars2binary(self):
+        detector = DummyDetector()
+        table = pl.DataFrame({
+            "Type": ["A", "B"],
+            "Content": ["hello there", "general kenobi"],
+            "ParamList": [["a", "b"], ["c", "d"]],
+            "Templates": ["hello <*>", "<*> kenobi"],
+            "EventIDs": [0, 1]
+        })
+        gen = FromTo.polars2binary_file(detector, df=table, out_path=binary_path)
+        for _ in gen:
+            pass
+
+        with open(binary_path) as f:
+            assert 1 == len(f.readlines())
+
+    @remove_files
+    def test_polars2json(self):
+        detector = DummyDetector()
+        table = pl.DataFrame({
+            "Type": ["A", "B"],
+            "Content": ["hello there", "general kenobi"],
+            "ParamList": [["a", "b"], ["c", "d"]],
+            "Templates": ["hello <*>", "<*> kenobi"],
+            "EventIDs": [0, 1]
+        })
+        gen = FromTo.polars2json(detector, df=table, out_path=json_path)
+        for _ in gen:
+            pass
+
+        with open(json_path) as f:
+            assert 1 == len(json.load(f))
+
+    @remove_files
+    def test_polars2yaml(self):
+        detector = DummyDetector()
+        table = pl.DataFrame({
+            "Type": ["A", "B"],
+            "Content": ["hello there", "general kenobi"],
+            "ParamList": [["a", "b"], ["c", "d"]],
+            "Templates": ["hello <*>", "<*> kenobi"],
+            "EventIDs": [0, 1]
+        })
+        gen = FromTo.polars2yaml(detector, df=table, out_path=yaml_path)
+        for _ in gen:
+            pass
+
+        with open(yaml_path) as f:
+            assert 1 == len(yaml.safe_load(f))
+
 
 class TestUseCase:
     # The idea of this tests is to check that they do not crash in normal use
@@ -366,3 +478,20 @@ class TestUseCase:
 
         assert os.path.exists(json_path)
         assert os.path.exists(json_path2)
+
+    @remove_files
+    def test_case4(self):
+        matcher = dmp.match_tree.TreeMatcher(
+            templates=dmp.types_.LogTemplates(["hello <*>"])
+        )
+        detector = DummyDetector()
+
+        df = matcher(["hello there", "general kenobi"], get_var=True)
+        for parsed_log in From.polars(detector, df=df):
+            if parsed_log is not None:
+                assert parsed_log["logIDs"] == ["1"]
+
+        df = matcher(["hello there", "general kenobi"], get_var=False)
+        for parsed_log in From.polars(detector, df=df):
+            if parsed_log is not None:
+                assert parsed_log["logIDs"] == ["1"]

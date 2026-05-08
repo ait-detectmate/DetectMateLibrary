@@ -36,6 +36,19 @@ class From:
         component: CoreComponent, in_path: str, do_process: bool = True
     ) -> Iterator[BaseSchema]:
         """Load YAML files as input schemas."""
+
+    @staticmethod
+    def polars(
+        component: CoreComponent,
+        df: DataFrame,
+        do_process: bool = True,
+        renames: dict[str, str] | None = None
+    ) -> Iterator[BaseSchema]:
+        """
+        Load Polars dataframe as input schemas follow DetectMatePerformance format.
+
+        *  renames: allow to rename the dataframe inside the method
+        """
 ```
 
 ### Usage
@@ -166,6 +179,33 @@ class FromTo:
         component: CoreComponent, in_path: str, out_path: str
     ) -> Iterator[BaseSchema]:
         """Load a YAML file and save it to a YAML file."""
+
+    @staticmethod
+    def polars2binary_file(
+        component: CoreComponent,
+        df: DataFrame,
+        out_path: str,
+        renames: dict[str, str] | None = None
+    ) -> Iterator[BaseSchema]:
+        """Load DetectMatePerformance Dataframe to binary file"""
+
+    @staticmethod
+    def polars2json(
+        component: CoreComponent,
+        df: DataFrame,
+        out_path: str,
+        renames: dict[str, str] | None = None
+    ) -> Iterator[BaseSchema]:
+        """Load DetectMatePerformance Dataframe to json"""
+
+    @staticmethod
+    def polars2yaml(
+        component: CoreComponent,
+        df: DataFrame,
+        out_path: str,
+        renames: dict[str, str] | None = None
+    ) -> Iterator[BaseSchema]:
+        """Load DetectMatePerformance Dataframe to yaml"""
 ```
 
 ### Usage
