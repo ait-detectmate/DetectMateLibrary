@@ -10,7 +10,7 @@ __all__ = [
     "NewValueDetectorConfig",
     "RandomDetector",
     "NewEventDetector",
-    "NewEventDetectorConfig"
+    "NewEventDetectorConfig",
     "ValueRangeDetector",
     "ValueRangeDetectorConfig"
 ]

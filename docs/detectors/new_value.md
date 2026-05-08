@@ -56,7 +56,7 @@ parser_data = schemas.ParserSchema({
 })
 
 
-alert = detector.process(parsed_data)
+alert = detector.process(parser_data)
 ```
 
 Go back [Index](../index.md)

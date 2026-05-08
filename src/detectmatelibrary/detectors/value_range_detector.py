@@ -1,6 +1,5 @@
 from detectmatelibrary.common._config._compile import generate_detector_config
 from detectmatelibrary.common._config._formats import EventsConfig
-
 from detectmatelibrary.common.detector import (
     CoreDetectorConfig,
     CoreDetector,
@@ -13,12 +12,11 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers.stabilit
 )
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from detectmatelibrary.utils.data_buffer import BufferMode
-
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
-
 from typing_extensions import override
 from tools.logging import logger
+from typing import Dict, List, Any
 
 
 class ValueRangeDetectorConfig(CoreDetectorConfig):
@@ -51,7 +49,8 @@ class ValueRangeDetector(CoreDetector):
             event_data_class=EventStabilityTracker
         )
 
-    def cast_val_to_numeric(self, configured_variables, k, remove, stage):
+    def cast_val_to_numeric(self, configured_variables: Dict[str, Any], k: str, remove: List[str],
+                            stage: str) -> bool:
         v = configured_variables[k]
         if not isinstance(v, (int, float)):
             try:
@@ -71,7 +70,7 @@ class ValueRangeDetector(CoreDetector):
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by learning values from the input data."""
         configured_variables = get_configured_variables(input_, self.config.events)
-        remove = []
+        remove: List[str] = []
         for k in configured_variables.keys():
             self.cast_val_to_numeric(configured_variables, k, remove, "training")
         for k in remove:
@@ -96,13 +95,10 @@ class ValueRangeDetector(CoreDetector):
         """Detect new value ranges in the input data."""
         alerts: dict[str, str] = {}
         configured_variables = get_configured_variables(input_, self.config.events)
-        #print("configured", configured_variables)
-        #print("input", input_)
         overall_score = 0.0
 
         current_event_id = input_["EventID"]
         known_events = self.persistency.get_events_data()
-        # print("KNOWN EVENTS", known_events)
 
         if current_event_id in known_events:
             event_tracker = known_events[current_event_id]
@@ -129,8 +125,14 @@ class ValueRangeDetector(CoreDetector):
                     continue
                 min_ = min(multi_tracker.unique_set)
                 max_ = max(multi_tracker.unique_set)
+                if isinstance(value, float):
+                    min_ = float(min_)
+                    max_ = float(max_)
+                else:
+                    min_ = int(min_)
+                    max_ = int(max_)
                 if value < min_ or value > max_:
-                    alerts[f"Global - {var_name}"] = f"Unknown value: '{value}'"
+                    alerts[f"Global - {var_name}"] = f"Out of range value: '{value}' ({min_} - {max_})"
                     overall_score += 1.0
 
         if overall_score > 0:
@@ -142,7 +144,6 @@ class ValueRangeDetector(CoreDetector):
         return False
 
     def configure(self, input_: ParserSchema) -> None:  # type: ignore
-        #print(input_["variables"], "AAA")
         self.auto_conf_persistency.ingest_event(
             event_id=input_["EventID"],
             event_template=input_["template"],
@@ -158,7 +159,6 @@ class ValueRangeDetector(CoreDetector):
     def set_configuration(self) -> None:
         variables = {}
         for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
-            # UNSTABLE VARS ARE POSSIBLE HERE!
             stable = []
             if self.config.use_stable_vars:
                 stable = tracker.get_features_by_classification("STABLE")  # type: ignore

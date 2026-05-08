@@ -11,7 +11,7 @@ import logging
 import random
 import pytest
 from detectmatelibrary.common._core_op._fit_logic import TrainState
-from detectmatelibrary.detectors.value_range_detector import (ValueRangeDetector, ValueRangeDetectorConfig, \
+from detectmatelibrary.detectors.value_range_detector import (ValueRangeDetector, ValueRangeDetectorConfig,
                                                               BufferMode)
 from detectmatelibrary.common._core_op._fit_logic import ConfigState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
@@ -173,7 +173,6 @@ class TestValueRangeDetectorTraining:
             detector.detect(parser_data, output)
         assert excinfo.value.code == 1
 
-
     def test_train_detect_non_numeric_ignore(self):
         """Test training with non-numeric values and ignoring them."""
 
@@ -309,7 +308,7 @@ _PARSER_CONFIG = {
         "MatcherParser": {
             "method_type": "matcher_parser",
             "auto_config": False,
-            "log_format": "type=<Type> msg=audit(<Time>): <Content>",
+            "log_format": "type=<Type> msg=audit(<Time>:<Line>): <Content>",
             "time_format": None,
             "params": {
                 "remove_spaces": True,
@@ -340,7 +339,6 @@ class TestValueRangeDetectorEndToEnd:
             detector.train(log)
             logger.setLevel(logging.INFO)
 
-
         detected_ids: set[str] = set()
         for log in logs[1800:]:
             output = schemas.DetectorSchema()
@@ -349,77 +347,80 @@ class TestValueRangeDetectorEndToEnd:
 
         # uid is not always 0 for event id 0. uid=1002 in line 1864 is a different event id.
         assert detected_ids == {'1859', '1860', '1861', '1862'}
-#
-#
-# class TestValueRangeDetectorAutoConfig:
-#     """Test that process() drives configure/set_configuration/train/detect
-#     automatically."""
-#
-#     def test_audit_log_anomalies_via_process(self):
-#         parser = MatcherParser(config=_PARSER_CONFIG)
-#         detector = ValueRangeDetector()
-#
-#         logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
-#
-#         # Phase 1: configure — keep configuring for logs[:1800]
-#         detector.fitlogic.configure_state = ConfigState.KEEP_CONFIGURE
-#         for log in logs[:1800]:
-#             detector.process(log)
-#
-#         # Transition: stop configure so next process() call triggers set_configuration()
-#         detector.fitlogic.configure_state = ConfigState.STOP_CONFIGURE
-#
-#         # Phase 2: train — keep training for logs[:1800]
-#         detector.fitlogic.train_state = TrainState.KEEP_TRAINING
-#         for log in logs[:1800]:
-#             detector.process(log)
-#
-#         # Phase 3: detect — stop training so process() only calls detect()
-#         detector.fitlogic.train_state = TrainState.STOP_TRAINING
-#         detected_ids: set[str] = set()
-#         for log in logs[1800:]:
-#             if detector.process(log) is not None:
-#                 detected_ids.add(log["logID"])
-#
-#         assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
 
 
-# class TestValueRangeDetectorGlobalInstances:
-#     """Tests event-ID-independent global instance detection."""
-#
-#     def test_global_instance_detects_new_type(self):
-#         """Global instance monitoring Type detects CRED_REFR, USER_AUTH,
-#         USER_CMD which only appear after the training window (line 1800+)."""
-#         parser = MatcherParser(config=_PARSER_CONFIG)
-#         config_dict = {
-#             "detectors": {
-#                 "ValueRangeDetector": {
-#                     "method_type": "value_range_detector",
-#                     "auto_config": False,
-#                     "global": {
-#                         "test": {
-#                             "header_variables": [{"pos": "Type"}]
-#                         }
-#                     }
-#                 }
-#             }
-#         }
-#         config = ValueRangeDetectorConfig.from_dict(config_dict, "ValueRangeDetector")
-#         detector = ValueRangeDetector(config=config)
-#
-#         logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
-#
-#         for log in logs[:1800]:
-#             detector.train(log)
-#
-#         # Global tracker must be populated under the sentinel event ID
-#         assert GLOBAL_EVENT_ID in detector.persistency.get_events_data()
-#
-#         detected_ids: set[str] = set()
-#         for log in logs[1800:]:
-#             output = schemas.DetectorSchema()
-#             if detector.detect(log, output_=output):
-#                 assert all(key.startswith("Global -") for key in output["alertsObtain"])
-#                 detected_ids.add(log["logID"])
-#
-#         assert len(detected_ids) > 0
+class TestValueRangeDetectorAutoConfig:
+    """Test that process() drives configure/set_configuration/train/detect
+    automatically."""
+
+    def test_audit_log_anomalies_via_process(self):
+        parser = MatcherParser(config=_PARSER_CONFIG)
+        detector = ValueRangeDetector()
+
+        logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
+
+        # Phase 1: configure — keep configuring for logs[:1800]
+        detector.fitlogic.configure_state = ConfigState.KEEP_CONFIGURE
+        for log in logs[:1800]:
+            detector.process(log)
+
+        # Transition: stop configure so next process() call triggers set_configuration()
+        detector.fitlogic.configure_state = ConfigState.STOP_CONFIGURE
+
+        # Phase 2: train — keep training for logs[:1800]
+        detector.fitlogic.train_state = TrainState.KEEP_TRAINING
+        for log in logs[:1800]:
+            logger.setLevel(logging.CRITICAL)
+            detector.process(log)
+            logger.setLevel(logging.INFO)
+
+        # Phase 3: detect — stop training so process() only calls detect()
+        detector.fitlogic.train_state = TrainState.STOP_TRAINING
+        detected_ids: set[str] = set()
+        for log in logs[1800:]:
+            if detector.process(log) is not None:
+                detected_ids.add(log["logID"])
+
+        assert detected_ids == {'1859', '1860', '1861', '1862'}
+
+
+class TestValueRangeDetectorGlobalInstances:
+    """Tests event-ID-independent global instance detection."""
+
+    def test_global_instance_detects_new_type(self):
+        """Global instance monitoring Type detects CRED_REFR, USER_AUTH,
+        USER_CMD which only appear after the training window (line 1800+)."""
+        parser = MatcherParser(config=_PARSER_CONFIG)
+        config_dict = {
+            "detectors": {
+                "ValueRangeDetector": {
+                    "method_type": "value_range_detector",
+                    "auto_config": False,
+                    "params": {"ignore_non_numerical_val": True},
+                    "global": {
+                        "test": {
+                            "header_variables": [{"pos": "Time"}]
+                        }
+                    }
+                }
+            }
+        }
+        config = ValueRangeDetectorConfig.from_dict(config_dict, "ValueRangeDetector")
+        detector = ValueRangeDetector(config=config)
+
+        logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
+
+        for log in logs[:1800]:
+            detector.train(log)
+
+        # Global tracker must be populated under the sentinel event ID
+        assert GLOBAL_EVENT_ID in detector.persistency.get_events_data()
+
+        detected_ids: set[str] = set()
+        for log in logs[1800:]:
+            output = schemas.DetectorSchema()
+            if detector.detect(log, output_=output):
+                assert all(key.startswith("Global -") for key in output["alertsObtain"])
+                detected_ids.add(log["logID"])
+
+        assert len(detected_ids) > 0
