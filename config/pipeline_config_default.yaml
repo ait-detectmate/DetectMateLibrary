@@ -90,7 +90,7 @@ detectors:
         "events":
             1:
                 "test":
-                    "params": {},
+                    "params": {}
                     "variables":
                         - "pos": 1
                           "name": test
