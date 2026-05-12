@@ -3,8 +3,6 @@ from typing import Any, Dict, List
 from dataclasses import dataclass, field
 
 import pandas as pd
-import pyarrow as pa
-import pyarrow.parquet as pq
 
 from ..base import EventDataStructure
 
@@ -38,10 +36,7 @@ class EventDataFrame(EventDataStructure):
     def dump(self) -> bytes:
         """Serialize DataFrame to Parquet bytes."""
         buf = io.BytesIO()
-        if self.data.empty:
-            pq.write_table(pa.table({}), buf)
-        else:
-            pq.write_table(pa.Table.from_pandas(self.data, preserve_index=False), buf)
+        self.data.to_parquet(buf, engine="pyarrow", index=False)
         return buf.getvalue()
 
     @classmethod
@@ -51,9 +46,8 @@ class EventDataFrame(EventDataStructure):
         Note: event_id and template (base dataclass fields) are not restored;
         they remain at defaults (-1 and "") as they are managed by EventPersistency.
         """
-        table = pq.read_table(io.BytesIO(data))
         instance = cls()
-        instance.data = table.to_pandas()
+        instance.data = pd.read_parquet(io.BytesIO(data), engine="pyarrow")
         return instance
 
     def __repr__(self) -> str:
