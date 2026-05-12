@@ -79,6 +79,10 @@ class ChunkedEventDataFrame(EventDataStructure):
 
     def dump(self) -> bytes:
         """Serialize to Parquet bytes with a 4-byte + msgpack config header."""
+        # Layout: [uint32 BE config_len][msgpack(config)][parquet bytes].
+        # msgpack carries the retention/compaction params alongside the
+        # Parquet payload so load() can rebuild the instance with the same
+        # policy (Parquet itself only stores the data).
         config: bytes = msgpack.packb(
             {"max_rows": self.max_rows, "compact_every": self.compact_every},
             use_bin_type=True,
