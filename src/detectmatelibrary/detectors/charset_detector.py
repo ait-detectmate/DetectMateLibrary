@@ -106,7 +106,7 @@ class CharsetDetector(CoreDetector):
                 if not isinstance(v, str):
                     logger.error(f"Non-string value '{v}' appeared in detection of {self.__class__.__name__}")
                     if not self.config.ignore_non_string_val:
-                        exit(1)
+                        sys.exit(1)
                 anomaly_found = False
                 for c in v:
                     if c not in multi_tracker.unique_set:
