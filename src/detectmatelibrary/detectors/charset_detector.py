@@ -1,3 +1,4 @@
+import sys
 from detectmatelibrary.common._config._compile import generate_detector_config
 from detectmatelibrary.common._config._formats import EventsConfig
 from detectmatelibrary.common.detector import (
@@ -81,7 +82,7 @@ class CharsetDetector(CoreDetector):
                 if not isinstance(v, str):
                     logger.error(f"Non-string value '{v}' appeared in detection of {self.__class__.__name__}")
                     if not self.config.ignore_non_string_val:
-                        exit(1)
+                        sys.exit(1)
                 anomaly_found = False
                 for c in v:
                     # TODO: this is incredibly inefficient -> event_persistency needs adaptation to only store
