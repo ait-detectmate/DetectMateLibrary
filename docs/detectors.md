@@ -89,6 +89,7 @@ List of detectors:
 * [Combo Detector](detectors/combo.md): Detect new combination of variables in the logs.
 * [New Event](detectors/new_event.md): Detect new events in the variables in the logs.
 * [Rule Based](detectors/rule_based.md): Detect anomalies based in a set of rules.
+* [Charset](detectors/charset.md): Detect new characters in the variables in the logs.
 
 ## Configuration
 
