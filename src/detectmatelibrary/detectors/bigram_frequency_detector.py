@@ -18,27 +18,27 @@ from typing_extensions import override
 from tools.logging import logger
 
 
-class EntropyDetectorConfig(CoreDetectorConfig):
-    method_type: str = "entropy_detector"
+class BigramFrequencyDetectorConfig(CoreDetectorConfig):
+    method_type: str = "bigram_frequency_detector"
 
     use_stable_vars: bool = True
     use_static_vars: bool = True
 
 
-class EntropyDetector(CoreDetector):
-    """Detect entropy-based anomalies in log data."""
+class BigramFrequencyDetector(CoreDetector):
+    """Detect bigram-frequency-based anomalies in log data."""
 
     def __init__(
         self,
-        name: str = "EntropyDetector",
-        config: EntropyDetectorConfig = EntropyDetectorConfig()
+        name: str = "BigramFrequencyDetector",
+        config: BigramFrequencyDetectorConfig = BigramFrequencyDetectorConfig()
     ) -> None:
 
         if isinstance(config, dict):
-            config = EntropyDetectorConfig.from_dict(config, name)
+            config = BigramFrequencyDetectorConfig.from_dict(config, name)
 
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
-        self.config: EntropyDetectorConfig  # type narrowing for IDE
+        self.config: BigramFrequencyDetectorConfig  # type narrowing for IDE
         self.persistency = EventPersistency(
             event_data_class=EventStabilityTracker,
         )
@@ -137,7 +137,7 @@ class EntropyDetector(CoreDetector):
             method_type=self.config.method_type,
         )
         # Update the config object from the dictionary instead of replacing it
-        self.config = EntropyDetectorConfig.from_dict(config_dict, self.name)
+        self.config = BigramFrequencyDetectorConfig.from_dict(config_dict, self.name)
         events = self.config.events
         if isinstance(events, EventsConfig) and not events.events:
             logger.warning(

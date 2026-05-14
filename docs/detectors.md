@@ -89,7 +89,7 @@ List of detectors:
 * [Combo Detector](detectors/combo.md): Detect new combination of variables in the logs.
 * [New Event](detectors/new_event.md): Detect new events in the variables in the logs.
 * [Rule Based](detectors/rule_based.md): Detect anomalies based in a set of rules.
-* [Entropy](detectors/entropy.md): Detect entropy-based anomalies in the logs.
+* [Bigram Frequency](detectors/bigram_frequency.md): Detect bigram-frequency-based anomalies in the logs.
 
 ## Configuration
 

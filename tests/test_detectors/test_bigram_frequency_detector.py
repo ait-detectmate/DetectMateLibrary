@@ -1,6 +1,6 @@
-"""Tests for EntropyDetector class.
+"""Tests for BigramFrequencyDetector class.
 
-This module tests the EntropyDetector implementation including:
+This module tests the BigramFrequencyDetector implementation including:
 - Initialization and configuration
 - Training functionality to learn known values
 - Detection logic for unexpected values
@@ -9,8 +9,8 @@ This module tests the EntropyDetector implementation including:
 """
 
 from detectmatelibrary.common._core_op._fit_logic import TrainState
-from detectmatelibrary.detectors.entropy_detector import (
-    EntropyDetector, EntropyDetectorConfig, BufferMode
+from detectmatelibrary.detectors.bigram_frequency_detector import (
+    BigramFrequencyDetector, BigramFrequencyDetectorConfig, BufferMode
 )
 from detectmatelibrary.common._core_op._fit_logic import ConfigState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
@@ -27,7 +27,7 @@ time_test_mode()
 config = {
     "detectors": {
         "CustomInit": {
-            "method_type": "entropy_detector",
+            "method_type": "bigram_frequency_detector",
             "auto_config": False,
             "params": {},
             "events": {
@@ -42,7 +42,7 @@ config = {
             }
         },
         "MultipleDetector": {
-            "method_type": "entropy_detector",
+            "method_type": "bigram_frequency_detector",
             "auto_config": False,
             "params": {},
             "events": {
@@ -63,14 +63,14 @@ config = {
 }
 
 
-class TestEntropyDetectorInitialization:
-    """Test EntropyDetector initialization and configuration."""
+class TestBigramFrequencyDetectorInitialization:
+    """Test BigramFrequencyDetector initialization and configuration."""
 
     def test_default_initialization(self):
         """Test detector initialization with default parameters."""
-        detector = EntropyDetector()
+        detector = BigramFrequencyDetector()
 
-        assert detector.name == "EntropyDetector"
+        assert detector.name == "BigramFrequencyDetector"
         assert hasattr(detector, 'config')
         assert detector.data_buffer.mode == BufferMode.NO_BUF
         assert detector.input_schema == schemas.ParserSchema
@@ -79,19 +79,19 @@ class TestEntropyDetectorInitialization:
 
     def test_custom_config_initialization(self):
         """Test detector initialization with custom configuration."""
-        detector = EntropyDetector(name="CustomInit", config=config)
+        detector = BigramFrequencyDetector(name="CustomInit", config=config)
 
         assert detector.name == "CustomInit"
         assert hasattr(detector, 'persistency')
         assert isinstance(detector.persistency.events_data, dict)
 
 
-class TestEntropyDetectorTraining:
-    """Test EntropyDetector training functionality."""
+class TestBigramFrequencyDetectorTraining:
+    """Test BigramFrequencyDetector training functionality."""
 
     def test_train_multiple_values(self):
         """Test training with multiple different values."""
-        detector = EntropyDetector(config=config, name="MultipleDetector")
+        detector = BigramFrequencyDetector(config=config, name="MultipleDetector")
         # Train with multiple values (only event 1 should be tracked per config)
         for event in range(3):
             for level in ["INFO", "WARNING", "ERROR"]:
@@ -120,11 +120,11 @@ class TestEntropyDetectorTraining:
         assert "assa" in event_data["test"].unique_set
 
 
-class TestEntropyDetectorDetection:
-    """Test EntropyDetector detection functionality."""
+class TestBigramFrequencyDetectorDetection:
+    """Test BigramFrequencyDetector detection functionality."""
 
     def test_detect_known_value_no_alert(self):
-        detector = EntropyDetector(config=config, name="MultipleDetector")
+        detector = BigramFrequencyDetector(config=config, name="MultipleDetector")
 
         # Train with a value
         train_data = schemas.ParserSchema({
@@ -160,7 +160,7 @@ class TestEntropyDetectorDetection:
         assert output.score == 0.0
 
     def test_detect_known_value_alert(self):
-        detector = EntropyDetector(config=config, name="MultipleDetector")
+        detector = BigramFrequencyDetector(config=config, name="MultipleDetector")
 
         # Train with a value
         train_data = schemas.ParserSchema({
@@ -214,12 +214,12 @@ _PARSER_CONFIG = {
 }
 
 
-class TestEntropyDetectorEndToEnd:
+class TestBigramFrequencyDetectorEndToEnd:
     """Regression test: full configure/train/detect pipeline on audit.log."""
 
     def test_audit_log_anomalies(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
-        detector = EntropyDetector()
+        detector = BigramFrequencyDetector()
 
         logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
 
@@ -239,13 +239,13 @@ class TestEntropyDetectorEndToEnd:
         assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
 
 
-class TestEntropyDetectorAutoConfig:
+class TestBigramFrequencyDetectorAutoConfig:
     """Test that process() drives configure/set_configuration/train/detect
     automatically."""
 
     def test_audit_log_anomalies_via_process(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
-        detector = EntropyDetector()
+        detector = BigramFrequencyDetector()
 
         logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
 
@@ -272,7 +272,7 @@ class TestEntropyDetectorAutoConfig:
         assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
 
 
-class TestEntropyDetectorGlobalInstances:
+class TestBigramFrequencyDetectorGlobalInstances:
     """Tests event-ID-independent global instance detection."""
 
     def test_global_instance_detects_new_type(self):
@@ -281,8 +281,8 @@ class TestEntropyDetectorGlobalInstances:
         parser = MatcherParser(config=_PARSER_CONFIG)
         config_dict = {
             "detectors": {
-                "EntropyDetector": {
-                    "method_type": "new_value_detector",
+                "BigramFrequencyDetector": {
+                    "method_type": "bigram_frequency_detector",
                     "auto_config": False,
                     "global": {
                         "test": {
@@ -292,8 +292,8 @@ class TestEntropyDetectorGlobalInstances:
                 }
             }
         }
-        config = EntropyDetectorConfig.from_dict(config_dict, "EntropyDetector")
-        detector = EntropyDetector(config=config)
+        config = BigramFrequencyDetectorConfig.from_dict(config_dict, "BigramFrequencyDetector")
+        detector = BigramFrequencyDetector(config=config)
 
         logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
 

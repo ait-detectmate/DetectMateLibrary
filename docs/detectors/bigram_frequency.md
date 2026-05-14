@@ -1,6 +1,6 @@
-# Entropy Detector
+# Bigram Frequency Detector
 
-The Entropy Detector raises alerts when ...
+The Bigram Frequency Detector raises alerts when ...
 
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
@@ -16,8 +16,8 @@ This detector maintains a lightweight set of observed values per monitored field
 
 ```yaml
 detectors:
-    EntropyDetector:
-        method_type: entropy_detector
+    BigramFrequencyDetector:
+        method_type: bigram_frequency_detector
         auto_config: False
         params: {}
         events:
@@ -38,10 +38,10 @@ detectors:
 ## Example usage
 
 ```python
-from detectmatelibrary.detectors.entropy_detector import EntropyDetector, BufferMode
+from detectmatelibrary.detectors.bigram_frequency_detector import BigramFrequencyDetector, BufferMode
 import detectmatelibrary.schemas as schemas
 
-detector = EntropyDetector(name="EntropyTest", config=cfg)
+detector = BigramFrequencyDetector(name="BigramFrequencyTest", config=cfg)
 
 parsed_data = schemas.ParserSchema({
     "parserType": "test",
