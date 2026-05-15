@@ -3,7 +3,7 @@
 from typing import Any, Callable, Dict, List, Literal, Set
 
 from detectmatelibrary.utils.preview_helpers import list_preview_str
-from detectmatelibrary.utils.RLE_list import RLEList
+from detectmatelibrary.utils.persistency.rle_list import RLEList
 
 from ..base import SingleTracker, MultiTracker, EventTracker, Classification
 from .stability_classifier import StabilityClassifier

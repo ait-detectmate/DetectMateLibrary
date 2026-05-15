@@ -8,10 +8,7 @@ from detectmatelibrary.common.detector import (
     get_global_variables,
     validate_config_coverage,
 )
-from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
-    EventStabilityTracker
-)
-from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
+from detectmatelibrary.utils import persistency
 from detectmatelibrary.utils.data_buffer import BufferMode
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
@@ -42,12 +39,12 @@ class NewValueDetector(CoreDetector):
 
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: NewValueDetectorConfig  # type narrowing for IDE
-        self.persistency = EventPersistency(
-            event_data_class=EventStabilityTracker,
+        self.persistency = persistency.EventPersistency(
+            event_data_class=persistency.EventStabilityTracker,
         )
         # auto config checks if individual variables are stable to select combos from
-        self.auto_conf_persistency = EventPersistency(
-            event_data_class=EventStabilityTracker
+        self.auto_conf_persistency = persistency.EventPersistency(
+            event_data_class=persistency.EventStabilityTracker
         )
         self._register_persistency(self.persistency)
 

@@ -18,6 +18,15 @@ setup_logging()
 
 
 class _Stoppable(Protocol):
+    """Structural type for objects ``Component`` will stop on context-manager
+    exit.
+
+    Decouples ``Component`` from any concrete saver implementation: a subclass
+    may assign anything with a ``stop()`` method to ``self.saver`` (today the
+    only such type is ``PersistencySaver``) without ``common.core`` having to
+    import the persistency package. This preserves the dependency direction
+    detectmate -> persistency, not the reverse.
+    """
     def stop(self) -> None: ...
 
 

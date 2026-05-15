@@ -1,11 +1,8 @@
 from detectmatelibrary.common._config._compile import generate_detector_config
 from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector, get_configured_variables, \
     get_global_variables
-from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
-    EventStabilityTracker
-)
+from detectmatelibrary.utils import persistency
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
-from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
@@ -28,12 +25,12 @@ class NewEventDetector(CoreDetector):
 
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: NewEventDetectorConfig
-        self.persistency = EventPersistency(
-            event_data_class=EventStabilityTracker,
+        self.persistency = persistency.EventPersistency(
+            event_data_class=persistency.EventStabilityTracker,
         )
         # auto config checks if individual variables are stable to select combos from
-        self.auto_conf_persistency = EventPersistency(
-            event_data_class=EventStabilityTracker
+        self.auto_conf_persistency = persistency.EventPersistency(
+            event_data_class=persistency.EventStabilityTracker
         )
         self._register_persistency(self.persistency)
 
