@@ -3,7 +3,7 @@
 
 from typing import Generic, Iterable, Iterator, List, Tuple, TypeVar
 
-from .preview_helpers import list_preview_str
+from ..preview_helpers import list_preview_str
 
 T = TypeVar("T")
 

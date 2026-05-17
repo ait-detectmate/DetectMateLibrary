@@ -2,7 +2,7 @@ from detectmatelibrary.common._core_op._fit_logic import ConfigState, TrainState
 from detectmatelibrary.common.core import CoreConfig, CoreComponent
 from detectmatelibrary.common._config import BasicConfig
 
-from detectmatelibrary.utils.data_buffer import ArgsBuffer
+from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 
 import detectmatelibrary.schemas._op as op_schemas
 import detectmatelibrary.schemas as schemas
@@ -428,3 +428,22 @@ class TestPostTrain:
         # subsequent items don't re-trigger it
         component.process(self._make_log(4))
         assert component.post_train_called == 1
+
+
+class TestCoreComponentContextManager:
+    def test_can_be_used_as_context_manager(self):
+        component = CoreComponent(name="test", config=CoreConfig(), args_buffer=ArgsBuffer(BufferMode.NO_BUF))
+        with component as c:
+            assert c is component
+
+    def test_exit_calls_saver_stop_when_set(self):
+        stopped = {"called": False}
+
+        class FakeSaver:
+            def stop(self): stopped["called"] = True
+
+        component = CoreComponent(name="test", config=CoreConfig(), args_buffer=ArgsBuffer(BufferMode.NO_BUF))
+        component.saver = FakeSaver()
+        with component:
+            pass
+        assert stopped["called"]

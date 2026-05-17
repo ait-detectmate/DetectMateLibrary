@@ -1,4 +1,4 @@
-# CLAUDE.md
+# AGENTS.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -70,6 +70,12 @@ detectors:
   MyDetector:
     method_type: new_value_detector
     auto_config: false          # true = auto-discover variables from training data
+    persist:                    # optional — omit to disable state saving
+      path: ./state             # base path; detector name is appended automatically
+      interval_seconds: 300     # save every N seconds
+      events_until_save: null   # also save after N ingested events (null = disabled)
+      auto_load: false          # restore saved state on construction
+      storage_options: {}       # fsspec credentials (S3, Azure, GCS, etc.)
     events:
       login_failure:            # named event ID (string) or integer EventID
         instance_label:         # arbitrary instance name
@@ -149,6 +155,33 @@ class MyDetector(CoreDetector):
 
 Same pattern applies for `CoreParser` — implement `parse(input_: LogSchema, output_: ParserSchema) -> bool`.
 
+### Wiring persist support into a new detector
+
+Detectors that maintain an `EventPersistency` instance must do two things to support the `persist:` config block:
+
+**1. Call `_register_persistency()` at the end of `__init__`:**
+
+```python
+def __init__(self, name="MyDetector", config=MyDetectorConfig()):
+    super().__init__(name=name, config=config)
+    self.persistency = EventPersistency(event_data_class=EventStabilityTracker)
+    self._register_persistency(self.persistency)  # must be last
+```
+
+**2. Preserve `config.persist` across `set_configuration()` rebuilds:**
+
+`set_configuration()` replaces `self.config` via `from_dict()`, which produces a config with no `persist` key — silently dropping the user's persist settings. Save and restore it:
+
+```python
+def set_configuration(self) -> None:
+    old_persist = self.config.persist
+    # ... build config_dict, call from_dict() ...
+    self.config = MyDetectorConfig.from_dict(config_dict, self.name)
+    self.config.persist = old_persist
+```
+
+Omitting either step means a `persist:` block in the YAML is silently ignored with no error.
+
 ## Code Quality
 
 Pre-commit hooks enforce:
@@ -158,3 +191,9 @@ Pre-commit hooks enforce:
 - **docformatter** docstring style
 
 Python 3.12 is required (see `.python-version`).
+
+
+# Git
+NEVER include "Co-Authored-By ..." in your commit or PR messages.
+
+Design documents (files under `docs/design/`) must NEVER be committed to the repository.

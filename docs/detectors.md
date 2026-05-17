@@ -219,4 +219,95 @@ def set_configuration(self):
 When `auto_config` is `False`, steps 1 and 2 are skipped entirely.
 
 
+### Saving state (persist)
+
+Detectors can persist their training state to disk (or cloud storage) so it
+can be restored in a later session. Configure this with a top-level `persist:`
+block in the detector config:
+
+```yaml
+detectors:
+  NewValueDetector:
+    method_type: new_value_detector
+    persist:
+      path: ./state               # base path; detector name is appended automatically
+      interval_seconds: 300       # save every N seconds (default: 300)
+      events_until_save: null     # also save after N ingested events (default: disabled)
+      auto_load: false            # restore saved state on startup (default: false)
+      storage_options: {}         # backend credentials (see below)
+    events:
+      ...
+```
+
+All fields are optional — `persist: {}` uses all defaults. Omitting `persist:` entirely
+disables saving (backward compatible).
+
+The detector name is automatically appended to `path`, so `path: ./state` for a detector
+named `NewValueDetector` writes to `./state/NewValueDetector/`.
+
+#### Fields
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `path` | `str` | `"./state"` | Base directory or cloud URL. Detector name is appended. |
+| `interval_seconds` | `int` | `300` | Background save interval in seconds. |
+| `events_until_save` | `int \| null` | `null` | Save after this many ingested events. `null` disables event-count triggering. |
+| `auto_load` | `bool` | `false` | Load saved state on construction. Raises `PersistencyLoadError` if no state exists. |
+| `storage_options` | `dict` | `{}` | Credentials and options forwarded to [fsspec](https://filesystem-spec.readthedocs.io/). |
+
+#### Storage options examples
+
+**Local filesystem** — no `storage_options` needed:
+
+```yaml
+persist:
+  path: ./state
+```
+
+**S3**:
+
+```yaml
+persist:
+  path: s3://my-bucket/detector-state
+  storage_options:
+    key: AKIAIOSFODNN7EXAMPLE
+    secret: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    region_name: eu-west-1
+```
+
+S3-compatible storage (MinIO, etc.):
+
+```yaml
+persist:
+  path: s3://my-bucket/detector-state
+  storage_options:
+    endpoint_url: http://minio:9000
+    key: minioadmin
+    secret: minioadmin
+```
+
+**Azure Blob Storage**:
+
+```yaml
+persist:
+  path: az://my-container/detector-state
+  storage_options:
+    account_name: mystorageaccount
+    account_key: base64encodedkey==
+```
+
+**GCS**:
+
+```yaml
+persist:
+  path: gs://my-bucket/detector-state
+  storage_options:
+    project: my-gcp-project
+    token: /path/to/service-account.json
+```
+
+In practice, credentials are usually supplied via environment variables
+(`AWS_ACCESS_KEY_ID`, etc.) or instance roles — in which case `storage_options`
+stays empty or is omitted.
+
 Go back [Index](index.md)

@@ -1,6 +1,9 @@
 """Event data structure that tracks variable behaviors over time/events."""
 
+import importlib
 from typing import Any, Callable, Dict, Type
+
+import msgpack
 
 from detectmatelibrary.utils.preview_helpers import format_dict_repr
 
@@ -39,6 +42,62 @@ class EventTracker(EventDataStructure):
     def to_data(self, raw_data: Dict[str, Any]) -> Any:
         """Transform raw data into the format expected by the tracker."""
         return self.converter_function(raw_data)
+
+    def dump(self) -> bytes:
+        """Serialize full tracker state to MessagePack bytes.
+
+        Note: converter_function is not serialized (lambdas cannot be pickled).
+        After load(), converter_function is reset to the identity default.
+        """
+        state = {
+            "single_tracker_type": self.single_tracker_type.__name__,
+            "single_tracker_module": self.single_tracker_type.__module__,
+            "multi_tracker_type": self.multi_tracker_type.__name__,
+            "multi_tracker_module": self.multi_tracker_type.__module__,
+            "trackers": {
+                name: tracker.to_state()
+                for name, tracker in self.multi_tracker.get_trackers().items()
+            },
+        }
+        result: bytes = msgpack.packb(state, use_bin_type=True)
+        return result
+
+    @classmethod
+    def load(cls, data: bytes, **kwargs: Any) -> "EventTracker":
+        """Restore tracker state from MessagePack bytes.
+
+        Note: event_id and template (base dataclass fields) are not restored;
+        they remain at defaults (-1 and "") as they are managed by EventPersistency.
+        """
+        def _list_keys_to_tuples(pairs: list[tuple[Any, Any]]) -> dict[Any, Any]:
+            """Convert list keys (from msgpack) back to tuples so they can be
+            used as dict keys."""
+            result: dict[Any, Any] = {}
+            for k, v in pairs:
+                if isinstance(k, list):
+                    k = tuple(k)
+                result[k] = v
+            return result
+
+        state = msgpack.unpackb(data, raw=False, strict_map_key=False,
+                                object_pairs_hook=_list_keys_to_tuples)
+        single_tracker_cls = getattr(
+            importlib.import_module(state["single_tracker_module"]),
+            state["single_tracker_type"],
+        )
+        multi_tracker_cls = getattr(
+            importlib.import_module(state["multi_tracker_module"]),
+            state["multi_tracker_type"],
+        )
+        instance = cls.__new__(cls)
+        EventTracker.__init__(
+            instance,
+            single_tracker_type=single_tracker_cls,
+            multi_tracker_type=multi_tracker_cls,
+        )
+        for name, tracker_state in state["trackers"].items():
+            instance.multi_tracker.single_trackers[name] = single_tracker_cls.from_state(tracker_state)
+        return instance
 
     def __repr__(self) -> str:
         strs = format_dict_repr(self.multi_tracker.get_trackers(), indent="\t")
