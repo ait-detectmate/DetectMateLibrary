@@ -94,33 +94,35 @@
               <ul class="current">
                   <li class="toctree-l1 current"><a class="reference internal current" href="#">Persistency</a>
     <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#eventpersistency">EventPersistency</a>
+    <li class="toctree-l2"><a class="reference internal" href="#mental-model">Mental model</a>
         <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#creating-an-instance">Creating an instance</a>
+    <li class="toctree-l3"><a class="reference internal" href="#1-events">1. Events</a>
     </li>
-    <li class="toctree-l3"><a class="reference internal" href="#storing-data">Storing data</a>
+    <li class="toctree-l3"><a class="reference internal" href="#2-backends-eventdatastructure">2. Backends (EventDataStructure)</a>
     </li>
-    <li class="toctree-l3"><a class="reference internal" href="#retrieving-data">Retrieving data</a>
+    <li class="toctree-l3"><a class="reference internal" href="#3-saver-lifecycle-persistencysaver">3. Saver lifecycle (PersistencySaver)</a>
     </li>
         </ul>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#storage-backends">Storage backends</a>
-        <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#dataframe-backends">DataFrame backends</a>
+    <li class="toctree-l2"><a class="reference internal" href="#quick-start">Quick start</a>
     </li>
-    <li class="toctree-l3"><a class="reference internal" href="#tracker-backends">Tracker backends</a>
+    <li class="toctree-l2"><a class="reference internal" href="#api-reference">API reference</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#eventpersistency">EventPersistency</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#available-backends">Available backends</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#persisting-to-disk">Persisting to disk</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#restoring-state">Restoring state</a>
     </li>
         </ul>
     </li>
-    <li class="toctree-l2"><a class="reference internal" href="#usage-in-detectors">Usage in detectors</a>
-        <ul>
-    <li class="toctree-l3"><a class="reference internal" href="#1-initialize-in-__init__">1. Initialize in __init__</a>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#2-accumulate-state-in-train">2. Accumulate state in train()</a>
-    </li>
-    <li class="toctree-l3"><a class="reference internal" href="#3-query-state-in-detect">3. Query state in detect()</a>
+    <li class="toctree-l3"><a class="reference internal" href="#storage-backends-fsspec">Storage backends (fsspec)</a>
     </li>
         </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#using-persistency-inside-a-detector">Using persistency inside a detector</a>
     </li>
     </ul>
                   </li>
@@ -169,18 +171,71 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="persistency">Persistency</h1>
-<p>The persistency module provides event-based state management for detectors. It allows detectors to accumulate, store, and query data across their lifecycle — during training, detection, and auto-configuration.</p>
-<h2 id="eventpersistency">EventPersistency</h2>
-<p><code>EventPersistency</code> is the main entry point. It manages one storage backend instance per event ID, so each event type maintains its own isolated state.</p>
-<h3 id="creating-an-instance">Creating an instance</h3>
-<pre><code class="language-python">from detectmatelibrary.common.persistency import EventPersistency
+<p>The persistency module gives a detector a place to remember things about the
+events it sees. State is keyed by <code>EventID</code> and survives across training, the
+detection loop, and (optionally) restarts on disk.</p>
+<p>This page is structured to read top-to-bottom: first the mental model, then a
+quick start, then the API surface.</p>
+<h2 id="mental-model">Mental model</h2>
+<p>Persistency has three moving parts. Understanding what each one does makes the
+rest of the page much easier to follow.</p>
+<h3 id="1-events">1. Events</h3>
+<p>Logs are grouped by <code>EventID</code>. Two events with the same ID share a template
+but have their own variable values. Persistency stores <strong>one independent state
+object per event ID</strong>, so an <code>EventStabilityTracker</code> for <code>EventID=4733</code> does
+not interfere with one for <code>EventID=4624</code>.</p>
+<h3 id="2-backends-eventdatastructure">2. Backends (<code>EventDataStructure</code>)</h3>
+<p>A backend is the thing that actually stores the per-event state. Persistency
+owns the dict <code>{event_id: backend}</code>; the backend itself decides <em>how</em> data is
+kept.</p>
+<p>Two families ship today:</p>
+<ul>
+<li><strong>DataFrame backends</strong> (<code>EventDataFrame</code>, <code>ChunkedEventDataFrame</code>) keep the
+  raw rows. Use these when a detector needs to scan history.</li>
+<li><strong>Tracker backends</strong> (<code>EventStabilityTracker</code>) keep only derived features
+  (e.g. "this variable has been constant for the last 10k events"). Use these
+  when you only need a summary, not the raw history — they cost a fraction of
+  the memory.</li>
+</ul>
+<p>All backends implement the same four-method contract: <code>add_data</code>, <code>get_data</code>,
+<code>dump</code>, <code>load</code>. That contract is what <code>EventPersistency</code> and
+<code>PersistencySaver</code> rely on — anything you add later only has to follow it.</p>
+<h3 id="3-saver-lifecycle-persistencysaver">3. Saver lifecycle (<code>PersistencySaver</code>)</h3>
+<p><code>EventPersistency</code> itself is in-memory. To survive a process restart, the
+state has to be written somewhere. <code>PersistencySaver</code> wraps an
+<code>EventPersistency</code> and:</p>
+<ul>
+<li>writes to disk (or any <code>fsspec</code> URI) on two triggers — a wall-clock interval
+  and an event-count threshold;</li>
+<li>optionally <code>auto_load</code>s previously saved state during construction;</li>
+<li>exposes <code>start()</code> / <code>stop()</code> so the background timer can be torn down
+  cleanly. <code>stop()</code> is idempotent and is called automatically when a
+  <code>Component</code> is used as a context manager.</li>
+</ul>
+<p>In practice a detector never instantiates <code>PersistencySaver</code> directly: it sets
+a <code>persist:</code> block in its config and <code>CoreDetector</code> wires the saver up via
+<a href="../../src/detectmatelibrary/common/persist.py"><code>init_persistency</code></a>.</p>
+<hr />
+<h2 id="quick-start">Quick start</h2>
+<pre><code class="language-python">from detectmatelibrary.utils import persistency
 
-persistency = EventPersistency(
-    event_data_class=MyBackend,          # storage backend class (see below)
-    variable_blacklist=[&quot;Content&quot;],      # variable names to exclude (optional)
-    event_data_kwargs={&quot;max_rows&quot;: 1000} # extra kwargs forwarded to the backend (optional)
+ep = persistency.EventPersistency(
+    event_data_class=persistency.EventStabilityTracker,
 )
+
+ep.ingest_event(
+    event_id=&quot;4624&quot;,
+    event_template=&quot;An account was successfully logged on.&quot;,
+    named_variables={&quot;AccountName&quot;: &quot;alice&quot;, &quot;LogonType&quot;: &quot;3&quot;},
+)
+
+tracker = ep.get_event_data(&quot;4624&quot;)  # or ep[&quot;4624&quot;]
 </code></pre>
+<p>That snippet covers the whole in-memory API: pick a backend class, ingest
+events, query state.</p>
+<hr />
+<h2 id="api-reference">API reference</h2>
+<h3 id="eventpersistency"><code>EventPersistency</code></h3>
 <table>
 <thead>
 <tr>
@@ -191,91 +246,118 @@ persistency = EventPersistency(
 <tbody>
 <tr>
 <td><code>event_data_class</code></td>
-<td>An <code>EventDataStructure</code> subclass that defines how data is stored and queried.</td>
+<td>An <code>EventDataStructure</code> subclass; one instance is created per event ID.</td>
 </tr>
 <tr>
 <td><code>variable_blacklist</code></td>
-<td>Variable names to exclude from storage. Defaults to <code>["Content"]</code>.</td>
+<td>Variable names to skip when ingesting. Defaults to <code>["Content"]</code>.</td>
 </tr>
 <tr>
 <td><code>event_data_kwargs</code></td>
-<td>A dictionary of keyword arguments forwarded to the backend constructor.</td>
+<td>Extra kwargs forwarded to each backend instance.</td>
 </tr>
 </tbody>
 </table>
-<h3 id="storing-data">Storing data</h3>
-<pre><code class="language-python">persistency.ingest_event(
-    event_id=event_id,
-    event_template=template,
-    variables=positional_vars,        # optional positional variables
-    named_variables=named_vars        # optional named variables
-)
-</code></pre>
-<p>Each call appends data to the backend associated with the given <code>event_id</code>. If no backend exists for that ID yet, one is created automatically.</p>
-<h3 id="retrieving-data">Retrieving data</h3>
-<pre><code class="language-python"># Single event
-data = persistency.get_event_data(event_id)
+<p>Common methods:</p>
+<pre><code class="language-python">ep.ingest_event(event_id, event_template, variables=..., named_variables=...)
 
-# All events
-all_data = persistency.get_events_data()  # dict[event_id -&gt; backend]
-
-# Templates
-template = persistency.get_event_template(event_id)
-all_templates = persistency.get_event_templates()
-
-# Bracket access
-backend = persistency[event_id]
+ep.get_event_data(event_id)        # backend for a single event
+ep.get_events_data()               # dict[event_id -&gt; backend]
+ep.get_event_template(event_id)
+ep.get_event_templates()
+ep.get_events_seen()               # all event IDs ever ingested
+ep[event_id]                       # alias for get_event_data
 </code></pre>
-<h2 id="storage-backends">Storage backends</h2>
-<p>The backend determines how ingested data is stored and what queries are available. Choose the backend that fits your detector's needs.</p>
-<h3 id="dataframe-backends">DataFrame backends</h3>
-<p>Store raw event data in tabular form. Useful when a detector needs to query or iterate over historical values.</p>
-<ul>
-<li><strong><code>EventDataFrame</code></strong> — Pandas-backed storage. Simple and familiar.</li>
-<li><strong><code>ChunkedEventDataFrame</code></strong> — Polars-backed storage with configurable row retention and automatic compaction. Suited for high-volume or streaming workloads.</li>
-</ul>
-<pre><code class="language-python">from detectmatelibrary.common.persistency.event_data_structures.dataframes import (
-    EventDataFrame,
-    ChunkedEventDataFrame,
+<h3 id="available-backends">Available backends</h3>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Use when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>persistency.EventDataFrame</code></td>
+<td>You need history and a Pandas DataFrame is the natural shape.</td>
+</tr>
+<tr>
+<td><code>persistency.ChunkedEventDataFrame</code></td>
+<td>High-volume / streaming workloads — Polars-backed with row-retention and automatic compaction.</td>
+</tr>
+<tr>
+<td><code>persistency.EventStabilityTracker</code></td>
+<td>You only care about how variables behave over time (<code>STATIC</code> / <code>STABLE</code> / <code>UNSTABLE</code> / <code>RANDOM</code>). Cheapest memory footprint.</td>
+</tr>
+</tbody>
+</table>
+<p>All three are re-exported from the top of the package — <code>persistency.X</code> is the
+canonical import; the deeply nested submodules are an implementation detail.</p>
+<h3 id="persisting-to-disk">Persisting to disk</h3>
+<pre><code class="language-python">saver = persistency.PersistencySaver(
+    ep,
+    persistency.PersistencySaverConfig(
+        path=&quot;./state/my-detector&quot;,
+        save_interval_seconds=300,
+        events_until_save=10_000,     # save after this many ingests, too
+        auto_load=False,
+        storage_options={},           # forwarded to fsspec
+    ),
 )
+saver.start()
+# ... detector runs ...
+saver.stop()    # final flush, stops the background timer
 </code></pre>
-<h3 id="tracker-backends">Tracker backends</h3>
-<p>Track variable behavior over time rather than storing raw data. Useful when a detector needs to understand how variables evolve (e.g., whether they converge to constant values). Is optimized for space efficiency since only extracted features from the logs are stored.</p>
-<ul>
-<li><strong><code>EventStabilityTracker</code></strong> — Classifies each variable as <code>STATIC</code>, <code>STABLE</code>, <code>UNSTABLE</code>, <code>RANDOM</code>, or <code>INSUFFICIENT_DATA</code> based on how its values change over time.</li>
-</ul>
-<pre><code class="language-python">from detectmatelibrary.common.persistency.event_data_structures.trackers import (
-    EventStabilityTracker,
+<p><code>PersistencySaver.save()</code> is thread-safe, and <code>stop()</code> is idempotent. The two
+save triggers (<code>save_interval_seconds</code> and <code>events_until_save</code>) are
+independent — whichever fires first wins.</p>
+<h4 id="restoring-state">Restoring state</h4>
+<pre><code class="language-python">saver = persistency.PersistencySaver(
+    ep,
+    persistency.PersistencySaverConfig(path=&quot;./state/my-detector&quot;, auto_load=True),
 )
+# ep is now pre-populated from disk
 </code></pre>
-<h2 id="usage-in-detectors">Usage in detectors</h2>
-<p>Persistency is <strong>optional</strong>. A detector can function without it. When a detector does need to maintain state across events — for example, to learn normal values during training and flag deviations during detection — it can integrate persistency by following this pattern:</p>
-<h3 id="1-initialize-in-__init__">1. Initialize in <code>__init__</code></h3>
-<p>Create one or more <code>EventPersistency</code> instances with the appropriate backend.</p>
-<pre><code class="language-python">class MyDetector(CoreDetector):
+<p>If <code>auto_load=True</code> and no saved state exists, the constructor raises
+<code>persistency.PersistencyLoadError</code> immediately — fail-fast rather than
+silently starting empty.</p>
+<h3 id="storage-backends-fsspec">Storage backends (fsspec)</h3>
+<p><code>PersistencySaverConfig.path</code> accepts any URI fsspec understands: a local path
+(<code>./state</code>), <code>s3://bucket/key</code>, <code>gs://...</code>, <code>az://...</code>, and so on. Provider
+credentials and tuning knobs go in <code>storage_options</code>.</p>
+<hr />
+<h2 id="using-persistency-inside-a-detector">Using persistency inside a detector</h2>
+<p>The recommended path: declare <code>persist:</code> in the detector's config and let
+<code>CoreDetector._register_persistency</code> build the saver for you. See
+<a href="../../detectors/#saving-state-persist">Saving state (persist)</a> for the config
+schema.</p>
+<p>In detector code, the pattern is:</p>
+<pre><code class="language-python">from detectmatelibrary.common.detector import CoreDetector
+from detectmatelibrary.utils import persistency
+
+class MyDetector(CoreDetector):
     def __init__(self, name=&quot;MyDetector&quot;, config=MyDetectorConfig()):
-        super().__init__(name=name, ...)
-        self.persistency = EventPersistency(
-            event_data_class=EventStabilityTracker,
+        super().__init__(name=name, config=config)
+        self.persistency = persistency.EventPersistency(
+            event_data_class=persistency.EventStabilityTracker,
         )
+        self._register_persistency(self.persistency)
+
+    def train(self, input_):
+        self.persistency.ingest_event(
+            event_id=input_[&quot;EventID&quot;],
+            event_template=input_[&quot;template&quot;],
+            named_variables={...},
+        )
+
+    def detect(self, input_, output_):
+        tracker = self.persistency.get_events_data().get(input_[&quot;EventID&quot;])
+        # compare against tracker to produce alerts
 </code></pre>
-<h3 id="2-accumulate-state-in-train">2. Accumulate state in <code>train()</code></h3>
-<p>During training, ingest each event so the backend builds up its internal state.</p>
-<pre><code class="language-python">def train(self, input_):
-    variables = self.get_configured_variables(input_, self.config.events)
-    self.persistency.ingest_event(
-        event_id=input_[&quot;EventID&quot;],
-        event_template=input_[&quot;template&quot;],
-        named_variables=variables,
-    )
-</code></pre>
-<h3 id="3-query-state-in-detect">3. Query state in <code>detect()</code></h3>
-<p>During detection, query the accumulated state to decide whether the incoming event is anomalous.</p>
-<pre><code class="language-python">def detect(self, input_, output_):
-    for event_id, backend in self.persistency.get_events_data().items():
-        stored_data = backend.get_data()
-        # compare input_ against stored_data to produce alerts
-</code></pre>
+<p><code>_register_persistency</code> is a one-line wrapper around
+<a href="../../src/detectmatelibrary/common/persist.py"><code>init_persistency</code></a>; the helper
+honours <code>config.persist</code> and returns <code>None</code> (so <code>self.saver</code> stays <code>None</code>)
+when persistence is disabled.</p>
               
             </div>
           </div><footer>

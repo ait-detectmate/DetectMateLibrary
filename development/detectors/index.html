@@ -83,6 +83,14 @@
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#full-lifecycle-with-auto-configuration">Full lifecycle with auto-configuration</a>
     </li>
+    <li class="toctree-l3"><a class="reference internal" href="#saving-state-persist">Saving state (persist)</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#fields">Fields</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#storage-options-examples">Storage options examples</a>
+    </li>
+        </ul>
+    </li>
         </ul>
     </li>
     </ul>
@@ -343,6 +351,107 @@ class SimpleThresholdDetector(CoreDetector):
 4. detect(input_, output_)   # call for each event to detect anomalies
 </code></pre>
 <p>When <code>auto_config</code> is <code>False</code>, steps 1 and 2 are skipped entirely.</p>
+<h3 id="saving-state-persist">Saving state (persist)</h3>
+<p>Detectors can persist their training state to disk (or cloud storage) so it
+can be restored in a later session. Configure this with a top-level <code>persist:</code>
+block in the detector config:</p>
+<pre><code class="language-yaml">detectors:
+  NewValueDetector:
+    method_type: new_value_detector
+    persist:
+      path: ./state               # base path; detector name is appended automatically
+      interval_seconds: 300       # save every N seconds (default: 300)
+      events_until_save: null     # also save after N ingested events (default: disabled)
+      auto_load: false            # restore saved state on startup (default: false)
+      storage_options: {}         # backend credentials (see below)
+    events:
+      ...
+</code></pre>
+<p>All fields are optional — <code>persist: {}</code> uses all defaults. Omitting <code>persist:</code> entirely
+disables saving (backward compatible).</p>
+<p>The detector name is automatically appended to <code>path</code>, so <code>path: ./state</code> for a detector
+named <code>NewValueDetector</code> writes to <code>./state/NewValueDetector/</code>.</p>
+<h4 id="fields">Fields</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>path</code></td>
+<td><code>str</code></td>
+<td><code>"./state"</code></td>
+<td>Base directory or cloud URL. Detector name is appended.</td>
+</tr>
+<tr>
+<td><code>interval_seconds</code></td>
+<td><code>int</code></td>
+<td><code>300</code></td>
+<td>Background save interval in seconds.</td>
+</tr>
+<tr>
+<td><code>events_until_save</code></td>
+<td><code>int \| null</code></td>
+<td><code>null</code></td>
+<td>Save after this many ingested events. <code>null</code> disables event-count triggering.</td>
+</tr>
+<tr>
+<td><code>auto_load</code></td>
+<td><code>bool</code></td>
+<td><code>false</code></td>
+<td>Load saved state on construction. Raises <code>PersistencyLoadError</code> if no state exists.</td>
+</tr>
+<tr>
+<td><code>storage_options</code></td>
+<td><code>dict</code></td>
+<td><code>{}</code></td>
+<td>Credentials and options forwarded to <a href="https://filesystem-spec.readthedocs.io/">fsspec</a>.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="storage-options-examples">Storage options examples</h4>
+<p><strong>Local filesystem</strong> — no <code>storage_options</code> needed:</p>
+<pre><code class="language-yaml">persist:
+  path: ./state
+</code></pre>
+<p><strong>S3</strong>:</p>
+<pre><code class="language-yaml">persist:
+  path: s3://my-bucket/detector-state
+  storage_options:
+    key: AKIAIOSFODNN7EXAMPLE
+    secret: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    region_name: eu-west-1
+</code></pre>
+<p>S3-compatible storage (MinIO, etc.):</p>
+<pre><code class="language-yaml">persist:
+  path: s3://my-bucket/detector-state
+  storage_options:
+    endpoint_url: http://minio:9000
+    key: minioadmin
+    secret: minioadmin
+</code></pre>
+<p><strong>Azure Blob Storage</strong>:</p>
+<pre><code class="language-yaml">persist:
+  path: az://my-container/detector-state
+  storage_options:
+    account_name: mystorageaccount
+    account_key: base64encodedkey==
+</code></pre>
+<p><strong>GCS</strong>:</p>
+<pre><code class="language-yaml">persist:
+  path: gs://my-bucket/detector-state
+  storage_options:
+    project: my-gcp-project
+    token: /path/to/service-account.json
+</code></pre>
+<p>In practice, credentials are usually supplied via environment variables
+(<code>AWS_ACCESS_KEY_ID</code>, etc.) or instance roles — in which case <code>storage_options</code>
+stays empty or is omitted.</p>
 <p>Go back <a href="../">Index</a></p>
               
             </div>
