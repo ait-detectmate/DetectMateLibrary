@@ -82,3 +82,23 @@ detectors:
         method_type: new_event_detector
         auto_config: False
         params: {}
+
+    BigramFrequencyDetector:
+        method_type: bigram_frequency_detector
+        auto_config: False
+        params:
+            prob_thresh: 0.05
+            default_freqs: True
+            skip_repetitions: True
+        events:
+            1:
+                test:
+                    params: { }
+                    variables:
+                        - pos: 0
+                          name: var1
+                          params:
+                              threshold: 0.
+                    header_variables:
+                        - pos: level
+                          params: { }
