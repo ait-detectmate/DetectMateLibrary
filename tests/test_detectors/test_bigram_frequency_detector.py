@@ -236,7 +236,7 @@ class TestBigramFrequencyDetectorEndToEnd:
             if detector.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
-        assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
+        assert detected_ids == {'1859', '1860', '1861', '1862'}
 
 
 class TestBigramFrequencyDetectorAutoConfig:
@@ -269,7 +269,7 @@ class TestBigramFrequencyDetectorAutoConfig:
             if detector.process(log) is not None:
                 detected_ids.add(log["logID"])
 
-        assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
+        assert detected_ids == {'1859', '1860', '1861', '1862'}
 
 
 class TestBigramFrequencyDetectorGlobalInstances:
@@ -283,6 +283,7 @@ class TestBigramFrequencyDetectorGlobalInstances:
             "detectors": {
                 "BigramFrequencyDetector": {
                     "method_type": "bigram_frequency_detector",
+                    "prob_thresh": 0.2,
                     "auto_config": False,
                     "global": {
                         "test": {
