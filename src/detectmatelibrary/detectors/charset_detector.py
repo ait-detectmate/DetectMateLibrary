@@ -91,7 +91,6 @@ class CharsetDetector(CoreDetector):
                         alerts[f"EventID {current_event_id} - {var_name}"] = (
                             f"Unknown character: '{c}'"
                         )
-                        # overall_score += 1.0
                         anomaly_found = True
                 if anomaly_found:
                     overall_score += 1.0
@@ -109,9 +108,8 @@ class CharsetDetector(CoreDetector):
                         sys.exit(1)
                 anomaly_found = False
                 for c in v:
-                    if c not in multi_tracker.unique_set:
+                    if not any(c in x for x in multi_tracker.unique_set):
                         alerts[f"Global - {var_name}"] = f"Unknown character: '{c}'"
-                        # overall_score += 1.0
                         anomaly_found = True
                 if anomaly_found:
                     overall_score += 1.0
