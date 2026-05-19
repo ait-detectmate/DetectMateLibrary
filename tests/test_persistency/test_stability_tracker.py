@@ -1,4 +1,5 @@
 from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
+    EventStabilityTracker,
     SingleStabilityTracker,
 )
 
@@ -43,3 +44,30 @@ class TestSingleStabilityTrackerExpandValue:
         restored = SingleStabilityTracker.from_state(state)
         assert restored.expand_value is False
         assert restored.unique_set == {"hello"}
+
+
+class TestEventStabilityTrackerExpandValue:
+    def test_default_event_tracker_uses_add_semantics(self):
+        event_tracker = EventStabilityTracker()
+        event_tracker.add_data({"var1": "hello"})
+        single = event_tracker.get_data()["var1"]
+        assert single.expand_value is False
+        assert single.unique_set == {"hello"}
+
+    def test_expand_value_propagates_to_per_variable_trackers(self):
+        event_tracker = EventStabilityTracker(expand_value=True)
+        event_tracker.add_data({"var1": "hello"})
+        event_tracker.add_data({"var1": "world"})
+        single = event_tracker.get_data()["var1"]
+        assert single.expand_value is True
+        assert single.unique_set == {"h", "e", "l", "o", "w", "r", "d"}
+
+    def test_each_new_variable_gets_its_own_configured_tracker(self):
+        event_tracker = EventStabilityTracker(expand_value=True)
+        event_tracker.add_data({"a": "ab", "b": "cd"})
+        a = event_tracker.get_data()["a"]
+        b = event_tracker.get_data()["b"]
+        assert a.expand_value is True
+        assert b.expand_value is True
+        assert a.unique_set == {"a", "b"}
+        assert b.unique_set == {"c", "d"}

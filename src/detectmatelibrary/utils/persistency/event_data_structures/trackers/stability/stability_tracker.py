@@ -123,10 +123,23 @@ class EventStabilityTracker(EventTracker):
     """Event data structure that tracks the stability of each event over time /
     number of events."""
 
-    def __init__(self, converter_function: Callable[[Any], Any] = lambda x: x) -> None:
-        self.multi_tracker:  MultiStabilityTracker  # for type hinting
+    def __init__(
+        self,
+        converter_function: Callable[[Any], Any] = lambda x: x,
+        expand_value: bool = False,
+    ) -> None:
+        self.multi_tracker: MultiStabilityTracker  # for type hinting
+
+        def make_tracker() -> SingleStabilityTracker:
+            return SingleStabilityTracker(expand_value=expand_value)
+
+        # Mirror class identity onto the closure so dump()/load() can resolve
+        # the underlying SingleStabilityTracker via its module + qualname.
+        make_tracker.__name__ = SingleStabilityTracker.__name__
+        make_tracker.__module__ = SingleStabilityTracker.__module__
+
         super().__init__(
-            single_tracker_type=SingleStabilityTracker,
+            single_tracker_type=make_tracker,  # type: ignore[arg-type]
             multi_tracker_type=MultiStabilityTracker,
             converter_function=converter_function,
         )
