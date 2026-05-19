@@ -126,7 +126,7 @@ Three modes via `ArgsBuffer` config:
 
 ### Implementations
 
-- **Parsers** (`src/detectmatelibrary/parsers/`): `JsonParser`, `LogBatcherParser`, `DummyParser`, `TemplateMatcherParser` (Drain3 template mining; supports named wildcards `<username>` alongside positional `<*>`)
+- **Parsers** (`src/detectmatelibrary/parsers/`): `JsonParser`, `LogBatcherParser`, `DummyParser`, `MatcherParser` (Drain3 template mining; supports named wildcards `<username>` alongside positional `<*>`)
 - **Detectors** (`src/detectmatelibrary/detectors/`): `NewValueDetector`, `NewValueComboDetector`, `RandomDetector`, `DummyDetector`
 - **Utilities** (`src/detectmatelibrary/utils/`): `DataBuffer`, `EventPersistency`, `KeyExtractor`, `TimeFormatHandler`, `IdGenerator`
 - Uses the `regex` package (not stdlib `re`) — relevant when writing type annotations or imports involving patterns
