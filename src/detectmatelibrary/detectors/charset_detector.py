@@ -41,9 +41,13 @@ class CharsetDetector(CoreDetector):
 
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: CharsetDetectorConfig  # type narrowing for IDE
-        self.persistency = EventPersistency(event_data_class=EventStabilityTracker)
+        self.persistency = EventPersistency(
+            event_data_class=EventStabilityTracker,
+            event_data_kwargs={"expand_value": True},
+        )
         # auto config checks if individual variables are stable to select combos from
         self.auto_conf_persistency = EventPersistency(event_data_class=EventStabilityTracker)
+        self._register_persistency(self.persistency)
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by learning characters from the input data."""

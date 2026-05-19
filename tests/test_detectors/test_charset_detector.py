@@ -83,6 +83,43 @@ class TestCharsetDetectorInitialization:
         assert hasattr(detector, 'persistency')
         assert isinstance(detector.persistency.events_data, dict)
 
+    def test_persistency_uses_expand_value(self):
+        """Main persistency must accumulate characters; auto_conf must not."""
+        detector = CharsetDetector()
+        # Ingest a sample so a SingleStabilityTracker is materialized
+        detector.persistency.ingest_event(
+            event_id=1,
+            event_template="t",
+            named_variables={"v": "hello"},
+        )
+        single = detector.persistency.get_event_data(1)["v"]
+        assert single.expand_value is True
+        assert single.unique_set == {"h", "e", "l", "o"}
+
+    def test_auto_conf_persistency_does_not_expand(self):
+        detector = CharsetDetector()
+        detector.auto_conf_persistency.ingest_event(
+            event_id=1,
+            event_template="t",
+            named_variables={"v": "hello"},
+        )
+        single = detector.auto_conf_persistency.get_event_data(1)["v"]
+        assert single.expand_value is False
+        assert single.unique_set == {"hello"}
+
+    def test_register_persistency_was_called(self):
+        """Main persistency should be registered so persist/load round-trips
+        work."""
+        from detectmatelibrary.common.detector import PersistConfig
+        cfg = CharsetDetectorConfig(
+            persist=PersistConfig(path="memory://charset_regpersist/state")
+        )
+        detector = CharsetDetector(config=cfg)
+        # _register_persistency builds a PersistencySaver bound to detector.persistency
+        assert detector.saver is not None
+        assert detector.saver._persistency is detector.persistency
+        detector.saver.stop()
+
 
 class TestCharsetDetectorTraining:
     """Test CharsetDetector training functionality."""
@@ -110,12 +147,11 @@ class TestCharsetDetectorTraining:
         assert len(detector.persistency.events_data) == 1
         event_data = detector.persistency.get_event_data(1)
         assert event_data is not None
-        # Check the level values
-        assert "INFO" in event_data["level"].unique_set
-        assert "WARNING" in event_data["level"].unique_set
-        assert "ERROR" in event_data["level"].unique_set
-        # Check the variable at position 1 (named "test")
-        assert "assa" in event_data["test"].unique_set
+        # With expand_value=True, unique_set contains individual characters
+        assert set("INFO") <= event_data["level"].unique_set
+        assert set("WARNING") <= event_data["level"].unique_set
+        assert set("ERROR") <= event_data["level"].unique_set
+        assert set("assa") <= event_data["test"].unique_set
 
 
 class TestCharsetDetectorDetection:
