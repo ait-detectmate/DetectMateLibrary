@@ -139,7 +139,7 @@ class EventStabilityTracker(EventTracker):
         make_tracker.__module__ = SingleStabilityTracker.__module__
 
         super().__init__(
-            single_tracker_type=make_tracker,  # type: ignore[arg-type]
+            single_tracker_type=make_tracker,
             multi_tracker_type=MultiStabilityTracker,
             converter_function=converter_function,
         )

@@ -18,7 +18,7 @@ class EventTracker(EventDataStructure):
 
     def __init__(
         self,
-        single_tracker_type: Type[SingleTracker] = SingleTracker,
+        single_tracker_type: Callable[[], SingleTracker] = SingleTracker,
         multi_tracker_type: Type[MultiTracker] = MultiTracker,
         converter_function: Callable[[Any], Any] = lambda x: x,
     ) -> None:
