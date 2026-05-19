@@ -3,7 +3,7 @@
 from typing import List
 import numpy as np
 
-from detectmatelibrary.utils.RLE_list import RLEList
+from detectmatelibrary.utils.persistency.rle_list import RLEList
 
 
 class StabilityClassifier:

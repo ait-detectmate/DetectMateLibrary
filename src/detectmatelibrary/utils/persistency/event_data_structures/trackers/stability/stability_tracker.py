@@ -1,9 +1,9 @@
 """Tracks whether a variable is converging to a constant value."""
 
-from typing import Any, Callable, List, Literal, Set
+from typing import Any, Callable, Dict, List, Literal, Set
 
 from detectmatelibrary.utils.preview_helpers import list_preview_str
-from detectmatelibrary.utils.RLE_list import RLEList
+from detectmatelibrary.utils.persistency.rle_list import RLEList
 
 from ..base import SingleTracker, MultiTracker, EventTracker, Classification
 from .stability_classifier import StabilityClassifier
@@ -12,20 +12,21 @@ from .stability_classifier import StabilityClassifier
 class SingleStabilityTracker(SingleTracker):
     """Tracks stability of a single feature."""
 
-    def __init__(self, min_samples: int = 3) -> None:
+    def __init__(self, min_samples: int = 3, expand_value: bool = False) -> None:
         self.min_samples = min_samples
+        self.expand_value = expand_value
         self.change_series: RLEList[bool] = RLEList()
         self.unique_set: Set[Any] = set()
         self.stability_classifier: StabilityClassifier = StabilityClassifier(
             segment_thresholds=[1.1, 0.3, 0.1, 0.01],
         )
+        self._accum = set.update if expand_value else set.add
 
     def add_value(self, value: Any) -> None:
         """Add a new value to the tracker."""
-        unique_set_size_before = len(self.unique_set)
-        self.unique_set.add(value)
-        has_changed = len(self.unique_set) - unique_set_size_before > 0
-        self.change_series.append(has_changed)
+        before = len(self.unique_set)
+        self._accum(self.unique_set, value)
+        self.change_series.append(len(self.unique_set) > before)
 
     def classify(self) -> Classification:
         """Classify the variable."""
@@ -57,6 +58,37 @@ class SingleStabilityTracker(SingleTracker):
                 type="UNSTABLE",
                 reason="No classification matched; variable is unstable"
             )
+
+    def to_state(self) -> Dict[str, Any]:
+        """Serialize tracker state to a plain dict (must be msgpack-
+        compatible)."""
+        return {
+            "type": self.__class__.__name__,
+            "module": self.__class__.__module__,
+            "min_samples": self.min_samples,
+            "expand_value": self.expand_value,
+            "runs": self.change_series.runs(),
+            "unique_set": list(self.unique_set),
+            "segment_thresholds": self.stability_classifier.segment_threshs,
+        }
+
+    @classmethod
+    def from_state(cls, state: Dict[str, Any]) -> "SingleStabilityTracker":
+        """Restore tracker from a state dict produced by to_state()."""
+        tracker = cls(
+            min_samples=state["min_samples"],
+            expand_value=state.get("expand_value", False),
+        )
+        runs = [(bool(r[0]), int(r[1])) for r in state["runs"]]
+        tracker.change_series._runs = runs
+        tracker.change_series._len = sum(count for _, count in runs)
+        tracker.unique_set = {
+            tuple(v) if isinstance(v, list) else v for v in state["unique_set"]
+        }
+        tracker.stability_classifier = StabilityClassifier(
+            segment_thresholds=state["segment_thresholds"]
+        )
+        return tracker
 
     def __repr__(self) -> str:
         # show only part of the series for brevity
@@ -91,10 +123,23 @@ class EventStabilityTracker(EventTracker):
     """Event data structure that tracks the stability of each event over time /
     number of events."""
 
-    def __init__(self, converter_function: Callable[[Any], Any] = lambda x: x) -> None:
-        self.multi_tracker:  MultiStabilityTracker  # for type hinting
+    def __init__(
+        self,
+        converter_function: Callable[[Any], Any] = lambda x: x,
+        expand_value: bool = False,
+    ) -> None:
+        self.multi_tracker: MultiStabilityTracker  # for type hinting
+
+        def make_tracker() -> SingleStabilityTracker:
+            return SingleStabilityTracker(expand_value=expand_value)
+
+        # Mirror class identity onto the closure so dump()/load() can resolve
+        # the underlying SingleStabilityTracker via its module + qualname.
+        make_tracker.__name__ = SingleStabilityTracker.__name__
+        make_tracker.__module__ = SingleStabilityTracker.__module__
+
         super().__init__(
-            single_tracker_type=SingleStabilityTracker,
+            single_tracker_type=make_tracker,
             multi_tracker_type=MultiStabilityTracker,
             converter_function=converter_function,
         )

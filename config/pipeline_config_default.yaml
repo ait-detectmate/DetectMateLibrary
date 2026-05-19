@@ -93,7 +93,7 @@ detectors:
         events:
             1:
                 test:
-                    params: { }
+                    params: {}
                     variables:
                         - pos: 0
                           name: var1
@@ -101,4 +101,21 @@ detectors:
                               threshold: 0.
                     header_variables:
                         - pos: level
-                          params: { }
+                          params: {}
+
+    CharsetDetector:
+        method_type: charset_detector
+        auto_config: False
+        params: {}
+        events:
+            1:
+                test:
+                    params: {}
+                    variables:
+                        - pos: 0
+                          name: var1
+                          params:
+                              threshold: 0.
+                    header_variables:
+                        - pos: level
+                          params: {}
