@@ -90,7 +90,7 @@ detectors:
         events:
             1:
                 test:
-                    params: {"ignore_non_string_val": True}
+                    params: {}
                     variables:
                         - pos: 0
                           name: var1

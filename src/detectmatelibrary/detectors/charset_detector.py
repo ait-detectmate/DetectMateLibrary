@@ -1,4 +1,3 @@
-import sys
 from detectmatelibrary.common._config._compile import generate_detector_config
 from detectmatelibrary.common._config._formats import EventsConfig
 from detectmatelibrary.common.detector import (
@@ -22,7 +21,6 @@ from tools.logging import logger
 class CharsetDetectorConfig(CoreDetectorConfig):
     method_type: str = "charset_detector"
 
-    ignore_non_string_val: bool = True
     use_stable_vars: bool = True
     use_static_vars: bool = True
 
@@ -67,9 +65,10 @@ class CharsetDetector(CoreDetector):
                 )
 
     def detect(
-        self, input_:  ParserSchema, output_: DetectorSchema  # type: ignore
+        self, input_: ParserSchema, output_: DetectorSchema  # type: ignore
     ) -> bool:
-        """Detect new characters in the input data."""
+        """Detect characters in the input data that were not seen in
+        training."""
         alerts: dict[str, str] = {}
         configured_variables = get_configured_variables(input_, self.config.events)
         overall_score = 0.0
@@ -79,49 +78,38 @@ class CharsetDetector(CoreDetector):
 
         if current_event_id in known_events:
             event_tracker = known_events[current_event_id]
-            for var_name, multi_tracker in event_tracker.get_data().items():
+            for var_name, single_tracker in event_tracker.get_data().items():
                 v = configured_variables.get(var_name)
                 if v is None:
                     continue
-                if not isinstance(v, str):
-                    logger.error(f"Non-string value '{v}' appeared in detection of {self.__class__.__name__}")
-                    if not self.config.ignore_non_string_val:
-                        sys.exit(1)
-                anomaly_found = False
-                for c in v:
-                    # TODO: this is incredibly inefficient -> event_persistency needs adaptation to only store
-                    #       a set of characters for each event variable.
-                    if not any(c in x for x in multi_tracker.unique_set):
-                        alerts[f"EventID {current_event_id} - {var_name}"] = (
-                            f"Unknown character: '{c}'"
-                        )
-                        anomaly_found = True
-                if anomaly_found:
+                unknown = set(v) - single_tracker.unique_set
+                if unknown:
+                    alerts[f"EventID {current_event_id} - {var_name}"] = (
+                        "Unknown character(s): "
+                        + ", ".join(f"'{c}'" for c in sorted(unknown))
+                    )
                     overall_score += 1.0
 
         if self.config.global_instances and GLOBAL_EVENT_ID in known_events:
             global_vars = get_global_variables(input_, self.config.global_instances)
             global_tracker = known_events[GLOBAL_EVENT_ID]
-            for var_name, multi_tracker in global_tracker.get_data().items():
+            for var_name, single_tracker in global_tracker.get_data().items():
                 v = global_vars.get(var_name)
                 if v is None:
                     continue
-                if not isinstance(v, str):
-                    logger.error(f"Non-string value '{v}' appeared in detection of {self.__class__.__name__}")
-                    if not self.config.ignore_non_string_val:
-                        sys.exit(1)
-                anomaly_found = False
-                for c in v:
-                    if not any(c in x for x in multi_tracker.unique_set):
-                        alerts[f"Global - {var_name}"] = f"Unknown character: '{c}'"
-                        anomaly_found = True
-                if anomaly_found:
+                unknown = set(v) - single_tracker.unique_set
+                if unknown:
+                    alerts[f"Global - {var_name}"] = (
+                        "Unknown character(s): "
+                        + ", ".join(f"'{c}'" for c in sorted(unknown))
+                    )
                     overall_score += 1.0
 
         if overall_score > 0:
             output_["score"] = overall_score
-            output_["description"] = f"{self.name} detects characters not encountered in training" \
-                f" as anomalies."
+            output_["description"] = (
+                f"{self.name} detects characters not encountered in training as anomalies."
+            )
             output_["alertsObtain"].update(alerts)
             return True
 

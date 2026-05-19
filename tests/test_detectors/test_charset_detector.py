@@ -27,7 +27,7 @@ config = {
         "CustomInit": {
             "method_type": "charset_detector",
             "auto_config": False,
-            "params": {"ignore_non_string_val": False},
+            "params": {},
             "events": {
                 1: {
                     "instance1": {
@@ -42,7 +42,7 @@ config = {
         "MultipleDetector": {
             "method_type": "charset_detector",
             "auto_config": False,
-            "params": {"ignore_non_string_val": True},
+            "params": {},
             "events": {
                 1: {
                     "test": {
@@ -229,6 +229,56 @@ class TestCharsetDetectorDetection:
         assert result
         assert output.score == 1.0
 
+    def test_detect_unknown_chars_reported_per_variable(self):
+        """Train on a known alphabet; detect a value with unknown chars and
+        confirm the alert string lists the unknown chars sorted."""
+        cfg = {
+            "detectors": {
+                "Single": {
+                    "method_type": "charset_detector",
+                    "auto_config": False,
+                    "params": {},
+                    "events": {
+                        1: {
+                            "test": {
+                                "params": {},
+                                "variables": [{"pos": 0, "name": "v", "params": {}}],
+                            }
+                        }
+                    },
+                }
+            }
+        }
+        detector = CharsetDetector(config=cfg, name="Single")
+
+        train = schemas.ParserSchema({
+            "parserType": "test", "EventID": 1, "template": "t",
+            "variables": ["abc"], "logID": "1", "parsedLogID": "1",
+            "parserID": "p", "log": "l", "logFormatVariables": {},
+        })
+        detector.train(train)
+
+        # All known chars
+        ok = schemas.ParserSchema({
+            "parserType": "test", "EventID": 1, "template": "t",
+            "variables": ["cba"], "logID": "2", "parsedLogID": "2",
+            "parserID": "p", "log": "l", "logFormatVariables": {},
+        })
+        out = schemas.DetectorSchema()
+        assert not detector.detect(ok, out)
+        assert out.score == 0.0
+
+        # Unknown chars 'x' and 'y'
+        bad = schemas.ParserSchema({
+            "parserType": "test", "EventID": 1, "template": "t",
+            "variables": ["axy"], "logID": "3", "parsedLogID": "3",
+            "parserID": "p", "log": "l", "logFormatVariables": {},
+        })
+        out = schemas.DetectorSchema()
+        assert detector.detect(bad, out)
+        assert out.score == 1.0
+        assert any("'x'" in msg and "'y'" in msg for msg in out["alertsObtain"].values())
+
 
 _PARSER_CONFIG = {
     "parsers": {
@@ -318,7 +368,7 @@ class TestCharsetDetectorGlobalInstances:
                 "CharsetDetector": {
                     "method_type": "charset_detector",
                     "auto_config": False,
-                    "params": {"ignore_non_string_val": True},
+                    "params": {},
                     "global": {
                         "test": {
                             "header_variables": [{"pos": "Type"}]
