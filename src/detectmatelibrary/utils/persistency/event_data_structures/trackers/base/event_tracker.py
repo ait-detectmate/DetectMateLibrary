@@ -89,12 +89,15 @@ class EventTracker(EventDataStructure):
             importlib.import_module(state["multi_tracker_module"]),
             state["multi_tracker_type"],
         )
-        instance = cls.__new__(cls)
-        EventTracker.__init__(
-            instance,
-            single_tracker_type=single_tracker_cls,
-            multi_tracker_type=multi_tracker_cls,
-        )
+        if cls is EventTracker:
+            instance = cls.__new__(cls)
+            EventTracker.__init__(
+                instance,
+                single_tracker_type=single_tracker_cls,
+                multi_tracker_type=multi_tracker_cls,
+            )
+        else:
+            instance = cls(**kwargs)
         for name, tracker_state in state["trackers"].items():
             instance.multi_tracker.single_trackers[name] = single_tracker_cls.from_state(tracker_state)
         return instance

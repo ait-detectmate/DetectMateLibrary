@@ -71,3 +71,23 @@ class TestEventStabilityTrackerExpandValue:
         assert b.expand_value is True
         assert a.unique_set == {"a", "b"}
         assert b.unique_set == {"c", "d"}
+
+    def test_post_load_new_variable_honors_expand_value(self):
+        """After dump/load, a variable that wasn't present at save time should
+        still use expand_value semantics when first ingested."""
+        original = EventStabilityTracker(expand_value=True)
+        original.add_data({"known": "abc"})
+        blob = original.dump()
+        restored = EventStabilityTracker.load(blob, expand_value=True)
+
+        # Ingest a brand-new variable not present in the saved state
+        restored.add_data({"known": "de", "newvar": "xy"})
+
+        new_tracker = restored.get_data()["newvar"]
+        assert new_tracker.expand_value is True
+        assert new_tracker.unique_set == {"x", "y"}
+
+        # And the existing variable continues to expand correctly
+        known_tracker = restored.get_data()["known"]
+        assert known_tracker.expand_value is True
+        assert {"a", "b", "c", "d", "e"} <= known_tracker.unique_set
