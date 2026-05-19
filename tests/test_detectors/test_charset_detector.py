@@ -396,3 +396,27 @@ class TestCharsetDetectorGlobalInstances:
                 detected_ids.add(log["logID"])
 
         assert len(detected_ids) > 0
+
+
+class TestCharsetDetectorSetConfigurationPreservesPersist:
+    def test_persist_flag_survives_set_configuration(self):
+        from detectmatelibrary.common.detector import PersistConfig
+
+        detector = CharsetDetector()
+        # Simulate persist being enabled by an earlier config load
+        detector.config.persist = PersistConfig(path="./state")
+
+        # Feed configure() with a couple of stable-variable samples
+        for _ in range(5):
+            sample = schemas.ParserSchema({
+                "parserType": "test", "EventID": 1, "template": "t",
+                "variables": ["abc"], "logID": "x", "parsedLogID": "x",
+                "parserID": "p", "log": "l",
+                "logFormatVariables": {"level": "INFO"},
+            })
+            detector.configure(sample)
+
+        detector.set_configuration()
+
+        assert detector.config.persist is not None
+        assert detector.config.persist.path == "./state"
