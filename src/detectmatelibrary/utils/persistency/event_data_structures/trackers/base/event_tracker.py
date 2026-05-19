@@ -66,6 +66,17 @@ class EventTracker(EventDataStructure):
     def load(cls, data: bytes, **kwargs: Any) -> "EventTracker":
         """Restore tracker state from MessagePack bytes.
 
+        Reconstruction follows two paths. When ``cls is EventTracker`` the
+        legacy path runs: ``__new__`` allocates the instance and the base
+        ``__init__`` is invoked directly with the ``single_tracker_type`` and
+        ``multi_tracker_type`` recorded in the snapshot. For any subclass,
+        ``cls(**kwargs)`` is called instead, which lets subclasses with
+        closure-based factories (e.g. ``EventStabilityTracker``'s
+        ``expand_value``) rebuild their factory so it survives load.
+
+        Contract for subclasses: ``__init__`` must accept the kwargs forwarded
+        to ``load()`` and must not require additional positional arguments.
+
         Note: event_id and template (base dataclass fields) are not restored;
         they remain at defaults (-1 and "") as they are managed by EventPersistency.
         """
