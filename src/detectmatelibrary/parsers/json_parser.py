@@ -58,10 +58,10 @@ class JsonParser(CoreParser):
     ) -> None:
 
         if isinstance(config, dict):
-            content_parser_name = config.get("content_parser", "JsonMatcherParser")
-            content_parser_config = MatcherParserConfig.from_dict(config, content_parser_name)
+            cfg_dict = JsonParserConfig.from_dict(config, name)
+            content_parser_config = MatcherParserConfig.from_dict(config, cfg_dict.content_parser)
             self.content_parser = MatcherParser(config=content_parser_config)
-            config = JsonParserConfig.from_dict(config, name)
+            config = cfg_dict
         super().__init__(name=name, config=config)
 
         self.time_extractor = KeyExtractor(key_substr=config.timestamp_name)

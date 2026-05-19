@@ -8,10 +8,7 @@ from detectmatelibrary.common.detector import (
     get_global_variables,
     validate_config_coverage,
 )
-from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
-    EventStabilityTracker
-)
-from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
+from detectmatelibrary.utils import persistency
 from detectmatelibrary.utils.data_buffer import BufferMode
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
@@ -42,13 +39,14 @@ class NewValueDetector(CoreDetector):
 
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: NewValueDetectorConfig  # type narrowing for IDE
-        self.persistency = EventPersistency(
-            event_data_class=EventStabilityTracker,
+        self.persistency = persistency.EventPersistency(
+            event_data_class=persistency.EventStabilityTracker,
         )
         # auto config checks if individual variables are stable to select combos from
-        self.auto_conf_persistency = EventPersistency(
-            event_data_class=EventStabilityTracker
+        self.auto_conf_persistency = persistency.EventPersistency(
+            event_data_class=persistency.EventStabilityTracker
         )
+        self._register_persistency(self.persistency)
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by learning values from the input data."""
@@ -134,6 +132,7 @@ class NewValueDetector(CoreDetector):
             vars_ = stable + static
             if len(vars_) > 0:
                 variables[event_id] = vars_
+        old_persist = self.config.persist
         config_dict = generate_detector_config(
             variable_selection=variables,
             detector_name=self.name,
@@ -141,6 +140,7 @@ class NewValueDetector(CoreDetector):
         )
         # Update the config object from the dictionary instead of replacing it
         self.config = NewValueDetectorConfig.from_dict(config_dict, self.name)
+        self.config.persist = old_persist
         events = self.config.events
         if isinstance(events, EventsConfig) and not events.events:
             logger.warning(

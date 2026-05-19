@@ -12,7 +12,7 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
     EventStabilityTracker,
     Classification,
 )
-from detectmatelibrary.utils.RLE_list import RLEList
+from detectmatelibrary.utils.persistency.rle_list import RLEList
 
 
 class TestStabilityClassifier:
