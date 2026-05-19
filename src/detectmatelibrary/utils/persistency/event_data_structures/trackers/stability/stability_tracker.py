@@ -12,20 +12,21 @@ from .stability_classifier import StabilityClassifier
 class SingleStabilityTracker(SingleTracker):
     """Tracks stability of a single feature."""
 
-    def __init__(self, min_samples: int = 3) -> None:
+    def __init__(self, min_samples: int = 3, expand_value: bool = False) -> None:
         self.min_samples = min_samples
+        self.expand_value = expand_value
         self.change_series: RLEList[bool] = RLEList()
         self.unique_set: Set[Any] = set()
         self.stability_classifier: StabilityClassifier = StabilityClassifier(
             segment_thresholds=[1.1, 0.3, 0.1, 0.01],
         )
+        self._accum = set.update if expand_value else set.add
 
     def add_value(self, value: Any) -> None:
         """Add a new value to the tracker."""
-        unique_set_size_before = len(self.unique_set)
-        self.unique_set.add(value)
-        has_changed = len(self.unique_set) - unique_set_size_before > 0
-        self.change_series.append(has_changed)
+        before = len(self.unique_set)
+        self._accum(self.unique_set, value)
+        self.change_series.append(len(self.unique_set) > before)
 
     def classify(self) -> Classification:
         """Classify the variable."""
