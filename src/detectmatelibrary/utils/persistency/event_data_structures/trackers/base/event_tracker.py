@@ -18,7 +18,7 @@ class EventTracker(EventDataStructure):
 
     def __init__(
         self,
-        single_tracker_type: Type[SingleTracker] = SingleTracker,
+        single_tracker_type: Callable[[], SingleTracker] = SingleTracker,
         multi_tracker_type: Type[MultiTracker] = MultiTracker,
         converter_function: Callable[[Any], Any] = lambda x: x,
     ) -> None:
@@ -66,6 +66,17 @@ class EventTracker(EventDataStructure):
     def load(cls, data: bytes, **kwargs: Any) -> "EventTracker":
         """Restore tracker state from MessagePack bytes.
 
+        Reconstruction follows two paths. When ``cls is EventTracker`` the
+        legacy path runs: ``__new__`` allocates the instance and the base
+        ``__init__`` is invoked directly with the ``single_tracker_type`` and
+        ``multi_tracker_type`` recorded in the snapshot. For any subclass,
+        ``cls(**kwargs)`` is called instead, which lets subclasses with
+        closure-based factories (e.g. ``EventStabilityTracker``'s
+        ``expand_value``) rebuild their factory so it survives load.
+
+        Contract for subclasses: ``__init__`` must accept the kwargs forwarded
+        to ``load()`` and must not require additional positional arguments.
+
         Note: event_id and template (base dataclass fields) are not restored;
         they remain at defaults (-1 and "") as they are managed by EventPersistency.
         """
@@ -89,12 +100,15 @@ class EventTracker(EventDataStructure):
             importlib.import_module(state["multi_tracker_module"]),
             state["multi_tracker_type"],
         )
-        instance = cls.__new__(cls)
-        EventTracker.__init__(
-            instance,
-            single_tracker_type=single_tracker_cls,
-            multi_tracker_type=multi_tracker_cls,
-        )
+        if cls is EventTracker:
+            instance = cls.__new__(cls)
+            EventTracker.__init__(
+                instance,
+                single_tracker_type=single_tracker_cls,
+                multi_tracker_type=multi_tracker_cls,
+            )
+        else:
+            instance = cls(**kwargs)
         for name, tracker_state in state["trackers"].items():
             instance.multi_tracker.single_trackers[name] = single_tracker_cls.from_state(tracker_state)
         return instance
