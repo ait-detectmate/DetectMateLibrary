@@ -66,6 +66,7 @@ class SingleStabilityTracker(SingleTracker):
             "type": self.__class__.__name__,
             "module": self.__class__.__module__,
             "min_samples": self.min_samples,
+            "expand_value": self.expand_value,
             "runs": self.change_series.runs(),
             "unique_set": list(self.unique_set),
             "segment_thresholds": self.stability_classifier.segment_threshs,
@@ -74,7 +75,10 @@ class SingleStabilityTracker(SingleTracker):
     @classmethod
     def from_state(cls, state: Dict[str, Any]) -> "SingleStabilityTracker":
         """Restore tracker from a state dict produced by to_state()."""
-        tracker = cls(min_samples=state["min_samples"])
+        tracker = cls(
+            min_samples=state["min_samples"],
+            expand_value=state.get("expand_value", False),
+        )
         runs = [(bool(r[0]), int(r[1])) for r in state["runs"]]
         tracker.change_series._runs = runs
         tracker.change_series._len = sum(count for _, count in runs)
