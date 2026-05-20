@@ -1,6 +1,6 @@
 # Bigram Frequency Detector
 
-The Bigram Frequency Detector raises alerts when ...
+The Bigram Frequency Detector raises alerts when a variable's character bigrams (pairs of adjacent characters) appear improbable under a learned per-variable bigram frequency model. Optionally, an English-language bigram table can be consulted as a fallback for bigrams not yet seen during training.
 
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
@@ -9,7 +9,7 @@ The Bigram Frequency Detector raises alerts when ...
 
 ## Description
 
-This detector maintains a lightweight set of observed values per monitored field and emits an alert when a value not present in the set is seen for the first time (subject to configuration).
+For each configured variable, the detector walks every observed value character-by-character (with virtual boundary characters before the first and after the last) and updates a per-(event, variable) bigram frequency table. At detect time, the average per-bigram conditional probability of a new value is computed against this table. Values scoring below `prob_thresh` (default `0.05`) are flagged. When `default_freqs` is enabled, a built-in English bigram table acts as a fallback for bigrams unseen during training.
 
 
 ## Configuration example
