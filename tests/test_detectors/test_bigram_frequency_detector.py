@@ -327,5 +327,5 @@ class TestBigramFrequencyDetectorPersistencyRegistration:
             detector = BigramFrequencyDetector()
 
         mock_reg.assert_called_once()
-        # The saver attribute exists (set by Component.__init__ or _register_persistency)
-        assert hasattr(detector, "saver")
+        _, called_persistency = mock_reg.call_args[0]  # (self, persistency)
+        assert called_persistency is detector.persistency
