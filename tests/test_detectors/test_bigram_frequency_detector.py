@@ -256,7 +256,7 @@ class TestBigramFrequencyDetectorEndToEnd:
             if detector.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
-        assert detected_ids == {'1859', '1860', '1861', '1862'}
+        assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
 
 
 class TestBigramFrequencyDetectorAutoConfig:
@@ -289,7 +289,7 @@ class TestBigramFrequencyDetectorAutoConfig:
             if detector.process(log) is not None:
                 detected_ids.add(log["logID"])
 
-        assert detected_ids == {'1859', '1860', '1861', '1862'}
+        assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
 
 
 class TestBigramFrequencyDetectorGlobalInstances:
@@ -414,3 +414,73 @@ class TestBigramFrequencyDetectorTrainBugFixes:
         freq = tracker.extra_state.get("freq", {})
         # Only one training pass should have happened: ('a','b') count is 1, not 2
         assert freq.get("a", {}).get("b") == 1
+
+
+class TestBigramFrequencyDetectorDetectFixes:
+    def test_detect_helper_survives_missing_variable(self):
+        """Review #5: variables.get(var_name) returning None must not raise."""
+        detector = BigramFrequencyDetector(config=config, name="MultipleDetector")
+        # Train so the tracker for var 'test' exists
+        detector.train(_parser_data(1, "INFO", "abc"))
+
+        # Detect with a parser line that lacks the 'test' variable
+        test_data = schemas.ParserSchema({
+            "parserType": "test",
+            "EventID": 1,
+            "template": "test template",
+            "variables": ["0"],  # only pos 0 — no value at pos 1
+            "logID": "2",
+            "parsedLogID": "2",
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {"level": "INFO"},
+        })
+        output = schemas.DetectorSchema()
+        # Must not raise TypeError
+        result = detector.detect(test_data, output)
+        assert isinstance(result, bool)
+
+    def test_default_freqs_false_does_not_consult_fallback(self):
+        """default_freqs=False (the default): no fallback consultation."""
+        detector = BigramFrequencyDetector(config=config, name="MultipleDetector")
+        assert detector.config.default_freqs is False
+        # Train a tracker on a value with no overlap to English text
+        detector.train(_parser_data(1, "INFO", "qqq"))
+
+        # Detect a typical English-looking value. Without fallback, sparse
+        # per-var table → low prob → alert expected.
+        test_data = _parser_data(1, "INFO", "the")
+        output = schemas.DetectorSchema()
+        result = detector.detect(test_data, output)
+        assert result is True
+
+    def test_default_freqs_true_consults_fallback(self):
+        """default_freqs=True: when the per-var table misses, fall back to the
+        English bigram table — common English bigrams should not alert."""
+        cfg = {
+            "detectors": {
+                "MultipleDetector": {
+                    "method_type": "bigram_frequency_detector",
+                    "auto_config": False,
+                    "params": {"default_freqs": True, "prob_thresh": 0.001},
+                    "events": {
+                        1: {
+                            "test": {
+                                "params": {},
+                                "variables": [{"pos": 1, "name": "test", "params": {}}],
+                                "header_variables": [{"pos": "level", "params": {}}],
+                            }
+                        }
+                    },
+                }
+            }
+        }
+        detector = BigramFrequencyDetector(config=cfg, name="MultipleDetector")
+        # Train so the tracker exists (with sparse data — fallback will dominate)
+        detector.train(_parser_data(1, "INFO", "x"))
+
+        # Detect a common English word — fallback should produce non-zero probs
+        test_data = _parser_data(1, "INFO", "the")
+        output = schemas.DetectorSchema()
+        result = detector.detect(test_data, output)
+        assert result is False
