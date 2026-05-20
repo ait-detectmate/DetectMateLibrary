@@ -484,3 +484,114 @@ class TestBigramFrequencyDetectorDetectFixes:
         output = schemas.DetectorSchema()
         result = detector.detect(test_data, output)
         assert result is False
+
+
+class TestBigramFrequencyDetectorPersistenceRoundTrip:
+    def test_freq_table_survives_save_and_load(self):
+        """The learned bigram model must round-trip through
+        PersistencySaver."""
+        base_path = "memory://bigram_roundtrip/state"
+
+        cfg_dict = {
+            "detectors": {
+                "MultipleDetector": {
+                    "method_type": "bigram_frequency_detector",
+                    "auto_config": False,
+                    "persist": {"path": base_path},
+                    "params": {},
+                    "events": {
+                        1: {
+                            "test": {
+                                "params": {},
+                                "variables": [{"pos": 1, "name": "test", "params": {}}],
+                                "header_variables": [{"pos": "level", "params": {}}],
+                            }
+                        }
+                    },
+                }
+            }
+        }
+        det1 = BigramFrequencyDetector(config=cfg_dict, name="MultipleDetector")
+        det1.train(_parser_data(1, "INFO", "abc"))
+        det1.train(_parser_data(1, "INFO", "abd"))
+        assert det1.saver is not None
+        det1.saver.save()
+        det1.saver.stop()
+
+        cfg_dict_reload = {
+            "detectors": {
+                "MultipleDetector": {
+                    "method_type": "bigram_frequency_detector",
+                    "auto_config": False,
+                    "persist": {"path": base_path, "auto_load": True},
+                    "params": {},
+                    "events": {
+                        1: {
+                            "test": {
+                                "params": {},
+                                "variables": [{"pos": 1, "name": "test", "params": {}}],
+                                "header_variables": [{"pos": "level", "params": {}}],
+                            }
+                        }
+                    },
+                }
+            }
+        }
+        det2 = BigramFrequencyDetector(config=cfg_dict_reload, name="MultipleDetector")
+
+        a_tracker = det1.persistency.get_event_data(1)["test"]
+        b_tracker = det2.persistency.get_event_data(1)["test"]
+        assert b_tracker.extra_state.get("freq") == a_tracker.extra_state.get("freq")
+        assert b_tracker.extra_state.get("total_freq") == a_tracker.extra_state.get("total_freq")
+        det2.saver.stop()
+
+
+class TestBigramFrequencyDetectorPerVarIsolation:
+    def test_two_variables_have_independent_freq_tables(self):
+        """Training on one variable must not affect another variable's
+        table."""
+        cfg = {
+            "detectors": {
+                "TwoVarDetector": {
+                    "method_type": "bigram_frequency_detector",
+                    "auto_config": False,
+                    "params": {},
+                    "events": {
+                        1: {
+                            "test": {
+                                "params": {},
+                                "variables": [
+                                    {"pos": 0, "name": "a", "params": {}},
+                                    {"pos": 1, "name": "b", "params": {}},
+                                ],
+                            }
+                        }
+                    },
+                }
+            }
+        }
+        detector = BigramFrequencyDetector(config=cfg, name="TwoVarDetector")
+        parser_data = schemas.ParserSchema({
+            "parserType": "test",
+            "EventID": 1,
+            "template": "test template",
+            "variables": ["abc", "xyz"],
+            "logID": "1",
+            "parsedLogID": "1",
+            "parserID": "test_parser",
+            "log": "test log message",
+            "logFormatVariables": {},
+        })
+        detector.train(parser_data)
+
+        a_tracker = detector.persistency.get_event_data(1)["a"]
+        b_tracker = detector.persistency.get_event_data(1)["b"]
+        a_freq = a_tracker.extra_state["freq"]
+        b_freq = b_tracker.extra_state["freq"]
+
+        # 'a' learned bigrams from "abc": (a,b), (b,c), plus boundaries
+        assert "a" in a_freq and "b" in a_freq["a"]
+        # 'b' should NOT have learned anything from "abc"
+        assert "a" not in b_freq
+        # 'b' DID learn from "xyz"
+        assert "x" in b_freq and "y" in b_freq["x"]
