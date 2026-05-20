@@ -91,3 +91,29 @@ class TestEventStabilityTrackerExpandValue:
         known_tracker = restored.get_data()["known"]
         assert known_tracker.expand_value is True
         assert {"a", "b", "c", "d", "e"} <= known_tracker.unique_set
+
+
+class TestSingleStabilityTrackerExtraState:
+    def test_extra_state_defaults_to_empty_dict(self):
+        tracker = SingleStabilityTracker()
+        assert tracker.extra_state == {}
+
+    def test_extra_state_round_trip(self):
+        tracker = SingleStabilityTracker()
+        tracker.add_value("hello")
+        tracker.extra_state["freq"] = {"a": {"b": 3, "c": 1}}
+        tracker.extra_state["total_freq"] = {"a": 4}
+        state = tracker.to_state()
+        restored = SingleStabilityTracker.from_state(state)
+        assert restored.extra_state == {
+            "freq": {"a": {"b": 3, "c": 1}},
+            "total_freq": {"a": 4},
+        }
+
+    def test_legacy_state_without_extra_state_defaults_empty(self):
+        tracker = SingleStabilityTracker()
+        tracker.add_value("hello")
+        state = tracker.to_state()
+        state.pop("extra_state", None)  # simulate pre-flag snapshot
+        restored = SingleStabilityTracker.from_state(state)
+        assert restored.extra_state == {}
