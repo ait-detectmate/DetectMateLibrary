@@ -461,3 +461,26 @@ class TestEventPersistencyIntegration:
         assert "var_0" in data2.columns  # First variable
         assert "var_1" not in data2.columns  # Blacklisted
         assert "timestamp" not in data2.columns  # Blacklisted
+
+
+class TestEventPersistencyEventsSinceSave:
+    def test_events_since_save_starts_at_zero(self):
+        p = EventPersistency(event_data_class=EventDataFrame)
+        assert p._events_since_save == 0
+
+    def test_events_since_save_increments_on_ingest(self):
+        p = EventPersistency(event_data_class=EventDataFrame)
+        p.ingest_event(**SAMPLE_EVENT_1)
+        assert p._events_since_save == 1
+
+    def test_events_since_save_increments_for_no_variable_event(self):
+        p = EventPersistency(event_data_class=EventDataFrame)
+        p.ingest_event(event_id="E999", event_template="no vars")
+        assert p._events_since_save == 1
+
+    def test_reset_events_since_save(self):
+        p = EventPersistency(event_data_class=EventDataFrame)
+        p.ingest_event(**SAMPLE_EVENT_1)
+        p.ingest_event(**SAMPLE_EVENT_2)
+        p.reset_events_since_save()
+        assert p._events_since_save == 0

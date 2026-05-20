@@ -1,4 +1,4 @@
-from typing import Any, Dict, Type
+from typing import Any, Callable, Dict
 
 from detectmatelibrary.utils.preview_helpers import format_dict_repr
 
@@ -9,9 +9,9 @@ class MultiTracker:
     """Tracks multiple features (e.g. variables or variable combos) using
     individual trackers."""
 
-    def __init__(self, single_tracker_type: Type[SingleTracker] = SingleTracker) -> None:
+    def __init__(self, single_tracker_type: Callable[[], SingleTracker] = SingleTracker) -> None:
         self.single_trackers: Dict[str, SingleTracker] = {}
-        self.single_tracker_type: Type[SingleTracker] = single_tracker_type
+        self.single_tracker_type: Callable[[], SingleTracker] = single_tracker_type
 
     def add_data(self, data_object: Dict[str, Any]) -> None:
         """Add data to the appropriate feature trackers."""

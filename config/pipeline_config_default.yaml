@@ -83,15 +83,33 @@ detectors:
         auto_config: False
         params: {}
 
-    "ValueRangeDetector":
-        "method_type": value_range_detector
-        "auto_config": False
-        "params": {"ignore_non_numerical_val": True}
-        "events":
+    ValueRangeDetector:
+        method_type: value_range_detector
+        auto_config: False
+        params:
+            ignore_non_numerical_val: True
+        events:
             1:
-                "test":
-                    "params": {}
-                    "variables":
-                        - "pos": 1
-                          "name": test
-                          "params": {}
+                test:
+                    params: {}
+                    variables:
+                        - pos: 1
+                          name: test
+                          params: {}
+
+    CharsetDetector:
+        method_type: charset_detector
+        auto_config: False
+        params: {}
+        events:
+            1:
+                test:
+                    params: {}
+                    variables:
+                        - pos: 0
+                          name: var1
+                          params:
+                              threshold: 0.
+                    header_variables:
+                        - pos: level
+                          params: {}

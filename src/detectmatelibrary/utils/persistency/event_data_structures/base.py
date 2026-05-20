@@ -24,6 +24,20 @@ class EventDataStructure(ABC):
         """Convert raw data into the appropriate data format for storage."""
         pass
 
+    @abstractmethod
+    def dump(self) -> bytes:
+        """Serialize full state to bytes.
+
+        Format is backend-specific.
+        """
+        ...
+
+    @classmethod
+    @abstractmethod
+    def load(cls, data: bytes, **kwargs: Any) -> "EventDataStructure":
+        """Restore state from bytes produced by dump()."""
+        ...
+
     def get_template(self) -> str:
         return self.template
 

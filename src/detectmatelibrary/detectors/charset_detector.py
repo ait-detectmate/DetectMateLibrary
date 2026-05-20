@@ -1,6 +1,5 @@
 from detectmatelibrary.common._config._compile import generate_detector_config
 from detectmatelibrary.common._config._formats import EventsConfig
-
 from detectmatelibrary.common.detector import (
     CoreDetectorConfig,
     CoreDetector,
@@ -8,48 +7,48 @@ from detectmatelibrary.common.detector import (
     get_global_variables,
     validate_config_coverage,
 )
-from detectmatelibrary.utils import persistency
+from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
+    EventStabilityTracker
+)
+from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from detectmatelibrary.utils.data_buffer import BufferMode
-
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
-
 from typing_extensions import override
 from tools.logging import logger
 
 
-class NewValueDetectorConfig(CoreDetectorConfig):
-    method_type: str = "new_value_detector"
+class CharsetDetectorConfig(CoreDetectorConfig):
+    method_type: str = "charset_detector"
 
     use_stable_vars: bool = True
     use_static_vars: bool = True
 
 
-class NewValueDetector(CoreDetector):
+class CharsetDetector(CoreDetector):
     """Detect new values in log data as anomalies based on learned values."""
 
     def __init__(
         self,
-        name: str = "NewValueDetector",
-        config: NewValueDetectorConfig = NewValueDetectorConfig()
+        name: str = "CharsetDetector",
+        config: CharsetDetectorConfig = CharsetDetectorConfig()
     ) -> None:
 
         if isinstance(config, dict):
-            config = NewValueDetectorConfig.from_dict(config, name)
+            config = CharsetDetectorConfig.from_dict(config, name)
 
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
-        self.config: NewValueDetectorConfig  # type narrowing for IDE
-        self.persistency = persistency.EventPersistency(
-            event_data_class=persistency.EventStabilityTracker,
+        self.config: CharsetDetectorConfig  # type narrowing for IDE
+        self.persistency = EventPersistency(
+            event_data_class=EventStabilityTracker,
+            event_data_kwargs={"expand_value": True},
         )
         # auto config checks if individual variables are stable to select combos from
-        self.auto_conf_persistency = persistency.EventPersistency(
-            event_data_class=persistency.EventStabilityTracker
-        )
+        self.auto_conf_persistency = EventPersistency(event_data_class=EventStabilityTracker)
         self._register_persistency(self.persistency)
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
-        """Train the detector by learning values from the input data."""
+        """Train the detector by learning characters from the input data."""
         configured_variables = get_configured_variables(input_, self.config.events)
         self.persistency.ingest_event(
             event_id=input_["EventID"],
@@ -66,9 +65,10 @@ class NewValueDetector(CoreDetector):
                 )
 
     def detect(
-        self, input_:  ParserSchema, output_: DetectorSchema  # type: ignore
+        self, input_: ParserSchema, output_: DetectorSchema  # type: ignore
     ) -> bool:
-        """Detect new values in the input data."""
+        """Detect characters in the input data that were not seen in
+        training."""
         alerts: dict[str, str] = {}
         configured_variables = get_configured_variables(input_, self.config.events)
         overall_score = 0.0
@@ -78,30 +78,38 @@ class NewValueDetector(CoreDetector):
 
         if current_event_id in known_events:
             event_tracker = known_events[current_event_id]
-            for var_name, multi_tracker in event_tracker.get_data().items():
-                value = configured_variables.get(var_name)
-                if value is None:
+            for var_name, single_tracker in event_tracker.get_data().items():
+                v = configured_variables.get(var_name)
+                if v is None:
                     continue
-                if value not in multi_tracker.unique_set:
+                unknown = set(v) - single_tracker.unique_set
+                if unknown:
                     alerts[f"EventID {current_event_id} - {var_name}"] = (
-                        f"Unknown value: '{value}'"
+                        "Unknown character(s): "
+                        + ", ".join(f"'{c}'" for c in sorted(unknown))
                     )
                     overall_score += 1.0
 
         if self.config.global_instances and GLOBAL_EVENT_ID in known_events:
             global_vars = get_global_variables(input_, self.config.global_instances)
             global_tracker = known_events[GLOBAL_EVENT_ID]
-            for var_name, multi_tracker in global_tracker.get_data().items():
-                value = global_vars.get(var_name)
-                if value is None:
+            for var_name, single_tracker in global_tracker.get_data().items():
+                v = global_vars.get(var_name)
+                if v is None:
                     continue
-                if value not in multi_tracker.unique_set:
-                    alerts[f"Global - {var_name}"] = f"Unknown value: '{value}'"
+                unknown = set(v) - single_tracker.unique_set
+                if unknown:
+                    alerts[f"Global - {var_name}"] = (
+                        "Unknown character(s): "
+                        + ", ".join(f"'{c}'" for c in sorted(unknown))
+                    )
                     overall_score += 1.0
 
         if overall_score > 0:
             output_["score"] = overall_score
-            output_["description"] = f"{self.name} detects values not encountered in training as anomalies."
+            output_["description"] = (
+                f"{self.name} detects characters not encountered in training as anomalies."
+            )
             output_["alertsObtain"].update(alerts)
             return True
 
@@ -139,7 +147,7 @@ class NewValueDetector(CoreDetector):
             method_type=self.config.method_type,
         )
         # Update the config object from the dictionary instead of replacing it
-        self.config = NewValueDetectorConfig.from_dict(config_dict, self.name)
+        self.config = CharsetDetectorConfig.from_dict(config_dict, self.name)
         self.config.persist = old_persist
         events = self.config.events
         if isinstance(events, EventsConfig) and not events.events:
