@@ -329,3 +329,14 @@ class TestBigramFrequencyDetectorPersistencyRegistration:
         mock_reg.assert_called_once()
         _, called_persistency = mock_reg.call_args[0]  # (self, persistency)
         assert called_persistency is detector.persistency
+
+
+class TestBigramFrequencyDetectorSetConfigurationPersist:
+    def test_set_configuration_preserves_persist(self):
+        """Auto-config must not silently drop the persist sub-config."""
+        from detectmatelibrary.common.detector import PersistConfig
+        detector = BigramFrequencyDetector()
+        sentinel_persist = PersistConfig(path="/tmp/sentinel")
+        detector.config.persist = sentinel_persist
+        detector.set_configuration()
+        assert detector.config.persist == sentinel_persist

@@ -202,8 +202,9 @@ class BigramFrequencyDetector(CoreDetector):
             detector_name=self.name,
             method_type=self.config.method_type,
         )
-        # Update the config object from the dictionary instead of replacing it
+        old_persist = self.config.persist
         self.config = BigramFrequencyDetectorConfig.from_dict(config_dict, self.name)
+        self.config.persist = old_persist
         events = self.config.events
         if isinstance(events, EventsConfig) and not events.events:
             logger.warning(
