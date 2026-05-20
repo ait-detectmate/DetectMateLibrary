@@ -24,6 +24,26 @@ from detectmatelibrary.utils.aux import time_test_mode
 time_test_mode()
 
 
+_SKIP_REPETITIONS_CONFIG = {
+    "detectors": {
+        "MultipleDetector": {
+            "method_type": "bigram_frequency_detector",
+            "auto_config": False,
+            "params": {"skip_repetitions": True},
+            "events": {
+                1: {
+                    "test": {
+                        "params": {},
+                        "variables": [{"pos": 1, "name": "test", "params": {}}],
+                        "header_variables": [{"pos": "level", "params": {}}],
+                    }
+                }
+            },
+        }
+    }
+}
+
+
 config = {
     "detectors": {
         "CustomInit": {
@@ -375,25 +395,7 @@ class TestBigramFrequencyDetectorTrainBugFixes:
     def test_skip_repetitions_does_not_skip_first_occurrence(self):
         """skip_repetitions must train on the first occurrence of a value even
         when the event was just registered."""
-        cfg = {
-            "detectors": {
-                "MultipleDetector": {
-                    "method_type": "bigram_frequency_detector",
-                    "auto_config": False,
-                    "params": {"skip_repetitions": True},
-                    "events": {
-                        1: {
-                            "test": {
-                                "params": {},
-                                "variables": [{"pos": 1, "name": "test", "params": {}}],
-                                "header_variables": [{"pos": "level", "params": {}}],
-                            }
-                        }
-                    },
-                }
-            }
-        }
-        detector = BigramFrequencyDetector(config=cfg, name="MultipleDetector")
+        detector = BigramFrequencyDetector(config=_SKIP_REPETITIONS_CONFIG, name="MultipleDetector")
         detector.train(_parser_data(1, "INFO", "abc"))
 
         tracker = detector.persistency.get_event_data(1)["test"]
@@ -404,25 +406,7 @@ class TestBigramFrequencyDetectorTrainBugFixes:
     def test_skip_repetitions_skips_repeat_value(self):
         """A repeated value with skip_repetitions=True must not double-count
         bigrams."""
-        cfg = {
-            "detectors": {
-                "MultipleDetector": {
-                    "method_type": "bigram_frequency_detector",
-                    "auto_config": False,
-                    "params": {"skip_repetitions": True},
-                    "events": {
-                        1: {
-                            "test": {
-                                "params": {},
-                                "variables": [{"pos": 1, "name": "test", "params": {}}],
-                                "header_variables": [{"pos": "level", "params": {}}],
-                            }
-                        }
-                    },
-                }
-            }
-        }
-        detector = BigramFrequencyDetector(config=cfg, name="MultipleDetector")
+        detector = BigramFrequencyDetector(config=_SKIP_REPETITIONS_CONFIG, name="MultipleDetector")
         detector.train(_parser_data(1, "INFO", "abc"))
         detector.train(_parser_data(1, "INFO", "abc"))  # same value
 
