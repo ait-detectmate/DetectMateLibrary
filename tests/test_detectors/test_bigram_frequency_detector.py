@@ -312,3 +312,20 @@ class TestBigramFrequencyDetectorGlobalInstances:
                 detected_ids.add(log["logID"])
 
         assert len(detected_ids) > 0
+
+
+class TestBigramFrequencyDetectorPersistencyRegistration:
+    def test_register_persistency_is_called(self):
+        """Persistency must be registered so `persist:` config takes effect."""
+        from unittest.mock import patch
+
+        with patch.object(
+            BigramFrequencyDetector,
+            "_register_persistency",
+            autospec=True,
+        ) as mock_reg:
+            detector = BigramFrequencyDetector()
+
+        mock_reg.assert_called_once()
+        # The saver attribute exists (set by Component.__init__ or _register_persistency)
+        assert hasattr(detector, "saver")

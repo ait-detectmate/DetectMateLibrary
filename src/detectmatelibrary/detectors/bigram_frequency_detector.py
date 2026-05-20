@@ -16,7 +16,7 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers.stabilit
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
-from detectmatelibrary.constants import GLOBAL_EVENT_ID, DEFAULT_FREQUENCIES
+from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from typing_extensions import override
 from tools.logging import logger
 
@@ -35,7 +35,6 @@ class BigramFrequencyDetectorConfig(CoreDetectorConfig):
 
 class BigramFrequencyDetector(CoreDetector):
     """Detect bigram-frequency-based anomalies in log data."""
-    # TODO: change persistency for this class.
 
     def __init__(
         self,
@@ -55,17 +54,7 @@ class BigramFrequencyDetector(CoreDetector):
         self.auto_conf_persistency = EventPersistency(
             event_data_class=EventStabilityTracker
         )
-        self.freq: dict[int, dict[int, int]] = {}
-        self.total_freq: dict[int, int] = {}
-        if self.config.default_freqs:
-            for elem in DEFAULT_FREQUENCIES[2]:  # type: ignore[attr-defined]
-                first_char = int.from_bytes(bytes(elem[0], "utf-8"), "big")
-                second_char_list = elem[1]
-                self.freq[first_char] = {}
-                for second_char_elem in second_char_list:
-                    second_char = int.from_bytes(bytes(second_char_elem[0], "utf-8"), "big")
-                    frequency = second_char_elem[1]
-                    self.freq[first_char][second_char] = frequency
+        self._register_persistency(self.persistency)
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by learning values from the input data."""
@@ -112,16 +101,16 @@ class BigramFrequencyDetector(CoreDetector):
                 second_char = -1
                 if i != len(value) - 1:
                     second_char = value[i + 1]
-                if first_char in self.freq:
-                    self.total_freq[first_char] += 1
-                    if second_char in self.freq[first_char]:
-                        self.freq[first_char][second_char] += 1
+                if first_char in self.freq:  # type: ignore[attr-defined]
+                    self.total_freq[first_char] += 1  # type: ignore[attr-defined]
+                    if second_char in self.freq[first_char]:  # type: ignore[attr-defined]
+                        self.freq[first_char][second_char] += 1  # type: ignore[attr-defined]
                     else:
-                        self.freq[first_char][second_char] = 1
+                        self.freq[first_char][second_char] = 1  # type: ignore[attr-defined]
                 else:
-                    self.total_freq[first_char] = 1
-                    self.freq[first_char] = {}
-                    self.freq[first_char][second_char] = 1
+                    self.total_freq[first_char] = 1  # type: ignore[attr-defined]
+                    self.freq[first_char] = {}  # type: ignore[attr-defined]
+                    self.freq[first_char][second_char] = 1  # type: ignore[attr-defined]
 
     def detect(
         self, input_:  ParserSchema, output_: DetectorSchema  # type: ignore
@@ -164,8 +153,10 @@ class BigramFrequencyDetector(CoreDetector):
                 if i != len(value) - 1:
                     second_char = value[i + 1]
                 prob = 0.0
-                if first_char in self.freq and second_char in self.freq[first_char]:
-                    prob = self.freq[first_char][second_char] / self.total_freq[first_char]
+                freq = self.freq  # type: ignore[attr-defined]
+                total_freq = self.total_freq  # type: ignore[attr-defined]
+                if first_char in freq and second_char in freq[first_char]:
+                    prob = freq[first_char][second_char] / total_freq[first_char]
                 probs.append(prob)
             critical_val = sum(probs) / len(probs)
             if critical_val < self.config.prob_thresh:
