@@ -9,7 +9,6 @@ from detectmatelibrary.common.detector import (
     get_global_variables,
     validate_config_coverage,
 )
-from detectmatelibrary.utils.persistency.event_data_structures.base import EventDataStructure
 from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
     EventStabilityTracker,
     SingleStabilityTracker,
@@ -17,9 +16,35 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers.stabilit
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
-from detectmatelibrary.constants import GLOBAL_EVENT_ID
+from detectmatelibrary.constants import GLOBAL_EVENT_ID, DEFAULT_FREQUENCIES
 from typing_extensions import override
 from tools.logging import logger
+
+
+_DEFAULT_FREQ: dict[str, dict[str, int]] | None = None
+_DEFAULT_TOTAL_FREQ: dict[str, int] | None = None
+
+
+def _default_freq_tables() -> tuple[dict[str, dict[str, int]], dict[str, int]]:
+    """Lazily parse DEFAULT_FREQUENCIES into string-keyed lookup tables."""
+    global _DEFAULT_FREQ, _DEFAULT_TOTAL_FREQ
+    if _DEFAULT_FREQ is None or _DEFAULT_TOTAL_FREQ is None:
+        freq: dict[str, dict[str, int]] = {}
+        total: dict[str, int] = {}
+        for first_char_raw, second_list in DEFAULT_FREQUENCIES:
+            first_char = cast(str, first_char_raw)
+            row: dict[str, int] = {}
+            row_total = 0
+            for second_char_raw, count_raw in second_list:
+                second_char = cast(str, second_char_raw)
+                count = cast(int, count_raw)
+                row[second_char] = count
+                row_total += count
+            freq[first_char] = row
+            total[first_char] = row_total
+        _DEFAULT_FREQ = freq
+        _DEFAULT_TOTAL_FREQ = total
+    return _DEFAULT_FREQ, _DEFAULT_TOTAL_FREQ
 
 
 class BigramFrequencyDetectorConfig(CoreDetectorConfig):
@@ -143,21 +168,25 @@ class BigramFrequencyDetector(CoreDetector):
                 total_freq[first] = total_freq.get(first, 0) + 1
 
     def detect(
-        self, input_:  ParserSchema, output_: DetectorSchema  # type: ignore
+        self, input_: ParserSchema, output_: DetectorSchema  # type: ignore
     ) -> bool:
-        """Detect new values in the input data."""
+        """Detect bigram-frequency anomalies in the input data."""
         alerts: dict[str, str] = {}
         configured_variables = get_configured_variables(input_, self.config.events)
         overall_score = 0.0
         current_event_id = input_["EventID"]
-        known_events = self.persistency.get_events_data()
+        known_events = cast(
+            dict[int | str, EventStabilityTracker], self.persistency.get_events_data()
+        )
         if current_event_id in known_events:
-            overall_score = self.detect_helper(alerts, configured_variables, current_event_id, known_events,
-                                               overall_score)
+            overall_score = self.detect_helper(
+                alerts, configured_variables, current_event_id, known_events, overall_score
+            )
         if self.config.global_instances and GLOBAL_EVENT_ID in known_events:
             global_vars = get_global_variables(input_, self.config.global_instances)
             overall_score = self.detect_helper(
-                alerts, global_vars, GLOBAL_EVENT_ID, known_events, overall_score)
+                alerts, global_vars, GLOBAL_EVENT_ID, known_events, overall_score
+            )
         if overall_score > 0:
             output_["score"] = overall_score
             output_["description"] = f"{self.name} anomalies in the bigram frequencies."
@@ -165,29 +194,41 @@ class BigramFrequencyDetector(CoreDetector):
             return True
         return False
 
-    def detect_helper(self, alerts: dict[str, str], variables: dict[str, Any], event_id: str,
-                      known_events: dict[int | str, EventDataStructure], overall_score: float) -> float:
+    def detect_helper(
+        self,
+        alerts: dict[str, str],
+        variables: dict[str, Any],
+        event_id: "int | str",
+        known_events: "dict[int | str, EventStabilityTracker]",
+        overall_score: float,
+    ) -> float:
         anomaly = False
-        for var_name, multi_tracker in known_events[event_id].get_data().items():
+        default_freq, default_total = (
+            _default_freq_tables() if self.config.default_freqs else ({}, {})
+        )
+        var_trackers = cast(
+            dict[str, SingleStabilityTracker], known_events[event_id].get_data()
+        )
+        for var_name, single_tracker in var_trackers.items():
             value: Any = variables.get(var_name)
-            probs = []
-            # Iterate over all characters (+ virtual characters before and after value)
-            # and check occurrence frequencies of ith and (i+1)th character
+            if value is None:
+                continue
+            freq: dict[Any, dict[Any, int]] = single_tracker.extra_state.get("freq", {})
+            total_freq: dict[Any, int] = single_tracker.extra_state.get("total_freq", {})
+            probs: list[float] = []
             for i in range(-1, len(value)):
-                # Use -1 as placeholder for character before first actual character of value
-                first_char = -1
-                if i != -1:
-                    first_char = value[i]
-                # Use -1 as placeholder for character after last actual character of value
-                second_char = -1
-                if i != len(value) - 1:
-                    second_char = value[i + 1]
+                first: Any = -1 if i == -1 else value[i]
+                second: Any = -1 if i == len(value) - 1 else value[i + 1]
                 prob = 0.0
-                freq = self.freq  # type: ignore[attr-defined]
-                total_freq = self.total_freq  # type: ignore[attr-defined]
-                if first_char in freq and second_char in freq[first_char]:
-                    prob = freq[first_char][second_char] / total_freq[first_char]
+                if first in freq and second in freq[first] and total_freq.get(first, 0) > 0:
+                    prob = freq[first][second] / total_freq[first]
+                elif self.config.default_freqs:
+                    if (first in default_freq and second in default_freq[first]
+                            and default_total.get(first, 0) > 0):
+                        prob = default_freq[first][second] / default_total[first]
                 probs.append(prob)
+            if not probs:
+                continue
             critical_val = sum(probs) / len(probs)
             if critical_val < self.config.prob_thresh:
                 k = f"EventID {event_id} - {var_name}"
