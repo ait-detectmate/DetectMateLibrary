@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, cast
 
 from detectmatelibrary.common._config._compile import generate_detector_config
 from detectmatelibrary.common._config._formats import EventsConfig
@@ -11,7 +11,8 @@ from detectmatelibrary.common.detector import (
 )
 from detectmatelibrary.utils.persistency.event_data_structures.base import EventDataStructure
 from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
-    EventStabilityTracker
+    EventStabilityTracker,
+    SingleStabilityTracker,
 )
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from detectmatelibrary.utils.data_buffer import BufferMode
@@ -57,60 +58,89 @@ class BigramFrequencyDetector(CoreDetector):
         self._register_persistency(self.persistency)
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
-        """Train the detector by learning values from the input data."""
+        """Train the detector by updating per-variable bigram frequencies."""
         configured_variables = get_configured_variables(input_, self.config.events)
         current_event_id = input_["EventID"]
-        known_events = self.persistency.get_events_data()
-        add_all = current_event_id not in known_events
-        if current_event_id in known_events:
-            self.train_helper(add_all, configured_variables, current_event_id, known_events)
-        if self.config.global_instances:
-            global_vars = get_global_variables(input_, self.config.global_instances)
-            if global_vars:
-                add_all = GLOBAL_EVENT_ID not in known_events
-                if not add_all:
-                    self.train_helper(add_all, global_vars, GLOBAL_EVENT_ID, known_events)
-                self.persistency.ingest_event(
-                    event_id=GLOBAL_EVENT_ID,
-                    event_template=input_["template"],
-                    named_variables=global_vars
-                )
-                if add_all:
-                    self.train_helper(add_all, global_vars, GLOBAL_EVENT_ID, known_events)
+        known_events = cast(
+            dict[int | str, EventStabilityTracker], self.persistency.get_events_data()
+        )
+
+        pre_unique = self._snapshot_unique_sets(
+            known_events.get(current_event_id), configured_variables
+        )
         self.persistency.ingest_event(
             event_id=current_event_id,
             event_template=input_["template"],
-            named_variables=configured_variables
+            named_variables=configured_variables,
         )
+        if configured_variables:
+            known_events = cast(
+                dict[int | str, EventStabilityTracker], self.persistency.get_events_data()
+            )
+            self.train_helper(configured_variables, current_event_id, known_events, pre_unique)
 
-    def train_helper(self, add_all: bool, variables: dict[str, Any], event_id: str,
-                     known_events: dict[int | str, EventDataStructure]) -> None:
-        for var_name, multi_tracker in known_events[event_id].get_data().items():
-            value: Any = variables.get(var_name)
+        if self.config.global_instances:
+            global_vars = get_global_variables(input_, self.config.global_instances)
+            if global_vars:
+                pre_unique_global = self._snapshot_unique_sets(
+                    known_events.get(GLOBAL_EVENT_ID), global_vars
+                )
+                self.persistency.ingest_event(
+                    event_id=GLOBAL_EVENT_ID,
+                    event_template=input_["template"],
+                    named_variables=global_vars,
+                )
+                known_events = cast(
+                    dict[int | str, EventStabilityTracker], self.persistency.get_events_data()
+                )
+                self.train_helper(global_vars, GLOBAL_EVENT_ID, known_events, pre_unique_global)
+
+    @staticmethod
+    def _snapshot_unique_sets(
+        event_tracker: "EventStabilityTracker | None",
+        variables: "dict[str, Any]",
+    ) -> "dict[str, set[Any]]":
+        """Capture pre-ingest unique_set membership per variable.
+
+        Used so train_helper's skip_repetitions check sees the
+        unique_set as it was *before* the current value was ingested.
+        Variables without a prior tracker get an empty set, which
+        naturally means skip_repetitions never skips on first
+        occurrence.
+        """
+        if event_tracker is None:
+            return {var: set() for var in variables}
+        existing = cast(dict[str, SingleStabilityTracker], event_tracker.get_data())
+        result: dict[str, set[Any]] = {}
+        for var in variables:
+            tracker = existing.get(var)
+            result[var] = set(tracker.unique_set) if tracker is not None else set()
+        return result
+
+    def train_helper(
+        self,
+        variables: "dict[str, Any]",
+        event_id: "int | str",
+        known_events: "dict[int | str, EventStabilityTracker]",
+        pre_unique: "dict[str, set[Any]]",
+    ) -> None:
+        var_trackers = cast(
+            dict[str, SingleStabilityTracker], known_events[event_id].get_data()
+        )
+        for var_name, value in variables.items():
             if value is None:
                 continue
-            if self.config.skip_repetitions:
-                # Do not consider repeating values multiple times for extending frequency table to
-                # avoid distortions.
-                if not add_all and value in multi_tracker.unique_set:
-                    continue
+            if self.config.skip_repetitions and value in pre_unique.get(var_name, set()):
+                continue
+            tracker = var_trackers[var_name]
+            freq = tracker.extra_state.setdefault("freq", {})
+            total_freq = tracker.extra_state.setdefault("total_freq", {})
             for i in range(-1, len(value)):
-                first_char = -1
-                if i != -1:
-                    first_char = value[i]
-                second_char = -1
-                if i != len(value) - 1:
-                    second_char = value[i + 1]
-                if first_char in self.freq:  # type: ignore[attr-defined]
-                    self.total_freq[first_char] += 1  # type: ignore[attr-defined]
-                    if second_char in self.freq[first_char]:  # type: ignore[attr-defined]
-                        self.freq[first_char][second_char] += 1  # type: ignore[attr-defined]
-                    else:
-                        self.freq[first_char][second_char] = 1  # type: ignore[attr-defined]
-                else:
-                    self.total_freq[first_char] = 1  # type: ignore[attr-defined]
-                    self.freq[first_char] = {}  # type: ignore[attr-defined]
-                    self.freq[first_char][second_char] = 1  # type: ignore[attr-defined]
+                first = -1 if i == -1 else value[i]
+                second = -1 if i == len(value) - 1 else value[i + 1]
+                row = freq.setdefault(first, {})
+                row[second] = row.get(second, 0) + 1
+                total_freq[first] = total_freq.get(first, 0) + 1
 
     def detect(
         self, input_:  ParserSchema, output_: DetectorSchema  # type: ignore

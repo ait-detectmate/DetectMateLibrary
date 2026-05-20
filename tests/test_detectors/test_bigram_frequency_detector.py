@@ -340,3 +340,93 @@ class TestBigramFrequencyDetectorSetConfigurationPersist:
         detector.config.persist = sentinel_persist
         detector.set_configuration()
         assert detector.config.persist == sentinel_persist
+
+
+def _parser_data(event_id, level, var_value):
+    return schemas.ParserSchema({
+        "parserType": "test",
+        "EventID": event_id,
+        "template": "test template",
+        "variables": ["0", var_value],
+        "logID": "1",
+        "parsedLogID": "1",
+        "parserID": "test_parser",
+        "log": "test log message",
+        "logFormatVariables": {"level": level},
+    })
+
+
+class TestBigramFrequencyDetectorTrainBugFixes:
+    def test_first_occurrence_of_new_event_is_trained(self):
+        """Review #4: the very first training call for a new EventID must
+        update the per-variable freq table."""
+        detector = BigramFrequencyDetector(config=config, name="MultipleDetector")
+        detector.train(_parser_data(1, "INFO", "abc"))
+
+        event_data = detector.persistency.get_event_data(1)
+        # 'test' is the variable at pos 1, configured in `config` fixture
+        tracker = event_data["test"]
+        freq = tracker.extra_state.get("freq", {})
+        # "abc" produces bigrams: (-1,'a'), ('a','b'), ('b','c'), ('c',-1)
+        assert "a" in freq
+        assert "b" in freq["a"]
+        assert freq["a"]["b"] == 1
+
+    def test_skip_repetitions_does_not_skip_first_occurrence(self):
+        """skip_repetitions must train on the first occurrence of a value even
+        when the event was just registered."""
+        cfg = {
+            "detectors": {
+                "MultipleDetector": {
+                    "method_type": "bigram_frequency_detector",
+                    "auto_config": False,
+                    "params": {"skip_repetitions": True},
+                    "events": {
+                        1: {
+                            "test": {
+                                "params": {},
+                                "variables": [{"pos": 1, "name": "test", "params": {}}],
+                                "header_variables": [{"pos": "level", "params": {}}],
+                            }
+                        }
+                    },
+                }
+            }
+        }
+        detector = BigramFrequencyDetector(config=cfg, name="MultipleDetector")
+        detector.train(_parser_data(1, "INFO", "abc"))
+
+        tracker = detector.persistency.get_event_data(1)["test"]
+        freq = tracker.extra_state.get("freq", {})
+        # First occurrence must still be trained: "abc" should produce the bigrams above
+        assert freq.get("a", {}).get("b") == 1
+
+    def test_skip_repetitions_skips_repeat_value(self):
+        """A repeated value with skip_repetitions=True must not double-count
+        bigrams."""
+        cfg = {
+            "detectors": {
+                "MultipleDetector": {
+                    "method_type": "bigram_frequency_detector",
+                    "auto_config": False,
+                    "params": {"skip_repetitions": True},
+                    "events": {
+                        1: {
+                            "test": {
+                                "params": {},
+                                "variables": [{"pos": 1, "name": "test", "params": {}}],
+                                "header_variables": [{"pos": "level", "params": {}}],
+                            }
+                        }
+                    },
+                }
+            }
+        }
+        detector = BigramFrequencyDetector(config=cfg, name="MultipleDetector")
+        detector.train(_parser_data(1, "INFO", "abc"))
+        detector.train(_parser_data(1, "INFO", "abc"))  # same value
+
+        tracker = detector.persistency.get_event_data(1)["test"]
+        freq = tracker.extra_state.get("freq", {})
+        # Only one training pass should have happened: ('a','b') count is 1, not 2
+        assert freq.get("a", {}).get("b") == 1
