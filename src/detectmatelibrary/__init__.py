@@ -3,8 +3,8 @@ from . import detectors
 from . import parsers
 from . import schemas
 from . import utils
-from .metadata import (__authors__, __contact__, __copyright__, __date__, __deprecated__, __email__,
-                       __website__, __license__, __maintainers__, __status__, __version__, __version_string__)
+from .metadata import (__authors__, __contact__, __copyright__, __date__, __deprecated__, __website__,
+                       __license__, __status__, __version__)
 
 __all__ = [
     "common",
@@ -17,11 +17,8 @@ __all__ = [
     "__copyright__",
     "__date__",
     "__deprecated__",
-    "__email__",
     "__website__",
     "__license__",
-    "__maintainers__",
     "__status__",
-    "__version__",
-    "__version_string__",
+    "__version__"
 ]
