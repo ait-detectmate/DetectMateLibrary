@@ -4,9 +4,7 @@ description = "DetectMate Library for log processing components"
 readme = {file = "README.md", content-type = "text/markdown"}
 dynamic = ["version"]
 authors = [{"name" = "André García Gómez"}, {"name" = "Viktor Beck"}, {"name" = "Thorina Boenke"},
-    {"name" = "Markus Wurzenberger"}, {"name" = "Max Landauer"}, {"name" = "Wolfgang Hotwagner"},
-    {"name" = "Anna Erdi"}, {"name" = "Ernst Leierzopf"}, {"name" = "Florian Skopik"}]
-maintainers = [{"name" = "Markus Wurzenberger", "email" = "aecid@ait.ac.at"}]
+    {"name" = "Wolfgang Hotwagner"}, {"name" = "Anna Erdi"}, {"name" = "Ernst Leierzopf"}]
 license = "EUPL-1.2"
 requires-python = ">=3.12"
 dependencies = [
@@ -52,9 +50,6 @@ Repository = "https://github.com/ait-detectmate/DetectMateLibrary"
 [build-system]
 requires = ["setuptools>=80", "wheel"]
 build-backend = "setuptools.build_meta"
-
-[tool.setuptools]
-package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
