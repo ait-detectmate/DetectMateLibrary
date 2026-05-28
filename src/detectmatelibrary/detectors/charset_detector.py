@@ -15,7 +15,7 @@ from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from typing_extensions import override
-from tools.logging import logger
+from detectmatelibrary_tools.logging import logger
 
 
 class CharsetDetectorConfig(CoreDetectorConfig):
