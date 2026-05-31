@@ -1,13 +1,11 @@
 
-from detectmatelibrary.detectors.new_value_combo_detector import (
-    NewValueComboDetector, BufferMode
-)
+from detectmatelibrary.detectors.new_value_combo_detector import NewValueComboDetector, BufferMode
 from detectmatelibrary.common._config import generate_detector_config
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
-
 from detectmatelibrary.utils.aux import time_test_mode
+from detectmatelibrary_tests import AUDIT_LOG
 
 # Set time test mode for consistent timestamps
 time_test_mode()
@@ -559,10 +557,10 @@ _PARSER_CONFIG = {
 class TestNewValueComboDetectorEndToEndWithRealData:
     """Regression test: full configure/train/detect pipeline on audit.log."""
     def test_audit_log_anomalies(self):
-        parser = MatcherParser(config=_PARSER_CONFIG)
+        pars = MatcherParser(config=_PARSER_CONFIG)
         detector = NewValueComboDetector()
 
-        logs = list(From.log(parser, in_path="detectmatelibrary_tests/test_folder/audit.log", do_process=True))
+        logs = list(From.log(pars, in_path=AUDIT_LOG, do_process=True))
 
         for log in logs[:1800]:
             detector.configure(log)

@@ -1,15 +1,12 @@
-
 import pytest
-from detectmatelibrary.parsers.template_matcher import (
-    MatcherParser, MatcherParserConfig, TemplatesNotFoundError
-)
+from detectmatelibrary.parsers.template_matcher import MatcherParser, MatcherParserConfig, \
+    TemplatesNotFoundError
 from detectmatelibrary.parsers.template_matcher._parser import _compile_templates
 from detectmatelibrary.common._config._formats import EventsConfig
 from detectmatelibrary import schemas
+from detectmatelibrary_tests import NAMED_TEMPLATES_TXT, NAMED_TEMPLATES_CSV
 
-test_template = [
-    "pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>",
-]
+test_template = ["pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>"]
 test_log_match = 'pid=9699 uid=0 auid=4294967295 ses=4294967295 msg=\'op=PAM:accounting acct="root"'
 test_log_no_match = 'this is not matching'
 
@@ -142,7 +139,7 @@ class TestNamedWildcardsTxt:
     named_template_compiled = "pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>"
 
     def test_match_produces_correct_variables(self):
-        config = MatcherParserConfig(path_templates="detectmatelibrary_tests/test_folder/test_named_templates.txt")
+        config = MatcherParserConfig(path_templates=NAMED_TEMPLATES_TXT)
         parser = MatcherParser(name="MatcherParser", config=config)
         input_log = schemas.LogSchema({"log": test_log_match})
         output_data = schemas.ParserSchema()
@@ -153,7 +150,7 @@ class TestNamedWildcardsTxt:
         assert len(output_data.variables) == 6
 
     def test_compile_resolves_named_positions(self):
-        config = MatcherParserConfig(path_templates="detectmatelibrary_tests/test_folder/test_named_templates.txt")
+        config = MatcherParserConfig(path_templates=NAMED_TEMPLATES_TXT)
         parser = MatcherParser(name="MatcherParser", config=config)
 
         raw_events: dict = {
@@ -178,7 +175,7 @@ class TestNamedWildcardsTxt:
         assert resolved_vars[4].name == "op"
 
     def test_compile_unknown_label_raises(self):
-        config = MatcherParserConfig(path_templates="detectmatelibrary_tests/test_folder/test_named_templates.txt")
+        config = MatcherParserConfig(path_templates=NAMED_TEMPLATES_TXT)
         parser = MatcherParser(name="MatcherParser", config=config)
 
         raw_events: dict = {
@@ -195,7 +192,7 @@ class TestNamedEventIdCsv:
     named_template_compiled = "pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>"
 
     def test_match_produces_correct_variables(self):
-        config = MatcherParserConfig(path_templates="detectmatelibrary_tests/test_folder/test_named_templates.csv")
+        config = MatcherParserConfig(path_templates=NAMED_TEMPLATES_CSV)
         parser = MatcherParser(name="MatcherParser", config=config)
         input_log = schemas.LogSchema({"log": test_log_match})
         output_data = schemas.ParserSchema()
@@ -206,7 +203,7 @@ class TestNamedEventIdCsv:
         assert len(output_data.variables) == 6
 
     def test_compile_resolves_named_event_key(self):
-        config = MatcherParserConfig(path_templates="detectmatelibrary_tests/test_folder/test_named_templates.csv")
+        config = MatcherParserConfig(path_templates=NAMED_TEMPLATES_CSV)
         parser = MatcherParser(name="MatcherParser", config=config)
 
         raw_events: dict = {
@@ -230,7 +227,7 @@ class TestNamedEventIdCsv:
         assert 1 in resolved_vars and resolved_vars[1].name == "uid"
 
     def test_positional_int_event_key_still_works(self):
-        config = MatcherParserConfig(path_templates="detectmatelibrary_tests/test_folder/test_named_templates.csv")
+        config = MatcherParserConfig(path_templates=NAMED_TEMPLATES_CSV)
         parser = MatcherParser(name="MatcherParser", config=config)
 
         raw_events: dict = {

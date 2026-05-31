@@ -9,16 +9,15 @@ This module tests the NewValueDetector implementation including:
 """
 
 from detectmatelibrary.common._core_op._fit_logic import TrainState
-from detectmatelibrary.detectors.new_value_detector import (
-    NewValueDetector, NewValueDetectorConfig, BufferMode
-)
+from detectmatelibrary.detectors.new_value_detector import NewValueDetector, NewValueDetectorConfig, \
+    BufferMode
 from detectmatelibrary.common._core_op._fit_logic import ConfigState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
-
 from detectmatelibrary.utils.aux import time_test_mode
+from detectmatelibrary_tests import AUDIT_LOG
 
 # Set time test mode for consistent timestamps
 time_test_mode()
@@ -221,7 +220,7 @@ class TestNewValueDetectorEndToEnd:
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = NewValueDetector()
 
-        logs = list(From.log(parser, in_path="detectmatelibrary_tests/test_folder/audit.log", do_process=True))
+        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
 
         for log in logs[:1800]:
             detector.configure(log)
@@ -247,7 +246,7 @@ class TestNewValueDetectorAutoConfig:
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = NewValueDetector()
 
-        logs = list(From.log(parser, in_path="detectmatelibrary_tests/test_folder/audit.log", do_process=True))
+        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
 
         # Phase 1: configure — keep configuring for logs[:1800]
         detector.fitlogic.configure_state = ConfigState.KEEP_CONFIGURE
@@ -295,7 +294,7 @@ class TestNewValueDetectorGlobalInstances:
         config = NewValueDetectorConfig.from_dict(config_dict, "NewValueDetector")
         detector = NewValueDetector(config=config)
 
-        logs = list(From.log(parser, in_path="detectmatelibrary_tests/test_folder/audit.log", do_process=True))
+        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
 
         for log in logs[:1800]:
             detector.train(log)

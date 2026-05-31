@@ -13,10 +13,10 @@ from detectmatelibrary.detectors.new_event_detector import NewEventDetector, New
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
-
 from detectmatelibrary.utils.aux import time_test_mode
 from detectmatelibrary.common._core_op._fit_logic import ConfigState, TrainState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
+from detectmatelibrary_tests import AUDIT_LOG
 
 
 # Set time test mode for consistent timestamps
@@ -155,10 +155,10 @@ class TestNewEventDetectorEndToEnd:
     """Regression test: full configure/train/detect pipeline on audit.log."""
 
     def test_audit_log_anomalies(self):
-        parser = MatcherParser(config=_PARSER_CONFIG)
+        pars = MatcherParser(config=_PARSER_CONFIG)
         detector = NewEventDetector(config=config, name="NewEventDetector")
 
-        logs = list(From.log(parser, in_path="detectmatelibrary_tests/test_folder/audit.log", do_process=True))
+        logs = list(From.log(pars, in_path=AUDIT_LOG, do_process=True))
 
         for log in logs[:1800]:
             detector.configure(log)
@@ -181,10 +181,10 @@ class TestNewEventDetectorAutoConfig:
     automatically."""
 
     def test_audit_log_anomalies_via_process(self):
-        parser = MatcherParser(config=_PARSER_CONFIG)
+        pars = MatcherParser(config=_PARSER_CONFIG)
         detector = NewEventDetector()
 
-        logs = list(From.log(parser, in_path="detectmatelibrary_tests/test_folder/audit.log", do_process=True))
+        logs = list(From.log(pars, in_path=AUDIT_LOG, do_process=True))
 
         # Phase 1: configure — keep configuring for logs[:1800]
         detector.fitlogic.configure_state = ConfigState.KEEP_CONFIGURE
@@ -215,7 +215,7 @@ class TestNewEventDetectorGlobalInstances:
     def test_global_instance_detects_new_type(self):
         """Global instance monitoring Type detects CRED_REFR, USER_AUTH,
         USER_CMD which only appear after the training window (line 1800+)."""
-        parser = MatcherParser(config=_PARSER_CONFIG)
+        pars = MatcherParser(config=_PARSER_CONFIG)
         config_dict = {
             "detectors": {
                 "NewEventDetector": {
@@ -232,7 +232,7 @@ class TestNewEventDetectorGlobalInstances:
         config = NewEventDetectorConfig.from_dict(config_dict, "NewEventDetector")
         detector = NewEventDetector(config=config)
 
-        logs = list(From.log(parser, in_path="detectmatelibrary_tests/test_folder/audit.log", do_process=True))
+        logs = list(From.log(pars, in_path=AUDIT_LOG, do_process=True))
 
         for log in logs[:1800]:
             detector.train(log)

@@ -33,9 +33,10 @@ def camelize(name: str) -> str:
 
 
 def create_tests(type_: str, name: str, workspace_root: Path, pkg_name: str) -> None:
-    """Create a detectmatelibrary_tests/ directory with a basic pytest file for the component.
+    """Create a detectmatelibrary_tests/ directory with a basic pytest file for
+    the component.
 
-    - Reads template detectmatelibrary_tests from src/detectmatelibrary_tools/workspace/templates/test_templates/
+    - Reads template tests from src/detectmatelibrary_tools/workspace/templates/test_templates/
     - Rewrites the import to point to <pkg_name>.<name>
     - Renames CustomParser/CustomDetector to the camelized class name
     """
