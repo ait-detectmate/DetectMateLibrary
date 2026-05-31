@@ -16,7 +16,7 @@ from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
-from detectmatelibrary_tests import AUDIT_LOG
+from detectmatelibrary_tests.test_pipelines.test_configuration_engine import AUDIT_LOG
 
 # Set time test mode for consistent timestamps
 time_test_mode()

@@ -4,8 +4,9 @@ from detectmatelibrary.parsers.template_matcher import MatcherParser, MatcherPar
 from detectmatelibrary.parsers.template_matcher._parser import _compile_templates
 from detectmatelibrary.common._config._formats import EventsConfig
 from detectmatelibrary import schemas
-from detectmatelibrary_tests import NAMED_TEMPLATES_TXT, NAMED_TEMPLATES_CSV
 
+NAMED_TEMPLATES_TXT = "detectmatelibrary_tests/test_folder/test_named_templates.txt"
+NAMED_TEMPLATES_CSV = "detectmatelibrary_tests/test_folder/test_named_templates.csv"
 test_template = ["pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>"]
 test_log_match = 'pid=9699 uid=0 auid=4294967295 ses=4294967295 msg=\'op=PAM:accounting acct="root"'
 test_log_no_match = 'this is not matching'
