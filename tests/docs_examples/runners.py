@@ -11,6 +11,7 @@ import functools
 import importlib
 import json
 import pkgutil
+import re
 import warnings
 
 import yaml
@@ -59,7 +60,7 @@ def _run_by_language(example: Example, namespace: dict) -> str:
     if lang == "yaml":
         return run_yaml(example)
     if lang == "bash":
-        return run_bash(example)  # noqa: F821 - defined in Task 5
+        return run_bash(example)
     if lang == "json":
         return run_json(example)
     return "skipped"  # text/toml/markdown/empty: nothing to execute
@@ -124,3 +125,39 @@ def run_yaml(example: Example) -> str:
                 warnings.simplefilter("ignore")
                 config_cls.from_dict(data, method_id)
     return "ran"
+
+
+_HEREDOC_RE = re.compile(
+    r"cat\s*>\s*(?P<name>\S+)\s*<<\s*'?(?P<tag>\w+)'?\s*\n(?P<body>.*?)\n(?P=tag)",
+    re.DOTALL,
+)
+
+
+def run_bash(example: Example) -> str:
+    if example.marker is not None and example.marker.kind == "run":
+        import subprocess  # noqa: PLC0415
+        import tempfile  # noqa: PLC0415
+
+        with tempfile.TemporaryDirectory() as cwd:
+            subprocess.run(  # noqa: S603
+                ["bash", "-c", example.code], cwd=cwd, check=True,
+                capture_output=True, text=True,
+            )
+        return "ran"
+
+    validated = False
+    for match in _HEREDOC_RE.finditer(example.code):
+        name = match.group("name")
+        if not (name.endswith(".yaml") or name.endswith(".yml")):
+            continue
+        synthetic = Example(
+            source_file=example.source_file,
+            start_line=example.start_line,
+            language="yaml",
+            code=match.group("body") + "\n",
+            marker=None,
+        )
+        run_yaml(synthetic)
+        validated = True
+
+    return "ran" if validated else "skipped"

@@ -82,3 +82,34 @@ def test_yaml_non_component_block_just_parses():
 def test_yaml_invalid_yaml_fails():
     with pytest.raises(Exception):
         runners.dispatch(_ex("yaml", "a: [unterminated\n"), {})
+
+
+def test_bash_plain_command_is_skipped():
+    assert runners.dispatch(_ex("bash", "pip install detectmate\n"), {}) == "skipped"
+
+
+def test_bash_yaml_heredoc_is_validated_ok():
+    code = (
+        "cat > config.yaml <<EOF\n"
+        "parsers:\n"
+        "  JsonParser:\n"
+        "    method_type: json_parser\n"
+        "    params:\n"
+        "      content_name: message\n"
+        "EOF\n"
+    )
+    assert runners.dispatch(_ex("bash", code), {}) == "ran"
+
+
+def test_bash_yaml_heredoc_with_bad_param_fails():
+    code = (
+        "cat > config.yaml <<EOF\n"
+        "parsers:\n"
+        "  JsonParser:\n"
+        "    method_type: json_parser\n"
+        "    params:\n"
+        "      ignore_parse_errors: true\n"
+        "EOF\n"
+    )
+    with pytest.raises(Exception):
+        runners.dispatch(_ex("bash", code), {})
