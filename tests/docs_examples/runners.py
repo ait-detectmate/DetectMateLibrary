@@ -11,6 +11,9 @@ import functools
 import importlib
 import json
 import pkgutil
+import warnings
+
+import yaml
 
 from tests.docs_examples.extractor import Example
 
@@ -54,7 +57,7 @@ def _run_by_language(example: Example, namespace: dict) -> str:
     if lang == "python":
         return run_python(example, namespace)
     if lang == "yaml":
-        return run_yaml(example)  # noqa: F821 - defined in Task 4
+        return run_yaml(example)
     if lang == "bash":
         return run_bash(example)  # noqa: F821 - defined in Task 5
     if lang == "json":
@@ -94,4 +97,30 @@ def run_python(example: Example, namespace: dict) -> str:
 
 def run_json(example: Example) -> str:
     json.loads(example.code)
+    return "ran"
+
+
+_COMPONENT_TYPES = ("parsers", "detectors")
+
+
+def run_yaml(example: Example) -> str:
+    data = yaml.safe_load(example.code)
+    if not isinstance(data, dict):
+        return "ran"  # valid YAML scalar/list, nothing to validate
+
+    registry = config_registry()
+    for component_type in _COMPONENT_TYPES:
+        section = data.get(component_type)
+        if not isinstance(section, dict):
+            continue
+        for method_id, block in section.items():
+            if not isinstance(block, dict):
+                continue
+            method_type = block.get("method_type")
+            config_cls = registry.get((component_type, method_type))
+            if config_cls is None:
+                continue  # unknown method_type: leave as "valid YAML only"
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                config_cls.from_dict(data, method_id)
     return "ran"

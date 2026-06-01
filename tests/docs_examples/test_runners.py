@@ -49,3 +49,36 @@ def test_python_runner_expect_error_fails_when_no_error():
 def test_skip_marker_returns_skipped():
     result = runners.dispatch(_ex("python", "raise RuntimeError()\n", Marker("skip")), {})
     assert result == "skipped"
+
+
+def test_yaml_valid_parser_config_passes():
+    code = (
+        "parsers:\n"
+        "  JsonParser:\n"
+        "    method_type: json_parser\n"
+        "    params:\n"
+        "      timestamp_name: time\n"
+        "      content_name: message\n"
+    )
+    assert runners.dispatch(_ex("yaml", code), {}) == "ran"
+
+
+def test_yaml_unknown_param_fails():
+    code = (
+        "parsers:\n"
+        "  JsonParser:\n"
+        "    method_type: json_parser\n"
+        "    params:\n"
+        "      flatten_nested: true\n"
+    )
+    with pytest.raises(Exception):
+        runners.dispatch(_ex("yaml", code), {})
+
+
+def test_yaml_non_component_block_just_parses():
+    assert runners.dispatch(_ex("yaml", "a: 1\nb: [1, 2, 3]\n"), {}) == "ran"
+
+
+def test_yaml_invalid_yaml_fails():
+    with pytest.raises(Exception):
+        runners.dispatch(_ex("yaml", "a: [unterminated\n"), {})
