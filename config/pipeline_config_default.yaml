@@ -2,7 +2,7 @@ parsers:
     MatcherParser:
         method_type: matcher_parser
         auto_config: False
-        log_format: "type=<Type> msg=audit(<Time>:*): <Content>"
+        log_format: "type=<Type> msg=audit(<Time>:<Line>): <Content>"
         time_format: null
         params:
             remove_spaces: True
@@ -82,6 +82,20 @@ detectors:
         method_type: new_event_detector
         auto_config: False
         params: {}
+
+
+    ValueRangeDetector:
+        method_type: value_range_detector
+        auto_config: False
+        params:
+            ignore_non_numerical_val: True
+        events:
+            1:
+                test:
+                    params: {}
+                    variables:
+                        - pos: 1
+                          name: test
 
     BigramFrequencyDetector:
         method_type: bigram_frequency_detector

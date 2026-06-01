@@ -1,6 +1,6 @@
-# New Value Detector
+# Value Range Detector
 
-The New Value Detector raises alerts when previously unseen values appear in configured fields (for example new user names, IP addresses, or process names). It is useful to detect novelty, configuration drift, or the appearance of new actors in the environment.
+The Value Range Detector raises alerts when numerical values outside of known ranges appear in configured fields. It is useful to detect unexpected changes, configuration drift, or the appearance of new actors in the environment.
 
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
@@ -9,21 +9,17 @@ The New Value Detector raises alerts when previously unseen values appear in con
 
 ## Description
 
-This detector maintains a lightweight set of observed values per monitored field and emits an alert when a value not present in the set is seen for the first time (subject to configuration).
+This detector maintains a lightweight set of observed values per monitored field and emits an alert when a value outside the learned range is seen (subject to configuration).
 
 
 ## Configuration example
 
 ```yaml
 detectors:
-    NewValueDetector:
-        method_type: new_value_detector
+    ValueRangeDetector:
+        method_type: value_range_detector
         auto_config: False
-        params: {}
-        persist:                      # optional — omit to disable saving
-          path: ./state
-          interval_seconds: 300
-          auto_load: false
+        params: {"ignore_non_numerical_val": True}
         events:
             1:
                 test:
@@ -42,16 +38,16 @@ detectors:
 ## Example usage
 
 ```python
-from detectmatelibrary.detectors.new_value_detector import NewValueDetector, BufferMode
+from detectmatelibrary.detectors.value_range_detector import ValueRangeDetector, BufferMode
 import detectmatelibrary.schemas as schemas
 
-detector = NewValueDetector(name="NewValueTest", config=cfg)
+detector = ValueRangeDetector(name="NewValueTest", config=cfg)
 
 parser_data = schemas.ParserSchema({
     "parserType": "test",
     "EventID": 1,
     "template": "test template",
-    "variables": ["var1"],
+    "variables": ["1", "2", "17"],
     "logID": "1",
     "parsedLogID": "1",
     "parserID": "test_parser",
