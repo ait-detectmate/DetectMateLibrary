@@ -189,8 +189,10 @@
                         - pos: level
 </code></pre>
 <h2 id="example-usage">Example usage</h2>
-<pre><code class="language-python">from detectmatelibrary.detectors.combo_detector import ComboDetector, ComboConfig
+<pre><code class="language-python">from detectmatelibrary.detectors.new_value_combo_detector import NewValueComboDetector, NewValueComboDetectorConfig
 import detectmatelibrary.schemas as schemas
+
+detector = NewValueComboDetector(name=&quot;NewValueTest&quot;, config=cfg)
 
 test_data = schemas.ParserSchema({
     &quot;parserType&quot;: &quot;test&quot;,
