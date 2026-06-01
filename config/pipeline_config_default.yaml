@@ -83,6 +83,7 @@ detectors:
         auto_config: False
         params: {}
 
+
     ValueRangeDetector:
         method_type: value_range_detector
         auto_config: False
@@ -95,6 +96,25 @@ detectors:
                     variables:
                         - pos: 1
                           name: test
+
+    BigramFrequencyDetector:
+        method_type: bigram_frequency_detector
+        auto_config: False
+        params:
+            prob_thresh: 0.05
+            default_freqs: True
+            skip_repetitions: True
+        events:
+            1:
+                test:
+                    params: {}
+                    variables:
+                        - pos: 0
+                          name: var1
+                          params:
+                              threshold: 0.
+                    header_variables:
+                        - pos: level
                           params: {}
 
     CharsetDetector:
