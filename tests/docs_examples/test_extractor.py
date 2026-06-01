@@ -1,4 +1,4 @@
-from tests.docs_examples.extractor import parse_marker, Marker
+from tests.docs_examples.extractor import extract_examples, parse_marker, Marker
 
 
 def test_parse_marker_skip():
@@ -27,3 +27,53 @@ def test_parse_marker_none_for_plain_comment():
 
 def test_parse_marker_none_for_non_comment():
     assert parse_marker("some prose line") is None
+
+
+def _write(tmp_path, text):
+    p = tmp_path / "doc.md"
+    p.write_text(text)
+    return p
+
+
+def test_extract_single_python_block(tmp_path):
+    p = _write(tmp_path, "intro\n\n```python\nx = 1\n```\n")
+    examples = extract_examples(str(p))
+    assert len(examples) == 1
+    ex = examples[0]
+    assert ex.language == "python"
+    assert ex.code == "x = 1\n"
+    assert ex.start_line == 3
+    assert ex.marker is None
+
+
+def test_extract_marker_directly_above(tmp_path):
+    p = _write(tmp_path, "<!-- docs-test: skip -->\n```python\nbad\n```\n")
+    examples = extract_examples(str(p))
+    assert examples[0].marker is not None
+    assert examples[0].marker.kind == "skip"
+
+
+def test_extract_marker_with_one_blank_line(tmp_path):
+    p = _write(tmp_path, "<!-- docs-test: run -->\n\n```bash\nls\n```\n")
+    examples = extract_examples(str(p))
+    assert examples[0].marker is not None
+    assert examples[0].marker.kind == "run"
+
+
+def test_extract_marker_not_attached_when_prose_between(tmp_path):
+    p = _write(tmp_path, "<!-- docs-test: skip -->\nprose\n```python\nx\n```\n")
+    examples = extract_examples(str(p))
+    assert examples[0].marker is None
+
+
+def test_extract_multiple_blocks_in_order(tmp_path):
+    p = _write(tmp_path, "```python\na\n```\n\ntext\n\n```yaml\nb: 1\n```\n")
+    examples = extract_examples(str(p))
+    assert [e.language for e in examples] == ["python", "yaml"]
+    assert examples[0].start_line < examples[1].start_line
+
+
+def test_extract_no_language_is_empty_string(tmp_path):
+    p = _write(tmp_path, "```\nplain\n```\n")
+    examples = extract_examples(str(p))
+    assert examples[0].language == ""
