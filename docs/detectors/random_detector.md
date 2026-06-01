@@ -14,6 +14,7 @@ The detector inspects incoming ParserSchema instances and, according to its conf
 ## Configuration example
 
 ```yaml
+detectors:
     RandomDetector:
         method_type: random_detector
         auto_config: False

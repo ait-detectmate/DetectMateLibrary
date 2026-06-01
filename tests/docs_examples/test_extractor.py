@@ -77,3 +77,16 @@ def test_extract_no_language_is_empty_string(tmp_path):
     p = _write(tmp_path, "```\nplain\n```\n")
     examples = extract_examples(str(p))
     assert examples[0].language == ""
+
+
+def test_extract_body_line_fence_plus_text_does_not_close(tmp_path):
+    # A body line that starts with ``` but has trailing text (e.g. ```python)
+    # is NOT a valid CommonMark closing fence; only the final bare ``` should close.
+    text = "```text\nintro\n```python\nx = 1\nstill body\n```\n"
+    p = _write(tmp_path, text)
+    examples = extract_examples(str(p))
+    # The ```python line starts with ``` but has trailing text; per CommonMark it
+    # is NOT a valid closing fence, so the real close is the final bare ```.
+    assert len(examples) == 1
+    assert examples[0].language == "text"
+    assert "still body" in examples[0].code

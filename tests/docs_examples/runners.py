@@ -48,8 +48,12 @@ def config_registry() -> dict[tuple[str, str], type]:
         try:
             inst = cls()
             registry.setdefault((inst.component_type, inst.method_type), cls)
-        except Exception:
-            pass
+        except Exception as exc:  # noqa: BLE001
+            warnings.warn(
+                f"docs harness: could not instantiate config class {cls.__name__!r}; "
+                f"YAML using its method_type will not be schema-validated ({exc})",
+                stacklevel=2,
+            )
     return registry
 
 

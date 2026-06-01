@@ -70,9 +70,13 @@ def extract_examples(md_path: str) -> list[Example]:
         start_line = i + 1  # 1-based
         marker = _marker_above(lines, i)
 
+        # CommonMark: a closing fence is the same fence char repeated >= len(fence)
+        # times, followed only by optional trailing whitespace — no info string.
+        close_re = re.compile(r"^" + re.escape(fence[0]) + "{" + str(len(fence)) + r",}[ \t]*$")
+
         body: list[str] = []
         j = i + 1
-        while j < n and not lines[j].startswith(fence):
+        while j < n and not close_re.match(lines[j]):
             body.append(lines[j])
             j += 1
         examples.append(
