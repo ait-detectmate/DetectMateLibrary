@@ -11,12 +11,11 @@ Extracts structured information from JSON-formatted logs. Optionally delegates p
 
 Relevant config options (example names used by the implementation):
 
-- `method_type` (string): parser type identifier (e.g. `json_parser`).
-- `params.timestamp_name` (string | null): JSON key to use as the received/parsed timestamp.
-- `params.content_name` (string): JSON key that contains the textual content to parse further (default `"message"` or `"content"`).
-- `params.flatten_nested` (bool, default True): flatten nested objects into dot-separated keys in `logFormatVariables`.
-- `params.content_parser` (string | dict): optional parser spec (name or config) to parse the extracted content.
-- `params.ignore_parse_errors` (bool, default True): if True, parser returns gracefully on JSON errors instead of raising.
+- `method_type` (string): parser type identifier (`json_parser`).
+- `params.timestamp_name` (string): JSON key to use as the timestamp (default `"time"`).
+- `params.content_name` (string): JSON key whose value is parsed further (default `"message"`).
+- `params.content_parser` (string): name of a **sibling top-level parser entry**
+  used to parse the extracted content (default `"JsonMatcherParser"`).
 
 Example YAML fragment:
 
@@ -27,12 +26,11 @@ parsers:
     params:
       timestamp_name: "time"
       content_name: "message"
-      flatten_nested: True
-      content_parser:
-        method_type: matcher_parser
-        params:
-          path_templates: tests/test_templates.txt
-      ignore_parse_errors: True
+      content_parser: JsonMatcherParser
+  JsonMatcherParser:
+    method_type: matcher_parser
+    params:
+      path_templates: tests/test_folder/test_templates.txt
 ```
 
 
@@ -41,10 +39,9 @@ parsers:
 Basic usage — parse JSON and extract fields:
 
 ```python
-from detectmatelibrary.parsers.json_parser import JsonParser
-
+import json
+from detectmatelibrary.parsers.json_parser import JsonParser, JsonParserConfig
 import detectmatelibrary.schemas as schemas
-
 
 config = JsonParserConfig()
 parser = JsonParser(name="TestParser", config=config)
@@ -69,7 +66,7 @@ output = schemas.ParserSchema()
 parser.parse(input_log, output)
 
 print(output.logFormatVariables["request.method"])  # "GET"
-print(output.logFormatVariables["request.path"])  #"/api/users"
+print(output.logFormatVariables["request.path"])  # "/api/users"
 ```
 
 Go back [Index](../index.md)
