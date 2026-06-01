@@ -47,7 +47,7 @@ parsers:
 Simple usage — load templates and match a log:
 
 ```python
-from detectmatelibrary.parsers.tree_matcher import TemplateTreeMatcher
+from detectmatelibrary.parsers.tree_matcher import TemplateCppTreeMatcher
 from detectmatelibrary import schemas
 
 # instantiate parser (config can be a dict or a config object)
@@ -62,7 +62,7 @@ cfg = {
     }
 }
 
-parser = TemplateTreeMatcher(name="TreeMatcher", config=cfg)
+parser = TemplateCppTreeMatcher(name="TreeMatcher", config=cfg)
 
 # match a log
 input_log = schemas.LogSchema({

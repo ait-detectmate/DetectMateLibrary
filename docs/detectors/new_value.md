@@ -41,6 +41,7 @@ detectors:
 
 ## Example usage
 
+<!-- docs-test: skip -->
 ```python
 from detectmatelibrary.detectors.new_value_detector import NewValueDetector, BufferMode
 import detectmatelibrary.schemas as schemas

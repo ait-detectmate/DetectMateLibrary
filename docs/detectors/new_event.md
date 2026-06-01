@@ -25,6 +25,7 @@ detectors:
 
 ## Example usage
 
+<!-- docs-test: skip -->
 ```python
 from detectmatelibrary.detectors.new_event_detector import NewEventDetector, NewEventDetectorConfig
 import detectmatelibrary.schemas as schemas

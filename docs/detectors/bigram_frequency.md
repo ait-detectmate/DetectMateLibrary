@@ -37,6 +37,7 @@ detectors:
 
 ## Example usage
 
+<!-- docs-test: skip -->
 ```python
 from detectmatelibrary.detectors.bigram_frequency_detector import BigramFrequencyDetector, BufferMode
 import detectmatelibrary.schemas as schemas

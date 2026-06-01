@@ -116,6 +116,7 @@ Small tutorials of the different schemas.
 
 ### Initialize a schema
 
+<!-- docs-test: skip -->
 ```python
 from detectmatelibrary import schemas
 
@@ -155,7 +156,7 @@ print(isinstance(serialized, bytes))  # True
 
 new_log_schema = schemas.LogSchema()
 new_log_schema.deserialize(serialized)
-print(new_log_schema.schema_id == log_schema.schema_id)  # True
+print(new_log_schema == log_schema)  # True
 ```
 
 

@@ -34,6 +34,7 @@ The detector inspects incoming ParserSchema instances and, according to its conf
 
 ## Example usage
 
+<!-- docs-test: skip -->
 ```python
 from detectmatelibrary.detectors.random_detector import RandomDetector
 import detectmatelibrary.schemas as schemas

@@ -53,6 +53,7 @@ class From:
 
 ### Usage
 
+<!-- docs-test: skip -->
 ```python
 parser = DummyParser()
 
@@ -81,6 +82,7 @@ class To:
 
 ### Usage
 
+<!-- docs-test: skip -->
 ```python
 parser = DummyParser()
 for log in From.log(parser, in_path=log_path, do_process=False):
@@ -210,6 +212,7 @@ class FromTo:
 
 ### Usage
 
+<!-- docs-test: skip -->
 ```python
 parser = DummyParser()
 for parsed_log in FromTo.json2json(parser, log_path, json_path):

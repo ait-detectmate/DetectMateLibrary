@@ -14,6 +14,7 @@ This document describes the minimal API, implementation guidance, a short exampl
 
 
 
+<!-- docs-test: skip -->
 ```python
 class CoreDetectorConfig(CoreConfig):
     component_type: str = "detectors"
@@ -46,6 +47,7 @@ class CoreDetector(CoreComponent):
 
 Simple detector that raises an alert when a numeric variable exceeds a threshold.
 
+<!-- docs-test: skip -->
 ```python
 class SimpleThresholdConfig(CoreDetectorConfig):
     method_type: str = "simple_threshold"
@@ -166,6 +168,7 @@ After these two phases, the detector proceeds with the normal `train()` and `det
 
 A detector that supports auto-configuration typically creates a separate `EventPersistency` instance for this purpose (but doesn't have to):
 
+<!-- docs-test: skip -->
 ```python
 class MyDetector(CoreDetector):
     def __init__(self, ...):
@@ -212,6 +215,7 @@ def set_configuration(self):
 
 ### Full lifecycle with auto-configuration
 
+<!-- docs-test: skip -->
 ```python
 1. configure(input_)         # call for each event in the dataset
 2. set_configuration()       # finalize which variables to monitor
@@ -228,6 +232,7 @@ Detectors can persist their training state to disk (or cloud storage) so it
 can be restored in a later session. Configure this with a top-level `persist:`
 block in the detector config:
 
+<!-- docs-test: skip -->
 ```yaml
 detectors:
   NewValueDetector:

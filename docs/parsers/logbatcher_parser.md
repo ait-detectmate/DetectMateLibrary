@@ -95,11 +95,17 @@ parser = LogBatcherParser(name="LogBatcherParser", config=config)
 Passing config as a dict:
 
 ```python
-parser = LogBatcherParser(config={
-    "method_type": "logbatcher_parser",
-    "api_key": "<YOUR_API_KEY>",
-    "model": "gpt-4o-mini",
-    "batch_size": 10,
+parser = LogBatcherParser(name="LogBatcherParser", config={
+    "parsers": {
+        "LogBatcherParser": {
+            "method_type": "logbatcher_parser",
+            "params": {
+                "api_key": "<YOUR_API_KEY>",
+                "model": "gpt-4o-mini",
+                "batch_size": 10,
+            }
+        }
+    }
 })
 ```
 

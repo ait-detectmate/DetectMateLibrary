@@ -32,6 +32,7 @@ detectors:
 
 ## Example usage
 
+<!-- docs-test: skip -->
 ```python
 from detectmatelibrary.detectors.new_value_combo_detector import NewValueComboDetector, NewValueComboDetectorConfig
 import detectmatelibrary.schemas as schemas

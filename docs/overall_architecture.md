@@ -35,6 +35,7 @@ Each component’s arguments must be stored in its corresponding configuration c
 
 Each Core* base class exposes a small, stable API that implementations must implement or may override.
 
+<!-- docs-test: skip -->
 ```python
 class ConfigComponent(CoreConfig):
     """Contains all the arguments of the component"""

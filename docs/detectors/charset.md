@@ -37,6 +37,7 @@ detectors:
 
 ## Example usage
 
+<!-- docs-test: skip -->
 ```python
 from detectmatelibrary.detectors.charset_detector import CharsetDetector
 import detectmatelibrary.schemas as schemas

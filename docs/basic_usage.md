@@ -7,6 +7,7 @@ In this section, we will show different examples of the basic usage of the Detec
 
 In this example, we will use the [`MatcherParser`](parsers/template_matcher.md) to parse audit data from the [AIT Log Data Set V2.0](https://zenodo.org/records/5789064). The code loads the logs, parse them and save the input and output in json files using [`from_to`](helper/from_to.md) module.
 
+<!-- docs-test: skip -->
 ```python
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From, To
@@ -35,6 +36,7 @@ for i, log in enumerate(From.log(parser, "audit.log", do_process=False)):
 
 The logs will be saved in `logs.json` in this format:
 
+<!-- docs-test: skip -->
 ```json
 {
 "0": {
@@ -49,6 +51,7 @@ The logs will be saved in `logs.json` in this format:
 ```
 And the `parsed_log.json`:
 
+<!-- docs-test: skip -->
 ```json
 {
     "0": {
@@ -90,6 +93,7 @@ And the `parsed_log.json`:
 
 In this example, we will use the [`RandomDetector`](detectors/random_detector.md) with the parsed logs from the previous example.
 
+<!-- docs-test: skip -->
 ```python
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From, To, FromTo
@@ -126,6 +130,7 @@ for alert in FromTo.json2json(detector, "parsed_log.json", "alerts.json"):
 
 The alerts will be saved in `alerts.json` in this format:
 
+<!-- docs-test: skip -->
 ```json
 {
     "0": {

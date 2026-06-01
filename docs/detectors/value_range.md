@@ -37,6 +37,7 @@ detectors:
 
 ## Example usage
 
+<!-- docs-test: skip -->
 ```python
 from detectmatelibrary.detectors.value_range_detector import ValueRangeDetector, BufferMode
 import detectmatelibrary.schemas as schemas

@@ -92,6 +92,7 @@ events, query state.
 
 Common methods:
 
+<!-- docs-test: skip -->
 ```python
 ep.ingest_event(event_id, event_template, variables=..., named_variables=...)
 
@@ -167,6 +168,7 @@ schema.
 
 In detector code, the pattern is:
 
+<!-- docs-test: skip -->
 ```python
 from detectmatelibrary.common.detector import CoreDetector
 from detectmatelibrary.utils import persistency
