@@ -13,6 +13,8 @@ from detectmatelibrary.utils.persistency.persistency_saver import (
     PersistencyLoadError,
     PersistencySaver,
     _SaveTimer,
+    save as standalone_save,
+    load as standalone_load,
 )
 
 
@@ -321,6 +323,59 @@ class TestPersistencySaverIntegration:
             rest = restored_tracker.get_data()[var_name]
             assert list(rest.change_series) == list(orig.change_series)
             assert rest.unique_set == orig.unique_set
+
+
+class TestStandaloneSaveLoad:
+    def test_save_creates_metadata(self):
+        p = _make_persistency_with_data()
+        standalone_save(p, "memory://standalone_save1/state")
+        fs = fsspec.filesystem("memory")
+        assert fs.exists("standalone_save1/state/metadata.json")
+
+    def test_save_creates_event_files(self):
+        p = _make_persistency_with_data()
+        standalone_save(p, "memory://standalone_save2/state")
+        fs = fsspec.filesystem("memory")
+        assert fs.exists("standalone_save2/state/events/E1.parquet")
+        assert fs.exists("standalone_save2/state/events/E2.parquet")
+
+    def test_save_resets_events_since_save(self):
+        p = _make_persistency_with_data()
+        assert p._events_since_save == 3
+        standalone_save(p, "memory://standalone_save3/state")
+        assert p._events_since_save == 0
+
+    def test_load_restores_events_seen(self):
+        p = _make_persistency_with_data()
+        standalone_save(p, "memory://standalone_load1/state")
+        p2 = EventPersistency(event_data_class=EventDataFrame)
+        standalone_load(p2, "memory://standalone_load1/state")
+        assert "E1" in p2.get_events_seen()
+        assert "E2" in p2.get_events_seen()
+
+    def test_load_restores_event_data(self):
+        p = _make_persistency_with_data()
+        standalone_save(p, "memory://standalone_load2/state")
+        p2 = EventPersistency(event_data_class=EventDataFrame)
+        standalone_load(p2, "memory://standalone_load2/state")
+        assert len(p2.get_event_data("E1")) == 2
+
+    def test_load_restores_event_data_class(self):
+        p = _make_persistency_with_data()
+        standalone_save(p, "memory://standalone_load3/state")
+        p2 = EventPersistency(event_data_class=EventStabilityTracker)
+        standalone_load(p2, "memory://standalone_load3/state")
+        assert p2.event_data_class is EventDataFrame
+
+    def test_load_raises_when_missing(self):
+        p = EventPersistency(event_data_class=EventDataFrame)
+        with pytest.raises(PersistencyLoadError):
+            standalone_load(p, "memory://nonexistent_standalone/state")
+
+    def test_exported_from_package(self):
+        from detectmatelibrary.utils import persistency
+        assert callable(persistency.save)
+        assert callable(persistency.load)
 
 
 class TestPersistencySaverThreadSafety:

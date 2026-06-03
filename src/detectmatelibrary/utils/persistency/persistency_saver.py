@@ -225,3 +225,25 @@ class PersistencySaver:
     def _tick(self) -> None:
         """Called by the timer thread each interval."""
         self.save()
+
+
+def save(ep: EventPersistency, path: str, storage_options: dict[str, Any] | None = None) -> None:
+    """Save EventPersistency state to an fsspec URI.
+
+    Not thread-safe when called concurrently with a running
+    PersistencySaver on the same ep. Use CoreDetector.export_state() in
+    that case.
+    """
+    fs, root = fsspec.url_to_fs(path, **(storage_options or {}))
+    _save(ep, fs, root)
+
+
+def load(ep: EventPersistency, path: str, storage_options: dict[str, Any] | None = None) -> None:
+    """Restore EventPersistency state from an fsspec URI.
+
+    Raises PersistencyLoadError if no saved state exists at path. Not
+    thread-safe when called concurrently with a running PersistencySaver
+    on the same ep. Use CoreDetector.import_state() in that case.
+    """
+    fs, root = fsspec.url_to_fs(path, **(storage_options or {}))
+    _load(ep, fs, root)
