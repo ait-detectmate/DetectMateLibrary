@@ -1,9 +1,13 @@
+import pytest
+import fsspec
+
 from detectmatelibrary.detectors.new_value_detector import NewValueDetector, NewValueDetectorConfig
 from detectmatelibrary.detectors.new_value_combo_detector import (
     NewValueComboDetector,
     NewValueComboDetectorConfig,
 )
 from detectmatelibrary.detectors.new_event_detector import NewEventDetector, NewEventDetectorConfig
+from detectmatelibrary.detectors.rule_detector import RuleDetector
 from detectmatelibrary.common.detector import PersistConfig
 from detectmatelibrary.utils.persistency.persistency_saver import PersistencySaver
 
@@ -130,3 +134,67 @@ class TestNewEventDetectorPersist:
         det = NewEventDetector(name="NED1", config=config)
         assert det.saver is not None
         det.saver.stop()
+
+
+class TestDetectorExportImportState:
+    def test_export_state_creates_metadata(self):
+        det = NewValueDetector(
+            name="ExportTest",
+            config=NewValueDetectorConfig(auto_config=False),
+        )
+        det.persistency.ingest_event(
+            event_id=1, event_template="login <*>", named_variables={"user": "alice"}
+        )
+        det.export_state("memory://export_state_test/state")
+        assert fsspec.filesystem("memory").exists("export_state_test/state/metadata.json")
+
+    def test_export_state_creates_event_files(self):
+        det = NewValueDetector(
+            name="ExportFiles",
+            config=NewValueDetectorConfig(auto_config=False),
+        )
+        det.persistency.ingest_event(
+            event_id=2, event_template="logout <*>", named_variables={"user": "bob"}
+        )
+        det.export_state("memory://export_files_test/state")
+        # NewValueDetector uses EventStabilityTracker → msgpack extension
+        assert fsspec.filesystem("memory").exists("export_files_test/state/events/2.msgpack")
+
+    def test_import_state_restores_events_seen(self):
+        det1 = NewValueDetector(name="ImportSrc", config=NewValueDetectorConfig(auto_config=False))
+        det1.persistency.ingest_event(
+            event_id=1, event_template="login <*>", named_variables={"user": "alice"}
+        )
+        det1.export_state("memory://import_state_test/state")
+
+        det2 = NewValueDetector(name="ImportDst", config=NewValueDetectorConfig(auto_config=False))
+        det2.import_state("memory://import_state_test/state")
+        assert 1 in det2.persistency.get_events_seen()
+
+    def test_import_state_with_running_saver_does_not_raise(self):
+        det1 = NewValueDetector(name="ImportSaverSrc", config=NewValueDetectorConfig(auto_config=False))
+        det1.persistency.ingest_event(
+            event_id=3, event_template="connect <*>", named_variables={"host": "srv1"}
+        )
+        det1.export_state("memory://import_saver_test/state")
+
+        det2 = NewValueDetector(
+            name="ImportSaverDst",
+            config=NewValueDetectorConfig(
+                auto_config=False,
+                persist=PersistConfig(path="memory://import_saver_dst/state"),
+            ),
+        )
+        det2.import_state("memory://import_saver_test/state")
+        det2.saver.stop()
+        assert 3 in det2.persistency.get_events_seen()
+
+    def test_export_raises_without_persistency(self):
+        det = RuleDetector()
+        with pytest.raises(RuntimeError, match="no persistency configured"):
+            det.export_state("memory://any/path")
+
+    def test_import_raises_without_persistency(self):
+        det = RuleDetector()
+        with pytest.raises(RuntimeError, match="no persistency configured"):
+            det.import_state("memory://any/path")

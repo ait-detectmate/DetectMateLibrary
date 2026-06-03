@@ -2,6 +2,7 @@ import atexit
 import json
 import signal
 import threading
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Callable
@@ -212,6 +213,12 @@ class PersistencySaver:
         self._timer = None
         atexit.unregister(self.stop)
         self.save()
+
+    @contextmanager
+    def locked(self) -> Any:
+        """Context manager that acquires the internal save lock."""
+        with self._lock:
+            yield
 
     def _check_event_count(self) -> None:
         """Trigger a save when ingested-event count reaches
