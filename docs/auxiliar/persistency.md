@@ -28,10 +28,10 @@ kept.
 Two families ship today:
 
 - **DataFrame backends** (`EventDataFrame`, `ChunkedEventDataFrame`) keeps the
-  raw rows. Very storage heavy and not recommended for production-ready detectors.
+  raw rows. Very storage heavy and *not recommended* for production-ready detectors.
 - **Tracker backends** (`EventStabilityTracker`) keep only derived features
-  (e.g. "this variable has been constant for the last 10k events"). Use these
-  when you only need a summary, not the raw history — they cost a fraction of
+  (e.g. "this variable has been constant for the last 10k events") that are relevant for the detector. Use these
+  when you only need a summary or a subset of the log's information, not the raw history — they cost a fraction of
   the memory.
 
 All backends implement the same four-method contract: `add_data`, `get_data`,
@@ -149,6 +149,48 @@ saver = persistency.PersistencySaver(
 If `auto_load=True` and no saved state exists, the constructor raises
 `persistency.PersistencyLoadError` immediately — fail-fast rather than
 silently starting empty.
+
+#### Exporting and importing state on demand
+
+For one-shot transfers — e.g. moving trained state to a new environment, or
+taking a manual snapshot — use the standalone functions directly:
+
+```python
+from detectmatelibrary.utils import persistency
+
+# Export: write full state to any fsspec URI
+persistency.save(ep, "./snapshots/trained-state")
+
+# Import: restore state into an existing EventPersistency
+persistency.load(ep, "./snapshots/trained-state")
+```
+
+`save` writes the same format as `PersistencySaver` and resets
+`ep._events_since_save`. `load` raises `PersistencyLoadError` if no state
+exists at the path, restores `event_data_class` and `event_data_kwargs` from
+metadata, and clears any existing state in `ep` before loading.
+
+Both functions are **not thread-safe** when called concurrently with a running
+`PersistencySaver` on the same `ep`. Use the detector-level wrappers below
+when a saver is active.
+
+#### Detector-level export and import
+
+When working through a detector (the typical path for DetectMateService), use
+the methods on the detector object directly — no need to access
+`EventPersistency` internals:
+
+```python
+# Export the trained detector's state
+detector.export_state("./snapshots/my-detector")
+
+# Import state into a fresh detector
+detector.import_state("./snapshots/my-detector")
+```
+
+`import_state` is thread-safe: it acquires the saver lock before loading when
+a `PersistencySaver` is running. Both methods raise `RuntimeError` if the
+detector has no persistency configured.
 
 ### Storage backends (fsspec)
 
