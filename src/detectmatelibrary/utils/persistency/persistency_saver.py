@@ -1,7 +1,9 @@
 import atexit
+import io
 import json
 import signal
 import threading
+import zipfile
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -128,6 +130,35 @@ def _load(ep: EventPersistency, fs: Any, root: str) -> None:
         raise PersistencyLoadError(f"Failed to restore state: {e}") from e
 
 
+def _save_to_bytes(ep: EventPersistency) -> bytes:
+    """Serialize EP state to a zip archive in memory."""
+    # reusing the same _save logic with an in-memory filesystem to avoid code duplication
+    from fsspec.implementations.memory import MemoryFileSystem
+    mem_fs = MemoryFileSystem()
+    root = "s"
+    _save(ep, mem_fs, root)
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for file_path in mem_fs.find(root):
+            if mem_fs.isfile(file_path):
+                rel = file_path[len(root) + 1:]
+                zf.writestr(rel, mem_fs.cat(file_path))
+    return buf.getvalue()
+
+
+def _load_from_bytes(ep: EventPersistency, data: bytes) -> None:
+    """Restore EP state from a zip archive in memory."""
+    # reusing the same _save logic with an in-memory filesystem to avoid code duplication
+    from fsspec.implementations.memory import MemoryFileSystem
+    mem_fs = MemoryFileSystem()
+    root = "s"
+    mem_fs.makedirs(f"{root}/events", exist_ok=True)
+    with zipfile.ZipFile(io.BytesIO(data)) as zf:
+        for name in zf.namelist():
+            mem_fs.pipe(f"{root}/{name}", zf.read(name))
+    _load(ep, mem_fs, root)
+
+
 @dataclass
 class PersistencySaverConfig:
     path: str
@@ -234,23 +265,45 @@ class PersistencySaver:
         self.save()
 
 
-def save(ep: EventPersistency, path: str, storage_options: dict[str, Any] | None = None) -> None:
-    """Save EventPersistency state to an fsspec URI.
+def save(
+    ep: EventPersistency,
+    path: str | None = None,
+    storage_options: dict[str, Any] | None = None,
+) -> bytes | None:
+    """Save EventPersistency state to an fsspec URI or return bytes.
+
+    When path is None, serialises state to a zip archive and returns the
+    bytes — no filesystem I/O occurs.  When path is given, writes to
+    that URI and returns None.
 
     Not thread-safe when called concurrently with a running
     PersistencySaver on the same ep. Use CoreDetector.export_state() in
     that case.
     """
+    if path is None:
+        return _save_to_bytes(ep)
     fs, root = fsspec.url_to_fs(path, **(storage_options or {}))
     _save(ep, fs, root)
+    return None
 
 
-def load(ep: EventPersistency, path: str, storage_options: dict[str, Any] | None = None) -> None:
-    """Restore EventPersistency state from an fsspec URI.
+def load(
+    ep: EventPersistency,
+    path: str | bytes,
+    storage_options: dict[str, Any] | None = None,
+) -> None:
+    """Restore EventPersistency state from an fsspec URI or bytes.
+
+    When path is bytes (a zip archive returned by save()), state is
+    restored directly from memory — no filesystem I/O occurs.  When path
+    is a string URI, state is read from that location.
 
     Raises PersistencyLoadError if no saved state exists at path. Not
     thread-safe when called concurrently with a running PersistencySaver
     on the same ep. Use CoreDetector.import_state() in that case.
     """
+    if isinstance(path, bytes):
+        _load_from_bytes(ep, path)
+        return
     fs, root = fsspec.url_to_fs(path, **(storage_options or {}))
     _load(ep, fs, root)

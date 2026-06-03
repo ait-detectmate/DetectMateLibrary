@@ -158,17 +158,25 @@ taking a manual snapshot — use the standalone functions directly:
 ```python
 from detectmatelibrary.utils import persistency
 
-# Export: write full state to any fsspec URI
+# Export to a file URI
 persistency.save(ep, "./snapshots/trained-state")
 
-# Import: restore state into an existing EventPersistency
+# Export to bytes (no disk I/O — useful when sending state over a network API)
+data: bytes = persistency.save(ep)
+
+# Import from a file URI
 persistency.load(ep, "./snapshots/trained-state")
+
+# Import from bytes
+persistency.load(ep, data)
 ```
 
 `save` writes the same format as `PersistencySaver` and resets
-`ep._events_since_save`. `load` raises `PersistencyLoadError` if no state
-exists at the path, restores `event_data_class` and `event_data_kwargs` from
-metadata, and clears any existing state in `ep` before loading.
+`ep._events_since_save`. When called without a path it returns the state as a
+zip archive in memory. `load` accepts either a path string or the bytes
+returned by `save`; it raises `PersistencyLoadError` if no state exists at the
+path, restores `event_data_class` and `event_data_kwargs` from metadata, and
+clears any existing state in `ep` before loading.
 
 Both functions are **not thread-safe** when called concurrently with a running
 `PersistencySaver` on the same `ep`. Use the detector-level wrappers below
@@ -181,11 +189,17 @@ the methods on the detector object directly — no need to access
 `EventPersistency` internals:
 
 ```python
-# Export the trained detector's state
+# Export to a file URI
 detector.export_state("./snapshots/my-detector")
 
-# Import state into a fresh detector
+# Export to bytes (e.g. for an API response)
+data: bytes = detector.export_state()
+
+# Import from a file URI
 detector.import_state("./snapshots/my-detector")
+
+# Import from bytes (e.g. from an API request body)
+detector.import_state(data)
 ```
 
 `import_state` is thread-safe: it acquires the saver lock before loading when

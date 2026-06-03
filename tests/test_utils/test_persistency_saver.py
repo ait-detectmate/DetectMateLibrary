@@ -377,6 +377,46 @@ class TestStandaloneSaveLoad:
         assert callable(persistency.save)
         assert callable(persistency.load)
 
+    def test_save_returns_bytes_when_no_path(self):
+        p = _make_persistency_with_data()
+        result = standalone_save(p)
+        assert isinstance(result, bytes)
+        assert len(result) > 0
+
+    def test_save_bytes_is_zip(self):
+        import zipfile
+        import io
+        p = _make_persistency_with_data()
+        data = standalone_save(p)
+        assert zipfile.is_zipfile(io.BytesIO(data))
+
+    def test_save_path_returns_none(self):
+        p = _make_persistency_with_data()
+        result = standalone_save(p, "memory://save_returns_none/state")
+        assert result is None
+
+    def test_load_from_bytes_restores_events_seen(self):
+        p = _make_persistency_with_data()
+        data = standalone_save(p)
+        p2 = EventPersistency(event_data_class=EventDataFrame)
+        standalone_load(p2, data)
+        assert "E1" in p2.get_events_seen()
+        assert "E2" in p2.get_events_seen()
+
+    def test_load_from_bytes_restores_event_data(self):
+        p = _make_persistency_with_data()
+        data = standalone_save(p)
+        p2 = EventPersistency(event_data_class=EventDataFrame)
+        standalone_load(p2, data)
+        assert len(p2.get_event_data("E1")) == 2
+
+    def test_bytes_roundtrip_restores_event_data_class(self):
+        p = _make_persistency_with_data()
+        data = standalone_save(p)
+        p2 = EventPersistency(event_data_class=EventStabilityTracker)
+        standalone_load(p2, data)
+        assert p2.event_data_class is EventDataFrame
+
 
 class TestPersistencySaverThreadSafety:
     def test_load_with_running_timer_does_not_raise(self):

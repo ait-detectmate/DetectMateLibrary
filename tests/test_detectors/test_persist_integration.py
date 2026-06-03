@@ -198,3 +198,31 @@ class TestDetectorExportImportState:
         det = RuleDetector()
         with pytest.raises(RuntimeError, match="no persistency configured"):
             det.import_state("memory://any/path")
+
+    def test_export_state_returns_bytes_when_no_path(self):
+        det = NewValueDetector(name="ExportBytes", config=NewValueDetectorConfig(auto_config=False))
+        det.persistency.ingest_event(
+            event_id=1, event_template="login <*>", named_variables={"user": "alice"}
+        )
+        result = det.export_state()
+        assert isinstance(result, bytes)
+        assert len(result) > 0
+
+    def test_export_state_path_returns_none(self):
+        det = NewValueDetector(name="ExportNone", config=NewValueDetectorConfig(auto_config=False))
+        det.persistency.ingest_event(
+            event_id=1, event_template="login <*>", named_variables={"user": "alice"}
+        )
+        result = det.export_state("memory://export_none_test/state")
+        assert result is None
+
+    def test_import_state_accepts_bytes(self):
+        det1 = NewValueDetector(name="BytesSrc", config=NewValueDetectorConfig(auto_config=False))
+        det1.persistency.ingest_event(
+            event_id=5, event_template="login <*>", named_variables={"user": "alice"}
+        )
+        data = det1.export_state()
+
+        det2 = NewValueDetector(name="BytesDst", config=NewValueDetectorConfig(auto_config=False))
+        det2.import_state(data)
+        assert 5 in det2.persistency.get_events_seen()
