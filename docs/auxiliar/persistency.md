@@ -27,8 +27,8 @@ kept.
 
 Two families ship today:
 
-- **DataFrame backends** (`EventDataFrame`, `ChunkedEventDataFrame`) keep the
-  raw rows. Use these when a detector needs to scan history.
+- **DataFrame backends** (`EventDataFrame`, `ChunkedEventDataFrame`) keeps the
+  raw rows. Very storage heavy and not recommended for production-ready detectors.
 - **Tracker backends** (`EventStabilityTracker`) keep only derived features
   (e.g. "this variable has been constant for the last 10k events"). Use these
   when you only need a summary, not the raw history — they cost a fraction of
