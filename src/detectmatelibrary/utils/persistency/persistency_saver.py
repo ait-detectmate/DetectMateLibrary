@@ -42,6 +42,47 @@ def _coerce_event_id(k: str) -> int | str:
         return k
 
 
+def _safe_event_data_kwargs(ep: EventPersistency) -> dict[str, Any]:
+    safe = {}
+    for k, v in ep.event_data_kwargs.items():
+        try:
+            json.dumps(v)
+            safe[k] = v
+        except (TypeError, ValueError):
+            pass
+    return safe
+
+
+def _save(ep: EventPersistency, fs: Any, root: str) -> None:
+    fs.makedirs(f"{root}/events", exist_ok=True)
+    event_backends: dict[str, str] = {}
+    event_extensions: dict[str, str] = {}
+
+    for event_id, data_structure in ep.events_data.items():
+        backend_name = type(data_structure).__name__
+        ext = _EXTENSION_MAP.get(backend_name, "bin")
+        event_backends[str(event_id)] = backend_name
+        event_extensions[str(event_id)] = ext
+        file_path = f"{root}/events/{event_id}.{ext}"
+        with fs.open(file_path, "wb") as f:
+            f.write(data_structure.dump())
+
+    metadata = {
+        "version": 1,
+        "saved_at": datetime.now(timezone.utc).isoformat(),
+        "events_seen": list(ep.events_seen),
+        "event_templates": {str(k): v for k, v in ep.event_templates.items()},
+        "event_backends": event_backends,
+        "event_extensions": event_extensions,
+        "event_data_kwargs": _safe_event_data_kwargs(ep),
+        "event_data_class": ep.event_data_class.__name__,  # read back by _load
+    }
+    with fs.open(f"{root}/metadata.json", "w") as f:
+        json.dump(metadata, f, indent=2)
+
+    ep.reset_events_since_save()
+
+
 class PersistencyLoadError(Exception):
     """Raised when restoring persisted state fails."""
 
@@ -96,35 +137,7 @@ class PersistencySaver:
         """
         with self._lock:
             try:
-                self._fs.makedirs(f"{self._root}/events", exist_ok=True)
-                event_backends: dict[str, str] = {}
-                event_extensions: dict[str, str] = {}
-
-                for event_id, data_structure in self._persistency.events_data.items():
-                    backend_name = type(data_structure).__name__
-                    ext = _EXTENSION_MAP.get(backend_name, "bin")
-                    event_backends[str(event_id)] = backend_name
-                    event_extensions[str(event_id)] = ext
-
-                    file_path = f"{self._root}/events/{event_id}.{ext}"
-                    with self._fs.open(file_path, "wb") as f:
-                        f.write(data_structure.dump())
-
-                metadata = {
-                    "version": 1,
-                    "saved_at": datetime.now(timezone.utc).isoformat(),
-                    "events_seen": list(self._persistency.events_seen),
-                    "event_templates": {
-                        str(k): v for k, v in self._persistency.event_templates.items()
-                    },
-                    "event_backends": event_backends,
-                    "event_extensions": event_extensions,
-                    "event_data_kwargs": self._safe_event_data_kwargs(),
-                }
-                with self._fs.open(f"{self._root}/metadata.json", "w") as f:
-                    json.dump(metadata, f, indent=2)
-
-                self._persistency.reset_events_since_save()
+                _save(self._persistency, self._fs, self._root)
             except Exception as e:
                 logger.warning(f"PersistencySaver: save failed — {e}")
 
@@ -188,18 +201,6 @@ class PersistencySaver:
         self._timer = None
         atexit.unregister(self.stop)
         self.save()
-
-    def _safe_event_data_kwargs(self) -> dict[str, Any]:
-        """Return event_data_kwargs with non-JSON-serializable values
-        excluded."""
-        safe = {}
-        for k, v in self._persistency.event_data_kwargs.items():
-            try:
-                json.dumps(v)
-                safe[k] = v
-            except (TypeError, ValueError):
-                pass
-        return safe
 
     def _check_event_count(self) -> None:
         """Trigger a save when ingested-event count reaches

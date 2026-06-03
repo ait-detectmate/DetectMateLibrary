@@ -131,6 +131,14 @@ class TestPersistencySaverSaveLoad:
         with pytest.raises(PersistencyLoadError):
             saver.load()
 
+    def test_save_includes_event_data_class_in_metadata(self):
+        saver, _ = _memory_saver()
+        saver.save()
+        fs = fsspec.filesystem("memory")
+        with fs.open("test/state/metadata.json", "r") as f:
+            meta = json.load(f)
+        assert meta["event_data_class"] == "EventDataFrame"
+
 
 class TestPersistencySaverTriggers:
     def test_timer_triggers_save(self):
