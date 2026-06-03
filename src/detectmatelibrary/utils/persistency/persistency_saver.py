@@ -64,8 +64,7 @@ def _save(ep: EventPersistency, fs: Any, root: str) -> None:
         event_backends[str(event_id)] = backend_name
         event_extensions[str(event_id)] = ext
         file_path = f"{root}/events/{event_id}.{ext}"
-        with fs.open(file_path, "wb") as f:
-            f.write(data_structure.dump())
+        fs.pipe(file_path, data_structure.dump())
 
     metadata = {
         "version": 1,
@@ -77,14 +76,55 @@ def _save(ep: EventPersistency, fs: Any, root: str) -> None:
         "event_data_kwargs": _safe_event_data_kwargs(ep),
         "event_data_class": ep.event_data_class.__name__,  # read back by _load
     }
-    with fs.open(f"{root}/metadata.json", "w") as f:
-        json.dump(metadata, f, indent=2)
+    fs.pipe(f"{root}/metadata.json", json.dumps(metadata, indent=2).encode())
 
     ep.reset_events_since_save()
 
 
 class PersistencyLoadError(Exception):
     """Raised when restoring persisted state fails."""
+
+
+def _load(ep: EventPersistency, fs: Any, root: str) -> None:
+    meta_path = f"{root}/metadata.json"
+    if not fs.exists(meta_path):
+        raise PersistencyLoadError(
+            f"No saved state found at '{root}' (metadata.json missing)"
+        )
+    try:
+        with fs.open(meta_path, "r") as f:
+            metadata = json.load(f)
+
+        ep.events_data = {}
+        ep.event_templates = {}
+
+        ep.events_seen = set(metadata["events_seen"])
+        ep.event_templates = {
+            _coerce_event_id(k): v for k, v in metadata["event_templates"].items()
+        }
+        global_kwargs = metadata.get("event_data_kwargs", {})
+        ep.event_data_kwargs = global_kwargs
+
+        for event_id_str, backend_name in metadata["event_backends"].items():
+            event_id = _coerce_event_id(event_id_str)
+            ext = metadata["event_extensions"][event_id_str]
+            file_path = f"{root}/events/{event_id_str}.{ext}"
+            with fs.open(file_path, "rb") as f:
+                data = f.read()
+            if backend_name not in _BACKEND_REGISTRY:
+                raise PersistencyLoadError(
+                    f"Unknown backend '{backend_name}' — cannot restore event '{event_id}'"
+                )
+            backend_cls = _BACKEND_REGISTRY[backend_name]
+            ep.events_data[event_id] = backend_cls.load(data, **global_kwargs)
+
+        class_name = metadata.get("event_data_class")
+        if class_name and class_name in _BACKEND_REGISTRY:
+            ep.event_data_class = _BACKEND_REGISTRY[class_name]
+    except PersistencyLoadError:
+        raise
+    except Exception as e:
+        raise PersistencyLoadError(f"Failed to restore state: {e}") from e
 
 
 @dataclass
@@ -146,37 +186,8 @@ class PersistencySaver:
 
         Raises PersistencyLoadError on failure.
         """
-        meta_path = f"{self._root}/metadata.json"
-        if not self._fs.exists(meta_path):
-            raise PersistencyLoadError(
-                f"No saved state found at '{self._config.path}' (metadata.json missing)"
-            )
-        try:
-            with self._fs.open(meta_path, "r") as f:
-                metadata = json.load(f)
-
-            self._persistency.events_seen = set(metadata["events_seen"])
-            self._persistency.event_templates = {
-                _coerce_event_id(k): v for k, v in metadata["event_templates"].items()
-            }
-            global_kwargs = metadata.get("event_data_kwargs", {})
-
-            for event_id_str, backend_name in metadata["event_backends"].items():
-                event_id = _coerce_event_id(event_id_str)
-                ext = metadata["event_extensions"][event_id_str]
-                file_path = f"{self._root}/events/{event_id_str}.{ext}"
-                with self._fs.open(file_path, "rb") as f:
-                    data = f.read()
-                if backend_name not in _BACKEND_REGISTRY:
-                    raise PersistencyLoadError(
-                        f"Unknown backend '{backend_name}' — cannot restore event '{event_id}'"
-                    )
-                backend_cls = _BACKEND_REGISTRY[backend_name]
-                self._persistency.events_data[event_id] = backend_cls.load(data, **global_kwargs)
-        except PersistencyLoadError:
-            raise
-        except Exception as e:
-            raise PersistencyLoadError(f"Failed to restore state: {e}") from e
+        with self._lock:
+            _load(self._persistency, self._fs, self._root)
 
     def start(self) -> None:
         """Start the background save timer and register process-exit hooks."""
