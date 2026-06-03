@@ -1,6 +1,6 @@
 # JSON Parser
 
-Extracts structured information from JSON-formatted logs. Optionally delegates parsing of a specific JSON field (the "content") to another parser (for example, the Template matcher).
+Extracts structured information from JSON-formatted logs. Optionally delegates parsing of a specific JSON field (the "content") to a sibling Template Matcher parser. Nested JSON objects are always flattened to dot-separated keys in `logFormatVariables`.
 
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
@@ -9,14 +9,14 @@ Extracts structured information from JSON-formatted logs. Optionally delegates p
 
 ## Configuration
 
-Relevant config options (example names used by the implementation):
+Relevant config options:
 
-- `method_type` (string): parser type identifier (e.g. `json_parser`).
-- `params.timestamp_name` (string | null): JSON key to use as the received/parsed timestamp.
-- `params.content_name` (string): JSON key that contains the textual content to parse further (default `"message"` or `"content"`).
-- `params.flatten_nested` (bool, default True): flatten nested objects into dot-separated keys in `logFormatVariables`.
-- `params.content_parser` (string | dict): optional parser spec (name or config) to parse the extracted content.
-- `params.ignore_parse_errors` (bool, default True): if True, parser returns gracefully on JSON errors instead of raising.
+- `method_type` (string): parser type identifier — must be `json_parser`.
+- `params.timestamp_name` (string): JSON key to use as the timestamp (default `"time"`).
+- `params.content_name` (string): JSON key whose value is forwarded to the content parser (default `"message"`).
+- `params.content_parser` (string): name of a **sibling** parser entry in the `parsers` section that handles the content field (default `"JsonMatcherParser"`).
+
+The `content_parser` value is a **name**, not an inline config. The referenced parser must be defined as a separate sibling entry at the same level as `JsonParser`.
 
 Example YAML fragment:
 
@@ -27,22 +27,21 @@ parsers:
     params:
       timestamp_name: "time"
       content_name: "message"
-      flatten_nested: True
-      content_parser:
-        method_type: matcher_parser
-        params:
-          path_templates: tests/test_templates.txt
-      ignore_parse_errors: True
+      content_parser: JsonMatcherParser   # optional — defaults to "JsonMatcherParser"
+  JsonMatcherParser:
+    method_type: matcher_parser
+    params:
+      path_templates: tests/test_folder/test_templates.txt
 ```
 
 
 ## Usage examples
 
-Basic usage — parse JSON and extract fields:
+Basic usage — parse JSON and extract fields (no template matching):
 
 ```python
-from detectmatelibrary.parsers.json_parser import JsonParser
-
+import json
+from detectmatelibrary.parsers.json_parser import JsonParser, JsonParserConfig
 import detectmatelibrary.schemas as schemas
 
 
@@ -68,8 +67,53 @@ input_log = schemas.LogSchema({
 output = schemas.ParserSchema()
 parser.parse(input_log, output)
 
-print(output.logFormatVariables["request.method"])  # "GET"
-print(output.logFormatVariables["request.path"])  #"/api/users"
+print(output.logFormatVariables["request.method"])   # "GET"
+print(output.logFormatVariables["request.path"])     # "/api/users"
+```
+
+Dict-based config (from YAML) — with template matching on the `message` field:
+
+```python
+import json
+from detectmatelibrary.parsers.json_parser import JsonParser
+import detectmatelibrary.schemas as schemas
+
+
+config_dict = {
+    "parsers": {
+        "JsonParser": {
+            "method_type": "json_parser",
+            "params": {
+                "timestamp_name": "time",
+                "content_name": "message",
+            }
+        },
+        "JsonMatcherParser": {
+            "method_type": "matcher_parser",
+            "params": {
+                "path_templates": "tests/test_templates.txt"
+            }
+        }
+    }
+}
+parser = JsonParser(name="JsonParser", config=config_dict)
+
+json_log = {
+    "time": "2023-11-18 10:30:00",
+    "message": "pid=9699 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\"",
+    "level": "INFO"
+}
+
+input_log = schemas.LogSchema({
+    "logID": "1",
+    "log": json.dumps(json_log)
+})
+
+output = schemas.ParserSchema()
+parser.parse(input_log, output)
+
+print(output.logFormatVariables["level"])  # "INFO"
+print(output.template)                     # "pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>"
 ```
 
 Go back [Index](../index.md)
