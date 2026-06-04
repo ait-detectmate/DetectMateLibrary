@@ -20,6 +20,7 @@ from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
 from detectmatelibrary_tools.logging import logger
+from detectmatelibrary_tests.test_pipelines.test_configuration_engine import AUDIT_LOG
 # Set time test mode for consistent timestamps
 time_test_mode()
 
@@ -328,7 +329,7 @@ class TestValueRangeDetectorEndToEnd:
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = ValueRangeDetector()
 
-        logs = list(From.log(parser, in_path="detectmatelibrary_tests/test_folder/audit.log", do_process=True))
+        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
 
         for log in logs[:1800]:
             detector.configure(log)
@@ -357,7 +358,7 @@ class TestValueRangeDetectorAutoConfig:
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = ValueRangeDetector()
 
-        logs = list(From.log(parser, in_path="detectmatelibrary_tests/test_folder/audit.log", do_process=True))
+        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
 
         # Phase 1: configure — keep configuring for logs[:1800]
         detector.fitlogic.configure_state = ConfigState.KEEP_CONFIGURE
@@ -408,7 +409,7 @@ class TestValueRangeDetectorGlobalInstances:
         config = ValueRangeDetectorConfig.from_dict(config_dict, "ValueRangeDetector")
         detector = ValueRangeDetector(config=config)
 
-        logs = list(From.log(parser, in_path="detectmatelibrary_tests/test_folder/audit.log", do_process=True))
+        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
 
         for log in logs[:1800]:
             detector.train(log)
