@@ -38,7 +38,7 @@ def create_readme(name: str, ws_type: str, target_impl: Path, target_dir: Path) 
         ## Contents
 
         - `{normalize(name)}/{target_impl.name}`: starting point for your `{ws_type}` implementation.
-        - `tests/test_{target_impl.name}`: unit tests for your `{ws_type}`.
+        - `detectmatelibrary_tests/test_{target_impl.name}`: unit tests for your `{ws_type}`.
         - `LICENSE.md`: EUPL-1.2 license copied from the main project.
         - `.pre-commit-config.yaml`: recommended pre-commit hook configuration.
         - `.gitignore`: standard ignore rules.

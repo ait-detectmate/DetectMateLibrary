@@ -84,7 +84,7 @@ uv run --dev pytest --cov=. --cov-report=term-missing
 
 **Tips**:
 
-- Run a single test or directory to speed iteration: `uv run --dev pytest tests/some_test.py::test_name -q`
+- Run a single test or directory to speed iteration: `uv run --dev pytest detectmatelibrary_tests/some_test.py::test_name -q`
 
 ## Troubleshooting
 

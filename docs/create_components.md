@@ -35,7 +35,7 @@ workspaces/custom_parser/          # workspace root
 ├── custom_parser/                 # Python package
 │   ├── __init__.py
 │   └── custom_parser.py           # CoreParser-based template
-├── tests/
+├── detectmatelibrary_test/
 │   └── test_custom_parser.py      # generated from template to test custom_parser
 ├── data.json                      # example data to run the code
 ├── LICENSE.md                     # copied from main project
@@ -49,8 +49,8 @@ workspaces/custom_parser/          # workspace root
 
 To add the new component to the `DetectMateLibrary`, you need to add the component file to the specific folder and update the import paths.
 
-* **Detector**: Add the detector file component in `src/detectmatelibrary/detectors` and the unit tests in `tests/test_detectors`.
-* **Parsers**: Add the parser file component in `src/detectmatelibrary/parsers` and the unit tests in `tests/test_parsers`.
+* **Detector**: Add the detector file component in `src/detectmatelibrary/detectors` and the unit tests in `detectmatelibrary_test/test_detectors`.
+* **Parsers**: Add the parser file component in `src/detectmatelibrary/parsers` and the unit tests in `detectmatelibrary_test/test_parsers`.
 
 Once that is complete, **ensure that all unit tests and the pre-commit process are successful**.
 
