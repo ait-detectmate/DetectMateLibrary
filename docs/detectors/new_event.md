@@ -26,7 +26,7 @@ detectors:
 ## Example usage
 
 ```python
-from detectmatelibrary.detectors.new_event_detector import NewEventDetector, BufferMode
+from detectmatelibrary.detectors.new_event_detector import NewEventDetector, NewEventDetectorConfig
 import detectmatelibrary.schemas as schemas
 
 detector = NewEventDetector(name="NewEventTest", config=cfg)
@@ -44,7 +44,7 @@ parser_data = schemas.ParserSchema({
 })
 
 
-alert = detector.process(parsed_data)
+alert = detector.process(parser_data)
 ```
 
 Go back [Index](../index.md)

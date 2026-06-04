@@ -21,6 +21,9 @@ class SingleStabilityTracker(SingleTracker):
             segment_thresholds=[1.1, 0.3, 0.1, 0.01],
         )
         self._accum = set.update if expand_value else set.add
+        # Opaque slot for detectors to stash per-variable model state that
+        # must survive save/load. Schema-free; the tracker does not interpret it.
+        self.extra_state: Dict[str, Any] = {}
 
     def add_value(self, value: Any) -> None:
         """Add a new value to the tracker."""
@@ -70,6 +73,7 @@ class SingleStabilityTracker(SingleTracker):
             "runs": self.change_series.runs(),
             "unique_set": list(self.unique_set),
             "segment_thresholds": self.stability_classifier.segment_threshs,
+            "extra_state": self.extra_state,
         }
 
     @classmethod
@@ -88,6 +92,7 @@ class SingleStabilityTracker(SingleTracker):
         tracker.stability_classifier = StabilityClassifier(
             segment_thresholds=state["segment_thresholds"]
         )
+        tracker.extra_state = state.get("extra_state", {})
         return tracker
 
     def __repr__(self) -> str:
