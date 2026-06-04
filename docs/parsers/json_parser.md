@@ -31,7 +31,7 @@ parsers:
       content_parser:
         method_type: matcher_parser
         params:
-          path_templates: tests/test_templates.txt
+          path_templates: detectmatelibrary_tests/test_templates.txt
       ignore_parse_errors: True
 ```
 
