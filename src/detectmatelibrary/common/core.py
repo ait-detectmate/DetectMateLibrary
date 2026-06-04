@@ -9,7 +9,7 @@ from detectmatelibrary.common._config import BasicConfig
 
 from detectmatelibrary.schemas import BaseSchema
 
-from tools.logging import logger, setup_logging
+from detectmatelibrary_tools.logging import logger, setup_logging
 
 from typing import Any, Dict, List, Protocol
 

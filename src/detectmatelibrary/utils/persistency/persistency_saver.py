@@ -18,7 +18,7 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
     EventStabilityTracker,
 )
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
-from tools.logging import logger
+from detectmatelibrary_tools.logging import logger
 
 _BACKEND_REGISTRY: dict[str, type[EventDataStructure]] = {
     "EventTracker": EventTracker,

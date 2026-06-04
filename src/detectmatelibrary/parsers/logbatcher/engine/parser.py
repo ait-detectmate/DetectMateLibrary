@@ -29,7 +29,7 @@ from typing import Dict, List, Tuple
 
 from openai import OpenAI
 from tenacity import retry, stop_after_attempt, wait_random_exponential
-from tools.logging import logger
+from detectmatelibrary_tools.logging import logger
 from .cluster import Cluster
 from .postprocess import post_process
 from .matching import prune_from_cluster
