@@ -314,7 +314,7 @@ _PARSER_CONFIG = {
                 "remove_spaces": True,
                 "remove_punctuation": True,
                 "lowercase": True,
-                "path_templates": "tests/test_folder/audit_templates.txt",
+                "path_templates": "detectmatelibrary_tests/test_folder/audit_templates.txt",
             },
         }
     }
@@ -328,7 +328,7 @@ class TestValueRangeDetectorEndToEnd:
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = ValueRangeDetector()
 
-        logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
+        logs = list(From.log(parser, in_path="detectmatelibrary_tests/test_folder/audit.log", do_process=True))
 
         for log in logs[:1800]:
             detector.configure(log)
@@ -357,7 +357,7 @@ class TestValueRangeDetectorAutoConfig:
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = ValueRangeDetector()
 
-        logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
+        logs = list(From.log(parser, in_path="detectmatelibrary_tests/test_folder/audit.log", do_process=True))
 
         # Phase 1: configure — keep configuring for logs[:1800]
         detector.fitlogic.configure_state = ConfigState.KEEP_CONFIGURE
@@ -408,7 +408,7 @@ class TestValueRangeDetectorGlobalInstances:
         config = ValueRangeDetectorConfig.from_dict(config_dict, "ValueRangeDetector")
         detector = ValueRangeDetector(config=config)
 
-        logs = list(From.log(parser, in_path="tests/test_folder/audit.log", do_process=True))
+        logs = list(From.log(parser, in_path="detectmatelibrary_tests/test_folder/audit.log", do_process=True))
 
         for log in logs[:1800]:
             detector.train(log)
