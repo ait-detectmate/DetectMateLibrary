@@ -3,18 +3,31 @@ from detectmatelibrary.common.core import CoreComponent, CoreConfig
 
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 from detectmatelibrary.utils.aux import get_timestamp
-from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
+from detectmatelibrary.utils import persistency
+from detectmatelibrary.common.persist import init_persistency
+
+from pydantic import BaseModel, ConfigDict
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
 from typing_extensions import override
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, cast
 
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
-from tools.logging import logger
+from detectmatelibrary_tools.logging import logger
 
 
 _time_handler = TimeFormatHandler()
+
+
+class PersistConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    path: str = "./state"
+    interval_seconds: int = 300
+    events_until_save: int | None = None
+    auto_load: bool = False
+    storage_options: dict[str, Any] = {}
 
 
 def _extract_timestamp(
@@ -94,7 +107,7 @@ def get_global_variables(
 def validate_config_coverage(
         detector_name: str,
         config_events: EventsConfig | dict[str, Any],
-        persistency: EventPersistency,
+        event_persistency: persistency.EventPersistency,
 ) -> None:
     """Log warnings when configured EventIDs or variables have no training
     data.
@@ -112,8 +125,8 @@ def validate_config_coverage(
     if not config_ids:
         return
 
-    events_seen = persistency.get_events_seen()
-    events_with_data = set(persistency.get_events_data().keys())
+    events_seen = event_persistency.get_events_seen()
+    events_with_data = set(event_persistency.get_events_data().keys())
 
     for event_id in config_ids:
         if event_id not in events_seen:
@@ -138,6 +151,7 @@ class CoreDetectorConfig(CoreConfig):
     auto_config: bool = True
     events: EventsConfig | dict[str, Any] = {}
     global_instances: Dict[str, _EventInstance] = {}
+    persist: PersistConfig | None = None
 
 
 class CoreDetector(CoreComponent):
@@ -158,6 +172,11 @@ class CoreDetector(CoreComponent):
             args_buffer=ArgsBuffer(mode=buffer_mode, size=buffer_size),
             input_schema=ParserSchema,
             output_schema=DetectorSchema,
+        )
+
+    def _register_persistency(self, event_persistency: persistency.EventPersistency) -> None:
+        self.saver = init_persistency(
+            self.name, cast(CoreDetectorConfig, self.config), event_persistency
         )
 
     @override

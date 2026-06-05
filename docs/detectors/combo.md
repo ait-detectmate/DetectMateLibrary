@@ -33,8 +33,10 @@ detectors:
 ## Example usage
 
 ```python
-from detectmatelibrary.detectors.combo_detector import ComboDetector, ComboConfig
+from detectmatelibrary.detectors.new_value_combo_detector import NewValueComboDetector, NewValueComboDetectorConfig
 import detectmatelibrary.schemas as schemas
+
+detector = NewValueComboDetector(name="NewValueTest", config=cfg)
 
 test_data = schemas.ParserSchema({
     "parserType": "test",

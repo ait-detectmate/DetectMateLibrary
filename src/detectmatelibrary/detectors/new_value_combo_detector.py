@@ -10,10 +10,7 @@ from detectmatelibrary.common.detector import (
 )
 
 from detectmatelibrary.utils.data_buffer import BufferMode
-from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
-    EventStabilityTracker
-)
-from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
+from detectmatelibrary.utils import persistency
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
@@ -22,7 +19,7 @@ from typing import Any, Dict, Sequence, cast, Tuple
 from itertools import combinations
 
 from typing_extensions import override
-from tools.logging import logger
+from detectmatelibrary_tools.logging import logger
 
 
 def get_combo(variables: Dict[str, Any]) -> Dict[Tuple[str, ...], Tuple[Any, ...]]:
@@ -74,19 +71,20 @@ class NewValueComboDetector(CoreDetector):
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
 
         self.config = cast(NewValueComboDetectorConfig, self.config)
-        self.persistency = EventPersistency(
-            event_data_class=EventStabilityTracker,
+        self.persistency = persistency.EventPersistency(
+            event_data_class=persistency.EventStabilityTracker,
             event_data_kwargs={"converter_function": get_combo}
         )
         # auto config checks if individual variables are stable to select combos from
-        self.auto_conf_persistency = EventPersistency(
-            event_data_class=EventStabilityTracker
+        self.auto_conf_persistency = persistency.EventPersistency(
+            event_data_class=persistency.EventStabilityTracker
         )
-        self.auto_conf_persistency_combos = EventPersistency(
-            event_data_class=EventStabilityTracker,
+        self.auto_conf_persistency_combos = persistency.EventPersistency(
+            event_data_class=persistency.EventStabilityTracker,
             event_data_kwargs={"converter_function": get_all_possible_combos}
         )
         self.inputs: list[ParserSchema] = []
+        self._register_persistency(self.persistency)
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         config = cast(NewValueComboDetectorConfig, self.config)
@@ -183,6 +181,7 @@ class NewValueComboDetector(CoreDetector):
         would explode combinatorially).
         """
         config = cast(NewValueComboDetectorConfig, self.config)
+        old_persist = config.persist
         # run WITH auto_conf_persistency
         variable_combos = {}
         for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
@@ -228,6 +227,7 @@ class NewValueComboDetector(CoreDetector):
         )
         # Update the config object from the dictionary instead of replacing it
         self.config = NewValueComboDetectorConfig.from_dict(config_dict, self.name)
+        self.config.persist = old_persist
         events = self.config.events
         if isinstance(events, EventsConfig) and not events.events:
             logger.warning(

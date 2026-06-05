@@ -20,6 +20,10 @@ detectors:
         method_type: new_value_detector
         auto_config: False
         params: {}
+        persist:                      # optional — omit to disable saving
+          path: ./state
+          interval_seconds: 300
+          auto_load: false
         events:
             1:
                 test:
@@ -38,9 +42,18 @@ detectors:
 ## Example usage
 
 ```python
-from detectmatelibrary.detectors.new_value_detector import NewValueDetector, BufferMode
+from detectmatelibrary.detectors.new_value_detector import NewValueDetector
 import detectmatelibrary.schemas as schemas
 
+cfg = {
+    "detectors": {
+        "NewValueTest": {
+            "method_type": "new_value_detector",
+            "auto_config": False,
+            "params": {},
+        }
+    }
+}
 detector = NewValueDetector(name="NewValueTest", config=cfg)
 
 parser_data = schemas.ParserSchema({
@@ -56,7 +69,7 @@ parser_data = schemas.ParserSchema({
 })
 
 
-alert = detector.process(parsed_data)
+alert = detector.process(parser_data)
 ```
 
 Go back [Index](../index.md)

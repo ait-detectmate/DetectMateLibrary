@@ -7,8 +7,6 @@ __pycache__/
 # C extensions
 *.so
 
-dummy*
-
 # Distribution / packaging
 .Python
 build/
@@ -202,3 +200,6 @@ test.py
 
 # claude code
 CLAUDE.md
+docs/superpowers/
+docs/design/
+.claude/
