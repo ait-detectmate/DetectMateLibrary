@@ -51,6 +51,11 @@ class Component(CoreComponent):
     ) -> None:
     """Train the component with a specific input"""
 
+    def update_state(self, state: StatesL) -> None:
+    """
+    Update the current state by request of the user
+    """
+
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
     """Process the data in a stream fashion (Defined in the CoreComponent)"""
 
