@@ -14,7 +14,7 @@ from typing_extensions import override
 from typing import Dict, List, Optional, Any, cast
 
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
-from tools.logging import logger
+from detectmatelibrary_tools.logging import logger
 
 
 _time_handler = TimeFormatHandler()
