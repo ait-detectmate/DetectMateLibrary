@@ -195,9 +195,18 @@
                           params: {}
 </code></pre>
 <h2 id="example-usage">Example usage</h2>
-<pre><code class="language-python">from detectmatelibrary.detectors.new_value_detector import NewValueDetector, BufferMode
+<pre><code class="language-python">from detectmatelibrary.detectors.new_value_detector import NewValueDetector
 import detectmatelibrary.schemas as schemas
 
+cfg = {
+    &quot;detectors&quot;: {
+        &quot;NewValueTest&quot;: {
+            &quot;method_type&quot;: &quot;new_value_detector&quot;,
+            &quot;auto_config&quot;: False,
+            &quot;params&quot;: {},
+        }
+    }
+}
 detector = NewValueDetector(name=&quot;NewValueTest&quot;, config=cfg)
 
 parser_data = schemas.ParserSchema({

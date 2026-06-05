@@ -190,8 +190,8 @@ owns the dict <code>{event_id: backend}</code>; the backend itself decides <em>h
 kept.</p>
 <p>Two families ship today:</p>
 <ul>
-<li><strong>DataFrame backends</strong> (<code>EventDataFrame</code>, <code>ChunkedEventDataFrame</code>) keep the
-  raw rows. Use these when a detector needs to scan history.</li>
+<li><strong>DataFrame backends</strong> (<code>EventDataFrame</code>, <code>ChunkedEventDataFrame</code>) keeps the
+  raw rows. Very storage heavy and not recommended for production-ready detectors.</li>
 <li><strong>Tracker backends</strong> (<code>EventStabilityTracker</code>) keep only derived features
   (e.g. "this variable has been constant for the last 10k events"). Use these
   when you only need a summary, not the raw history — they cost a fraction of
