@@ -54,6 +54,11 @@ class Component(CoreComponent):
     def update_state(self, state: StatesL) -> None:
     """
     Update the current state by request of the user
+    states:
+    *   keep_training: force to keep training
+    *   stop_training: force to stop training
+    *   keep_configuring: force to keep configuring
+    *   stop_configuring: force to stop configuring
     """
 
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
