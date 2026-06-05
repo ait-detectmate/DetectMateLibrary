@@ -1,4 +1,5 @@
 
+from typing import Literal
 from enum import Enum
 
 
@@ -30,6 +31,23 @@ class ConfigState(Enum):
         ]
 
         return descriptions[self.value]
+
+
+StatesL = Literal["keep_training", "stop_training", "keep_configuring", "stop_configuring"]
+
+def update_state(
+    state: StatesL, train_state: TrainState, config_state: ConfigState
+) -> tuple[TrainState, ConfigState]:
+    if state == "keep_training":
+        train_state = TrainState.KEEP_TRAINING
+    elif state == "stop_training":
+        train_state = TrainState.STOP_TRAINING
+    elif state == "keep_configuring":
+        config_state = ConfigState.KEEP_CONFIGURE
+    elif state == "stop_configuring":
+        config_state = ConfigState.STOP_CONFIGURE
+    
+    return train_state, config_state
 
 
 def do_training(
@@ -79,6 +97,11 @@ class FitLogic:
 
         self.data_use_configure = data_use_configure
         self.data_use_training = data_use_training
+
+    def update_state(self, state: StatesL) -> None:
+        self.train_state, self.configure_state = update_state(
+            state=state, train_state=self.train_state, config_state=self.configure_state
+        )
 
     def finish_config(self) -> bool:
         if self._configuration_done and not self.config_finished:

@@ -1,4 +1,3 @@
-from detectmatelibrary.common._core_op._fit_logic import ConfigState, TrainState
 from detectmatelibrary.common.core import CoreConfig, CoreComponent
 from detectmatelibrary.common._config import BasicConfig
 
@@ -266,7 +265,7 @@ class TestCoreComponent:
 
         for i in range(10):
             if i == 2:
-                component.fitlogic.train_state = TrainState.STOP_TRAINING
+                component.update_state("stop_training")
             component.process(
                 schemas.LogSchema({
                     "__version__": "1.0.0",
@@ -280,7 +279,7 @@ class TestCoreComponent:
 
     def test_training_keep_training(self) -> None:
         component = MockComponentWithTraining(name="Dummy6")
-        component.fitlogic.train_state = TrainState.KEEP_TRAINING
+        component.update_state("keep_training")
 
         for i in range(10):
             component.process(
@@ -321,7 +320,7 @@ class TestCoreComponent:
 
     def test_configuration_force_stop(self) -> None:
         component = MockComponentWithConfigure(name="DummyCfg3")
-        component.fitlogic.configure_state = ConfigState.STOP_CONFIGURE
+        component.update_state("stop_configuring")
 
         for i in range(10):
             component.process(self._make_log(i))
@@ -331,7 +330,7 @@ class TestCoreComponent:
 
     def test_configuration_keep_configure(self) -> None:
         component = MockComponentWithConfigure(name="DummyCfg4")
-        component.fitlogic.configure_state = ConfigState.KEEP_CONFIGURE
+        component.update_state("keep_configuring")
 
         for i in range(10):
             component.process(self._make_log(i))

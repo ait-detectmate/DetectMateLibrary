@@ -1,4 +1,4 @@
-from detectmatelibrary.common._core_op._fit_logic import FitLogicState
+from detectmatelibrary.common._core_op._fit_logic import FitLogicState, StatesL
 from detectmatelibrary.common._core_op._schema_pipeline import SchemaPipeline
 from detectmatelibrary.common._core_op._fit_logic import FitLogic
 
@@ -106,6 +106,9 @@ class CoreComponent(Component):
             data_use_training=self.config.data_use_training,
         )
         self.buffer_train = TrainBuffer()
+
+    def update_state(self, state: StatesL) -> None:
+        self.fitlogic.update_state(state)
 
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
         is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)
