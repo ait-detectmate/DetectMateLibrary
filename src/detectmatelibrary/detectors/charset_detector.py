@@ -1,3 +1,4 @@
+from typing import Any
 from detectmatelibrary.common._config._compile import generate_detector_config
 from detectmatelibrary.common._config._formats import EventsConfig
 from detectmatelibrary.common.detector import (
@@ -8,7 +9,8 @@ from detectmatelibrary.common.detector import (
     validate_config_coverage,
 )
 from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
-    EventStabilityTracker
+    EventStabilityTracker,
+    SingleStabilityTracker
 )
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from detectmatelibrary.utils.data_buffer import BufferMode
@@ -37,14 +39,23 @@ class CharsetDetector(CoreDetector):
         if isinstance(config, dict):
             config = CharsetDetectorConfig.from_dict(config, name)
 
+        def add_value(cls: SingleStabilityTracker, value: Any) -> None:
+            """Add a new value to the tracker."""
+            before = len(cls.unique_set)
+            cls.unique_set.update(value)
+            cls.change_series.append(len(cls.unique_set) > before)
+
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: CharsetDetectorConfig  # type narrowing for IDE
         self.persistency = EventPersistency(
             event_data_class=EventStabilityTracker,
-            event_data_kwargs={"expand_value": True},
+            event_data_kwargs={"add_value_fn": add_value}
         )
-        # auto config checks if individual variables are stable to select combos from
-        self.auto_conf_persistency = EventPersistency(event_data_class=EventStabilityTracker)
+        # auto config checks if individual variables are stable to select characters from
+        self.auto_conf_persistency = EventPersistency(
+            event_data_class=EventStabilityTracker,
+            event_data_kwargs={"add_value_fn": add_value}
+        )
         self._register_persistency(self.persistency)
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore

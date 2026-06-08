@@ -8,7 +8,8 @@ from detectmatelibrary.common.detector import (
     validate_config_coverage,
 )
 from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
-    EventStabilityTracker
+    EventStabilityTracker,
+    SingleStabilityTracker
 )
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from detectmatelibrary.utils.data_buffer import BufferMode
@@ -39,14 +40,31 @@ class ValueRangeDetector(CoreDetector):
         if isinstance(config, dict):
             config = ValueRangeDetectorConfig.from_dict(config, name)
 
+        def add_value(cls: SingleStabilityTracker, value: int | float) -> None:
+            """Add a new value to the tracker."""
+            try:
+                value = float(value)
+                value = int(value) if value.is_integer() else value
+            except ValueError:
+                return
+            if len(cls.unique_set) > 0:
+                min_ = min(cls.unique_set)
+                max_ = max(cls.unique_set)
+                cls.change_series.append(value < min_ or value > max_)
+            else:
+                cls.change_series.append(True)
+            cls.unique_set.add(value)
+
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: ValueRangeDetectorConfig  # type narrowing for IDE
         self.persistency = EventPersistency(
             event_data_class=EventStabilityTracker,
+            event_data_kwargs={"add_value_fn": add_value}
         )
-        # auto config checks if individual variables are stable to select combos from
+        # auto config checks if individual variables are stable to select value ranges from
         self.auto_conf_persistency = EventPersistency(
-            event_data_class=EventStabilityTracker
+            event_data_class=EventStabilityTracker,
+            event_data_kwargs={"add_value_fn": add_value}
         )
 
     def cast_val_to_numeric(self, configured_variables: Dict[str, Any], k: str, remove: List[str],
@@ -54,17 +72,16 @@ class ValueRangeDetector(CoreDetector):
         v = configured_variables[k]
         if not isinstance(v, (int, float)):
             try:
-                configured_variables[k] = int(v)
+                configured_variables[k] = float(v)
+                configured_variables[k] = int(configured_variables[k])\
+                    if configured_variables[k].is_integer() else configured_variables[k]
             except ValueError:
-                try:
-                    configured_variables[k] = float(v)
-                except ValueError:
-                    logger.error(f"Non-numeric value '{v}' appeared in {stage} of {self.__class__.__name__}"
-                                 f" with the name {self.name}.")
-                    if not self.config.ignore_non_numerical_val:
-                        exit(1)
-                    remove.append(k)
-                    return False
+                logger.error(f"Non-numeric value '{v}' appeared in {stage} of {self.__class__.__name__}"
+                             f" with the name {self.name}.")
+                if not self.config.ignore_non_numerical_val:
+                    exit(1)
+                remove.append(k)
+                return False
         return True
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore

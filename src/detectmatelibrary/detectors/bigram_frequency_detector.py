@@ -1,5 +1,4 @@
 from typing import Any, cast
-
 from detectmatelibrary.common._config._compile import generate_detector_config
 from detectmatelibrary.common._config._formats import EventsConfig
 from detectmatelibrary.common.detector import (
@@ -71,14 +70,50 @@ class BigramFrequencyDetector(CoreDetector):
         if isinstance(config, dict):
             config = BigramFrequencyDetectorConfig.from_dict(config, name)
 
+        def add_value(cls: SingleStabilityTracker, value: Any) -> None:
+            """Add a new value to the tracker."""
+            change = False
+            default_freq, default_total = (_default_freq_tables() if self.config.default_freqs else ({}, {}))
+            freq: dict[Any, dict[Any, int]] = cls.extra_state.get("freq", {})
+            total_freq: dict[Any, int] = cls.extra_state.get("total_freq", {})
+            probs: list[float] = []
+            for i in range(-1, len(value)):
+                first: Any = -1 if i == -1 else value[i]
+                second: Any = -1 if i == len(value) - 1 else value[i + 1]
+                prob = 0.0
+                if first in freq and second in freq[first] and total_freq.get(first, 0) > 0:
+                    prob = freq[first][second] / total_freq[first]
+                elif self.config.default_freqs:
+                    if (first in default_freq and second in default_freq[first]
+                            and default_total.get(first, 0) > 0):
+                        prob = default_freq[first][second] / default_total[first]
+                probs.append(prob)
+            if probs:
+                critical_val = sum(probs) / len(probs)
+                change = critical_val > self.config.prob_thresh or any(x == 0.0 for x in probs)
+
+            if self.config.skip_repetitions and value in cls.unique_set:
+                change = False
+            else:
+                for i in range(-1, len(value)):
+                    first = -1 if i == -1 else value[i]
+                    second = -1 if i == len(value) - 1 else value[i + 1]
+                    row = freq.setdefault(first, {})
+                    row[second] = row.get(second, 0) + 1
+                    total_freq[first] = total_freq.get(first, 0) + 1
+            cls.unique_set.add(value)
+            cls.change_series.append(change)
+
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: BigramFrequencyDetectorConfig  # type narrowing for IDE
         self.persistency = EventPersistency(
             event_data_class=EventStabilityTracker,
+            event_data_kwargs={"add_value_fn": add_value}
         )
-        # auto config checks if individual variables are stable to select combos from
+        # auto config checks if individual variables are stable
         self.auto_conf_persistency = EventPersistency(
-            event_data_class=EventStabilityTracker
+            event_data_class=EventStabilityTracker,
+            event_data_kwargs={"add_value_fn": add_value}
         )
         self._register_persistency(self.persistency)
 
@@ -99,17 +134,13 @@ class BigramFrequencyDetector(CoreDetector):
             named_variables=configured_variables,
         )
         if configured_variables:
-            known_events = cast(
-                dict[int | str, EventStabilityTracker], self.persistency.get_events_data()
-            )
+            known_events = cast(dict[int | str, EventStabilityTracker], self.persistency.get_events_data())
             self.train_helper(configured_variables, current_event_id, known_events, pre_unique)
 
         if self.config.global_instances:
             global_vars = get_global_variables(input_, self.config.global_instances)
             if global_vars:
-                pre_unique_global = self._snapshot_unique_sets(
-                    known_events.get(GLOBAL_EVENT_ID), global_vars
-                )
+                pre_unique_global = self._snapshot_unique_sets(known_events.get(GLOBAL_EVENT_ID), global_vars)
                 self.persistency.ingest_event(
                     event_id=GLOBAL_EVENT_ID,
                     event_template=input_["template"],
@@ -175,9 +206,7 @@ class BigramFrequencyDetector(CoreDetector):
         configured_variables = get_configured_variables(input_, self.config.events)
         overall_score = 0.0
         current_event_id = input_["EventID"]
-        known_events = cast(
-            dict[int | str, EventStabilityTracker], self.persistency.get_events_data()
-        )
+        known_events = cast(dict[int | str, EventStabilityTracker], self.persistency.get_events_data())
         if current_event_id in known_events:
             overall_score = self.detect_helper(
                 alerts, configured_variables, current_event_id, known_events, overall_score
@@ -203,12 +232,8 @@ class BigramFrequencyDetector(CoreDetector):
         overall_score: float,
     ) -> float:
         anomaly = False
-        default_freq, default_total = (
-            _default_freq_tables() if self.config.default_freqs else ({}, {})
-        )
-        var_trackers = cast(
-            dict[str, SingleStabilityTracker], known_events[event_id].get_data()
-        )
+        default_freq, default_total = (_default_freq_tables() if self.config.default_freqs else ({}, {}))
+        var_trackers = cast(dict[str, SingleStabilityTracker], known_events[event_id].get_data())
         for var_name, single_tracker in var_trackers.items():
             value: Any = variables.get(var_name)
             if value is None:
