@@ -44,17 +44,20 @@ class CharsetDetector(CoreDetector):
             before = len(cls.unique_set)
             cls.unique_set.update(value)
             cls.change_series.append(len(cls.unique_set) > before)
+        self.add_value_fn = add_value
 
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: CharsetDetectorConfig  # type narrowing for IDE
+        kwargs = {"add_value_fn": self.__class__.__name__, "detector_config": self.config.to_dict(
+            method_id="CharsetDetector")}
         self.persistency = EventPersistency(
             event_data_class=EventStabilityTracker,
-            event_data_kwargs={"add_value_fn": add_value}
+            event_data_kwargs=kwargs
         )
         # auto config checks if individual variables are stable to select characters from
         self.auto_conf_persistency = EventPersistency(
             event_data_class=EventStabilityTracker,
-            event_data_kwargs={"add_value_fn": add_value}
+            event_data_kwargs=kwargs
         )
         self._register_persistency(self.persistency)
 

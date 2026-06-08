@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "saved_at": "2026-06-08T09:51:52.538329+00:00",
+  "events_seen": [],
+  "event_templates": {},
+  "event_backends": {},
+  "event_extensions": {},
+  "event_data_kwargs": {
+    "add_value_fn": "CharsetDetector"
+  }
+}

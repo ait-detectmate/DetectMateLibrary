@@ -1,16 +1,21 @@
 """Tracks whether a variable is converging to a constant value."""
 
-from typing import Any, Callable, Dict, List, Literal, Set
+import importlib
+from typing import Any, Callable, Dict, List, Literal, Set, TYPE_CHECKING
 from detectmatelibrary.utils.preview_helpers import list_preview_str
 from detectmatelibrary.utils.persistency.rle_list import RLEList
 from ..base import SingleTracker, MultiTracker, EventTracker, Classification
 from .stability_classifier import StabilityClassifier
 
+if TYPE_CHECKING:
+    from detectmatelibrary.common.detector import CoreDetectorConfig
+
 
 class SingleStabilityTracker(SingleTracker):
     """Tracks stability of a single feature."""
 
-    def __init__(self, min_samples: int = 3, add_value_fn: Callable[..., None] | None = None) -> None:
+    def __init__(self, min_samples: int = 3, add_value_fn: str = "default",
+                 detector_config: "CoreDetectorConfig | None" = None) -> None:
         self.min_samples = min_samples
         self.change_series: RLEList[bool] = RLEList()
         self.unique_set: Set[Any] = set()
@@ -21,8 +26,14 @@ class SingleStabilityTracker(SingleTracker):
         # must survive save/load. Schema-free; the tracker does not interpret it.
         self.extra_state: Dict[str, Any] = {}
         self.add_value_fn = add_value_fn
-        if add_value_fn is not None:
-            self.add_value = add_value_fn.__get__(self, type(self))  # type: ignore[method-assign]
+        self.detector_config = detector_config
+        if add_value_fn != "default":
+            detector = getattr(importlib.import_module("detectmatelibrary.detectors"), add_value_fn)
+            if detector_config is not None:
+                detector = detector(config=detector_config)
+            else:
+                detector = detector()
+            self.add_value = detector.add_value_fn.__get__(self, type(self))  # type: ignore[method-assign]
 
     def add_value(self, value: Any) -> None:
         """Add a new value to the tracker."""
@@ -68,6 +79,8 @@ class SingleStabilityTracker(SingleTracker):
             "type": self.__class__.__name__,
             "module": self.__class__.__module__,
             "min_samples": self.min_samples,
+            "add_value_fn": self.add_value_fn,
+            "detector_config": self.detector_config,
             "runs": self.change_series.runs(),
             "unique_set": list(self.unique_set),
             "segment_thresholds": self.stability_classifier.segment_threshs,
@@ -79,7 +92,8 @@ class SingleStabilityTracker(SingleTracker):
         """Restore tracker from a state dict produced by to_state()."""
         tracker = cls(
             min_samples=state["min_samples"],
-            add_value_fn=cls.add_value,
+            add_value_fn=state["add_value_fn"],
+            detector_config=state["detector_config"]
         )
         runs = [(bool(r[0]), int(r[1])) for r in state["runs"]]
         tracker.change_series._runs = runs
@@ -129,12 +143,14 @@ class EventStabilityTracker(EventTracker):
     def __init__(
         self,
         converter_function: Callable[[Any], Any] = lambda x: x,
-        add_value_fn: Callable[..., None] | None = None
+        add_value_fn: str = "default",
+        detector_config: "CoreDetectorConfig | None" = None
+
     ) -> None:
         self.multi_tracker: MultiStabilityTracker  # for type hinting
 
         def make_tracker() -> SingleStabilityTracker:
-            return SingleStabilityTracker(add_value_fn=add_value_fn)
+            return SingleStabilityTracker(add_value_fn=add_value_fn, detector_config=detector_config)
 
         # Mirror class identity onto the closure so dump()/load() can resolve
         # the underlying SingleStabilityTracker via its module + qualname.

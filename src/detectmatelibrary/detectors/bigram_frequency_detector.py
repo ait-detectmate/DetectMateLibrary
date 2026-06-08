@@ -66,7 +66,6 @@ class BigramFrequencyDetector(CoreDetector):
         name: str = "BigramFrequencyDetector",
         config: BigramFrequencyDetectorConfig = BigramFrequencyDetectorConfig()
     ) -> None:
-
         if isinstance(config, dict):
             config = BigramFrequencyDetectorConfig.from_dict(config, name)
 
@@ -103,17 +102,21 @@ class BigramFrequencyDetector(CoreDetector):
                     total_freq[first] = total_freq.get(first, 0) + 1
             cls.unique_set.add(value)
             cls.change_series.append(change)
+        self.add_value_fn = add_value
 
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: BigramFrequencyDetectorConfig  # type narrowing for IDE
+        kwargs = {"add_value_fn": self.__class__.__name__, "detector_config": self.config.to_dict(
+            method_id="BigramFrequencyDetector")}
         self.persistency = EventPersistency(
             event_data_class=EventStabilityTracker,
-            event_data_kwargs={"add_value_fn": add_value}
+            event_data_kwargs=kwargs
+
         )
         # auto config checks if individual variables are stable
         self.auto_conf_persistency = EventPersistency(
             event_data_class=EventStabilityTracker,
-            event_data_kwargs={"add_value_fn": add_value}
+            event_data_kwargs=kwargs
         )
         self._register_persistency(self.persistency)
 
