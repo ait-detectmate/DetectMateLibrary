@@ -16,6 +16,7 @@ nav:
     - Schemas: schemas.md
     - Parsers: parsers.md
     - Detectors: detectors.md
+    - Alert Aggregation: alert_aggregator.md
   - Parsers Methods:
     - Template Matcher: parsers/template_matcher.md
     - Template Tree Matcher: parsers/template_tree_matcher.md
