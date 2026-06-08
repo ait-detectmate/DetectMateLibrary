@@ -35,7 +35,7 @@ class CoreAlertAggregatorConfig(CoreConfig):
     method_type: str = "core_alert_aggregator"
 
 
-class AlertAggregator(CoreComponent):
+class CoreAlertAggregator(CoreComponent):
     def __init__(
         self,
         name: str = "CoreAlertAggregator",
@@ -48,7 +48,7 @@ class AlertAggregator(CoreComponent):
 
         super().__init__(
             name=name,
-            type=config.method_type,  # type: ignore
+            type_=config.method_type,  # type: ignore
             config=config,  # type: ignore
             args_buffer=ArgsBuffer(mode=buffer_mode, size=buffer_size),
             input_schema=DetectorSchema,
