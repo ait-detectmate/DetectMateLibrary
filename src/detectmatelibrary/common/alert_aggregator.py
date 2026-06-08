@@ -61,8 +61,8 @@ class CoreAlertAggregator(CoreComponent):
     ) -> bool:
 
         output_["detectorIDs"] = _extract_field(input_, "detectorID")
-        output_["detectorType"] = _extract_field(input_, "detectorType")
-        output_["alertID"] = _extract_field(input_, "alertIDs")
+        output_["detectorTypes"] = _extract_field(input_, "detectorType")
+        output_["alertIDs"] = _extract_field(input_, "alertID")
         output_["logIDs"] = _extract_list_field(input_, "logIDs")
         output_["extractedTimestamps"] = _extract_list_field(input_, "extractedTimestamps")
 

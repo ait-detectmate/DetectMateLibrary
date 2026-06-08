@@ -1,5 +1,6 @@
 from detectmatelibrary.common.alert_aggregator import CoreAlertAggregatorConfig, CoreAlertAggregator
 
+from detectmatelibrary.utils.aux import time_test_mode
 import detectmatelibrary.schemas as schemas
 
 import pydantic
@@ -11,14 +12,28 @@ class MockupConfig(CoreAlertAggregatorConfig):
 
 
 class MockupAlertAggregator(CoreAlertAggregator):
-    def __init__(self, name: str, config: MockupConfig) -> None:
+    def __init__(self, name: str, config: MockupConfig, buffer_size: int = 1) -> None:
         super().__init__(
-            name=name, buffer_size=1, config=config
+            name=name, buffer_size=buffer_size, config=config
         )
 
     def aggregate_alerts(self, input_, output_):
         output_["description"] = "Mockup aggregator"
         return True
+
+
+dummy_schema = {
+    "detectorID": "1",
+    "detectorType": "dummy",
+    "alertID": "2",
+    "detectionTimestamp": 0,
+    "logIDs": ["logID1"],
+    "score": 0.2,
+    "extractedTimestamps": [-1],
+    "description": "hello there",
+    "receivedTimestamp": 1,
+    "alertsObtain": {"99 problems": "but logs aint one"}
+}
 
 
 dummy_config = {
@@ -29,6 +44,8 @@ dummy_config = {
         }
     }
 }
+
+time_test_mode()
 
 
 class TestCoreAlertAggregator:
@@ -54,3 +71,47 @@ class TestCoreAlertAggregator:
 
         with pytest.raises(pydantic.ValidationError):
             MockupAlertAggregator(name="TestAAG", config=dummy_config2)
+
+    def test_process_correct_input_schema(self) -> None:
+        detector = MockupAlertAggregator(name="TestAAG", config=dummy_config)
+        data = schemas.DetectorSchema(dummy_schema).serialize()
+        result = detector.process(data)  # no error should be produced
+        assert isinstance(result, bytes)  # and result should be bytes
+
+    def test_process_input_schema_not_serialized(self) -> None:
+        alert_aggregator = MockupAlertAggregator(name="TestAAG", config=MockupConfig())
+        expected_result = schemas.OutputSchema({
+            "__version__": "1.0.0",
+            "detectorIDs": ["1"],
+            "detectorTypes": ["dummy"],
+            "alertIDs": ["2"],
+            "outputTimestamp": 0,
+            "logIDs": ["logID1"],
+            "description": "Mockup aggregator",
+            "extractedTimestamps": [-1],
+            "alertsObtain": {}
+        })
+        data = schemas.DetectorSchema(dummy_schema)
+        result = alert_aggregator.process(data)
+        assert result == expected_result, f"result -> {result}"
+
+    def test_process_input_schema_not_serialized_window_3(self) -> None:
+        detector = MockupAlertAggregator(name="TestDetector", config=MockupConfig(), buffer_size=3)
+        expected_result = schemas.OutputSchema({
+            "__version__": "1.0.0",
+            "detectorIDs": ["1", "1", "1"],
+            "detectorTypes": ["dummy", "dummy", "dummy"],
+            "alertIDs": ["2", "2", "2"],
+            "outputTimestamp": 0,
+            "logIDs": ["logID1", "logID1", "logID1"],
+            "description": "Mockup aggregator",
+            "extractedTimestamps": [-1, -1, -1],
+            "alertsObtain": {}
+        })
+        data = schemas.DetectorSchema(dummy_schema)
+
+        assert detector.process(data) is None
+        assert detector.process(data) is None
+
+        result = detector.process(data)
+        assert result == expected_result, f"result -> {expected_result} and {result}"
