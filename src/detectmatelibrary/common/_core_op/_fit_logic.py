@@ -1,6 +1,7 @@
 
-from typing import Literal
+from typing import Literal, get_args
 from enum import Enum
+import warnings
 
 
 class TrainState(Enum):
@@ -46,7 +47,9 @@ def update_state(
         config_state = ConfigState.KEEP_CONFIGURE
     elif state == "stop_configuring":
         config_state = ConfigState.STOP_CONFIGURE
-    
+    else:
+        warnings.warn(f"State {state} unknown, use: {get_args(StatesL)}")
+
     return train_state, config_state
 
 

@@ -318,6 +318,11 @@ class TestCoreComponent:
 
         assert all(r is None for r in results)
 
+    def test_wrong_update_state(self) -> None:
+        component = MockComponentWithConfigure(name="DummyCfg3")
+        with pytest.warns(UserWarning):
+            component.update_state("incorrect_state")
+
     def test_configuration_force_stop(self) -> None:
         component = MockComponentWithConfigure(name="DummyCfg3")
         component.update_state("stop_configuring")
