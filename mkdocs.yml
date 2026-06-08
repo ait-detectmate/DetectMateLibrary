@@ -28,6 +28,9 @@ nav:
     - Combo Detector: detectors/combo.md
     - New Event: detectors/new_event.md
     - Rule Based: detectors/rule_based.md
+    - BiGram Frequency: detectors/bigram_frequency.md
+    - CharSet: detectors/charset.md
+    - Value Range: detectors/value_range.md
   - Auxiliar:
     - Persistency: auxiliar/persistency.md
     - Data buffer: auxiliar/input_buffer.md
