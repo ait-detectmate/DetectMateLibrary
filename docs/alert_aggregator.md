@@ -1,6 +1,6 @@
 # Components: Alert Aggregation
 
-Alert aggregation aggregate alerts from detectors.
+Alert aggregation aggregates alerts from detectors.
 
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
