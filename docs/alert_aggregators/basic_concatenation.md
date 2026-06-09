@@ -1,6 +1,6 @@
 # Basic Concat Alert Aggregation
 
-The basic concat alert aggregation approach aggregate x number of alerts into one output schema.
+The basic concat alert aggregation approach aggregates x number of alerts into one output schema.
 
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
