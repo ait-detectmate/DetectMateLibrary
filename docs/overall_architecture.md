@@ -15,7 +15,7 @@ The pipeline is strictly directional:
 
 - **Parser**: consumes raw logs and produces parsed log objects (structured fields, timestamps, variables).
 - **Detector**: consumes parsed logs and generates alerts/findings when rules or models match anomalous behavior.
-- **Alert Aggregation**: consumes alerts and aggregate them.
+- **Alert Aggregation**: consumes alerts and aggregates them.
 
 Each arrow represents a stream of [Schema objects](schemas.md). Components are designed to run in the same process for lightweight setups or as separate services for scalable deployments.
 
