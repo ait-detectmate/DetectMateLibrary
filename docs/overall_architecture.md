@@ -51,6 +51,25 @@ class Component(CoreComponent):
     ) -> None:
     """Train the component with a specific input"""
 
+    def update_state(self, state: StatesL) -> None:
+    """
+    Update the current state by request of the user
+    states:
+    *   keep_training: force to keep training
+    *   stop_training: force to stop training
+    *   keep_configuring: force to keep configuring
+    *   stop_configuring: force to stop configuring
+    """
+
+    def get_state(self) -> str:
+    """
+    Return the current state of the component
+    states:
+    *   Configuring: the component is doing configurations
+    *   Training: the component is training
+    *   Default: the component is just processing data
+    """
+
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
     """Process the data in a stream fashion (Defined in the CoreComponent)"""
 
