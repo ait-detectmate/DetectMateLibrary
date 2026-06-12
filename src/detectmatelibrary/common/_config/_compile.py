@@ -61,7 +61,10 @@ class MethodTypeNotMatch(Exception):
 
 class MissingParamsWarning(UserWarning):
     def __init__(self) -> None:
-        super().__init__("'auto_config = False' and no 'params' or 'events' provided. Is that intended?")
+        super().__init__(
+            "'auto_config = False' and no 'params', 'events', 'global', or 'persist' provided. "
+            "Is that intended?"
+        )
 
 
 class AutoConfigWarning(UserWarning):
@@ -94,8 +97,10 @@ class ConfigMethods:
         has_params = "params" in config
         has_events = "events" in config
         has_instances = "global" in config
+        has_persist = "persist" in config
 
-        if not has_params and not has_events and not has_instances and not config.get("auto_config", False):
+        no_data = not has_params and not has_events and not has_instances and not has_persist
+        if no_data and not config.get("auto_config", False):
             warnings.warn(MissingParamsWarning())
 
         if has_params:
@@ -142,7 +147,7 @@ def generate_detector_config(
         detector_name: Name of the detector, used as the base instance_id.
         method_type: Type of detection method (e.g., "new_value_detector").
         **additional_params: Additional parameters for the detector's params
-            dict (e.g., comb_size=3).
+            dict (e.g., max_combo_size=3).
 
     Returns:
         Dictionary with structure compatible with detector config classes.
@@ -162,7 +167,7 @@ def generate_detector_config(
                 variable_selection={1: [("username", "src_ip"), ("var_0", "var_1")]},
                 detector_name="MyDetector",
                 method_type="new_value_combo_detector",
-                comb_size=2,
+                max_combo_size=2,
             )
     """
     var_pattern = re.compile(r"^var_(\d+)$")

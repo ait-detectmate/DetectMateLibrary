@@ -106,6 +106,7 @@ def test_my_parser_parse():
 
 - [JSON Parser](parsers/json_parser.md): extracts structured fields from JSON-formatted logs.
 - [Template Matcher](parsers/template_matcher.md): matches logs against a predefined set of `<*>` templates.
+- [Template Tree Matcher](parsers/template_tree_matcher.md): matches logs against a predefined set of `<*>` templates using a tree structure.
 - [LogBatcher Parser](parsers/logbatcher_parser.md): LLM-based parser that infers templates from raw logs with no training data.
 
 Go back to [Index](index.md)

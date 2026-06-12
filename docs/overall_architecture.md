@@ -1,6 +1,6 @@
 # Overall architecture
 
-This document describes the high-level design of DetectMateLibrary, how components interact, the data contracts they use, and guidance for deploying and extending the system. The library is built around small, composable components that operate on streaming log data and exchange strongly-typed Schema objects.
+This document describes the high-level design of the DetectMateLibrary, how components interact, the data contracts they use, and guidance for deploying and extending the system. The library is built around small, composable components that operate on streaming log data and exchange strongly-typed Schema objects.
 
 Key goals
 
@@ -14,7 +14,7 @@ Key goals
 The pipeline is strictly directional:
 
 - **Parser**: consumes raw logs and produces parsed log objects (structured fields, timestamps, variables).
-- **Detector**: consumes parsed logs and generates alerts / findings when rules or models match anomalous behavior.
+- **Detector**: consumes parsed logs and generates alerts/findings when rules or models match anomalous behavior.
 
 
 Each arrow represents a stream of [Schema objects](schemas.md). Components are designed to run in the same process for lightweight setups or as separate services for scalable deployments.
@@ -50,6 +50,25 @@ class Component(CoreComponent):
         self, input_: List[BaseSchema] | BaseSchema,
     ) -> None:
     """Train the component with a specific input"""
+
+    def update_state(self, state: StatesL) -> None:
+    """
+    Update the current state by request of the user
+    states:
+    *   keep_training: force to keep training
+    *   stop_training: force to stop training
+    *   keep_configuring: force to keep configuring
+    *   stop_configuring: force to stop configuring
+    """
+
+    def get_state(self) -> str:
+    """
+    Return the current state of the component
+    states:
+    *   Configuring: the component is doing configurations
+    *   Training: the component is training
+    *   Default: the component is just processing data
+    """
 
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
     """Process the data in a stream fashion (Defined in the CoreComponent)"""

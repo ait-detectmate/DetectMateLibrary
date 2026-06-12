@@ -1,4 +1,4 @@
-from detectmatelibrary.common._core_op._fit_logic import FitLogicState
+from detectmatelibrary.common._core_op._fit_logic import FitLogicState, StatesL
 from detectmatelibrary.common._core_op._schema_pipeline import SchemaPipeline
 from detectmatelibrary.common._core_op._fit_logic import FitLogic
 
@@ -9,18 +9,52 @@ from detectmatelibrary.common._config import BasicConfig
 
 from detectmatelibrary.schemas import BaseSchema
 
-from tools.logging import logger, setup_logging
+from detectmatelibrary_tools.logging import logger, setup_logging
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Protocol
 
 
 setup_logging()
+
+
+class _Stoppable(Protocol):
+    """Structural type for objects ``Component`` will stop on context-manager
+    exit.
+
+    Decouples ``Component`` from any concrete saver implementation: a subclass
+    may assign anything with a ``stop()`` method to ``self.saver`` (today the
+    only such type is ``PersistencySaver``) without ``common.core`` having to
+    import the persistency package. This preserves the dependency direction
+    detectmate -> persistency, not the reverse.
+    """
+    def stop(self) -> None: ...
+
+
+class TrainBuffer:
+    def __init__(self) -> None:
+        self.buffer: list[BaseSchema | list[BaseSchema]] = []
+
+    def __len__(self) -> int:
+        return len(self.buffer)
+
+    def __add__(self, elem: BaseSchema | list[BaseSchema]) -> "TrainBuffer":
+        self.buffer.append(elem)
+        return self
+
+    def __next__(self) -> BaseSchema | list[BaseSchema]:
+        if len(self.buffer) == 0:
+            raise StopIteration
+        return self.buffer.pop(0)
+
+    def __iter__(self) -> "TrainBuffer":
+        return self
 
 
 class CoreConfig(BasicConfig):
     start_id: int = 10
     data_use_training: int | None = None
     data_use_configure: int | None = None
+    use_config_data_as_training: bool = True
 
 
 class Component:
@@ -32,6 +66,7 @@ class Component:
         config: CoreConfig = CoreConfig(),
     ) -> None:
         self.name, self.type_, self.config = name, type_, config
+        self.saver: _Stoppable | None = None
 
     def __repr__(self) -> str:
         return f"<{self.type_}> {self.name}: {self.config}"
@@ -54,11 +89,21 @@ class Component:
     def set_configuration(self) -> None:
         pass
 
+    def post_train(self) -> None:
+        pass
+
     def get_config(self) -> Dict[str, Any]:
         return self.config.get_config()
 
     def update_config(self, new_config: Dict[str, Any]) -> None:
         self.config.update_config(new_config)
+
+    def __enter__(self) -> "Component":
+        return self
+
+    def __exit__(self, *_: Any) -> None:
+        if self.saver is not None:
+            self.saver.stop()
 
 
 class CoreComponent(Component):
@@ -81,6 +126,13 @@ class CoreComponent(Component):
             data_use_configure=self.config.data_use_configure,
             data_use_training=self.config.data_use_training,
         )
+        self.buffer_train = TrainBuffer()
+
+    def update_state(self, state: StatesL) -> None:
+        self.fitlogic.update_state(state)
+
+    def get_state(self) -> str:
+        return self.fitlogic.get_last_state()
 
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
         is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)
@@ -90,22 +142,29 @@ class CoreComponent(Component):
             return None
 
         if (fit_state := self.fitlogic.run()) == FitLogicState.DO_CONFIG:
-            logger.info(f"<<{self.name}>> use data for configuration")
+            logger.debug(f"<<{self.name}>> use data for configuration")
             self.configure(input_=data_buffered)
+            if self.config.use_config_data_as_training:
+                self.buffer_train + data_buffered
             return None
         elif self.fitlogic.finish_config():
-            logger.info(f"<<{self.name}>> finalizing configuration")
+            logger.debug(f"<<{self.name}>> finalizing configuration")
             self.set_configuration()
-
+            if self.config.use_config_data_as_training:
+                logger.debug(f"<<{self.name}>> Adding data from config to training")
+                [self.train(input_) for input_ in self.buffer_train]
         if fit_state == FitLogicState.DO_TRAIN:
-            logger.info(f"<<{self.name}>> use data for training")
+            logger.debug(f"<<{self.name}>> use data for training")
             self.train(input_=data_buffered)
+        elif self.fitlogic.finish_training():
+            logger.debug(f"<<{self.name}>> finalizing training")
+            self.post_train()
 
         output_ = self.output_schema()
-        logger.info(f"<<{self.name}>> processing data")
+        logger.debug(f"<<{self.name}>> processing data")
         return_schema = self.run(input_=data_buffered, output_=output_)
         if not return_schema:
-            logger.info(f"<<{self.name}>> returns None")
+            logger.debug(f"<<{self.name}>> returns None")
             return None
 
         logger.debug(f"<<{self.name}>> processed:\n{output_}")

@@ -5,6 +5,7 @@ from detectmatelibrary.utils.id_generator import SimpleIDGenerator
 from ast import literal_eval
 import os
 
+from polars import DataFrame
 from typing import Iterator
 import yaml
 import json
@@ -129,6 +130,35 @@ class From:
 
         return From._yield(component, __generator(), do_process=do_process)  # type: ignore
 
+    @staticmethod
+    def polars(
+        component: CoreComponent,
+        df: DataFrame,
+        do_process: bool = True,
+        renames: dict[str, str] | None = None
+    ) -> Iterator[BaseSchema]:
+        def __generator():  # type: ignore
+            for i in range(len(df)):
+                data = df.row(i, named=True)
+                if len(df_vars) > 0:
+                    data["logFormatVariables"] = df_vars.row(i, named=True)
+                data["logID"] = str(i)
+                schema = component.input_schema(data)
+                yield schema
+
+        renames = {
+            "Content": "log", "ParamList": "variables", "EventIDs": "EventID", "Templates": "template"
+        } if renames is None else renames
+        if "ParamList" not in df.columns and "ParamList" in renames:
+            del renames["ParamList"]
+
+        columns = list(renames.values())
+        df = df.rename(renames)
+        format_vars = [colum for colum in df.columns if colum not in columns]
+        df_vars, df = df[format_vars], df[columns]
+
+        return From._yield(component, __generator(), do_process=do_process)  # type: ignore
+
 
 class FromTo:
     @staticmethod
@@ -234,6 +264,42 @@ class FromTo:
         component: CoreComponent, in_path: str, out_path: str
     ) -> Iterator[BaseSchema]:
         gen = From.yaml(component, in_path=in_path, do_process=True)
+
+        for log in gen:
+            yield To.yaml(log, out_path=out_path)  # type: ignore
+
+    @staticmethod
+    def polars2binary_file(
+        component: CoreComponent,
+        df: DataFrame,
+        out_path: str,
+        renames: dict[str, str] | None = None
+    ) -> Iterator[BaseSchema]:
+        gen = From.polars(component, df=df, renames=renames, do_process=True)
+
+        for log in gen:
+            yield To.binary_file(log, out_path=out_path)  # type: ignore
+
+    @staticmethod
+    def polars2json(
+        component: CoreComponent,
+        df: DataFrame,
+        out_path: str,
+        renames: dict[str, str] | None = None
+    ) -> Iterator[BaseSchema]:
+        gen = From.polars(component, df=df, renames=renames, do_process=True)
+
+        for log in gen:
+            yield To.json(log, out_path=out_path)  # type: ignore
+
+    @staticmethod
+    def polars2yaml(
+        component: CoreComponent,
+        df: DataFrame,
+        out_path: str,
+        renames: dict[str, str] | None = None
+    ) -> Iterator[BaseSchema]:
+        gen = From.polars(component, df=df, renames=renames, do_process=True)
 
         for log in gen:
             yield To.yaml(log, out_path=out_path)  # type: ignore
