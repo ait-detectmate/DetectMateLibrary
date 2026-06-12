@@ -61,6 +61,15 @@ class Component(CoreComponent):
     *   stop_configuring: force to stop configuring
     """
 
+    def get_state(self) -> str:
+    """
+    Return the current state of the component
+    states:
+    *   Configuring: the component is doing configurations
+    *   Training: the component is training
+    *   Default: the component is just processing data
+    """
+
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
     """Process the data in a stream fashion (Defined in the CoreComponent)"""
 
