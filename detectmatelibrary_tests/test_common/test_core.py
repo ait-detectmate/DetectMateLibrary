@@ -448,6 +448,62 @@ class TestCaseState:
         component.process(_make_log(3))
         assert component.get_state() == FitLogicState.NOTHING.describe()
 
+    def test_nothing_going_on(self) -> None:
+        config = CoreConfig(use_config_data_as_training=True)
+        component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
+
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.NOTHING.describe()
+
+    def test_change_state(self) -> None:
+        config = CoreConfig(use_config_data_as_training=True)
+        component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
+
+        assert component.get_state() == FitLogicState.NOTHING.describe()
+
+        component.update_state("keep_configuring")
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.DO_CONFIG.describe()
+
+        component.update_state("stop_configuring")
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.NOTHING.describe()
+
+        component.update_state("keep_training")
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.DO_TRAIN.describe()
+
+        component.update_state("stop_training")
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.NOTHING.describe()
+
+    def test_change_state_weird_cases(self) -> None:
+        config = CoreConfig(use_config_data_as_training=True)
+        component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
+
+        assert component.get_state() == FitLogicState.NOTHING.describe()
+
+        component.update_state("keep_configuring")
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.DO_CONFIG.describe()
+
+        component.update_state("stop_training")
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.DO_CONFIG.describe()
+
+        component.update_state("keep_training")
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.DO_CONFIG.describe()
+
+        component.update_state("stop_configuring")
+        component.update_state("keep_training")
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.DO_TRAIN.describe()
+
+        component.update_state("keep_configuring")
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.DO_CONFIG.describe()
+
 
 class TestCoreComponentContextManager:
     def test_can_be_used_as_context_manager(self):
