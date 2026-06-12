@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/0.3.0/auxiliar/persistency/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Persistency - DetectMate Library</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Persistency";
+        var mkdocs_page_input_path = "auxiliar/persistency.md";
+        var mkdocs_page_url = "/DetectMateLibrary/0.3.0/auxiliar/persistency/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> DetectMate Library
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../installation/">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../basic_usage/">Basic usage</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../create_components/">Create new component</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Components</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../basic_idea/">Basic concepts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../overall_architecture/">Overall architecture</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../schemas/">Schemas</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/">Parsers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/">Detectors</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Parsers Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/template_matcher/">Template Matcher</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/template_tree_matcher/">Template Tree Matcher</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/json_parser/">Json Parser</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/logbatcher_parser/">LogBatcher Parser</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Detectors Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/random_detector/">Random Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/new_value/">New Value</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/combo/">Combo Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/new_event/">New Event</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/rule_based/">Rule Based</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Auxiliar</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Persistency</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#mental-model">Mental model</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#1-events">1. Events</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#2-backends-eventdatastructure">2. Backends (EventDataStructure)</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#3-saver-lifecycle-persistencysaver">3. Saver lifecycle (PersistencySaver)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#quick-start">Quick start</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#api-reference">API reference</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#eventpersistency">EventPersistency</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#available-backends">Available backends</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#persisting-to-disk">Persisting to disk</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#restoring-state">Restoring state</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#storage-backends-fsspec">Storage backends (fsspec)</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#using-persistency-inside-a-detector">Using persistency inside a detector</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../input_buffer/">Data buffer</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Helpers</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../helper/from_to/">From to</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribution</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../contribution/">Contributing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../development/">Development</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Other</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../other/log_formats/">Log Formats</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">DetectMate Library</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Auxiliar</li>
+      <li class="breadcrumb-item active">Persistency</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="persistency">Persistency</h1>
+<p>The persistency module gives a detector a place to remember things about the
+events it sees. State is keyed by <code>EventID</code> and survives across training, the
+detection loop, and (optionally) restarts on disk.</p>
+<p>This page is structured to read top-to-bottom: first the mental model, then a
+quick start, then the API surface.</p>
+<h2 id="mental-model">Mental model</h2>
+<p>Persistency has three moving parts. Understanding what each one does makes the
+rest of the page much easier to follow.</p>
+<h3 id="1-events">1. Events</h3>
+<p>Logs are grouped by <code>EventID</code>. Two events with the same ID share a template
+but have their own variable values. Persistency stores <strong>one independent state
+object per event ID</strong>, so an <code>EventStabilityTracker</code> for <code>EventID=4733</code> does
+not interfere with one for <code>EventID=4624</code>.</p>
+<h3 id="2-backends-eventdatastructure">2. Backends (<code>EventDataStructure</code>)</h3>
+<p>A backend is the thing that actually stores the per-event state. Persistency
+owns the dict <code>{event_id: backend}</code>; the backend itself decides <em>how</em> data is
+kept.</p>
+<p>Two families ship today:</p>
+<ul>
+<li><strong>DataFrame backends</strong> (<code>EventDataFrame</code>, <code>ChunkedEventDataFrame</code>) keeps the
+  raw rows. Very storage heavy and not recommended for production-ready detectors.</li>
+<li><strong>Tracker backends</strong> (<code>EventStabilityTracker</code>) keep only derived features
+  (e.g. "this variable has been constant for the last 10k events"). Use these
+  when you only need a summary, not the raw history — they cost a fraction of
+  the memory.</li>
+</ul>
+<p>All backends implement the same four-method contract: <code>add_data</code>, <code>get_data</code>,
+<code>dump</code>, <code>load</code>. That contract is what <code>EventPersistency</code> and
+<code>PersistencySaver</code> rely on — anything you add later only has to follow it.</p>
+<h3 id="3-saver-lifecycle-persistencysaver">3. Saver lifecycle (<code>PersistencySaver</code>)</h3>
+<p><code>EventPersistency</code> itself is in-memory. To survive a process restart, the
+state has to be written somewhere. <code>PersistencySaver</code> wraps an
+<code>EventPersistency</code> and:</p>
+<ul>
+<li>writes to disk (or any <code>fsspec</code> URI) on two triggers — a wall-clock interval
+  and an event-count threshold;</li>
+<li>optionally <code>auto_load</code>s previously saved state during construction;</li>
+<li>exposes <code>start()</code> / <code>stop()</code> so the background timer can be torn down
+  cleanly. <code>stop()</code> is idempotent and is called automatically when a
+  <code>Component</code> is used as a context manager.</li>
+</ul>
+<p>In practice a detector never instantiates <code>PersistencySaver</code> directly: it sets
+a <code>persist:</code> block in its config and <code>CoreDetector</code> wires the saver up via
+<a href="../../src/detectmatelibrary/common/persist.py"><code>init_persistency</code></a>.</p>
+<hr />
+<h2 id="quick-start">Quick start</h2>
+<pre><code class="language-python">from detectmatelibrary.utils import persistency
+
+ep = persistency.EventPersistency(
+    event_data_class=persistency.EventStabilityTracker,
+)
+
+ep.ingest_event(
+    event_id=&quot;4624&quot;,
+    event_template=&quot;An account was successfully logged on.&quot;,
+    named_variables={&quot;AccountName&quot;: &quot;alice&quot;, &quot;LogonType&quot;: &quot;3&quot;},
+)
+
+tracker = ep.get_event_data(&quot;4624&quot;)  # or ep[&quot;4624&quot;]
+</code></pre>
+<p>That snippet covers the whole in-memory API: pick a backend class, ingest
+events, query state.</p>
+<hr />
+<h2 id="api-reference">API reference</h2>
+<h3 id="eventpersistency"><code>EventPersistency</code></h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>event_data_class</code></td>
+<td>An <code>EventDataStructure</code> subclass; one instance is created per event ID.</td>
+</tr>
+<tr>
+<td><code>variable_blacklist</code></td>
+<td>Variable names to skip when ingesting. Defaults to <code>["Content"]</code>.</td>
+</tr>
+<tr>
+<td><code>event_data_kwargs</code></td>
+<td>Extra kwargs forwarded to each backend instance.</td>
+</tr>
+</tbody>
+</table>
+<p>Common methods:</p>
+<pre><code class="language-python">ep.ingest_event(event_id, event_template, variables=..., named_variables=...)
+
+ep.get_event_data(event_id)        # backend for a single event
+ep.get_events_data()               # dict[event_id -&gt; backend]
+ep.get_event_template(event_id)
+ep.get_event_templates()
+ep.get_events_seen()               # all event IDs ever ingested
+ep[event_id]                       # alias for get_event_data
+</code></pre>
+<h3 id="available-backends">Available backends</h3>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Use when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>persistency.EventDataFrame</code></td>
+<td>You need history and a Pandas DataFrame is the natural shape.</td>
+</tr>
+<tr>
+<td><code>persistency.ChunkedEventDataFrame</code></td>
+<td>High-volume / streaming workloads — Polars-backed with row-retention and automatic compaction.</td>
+</tr>
+<tr>
+<td><code>persistency.EventStabilityTracker</code></td>
+<td>You only care about how variables behave over time (<code>STATIC</code> / <code>STABLE</code> / <code>UNSTABLE</code> / <code>RANDOM</code>). Cheapest memory footprint.</td>
+</tr>
+</tbody>
+</table>
+<p>All three are re-exported from the top of the package — <code>persistency.X</code> is the
+canonical import; the deeply nested submodules are an implementation detail.</p>
+<h3 id="persisting-to-disk">Persisting to disk</h3>
+<pre><code class="language-python">saver = persistency.PersistencySaver(
+    ep,
+    persistency.PersistencySaverConfig(
+        path=&quot;./state/my-detector&quot;,
+        save_interval_seconds=300,
+        events_until_save=10_000,     # save after this many ingests, too
+        auto_load=False,
+        storage_options={},           # forwarded to fsspec
+    ),
+)
+saver.start()
+# ... detector runs ...
+saver.stop()    # final flush, stops the background timer
+</code></pre>
+<p><code>PersistencySaver.save()</code> is thread-safe, and <code>stop()</code> is idempotent. The two
+save triggers (<code>save_interval_seconds</code> and <code>events_until_save</code>) are
+independent — whichever fires first wins.</p>
+<h4 id="restoring-state">Restoring state</h4>
+<pre><code class="language-python">saver = persistency.PersistencySaver(
+    ep,
+    persistency.PersistencySaverConfig(path=&quot;./state/my-detector&quot;, auto_load=True),
+)
+# ep is now pre-populated from disk
+</code></pre>
+<p>If <code>auto_load=True</code> and no saved state exists, the constructor raises
+<code>persistency.PersistencyLoadError</code> immediately — fail-fast rather than
+silently starting empty.</p>
+<h3 id="storage-backends-fsspec">Storage backends (fsspec)</h3>
+<p><code>PersistencySaverConfig.path</code> accepts any URI fsspec understands: a local path
+(<code>./state</code>), <code>s3://bucket/key</code>, <code>gs://...</code>, <code>az://...</code>, and so on. Provider
+credentials and tuning knobs go in <code>storage_options</code>.</p>
+<hr />
+<h2 id="using-persistency-inside-a-detector">Using persistency inside a detector</h2>
+<p>The recommended path: declare <code>persist:</code> in the detector's config and let
+<code>CoreDetector._register_persistency</code> build the saver for you. See
+<a href="../../detectors/#saving-state-persist">Saving state (persist)</a> for the config
+schema.</p>
+<p>In detector code, the pattern is:</p>
+<pre><code class="language-python">from detectmatelibrary.common.detector import CoreDetector
+from detectmatelibrary.utils import persistency
+
+class MyDetector(CoreDetector):
+    def __init__(self, name=&quot;MyDetector&quot;, config=MyDetectorConfig()):
+        super().__init__(name=name, config=config)
+        self.persistency = persistency.EventPersistency(
+            event_data_class=persistency.EventStabilityTracker,
+        )
+        self._register_persistency(self.persistency)
+
+    def train(self, input_):
+        self.persistency.ingest_event(
+            event_id=input_[&quot;EventID&quot;],
+            event_template=input_[&quot;template&quot;],
+            named_variables={...},
+        )
+
+    def detect(self, input_, output_):
+        tracker = self.persistency.get_events_data().get(input_[&quot;EventID&quot;])
+        # compare against tracker to produce alerts
+</code></pre>
+<p><code>_register_persistency</code> is a one-line wrapper around
+<a href="../../src/detectmatelibrary/common/persist.py"><code>init_persistency</code></a>; the helper
+honours <code>config.persist</code> and returns <code>None</code> (so <code>self.saver</code> stays <code>None</code>)
+when persistence is disabled.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../../detectors/rule_based/" class="btn btn-neutral float-left" title="Rule Based"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../input_buffer/" class="btn btn-neutral float-right" title="Data buffer">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../../detectors/rule_based/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../input_buffer/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+      <script src="../../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
