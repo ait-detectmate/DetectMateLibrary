@@ -83,7 +83,7 @@ class FitLogicState(Enum):
         descriptions = [
             "Configuring",
             "Training.",
-            "Nothing"
+            "Default"
         ]
         return descriptions[self.value]
 
@@ -129,7 +129,7 @@ class FitLogic:
             return True
         return False
 
-    def run(self) -> FitLogicState:
+    def __check_state(self) -> FitLogicState:
         if do_configure(
             data_use_configure=self.data_use_configure,
             index=self.data_used_configure,
@@ -152,3 +152,7 @@ class FitLogic:
                 self._training_done = True
 
         return FitLogicState.NOTHING
+    
+    def run(self) -> FitLogicState:
+        self.last_state = self.__check_state()
+        return self.last_state

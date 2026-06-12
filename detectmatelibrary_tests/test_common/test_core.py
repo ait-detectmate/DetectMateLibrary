@@ -1,3 +1,5 @@
+from detectmatelibrary.common._core_op._fit_logic import FitLogicState
+
 from detectmatelibrary.common.core import CoreConfig, CoreComponent
 from detectmatelibrary.common._config import BasicConfig
 
@@ -435,6 +437,16 @@ class TestCaseState:
         component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
 
         component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.DO_CONFIG.describe()
+
+        component.process(_make_log(1))
+        component.process(_make_log(2))
+        assert component.get_state() == FitLogicState.DO_TRAIN.describe()
+
+        component.process(_make_log(1))
+        component.process(_make_log(2))
+        component.process(_make_log(3))
+        assert component.get_state() == FitLogicState.NOTHING.describe()
 
 
 class TestCoreComponentContextManager:
