@@ -267,7 +267,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "mike", specifier = ">=2.2.0" },
-    { name = "prek", specifier = ">=0.2.8" },
+    { name = "prek", specifier = ">=0.3.10" },
     { name = "pytest", specifier = ">=8.4.2" },
     { name = "pytest-cov", specifier = ">=6.2.1" },
 ]
