@@ -26,7 +26,7 @@ dependencies = [
 # install with all the dev dependencies:  uv pip install -e .[dev]
 dev = [
     "mike>=2.1.3",
-    "prek>=0.2.8",
+    "prek>=0.3.10",
     "pytest>=8.4.2",
     "pytest-cov>=6.2.1",
 ]
