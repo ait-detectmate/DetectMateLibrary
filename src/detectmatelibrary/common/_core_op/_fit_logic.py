@@ -97,14 +97,9 @@ class FitLogic:
         self.configure_state = ConfigState.DEFAULT
         self.last_state = FitLogicState.NOTHING
 
-        self.data_used_train = 0
-        self.data_used_configure = 0
-
-        self._configuration_done = False
-        self.config_finished = False
-
-        self._training_done = False
-        self.training_finished = False
+        self.data_used_train, self.data_used_configure = 0, 0
+        self._configuration_done, self.config_finished = False, False
+        self._training_done, self.training_finished = False, False
 
         self.data_use_configure = data_use_configure
         self.data_use_training = data_use_training
