@@ -131,6 +131,9 @@ class CoreComponent(Component):
     def update_state(self, state: StatesL) -> None:
         self.fitlogic.update_state(state)
 
+    def get_state(self) -> str:
+        return self.fitlogic.get_last_state()
+
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
         is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)
         logger.debug(f"<<{self.name}>> received:\n{data}")

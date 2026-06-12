@@ -30,7 +30,6 @@ class ConfigState(Enum):
             "Force stop configuration.",
             "Keep configuring regardless of default behavior."
         ]
-
         return descriptions[self.value]
 
 
@@ -80,6 +79,14 @@ class FitLogicState(Enum):
     DO_TRAIN = 1
     NOTHING = 2
 
+    def describe(self) -> str:
+        descriptions = [
+            "Configuring",
+            "Training.",
+            "Nothing"
+        ]
+        return descriptions[self.value]
+
 
 class FitLogic:
     def __init__(
@@ -88,6 +95,7 @@ class FitLogic:
         
         self.train_state = TrainState.DEFAULT
         self.configure_state = ConfigState.DEFAULT
+        self.last_state = FitLogicState.NOTHING
 
         self.data_used_train = 0
         self.data_used_configure = 0
@@ -101,6 +109,9 @@ class FitLogic:
         self.data_use_configure = data_use_configure
         self.data_use_training = data_use_training
 
+    def get_last_state(self) -> str:
+        return self.last_state.describe()
+
     def update_state(self, state: StatesL) -> None:
         self.train_state, self.configure_state = update_state(
             state=state, train_state=self.train_state, config_state=self.configure_state
@@ -110,14 +121,12 @@ class FitLogic:
         if self._configuration_done and not self.config_finished:
             self.config_finished = True
             return True
-
         return False
 
     def finish_training(self) -> bool:
         if self._training_done and not self.training_finished:
             self.training_finished = True
             return True
-
         return False
 
     def run(self) -> FitLogicState:

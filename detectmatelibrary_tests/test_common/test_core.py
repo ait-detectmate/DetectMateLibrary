@@ -33,6 +33,15 @@ default_args = {
 }
 
 
+def _make_log(i: int) -> schemas.LogSchema:
+    return schemas.LogSchema({
+        "__version__": "1.0.0",
+        "logID": str(i),
+        "logSource": "test",
+        "hostname": "test_hostname"
+    })
+
+
 class MockComponent(CoreComponent):
     def __init__(self, name: str, config: MockConfig = MockConfig()) -> None:
         super().__init__(name=name, type_="Dummy", config=config)
@@ -293,18 +302,10 @@ class TestCoreComponent:
 
         assert len(component.train_data) == 10
 
-    def _make_log(self, i: int) -> schemas.LogSchema:
-        return schemas.LogSchema({
-            "__version__": "1.0.0",
-            "logID": str(i),
-            "logSource": "test",
-            "hostname": "test_hostname"
-        })
-
     def test_configuration(self) -> None:
         component = MockComponentWithConfigure(name="DummyCfg1")
 
-        results = [component.process(self._make_log(i)) for i in range(10)]
+        results = [component.process(_make_log(i)) for i in range(10)]
 
         assert component.fitlogic.data_used_configure == 3
         assert len(component.configure_data) == 3
@@ -314,7 +315,7 @@ class TestCoreComponent:
     def test_configuration_returns_none_during_configure(self) -> None:
         component = MockComponentWithConfigure(name="DummyCfg2")
 
-        results = [component.process(self._make_log(i)) for i in range(3)]
+        results = [component.process(_make_log(i)) for i in range(3)]
 
         assert all(r is None for r in results)
 
@@ -328,7 +329,7 @@ class TestCoreComponent:
         component.update_state("stop_configuring")
 
         for i in range(10):
-            component.process(self._make_log(i))
+            component.process(_make_log(i))
 
         assert len(component.configure_data) == 0
         assert component.set_configuration_called == 0
@@ -338,7 +339,7 @@ class TestCoreComponent:
         component.update_state("keep_configuring")
 
         for i in range(10):
-            component.process(self._make_log(i))
+            component.process(_make_log(i))
 
         assert len(component.configure_data) == 10
         assert component.set_configuration_called == 0
@@ -350,7 +351,7 @@ class TestCoreComponent:
         component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
 
         for i in range(10):
-            component.process(self._make_log(i))
+            component.process(_make_log(i))
 
         assert len(component.configure_data) == 2
         assert len(component.train_data) == 3
@@ -363,7 +364,7 @@ class TestCoreComponent:
         component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
 
         for i in range(10):
-            component.process(self._make_log(i))
+            component.process(_make_log(i))
 
         assert len(component.configure_data) == 2
         assert len(component.train_data) == 5
@@ -373,7 +374,7 @@ class TestCoreComponent:
         component = MockComponentWithConfigure(name="DummyCfg6")
 
         for i in range(component.config.data_use_configure + 5):  # type: ignore[operator]
-            component.process(self._make_log(i))
+            component.process(_make_log(i))
 
         assert component.set_configuration_called == 1
 
@@ -400,24 +401,16 @@ class MockComponentWithPostTrain(CoreComponent):
 
 
 class TestPostTrain:
-    def _make_log(self, i: int) -> schemas.LogSchema:
-        return schemas.LogSchema({
-            "__version__": "1.0.0",
-            "logID": str(i),
-            "logSource": "test",
-            "hostname": "test_hostname"
-        })
-
     def test_post_train_called_once_after_training(self) -> None:
         component = MockComponentWithPostTrain(name="PostTrain1")
         for i in range(10):
-            component.process(self._make_log(i))
+            component.process(_make_log(i))
         assert component.post_train_called == 1
 
     def test_post_train_not_called_without_training(self) -> None:
         component = MockComponentWithPostTrain(name="PostTrain2", config=CoreConfig())
         for i in range(10):
-            component.process(self._make_log(i))
+            component.process(_make_log(i))
         assert component.post_train_called == 0
 
     def test_post_train_called_on_first_detection_item(self) -> None:
@@ -425,13 +418,23 @@ class TestPostTrain:
         component = MockComponentWithPostTrain(name="PostTrain3")
         # data_use_training=3, so 4th item triggers post_train
         for i in range(3):
-            component.process(self._make_log(i))
+            component.process(_make_log(i))
         assert component.post_train_called == 0
-        component.process(self._make_log(3))
+        component.process(_make_log(3))
         assert component.post_train_called == 1
         # subsequent items don't re-trigger it
-        component.process(self._make_log(4))
+        component.process(_make_log(4))
         assert component.post_train_called == 1
+
+
+class TestCaseState:
+    def test_normal_behaviour(self) -> None:
+        config = CoreConfig(
+            data_use_configure=2, data_use_training=3, use_config_data_as_training=True
+        )
+        component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
+
+        component.process(_make_log(0))
 
 
 class TestCoreComponentContextManager:
