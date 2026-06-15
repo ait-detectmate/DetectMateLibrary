@@ -22,6 +22,36 @@ To install it in a different venv as a library:
 uv pip install --no-cache-dir <directory_detectmatelibrary>
 ```
 
+### Optional dependencies
+
+Not all features require the same dependencies. DetectMateLibrary uses optional extras so you only install what you need:
+Optional Dependency Groups https://pydevtools.com/handbook/explanation/what-are-optional-dependencies-and-dependency-groups/
+
+| Extra | Installs | When you need it |
+|---|---|---|
+| `dataframes` | `pandas`, `polars` | Using `EventDataFrame`, `ChunkedEventDataFrame`, `DataNormalizer`, or LogBatcher parser |
+| `polars-rtcompat` | `polars[rtcompat]` | Running on older CPUs without AVX2 support (e.g. some VMs or embedded hardware); not needed for standard deployments |
+
+Install an extra with `uv sync`:
+
+```bash
+uv sync --extra dataframes
+```
+
+Or with `uv pip install` / pip when installing as a library:
+
+```bash
+uv pip install "detectmatelibrary[dataframes]"
+# or
+pip install "detectmatelibrary[dataframes]"
+```
+
+Combine multiple extras if needed:
+
+```bash
+uv sync --extra dataframes --extra polars-rtcompat
+```
+
 ## Developer setup
 
 **Purpose**: prepare a development environment with test and lint tooling.
@@ -70,21 +100,21 @@ protoc \
 
 ### Step 3: Run unit tests
 
-Run the full test suite:
+The full test suite exercises dataframe-dependent code, so the `dataframes` extra must be present. Run all tests with:
 
 ```bash
-uv run --dev pytest -s
+uv run --dev --extra dataframes pytest -s
 ```
 
 Run tests with coverage (terminal summary):
 
 ```bash
-uv run --dev pytest --cov=. --cov-report=term-missing
+uv run --dev --extra dataframes pytest --cov=. --cov-report=term-missing
 ```
 
 **Tips**:
 
-- Run a single test or directory to speed iteration: `uv run --dev pytest tests/some_test.py::test_name -q`
+- Run a single test or directory to speed iteration: `uv run --dev --extra dataframes pytest tests/some_test.py::test_name -q`
 
 ## Troubleshooting
 
