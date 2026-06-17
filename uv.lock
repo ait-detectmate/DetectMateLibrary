@@ -260,13 +260,13 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "detectmateperformance", git = "https://github.com/ait-detectmate/DetectMatePerformance?rev=main" },
+    { name = "detectmateperformance", specifier = ">=0.1.0" },
     { name = "fsspec", specifier = ">=2024.1.0" },
     { name = "msgpack", specifier = ">=1.0.0" },
     { name = "numpy", specifier = ">=2.3.2" },
     { name = "openai", specifier = ">=2.26.0" },
     { name = "pandas", specifier = ">=2.3.2" },
-    { name = "polars", specifier = ">=1.40.0" },
+    { name = "polars", specifier = ">=1.40.1" },
     { name = "polars", extras = ["rtcompat"], marker = "extra == 'polars-rtcompat'", specifier = ">=1.38.1" },
     { name = "protobuf", specifier = ">=6.32.1" },
     { name = "pyarrow", specifier = ">=24.0.0" },
@@ -291,7 +291,7 @@ dev = [
 [[package]]
 name = "detectmateperformance"
 version = "0.1.0"
-source = { git = "https://github.com/ait-detectmate/DetectMatePerformance?rev=main#4d0d31b898712849fb2bca19089d64b9567e5aac" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "levenshtein" },
     { name = "numpy" },
@@ -299,6 +299,10 @@ dependencies = [
     { name = "pybind11" },
     { name = "setuptools" },
     { name = "tqdm" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e8/2b/7ff298303c5ba3ba4899d1f3854b214f63a4fac4eff191012f5608f5149e/detectmateperformance-0.1.0.tar.gz", hash = "sha256:2630d509e7e2bbe6b5bcc857e8f25dfae7d99e9e2cc52f5981da9171600531dc", size = 552409, upload-time = "2026-06-12T10:42:13.326Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/68/dd/3db227cd60d170203ab82dd2e670bcb50c6111769c39ac8dd64935fa4c1d/detectmateperformance-0.1.0-py3-none-any.whl", hash = "sha256:db70f239e53aa17a983f99948c9239c143744c03044eeae454f546fedbaf69a5", size = 557939, upload-time = "2026-06-12T10:42:11.526Z" },
 ]
 
 [[package]]
@@ -370,7 +374,6 @@ wheels = [
 
 [[package]]
 name = "idna"
-
 version = "3.15"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/82/77/7b3966d0b9d1d31a36ddf1746926a11dface89a83409bf1483f0237aa758/idna-3.15.tar.gz", hash = "sha256:ca962446ea538f7092a95e057da437618e886f4d349216d2b1e294abfdb65fdc", size = 199245, upload-time = "2026-05-12T22:45:57.011Z" }
@@ -1172,7 +1175,7 @@ wheels = [
 
 [[package]]
 name = "pytest"
-version = "9.0.3"
+version = "9.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorama", marker = "sys_platform == 'win32'" },
@@ -1181,9 +1184,9 @@ dependencies = [
     { name = "pluggy" },
     { name = "pygments" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7d/0d/549bd94f1a0a402dc8cf64563a117c0f3765662e2e668477624baeec44d5/pytest-9.0.3.tar.gz", hash = "sha256:b86ada508af81d19edeb213c681b1d48246c1a91d304c6c81a427674c17eb91c", size = 1572165, upload-time = "2026-04-07T17:16:18.027Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/84/0e/b5858858d74958632c49b72cb25a3976ff9f632397626715be71c89d3971/pytest-9.1.0.tar.gz", hash = "sha256:41dd9148c08072446394cefd3d79701701335a9f4cae69ba92e39f6c7f5c061c", size = 1634181, upload-time = "2026-06-13T18:52:45.983Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d4/24/a372aaf5c9b7208e7112038812994107bc65a84cd00e0354a88c2c77a617/pytest-9.0.3-py3-none-any.whl", hash = "sha256:2c5efc453d45394fdd706ade797c0a81091eccd1d6e4bccfcd476e2b8e0ab5d9", size = 375249, upload-time = "2026-04-07T17:16:16.13Z" },
+    { url = "https://files.pythonhosted.org/packages/8b/5a/ba30a81239b909821b3153e303e7def45178bf353da4f72380e6c5e8793b/pytest-9.1.0-py3-none-any.whl", hash = "sha256:8ebb0e7888bdf2bdfc602ec51f8f62d50200af37356c74e503c79a94f5c81f32", size = 386453, upload-time = "2026-06-13T18:52:44.045Z" },
 ]
 
 [[package]]
