@@ -223,6 +223,14 @@ class TestPersistencySaverTriggers:
         PersistencySaver(p2, PersistencySaverConfig(path="memory://autoload/state", auto_load=True))
         assert "E1" in p2.get_events_seen()
 
+    def test_auto_load_on_init_no_state_starts_fresh(self):
+        # auto_load=True with no prior save must not crash but starts with empty state
+        p = EventPersistency(event_data_class=EventDataFrame)
+        saver = PersistencySaver(p, PersistencySaverConfig(path="memory://autoload/state", auto_load=True))
+        assert len(p.get_events_seen()) == 0
+        assert len(p.get_events_data()) == 0
+        assert saver is not None
+
 
 class TestPersistencySaverIntegration:
     def test_full_cycle_dataframe_backend(self):
