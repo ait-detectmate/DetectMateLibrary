@@ -179,44 +179,6 @@ class CoreDetector(CoreComponent):
             self.name, cast(CoreDetectorConfig, self.config), event_persistency
         )
 
-    def export_state(
-        self,
-        path: str | None = None,
-        storage_options: dict[str, Any] | None = None,
-    ) -> bytes | None:
-        """Save this detector's EventPersistency state.
-
-        When path is None, returns the state as bytes (zip archive).
-        When path is given, writes to that fsspec URI and returns None.
-        Not thread-safe when a PersistencySaver is running on this
-        detector.
-        """
-        ep = getattr(self, "persistency", None)
-        if ep is None:
-            raise RuntimeError(f"{self.name}: no persistency configured")
-        return persistency.save(ep, path, storage_options)
-
-    def import_state(
-        self,
-        path: str | bytes,
-        storage_options: dict[str, Any] | None = None,
-    ) -> None:
-        """Restore this detector's EventPersistency state.
-
-        path may be an fsspec URI string or bytes returned by export_state().
-        Thread-safe when a PersistencySaver is running: acquires the saver lock
-        before loading.
-        """
-        ep = getattr(self, "persistency", None)
-        if ep is None:
-            raise RuntimeError(f"{self.name}: no persistency configured")
-        saver = getattr(self, "saver", None)
-        if saver is not None:
-            with saver.locked():
-                persistency.load(ep, path, storage_options)
-        else:
-            persistency.load(ep, path, storage_options)
-
     @override
     def run(
         self, input_: List[ParserSchema] | ParserSchema, output_: DetectorSchema  # type: ignore

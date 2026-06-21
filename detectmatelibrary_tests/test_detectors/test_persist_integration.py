@@ -1,4 +1,3 @@
-import pytest
 import fsspec
 
 from detectmatelibrary.detectors.new_value_detector import NewValueDetector, NewValueDetectorConfig
@@ -189,15 +188,14 @@ class TestDetectorExportImportState:
         det2.saver.stop()
         assert 3 in det2.persistency.get_events_seen()
 
-    def test_export_raises_without_persistency(self):
+    def test_export_returns_none_without_persistency(self):
         det = RuleDetector()
-        with pytest.raises(RuntimeError, match="no persistency configured"):
-            det.export_state("memory://any/path")
+        assert det.export_state("memory://any/path") is None
 
-    def test_import_raises_without_persistency(self):
+    def test_import_noop_without_persistency(self):
         det = RuleDetector()
-        with pytest.raises(RuntimeError, match="no persistency configured"):
-            det.import_state("memory://any/path")
+        # No persistency configured: import is a silent no-op, not an error.
+        det.import_state("memory://any/path")
 
     def test_export_state_returns_bytes_when_no_path(self):
         det = NewValueDetector(name="ExportBytes", config=NewValueDetectorConfig(auto_config=False))
