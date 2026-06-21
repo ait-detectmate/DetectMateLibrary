@@ -73,6 +73,8 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../detectors/">Detectors</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../alert_aggregator/">Alert Aggregation</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Parsers Methods</span></p>
               <ul>
@@ -96,6 +98,17 @@
                   <li class="toctree-l1"><a class="reference internal" href="../detectors/new_event/">New Event</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../detectors/rule_based/">Rule Based</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/bigram_frequency/">BiGram Frequency</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/charset/">CharSet</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/value_range/">Value Range</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Alert Aggregation Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../alert_aggregators/basic_concatenation/">Basic Concat</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Auxiliar</span></p>
@@ -160,11 +173,12 @@
 <ul>
 <li><strong>Parser</strong>: consumes raw logs and produces parsed log objects (structured fields, timestamps, variables).</li>
 <li><strong>Detector</strong>: consumes parsed logs and generates alerts/findings when rules or models match anomalous behavior.</li>
+<li><strong>Alert Aggregation</strong>: consumes alerts and aggregates them.</li>
 </ul>
 <p>Each arrow represents a stream of <a href="../schemas/">Schema objects</a>. Components are designed to run in the same process for lightweight setups or as separate services for scalable deployments.</p>
 <p><img alt="DIAGRAM" src="../img/diagrams_structure.png" /></p>
 <h2 id="components-architecture">Components architecture</h2>
-<p>All components inherit from a <code>CoreComponent</code> class. This class provides all the essential functionality required for DetectMate to operate (see UML diagram below). Every <a href="../detectors/">Detector</a> must inherit from <code>CoreDetector</code>, and every <a href="../parsers/">Parser</a> must inherit from <code>CoreParser</code> to ensure compatibility with DetectMate.</p>
+<p>All components inherit from a <code>CoreComponent</code> class. This class provides all the essential functionality required for DetectMate to operate (see UML diagram below). Every <a href="../detectors/">Detector</a> must inherit from <code>CoreDetector</code>, every <a href="../alert_aggregator/">AlertAggregator</a> must inherit from <code>CoreAlertAggregation</code> and every <a href="../parsers/">Parser</a> must inherit from <code>CoreParser</code> to ensure compatibility with DetectMate.</p>
 <p>Each component’s arguments must be stored in its corresponding configuration class. These config classes follow the same design pattern as their components and must inherit from <code>CoreConfig</code>.</p>
 <p><img alt="UML" src="../img/uml_structure.png" /></p>
 <h2 id="components-methods">Components methods</h2>

@@ -65,6 +65,8 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../detectors/">Detectors</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../alert_aggregator/">Alert Aggregation</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Parsers Methods</span></p>
               <ul>
@@ -88,6 +90,17 @@
                   <li class="toctree-l1"><a class="reference internal" href="../../detectors/new_event/">New Event</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../detectors/rule_based/">Rule Based</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/bigram_frequency/">BiGram Frequency</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/charset/">CharSet</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/value_range/">Value Range</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Alert Aggregation Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../alert_aggregators/basic_concatenation/">Basic Concat</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Auxiliar</span></p>
@@ -214,7 +227,7 @@ state has to be written somewhere. <code>PersistencySaver</code> wraps an
 </ul>
 <p>In practice a detector never instantiates <code>PersistencySaver</code> directly: it sets
 a <code>persist:</code> block in its config and <code>CoreDetector</code> wires the saver up via
-<a href="../../src/detectmatelibrary/common/persist.py"><code>init_persistency</code></a>.</p>
+<code>init_persistency</code>.</p>
 <hr />
 <h2 id="quick-start">Quick start</h2>
 <pre><code class="language-python">from detectmatelibrary.utils import persistency
@@ -355,14 +368,14 @@ class MyDetector(CoreDetector):
         # compare against tracker to produce alerts
 </code></pre>
 <p><code>_register_persistency</code> is a one-line wrapper around
-<a href="../../src/detectmatelibrary/common/persist.py"><code>init_persistency</code></a>; the helper
+<code>init_persistency</code>; the helper
 honours <code>config.persist</code> and returns <code>None</code> (so <code>self.saver</code> stays <code>None</code>)
 when persistence is disabled.</p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../../detectors/rule_based/" class="btn btn-neutral float-left" title="Rule Based"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../alert_aggregators/basic_concatenation/" class="btn btn-neutral float-left" title="Basic Concat"><span class="icon icon-circle-arrow-left"></span> Previous</a>
         <a href="../input_buffer/" class="btn btn-neutral float-right" title="Data buffer">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
@@ -386,7 +399,7 @@ when persistence is disabled.</p>
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../../detectors/rule_based/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../../alert_aggregators/basic_concatenation/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
       <span><a href="../input_buffer/" style="color: #fcfcfc">Next &raquo;</a></span>

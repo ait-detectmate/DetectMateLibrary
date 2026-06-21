@@ -73,6 +73,8 @@
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#detectorschema">DetectorSchema</a>
     </li>
+    <li class="toctree-l3"><a class="reference internal" href="#outputschema">OutputSchema</a>
+    </li>
         </ul>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#tutorial">Tutorial</a>
@@ -90,6 +92,8 @@
                   <li class="toctree-l1"><a class="reference internal" href="../parsers/">Parsers</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../detectors/">Detectors</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../alert_aggregator/">Alert Aggregation</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Parsers Methods</span></p>
@@ -114,6 +118,17 @@
                   <li class="toctree-l1"><a class="reference internal" href="../detectors/new_event/">New Event</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../detectors/rule_based/">Rule Based</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/bigram_frequency/">BiGram Frequency</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/charset/">CharSet</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/value_range/">Value Range</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Alert Aggregation Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../alert_aggregators/basic_concatenation/">Basic Concat</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Auxiliar</span></p>
@@ -379,6 +394,60 @@
 <td>alertsObtain</td>
 <td>map<string,string></td>
 <td>Additional alert metadata.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="outputschema">OutputSchema</h3>
+<p>Output from Alert Aggregations (alerts / findings).</p>
+<p>Fields:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>detectorIDs</td>
+<td>repeated string</td>
+<td>List of detector instance identifier.</td>
+</tr>
+<tr>
+<td>detectorTypes</td>
+<td>string</td>
+<td>List of type/name of detectors.</td>
+</tr>
+<tr>
+<td>alertIDs</td>
+<td>string</td>
+<td>repeated list of unique alert identifier.</td>
+</tr>
+<tr>
+<td>outputTimestamp</td>
+<td>int32</td>
+<td>When the aggregation was produced.</td>
+</tr>
+<tr>
+<td>logIDs</td>
+<td>repeated string</td>
+<td>IDs of logs related to the alerts.</td>
+</tr>
+<tr>
+<td>extractedTimestamps</td>
+<td>repeated int32</td>
+<td>Timestamps extracted from logs.</td>
+</tr>
+<tr>
+<td>description</td>
+<td>string</td>
+<td>Human-readable description of the alert aggregation.</td>
+</tr>
+<tr>
+<td>alertsObtain</td>
+<td>map<string,string></td>
+<td>Additional alert metadata from the alert aggregation.</td>
 </tr>
 </tbody>
 </table>

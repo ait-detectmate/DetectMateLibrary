@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/parsers/logbatcher_parser/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/alert_aggregators/basic_concatenation/" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>LogBatcher Parser - DetectMate Library</title>
+    <title>Basic Concat - DetectMate Library</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -13,9 +13,9 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "LogBatcher Parser";
-        var mkdocs_page_input_path = "parsers/logbatcher_parser.md";
-        var mkdocs_page_url = "/DetectMateLibrary/development/parsers/logbatcher_parser/";
+        var mkdocs_page_name = "Basic Concat";
+        var mkdocs_page_input_path = "alert_aggregators/basic_concatenation.md";
+        var mkdocs_page_url = "/DetectMateLibrary/development/alert_aggregators/basic_concatenation/";
       </script>
     
     <!--[if lt IE 9]>
@@ -61,7 +61,7 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../schemas/">Schemas</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../">Parsers</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/">Parsers</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../detectors/">Detectors</a>
                   </li>
@@ -69,22 +69,14 @@
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Parsers Methods</span></p>
-              <ul class="current">
-                  <li class="toctree-l1"><a class="reference internal" href="../template_matcher/">Template Matcher</a>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/template_matcher/">Template Matcher</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../template_tree_matcher/">Template Tree Matcher</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/template_tree_matcher/">Template Tree Matcher</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../json_parser/">Json Parser</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/json_parser/">Json Parser</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">LogBatcher Parser</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#usage-examples">Usage examples</a>
-    </li>
-    </ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/logbatcher_parser/">LogBatcher Parser</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Detectors Methods</span></p>
@@ -107,8 +99,10 @@
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Alert Aggregation Methods</span></p>
-              <ul>
-                  <li class="toctree-l1"><a class="reference internal" href="../../alert_aggregators/basic_concatenation/">Basic Concat</a>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Basic Concat</a>
+    <ul class="current">
+    </ul>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Auxiliar</span></p>
@@ -149,8 +143,8 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
-          <li class="breadcrumb-item">Parsers Methods</li>
-      <li class="breadcrumb-item active">LogBatcher Parser</li>
+          <li class="breadcrumb-item">Alert Aggregation Methods</li>
+      <li class="breadcrumb-item active">Basic Concat</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -159,8 +153,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="logbatcher-parser">LogBatcher Parser</h1>
-<p>LLM-based log parser that infers event templates from raw log messages using any OpenAI-compatible model. No training data or labeled examples are required.</p>
+                <h1 id="basic-concat-alert-aggregation">Basic Concat Alert Aggregation</h1>
+<p>The basic concat alert aggregation approach aggregates x number of alerts into one output schema.</p>
 <table>
 <thead>
 <tr>
@@ -172,134 +166,52 @@
 <tbody>
 <tr>
 <td><strong>Input</strong></td>
-<td><a href="../../schemas/">LogSchema</a></td>
-<td>Raw log string</td>
+<td><a href="../../schemas/">DetectorSchema</a></td>
+<td>Alerts from detectors</td>
 </tr>
 <tr>
 <td><strong>Output</strong></td>
-<td><a href="../../schemas/">ParserSchema</a></td>
-<td>Structured log with template and variables</td>
+<td><a href="../../schemas/">OutputSchema</a></td>
+<td>Aggregated alerts</td>
 </tr>
 </tbody>
 </table>
-<h2 id="overview">Overview</h2>
-<p><code>LogBatcherParser</code> wraps the <a href="https://github.com/LogIntelligence/LogBatcher">LogBatcher</a> engine (MIT, LogIntelligence 2024) as a <code>CoreParser</code>. Parsing proceeds in two phases:</p>
-<ol>
-<li><strong>Cache lookup</strong> — the incoming log is matched against previously seen templates using a hash-based exact match followed by a tree-based similarity check. If a match is found, no LLM call is made.</li>
-<li><strong>LLM query</strong> — on a cache miss, the log is submitted to the configured model. The returned template is stored in the cache for future reuse.</li>
-</ol>
-<p>Variable slots in templates use the <code>&lt;*&gt;</code> wildcard notation (e.g. <code>User &lt;*&gt; logged in from &lt;*&gt;</code>). Extracted variables are written to <code>output_["variables"]</code> in order of appearance.</p>
-<h2 id="configuration">Configuration</h2>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Type</th>
-<th>Default</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>method_type</code></td>
-<td>string</td>
-<td><code>"logbatcher_parser"</code></td>
-<td>Parser type identifier</td>
-</tr>
-<tr>
-<td><code>model</code></td>
-<td>string</td>
-<td><code>"gpt-4o-mini"</code></td>
-<td>Model name passed to the OpenAI-compatible endpoint</td>
-</tr>
-<tr>
-<td><code>api_key</code></td>
-<td>string</td>
-<td><code>""</code></td>
-<td>API key for the chosen provider</td>
-</tr>
-<tr>
-<td><code>base_url</code></td>
-<td>string</td>
-<td><code>""</code></td>
-<td>Base URL of the OpenAI-compatible endpoint. Leave empty to use the default OpenAI endpoint</td>
-</tr>
-<tr>
-<td><code>batch_size</code></td>
-<td>int</td>
-<td><code>10</code></td>
-<td>Maximum number of logs submitted per LLM call</td>
-</tr>
-</tbody>
-</table>
-<p>Example YAML fragment (OpenAI):</p>
-<pre><code class="language-yaml">parsers:
-  LogBatcherParser:
-    method_type: logbatcher_parser
-    params:
-      model: &quot;gpt-4o-mini&quot;
-      api_key: &quot;&lt;YOUR_API_KEY&gt;&quot;
-      batch_size: 10
+<h1 id="configuration-example">Configuration example</h1>
+<pre><code class="language-yaml">alert_aggregators:
+    BasicConcatAggregator:
+        method_type: &quot;basic_concat_aggregator&quot;
+        buffer_size: 3
+        auto_config: False
 </code></pre>
-<p>Example YAML fragment (local Ollama):</p>
-<pre><code class="language-yaml">parsers:
-  LogBatcherParser:
-    method_type: logbatcher_parser
-    params:
-      model: &quot;llama3&quot;
-      api_key: &quot;ollama&quot;
-      base_url: &quot;http://localhost:11434/v1&quot;
-      batch_size: 10
-</code></pre>
-<h2 id="usage-examples">Usage examples</h2>
-<p>Basic usage — parse a raw log and read the inferred template:</p>
-<pre><code class="language-python">from detectmatelibrary.parsers.logbatcher import LogBatcherParser, LogBatcherParserConfig
+<h2 id="example-usage">Example usage</h2>
+<pre><code class="language-python">from detectmatelibrary.alert_aggregation.basic_concat import BasicConcatAggregation
+
 import detectmatelibrary.schemas as schemas
 
-config = LogBatcherParserConfig(
-    api_key=&quot;&lt;YOUR_API_KEY&gt;&quot;,
-    model=&quot;gpt-4o-mini&quot;,
-    batch_size=10,
-)
-
-parser = LogBatcherParser(name=&quot;LogBatcherParser&quot;, config=config)
-
-input_log = schemas.LogSchema({
-    &quot;logID&quot;: &quot;1&quot;,
-    &quot;log&quot;: &quot;User admin logged in from 192.168.1.10&quot;,
+input_ = schemas.DetectorSchema({
+    &quot;detectorID&quot;: &quot;1&quot;,
+    &quot;detectorType&quot;: &quot;dummy&quot;,
+    &quot;alertID&quot;: &quot;2&quot;,
+    &quot;detectionTimestamp&quot;: 0,
+    &quot;logIDs&quot;: [&quot;logID1&quot;],
+    &quot;score&quot;: 0.2,
+    &quot;extractedTimestamps&quot;: [-1],
+    &quot;description&quot;: &quot;hello there&quot;,
+    &quot;receivedTimestamp&quot;: 1,
+    &quot;alertsObtain&quot;: {&quot;99 problems&quot;: &quot;but logs aint one&quot;}
 })
 
-output = schemas.ParserSchema()
-parser.parse(input_log, output)
-
-print(output[&quot;template&quot;])    # e.g. &quot;User &lt;*&gt; logged in from &lt;*&gt;&quot;
-print(output[&quot;variables&quot;])   # e.g. [&quot;admin&quot;, &quot;192.168.1.10&quot;]
-print(output[&quot;EventID&quot;])     # integer index assigned by the cache
-</code></pre>
-<p>Using a local Ollama instance:</p>
-<pre><code class="language-python">config = LogBatcherParserConfig(
-    api_key=&quot;ollama&quot;,
-    model=&quot;llama3&quot;,
-    base_url=&quot;http://localhost:11434/v1&quot;,
-    batch_size=10,
+alert_aggregator = BasicConcatAggregation(
+    &quot;BasicConcatAggregator&quot;, aggregations_config
 )
-parser = LogBatcherParser(name=&quot;LogBatcherParser&quot;, config=config)
+alert_aggregator.process(input_)
 </code></pre>
-<p>Passing config as a dict:</p>
-<pre><code class="language-python">parser = LogBatcherParser(config={
-    &quot;method_type&quot;: &quot;logbatcher_parser&quot;,
-    &quot;api_key&quot;: &quot;&lt;YOUR_API_KEY&gt;&quot;,
-    &quot;model&quot;: &quot;gpt-4o-mini&quot;,
-    &quot;batch_size&quot;: 10,
-})
-</code></pre>
-<p>Go back to <a href="../../">Index</a></p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../json_parser/" class="btn btn-neutral float-left" title="Json Parser"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../../detectors/random_detector/" class="btn btn-neutral float-right" title="Random Detector">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../../detectors/value_range/" class="btn btn-neutral float-left" title="Value Range"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../auxiliar/persistency/" class="btn btn-neutral float-right" title="Persistency">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -322,10 +234,10 @@ parser = LogBatcherParser(name=&quot;LogBatcherParser&quot;, config=config)
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../json_parser/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../../detectors/value_range/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../../detectors/random_detector/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../../auxiliar/persistency/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

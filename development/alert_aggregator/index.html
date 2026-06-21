@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/development/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/alert_aggregator/" />
       <link rel="shortcut icon" href="../img/favicon.ico" />
-    <title>Development - DetectMate Library</title>
+    <title>Alert Aggregation - DetectMate Library</title>
     <link rel="stylesheet" href="../css/theme.css" />
     <link rel="stylesheet" href="../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -13,9 +13,9 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "Development";
-        var mkdocs_page_input_path = "development.md";
-        var mkdocs_page_url = "/DetectMateLibrary/development/development/";
+        var mkdocs_page_name = "Alert Aggregation";
+        var mkdocs_page_input_path = "alert_aggregator.md";
+        var mkdocs_page_url = "/DetectMateLibrary/development/alert_aggregator/";
       </script>
     
     <!--[if lt IE 9]>
@@ -54,7 +54,7 @@
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Components</span></p>
-              <ul>
+              <ul class="current">
                   <li class="toctree-l1"><a class="reference internal" href="../basic_idea/">Basic concepts</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../overall_architecture/">Overall architecture</a>
@@ -65,7 +65,15 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../detectors/">Detectors</a>
                   </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../alert_aggregator/">Alert Aggregation</a>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Alert Aggregation</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#coreparser-minimal-api">CoreParser — minimal API</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#available-alert-aggregation">Available alert aggregation</a>
+    </li>
+    </ul>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Parsers Methods</span></p>
@@ -116,18 +124,10 @@
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Contribution</span></p>
-              <ul class="current">
+              <ul>
                   <li class="toctree-l1"><a class="reference internal" href="../contribution/">Contributing</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Development</a>
-    <ul class="current">
-    <li class="toctree-l2"><a class="reference internal" href="#setup-a-development-environment">Setup a development environment</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#use-prek-to-run-code-checks">Use prek to run code checks</a>
-    </li>
-    <li class="toctree-l2"><a class="reference internal" href="#add-tests-and-run-pytest">Add tests and run pytest</a>
-    </li>
-    </ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../development/">Development</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Other</span></p>
@@ -149,8 +149,8 @@
         <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
   <ul class="wy-breadcrumbs">
     <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
-          <li class="breadcrumb-item">Contribution</li>
-      <li class="breadcrumb-item active">Development</li>
+          <li class="breadcrumb-item">Components</li>
+      <li class="breadcrumb-item active">Alert Aggregation</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -159,35 +159,63 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="development">Development</h1>
-<p>This section describes how to setup a development environment and how to contribute to <code>DetectMateLibrary</code>.</p>
-<p>!!! note</p>
-<pre><code>Read the [Contribution Guide](contribution.md) to follow and understand the development workflow.
+                <h1 id="components-alert-aggregation">Components: Alert Aggregation</h1>
+<p>Alert aggregation aggregates alerts from detectors.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Schema</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Input</strong></td>
+<td><a href="../schemas/">DetectorSchema</a></td>
+<td>Alerts from detectors</td>
+</tr>
+<tr>
+<td><strong>Output</strong></td>
+<td><a href="../schemas/">OutputSchema</a></td>
+<td>Aggregated alerts</td>
+</tr>
+</tbody>
+</table>
+<p>This document explains expected APIs, how to implement a parser, testing tips and common pitfalls.</p>
+<h2 id="overview">Overview</h2>
+<ul>
+<li>Alert aggregation must inherit from <code>CoreAlertAggregation</code> and provide a <code>aggregate_alerts()</code> implementation.</li>
+<li><code>CoreParser.run()</code> handles lifecycle and calls <code>aggregate_alerts()</code> for each input; implement pure alert aggregation logic inside <code>aggregate_alerts()</code> where possible.</li>
+<li>Use a typed <code>Config</code> class (subclass of <code>CoreAlertAggregationConfig</code>) to hold runtime parameters.</li>
+</ul>
+<h2 id="coreparser-minimal-api">CoreParser — minimal API</h2>
+<p>Recommended signatures and behavior:</p>
+<pre><code class="language-python">class CoreAlertAggregation:
+ def aggregate_alerts(
+        self,
+        input_: list[DetectorSchema] | DetectorSchema,
+        output_: OutputSchema,
+    ) -&gt; bool:
+        return True
+
+    @override
+    def train(
+        self, input_: DetectorSchema | list[DetectorSchema]
+    ) -&gt; None:
+        pass
 </code></pre>
-<h2 id="setup-a-development-environment">Setup a development environment</h2>
-<p>For development we recommend using <a href="https://docs.astral.sh/uv/">uv</a>. You can install all optional dependencies:</p>
-<pre><code class="language-bash">uv sync --dev
-</code></pre>
-<p><em>Please note that this step is not necessary. <code>uv run --dev</code> will automatically download all dependencies.</em></p>
-<h2 id="use-prek-to-run-code-checks">Use prek to run code checks</h2>
-<p>Every code contributer must use <a href="https://github.com/j178/prek"><code>prek</code></a> to run basic checks at commit time.
-<code>prek</code> is configured via the existing <code>.pre-commit-config.yaml</code>
-and can be installed as part of the <code>dev</code> extras. To ensure pre-commit hooks run before each commit, run:</p>
-<pre><code class="language-bash">uv run prek install
-</code></pre>
-<p>To run the checks manually, you can execute:</p>
-<pre><code class="language-bash">uv run prek run -a
-</code></pre>
-<h2 id="add-tests-and-run-pytest">Add tests and run pytest</h2>
-<p>In oder to run the tests run the following command:</p>
-<pre><code class="language-bash">uv run --dev pytest
-</code></pre>
+<h2 id="available-alert-aggregation">Available alert aggregation</h2>
+<ul>
+<li><a href="../alert_aggregators/basic_concatenation/">Basic Concat</a></li>
+</ul>
+<p>Go back to <a href="../">Index</a></p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../contribution/" class="btn btn-neutral float-left" title="Contributing"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../other/log_formats/" class="btn btn-neutral float-right" title="Log Formats">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../detectors/" class="btn btn-neutral float-left" title="Detectors"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../parsers/template_matcher/" class="btn btn-neutral float-right" title="Template Matcher">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -210,10 +238,10 @@ and can be installed as part of the <code>dev</code> extras. To ensure pre-commi
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../contribution/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../detectors/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../other/log_formats/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../parsers/template_matcher/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>
