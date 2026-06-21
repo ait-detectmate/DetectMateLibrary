@@ -38,7 +38,7 @@ class MockupDetector_window(CoreDetector):
 class MockupDetector_buffer(CoreDetector):
     def __init__(self, name: str, config: CoreDetectorConfig) -> None:
         super().__init__(
-            name=name, buffer_mode=BufferMode.WINDOW, buffer_size=3, config=config
+            name=name, buffer_mode=BufferMode.BATCH, buffer_size=3, config=config
         )
 
     def detect(self, input_, output_):

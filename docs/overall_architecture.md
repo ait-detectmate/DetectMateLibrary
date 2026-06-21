@@ -15,7 +15,7 @@ The pipeline is strictly directional:
 
 - **Parser**: consumes raw logs and produces parsed log objects (structured fields, timestamps, variables).
 - **Detector**: consumes parsed logs and generates alerts/findings when rules or models match anomalous behavior.
-
+- **Alert Aggregation**: consumes alerts and aggregates them.
 
 Each arrow represents a stream of [Schema objects](schemas.md). Components are designed to run in the same process for lightweight setups or as separate services for scalable deployments.
 
@@ -24,7 +24,7 @@ Each arrow represents a stream of [Schema objects](schemas.md). Components are d
 
 ## Components architecture
 
-All components inherit from a `CoreComponent` class. This class provides all the essential functionality required for DetectMate to operate (see UML diagram below). Every [Detector](detectors.md) must inherit from `CoreDetector`, and every [Parser](parsers.md) must inherit from `CoreParser` to ensure compatibility with DetectMate.
+All components inherit from a `CoreComponent` class. This class provides all the essential functionality required for DetectMate to operate (see UML diagram below). Every [Detector](detectors.md) must inherit from `CoreDetector`, every [AlertAggregator](alert_aggregator.md) must inherit from `CoreAlertAggregation` and every [Parser](parsers.md) must inherit from `CoreParser` to ensure compatibility with DetectMate.
 
 Each component’s arguments must be stored in its corresponding configuration class. These config classes follow the same design pattern as their components and must inherit from `CoreConfig`.
 
