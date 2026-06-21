@@ -53,7 +53,7 @@ state has to be written somewhere. `PersistencySaver` wraps an
 
 In practice a detector never instantiates `PersistencySaver` directly: it sets
 a `persist:` block in its config and `CoreDetector` wires the saver up via
-[`init_persistency`](../../src/detectmatelibrary/common/persist.py).
+`init_persistency`.
 
 ---
 
@@ -248,6 +248,6 @@ class MyDetector(CoreDetector):
 ```
 
 `_register_persistency` is a one-line wrapper around
-[`init_persistency`](../../src/detectmatelibrary/common/persist.py); the helper
+`init_persistency`; the helper
 honours `config.persist` and returns `None` (so `self.saver` stays `None`)
 when persistence is disabled.

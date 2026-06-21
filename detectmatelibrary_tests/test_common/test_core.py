@@ -1,4 +1,5 @@
-from detectmatelibrary.common._core_op._fit_logic import ConfigState, TrainState
+from detectmatelibrary.common._core_op._fit_logic import FitLogicState
+
 from detectmatelibrary.common.core import CoreConfig, CoreComponent
 from detectmatelibrary.common._config import BasicConfig
 
@@ -32,6 +33,15 @@ default_args = {
     "data_use_configure": None,
     "use_config_data_as_training": True
 }
+
+
+def _make_log(i: int) -> schemas.LogSchema:
+    return schemas.LogSchema({
+        "__version__": "1.0.0",
+        "logID": str(i),
+        "logSource": "test",
+        "hostname": "test_hostname"
+    })
 
 
 class MockComponent(CoreComponent):
@@ -266,7 +276,7 @@ class TestCoreComponent:
 
         for i in range(10):
             if i == 2:
-                component.fitlogic.train_state = TrainState.STOP_TRAINING
+                component.update_state("stop_training")
             component.process(
                 schemas.LogSchema({
                     "__version__": "1.0.0",
@@ -280,7 +290,7 @@ class TestCoreComponent:
 
     def test_training_keep_training(self) -> None:
         component = MockComponentWithTraining(name="Dummy6")
-        component.fitlogic.train_state = TrainState.KEEP_TRAINING
+        component.update_state("keep_training")
 
         for i in range(10):
             component.process(
@@ -294,18 +304,10 @@ class TestCoreComponent:
 
         assert len(component.train_data) == 10
 
-    def _make_log(self, i: int) -> schemas.LogSchema:
-        return schemas.LogSchema({
-            "__version__": "1.0.0",
-            "logID": str(i),
-            "logSource": "test",
-            "hostname": "test_hostname"
-        })
-
     def test_configuration(self) -> None:
         component = MockComponentWithConfigure(name="DummyCfg1")
 
-        results = [component.process(self._make_log(i)) for i in range(10)]
+        results = [component.process(_make_log(i)) for i in range(10)]
 
         assert component.fitlogic.data_used_configure == 3
         assert len(component.configure_data) == 3
@@ -315,26 +317,31 @@ class TestCoreComponent:
     def test_configuration_returns_none_during_configure(self) -> None:
         component = MockComponentWithConfigure(name="DummyCfg2")
 
-        results = [component.process(self._make_log(i)) for i in range(3)]
+        results = [component.process(_make_log(i)) for i in range(3)]
 
         assert all(r is None for r in results)
 
+    def test_wrong_update_state(self) -> None:
+        component = MockComponentWithConfigure(name="DummyCfg3")
+        with pytest.warns(UserWarning):
+            component.update_state("incorrect_state")
+
     def test_configuration_force_stop(self) -> None:
         component = MockComponentWithConfigure(name="DummyCfg3")
-        component.fitlogic.configure_state = ConfigState.STOP_CONFIGURE
+        component.update_state("stop_configuring")
 
         for i in range(10):
-            component.process(self._make_log(i))
+            component.process(_make_log(i))
 
         assert len(component.configure_data) == 0
         assert component.set_configuration_called == 0
 
     def test_configuration_keep_configure(self) -> None:
         component = MockComponentWithConfigure(name="DummyCfg4")
-        component.fitlogic.configure_state = ConfigState.KEEP_CONFIGURE
+        component.update_state("keep_configuring")
 
         for i in range(10):
-            component.process(self._make_log(i))
+            component.process(_make_log(i))
 
         assert len(component.configure_data) == 10
         assert component.set_configuration_called == 0
@@ -346,7 +353,7 @@ class TestCoreComponent:
         component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
 
         for i in range(10):
-            component.process(self._make_log(i))
+            component.process(_make_log(i))
 
         assert len(component.configure_data) == 2
         assert len(component.train_data) == 3
@@ -359,7 +366,7 @@ class TestCoreComponent:
         component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
 
         for i in range(10):
-            component.process(self._make_log(i))
+            component.process(_make_log(i))
 
         assert len(component.configure_data) == 2
         assert len(component.train_data) == 5
@@ -369,7 +376,7 @@ class TestCoreComponent:
         component = MockComponentWithConfigure(name="DummyCfg6")
 
         for i in range(component.config.data_use_configure + 5):  # type: ignore[operator]
-            component.process(self._make_log(i))
+            component.process(_make_log(i))
 
         assert component.set_configuration_called == 1
 
@@ -396,24 +403,16 @@ class MockComponentWithPostTrain(CoreComponent):
 
 
 class TestPostTrain:
-    def _make_log(self, i: int) -> schemas.LogSchema:
-        return schemas.LogSchema({
-            "__version__": "1.0.0",
-            "logID": str(i),
-            "logSource": "test",
-            "hostname": "test_hostname"
-        })
-
     def test_post_train_called_once_after_training(self) -> None:
         component = MockComponentWithPostTrain(name="PostTrain1")
         for i in range(10):
-            component.process(self._make_log(i))
+            component.process(_make_log(i))
         assert component.post_train_called == 1
 
     def test_post_train_not_called_without_training(self) -> None:
         component = MockComponentWithPostTrain(name="PostTrain2", config=CoreConfig())
         for i in range(10):
-            component.process(self._make_log(i))
+            component.process(_make_log(i))
         assert component.post_train_called == 0
 
     def test_post_train_called_on_first_detection_item(self) -> None:
@@ -421,13 +420,89 @@ class TestPostTrain:
         component = MockComponentWithPostTrain(name="PostTrain3")
         # data_use_training=3, so 4th item triggers post_train
         for i in range(3):
-            component.process(self._make_log(i))
+            component.process(_make_log(i))
         assert component.post_train_called == 0
-        component.process(self._make_log(3))
+        component.process(_make_log(3))
         assert component.post_train_called == 1
         # subsequent items don't re-trigger it
-        component.process(self._make_log(4))
+        component.process(_make_log(4))
         assert component.post_train_called == 1
+
+
+class TestCaseState:
+    def test_normal_behaviour(self) -> None:
+        config = CoreConfig(
+            data_use_configure=2, data_use_training=3, use_config_data_as_training=True
+        )
+        component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
+
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.DO_CONFIG.describe()
+
+        component.process(_make_log(1))
+        component.process(_make_log(2))
+        assert component.get_state() == FitLogicState.DO_TRAIN.describe()
+
+        component.process(_make_log(1))
+        component.process(_make_log(2))
+        component.process(_make_log(3))
+        assert component.get_state() == FitLogicState.NOTHING.describe()
+
+    def test_nothing_going_on(self) -> None:
+        config = CoreConfig(use_config_data_as_training=True)
+        component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
+
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.NOTHING.describe()
+
+    def test_change_state(self) -> None:
+        config = CoreConfig(use_config_data_as_training=True)
+        component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
+
+        assert component.get_state() == FitLogicState.NOTHING.describe()
+
+        component.update_state("keep_configuring")
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.DO_CONFIG.describe()
+
+        component.update_state("stop_configuring")
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.NOTHING.describe()
+
+        component.update_state("keep_training")
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.DO_TRAIN.describe()
+
+        component.update_state("stop_training")
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.NOTHING.describe()
+
+    def test_change_state_weird_cases(self) -> None:
+        config = CoreConfig(use_config_data_as_training=True)
+        component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
+
+        assert component.get_state() == FitLogicState.NOTHING.describe()
+
+        component.update_state("keep_configuring")
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.DO_CONFIG.describe()
+
+        component.update_state("stop_training")
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.DO_CONFIG.describe()
+
+        component.update_state("keep_training")
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.DO_CONFIG.describe()
+
+        component.update_state("stop_configuring")
+        component.update_state("keep_training")
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.DO_TRAIN.describe()
+
+        component.update_state("keep_configuring")
+        component.process(_make_log(0))
+        assert component.get_state() == FitLogicState.DO_CONFIG.describe()
 
 
 class TestCoreComponentContextManager:
