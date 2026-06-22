@@ -233,6 +233,23 @@ class TestPersistencySaverTriggers:
         assert saver is not None
 
 
+class TestPersistencySaverGetStatus:
+    def test_config_fields(self):
+        p = EventPersistency(event_data_class=EventDataFrame)
+        cfg = PersistencySaverConfig(
+            path="memory://status_test3/state",
+            save_interval_seconds=120,
+            events_until_save=500,
+            auto_load=True,
+        )
+        saver = PersistencySaver(p, cfg)
+        status = saver.get_status()
+        assert status["path"] == "memory://status_test3/state"
+        assert status["save_interval_seconds"] == 120
+        assert status["events_until_save"] == 500
+        assert status["auto_load"] is True
+
+
 class TestPersistencySaverIntegration:
     def test_full_cycle_dataframe_backend(self):
         """Train → save → restore → verify data identical."""
