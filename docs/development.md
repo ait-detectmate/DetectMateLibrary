@@ -36,8 +36,8 @@ uv run prek run -a
 
 ## Add tests and run pytest
 
-In oder to run the tests run the following command:
+In order to run the tests run the following command:
 
 ```bash
-uv run --dev pytest
+uv run --dev --extra dataframes --extra llm pytest
 ```

@@ -7,6 +7,16 @@ LLM-based log parser that infers event templates from raw log messages using any
 | **Input**  | [LogSchema](../schemas.md)    | Raw log string                           |
 | **Output** | [ParserSchema](../schemas.md) | Structured log with template and variables |
 
+## Installation
+
+`LogBatcherParser` requires the `llm` optional extra:
+
+```bash
+pip install "detectmatelibrary[llm]"
+# or with uv
+uv sync --extra llm
+```
+
 ## Overview
 
 `LogBatcherParser` wraps the [LogBatcher](https://github.com/LogIntelligence/LogBatcher) engine (MIT, LogIntelligence 2024) as a `CoreParser`. Parsing proceeds in two phases:

@@ -29,7 +29,8 @@ Optional Dependency Groups https://pydevtools.com/handbook/explanation/what-are-
 
 | Extra | Installs | When you need it |
 |---|---|---|
-| `dataframes` | `pandas`, `polars` | Using `EventDataFrame`, `ChunkedEventDataFrame`, `DataNormalizer`, or LogBatcher parser |
+| `llm` | `openai`, `tenacity`, `scipy`, `scikit-learn`, `tiktoken`, `pandas` | Using the `LogBatcherParser` (LLM-based log parsing) |
+| `dataframes` | `pandas`, `polars` | Using `EventDataFrame`, `ChunkedEventDataFrame`, or `DataNormalizer` |
 | `polars-rtcompat` | `polars[rtcompat]` | Running on older CPUs without AVX2 support (e.g. some VMs or embedded hardware); not needed for standard deployments |
 
 Install an extra with `uv sync`:
@@ -100,21 +101,21 @@ protoc \
 
 ### Step 3: Run unit tests
 
-The full test suite exercises dataframe-dependent code, so the `dataframes` extra must be present. Run all tests with:
+The full test suite covers dataframe and LLM-parser code, so both extras must be present. Run all tests with:
 
 ```bash
-uv run --dev --extra dataframes pytest -s
+uv run --dev --extra dataframes --extra llm pytest -s
 ```
 
 Run tests with coverage (terminal summary):
 
 ```bash
-uv run --dev --extra dataframes pytest --cov=. --cov-report=term-missing
+uv run --dev --extra dataframes --extra llm pytest --cov=. --cov-report=term-missing
 ```
 
 **Tips**:
 
-- Run a single test or directory to speed iteration: `uv run --dev --extra dataframes pytest tests/some_test.py::test_name -q`
+- Run a single test or directory to speed iteration: `uv run --dev --extra dataframes --extra llm pytest tests/some_test.py::test_name -q`
 
 ## Troubleshooting
 
