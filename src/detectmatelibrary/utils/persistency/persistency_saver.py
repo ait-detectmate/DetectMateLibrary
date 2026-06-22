@@ -9,10 +9,6 @@ from typing import Any, Callable
 import fsspec
 
 from detectmatelibrary.utils.persistency.event_data_structures.base import EventDataStructure
-from detectmatelibrary.utils.persistency.event_data_structures.dataframes import (
-    EventDataFrame,
-    ChunkedEventDataFrame,
-)
 from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
     EventTracker,
     EventStabilityTracker,
@@ -23,9 +19,32 @@ from detectmatelibrary_tools.logging import logger
 _BACKEND_REGISTRY: dict[str, type[EventDataStructure]] = {
     "EventTracker": EventTracker,
     "EventStabilityTracker": EventStabilityTracker,
-    "EventDataFrame": EventDataFrame,
-    "ChunkedEventDataFrame": ChunkedEventDataFrame,
 }
+
+_DATAFRAME_BACKENDS = {"EventDataFrame", "ChunkedEventDataFrame"}
+
+
+def _get_backend_cls(name: str) -> type[EventDataStructure]:
+    if name in _BACKEND_REGISTRY:
+        return _BACKEND_REGISTRY[name]
+    if name in _DATAFRAME_BACKENDS:
+        try:
+            from detectmatelibrary.utils.persistency.event_data_structures.dataframes import (
+                ChunkedEventDataFrame,
+                EventDataFrame,
+            )
+        except ImportError as e:
+            raise PersistencyLoadError(
+                f"Backend '{name}' requires the 'dataframes' extra: "
+                "pip install 'detectmatelibrary[dataframes]'"
+            ) from e
+        df_registry: dict[str, type[EventDataStructure]] = {
+            "EventDataFrame": EventDataFrame,
+            "ChunkedEventDataFrame": ChunkedEventDataFrame,
+        }
+        return df_registry[name]
+    raise PersistencyLoadError(f"Unknown backend '{name}' — cannot restore event")
+
 
 _EXTENSION_MAP: dict[str, str] = {
     "EventTracker": "msgpack",
@@ -154,11 +173,7 @@ class PersistencySaver:
                 file_path = f"{self._root}/events/{event_id_str}.{ext}"
                 with self._fs.open(file_path, "rb") as f:
                     data = f.read()
-                if backend_name not in _BACKEND_REGISTRY:
-                    raise PersistencyLoadError(
-                        f"Unknown backend '{backend_name}' — cannot restore event '{event_id}'"
-                    )
-                backend_cls = _BACKEND_REGISTRY[backend_name]
+                backend_cls = _get_backend_cls(backend_name)
                 self._persistency.events_data[event_id] = backend_cls.load(data, **global_kwargs)
         except PersistencyLoadError:
             raise
