@@ -87,7 +87,10 @@ class PersistencySaver:
             persistency.register_on_ingest(self._check_event_count)
 
         if config.auto_load:
-            self.load()
+            try:
+                self.load()
+            except PersistencyLoadError as e:
+                logger.info(f"PersistencySaver: auto_load enabled but no state found, start fresh.({e})")
 
     def save(self) -> None:
         """Write full EventPersistency state to storage.
