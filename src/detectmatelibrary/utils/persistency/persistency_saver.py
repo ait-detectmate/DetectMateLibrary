@@ -192,6 +192,33 @@ class PersistencySaver:
         atexit.unregister(self.stop)
         self.save()
 
+    def get_status(self) -> dict[str, Any]:
+        """Return a snapshot of the current persistency state.
+
+        Reads last_saved_at from metadata.json if present. A missing or
+        unreadable metadata file is tolerated
+        """
+        ep = self._persistency
+        last_saved_at: str | None = None
+        try:
+            meta_path = f"{self._root}/metadata.json"
+            if self._fs.exists(meta_path):
+                with self._fs.open(meta_path, "r") as f:
+                    meta = json.load(f)
+                last_saved_at = meta.get("saved_at")
+        except Exception as e:
+            logger.warning(f"PersistencySaver.get_status: could not read metadata.json — {e}")
+        return {
+            "path": self._config.path,
+            "save_interval_seconds": self._config.save_interval_seconds,
+            "events_until_save": self._config.events_until_save,
+            "auto_load": self._config.auto_load,
+            "events_seen_count": len(ep.get_events_seen()),
+            "events_with_data_count": len(ep.get_events_data()),
+            "events_since_save": ep.events_since_save,
+            "last_saved_at": last_saved_at,
+        }
+
     def _safe_event_data_kwargs(self) -> dict[str, Any]:
         """Return event_data_kwargs with non-JSON-serializable values
         excluded."""
