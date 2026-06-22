@@ -59,6 +59,11 @@ class EventPersistency:
         data = data_structure.to_data(all_variables)
         data_structure.add_data(data)
 
+    @property
+    def events_since_save(self) -> int:
+        """Number of events ingested since the last successful save."""
+        return self._events_since_save
+
     def reset_events_since_save(self) -> None:
         """Reset the events-since-save counter after a successful save."""
         self._events_since_save = 0
