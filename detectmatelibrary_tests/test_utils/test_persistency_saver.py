@@ -351,6 +351,29 @@ class TestPersistencySaverIntegration:
             assert rest.unique_set == orig.unique_set
 
 
+class TestPersistencySaverConcurrency:
+    def test_ingest_blocks_while_saver_lock_held(self):
+        """ingest_event must serialize on the saver's lock so save/load can't
+        race with a concurrent ingest."""
+        p = EventPersistency(event_data_class=EventDataFrame)
+        saver = PersistencySaver(p, PersistencySaverConfig(path="memory://concurrency/state"))
+        done = threading.Event()
+
+        def worker():
+            p.ingest_event(event_id="E1", event_template="T", variables=["x"], named_variables={})
+            done.set()
+
+        with saver.locked():
+            t = threading.Thread(target=worker)
+            t.start()
+            time.sleep(0.1)  # ample time for an unguarded ingest to complete
+            assert not done.is_set(), "ingest_event ran while the saver lock was held"
+            assert "E1" not in p.get_events_seen()
+        t.join(timeout=1.0)
+        assert done.is_set()
+        assert "E1" in p.get_events_seen()
+
+
 class TestStandaloneSaveLoad:
     def test_save_creates_metadata(self):
         p = _make_persistency_with_data()

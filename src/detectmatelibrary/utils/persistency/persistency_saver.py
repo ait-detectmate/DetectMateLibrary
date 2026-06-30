@@ -193,7 +193,9 @@ class PersistencySaver:
         self._persistency = persistency
         self._config = config
         self._fs, self._root = fsspec.url_to_fs(config.path, **config.storage_options)
-        self._lock = threading.Lock()
+        # Share the EventPersistency lock so save/load are mutually exclusive
+        # with ingest_event (which holds the same lock).
+        self._lock = persistency._lock
         self._timer: _SaveTimer | None = None
 
         if config.events_until_save is not None:
