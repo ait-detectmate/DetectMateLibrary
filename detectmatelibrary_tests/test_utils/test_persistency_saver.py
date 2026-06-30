@@ -13,6 +13,8 @@ from detectmatelibrary.utils.persistency.persistency_saver import (
     PersistencyLoadError,
     PersistencySaver,
     _SaveTimer,
+    save as standalone_save,
+    load as standalone_load,
 )
 
 
@@ -130,6 +132,51 @@ class TestPersistencySaverSaveLoad:
         saver = PersistencySaver(p, PersistencySaverConfig(path="memory://nonexistent/path"))
         with pytest.raises(PersistencyLoadError):
             saver.load()
+
+    def test_save_includes_event_data_class_in_metadata(self):
+        saver, _ = _memory_saver()
+        saver.save()
+        fs = fsspec.filesystem("memory")
+        with fs.open("test/state/metadata.json", "r") as f:
+            meta = json.load(f)
+        assert meta["event_data_class"] == "EventDataFrame"
+
+    def test_load_restores_event_data_class(self):
+        saver, _ = _memory_saver()
+        saver.save()
+        # Start with a different class to verify it gets overwritten
+        p2 = EventPersistency(event_data_class=EventStabilityTracker)
+        PersistencySaver(p2, PersistencySaverConfig(path="memory://test/state")).load()
+        assert p2.event_data_class is EventDataFrame
+
+    def test_load_clears_stale_events_data(self):
+        """Loading into a non-empty EP must replace, not merge, events_data."""
+        saver, _ = _memory_saver()
+        saver.save()  # saves E1 and E2
+
+        p2 = EventPersistency(event_data_class=EventDataFrame)
+        # Pre-populate with a key NOT in the saved snapshot
+        p2.ingest_event(event_id="STALE", event_template="stale", variables=["x"], named_variables={})
+        PersistencySaver(p2, PersistencySaverConfig(path="memory://test/state")).load()
+
+        assert "STALE" not in p2.get_events_data()
+        assert "E1" in p2.get_events_data()
+
+    def test_load_restores_event_data_kwargs(self):
+        """event_data_kwargs must be written back to ep after load."""
+        from detectmatelibrary.utils.persistency.event_data_structures.dataframes import ChunkedEventDataFrame
+
+        p = EventPersistency(
+            event_data_class=ChunkedEventDataFrame,
+            event_data_kwargs={"max_rows": 500},
+        )
+        p.ingest_event(event_id="E1", event_template="t", variables=["v"], named_variables={})
+        saver = PersistencySaver(p, PersistencySaverConfig(path="memory://kwargs_test/state"))
+        saver.save()
+
+        p2 = EventPersistency(event_data_class=ChunkedEventDataFrame)  # no kwargs
+        PersistencySaver(p2, PersistencySaverConfig(path="memory://kwargs_test/state")).load()
+        assert p2.event_data_kwargs == {"max_rows": 500}
 
 
 class TestPersistencySaverTriggers:
@@ -302,3 +349,113 @@ class TestPersistencySaverIntegration:
             rest = restored_tracker.get_data()[var_name]
             assert list(rest.change_series) == list(orig.change_series)
             assert rest.unique_set == orig.unique_set
+
+
+class TestStandaloneSaveLoad:
+    def test_save_creates_metadata(self):
+        p = _make_persistency_with_data()
+        standalone_save(p, "memory://standalone_save1/state")
+        fs = fsspec.filesystem("memory")
+        assert fs.exists("standalone_save1/state/metadata.json")
+
+    def test_save_creates_event_files(self):
+        p = _make_persistency_with_data()
+        standalone_save(p, "memory://standalone_save2/state")
+        fs = fsspec.filesystem("memory")
+        assert fs.exists("standalone_save2/state/events/E1.parquet")
+        assert fs.exists("standalone_save2/state/events/E2.parquet")
+
+    def test_save_resets_events_since_save(self):
+        p = _make_persistency_with_data()
+        assert p._events_since_save == 3
+        standalone_save(p, "memory://standalone_save3/state")
+        assert p._events_since_save == 0
+
+    def test_load_restores_events_seen(self):
+        p = _make_persistency_with_data()
+        standalone_save(p, "memory://standalone_load1/state")
+        p2 = EventPersistency(event_data_class=EventDataFrame)
+        standalone_load(p2, "memory://standalone_load1/state")
+        assert "E1" in p2.get_events_seen()
+        assert "E2" in p2.get_events_seen()
+
+    def test_load_restores_event_data(self):
+        p = _make_persistency_with_data()
+        standalone_save(p, "memory://standalone_load2/state")
+        p2 = EventPersistency(event_data_class=EventDataFrame)
+        standalone_load(p2, "memory://standalone_load2/state")
+        assert len(p2.get_event_data("E1")) == 2
+
+    def test_load_restores_event_data_class(self):
+        p = _make_persistency_with_data()
+        standalone_save(p, "memory://standalone_load3/state")
+        p2 = EventPersistency(event_data_class=EventStabilityTracker)
+        standalone_load(p2, "memory://standalone_load3/state")
+        assert p2.event_data_class is EventDataFrame
+
+    def test_load_raises_when_missing(self):
+        p = EventPersistency(event_data_class=EventDataFrame)
+        with pytest.raises(PersistencyLoadError):
+            standalone_load(p, "memory://nonexistent_standalone/state")
+
+    def test_exported_from_package(self):
+        from detectmatelibrary.utils import persistency
+        assert callable(persistency.save)
+        assert callable(persistency.load)
+
+    def test_save_returns_bytes_when_no_path(self):
+        p = _make_persistency_with_data()
+        result = standalone_save(p)
+        assert isinstance(result, bytes)
+        assert len(result) > 0
+
+    def test_save_bytes_is_zip(self):
+        import zipfile
+        import io
+        p = _make_persistency_with_data()
+        data = standalone_save(p)
+        assert zipfile.is_zipfile(io.BytesIO(data))
+
+    def test_save_path_returns_none(self):
+        p = _make_persistency_with_data()
+        result = standalone_save(p, "memory://save_returns_none/state")
+        assert result is None
+
+    def test_load_from_bytes_restores_events_seen(self):
+        p = _make_persistency_with_data()
+        data = standalone_save(p)
+        p2 = EventPersistency(event_data_class=EventDataFrame)
+        standalone_load(p2, data)
+        assert "E1" in p2.get_events_seen()
+        assert "E2" in p2.get_events_seen()
+
+    def test_load_from_bytes_restores_event_data(self):
+        p = _make_persistency_with_data()
+        data = standalone_save(p)
+        p2 = EventPersistency(event_data_class=EventDataFrame)
+        standalone_load(p2, data)
+        assert len(p2.get_event_data("E1")) == 2
+
+    def test_bytes_roundtrip_restores_event_data_class(self):
+        p = _make_persistency_with_data()
+        data = standalone_save(p)
+        p2 = EventPersistency(event_data_class=EventStabilityTracker)
+        standalone_load(p2, data)
+        assert p2.event_data_class is EventDataFrame
+
+
+class TestPersistencySaverThreadSafety:
+    def test_load_with_running_timer_does_not_raise(self):
+        p = _make_persistency_with_data()
+        path = "memory://threadsafe_test/state"
+        # Save initial state
+        PersistencySaver(p, PersistencySaverConfig(path=path)).save()
+        # Start a saver with a fast timer
+        saver = PersistencySaver(p, PersistencySaverConfig(path=path, save_interval_seconds=0))
+        saver.start()
+        time.sleep(0.05)
+        # Load into a second persistency while first saver's timer is firing
+        p2 = EventPersistency(event_data_class=EventDataFrame)
+        PersistencySaver(p2, PersistencySaverConfig(path=path)).load()
+        saver.stop()
+        assert "E1" in p2.get_events_seen()

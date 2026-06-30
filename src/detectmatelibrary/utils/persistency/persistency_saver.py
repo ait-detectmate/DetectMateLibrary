@@ -1,7 +1,10 @@
 import atexit
+import io
 import json
 import signal
 import threading
+import zipfile
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Callable
@@ -42,8 +45,118 @@ def _coerce_event_id(k: str) -> int | str:
         return k
 
 
+def _safe_event_data_kwargs(ep: EventPersistency) -> dict[str, Any]:
+    safe = {}
+    for k, v in ep.event_data_kwargs.items():
+        try:
+            json.dumps(v)
+            safe[k] = v
+        except (TypeError, ValueError):
+            pass
+    return safe
+
+
+def _save(ep: EventPersistency, fs: Any, root: str) -> None:
+    fs.makedirs(f"{root}/events", exist_ok=True)
+    event_backends: dict[str, str] = {}
+    event_extensions: dict[str, str] = {}
+
+    for event_id, data_structure in ep.events_data.items():
+        backend_name = type(data_structure).__name__
+        ext = _EXTENSION_MAP.get(backend_name, "bin")
+        event_backends[str(event_id)] = backend_name
+        event_extensions[str(event_id)] = ext
+        file_path = f"{root}/events/{event_id}.{ext}"
+        fs.pipe(file_path, data_structure.dump())
+
+    metadata = {
+        "version": 1,
+        "saved_at": datetime.now(timezone.utc).isoformat(),
+        "events_seen": list(ep.events_seen),
+        "event_templates": {str(k): v for k, v in ep.event_templates.items()},
+        "event_backends": event_backends,
+        "event_extensions": event_extensions,
+        "event_data_kwargs": _safe_event_data_kwargs(ep),
+        "event_data_class": ep.event_data_class.__name__,  # read back by _load
+    }
+    fs.pipe(f"{root}/metadata.json", json.dumps(metadata, indent=2).encode())
+
+    ep.reset_events_since_save()
+
+
 class PersistencyLoadError(Exception):
     """Raised when restoring persisted state fails."""
+
+
+def _load(ep: EventPersistency, fs: Any, root: str) -> None:
+    meta_path = f"{root}/metadata.json"
+    if not fs.exists(meta_path):
+        raise PersistencyLoadError(
+            f"No saved state found at '{root}' (metadata.json missing)"
+        )
+    try:
+        with fs.open(meta_path, "r") as f:
+            metadata = json.load(f)
+
+        ep.events_data = {}
+        ep.event_templates = {}
+
+        ep.events_seen = set(metadata["events_seen"])
+        ep.event_templates = {
+            _coerce_event_id(k): v for k, v in metadata["event_templates"].items()
+        }
+        global_kwargs = metadata.get("event_data_kwargs", {})
+        ep.event_data_kwargs = global_kwargs
+
+        for event_id_str, backend_name in metadata["event_backends"].items():
+            event_id = _coerce_event_id(event_id_str)
+            ext = metadata["event_extensions"][event_id_str]
+            file_path = f"{root}/events/{event_id_str}.{ext}"
+            with fs.open(file_path, "rb") as f:
+                data = f.read()
+            if backend_name not in _BACKEND_REGISTRY:
+                raise PersistencyLoadError(
+                    f"Unknown backend '{backend_name}' — cannot restore event '{event_id}'"
+                )
+            backend_cls = _BACKEND_REGISTRY[backend_name]
+            ep.events_data[event_id] = backend_cls.load(data, **global_kwargs)
+
+        class_name = metadata.get("event_data_class")
+        if class_name and class_name in _BACKEND_REGISTRY:
+            ep.event_data_class = _BACKEND_REGISTRY[class_name]
+    except PersistencyLoadError:
+        raise
+    except Exception as e:
+        raise PersistencyLoadError(f"Failed to restore state: {e}") from e
+
+
+def _save_to_bytes(ep: EventPersistency) -> bytes:
+    """Serialize EP state to a zip archive in memory."""
+    # reusing the same _save logic with an in-memory filesystem to avoid code duplication
+    from fsspec.implementations.memory import MemoryFileSystem
+    mem_fs = MemoryFileSystem()
+    root = "s"
+    _save(ep, mem_fs, root)
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for file_path in mem_fs.find(root):
+            if mem_fs.isfile(file_path):
+                rel = file_path[len(root) + 1:]
+                zf.writestr(rel, mem_fs.cat(file_path))
+    return buf.getvalue()
+
+
+def _load_from_bytes(ep: EventPersistency, data: bytes) -> None:
+    """Restore EP state from a zip archive in memory."""
+    # reusing the same _save logic with an in-memory filesystem to avoid code duplication
+    from fsspec.implementations.memory import MemoryFileSystem
+    mem_fs = MemoryFileSystem()
+    root = "s"
+    mem_fs.makedirs(f"{root}/events", exist_ok=True)
+    with zipfile.ZipFile(io.BytesIO(data)) as zf:
+        for name in zf.namelist():
+            mem_fs.pipe(f"{root}/{name}", zf.read(name))
+    _load(ep, mem_fs, root)
 
 
 @dataclass
@@ -99,35 +212,7 @@ class PersistencySaver:
         """
         with self._lock:
             try:
-                self._fs.makedirs(f"{self._root}/events", exist_ok=True)
-                event_backends: dict[str, str] = {}
-                event_extensions: dict[str, str] = {}
-
-                for event_id, data_structure in self._persistency.events_data.items():
-                    backend_name = type(data_structure).__name__
-                    ext = _EXTENSION_MAP.get(backend_name, "bin")
-                    event_backends[str(event_id)] = backend_name
-                    event_extensions[str(event_id)] = ext
-
-                    file_path = f"{self._root}/events/{event_id}.{ext}"
-                    with self._fs.open(file_path, "wb") as f:
-                        f.write(data_structure.dump())
-
-                metadata = {
-                    "version": 1,
-                    "saved_at": datetime.now(timezone.utc).isoformat(),
-                    "events_seen": list(self._persistency.events_seen),
-                    "event_templates": {
-                        str(k): v for k, v in self._persistency.event_templates.items()
-                    },
-                    "event_backends": event_backends,
-                    "event_extensions": event_extensions,
-                    "event_data_kwargs": self._safe_event_data_kwargs(),
-                }
-                with self._fs.open(f"{self._root}/metadata.json", "w") as f:
-                    json.dump(metadata, f, indent=2)
-
-                self._persistency.reset_events_since_save()
+                _save(self._persistency, self._fs, self._root)
             except Exception as e:
                 logger.warning(f"PersistencySaver: save failed — {e}")
 
@@ -136,37 +221,8 @@ class PersistencySaver:
 
         Raises PersistencyLoadError on failure.
         """
-        meta_path = f"{self._root}/metadata.json"
-        if not self._fs.exists(meta_path):
-            raise PersistencyLoadError(
-                f"No saved state found at '{self._config.path}' (metadata.json missing)"
-            )
-        try:
-            with self._fs.open(meta_path, "r") as f:
-                metadata = json.load(f)
-
-            self._persistency.events_seen = set(metadata["events_seen"])
-            self._persistency.event_templates = {
-                _coerce_event_id(k): v for k, v in metadata["event_templates"].items()
-            }
-            global_kwargs = metadata.get("event_data_kwargs", {})
-
-            for event_id_str, backend_name in metadata["event_backends"].items():
-                event_id = _coerce_event_id(event_id_str)
-                ext = metadata["event_extensions"][event_id_str]
-                file_path = f"{self._root}/events/{event_id_str}.{ext}"
-                with self._fs.open(file_path, "rb") as f:
-                    data = f.read()
-                if backend_name not in _BACKEND_REGISTRY:
-                    raise PersistencyLoadError(
-                        f"Unknown backend '{backend_name}' — cannot restore event '{event_id}'"
-                    )
-                backend_cls = _BACKEND_REGISTRY[backend_name]
-                self._persistency.events_data[event_id] = backend_cls.load(data, **global_kwargs)
-        except PersistencyLoadError:
-            raise
-        except Exception as e:
-            raise PersistencyLoadError(f"Failed to restore state: {e}") from e
+        with self._lock:
+            _load(self._persistency, self._fs, self._root)
 
     def start(self) -> None:
         """Start the background save timer and register process-exit hooks."""
@@ -219,17 +275,11 @@ class PersistencySaver:
             "last_saved_at": last_saved_at,
         }
 
-    def _safe_event_data_kwargs(self) -> dict[str, Any]:
-        """Return event_data_kwargs with non-JSON-serializable values
-        excluded."""
-        safe = {}
-        for k, v in self._persistency.event_data_kwargs.items():
-            try:
-                json.dumps(v)
-                safe[k] = v
-            except (TypeError, ValueError):
-                pass
-        return safe
+    @contextmanager
+    def locked(self) -> Any:
+        """Context manager that acquires the internal save lock."""
+        with self._lock:
+            yield
 
     def _check_event_count(self) -> None:
         """Trigger a save when ingested-event count reaches
@@ -243,3 +293,47 @@ class PersistencySaver:
     def _tick(self) -> None:
         """Called by the timer thread each interval."""
         self.save()
+
+
+def save(
+    ep: EventPersistency,
+    path: str | None = None,
+    storage_options: dict[str, Any] | None = None,
+) -> bytes | None:
+    """Save EventPersistency state to an fsspec URI or return bytes.
+
+    When path is None, serialises state to a zip archive and returns the
+    bytes — no filesystem I/O occurs.  When path is given, writes to
+    that URI and returns None.
+
+    Not thread-safe when called concurrently with a running
+    PersistencySaver on the same ep. Use CoreComponent.export_state() in
+    that case.
+    """
+    if path is None:
+        return _save_to_bytes(ep)
+    fs, root = fsspec.url_to_fs(path, **(storage_options or {}))
+    _save(ep, fs, root)
+    return None
+
+
+def load(
+    ep: EventPersistency,
+    path: str | bytes,
+    storage_options: dict[str, Any] | None = None,
+) -> None:
+    """Restore EventPersistency state from an fsspec URI or bytes.
+
+    When path is bytes (a zip archive returned by save()), state is
+    restored directly from memory — no filesystem I/O occurs.  When path
+    is a string URI, state is read from that location.
+
+    Raises PersistencyLoadError if no saved state exists at path. Not
+    thread-safe when called concurrently with a running PersistencySaver
+    on the same ep. Use CoreComponent.import_state() in that case.
+    """
+    if isinstance(path, bytes):
+        _load_from_bytes(ep, path)
+        return
+    fs, root = fsspec.url_to_fs(path, **(storage_options or {}))
+    _load(ep, fs, root)
