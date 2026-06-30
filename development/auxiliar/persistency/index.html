@@ -129,6 +129,10 @@
         <ul>
     <li class="toctree-l4"><a class="reference internal" href="#restoring-state">Restoring state</a>
     </li>
+    <li class="toctree-l4"><a class="reference internal" href="#exporting-and-importing-state-on-demand">Exporting and importing state on demand</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#detector-level-export-and-import">Detector-level export and import</a>
+    </li>
         </ul>
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#storage-backends-fsspec">Storage backends (fsspec)</a>
@@ -204,10 +208,10 @@ kept.</p>
 <p>Two families ship today:</p>
 <ul>
 <li><strong>DataFrame backends</strong> (<code>EventDataFrame</code>, <code>ChunkedEventDataFrame</code>) keeps the
-  raw rows. Very storage heavy and not recommended for production-ready detectors.</li>
+  raw rows. Very storage heavy and <em>not recommended</em> for production-ready detectors.</li>
 <li><strong>Tracker backends</strong> (<code>EventStabilityTracker</code>) keep only derived features
-  (e.g. "this variable has been constant for the last 10k events"). Use these
-  when you only need a summary, not the raw history — they cost a fraction of
+  (e.g. "this variable has been constant for the last 10k events") that are relevant for the detector. Use these
+  when you only need a summary or a subset of the log's information, not the raw history — they cost a fraction of
   the memory.</li>
 </ul>
 <p>All backends implement the same four-method contract: <code>add_data</code>, <code>get_data</code>,
@@ -334,6 +338,51 @@ independent — whichever fires first wins.</p>
 <p>If <code>auto_load=True</code> and no saved state exists, the constructor raises
 <code>persistency.PersistencyLoadError</code> immediately — fail-fast rather than
 silently starting empty.</p>
+<h4 id="exporting-and-importing-state-on-demand">Exporting and importing state on demand</h4>
+<p>For one-shot transfers — e.g. moving trained state to a new environment, or
+taking a manual snapshot — use the standalone functions directly:</p>
+<pre><code class="language-python">from detectmatelibrary.utils import persistency
+
+# Export to a file URI
+persistency.save(ep, &quot;./snapshots/trained-state&quot;)
+
+# Export to bytes (no disk I/O — useful when sending state over a network API)
+data: bytes = persistency.save(ep)
+
+# Import from a file URI
+persistency.load(ep, &quot;./snapshots/trained-state&quot;)
+
+# Import from bytes
+persistency.load(ep, data)
+</code></pre>
+<p><code>save</code> writes the same format as <code>PersistencySaver</code> and resets
+<code>ep._events_since_save</code>. When called without a path it returns the state as a
+zip archive in memory. <code>load</code> accepts either a path string or the bytes
+returned by <code>save</code>; it raises <code>PersistencyLoadError</code> if no state exists at the
+path, restores <code>event_data_class</code> and <code>event_data_kwargs</code> from metadata, and
+clears any existing state in <code>ep</code> before loading.</p>
+<p>Both functions are <strong>not thread-safe</strong> when called concurrently with a running
+<code>PersistencySaver</code> on the same <code>ep</code>. Use the detector-level wrappers below
+when a saver is active.</p>
+<h4 id="detector-level-export-and-import">Detector-level export and import</h4>
+<p>When working through a detector (the typical path for DetectMateService), use
+the methods on the detector object directly — no need to access
+<code>EventPersistency</code> internals:</p>
+<pre><code class="language-python"># Export to a file URI
+detector.export_state(&quot;./snapshots/my-detector&quot;)
+
+# Export to bytes (e.g. for an API response)
+data: bytes = detector.export_state()
+
+# Import from a file URI
+detector.import_state(&quot;./snapshots/my-detector&quot;)
+
+# Import from bytes (e.g. from an API request body)
+detector.import_state(data)
+</code></pre>
+<p><code>import_state</code> is thread-safe: it acquires the saver lock before loading when
+a <code>PersistencySaver</code> is running. Both methods raise <code>RuntimeError</code> if the
+detector has no persistency configured.</p>
 <h3 id="storage-backends-fsspec">Storage backends (fsspec)</h3>
 <p><code>PersistencySaverConfig.path</code> accepts any URI fsspec understands: a local path
 (<code>./state</code>), <code>s3://bucket/key</code>, <code>gs://...</code>, <code>az://...</code>, and so on. Provider
