@@ -174,6 +174,7 @@ class CoreComponent(Component):
                 persistency.load(ep, path, storage_options)
         else:
             persistency.load(ep, path, storage_options)
+
     def update_state(self, state: StatesL) -> None:
         self.fitlogic.update_state(state)
 
