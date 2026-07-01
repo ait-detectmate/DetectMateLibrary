@@ -304,6 +304,12 @@ class PersistencySaver:
     def _check_event_count(self) -> None:
         """Trigger a save when ingested-event count reaches
         events_until_save."""
+        # ponytail: this runs OUTSIDE the ingest lock (callbacks fire after the
+        # lock releases) so save()'s file I/O never stalls ingest. The counter
+        # read is intentionally lock-free — a TOCTOU race here only ever causes a
+        # slightly-late or redundant save, never a missed save or lost event
+        # (events stay in memory until persisted). Do NOT re-add a lock around
+        # this: it would put save's I/O back under the ingest lock.
         if (
             self._config.events_until_save is not None
             and self._persistency._events_since_save >= self._config.events_until_save
