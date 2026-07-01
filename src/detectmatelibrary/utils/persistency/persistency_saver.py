@@ -56,8 +56,14 @@ def _safe_event_data_kwargs(ep: EventPersistency) -> dict[str, Any]:
     return safe
 
 
-def _save(ep: EventPersistency, fs: Any, root: str) -> None:
-    fs.makedirs(f"{root}/events", exist_ok=True)
+def _serialize(ep: EventPersistency) -> dict[str, bytes]:
+    """Serialize EP state to {relative_path: bytes}.
+
+    Pure CPU — reads live ep state, does no I/O and does NOT reset the
+    events-since-save counter. Callers that persist a save reset the
+    counter themselves (see PersistencySaver.save).
+    """
+    files: dict[str, bytes] = {}
     event_backends: dict[str, str] = {}
     event_extensions: dict[str, str] = {}
 
@@ -66,8 +72,7 @@ def _save(ep: EventPersistency, fs: Any, root: str) -> None:
         ext = _EXTENSION_MAP.get(backend_name, "bin")
         event_backends[str(event_id)] = backend_name
         event_extensions[str(event_id)] = ext
-        file_path = f"{root}/events/{event_id}.{ext}"
-        fs.pipe(file_path, data_structure.dump())
+        files[f"events/{event_id}.{ext}"] = data_structure.dump()
 
     metadata = {
         "version": 1,
@@ -79,9 +84,23 @@ def _save(ep: EventPersistency, fs: Any, root: str) -> None:
         "event_data_kwargs": _safe_event_data_kwargs(ep),
         "event_data_class": ep.event_data_class.__name__,  # read back by _load
     }
-    fs.pipe(f"{root}/metadata.json", json.dumps(metadata, indent=2).encode())
+    files["metadata.json"] = json.dumps(metadata, indent=2).encode()
+    return files
 
-    ep.reset_events_since_save()
+
+def _write(fs: Any, root: str, files: dict[str, bytes]) -> None:
+    """Write serialized files to storage.
+
+    Pure I/O.
+    """
+    fs.makedirs(f"{root}/events", exist_ok=True)
+    for rel, data in files.items():
+        fs.pipe(f"{root}/{rel}", data)
+
+
+def _save(ep: EventPersistency, fs: Any, root: str) -> None:
+    # No counter reset here — that is a PersistencySaver concern (see save()).
+    _write(fs, root, _serialize(ep))
 
 
 class PersistencyLoadError(Exception):
@@ -132,17 +151,10 @@ def _load(ep: EventPersistency, fs: Any, root: str) -> None:
 
 def _save_to_bytes(ep: EventPersistency) -> bytes:
     """Serialize EP state to a zip archive in memory."""
-    # reusing the same _save logic with an in-memory filesystem to avoid code duplication
-    from fsspec.implementations.memory import MemoryFileSystem
-    mem_fs = MemoryFileSystem()
-    root = "s"
-    _save(ep, mem_fs, root)
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as zf:
-        for file_path in mem_fs.find(root):
-            if mem_fs.isfile(file_path):
-                rel = file_path[len(root) + 1:]
-                zf.writestr(rel, mem_fs.cat(file_path))
+        for rel, data in _serialize(ep).items():
+            zf.writestr(rel, data)
     return buf.getvalue()
 
 
@@ -210,13 +222,19 @@ class PersistencySaver:
     def save(self) -> None:
         """Write full EventPersistency state to storage.
 
-        Thread-safe.
+        Thread-safe. Serialization runs under the shared lock (reads
+        live state); the file write runs outside it so ingest_event
+        isn't blocked on I/O.
         """
         with self._lock:
-            try:
-                _save(self._persistency, self._fs, self._root)
-            except Exception as e:
-                logger.warning(f"PersistencySaver: save failed — {e}")
+            files = _serialize(self._persistency)
+            # Reset here (atomically with the snapshot) not in _serialize:
+            # module-level save()/export must not touch the save counter.
+            self._persistency.reset_events_since_save()
+        try:
+            _write(self._fs, self._root, files)
+        except Exception as e:
+            logger.warning(f"PersistencySaver: save failed — {e}")
 
     def load(self) -> None:
         """Restore EventPersistency state from storage.

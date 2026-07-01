@@ -137,8 +137,9 @@ class CoreComponent(Component):
 
         When path is None, returns the state as bytes (zip archive).
         When path is given, writes to that fsspec URI and returns None.
-        Returns None if no persistency is configured. Not thread-safe
-        when a PersistencySaver is running on this component.
+        Returns None if no persistency is configured. Thread-safe when a
+        PersistencySaver is running: acquires the saver lock before saving
+        (guards against the background save timer and concurrent ingest).
         """
         # ponytail: local import keeps common.core free of a persistency
         # package import at module load (see _Stoppable).
@@ -148,6 +149,10 @@ class CoreComponent(Component):
         if ep is None:
             logger.debug(f"{self.name}: no persistency configured, nothing to export")
             return None
+        saver = getattr(self, "saver", None)
+        if saver is not None:
+            with saver.locked():
+                return persistency.save(ep, path, storage_options)
         return persistency.save(ep, path, storage_options)
 
     def import_state(
