@@ -111,6 +111,16 @@ class TestCaseTo:
         with open(yaml_path, "r") as f:
             assert len(yaml.safe_load(f)) == 2
 
+    @remove_files
+    def test_toyaml_list(self):
+        parser = DummyParser()
+        gen = From.log(parser, in_path=log_path, do_process=False)
+        logs = [log for log in gen]
+
+        assert To.yaml(logs, yaml_path) == logs
+        with open(yaml_path, "r") as f:
+            assert len(yaml.safe_load(f)) == 9
+
 
 class TestCaseFrom:
     def test_fromlog_no_process(self):

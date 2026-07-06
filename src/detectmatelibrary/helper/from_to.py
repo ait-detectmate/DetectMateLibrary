@@ -96,16 +96,35 @@ class To:
         return out_
 
     @staticmethod
+    @overload
     def yaml(out_: BaseSchema | None, out_path: str) -> BaseSchema | None:
+        ...
+
+    @staticmethod
+    @overload
+    def yaml(out_: list[BaseSchema], out_path: str) -> list[BaseSchema] | None:
+        ...
+
+    @staticmethod
+    @normalize_output  # type: ignore
+    def yaml(
+        out_: BaseSchema | None | list[BaseSchema], out_path: str
+    ) -> BaseSchema | None | list[BaseSchema]:
+
         if out_ is None:
             return None
+        if isinstance(out_, BaseSchema):
+            out_ = [out_]
 
         data = {}
         if os.path.exists(out_path):
             with open(out_path) as f:
                 data = yaml.safe_load(f)
 
-        data[len(data)] = out_.as_dict()
+        n = len(data)
+        for i, o_ in enumerate(out_):
+            data[n + i] = o_.as_dict()
+
         with open(out_path, "w") as f:
             obj = literal_eval(str(data))
             yaml.safe_dump(obj, f, indent=4, default_flow_style=False)
