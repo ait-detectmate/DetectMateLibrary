@@ -9,7 +9,7 @@ license = "EUPL-1.2"
 requires-python = ">=3.12"
 dependencies = [
     "protobuf>=6.32.1",
-    "pydantic>=2.11.7",
+    "pydantic>=2.13.3",
     "pyyaml>=6.0.3",
     "regex>=2025.11.3",
     "openai>=2.26.0",
@@ -19,8 +19,8 @@ dependencies = [
     "tiktoken>=0.12.0",
     "numpy>=2.3.2",
     "pandas>=2.3.2",
-    "polars>=1.38.1",
-    "detectmateperformance @ git+https://github.com/ait-detectmate/DetectMatePerformance@main",
+    "polars>=1.40.1",
+    "detectmateperformance>=0.1.0",
     "msgpack>=1.0.0",
     "fsspec>=2024.1.0",
     "pyarrow>=24.0.0",
@@ -29,8 +29,8 @@ dependencies = [
 [dependency-groups]
 # install with all the dev dependencies:  uv pip install --group dev
 dev = [
-    "mike>=2.1.3",
-    "prek>=0.2.8",
+    "mike>=2.2.0",
+    "prek>=0.3.10",
     "pytest>=8.4.2",
     "pytest-cov>=6.2.1",
 ]
@@ -48,12 +48,17 @@ Homepage = "https://ait-detectmate.github.io/DetectMateLibrary/latest"
 Repository = "https://github.com/ait-detectmate/DetectMateLibrary"
 
 [build-system]
-requires = ["setuptools>=80", "wheel"]
+requires = ["setuptools>=82.0.1", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src", "."]
-include = ["detectmatelibrary*"]
+include = [
+    "detectmatelibrary*",
+    "tests.detectmatelibrary",
+    "tests.detectmatelibrary.test_parsers",
+    "tests.detectmatelibrary.test_detectors",
+]
 
 [project.scripts]
 mate = "detectmatelibrary_tools.workspace.create_workspace:main"

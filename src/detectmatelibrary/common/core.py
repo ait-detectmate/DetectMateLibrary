@@ -1,4 +1,4 @@
-from detectmatelibrary.common._core_op._fit_logic import FitLogicState
+from detectmatelibrary.common._core_op._fit_logic import FitLogicState, StatesL
 from detectmatelibrary.common._core_op._schema_pipeline import SchemaPipeline
 from detectmatelibrary.common._core_op._fit_logic import FitLogic
 
@@ -127,6 +127,64 @@ class CoreComponent(Component):
             data_use_training=self.config.data_use_training,
         )
         self.buffer_train = TrainBuffer()
+
+    def export_state(
+        self,
+        path: str | None = None,
+        storage_options: dict[str, Any] | None = None,
+    ) -> bytes | None:
+        """Save this component's EventPersistency state.
+
+        When path is None, returns the state as bytes (zip archive).
+        When path is given, writes to that fsspec URI and returns None.
+        Returns None if no persistency is configured. Thread-safe when a
+        PersistencySaver is running: acquires the saver lock before saving
+        (guards against the background save timer and concurrent ingest).
+        """
+        # ponytail: local import keeps common.core free of a persistency
+        # package import at module load (see _Stoppable).
+        from detectmatelibrary.utils import persistency
+
+        ep = getattr(self, "persistency", None)
+        if ep is None:
+            logger.debug(f"{self.name}: no persistency configured, nothing to export")
+            return None
+        saver = getattr(self, "saver", None)
+        if saver is not None:
+            with saver.locked():
+                return persistency.save(ep, path, storage_options)
+        return persistency.save(ep, path, storage_options)
+
+    def import_state(
+        self,
+        path: str | bytes,
+        storage_options: dict[str, Any] | None = None,
+    ) -> None:
+        """Restore this component's EventPersistency state.
+
+        path may be an fsspec URI string or bytes returned by
+        export_state(). No-op if no persistency is configured. Thread-safe
+        when a PersistencySaver is running: acquires the saver lock before
+        loading (guards against the background save timer).
+        """
+        from detectmatelibrary.utils import persistency
+
+        ep = getattr(self, "persistency", None)
+        if ep is None:
+            logger.debug(f"{self.name}: no persistency configured, nothing to import")
+            return
+        saver = getattr(self, "saver", None)
+        if saver is not None:
+            with saver.locked():
+                persistency.load(ep, path, storage_options)
+        else:
+            persistency.load(ep, path, storage_options)
+
+    def update_state(self, state: StatesL) -> None:
+        self.fitlogic.update_state(state)
+
+    def get_state(self) -> str:
+        return self.fitlogic.get_last_state()
 
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
         is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)

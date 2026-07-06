@@ -1,3 +1,4 @@
+import threading
 from typing import Any, Callable, Dict, List, Optional, Type
 
 from .event_data_structures.base import EventDataStructure
@@ -33,6 +34,10 @@ class EventPersistency:
         self.event_templates: Dict[int | str, str] = {}
         self._events_since_save: int = 0
         self._on_ingest_callbacks: list[Callable[[], None]] = []
+        # ponytail: RLock shared with PersistencySaver so ingest/save/load are
+        # mutually exclusive. On-ingest callbacks fire outside this lock, so
+        # re-entrancy is no longer required — kept as RLock (harmless, safer).
+        self._lock = threading.RLock()
 
     def ingest_event(
         self,
@@ -42,22 +47,29 @@ class EventPersistency:
         named_variables: Dict[str, Any] = {}
     ) -> None:
         """Ingest event data into the appropriate EventData store."""
-        self._events_since_save += 1
+        with self._lock:
+            self._events_since_save += 1
+            self.events_seen.add(event_id)
+            if variables or named_variables:
+                self.event_templates[event_id] = event_template
+                all_variables = self.get_all_variables(variables, named_variables)
+
+                data_structure = self.events_data.get(event_id)
+                if data_structure is None:
+                    data_structure = self.event_data_class(**self.event_data_kwargs)
+                    self.events_data[event_id] = data_structure
+
+                data = data_structure.to_data(all_variables)
+                data_structure.add_data(data)
+        # ponytail: fire callbacks outside the lock so a count-triggered save
+        # doesn't hold the ingest lock across serialize + file I/O.
         for _cb in self._on_ingest_callbacks:
             _cb()
-        self.events_seen.add(event_id)
-        if not variables and not named_variables:
-            return
-        self.event_templates[event_id] = event_template
-        all_variables = self.get_all_variables(variables, named_variables)
 
-        data_structure = self.events_data.get(event_id)
-        if data_structure is None:
-            data_structure = self.event_data_class(**self.event_data_kwargs)
-            self.events_data[event_id] = data_structure
-
-        data = data_structure.to_data(all_variables)
-        data_structure.add_data(data)
+    @property
+    def events_since_save(self) -> int:
+        """Number of events ingested since the last successful save."""
+        return self._events_since_save
 
     def reset_events_since_save(self) -> None:
         """Reset the events-since-save counter after a successful save."""
