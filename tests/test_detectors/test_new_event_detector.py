@@ -16,7 +16,7 @@ import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
 from detectmatelibrary.common._core_op._fit_logic import ConfigState, TrainState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
-from tests.detectmatelibrary.test_pipelines.test_configuration_engine import AUDIT_LOG
+from tests.test_pipelines.test_configuration_engine import AUDIT_LOG
 
 
 # Set time test mode for consistent timestamps

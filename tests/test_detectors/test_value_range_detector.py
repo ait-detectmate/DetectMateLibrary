@@ -20,7 +20,7 @@ from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
 from detectmatelibrary.tools.logging import logger
-from tests.detectmatelibrary.test_pipelines.test_configuration_engine import AUDIT_LOG
+from tests.test_pipelines.test_configuration_engine import AUDIT_LOG
 # Set time test mode for consistent timestamps
 time_test_mode()
 
