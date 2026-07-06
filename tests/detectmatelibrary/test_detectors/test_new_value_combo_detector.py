@@ -548,7 +548,7 @@ _PARSER_CONFIG = {
             "method_type": "matcher_parser",
             "auto_config": False,
             "log_format": "type=<Type> msg=audit(<Time>): <Content>",
-            "params": {"path_templates": "tests/detectmatelibrary/test_folder/audit_templates.txt"},
+            "params": {"path_templates": "src/detectmatelibrary/testutils/data/audit_templates.txt"},
         }
     }
 }

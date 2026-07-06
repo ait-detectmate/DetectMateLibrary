@@ -3,7 +3,7 @@ import io
 from contextlib import redirect_stdout, redirect_stderr
 import pytest
 
-from detectmatelibrary_tools.logging import setup_logging, logger
+from detectmatelibrary.tools.logging import setup_logging, logger
 
 
 @pytest.fixture(autouse=True)

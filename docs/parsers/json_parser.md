@@ -31,7 +31,7 @@ parsers:
   JsonMatcherParser:
     method_type: matcher_parser
     params:
-      path_templates: tests/test_folder/test_templates.txt
+      path_templates: src/detectmatelibrary/testutils/data/test_templates.txt
 ```
 
 

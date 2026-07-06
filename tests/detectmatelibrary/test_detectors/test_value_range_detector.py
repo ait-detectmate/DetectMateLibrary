@@ -19,7 +19,7 @@ from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
-from detectmatelibrary_tools.logging import logger
+from detectmatelibrary.tools.logging import logger
 from tests.detectmatelibrary.test_pipelines.test_configuration_engine import AUDIT_LOG
 # Set time test mode for consistent timestamps
 time_test_mode()
@@ -315,7 +315,7 @@ _PARSER_CONFIG = {
                 "remove_spaces": True,
                 "remove_punctuation": True,
                 "lowercase": True,
-                "path_templates": "tests/detectmatelibrary/test_folder/audit_templates.txt",
+                "path_templates": "src/detectmatelibrary/testutils/data/audit_templates.txt",
             },
         }
     }

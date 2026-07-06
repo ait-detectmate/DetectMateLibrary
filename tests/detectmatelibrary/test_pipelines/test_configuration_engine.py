@@ -4,9 +4,9 @@ from detectmatelibrary.helper.from_to import From
 
 import json
 
-AUDIT_LOG = "tests/detectmatelibrary/test_folder/audit.log"
-AUDIT_TEMPLATES = "tests/detectmatelibrary/test_folder/audit_templates.txt"
-ANOMALY_LABELS = "tests/detectmatelibrary/test_folder/audit_anomaly_labels.log"
+AUDIT_LOG = "src/detectmatelibrary/testutils/data/audit.log"
+AUDIT_TEMPLATES = "src/detectmatelibrary/testutils/data/audit_templates.txt"
+ANOMALY_LABELS = "src/detectmatelibrary/testutils/data/audit_anomaly_labels.log"
 LOG_FORMAT = "type=<Type> msg=audit(<Time>): <Content>"
 TRAIN_UNTIL = 1800
 

@@ -44,7 +44,7 @@ config = {
 }
 
 
-log_path = "tests/detectmatelibrary/test_folder/logs.log"
+log_path = "src/detectmatelibrary/testutils/data/logs.log"
 
 
 class TestCaseBasicPipelines:
@@ -99,7 +99,7 @@ class TestCaseBasicPipelines:
 
 class TestExamples:
     def test_config_example(self) -> None:
-        with open("tests/detectmatelibrary/test_folder/test_config.yaml", 'r') as file:
+        with open("src/detectmatelibrary/testutils/data/test_config.yaml", 'r') as file:
             config = yaml.safe_load(file)
 
         # Nothing should crash

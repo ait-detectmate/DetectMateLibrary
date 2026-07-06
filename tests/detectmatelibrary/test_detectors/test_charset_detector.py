@@ -291,7 +291,7 @@ _PARSER_CONFIG = {
                 "remove_spaces": True,
                 "remove_punctuation": True,
                 "lowercase": True,
-                "path_templates": "tests/detectmatelibrary/test_folder/audit_templates.txt",
+                "path_templates": "src/detectmatelibrary/testutils/data/audit_templates.txt",
             },
         }
     }

@@ -25,7 +25,7 @@ config = {
     },
 }
 
-log_path = "tests/detectmatelibrary/test_folder/logs.log"
+log_path = "src/detectmatelibrary/testutils/data/logs.log"
 
 
 class MockupBadParser(CoreParser):

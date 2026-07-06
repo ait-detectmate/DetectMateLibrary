@@ -1,7 +1,7 @@
 from detectmatelibrary.helper.from_to import From, To, FromTo
 
-from tests.detectmatelibrary.test_detectors.dummy_detector import DummyDetector
-from tests.detectmatelibrary.test_parsers.dummy_parser import DummyParser
+from detectmatelibrary.testutils.dummy_detector import DummyDetector
+from detectmatelibrary.testutils.dummy_parser import DummyParser
 
 import detectmatelibrary.schemas as schemas
 
@@ -15,14 +15,14 @@ import os
 
 expected_log = "pid=<*> uid=<*> auid=<*> ses=<*> msg='op=<*> "
 expected_log += "acct=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'"
-log_path = "tests/detectmatelibrary/test_folder/audit_templates.txt"
+log_path = "src/detectmatelibrary/testutils/data/audit_templates.txt"
 
-binary_path = "tests/detectmatelibrary/test_folder/dummy.txt"
-binary_path2 = "tests/detectmatelibrary/test_folder/dummy2.txt"
-json_path = "tests/detectmatelibrary/test_folder/dummy.json"
-json_path2 = "tests/detectmatelibrary/test_folder/dummy2.json"
-yaml_path = "tests/detectmatelibrary/test_folder/dummy.yaml"
-yaml_path2 = "tests/detectmatelibrary/test_folder/dummy2.yaml"
+binary_path = "src/detectmatelibrary/testutils/data/dummy.txt"
+binary_path2 = "src/detectmatelibrary/testutils/data/dummy2.txt"
+json_path = "src/detectmatelibrary/testutils/data/dummy.json"
+json_path2 = "src/detectmatelibrary/testutils/data/dummy2.json"
+yaml_path = "src/detectmatelibrary/testutils/data/dummy.yaml"
+yaml_path2 = "src/detectmatelibrary/testutils/data/dummy2.yaml"
 
 
 def remove_files(func):
