@@ -6,6 +6,7 @@ from ast import literal_eval
 import os
 
 from polars import DataFrame
+from typing import overload
 from typing import Iterator
 import yaml
 import json
@@ -13,13 +14,31 @@ import json
 
 class To:
     @staticmethod
+    @overload
     def binary_file(out_: BaseSchema | bytes | None, out_path: str) -> bytes | None:
+        ...
+
+    @staticmethod
+    @overload
+    def binary_file(out_: list[BaseSchema] | list[bytes], out_path: str) -> list[bytes]:
+        ...
+
+    @staticmethod
+    def binary_file(
+        out_: BaseSchema | bytes | None | list[BaseSchema] | list[bytes], out_path: str
+    ) -> bytes | None | list[bytes]:
+
         if out_ is None:
             return None
-        elif isinstance(out_, BaseSchema):
-            out_ = out_.serialize()
 
-        data = [str(out_) + "\n"]
+        elif isinstance(out_, BaseSchema):
+            out_ = [out_.serialize()]
+        elif isinstance(out_, list) and isinstance(out_[0], BaseSchema):
+            out_ = [o_.serialize() for o_ in out_]  # type: ignore
+        elif isinstance(out_, bytes):
+            out_ = [out_]
+
+        data = [str(o_) + "\n" for o_ in out_]
         if os.path.exists(out_path):
             with open(out_path, "r") as f:
                 data = f.readlines() + data
@@ -27,7 +46,7 @@ class To:
         with open(out_path, "w") as f:
             f.writelines(data)
 
-        return out_
+        return out_[0] if len(out_) == 1 else out_  # type: ignore
 
     @staticmethod
     def json(out_: BaseSchema | None, out_path: str) -> BaseSchema | None:

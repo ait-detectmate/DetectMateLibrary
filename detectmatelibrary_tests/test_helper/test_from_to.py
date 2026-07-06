@@ -60,6 +60,16 @@ class TestCaseTo:
             assert len(f.readlines()) == 2
 
     @remove_files
+    def test_tobinary_as_list(self):
+        parser = DummyParser()
+        gen = From.log(parser, in_path=log_path, do_process=False)
+        logs = [log.serialize() for log in gen]
+
+        assert To.binary_file(logs, binary_path) == logs
+        with open(binary_path, "r") as f:
+            assert len(f.readlines()) == 9
+
+    @remove_files
     def test_tojson(self):
         parser = DummyParser()
         gen = From.log(parser, in_path=log_path, do_process=False)
