@@ -29,7 +29,10 @@ class PersistConfig(BaseModel):
     # unit file) so services persist to /var/lib/<dir> with no explicit path=.
     # Falls back to CWD-relative ./state outside systemd. Explicit path= wins.
     path: str = Field(
-        default_factory=lambda: os.environ.get("STATE_DIRECTORY", "./state").split(":")[0]
+        default_factory=lambda: next(
+            (p for p in os.environ.get("STATE_DIRECTORY", "").split(":") if p.strip()),
+            "./state",
+        )
     )
     interval_seconds: int = 300
     events_until_save: int | None = None
