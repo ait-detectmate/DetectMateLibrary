@@ -86,6 +86,16 @@ class TestCaseTo:
             assert len(json.load(f)) == 2
 
     @remove_files
+    def test_tojson_list(self):
+        parser = DummyParser()
+        gen = From.log(parser, in_path=log_path, do_process=False)
+        logs = [log for log in gen]
+
+        assert To.json(logs, json_path) == logs
+        with open(json_path, "r") as f:
+            assert len(json.load(f)) == 9
+
+    @remove_files
     def test_toyaml(self):
         parser = DummyParser()
         gen = From.log(parser, in_path=log_path, do_process=False)

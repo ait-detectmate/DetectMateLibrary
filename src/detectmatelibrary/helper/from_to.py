@@ -48,22 +48,40 @@ class To:
 
         return out_[0] if len(out_) == 1 else out_  # type: ignore
 
+    @overload
     @staticmethod
     def json(out_: BaseSchema | None, out_path: str) -> BaseSchema | None:
+        ...
+
+    @overload
+    @staticmethod
+    def json(out_: list[BaseSchema], out_path: str) -> list[BaseSchema]:
+        ...
+
+    @staticmethod
+    def json(
+        out_: BaseSchema | None | list[BaseSchema], out_path: str
+    ) -> BaseSchema | None | list[BaseSchema]:
+
         if out_ is None:
             return None
+        if isinstance(out_, BaseSchema):
+            out_ = [out_]
 
         data = {}
         if os.path.exists(out_path):
             with open(out_path) as f:
                 data = json.load(f)
 
-        data[len(data)] = out_.as_dict()
+        n = len(data)
+        for i, o_ in enumerate(out_):
+            data[n + i] = o_.as_dict()
+
         with open(out_path, "w") as f:
             obj = literal_eval(str(data))
             json.dump(obj, f, indent=4, ensure_ascii=False)
 
-        return out_
+        return out_[0] if len(out_) == 1 else out_
 
     @staticmethod
     def yaml(out_: BaseSchema | None, out_path: str) -> BaseSchema | None:
