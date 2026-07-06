@@ -12,6 +12,16 @@ import yaml
 import json
 
 
+def normalize_output(func):  # type: ignore
+    def norm(*args, **kwargs):  # type: ignore
+        if isinstance(args[0], list):
+            return func(*args, **kwargs)
+        else:
+            aux = func(*args, **kwargs)
+            return aux[0] if aux is not None else None
+    return norm
+
+
 class To:
     @staticmethod
     @overload
@@ -24,6 +34,7 @@ class To:
         ...
 
     @staticmethod
+    @normalize_output  # type: ignore
     def binary_file(
         out_: BaseSchema | bytes | None | list[BaseSchema] | list[bytes], out_path: str
     ) -> bytes | None | list[bytes]:
@@ -46,7 +57,7 @@ class To:
         with open(out_path, "w") as f:
             f.writelines(data)
 
-        return out_[0] if len(out_) == 1 else out_  # type: ignore
+        return out_   # type: ignore
 
     @overload
     @staticmethod
@@ -59,6 +70,7 @@ class To:
         ...
 
     @staticmethod
+    @normalize_output  # type: ignore
     def json(
         out_: BaseSchema | None | list[BaseSchema], out_path: str
     ) -> BaseSchema | None | list[BaseSchema]:
@@ -81,7 +93,7 @@ class To:
             obj = literal_eval(str(data))
             json.dump(obj, f, indent=4, ensure_ascii=False)
 
-        return out_[0] if len(out_) == 1 else out_
+        return out_
 
     @staticmethod
     def yaml(out_: BaseSchema | None, out_path: str) -> BaseSchema | None:
