@@ -5,7 +5,7 @@ from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
-from detectmatelibrary_tests.test_pipelines.test_configuration_engine import AUDIT_LOG
+from tests.test_pipelines.test_configuration_engine import AUDIT_LOG
 
 # Set time test mode for consistent timestamps
 time_test_mode()
@@ -548,7 +548,7 @@ _PARSER_CONFIG = {
             "method_type": "matcher_parser",
             "auto_config": False,
             "log_format": "type=<Type> msg=audit(<Time>): <Content>",
-            "params": {"path_templates": "detectmatelibrary_tests/test_folder/audit_templates.txt"},
+            "params": {"path_templates": "tests/test_folder/audit_templates.txt"},
         }
     }
 }

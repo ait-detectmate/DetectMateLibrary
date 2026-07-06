@@ -33,7 +33,7 @@ class TestMatcherParserBasic:
             "parsers": {
                 "TreeMatcher": {
                     "method_type": "tree_matcher",
-                    "path_templates": "detectmatelibrary_tests/test_folder/test_templates.txt"
+                    "path_templates": "tests/test_folder/test_templates.txt"
                 }
             }
         }

@@ -16,7 +16,7 @@ import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
 from detectmatelibrary.common._core_op._fit_logic import ConfigState, TrainState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
-from detectmatelibrary_tests.test_pipelines.test_configuration_engine import AUDIT_LOG
+from tests.test_pipelines.test_configuration_engine import AUDIT_LOG
 
 
 # Set time test mode for consistent timestamps
@@ -144,7 +144,7 @@ _PARSER_CONFIG = {
                 "remove_spaces": True,
                 "remove_punctuation": True,
                 "lowercase": True,
-                "path_templates": "detectmatelibrary_tests/test_folder/audit_templates.txt",
+                "path_templates": "tests/test_folder/audit_templates.txt",
             },
         }
     }

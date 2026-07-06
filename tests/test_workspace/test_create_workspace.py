@@ -22,7 +22,7 @@ def test_create_parser_workspace(temp_dir: Path):
     pkg_name = normalize_package_name(ws_name)  # myparser
     module_name = normalize_package_name(ws_name)  # myparser
     pkg_dir = workspace_root / pkg_name
-    tests_dir = workspace_root / "detectmatelibrary_tests"
+    tests_dir = workspace_root / "tests"
 
     # Run the CLI tool
     subprocess.check_call([
@@ -61,7 +61,7 @@ def test_create_detector_workspace(temp_dir: Path):
     pkg_name = normalize_package_name(ws_name)  # mydetector
     module_name = normalize_package_name(ws_name)  # mydetector
     pkg_dir = workspace_root / pkg_name
-    tests_dir = workspace_root / "detectmatelibrary_tests"
+    tests_dir = workspace_root / "tests"
 
     subprocess.check_call([
         *CLI,
@@ -93,7 +93,7 @@ def test_create_workspace_with_dash_name(temp_dir: Path):
     pkg_name = normalize_package_name(ws_name)  # custom_parser
     module_name = normalize_package_name(ws_name)  # custom_parser
     pkg_dir = workspace_root / pkg_name
-    tests_dir = workspace_root / "detectmatelibrary_tests"
+    tests_dir = workspace_root / "tests"
     test_file = tests_dir / f"test_{ws_name}.py"
 
     subprocess.check_call([
@@ -144,7 +144,7 @@ def test_generated_detector_tests_pass(temp_dir: Path):
     ws_name = "MyCoolThing"
     workspace_root = temp_dir
     pkg_dir = workspace_root / "mycoolthing"
-    tests_dir = workspace_root / "detectmatelibrary_tests"
+    tests_dir = workspace_root / "tests"
     test_file = tests_dir / f"test_{ws_name}.py"
 
     subprocess.check_call([
@@ -178,7 +178,7 @@ def test_generated_parser_tests_pass(temp_dir: Path):
     ws_name = "MyCoolParser"
     workspace_root = temp_dir
     pkg_dir = workspace_root / "mycoolparser"
-    tests_dir = workspace_root / "detectmatelibrary_tests"
+    tests_dir = workspace_root / "tests"
     test_file = tests_dir / f"test_{ws_name}.py"
 
     subprocess.check_call([
