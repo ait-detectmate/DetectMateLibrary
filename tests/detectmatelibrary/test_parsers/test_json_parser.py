@@ -138,7 +138,7 @@ class TestJsonParser:
                 "JsonMatcherParser": {
                     "auto_config": True,
                     "method_type": "matcher_parser",
-                    "path_templates": "detectmatelibrary_tests/test_folder/test_templates.txt"
+                    "path_templates": "tests/detectmatelibrary/test_folder/test_templates.txt"
                 }
             }
         }

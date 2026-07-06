@@ -33,15 +33,14 @@ def camelize(name: str) -> str:
 
 
 def create_tests(type_: str, name: str, workspace_root: Path, pkg_name: str) -> None:
-    """Create a detectmatelibrary_tests/ directory with a basic pytest file for
-    the component.
+    """Create a tests/ directory with a basic pytest file for the component.
 
     - Reads template tests from src/detectmatelibrary_tools/workspace/templates/test_templates/
     - Rewrites the import to point to <pkg_name>.<name>
     - Renames CustomParser/CustomDetector to the camelized class name
     """
 
-    tests_dir = workspace_root / "detectmatelibrary_tests"
+    tests_dir = workspace_root / "tests"
     tests_dir.mkdir(parents=True, exist_ok=True)
     template_file = TEMPLATE_DIR / "test_templates" / f"test_Custom{type_.capitalize()}.py"
     test_file = tests_dir / f"test_{name}.py"
@@ -64,7 +63,7 @@ def create_tests(type_: str, name: str, workspace_root: Path, pkg_name: str) -> 
     # replace the import line
     content = template_content.replace(original_import, new_import)
     # replace the remaining occurrences of CustomParser/CustomDetector
-    # with the new class name (inside the detectmatelibrary_tests)
+    # with the new class name (inside the tests)
     content = content.replace(base_class, new_class)
     content = content.replace(f'"custom_{type_}"', f'"{name}_{type_}"')
     content = content.rstrip() + "\n"

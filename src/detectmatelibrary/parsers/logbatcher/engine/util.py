@@ -49,12 +49,13 @@ def count_prompt_tokens(prompt: str, model_name: str) -> int:
     Count the number of tokens in the prompt
     Models supported: gpt-4o-mini, gpt-3.5-turbo
     """
-    if model_name == 'gpt-4o-mini':
-        encoder = tiktoken.encoding_for_model('gpt-4o-mini')
-    elif model_name == 'gpt-3.5-turbo':
-        encoder = tiktoken.encoding_for_model('gpt-3.5-turbo')
-    else:
-        raise ValueError("Unsupported model: {}".format(model_name))
+    try:
+        encoder = tiktoken.encoding_for_model(model_name)
+    except KeyError:
+        # ponytail: token count is estimate-only bookkeeping; use the modern
+        # OpenAI encoding for models tiktoken doesn't know rather than raising
+        # (raising here silently discards a successful LLM answer upstream).
+        encoder = tiktoken.get_encoding("o200k_base")
 
     # 计算编码后的token数
     prompt_tokens = encoder.encode(prompt)
@@ -66,12 +67,13 @@ def count_message_tokens(messages: List[Dict[str, str]], model_name: str = "gpt-
     Count the number of tokens in the messages
     Models supported: gpt-4o-mini, gpt-3.5-turbo
     """
-    if model_name == 'gpt-4o-mini':
-        encoder = tiktoken.encoding_for_model('gpt-4o-mini')
-    elif model_name == 'gpt-3.5-turbo':
-        encoder = tiktoken.encoding_for_model('gpt-3.5-turbo')
-    else:
-        raise ValueError("Unsupported model: {}".format(model_name))
+    try:
+        encoder = tiktoken.encoding_for_model(model_name)
+    except KeyError:
+        # ponytail: token count is estimate-only bookkeeping; use the modern
+        # OpenAI encoding for models tiktoken doesn't know rather than raising
+        # (raising here silently discards a successful LLM answer upstream).
+        encoder = tiktoken.get_encoding("o200k_base")
 
     token_count = 0
 

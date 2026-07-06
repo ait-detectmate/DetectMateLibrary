@@ -16,7 +16,7 @@ parsers:
     method_type: matcher_parser
     auto_config: false
     params:
-      path_templates: "detectmatelibrary_tests/test_folder/test_templates.txt"
+      path_templates: "tests/detectmatelibrary/test_folder/test_templates.txt"
 
 detectors:
   detector_variables:

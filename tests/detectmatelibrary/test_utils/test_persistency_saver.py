@@ -351,6 +351,68 @@ class TestPersistencySaverIntegration:
             assert rest.unique_set == orig.unique_set
 
 
+class TestPersistencySaverConcurrency:
+    def test_ingest_blocks_while_saver_lock_held(self):
+        """ingest_event must serialize on the saver's lock so save/load can't
+        race with a concurrent ingest."""
+        p = EventPersistency(event_data_class=EventDataFrame)
+        saver = PersistencySaver(p, PersistencySaverConfig(path="memory://concurrency/state"))
+        done = threading.Event()
+
+        def worker():
+            p.ingest_event(event_id="E1", event_template="T", variables=["x"], named_variables={})
+            done.set()
+
+        with saver.locked():
+            t = threading.Thread(target=worker)
+            t.start()
+            time.sleep(0.1)  # ample time for an unguarded ingest to complete
+            assert not done.is_set(), "ingest_event ran while the saver lock was held"
+            assert "E1" not in p.get_events_seen()
+        t.join(timeout=1.0)
+        assert done.is_set()
+        assert "E1" in p.get_events_seen()
+
+    def test_ingest_not_blocked_by_save_write(self, monkeypatch):
+        """The file write must run OUTSIDE the lock: a blocked save write must
+        not block a concurrent ingest_event (only serialization is guarded)."""
+        import detectmatelibrary.utils.persistency.persistency_saver as ps
+
+        p = EventPersistency(event_data_class=EventDataFrame)
+        saver = PersistencySaver(p, PersistencySaverConfig(path="memory://write_block/state"))
+
+        write_started = threading.Event()
+        release_write = threading.Event()
+        real_write = ps._write
+
+        def blocking_write(fs, root, files):
+            write_started.set()
+            release_write.wait(timeout=2.0)
+            real_write(fs, root, files)
+
+        monkeypatch.setattr(ps, "_write", blocking_write)
+
+        saver_thread = threading.Thread(target=saver.save)
+        saver_thread.start()
+        assert write_started.wait(timeout=1.0), "save write never started"
+
+        # Write is in progress with the lock released — ingest must proceed.
+        ingested = threading.Event()
+
+        def worker():
+            p.ingest_event(event_id="E2", event_template="T", variables=["y"], named_variables={})
+            ingested.set()
+
+        t = threading.Thread(target=worker)
+        t.start()
+        assert ingested.wait(timeout=1.0), "ingest_event blocked while save write was in progress"
+
+        release_write.set()
+        saver_thread.join(timeout=2.0)
+        t.join(timeout=1.0)
+        assert "E2" in p.get_events_seen()
+
+
 class TestStandaloneSaveLoad:
     def test_save_creates_metadata(self):
         p = _make_persistency_with_data()
@@ -365,11 +427,13 @@ class TestStandaloneSaveLoad:
         assert fs.exists("standalone_save2/state/events/E1.parquet")
         assert fs.exists("standalone_save2/state/events/E2.parquet")
 
-    def test_save_resets_events_since_save(self):
+    def test_save_does_not_reset_events_since_save(self):
+        # Module-level save() (used by export_state) is a plain snapshot and
+        # must NOT touch the save counter — only PersistencySaver.save() does.
         p = _make_persistency_with_data()
         assert p._events_since_save == 3
         standalone_save(p, "memory://standalone_save3/state")
-        assert p._events_since_save == 0
+        assert p._events_since_save == 3
 
     def test_load_restores_events_seen(self):
         p = _make_persistency_with_data()

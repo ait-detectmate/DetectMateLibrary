@@ -17,7 +17,7 @@ uv run prek install
 uv run pytest -q
 uv run pytest -s                                      # verbose with stdout
 uv run pytest --cov=. --cov-report=term-missing       # with coverage
-uv run pytest detectmatelibrary_tests/test_foo.py                       # single test file
+uv run pytest tests/test_foo.py                       # single test file
 
 # Run linting/formatting (all pre-commit hooks)
 uv run prek run -a

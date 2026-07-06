@@ -1,3 +1,5 @@
+import threading
+
 import fsspec
 
 from detectmatelibrary.detectors.new_value_detector import NewValueDetector, NewValueDetectorConfig
@@ -224,3 +226,44 @@ class TestDetectorExportImportState:
         det2 = NewValueDetector(name="BytesDst", config=NewValueDetectorConfig(auto_config=False))
         det2.import_state(data)
         assert 5 in det2.persistency.get_events_seen()
+
+    def test_export_does_not_reset_events_since_save(self):
+        # export_state is a snapshot, not a persistency save: it must not reset
+        # the counter that governs the background saver's cadence.
+        det = NewValueDetector(name="ExportNoReset", config=NewValueDetectorConfig(auto_config=False))
+        det.persistency.ingest_event(event_id=1, event_template="login <*>", named_variables={"user": "a"})
+        det.persistency.ingest_event(event_id=1, event_template="login <*>", named_variables={"user": "b"})
+        assert det.persistency._events_since_save == 2
+        det.export_state("memory://export_noreset/state")
+        assert det.persistency._events_since_save == 2
+
+    def test_export_state_with_running_saver_does_not_raise(self):
+        # export must acquire the saver lock: a concurrent ingest + background
+        # timer save would otherwise race the state snapshot.
+        det = NewValueDetector(
+            name="ExportSaverConcurrent",
+            config=NewValueDetectorConfig(
+                auto_config=False,
+                persist=PersistConfig(path="memory://export_saver_dst/state", interval_seconds=0),
+            ),
+        )
+        stop = threading.Event()
+
+        def ingest_loop():
+            i = 0
+            while not stop.is_set():
+                det.persistency.ingest_event(
+                    event_id=i % 5, event_template="e <*>", named_variables={"n": str(i)}
+                )
+                i += 1
+
+        t = threading.Thread(target=ingest_loop)
+        t.start()
+        try:
+            for _ in range(20):
+                data = det.export_state()  # concurrent with timer save + ingest
+                assert isinstance(data, bytes) and len(data) > 0
+        finally:
+            stop.set()
+            t.join(timeout=2.0)
+            det.saver.stop()
