@@ -85,6 +85,8 @@
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#saving-state-persist">Saving state (persist)</a>
         <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#running-under-systemd">Running under systemd</a>
+    </li>
     <li class="toctree-l4"><a class="reference internal" href="#fields">Fields</a>
     </li>
     <li class="toctree-l4"><a class="reference internal" href="#storage-options-examples">Storage options examples</a>
@@ -387,6 +389,17 @@ block in the detector config:</p>
 disables saving (backward compatible).</p>
 <p>The detector name is automatically appended to <code>path</code>, so <code>path: ./state</code> for a detector
 named <code>NewValueDetector</code> writes to <code>./state/NewValueDetector/</code>.</p>
+<h4 id="running-under-systemd">Running under systemd</h4>
+<p>The default <code>path</code> is CWD-relative. systemd services usually run with CWD <code>/</code>,
+so <code>./state</code> would resolve to <code>/state</code> (wrong location, needs root). To avoid
+this, set <code>StateDirectory=</code> in your unit file — systemd creates <code>/var/lib/&lt;dir&gt;</code>
+with the right ownership and exports <code>$STATE_DIRECTORY</code>, which the default <code>path</code>
+reads automatically. No explicit <code>path:</code> needed:</p>
+<pre><code class="language-ini">[Service]
+User=detectmate
+StateDirectory=detectmate     # → state at /var/lib/detectmate/&lt;detector&gt;/
+</code></pre>
+<p>Setting <code>path:</code> explicitly (e.g. an <code>s3://</code> URL) always overrides <code>$STATE_DIRECTORY</code>.</p>
 <h4 id="fields">Fields</h4>
 <table>
 <thead>
@@ -401,8 +414,8 @@ named <code>NewValueDetector</code> writes to <code>./state/NewValueDetector/</c
 <tr>
 <td><code>path</code></td>
 <td><code>str</code></td>
-<td><code>"./state"</code></td>
-<td>Base directory or cloud URL. Detector name is appended.</td>
+<td><code>$STATE_DIRECTORY</code> or <code>"./state"</code></td>
+<td>Base directory or cloud URL. Detector name is appended. Defaults to systemd's <code>$STATE_DIRECTORY</code> if set, else <code>./state</code> (see note above).</td>
 </tr>
 <tr>
 <td><code>interval_seconds</code></td>
