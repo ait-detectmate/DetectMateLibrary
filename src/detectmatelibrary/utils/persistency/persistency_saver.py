@@ -52,7 +52,7 @@ def _safe_event_data_kwargs(ep: EventPersistency) -> dict[str, Any]:
             json.dumps(v)
             safe[k] = v
         except (TypeError, ValueError):
-            pass
+            logger.debug("Skipping non-JSON-serializable event_data_kwargs[%r]", k)
     return safe
 
 
