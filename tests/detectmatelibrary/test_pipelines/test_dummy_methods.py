@@ -1,6 +1,6 @@
 
-from detectmatelibrary_tests.test_detectors.dummy_detector import DummyDetector, DummyDetectorConfig
-from detectmatelibrary_tests.test_parsers.dummy_parser import DummyParser, DummyParserConfig
+from tests.detectmatelibrary.test_detectors.dummy_detector import DummyDetector, DummyDetectorConfig
+from tests.detectmatelibrary.test_parsers.dummy_parser import DummyParser, DummyParserConfig
 import detectmatelibrary.schemas as schemas
 
 
