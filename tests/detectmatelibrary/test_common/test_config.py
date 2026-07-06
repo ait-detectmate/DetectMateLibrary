@@ -19,7 +19,7 @@ import yaml
 
 
 def load_test_config() -> dict:
-    with open("detectmatelibrary_tests/test_folder/test_config.yaml", 'r') as file:
+    with open("tests/detectmatelibrary/test_folder/test_config.yaml", 'r') as file:
         return yaml.safe_load(file)
 
 

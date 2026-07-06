@@ -5,8 +5,8 @@ from detectmatelibrary.parsers.template_matcher._parser import _compile_template
 from detectmatelibrary.common._config._formats import EventsConfig
 from detectmatelibrary import schemas
 
-NAMED_TEMPLATES_TXT = "detectmatelibrary_tests/test_folder/test_named_templates.txt"
-NAMED_TEMPLATES_CSV = "detectmatelibrary_tests/test_folder/test_named_templates.csv"
+NAMED_TEMPLATES_TXT = "tests/detectmatelibrary/test_folder/test_named_templates.txt"
+NAMED_TEMPLATES_CSV = "tests/detectmatelibrary/test_folder/test_named_templates.csv"
 test_template = ["pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>"]
 test_log_match = 'pid=9699 uid=0 auid=4294967295 ses=4294967295 msg=\'op=PAM:accounting acct="root"'
 test_log_no_match = 'this is not matching'
@@ -50,7 +50,7 @@ class TestMatcherParserBasic:
                 "MatcherParser": {
                     "auto_config": True,
                     "method_type": "matcher_parser",
-                    "path_templates": "detectmatelibrary_tests/test_folder/test_templates.txt"
+                    "path_templates": "tests/detectmatelibrary/test_folder/test_templates.txt"
                 }
             }
         }
@@ -69,7 +69,7 @@ class TestMatcherParserBasic:
                 "MatcherParser": {
                     "auto_config": True,
                     "method_type": "matcher_parser",
-                    "path_templates": "detectmatelibrary_tests/test_folder/test_templates.txt"
+                    "path_templates": "tests/detectmatelibrary/test_folder/test_templates.txt"
                 }
             }
         }
@@ -87,7 +87,7 @@ class TestMatcherParserBasic:
             remove_spaces=False,
             remove_punctuation=False,
             lowercase=False,
-            path_templates="detectmatelibrary_tests/test_folder/test_templates.txt"
+            path_templates="tests/detectmatelibrary/test_folder/test_templates.txt"
         )
         parser = MatcherParser(name="MatcherParser", config=config)
         input_log = schemas.LogSchema({"log": test_log_match})
