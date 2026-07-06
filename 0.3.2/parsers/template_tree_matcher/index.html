@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/0.3.2/parsers/template_tree_matcher/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Template Tree Matcher - DetectMate Library</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Template Tree Matcher";
+        var mkdocs_page_input_path = "parsers/template_tree_matcher.md";
+        var mkdocs_page_url = "/DetectMateLibrary/0.3.2/parsers/template_tree_matcher/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> DetectMate Library
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../installation/">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../basic_usage/">Basic usage</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../create_components/">Create new component</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Components</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../basic_idea/">Basic concepts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../overall_architecture/">Overall architecture</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../schemas/">Schemas</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../">Parsers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/">Detectors</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../alert_aggregator/">Alert Aggregation</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Parsers Methods</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../template_matcher/">Template Matcher</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Template Tree Matcher</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#template-format">Template format</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#usage-example">Usage example</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../json_parser/">Json Parser</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../logbatcher_parser/">LogBatcher Parser</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Detectors Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/random_detector/">Random Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/new_value/">New Value</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/combo/">Combo Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/new_event/">New Event</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/rule_based/">Rule Based</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/bigram_frequency/">BiGram Frequency</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/charset/">CharSet</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../detectors/value_range/">Value Range</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Alert Aggregation Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../alert_aggregators/basic_concatenation/">Basic Concat</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Auxiliar</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../auxiliar/persistency/">Persistency</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../auxiliar/input_buffer/">Data buffer</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Helpers</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../helper/from_to/">From to</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribution</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../contribution/">Contributing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../development/">Development</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Other</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../other/log_formats/">Log Formats</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">DetectMate Library</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Parsers Methods</li>
+      <li class="breadcrumb-item active">Template Tree Matcher</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="template-tree-matcher">Template Tree Matcher</h1>
+<p>The Template Tree Matcher is a parser that matches incoming logs against a set of templates using a tree-based depth-first search. It provides faster matching for batch workloads compared with the streaming Template Matcher.</p>
+<p>This parser wraps functionality from the DetectMatePerformance project: https://github.com/ait-detectmate/DetectMatePerformance. Prefer  use the performance implementation when parsing many log lines in non-stream (batch) mode.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Schema</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Input</strong></td>
+<td><a href="../../schemas/">LogSchema</a></td>
+<td>Unstructured log</td>
+</tr>
+<tr>
+<td><strong>Output</strong></td>
+<td><a href="../../schemas/">ParserSchema</a></td>
+<td>Structured log</td>
+</tr>
+</tbody>
+</table>
+<p>WARNING: This parser is not yet in a stable release and may behave differently across platforms or hardware.</p>
+<h2 id="template-format">Template format</h2>
+<ul>
+<li>Templates are plain text lines in a template file.</li>
+<li>Use the token <code>&lt;*&gt;</code> to mark wildcard slots.</li>
+</ul>
+<p>Example template file (templates.txt):</p>
+<pre><code class="language-text">pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='op=PAM:&lt;*&gt; acct=&lt;*&gt;
+login success: user=&lt;*&gt; source=&lt;*&gt;
+</code></pre>
+<h2 id="configuration">Configuration</h2>
+<p>Typical TemplateTreeMatcher config options:</p>
+<ul>
+<li><code>method_type</code> (string): parser type identifier (for example <code>"tree_matcher"</code>).</li>
+<li><code>path_templates</code> (string or null): path to the newline-delimited template file. If <code>null</code>, the matcher runs without templates.</li>
+<li><code>auto_config</code> (bool): whether to attempt an optional auto-configuration phase (not required).</li>
+</ul>
+<p>Note: this matcher removes non-alphanumeric characters from logs and templates before matching, except for the <code>&lt;*&gt;</code> token. Ensure your templates are compatible with that normalization.</p>
+<p>Example YAML fragment:</p>
+<pre><code class="language-yaml">parsers:
+  TemplateTreeMatcher:
+    method_type: tree_matcher
+    auto_config: False
+    params:
+      path_templates: path/to/templates.txt
+</code></pre>
+<h2 id="usage-example">Usage example</h2>
+<p>Simple usage — load templates and match a log:</p>
+<pre><code class="language-python">from detectmatelibrary.parsers.tree_matcher import TemplateTreeMatcher
+from detectmatelibrary import schemas
+
+# instantiate parser (config can be a dict or a config object)
+cfg = {
+    &quot;parsers&quot;: {
+        &quot;TreeMatcher&quot;: {
+            &quot;method_type&quot;: &quot;tree_matcher&quot;,
+            &quot;params&quot;: {
+                &quot;path_templates&quot;: &quot;tests/test_folder/test_templates.txt&quot;
+            }
+        }
+    }
+}
+
+parser = TemplateTreeMatcher(name=&quot;TreeMatcher&quot;, config=cfg)
+
+# match a log
+input_log = schemas.LogSchema({
+    &quot;logID&quot;: &quot;0&quot;,
+    &quot;log&quot;: &quot;pid=9699 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\&quot;root\&quot;'&quot;
+})
+parsed = parser.process(input_log)  # or call parser.parse / parser.match depending on the API
+
+# parsed is a ParserSchema. Inspect fields:
+print(parsed.template)   # matched template text
+print(parsed.variables)  # list of extracted parameters
+</code></pre>
+<p>Go back to <a href="../../">Index</a></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../template_matcher/" class="btn btn-neutral float-left" title="Template Matcher"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../json_parser/" class="btn btn-neutral float-right" title="Json Parser">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../template_matcher/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../json_parser/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+      <script src="../../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
