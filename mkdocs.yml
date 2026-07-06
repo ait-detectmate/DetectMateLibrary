@@ -16,6 +16,7 @@ nav:
     - Schemas: schemas.md
     - Parsers: parsers.md
     - Detectors: detectors.md
+    - Alert Aggregation: alert_aggregator.md
   - Parsers Methods:
     - Template Matcher: parsers/template_matcher.md
     - Template Tree Matcher: parsers/template_tree_matcher.md
@@ -27,6 +28,11 @@ nav:
     - Combo Detector: detectors/combo.md
     - New Event: detectors/new_event.md
     - Rule Based: detectors/rule_based.md
+    - BiGram Frequency: detectors/bigram_frequency.md
+    - CharSet: detectors/charset.md
+    - Value Range: detectors/value_range.md
+  - Alert Aggregation Methods:
+    - Basic Concat: alert_aggregators/basic_concatenation.md
   - Auxiliar:
     - Persistency: auxiliar/persistency.md
     - Data buffer: auxiliar/input_buffer.md
