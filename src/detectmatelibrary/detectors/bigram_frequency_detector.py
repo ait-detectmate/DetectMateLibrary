@@ -47,8 +47,14 @@ def _default_freq_tables() -> tuple[dict[str, dict[str, int]], dict[str, int]]:
 
 
 class BigramFrequencyDetectorConfig(CoreDetectorConfig):
-    # documentation see: https://github.com/ernstleierzopf/logdata-anomaly-miner/blob/main/source
-    # /root/usr/lib/logdata-anomaly-miner/aminer/analysis/EntropyDetector.py
+    """
+    @param prob_thresh limit for the average probability of character pairs for which anomalies are reported.
+    @param default_freqs initializes the probabilities with default values from
+           https://github.com/markbaggett/freq.
+    @param skip_repetitions boolean that determines whether only distinct values are used for character pair
+           counting. This counteracts the problem of imbalanced word frequencies that distort the frequency
+           table generated in a single aminer run.
+    """
     method_type: str = "bigram_frequency_detector"
     prob_thresh: float = 0.05
     default_freqs: bool = False
