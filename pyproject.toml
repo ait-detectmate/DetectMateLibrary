@@ -53,12 +53,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src", "."]
-include = [
-    "detectmatelibrary*",
-    "tests.detectmatelibrary",
-    "tests.detectmatelibrary.test_parsers",
-    "tests.detectmatelibrary.test_detectors",
-]
+include = ["detectmatelibrary*"]
 
 [project.scripts]
 mate = "detectmatelibrary_tools.workspace.create_workspace:main"
