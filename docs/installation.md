@@ -32,6 +32,7 @@ Optional Dependency Groups https://pydevtools.com/handbook/explanation/what-are-
 | `llm` | `openai`, `tenacity`, `scipy`, `scikit-learn`, `tiktoken`, `pandas` | Using the `LogBatcherParser` (LLM-based log parsing) |
 | `dataframes` | `pandas`, `polars` | Using `EventDataFrame`, `ChunkedEventDataFrame`, or `DataNormalizer` |
 | `polars-rtcompat` | `polars[rtcompat]` | Running on older CPUs without AVX2 support (e.g. some VMs or embedded hardware); not needed for standard deployments |
+| `full` | `llm` + `dataframes` + `polars-rtcompat` | Installing every optional extra at once |
 
 Install an extra with `uv sync`:
 
@@ -53,13 +54,21 @@ Combine multiple extras if needed:
 uv sync --extra dataframes --extra polars-rtcompat
 ```
 
+Or install everything at once with the `full` extra:
+
+```bash
+uv sync --extra full
+# or
+uv pip install "detectmatelibrary[full]"
+```
+
 ## Developer setup
 
 **Purpose**: prepare a development environment with test and lint tooling.
 
 ### Step 1: Install Python development dependencies & pre-commit hooks
 
-- Install dev dependencies (testing, linters, formatters):
+- Install dev dependencies (testing, linters, formatters). The `dev` group also pulls in the `full` extra, so every optional dependency (LLM, dataframes, polars-rtcompat) is installed too:
 
 ```bash
 uv sync --dev
@@ -101,21 +110,21 @@ protoc \
 
 ### Step 3: Run unit tests
 
-The full test suite covers dataframe and LLM-parser code, so both extras must be present. Run all tests with:
+The full test suite covers dataframe and LLM-parser code, so all extras must be present. Since `uv sync --dev` already installs the `full` extra, run all tests with:
 
 ```bash
-uv run --dev --extra dataframes --extra llm pytest -s
+uv run --dev pytest -s
 ```
 
 Run tests with coverage (terminal summary):
 
 ```bash
-uv run --dev --extra dataframes --extra llm pytest --cov=. --cov-report=term-missing
+uv run --dev pytest --cov=. --cov-report=term-missing
 ```
 
 **Tips**:
 
-- Run a single test or directory to speed iteration: `uv run --dev --extra dataframes --extra llm pytest tests/some_test.py::test_name -q`
+- Run a single test or directory to speed iteration: `uv run --dev pytest tests/some_test.py::test_name -q`
 
 ## Troubleshooting
 

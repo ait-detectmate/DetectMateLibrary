@@ -36,8 +36,8 @@ uv run prek run -a
 
 ## Add tests and run pytest
 
-In order to run the tests run the following command:
+In order to run the tests run the following command. The `dev` group already includes the `full` extra, so all optional dependencies are installed automatically:
 
 ```bash
-uv run --dev --extra dataframes --extra llm pytest
+uv run --dev pytest
 ```
