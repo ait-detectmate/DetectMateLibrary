@@ -1,7 +1,7 @@
 from detectmatelibrary.helper.from_to import From, To, FromTo
 from detectmatelibrary._testutils.dummy_detector import DummyDetector
 from detectmatelibrary._testutils.dummy_parser import DummyParser
-from tests.test_data import AUDIT_TEMPLATES, DUMMY_TXT_PATH, DUMMY_TXT_PATH2, DUMMY_JSON_PATH,\
+from tests.test_data import AUDIT_TEMPLATES, DUMMY_TXT_PATH, DUMMY_TXT_PATH2, DUMMY_JSON_PATH, \
     DUMMY_JSON_PATH2, DUMMY_YAML_PATH, DUMMY_YAML_PATH2
 import detectmatelibrary.schemas as schemas
 import detectmateperformance as dmp
