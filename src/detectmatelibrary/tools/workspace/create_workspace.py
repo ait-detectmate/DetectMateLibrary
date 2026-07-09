@@ -139,9 +139,10 @@ def create_workspace(type_: str, name: str, target_dir: Path) -> None:
                 print(f"! Warning: {file_name} not found in project root.")
     else:
         try:
-            copy_file(next(PROJECT_ROOT.parent.glob("detectmatelibrary-*/licenses/LICENSE.md")), workspace_root / "LICENSE.md")
+            copy_file(next(PROJECT_ROOT.parent.glob("detectmatelibrary-*/licenses/LICENSE.md")),
+                      workspace_root / "LICENSE.md")
         except StopIteration:
-            print(f"! Warning: LICENSE.md not found in project root or distribution files.")
+            print("! Warning: LICENSE.md not found in project root or distribution files.")
 
     # Create pyproject.toml
     create_pyproject(name, type_, workspace_root)
