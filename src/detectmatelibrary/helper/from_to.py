@@ -98,7 +98,7 @@ class _Polars:
     ) -> Iterator[BaseSchema]:
 
         def __generator():  # type: ignore
-            batch_size, offset = int(2e9), 0
+            batch_size, offset = int(2e6), 0
 
             while True:
                 df_batch = df.slice(offset, batch_size).collect()
