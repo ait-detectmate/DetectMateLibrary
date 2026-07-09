@@ -26,6 +26,7 @@ dev = [
     "prek>=0.3.10",
     "pytest>=8.4.2",
     "pytest-cov>=6.2.1",
+    "detectmatelibrary[full]",
 ]
 
 [project.optional-dependencies]
@@ -43,6 +44,12 @@ dataframes = [
 ]
 polars-rtcompat = [
     "polars[rtcompat]>=1.38.1",
+]
+# install all optional extras at once:  uv pip install detectmatelibrary[full]
+full = [
+    "detectmatelibrary[llm]",
+    "detectmatelibrary[dataframes]",
+    "detectmatelibrary[polars-rtcompat]",
 ]
 
 [tool.setuptools.dynamic]
