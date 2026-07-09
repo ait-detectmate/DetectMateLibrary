@@ -65,6 +65,63 @@ class To:
         return out_
 
 
+class _Polars:
+    @staticmethod
+    def with_dataframe(
+        component: CoreComponent,
+        df: pl.DataFrame,
+        renames: dict[str, str],
+        do_process: bool = True,
+    ) -> Iterator[BaseSchema]:
+
+        def __generator():  # type: ignore
+            for i in range(len(df)):
+                data = df.row(i, named=True)
+                if len(df_vars) > 0:
+                    data["logFormatVariables"] = df_vars.row(i, named=True)
+                data["logID"] = str(i)
+                schema = component.input_schema(data)
+                yield schema
+
+        columns = list(renames.values())
+        format_vars = [colum for colum in df.columns if colum not in columns]
+        df_vars, df = df[format_vars], df[columns]
+
+        return From._yield(component, __generator(), do_process=do_process)  # type: ignore
+
+    @staticmethod
+    def with_lazyframe(
+        component: CoreComponent,
+        df: pl.LazyFrame,
+        renames: dict[str, str],
+        do_process: bool = True,
+    ) -> Iterator[BaseSchema]:
+
+        def __generator():  # type: ignore
+            batch_size, offset = int(2e9), 0
+
+            while True:
+                df_batch = df.slice(offset, batch_size).collect()
+                batch_vars = df_vars.slice(offset, batch_size).collect()
+
+                if df_batch.is_empty():
+                    break
+
+                for i in range(len(df_batch)):
+                    data = df_batch.row(i, named=True)
+                    data_var = batch_vars.row(i, named=True)
+                    if len(data_var) > 0:
+                        data["logFormatVariables"] = data_var
+                    data["logID"] = str(i)
+                    schema = component.input_schema(data)
+                    yield schema
+
+        format_vars = [colum for colum in df.columns if colum not in list(renames.values())]
+        df_vars, df = df.select(format_vars), df.select(list(renames.values()))
+
+        return From._yield(component, __generator(), do_process=do_process)  # type: ignore
+
+
 class From:
     @staticmethod
     def _yield(
@@ -132,61 +189,6 @@ class From:
         return From._yield(component, __generator(), do_process=do_process)  # type: ignore
 
     @staticmethod
-    def __polars_with_dataframe(
-        component: CoreComponent,
-        df: pl.DataFrame,
-        renames: dict[str, str],
-        do_process: bool = True,
-    ) -> Iterator[BaseSchema]:
-
-        def __generator():  # type: ignore
-            for i in range(len(df)):
-                data = df.row(i, named=True)
-                if len(df_vars) > 0:
-                    data["logFormatVariables"] = df_vars.row(i, named=True)
-                data["logID"] = str(i)
-                schema = component.input_schema(data)
-                yield schema
-
-        columns = list(renames.values())
-        format_vars = [colum for colum in df.columns if colum not in columns]
-        df_vars, df = df[format_vars], df[columns]
-
-        return From._yield(component, __generator(), do_process=do_process)  # type: ignore
-
-    @staticmethod
-    def __polars_with_lazyframe(
-        component: CoreComponent,
-        df: pl.LazyFrame,
-        renames: dict[str, str],
-        do_process: bool = True,
-    ) -> Iterator[BaseSchema]:
-
-        def __generator():  # type: ignore
-            batch_size, offset = int(2e9), 0
-
-            while True:
-                df_batch = df.slice(offset, batch_size).collect()
-                batch_vars = df_vars.slice(offset, batch_size).collect()
-
-                if df_batch.is_empty():
-                    break
-
-                for i in range(len(df_batch)):
-                    data = df_batch.row(i, named=True)
-                    data_var = batch_vars.row(i, named=True)
-                    if len(data_var) > 0:
-                        data["logFormatVariables"] = data_var
-                    data["logID"] = str(i)
-                    schema = component.input_schema(data)
-                    yield schema
-
-        format_vars = [colum for colum in df.columns if colum not in list(renames.values())]
-        df_vars, df = df.select(format_vars), df.select(list(renames.values()))
-
-        return From._yield(component, __generator(), do_process=do_process)  # type: ignore
-
-    @staticmethod
     def polars(
         component: CoreComponent,
         df: pl.DataFrame | pl.LazyFrame,
@@ -202,9 +204,9 @@ class From:
 
         df = df.rename(renames)
 
-        return From.__polars_with_dataframe(
+        return _Polars.with_dataframe(
             component=component, df=df, do_process=do_process, renames=renames
-        ) if isinstance(df, pl.DataFrame) else From.__polars_with_lazyframe(
+        ) if isinstance(df, pl.DataFrame) else _Polars.with_lazyframe(
             component=component, df=df, do_process=do_process, renames=renames
         )
 
