@@ -7,7 +7,7 @@ import os
 
 import polars as pl
 
-from typing import Iterator, overload
+from typing import Iterator
 import yaml
 import json
 
@@ -135,8 +135,8 @@ class From:
     def __polars_with_dataframe(
         component: CoreComponent,
         df: pl.DataFrame,
+        renames: dict[str, str],
         do_process: bool = True,
-        renames: dict[str, str] | None = None
     ) -> Iterator[BaseSchema]:
 
         def __generator():  # type: ignore
@@ -148,14 +148,7 @@ class From:
                 schema = component.input_schema(data)
                 yield schema
 
-        renames = {
-            "Content": "log", "ParamList": "variables", "EventIDs": "EventID", "Templates": "template"
-        } if renames is None else renames
-        if "ParamList" not in df.columns and "ParamList" in renames:
-            del renames["ParamList"]
-
         columns = list(renames.values())
-        df = df.rename(renames)
         format_vars = [colum for colum in df.columns if colum not in columns]
         df_vars, df = df[format_vars], df[columns]
 
@@ -165,8 +158,8 @@ class From:
     def __polars_with_lazyframe(
         component: CoreComponent,
         df: pl.LazyFrame,
+        renames: dict[str, str],
         do_process: bool = True,
-        renames: dict[str, str] | None = None
     ) -> Iterator[BaseSchema]:
 
         def __generator():  # type: ignore
@@ -185,38 +178,13 @@ class From:
                     if len(data_var) > 0:
                         data["logFormatVariables"] = data_var
                     data["logID"] = str(i)
-                    print(data)
                     schema = component.input_schema(data)
                     yield schema
 
-        renames = {
-            "Content": "log", "ParamList": "variables", "EventIDs": "EventID", "Templates": "template"
-        } if renames is None else renames
-        df = df.rename(renames)
         format_vars = [colum for colum in df.columns if colum not in list(renames.values())]
         df_vars, df = df.select(format_vars), df.select(list(renames.values()))
 
         return From._yield(component, __generator(), do_process=do_process)  # type: ignore
-
-    @overload
-    @staticmethod
-    def polars(
-        component: CoreComponent,
-        df: pl.DataFrame,
-        do_process: bool = True,
-        renames: dict[str, str] | None = None
-    ) -> Iterator[BaseSchema]:
-        ...
-
-    @overload
-    @staticmethod
-    def polars(  # type: ignore
-        component: CoreComponent,
-        df: pl.LazyFrame,
-        do_process: bool = True,
-        renames: dict[str, str] | None = None
-    ) -> Iterator[BaseSchema]:
-        ...
 
     @staticmethod
     def polars(
@@ -225,6 +193,14 @@ class From:
         do_process: bool = True,
         renames: dict[str, str] | None = None
     ) -> Iterator[BaseSchema]:
+
+        renames = {
+            "Content": "log", "ParamList": "variables", "EventIDs": "EventID", "Templates": "template"
+        } if renames is None else renames
+        if "ParamList" not in df.columns and "ParamList" in renames:
+            del renames["ParamList"]
+
+        df = df.rename(renames)
 
         return From.__polars_with_dataframe(
             component=component, df=df, do_process=do_process, renames=renames
@@ -344,7 +320,7 @@ class FromTo:
     @staticmethod
     def polars2binary_file(
         component: CoreComponent,
-        df: pl.DataFrame,
+        df: pl.DataFrame | pl.LazyFrame,
         out_path: str,
         renames: dict[str, str] | None = None
     ) -> Iterator[BaseSchema]:
@@ -356,7 +332,7 @@ class FromTo:
     @staticmethod
     def polars2json(
         component: CoreComponent,
-        df: pl.DataFrame,
+        df: pl.DataFrame | pl.LazyFrame,
         out_path: str,
         renames: dict[str, str] | None = None
     ) -> Iterator[BaseSchema]:
@@ -368,7 +344,7 @@ class FromTo:
     @staticmethod
     def polars2yaml(
         component: CoreComponent,
-        df: pl.DataFrame,
+        df: pl.DataFrame | pl.LazyFrame,
         out_path: str,
         renames: dict[str, str] | None = None
     ) -> Iterator[BaseSchema]:
