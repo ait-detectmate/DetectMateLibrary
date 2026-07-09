@@ -5,7 +5,7 @@ from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
-from tests.test_pipelines.test_configuration_engine import AUDIT_LOG
+from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
 
 # Set time test mode for consistent timestamps
 time_test_mode()
@@ -548,7 +548,7 @@ _PARSER_CONFIG = {
             "method_type": "matcher_parser",
             "auto_config": False,
             "log_format": "type=<Type> msg=audit(<Time>): <Content>",
-            "params": {"path_templates": "src/detectmatelibrary/testutils/data/audit_templates.txt"},
+            "params": {"path_templates": AUDIT_TEMPLATES},
         }
     }
 }
@@ -562,15 +562,15 @@ class TestNewValueComboDetectorEndToEndWithRealData:
 
         logs = list(From.log(pars, in_path=AUDIT_LOG, do_process=True))
 
-        for log in logs[:1800]:
+        for log in logs[:TRAIN_UNTIL]:
             detector.configure(log)
         detector.set_configuration()
 
-        for log in logs[:1800]:
+        for log in logs[:TRAIN_UNTIL]:
             detector.train(log)
 
         detected_ids: set[str] = set()
-        for log in logs[1800:]:
+        for log in logs[TRAIN_UNTIL:]:
             output = schemas.DetectorSchema()
             if detector.detect(log, output_=output):
                 detected_ids.add(log["logID"])

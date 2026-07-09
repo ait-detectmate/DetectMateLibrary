@@ -80,7 +80,7 @@ cfg = {
         "MatcherParser": {
             "method_type": "matcher_parser",
             "params": {
-                "path_templates": "src/detectmatelibrary/testutils/data/test_templates.txt",
+                "path_templates": "tests/test_data/test_templates.txt",
                 "remove_spaces": True,
                 "remove_punctuation": True,
                 "lowercase": True

@@ -1,11 +1,9 @@
-
 from detectmatelibrary.common.detector import CoreDetector, BufferMode
 from detectmatelibrary.common.parser import CoreParser
-
 import detectmatelibrary.schemas._classes as schema_classes
 from detectmatelibrary.helper.from_to import From
-
 import pytest
+from tests.test_data import LOG_PATH
 
 
 config = {
@@ -24,8 +22,6 @@ config = {
         }
     },
 }
-
-log_path = "src/detectmatelibrary/testutils/data/logs.log"
 
 
 class MockupBadParser(CoreParser):
@@ -51,7 +47,7 @@ class TestCaseBasicPipelines:
 
         parser = MockupBadParser(name="dummy_parser", config=config)
 
-        log = next(From.log(parser, log_path, do_process=False))
+        log = next(From.log(parser, LOG_PATH, do_process=False))
         msg = log.log
         parser.process(log)
 
@@ -67,4 +63,4 @@ class TestCaseBasicPipelines:
         )
 
         with pytest.raises(schema_classes.FieldNotFound):
-            next(From.log(detector, log_path))
+            next(From.log(detector, LOG_PATH))

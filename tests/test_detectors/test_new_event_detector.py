@@ -16,7 +16,7 @@ import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
 from detectmatelibrary.common._core_op._fit_logic import ConfigState, TrainState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
-from tests.test_pipelines.test_configuration_engine import AUDIT_LOG
+from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
 
 
 # Set time test mode for consistent timestamps
@@ -144,7 +144,7 @@ _PARSER_CONFIG = {
                 "remove_spaces": True,
                 "remove_punctuation": True,
                 "lowercase": True,
-                "path_templates": "src/detectmatelibrary/testutils/data/audit_templates.txt",
+                "path_templates": AUDIT_TEMPLATES,
             },
         }
     }
@@ -160,15 +160,15 @@ class TestNewEventDetectorEndToEnd:
 
         logs = list(From.log(pars, in_path=AUDIT_LOG, do_process=True))
 
-        for log in logs[:1800]:
+        for log in logs[:TRAIN_UNTIL]:
             detector.configure(log)
         detector.set_configuration()
 
-        for log in logs[:1800]:
+        for log in logs[:TRAIN_UNTIL]:
             detector.train(log)
 
         detected_ids: set[str] = set()
-        for i, log in enumerate(logs[1800:]):
+        for i, log in enumerate(logs[TRAIN_UNTIL:]):
             output = schemas.DetectorSchema()
             if detector.detect(log, output_=output):
                 detected_ids.add(log["logID"])
@@ -186,23 +186,23 @@ class TestNewEventDetectorAutoConfig:
 
         logs = list(From.log(pars, in_path=AUDIT_LOG, do_process=True))
 
-        # Phase 1: configure — keep configuring for logs[:1800]
+        # Phase 1: configure — keep configuring for logs[:TRAIN_UNTIL]
         detector.fitlogic.configure_state = ConfigState.KEEP_CONFIGURE
-        for log in logs[:1800]:
+        for log in logs[:TRAIN_UNTIL]:
             detector.process(log)
 
         # Transition: stop configure so next process() call triggers set_configuration()
         detector.fitlogic.configure_state = ConfigState.STOP_CONFIGURE
 
-        # Phase 2: train — keep training for logs[:1800]
+        # Phase 2: train — keep training for logs[:TRAIN_UNTIL]
         detector.fitlogic.train_state = TrainState.KEEP_TRAINING
-        for log in logs[:1800]:
+        for log in logs[:TRAIN_UNTIL]:
             detector.process(log)
 
         # Phase 3: detect — stop training so process() only calls detect()
         detector.fitlogic.train_state = TrainState.STOP_TRAINING
         detected_ids: set[str] = set()
-        for log in logs[1800:]:
+        for log in logs[TRAIN_UNTIL:]:
             if detector.process(log) is not None:
                 detected_ids.add(log["logID"])
 
@@ -234,14 +234,14 @@ class TestNewEventDetectorGlobalInstances:
 
         logs = list(From.log(pars, in_path=AUDIT_LOG, do_process=True))
 
-        for log in logs[:1800]:
+        for log in logs[:TRAIN_UNTIL]:
             detector.train(log)
 
         # Global tracker must be populated under the sentinel event ID
         assert GLOBAL_EVENT_ID in detector.persistency.get_events_seen()
 
         detected_ids: set[str] = set()
-        for log in logs[1800:]:
+        for log in logs[TRAIN_UNTIL:]:
             output = schemas.DetectorSchema()
             if detector.detect(log, output_=output):
                 assert all(key.startswith("Global -") for key in output["alertsObtain"])

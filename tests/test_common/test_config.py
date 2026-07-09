@@ -1,5 +1,3 @@
-
-
 from detectmatelibrary.common._config._compile import (
     ConfigMethods,
     MethodNotFoundError,
@@ -8,18 +6,16 @@ from detectmatelibrary.common._config._compile import (
     MethodTypeNotMatch,
     AutoConfigWarning,
 )
-from detectmatelibrary.common._config._formats import (
-    EventsConfig, _EventConfig
-)
+from detectmatelibrary.common._config._formats import EventsConfig, _EventConfig
 from detectmatelibrary.common._config import BasicConfig
-
 from pydantic import ValidationError
+from tests.test_data import TEST_CONFIG
 import pytest
 import yaml
 
 
 def load_test_config() -> dict:
-    with open("src/detectmatelibrary/testutils/data/test_config.yaml", 'r') as file:
+    with open(TEST_CONFIG, 'r') as file:
         return yaml.safe_load(file)
 
 

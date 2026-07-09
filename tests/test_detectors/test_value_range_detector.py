@@ -20,7 +20,7 @@ from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
 from detectmatelibrary.tools.logging import logger
-from tests.test_pipelines.test_configuration_engine import AUDIT_LOG
+from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
 # Set time test mode for consistent timestamps
 time_test_mode()
 
@@ -315,7 +315,7 @@ _PARSER_CONFIG = {
                 "remove_spaces": True,
                 "remove_punctuation": True,
                 "lowercase": True,
-                "path_templates": "src/detectmatelibrary/testutils/data/audit_templates.txt",
+                "path_templates": AUDIT_TEMPLATES,
             },
         }
     }
@@ -331,17 +331,17 @@ class TestValueRangeDetectorEndToEnd:
 
         logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
 
-        for log in logs[:1800]:
+        for log in logs[:TRAIN_UNTIL]:
             detector.configure(log)
         detector.set_configuration()
 
-        for log in logs[:1800]:
+        for log in logs[:TRAIN_UNTIL]:
             logger.setLevel(logging.CRITICAL)
             detector.train(log)
             logger.setLevel(logging.DEBUG)
 
         detected_ids: set[str] = set()
-        for log in logs[1800:]:
+        for log in logs[TRAIN_UNTIL:]:
             output = schemas.DetectorSchema()
             if detector.detect(log, output_=output):
                 detected_ids.add(log["logID"])
@@ -360,17 +360,17 @@ class TestValueRangeDetectorAutoConfig:
 
         logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
 
-        # Phase 1: configure — keep configuring for logs[:1800]
+        # Phase 1: configure — keep configuring for logs[:TRAIN_UNTIL]
         detector.fitlogic.configure_state = ConfigState.KEEP_CONFIGURE
-        for log in logs[:1800]:
+        for log in logs[:TRAIN_UNTIL]:
             detector.process(log)
 
         # Transition: stop configure so next process() call triggers set_configuration()
         detector.fitlogic.configure_state = ConfigState.STOP_CONFIGURE
 
-        # Phase 2: train — keep training for logs[:1800]
+        # Phase 2: train — keep training for logs[:TRAIN_UNTIL]
         detector.fitlogic.train_state = TrainState.KEEP_TRAINING
-        for log in logs[:1800]:
+        for log in logs[:TRAIN_UNTIL]:
             logger.setLevel(logging.CRITICAL)
             detector.process(log)
             logger.setLevel(logging.DEBUG)
@@ -378,7 +378,7 @@ class TestValueRangeDetectorAutoConfig:
         # Phase 3: detect — stop training so process() only calls detect()
         detector.fitlogic.train_state = TrainState.STOP_TRAINING
         detected_ids: set[str] = set()
-        for log in logs[1800:]:
+        for log in logs[TRAIN_UNTIL:]:
             if detector.process(log) is not None:
                 detected_ids.add(log["logID"])
 
@@ -411,14 +411,14 @@ class TestValueRangeDetectorGlobalInstances:
 
         logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
 
-        for log in logs[:1800]:
+        for log in logs[:TRAIN_UNTIL]:
             detector.train(log)
 
         # Global tracker must be populated under the sentinel event ID
         assert GLOBAL_EVENT_ID in detector.persistency.get_events_data()
 
         detected_ids: set[str] = set()
-        for log in logs[1800:]:
+        for log in logs[TRAIN_UNTIL:]:
             output = schemas.DetectorSchema()
             if detector.detect(log, output_=output):
                 assert all(key.startswith("Global -") for key in output["alertsObtain"])

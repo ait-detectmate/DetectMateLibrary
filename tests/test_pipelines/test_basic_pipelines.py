@@ -1,13 +1,11 @@
 from detectmatelibrary.common.detector import CoreDetector, BufferMode
 from detectmatelibrary.common.parser import CoreParser
-
 from detectmatelibrary.detectors.new_value_combo_detector import NewValueComboDetector
 from detectmatelibrary.detectors.new_value_detector import NewValueDetector
 from detectmatelibrary.detectors.random_detector import RandomDetector
 from detectmatelibrary.parsers.template_matcher import MatcherParser
-
 from detectmatelibrary.helper.from_to import From
-
+from tests.test_data import LOG_PATH, TEST_CONFIG
 import yaml
 
 
@@ -44,9 +42,6 @@ config = {
 }
 
 
-log_path = "src/detectmatelibrary/testutils/data/logs.log"
-
-
 class TestCaseBasicPipelines:
     """This pipelines should not crash."""
     def test_basic_pipeline(self) -> None:
@@ -58,7 +53,7 @@ class TestCaseBasicPipelines:
             buffer_size=None,
         )
 
-        assert (parsed_log := next(From.log(parser, log_path))) is not None
+        assert (parsed_log := next(From.log(parser, LOG_PATH))) is not None
         assert detector.process(parsed_log) is not None
 
     def test_window_pipeline(self) -> None:
@@ -70,7 +65,7 @@ class TestCaseBasicPipelines:
             buffer_mode=BufferMode.WINDOW,
             buffer_size=3,
         )
-        gen = From.log(parser, log_path)
+        gen = From.log(parser, LOG_PATH)
         for _ in range(2):
             parsed_log = next(gen)
             assert detector.process(parsed_log) is None
@@ -88,7 +83,7 @@ class TestCaseBasicPipelines:
             buffer_size=3,
         )
 
-        gen = From.log(parser, log_path)
+        gen = From.log(parser, LOG_PATH)
         for _ in range(2):
             parsed_log = next(gen)
             assert detector.process(parsed_log) is None
@@ -99,7 +94,7 @@ class TestCaseBasicPipelines:
 
 class TestExamples:
     def test_config_example(self) -> None:
-        with open("src/detectmatelibrary/testutils/data/test_config.yaml", 'r') as file:
+        with open(TEST_CONFIG, 'r') as file:
             config = yaml.safe_load(file)
 
         # Nothing should crash

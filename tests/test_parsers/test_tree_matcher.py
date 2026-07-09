@@ -1,6 +1,7 @@
 """Most of the functionality is test it in DetectMatePerformance."""
 from detectmatelibrary.parsers.tree_matcher import TemplateCppTreeMatcher
 from detectmatelibrary import schemas
+from tests.test_data import TEST_TEMPLATES
 
 
 test_template = [
@@ -33,7 +34,7 @@ class TestMatcherParserBasic:
             "parsers": {
                 "TreeMatcher": {
                     "method_type": "tree_matcher",
-                    "path_templates": "src/detectmatelibrary/testutils/data/test_templates.txt"
+                    "path_templates": TEST_TEMPLATES
                 }
             }
         }

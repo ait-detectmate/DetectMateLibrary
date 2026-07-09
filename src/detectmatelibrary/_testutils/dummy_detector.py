@@ -1,9 +1,6 @@
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
-
 from detectmatelibrary.utils.data_buffer import BufferMode
-
 from detectmatelibrary import schemas
-
 from typing import List, Any
 
 
