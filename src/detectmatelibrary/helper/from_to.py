@@ -168,17 +168,17 @@ class From:
         do_process: bool = True,
         renames: dict[str, str] | None = None
     ) -> Iterator[BaseSchema]:
-         
+
         def __generator():  # type: ignore
             batch_size, offset = int(2e9), 0
 
             while True:
                 df_batch = df.slice(offset, batch_size).collect()
                 batch_vars = df_vars.slice(offset, batch_size).collect()
-                
+
                 if df_batch.is_empty():
                     break
-        
+
                 for i in range(len(df_batch)):
                     data = df_batch.row(i, named=True)
                     data_var = batch_vars.row(i, named=True)
@@ -189,7 +189,6 @@ class From:
                     schema = component.input_schema(data)
                     yield schema
 
-        columns = df.collect_schema().names()
         renames = {
             "Content": "log", "ParamList": "variables", "EventIDs": "EventID", "Templates": "template"
         } if renames is None else renames
@@ -198,7 +197,7 @@ class From:
         df_vars, df = df.select(format_vars), df.select(list(renames.values()))
 
         return From._yield(component, __generator(), do_process=do_process)  # type: ignore
-        
+
     @overload
     @staticmethod
     def polars(
@@ -211,7 +210,7 @@ class From:
 
     @overload
     @staticmethod
-    def polars(
+    def polars(  # type: ignore
         component: CoreComponent,
         df: pl.LazyFrame,
         do_process: bool = True,
