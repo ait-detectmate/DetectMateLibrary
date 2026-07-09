@@ -63,6 +63,7 @@ ignore_errors = true
 
 [tool.setuptools]
 include-package-data = true
+license-files = ["LICENSE.md"]
 
 [tool.setuptools.package-data]
 detectmatelibrary = [
