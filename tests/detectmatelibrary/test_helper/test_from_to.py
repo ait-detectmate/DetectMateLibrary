@@ -173,8 +173,66 @@ class TestCaseFrom:
             assert parsed2[field] == schema2[field], field
         assert parsed2["logID"] == "1"
 
+    def test_frompolars_lazy(self):
+        table = pl.LazyFrame({
+            "Type": ["A", "B"],
+            "Content": ["hello there", "general kenobi"],
+            "ParamList": [["a", "b"], ["c", "d"]],
+            "Templates": ["hello <*>", "<*> kenobi"],
+            "EventIDs": [0, 1]
+        })
+        gen = From.polars(DummyDetector(), df=table, do_process=False)
+
+        parsed1 = next(gen)
+        schema1 = schemas.ParserSchema({
+            "log": "hello there",
+            "variables": ["a", "b"],
+            "template": "hello <*>",
+            "EventID": 0,
+            "logFormatVariables": {"Type": "A"}
+        })
+        for field in ["log", "variables", "template", "EventID", "logFormatVariables"]:
+            assert parsed1[field] == schema1[field], field
+        assert parsed1["logID"] == "0"
+
+        parsed2 = next(gen)
+        schema2 = schemas.ParserSchema({
+            "log": "general kenobi",
+            "variables": ["c", "d"],
+            "template": "<*> kenobi",
+            "EventID": 1,
+            "logFormatVariables": {"Type": "B"}
+        })
+        for field in ["log", "variables", "template", "EventID", "logFormatVariables"]:
+            assert parsed2[field] == schema2[field], field
+        assert parsed2["logID"] == "1"
+
     def test_frompolars_rename(self):
         table = pl.DataFrame({
+            "Type": ["A", "B"],
+            "Content": ["hello there", "general kenobi"],
+            "Vars": [["a", "b"], ["c", "d"]],
+            "Templates": ["hello <*>", "<*> kenobi"],
+            "EventIDs": [0, 1]
+        })
+        renames = {
+            "Content": "log", "Vars": "variables", "EventIDs": "EventID", "Templates": "template"
+        }
+        gen = From.polars(DummyDetector(), df=table, do_process=False, renames=renames)
+
+        parsed1 = next(gen)
+        schema1 = schemas.ParserSchema({
+            "log": "hello there",
+            "variables": ["a", "b"],
+            "template": "hello <*>",
+            "EventID": 0,
+            "logFormatVariables": {"Type": "A"}
+        })
+        for field in ["log", "variables", "template", "EventID", "logFormatVariables"]:
+            assert parsed1[field] == schema1[field], field
+
+    def test_frompolars_rename_vars(self):
+        table = pl.LazyFrame({
             "Type": ["A", "B"],
             "Content": ["hello there", "general kenobi"],
             "Vars": [["a", "b"], ["c", "d"]],
