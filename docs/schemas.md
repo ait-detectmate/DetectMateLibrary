@@ -110,6 +110,22 @@ Fields:
 | receivedTimestamp | int32 | When inputs were received by detector. |
 | alertsObtain | map<string,string> | Additional alert metadata. |
 
+### OutputSchema
+Output from Alert Aggregations (alerts / findings).
+
+Fields:
+
+| Field | Type | Notes |
+|---|---|---|
+| detectorIDs | repeated string | List of detector instance identifier. |
+| detectorTypes | string | List of type/name of detectors. |
+| alertIDs | string | repeated list of unique alert identifier. |
+| outputTimestamp | int32 | When the aggregation was produced. |
+| logIDs | repeated string | IDs of logs related to the alerts. |
+| extractedTimestamps | repeated int32 | Timestamps extracted from logs. |
+| description | string | Human-readable description of the alert aggregation. |
+| alertsObtain | map<string,string> | Additional alert metadata from the alert aggregation. |
+
 ## Tutorial
 
 Small tutorials of the different schemas.
