@@ -230,28 +230,43 @@ dependencies = [
     { name = "fsspec" },
     { name = "msgpack" },
     { name = "numpy" },
-    { name = "openai" },
-    { name = "pandas" },
-    { name = "polars" },
     { name = "protobuf", version = "6.33.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.14'" },
     { name = "protobuf", version = "7.34.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.14'" },
     { name = "pyarrow" },
     { name = "pydantic" },
     { name = "pyyaml" },
     { name = "regex" },
+]
+
+[package.optional-dependencies]
+dataframes = [
+    { name = "pandas" },
+    { name = "polars" },
+]
+full = [
+    { name = "openai" },
+    { name = "pandas" },
+    { name = "polars", extra = ["rtcompat"] },
     { name = "scikit-learn" },
     { name = "scipy" },
     { name = "tenacity" },
     { name = "tiktoken" },
 ]
-
-[package.optional-dependencies]
+llm = [
+    { name = "openai" },
+    { name = "pandas" },
+    { name = "scikit-learn" },
+    { name = "scipy" },
+    { name = "tenacity" },
+    { name = "tiktoken" },
+]
 polars-rtcompat = [
     { name = "polars", extra = ["rtcompat"] },
 ]
 
 [package.dev-dependencies]
 dev = [
+    { name = "detectmatelibrary", extra = ["full"] },
     { name = "mike" },
     { name = "prek" },
     { name = "pytest" },
@@ -260,28 +275,33 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "detectmateperformance", git = "https://github.com/ait-detectmate/DetectMatePerformance?rev=main" },
+    { name = "detectmatelibrary", extras = ["dataframes"], marker = "extra == 'full'" },
+    { name = "detectmatelibrary", extras = ["llm"], marker = "extra == 'full'" },
+    { name = "detectmatelibrary", extras = ["polars-rtcompat"], marker = "extra == 'full'" },
+    { name = "detectmateperformance", specifier = ">=0.1.0" },
     { name = "fsspec", specifier = ">=2024.1.0" },
     { name = "msgpack", specifier = ">=1.0.0" },
     { name = "numpy", specifier = ">=2.3.2" },
-    { name = "openai", specifier = ">=2.26.0" },
-    { name = "pandas", specifier = ">=2.3.2" },
-    { name = "polars", specifier = ">=1.40.0" },
+    { name = "openai", marker = "extra == 'llm'", specifier = ">=2.26.0" },
+    { name = "pandas", marker = "extra == 'dataframes'", specifier = ">=2.3.2" },
+    { name = "pandas", marker = "extra == 'llm'", specifier = ">=2.3.2" },
+    { name = "polars", marker = "extra == 'dataframes'", specifier = ">=1.40.1" },
     { name = "polars", extras = ["rtcompat"], marker = "extra == 'polars-rtcompat'", specifier = ">=1.38.1" },
     { name = "protobuf", specifier = ">=6.32.1" },
     { name = "pyarrow", specifier = ">=24.0.0" },
     { name = "pydantic", specifier = ">=2.13.3" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "regex", specifier = ">=2025.11.3" },
-    { name = "scikit-learn", specifier = ">=1.8.0" },
-    { name = "scipy", specifier = ">=1.17.1" },
-    { name = "tenacity", specifier = ">=9.1.4" },
-    { name = "tiktoken", specifier = ">=0.12.0" },
+    { name = "scikit-learn", marker = "extra == 'llm'", specifier = ">=1.8.0" },
+    { name = "scipy", marker = "extra == 'llm'", specifier = ">=1.17.1" },
+    { name = "tenacity", marker = "extra == 'llm'", specifier = ">=9.1.4" },
+    { name = "tiktoken", marker = "extra == 'llm'", specifier = ">=0.12.0" },
 ]
-provides-extras = ["polars-rtcompat"]
+provides-extras = ["llm", "dataframes", "polars-rtcompat", "full"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "detectmatelibrary", extras = ["full"] },
     { name = "mike", specifier = ">=2.2.0" },
     { name = "prek", specifier = ">=0.3.10" },
     { name = "pytest", specifier = ">=8.4.2" },
@@ -291,7 +311,7 @@ dev = [
 [[package]]
 name = "detectmateperformance"
 version = "0.1.0"
-source = { git = "https://github.com/ait-detectmate/DetectMatePerformance?rev=main#4d0d31b898712849fb2bca19089d64b9567e5aac" }
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "levenshtein" },
     { name = "numpy" },
@@ -299,6 +319,10 @@ dependencies = [
     { name = "pybind11" },
     { name = "setuptools" },
     { name = "tqdm" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e8/2b/7ff298303c5ba3ba4899d1f3854b214f63a4fac4eff191012f5608f5149e/detectmateperformance-0.1.0.tar.gz", hash = "sha256:2630d509e7e2bbe6b5bcc857e8f25dfae7d99e9e2cc52f5981da9171600531dc", size = 552409, upload-time = "2026-06-12T10:42:13.326Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/68/dd/3db227cd60d170203ab82dd2e670bcb50c6111769c39ac8dd64935fa4c1d/detectmateperformance-0.1.0-py3-none-any.whl", hash = "sha256:db70f239e53aa17a983f99948c9239c143744c03044eeae454f546fedbaf69a5", size = 557939, upload-time = "2026-06-12T10:42:11.526Z" },
 ]
 
 [[package]]
@@ -370,7 +394,6 @@ wheels = [
 
 [[package]]
 name = "idna"
-
 version = "3.15"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/82/77/7b3966d0b9d1d31a36ddf1746926a11dface89a83409bf1483f0237aa758/idna-3.15.tar.gz", hash = "sha256:ca962446ea538f7092a95e057da437618e886f4d349216d2b1e294abfdb65fdc", size = 199245, upload-time = "2026-05-12T22:45:57.011Z" }
