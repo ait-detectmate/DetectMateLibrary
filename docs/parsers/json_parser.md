@@ -31,7 +31,7 @@ parsers:
   JsonMatcherParser:
     method_type: matcher_parser
     params:
-      path_templates: tests/test_folder/test_templates.txt
+      path_templates: tests/test_data/test_templates.txt
 ```
 
 
@@ -91,7 +91,7 @@ config_dict = {
         "JsonMatcherParser": {
             "method_type": "matcher_parser",
             "params": {
-                "path_templates": "tests/test_templates.txt"
+                "path_templates": "tests/test_data/test_templates.txt"
             }
         }
     }
