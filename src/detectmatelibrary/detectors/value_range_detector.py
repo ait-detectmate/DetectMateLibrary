@@ -18,6 +18,7 @@ from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from typing_extensions import override
 from detectmatelibrary.tools.logging import logger
 from typing import Dict, List, Any
+import sys
 
 
 class ValueRangeDetectorConfig(CoreDetectorConfig):
@@ -82,7 +83,7 @@ class ValueRangeDetector(CoreDetector):
                 logger.error(f"Non-numeric value '{v}' appeared in {stage} of {self.__class__.__name__}"
                              f" with the name {self.name}.")
                 if not self.config.ignore_non_numerical_val:
-                    exit(1)
+                    sys.exit(1)
                 remove.append(k)
                 return False
         return True
