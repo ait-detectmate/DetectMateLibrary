@@ -6,7 +6,9 @@ from detectmatelibrary.utils.aux import get_timestamp
 from detectmatelibrary.utils import persistency
 from detectmatelibrary.common.persist import init_persistency
 
-from pydantic import BaseModel, ConfigDict
+import os
+
+from pydantic import BaseModel, ConfigDict, Field
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
@@ -14,7 +16,7 @@ from typing_extensions import override
 from typing import Dict, List, Optional, Any, cast
 
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
-from detectmatelibrary_tools.logging import logger
+from detectmatelibrary.tools.logging import logger
 
 
 _time_handler = TimeFormatHandler()
@@ -23,7 +25,15 @@ _time_handler = TimeFormatHandler()
 class PersistConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    path: str = "./state"
+    # Default honors systemd's $STATE_DIRECTORY (set by StateDirectory= in the
+    # unit file) so services persist to /var/lib/<dir> with no explicit path=.
+    # Falls back to CWD-relative ./state outside systemd. Explicit path= wins.
+    path: str = Field(
+        default_factory=lambda: next(
+            (p for p in os.environ.get("STATE_DIRECTORY", "").split(":") if p.strip()),
+            "./state",
+        )
+    )
     interval_seconds: int = 300
     events_until_save: int | None = None
     auto_load: bool = False

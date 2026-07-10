@@ -1,0 +1,20 @@
+on:
+  delete:
+
+permissions:
+  contents: write
+
+jobs:
+  recreate-development:
+    if: github.event.ref_type == 'branch' && github.event.ref == 'development'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - run: |
+          git checkout -b development
+          git push origin development
