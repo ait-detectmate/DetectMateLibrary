@@ -78,6 +78,8 @@
                   </li>
                   <li class="toctree-l1 current"><a class="reference internal current" href="#">LogBatcher Parser</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#installation">Installation</a>
+    </li>
     <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a>
@@ -182,6 +184,12 @@
 </tr>
 </tbody>
 </table>
+<h2 id="installation">Installation</h2>
+<p><code>LogBatcherParser</code> requires the <code>llm</code> optional extra:</p>
+<pre><code class="language-bash">pip install &quot;detectmatelibrary[llm]&quot;
+# or with uv
+uv sync --extra llm
+</code></pre>
 <h2 id="overview">Overview</h2>
 <p><code>LogBatcherParser</code> wraps the <a href="https://github.com/LogIntelligence/LogBatcher">LogBatcher</a> engine (MIT, LogIntelligence 2024) as a <code>CoreParser</code>. Parsing proceeds in two phases:</p>
 <ol>

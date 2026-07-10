@@ -49,6 +49,10 @@
                   <li class="toctree-l1 current"><a class="reference internal current" href="#">Installation</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#user-setup">User setup</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#optional-dependencies">Optional dependencies</a>
+    </li>
+        </ul>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#developer-setup">Developer setup</a>
         <ul>
@@ -179,11 +183,61 @@
 <p>To install it in a different venv as a library:</p>
 <pre><code class="language-bash">uv pip install --no-cache-dir &lt;directory_detectmatelibrary&gt;
 </code></pre>
+<h3 id="optional-dependencies">Optional dependencies</h3>
+<p>Not all features require the same dependencies. DetectMateLibrary uses optional extras so you only install what you need:
+Optional Dependency Groups https://pydevtools.com/handbook/explanation/what-are-optional-dependencies-and-dependency-groups/</p>
+<table>
+<thead>
+<tr>
+<th>Extra</th>
+<th>Installs</th>
+<th>When you need it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>llm</code></td>
+<td><code>openai</code>, <code>tenacity</code>, <code>scipy</code>, <code>scikit-learn</code>, <code>tiktoken</code>, <code>pandas</code></td>
+<td>Using the <code>LogBatcherParser</code> (LLM-based log parsing)</td>
+</tr>
+<tr>
+<td><code>dataframes</code></td>
+<td><code>pandas</code>, <code>polars</code></td>
+<td>Using <code>EventDataFrame</code>, <code>ChunkedEventDataFrame</code>, or <code>DataNormalizer</code></td>
+</tr>
+<tr>
+<td><code>polars-rtcompat</code></td>
+<td><code>polars[rtcompat]</code></td>
+<td>Running on older CPUs without AVX2 support (e.g. some VMs or embedded hardware); not needed for standard deployments</td>
+</tr>
+<tr>
+<td><code>full</code></td>
+<td><code>llm</code> + <code>dataframes</code> + <code>polars-rtcompat</code></td>
+<td>Installing every optional extra at once</td>
+</tr>
+</tbody>
+</table>
+<p>Install an extra with <code>uv sync</code>:</p>
+<pre><code class="language-bash">uv sync --extra dataframes
+</code></pre>
+<p>Or with <code>uv pip install</code> / pip when installing as a library:</p>
+<pre><code class="language-bash">uv pip install &quot;detectmatelibrary[dataframes]&quot;
+# or
+pip install &quot;detectmatelibrary[dataframes]&quot;
+</code></pre>
+<p>Combine multiple extras if needed:</p>
+<pre><code class="language-bash">uv sync --extra dataframes --extra polars-rtcompat
+</code></pre>
+<p>Or install everything at once with the <code>full</code> extra:</p>
+<pre><code class="language-bash">uv sync --extra full
+# or
+uv pip install &quot;detectmatelibrary[full]&quot;
+</code></pre>
 <h2 id="developer-setup">Developer setup</h2>
 <p><strong>Purpose</strong>: prepare a development environment with test and lint tooling.</p>
 <h3 id="step-1-install-python-development-dependencies-pre-commit-hooks">Step 1: Install Python development dependencies &amp; pre-commit hooks</h3>
 <ul>
-<li>Install dev dependencies (testing, linters, formatters):</li>
+<li>Install dev dependencies (testing, linters, formatters). The <code>dev</code> group also pulls in the <code>full</code> extra, so every optional dependency (LLM, dataframes, polars-rtcompat) is installed too:</li>
 </ul>
 <pre><code class="language-bash">uv sync --dev
 </code></pre>
@@ -212,7 +266,7 @@ protoc --version
 </code></pre>
 <p><strong>Result</strong>: generated Python modules appear under <code>src/detectmatelibrary/schemas/</code>. If you edit proto files, re-run this command and commit generated code if required by your workflow.</p>
 <h3 id="step-3-run-unit-tests">Step 3: Run unit tests</h3>
-<p>Run the full test suite:</p>
+<p>The full test suite covers dataframe and LLM-parser code, so all extras must be present. Since <code>uv sync --dev</code> already installs the <code>full</code> extra, run all tests with:</p>
 <pre><code class="language-bash">uv run --dev pytest -s
 </code></pre>
 <p>Run tests with coverage (terminal summary):</p>
