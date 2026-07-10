@@ -1,2 +1,0 @@
-EventId,EventTemplate
-login_failure,"pid=<pid> uid=<uid> auid=<auid> ses=<ses> msg='op=PAM:<op> acct=<acct>"
