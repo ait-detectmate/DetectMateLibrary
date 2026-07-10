@@ -7,7 +7,8 @@ from .utils import create_readme, create_pyproject, normalize_package_name
 
 # resolve paths relative to this file
 BASE_DIR = Path(__file__).resolve().parent.parent  # tools/
-PROJECT_ROOT = BASE_DIR.parent.parent.parent      # root of project
+PROJECT_ROOT = BASE_DIR.parent.parent.parent      # root of project (dev/source layout only)
+PACKAGE_PARENT_DIR = BASE_DIR.parent.parent        # site-packages/ (or equivalent) when installed
 TEMPLATE_DIR = BASE_DIR / "workspace" / "templates"
 
 META_FILES = ["LICENSE.md", ".gitignore", ".pre-commit-config.yaml"]
