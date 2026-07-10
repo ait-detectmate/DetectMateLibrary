@@ -43,13 +43,13 @@ protoc --proto_path=src/detectmatelibrary/schemas/ --python_out=src/detectmateli
 Run the tests:
 
 ```bash
-uv run pytest -q
+uv run --dev pytest -q
 ```
 
 Run the tests with coverage (add --cov-report=html to generate an HTML report):
 
 ```bash
-uv run pytest --cov=. --cov-report=term-missing
+uv run --dev pytest --cov=. --cov-report=term-missing
 ```
 
 ## Workspace generator (`mate create`)
