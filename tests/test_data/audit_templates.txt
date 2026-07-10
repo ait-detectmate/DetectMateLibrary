@@ -1,0 +1,9 @@
+pid=<*> uid=<*> auid=<*> ses=<*> msg='op=<*> acct=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'
+pid=<*> uid=<*> auid=<*> ses=<*> msg='unit=<*> comm=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'
+pid=<*> uid=<*> old-auid=<*> auid=<*> tty=<*> old-ses=<*> ses=<*> res=<*>
+apparmor=<*> operation=<*> info=<*> profile=<*> name=<*> pid=<*> comm=<*>
+arch=<*> syscall=<*> success=<*> exit=<*> a0=<*> a1=<*> a2=<*> a3=<*> items=<*> ppid=<*> pid=<*> auid=<*> uid=<*> gid=<*> euid=<*> suid=<*> fsuid=<*> egid=<*> sgid=<*> fsgid=<*> tty=<*> ses=<*> comm=<*> exe=<*> key=<*>
+proctitle=<*>
+pid=<*> uid=<*> auid=<*> ses=<*> msg='op=<*> id=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'
+pid=<*> uid=<*> auid=<*> ses=<*> msg='cwd=<*> cmd=<*> terminal=<*> res=<*>'
+table=<*> family=<*> entries=<*>

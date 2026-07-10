@@ -1,14 +1,8 @@
 from detectmatelibrary.detectors.new_value_detector import NewValueDetector, NewValueDetectorConfig
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
-
+from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, ANOMALY_LABELS, LOG_FORMAT, TRAIN_UNTIL
 import json
-
-AUDIT_LOG = "tests/detectmatelibrary/test_folder/audit.log"
-AUDIT_TEMPLATES = "tests/detectmatelibrary/test_folder/audit_templates.txt"
-ANOMALY_LABELS = "tests/detectmatelibrary/test_folder/audit_anomaly_labels.log"
-LOG_FORMAT = "type=<Type> msg=audit(<Time>): <Content>"
-TRAIN_UNTIL = 1800
 
 
 def load_expected_anomaly_ids() -> set[str]:

@@ -17,7 +17,7 @@ from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 from detectmatelibrary.constants import GLOBAL_EVENT_ID, DEFAULT_FREQUENCIES
 from typing_extensions import override
-from detectmatelibrary_tools.logging import logger
+from detectmatelibrary.tools.logging import logger
 
 
 _DEFAULT_FREQ: dict[str, dict[str, int]] | None = None

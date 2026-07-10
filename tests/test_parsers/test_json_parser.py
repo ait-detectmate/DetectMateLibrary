@@ -5,6 +5,7 @@ from detectmatelibrary.parsers.json_parser import (
     flatten_dict
 )
 import detectmatelibrary.schemas as schemas
+from tests.test_data import TEST_TEMPLATES
 
 
 class TestFlattenDict:
@@ -138,7 +139,7 @@ class TestJsonParser:
                 "JsonMatcherParser": {
                     "auto_config": True,
                     "method_type": "matcher_parser",
-                    "path_templates": "tests/detectmatelibrary/test_folder/test_templates.txt"
+                    "path_templates": TEST_TEMPLATES
                 }
             }
         }

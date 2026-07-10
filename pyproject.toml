@@ -12,14 +12,7 @@ dependencies = [
     "pydantic>=2.13.3",
     "pyyaml>=6.0.3",
     "regex>=2025.11.3",
-    "openai>=2.26.0",
-    "tenacity>=9.1.4",
-    "scipy>=1.17.1",
-    "scikit-learn>=1.8.0",
-    "tiktoken>=0.12.0",
     "numpy>=2.3.2",
-    "pandas>=2.3.2",
-    "polars>=1.40.1",
     "detectmateperformance>=0.1.0",
     "msgpack>=1.0.0",
     "fsspec>=2024.1.0",
@@ -33,11 +26,30 @@ dev = [
     "prek>=0.3.10",
     "pytest>=8.4.2",
     "pytest-cov>=6.2.1",
+    "detectmatelibrary[full]",
 ]
 
 [project.optional-dependencies]
+llm = [
+    "openai>=2.26.0",
+    "tenacity>=9.1.4",
+    "scipy>=1.17.1",
+    "scikit-learn>=1.8.0",
+    "tiktoken>=0.12.0",
+    "pandas>=2.3.2",
+]
+dataframes = [
+    "pandas>=2.3.2",
+    "polars>=1.40.1",
+]
 polars-rtcompat = [
     "polars[rtcompat]>=1.38.1",
+]
+# install all optional extras at once:  uv pip install detectmatelibrary[full]
+full = [
+    "detectmatelibrary[llm]",
+    "detectmatelibrary[dataframes]",
+    "detectmatelibrary[polars-rtcompat]",
 ]
 
 [tool.setuptools.dynamic]
@@ -52,17 +64,20 @@ requires = ["setuptools>=82.0.1", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-where = ["src", "."]
-include = [
-    "detectmatelibrary*",
-    "tests.detectmatelibrary",
-    "tests.detectmatelibrary.test_parsers",
-    "tests.detectmatelibrary.test_detectors",
-]
+where = ["src"]
 
 [project.scripts]
-mate = "detectmatelibrary_tools.workspace.create_workspace:main"
+mate = "detectmatelibrary.tools.workspace.create_workspace:main"
 
 [[tool.mypy.overrides]]
 module = "detectmatelibrary.schemas.schemas_pb2"
 ignore_errors = true
+
+[tool.setuptools]
+include-package-data = true
+license-files = ["LICENSE.md"]
+
+[tool.setuptools.package-data]
+detectmatelibrary = [
+    "tools/workspace/templates/data/*.json"
+]

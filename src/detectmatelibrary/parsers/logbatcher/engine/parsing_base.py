@@ -25,7 +25,7 @@
 # Changes from original (parsing_base_old.py):
 # - Returns a result dict (logs_df, templates_df, cache, metrics, template_samples)
 #   instead of writing CSV/JSON files directly to disk.
-# - Replaced print() calls with structured logger (detectmatelibrary_tools.logging.logger).
+# - Replaced print() calls with structured logger (tools.logging.logger).
 # - Made `cache` an optional parameter to support reuse across calls.
 # - Added _extract_template_samples() helper to extract template→sample-log mappings.
 # - Default chunk_size raised from 10 000 to 30 000.
@@ -35,9 +35,9 @@ import pandas as pd
 from collections import Counter
 from typing import List, Dict, Any, Optional
 from tqdm import tqdm
-from detectmatelibrary_tools.logging import logger
+from detectmatelibrary.tools.logging import logger
 from .vars import vars_update
-from .cluster import Cluster,tokenize, vectorize, cluster, reassign_clusters, process_new_cluster
+from .cluster import Cluster, tokenize, vectorize, cluster, reassign_clusters, process_new_cluster
 from .additional_cluster import hierichical_clustering,meanshift_clustering
 from .util import verify_template
 from .parsing_cache import ParsingCache

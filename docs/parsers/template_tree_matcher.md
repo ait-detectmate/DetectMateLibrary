@@ -56,7 +56,7 @@ cfg = {
         "TreeMatcher": {
             "method_type": "tree_matcher",
             "params": {
-                "path_templates": "tests/test_folder/test_templates.txt"
+                "path_templates": "tests/test_data/test_templates.txt"
             }
         }
     }

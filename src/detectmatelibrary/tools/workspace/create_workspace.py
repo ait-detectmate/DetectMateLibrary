@@ -6,14 +6,15 @@ from pathlib import Path
 from .utils import create_readme, create_pyproject, normalize_package_name
 
 # resolve paths relative to this file
-BASE_DIR = Path(__file__).resolve().parent.parent  # detectmatelibrary_tools/
-PROJECT_ROOT = BASE_DIR.parent.parent  # root of project
+BASE_DIR = Path(__file__).resolve().parent.parent  # tools/
+PROJECT_ROOT = BASE_DIR.parent.parent.parent      # root of project (dev/source layout only)
+PACKAGE_PARENT_DIR = BASE_DIR.parent.parent        # site-packages/ (or equivalent) when installed
 TEMPLATE_DIR = BASE_DIR / "workspace" / "templates"
 
 META_FILES = ["LICENSE.md", ".gitignore", ".pre-commit-config.yaml"]
 DATA_FILES = {
-    "parser": "src/detectmatelibrary_tools/workspace/templates/data/logs.json",
-    "detector": "src/detectmatelibrary_tools/workspace/templates/data/parsed_log.json"
+    "parser": TEMPLATE_DIR / "data/logs.json",
+    "detector": TEMPLATE_DIR / "data/parsed_log.json"
 }
 
 
@@ -35,7 +36,7 @@ def camelize(name: str) -> str:
 def create_tests(type_: str, name: str, workspace_root: Path, pkg_name: str) -> None:
     """Create a tests/ directory with a basic pytest file for the component.
 
-    - Reads template tests from src/detectmatelibrary_tools/workspace/templates/test_templates/
+    - Reads template tests from src/tools/workspace/templates/test_templates/
     - Rewrites the import to point to <pkg_name>.<name>
     - Renames CustomParser/CustomDetector to the camelized class name
     """
@@ -123,24 +124,26 @@ def create_workspace(type_: str, name: str, target_dir: Path) -> None:
     create_tests(type_=type_, name=name, workspace_root=workspace_root, pkg_name=pkg_name)
 
     # Copy data
-    try:
-        copy_file(PROJECT_ROOT / DATA_FILES[type_], workspace_root / "data.json")
-    except FileNotFoundError:  # Copy data from pip instead
-        copy_file(
-            PROJECT_ROOT / DATA_FILES[type_].replace("src/", "site-packages/"),
-            workspace_root / "data.json"
-        )
+    copy_file(Path(DATA_FILES[type_]), workspace_root / "data.json")
 
     # Copy meta/root files
-    for file_name in META_FILES:
-        src = PROJECT_ROOT / file_name
-        dst = workspace_root / file_name
+    src = PROJECT_ROOT / "LICENSE.md"
+    if src.exists():
+        for file_name in META_FILES:
+            src = PROJECT_ROOT / file_name
+            dst = workspace_root / file_name
 
-        if src.exists():
-            copy_file(src, dst)
-            print(f"- Copied {file_name}")
-        else:
-            print(f"! Warning: {file_name} not found in project root.")
+            if src.exists():
+                copy_file(src, dst)
+                print(f"- Copied {file_name}")
+            else:
+                print(f"! Warning: {file_name} not found in project root.")
+    else:
+        try:
+            copy_file(next(PACKAGE_PARENT_DIR.glob("detectmatelibrary-*/licenses/LICENSE.md")),
+                      workspace_root / "LICENSE.md")
+        except StopIteration:
+            print("! Warning: LICENSE.md not found in project root or distribution files.")
 
     # Create pyproject.toml
     create_pyproject(name, type_, workspace_root)

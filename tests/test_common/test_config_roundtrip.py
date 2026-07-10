@@ -1,9 +1,8 @@
 """Test that YAML -> Pydantic -> YAML is preserved (round-trip test)."""
-
 from detectmatelibrary.common._config import BasicConfig
 from detectmatelibrary.common._config._formats import EventsConfig, _EventInstance
-
 from typing import Dict
+from tests.test_data import TEST_CONFIG
 import yaml
 
 
@@ -25,7 +24,7 @@ class MockupDetectorConfig(BasicConfig):
 
 
 def load_test_config() -> dict:
-    with open("tests/detectmatelibrary/test_folder/test_config.yaml", 'r') as file:
+    with open(TEST_CONFIG, 'r') as file:
         return yaml.safe_load(file)
 
 

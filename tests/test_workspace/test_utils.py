@@ -1,5 +1,5 @@
 import pytest
-from detectmatelibrary_tools.workspace.utils import normalize_package_name
+from detectmatelibrary.tools.workspace.utils import normalize_package_name
 
 
 @pytest.mark.parametrize("input_name, expected", [

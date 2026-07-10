@@ -3,7 +3,7 @@ import sys
 import subprocess
 import pytest
 from pathlib import Path
-from detectmatelibrary_tools.workspace.utils import normalize_package_name
+from detectmatelibrary.tools.workspace.utils import normalize_package_name
 
 
 # Path to the CLI entry point
