@@ -263,8 +263,8 @@ class TestBigramFrequencyDetectorAutoConfig:
     automatically."""
 
     def test_audit_log_anomalies_via_process(self):
-        parser = MatcherParser(config=_SKIP_REPETITIONS_CONFIG, name="MultipleDetector")
-        detector = BigramFrequencyDetector()
+        parser = MatcherParser(config=_PARSER_CONFIG)
+        detector = BigramFrequencyDetector(config=_SKIP_REPETITIONS_CONFIG, name="MultipleDetector")
 
         logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
 
