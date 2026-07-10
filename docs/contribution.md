@@ -33,6 +33,10 @@ After forking the repository into your own workspace, clone the development bran
 git clone -b development git@github.com:YOURUSERNAME/DetectMateLibrary.git
 ```
 
+!!! note
+
+    If the `development` branch is deleted, a GitHub Action automatically recreates it from `main`.
+
 ### 3. Create a feature branch
 
 Every single workpackage should be developed in it's own feature-branch. Use a name that describes the feature:
