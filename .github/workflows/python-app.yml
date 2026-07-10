@@ -30,7 +30,7 @@ jobs:
         run: uv run --dev prek run -a
 
       - name: Test with pytest
-        run: uv run --dev --extra dataframes --extra llm pytest -s
+        run: uv run --dev pytest -s
 
       # integration tests for DetectMateService
       - name: Checkout DetectMateService
