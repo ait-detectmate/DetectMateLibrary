@@ -139,7 +139,7 @@ def create_workspace(type_: str, name: str, target_dir: Path) -> None:
                 print(f"! Warning: {file_name} not found in project root.")
     else:
         try:
-            copy_file(next(PROJECT_ROOT.parent.glob("detectmatelibrary-*/licenses/LICENSE.md")),
+            copy_file(next(PACKAGE_PARENT_DIR.glob("detectmatelibrary-*/licenses/LICENSE.md")),
                       workspace_root / "LICENSE.md")
         except StopIteration:
             print("! Warning: LICENSE.md not found in project root or distribution files.")
