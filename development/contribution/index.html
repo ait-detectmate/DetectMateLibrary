@@ -147,6 +147,8 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../development/">Development</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../release/">Release Process</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Other</span></p>
               <ul>
@@ -199,6 +201,9 @@ at least the following information in a bug report:</p>
 <h3 id="2-clone">2. Clone</h3>
 <p>After forking the repository into your own workspace, clone the development branch of that repository.</p>
 <pre><code class="language-bash">git clone -b development git@github.com:YOURUSERNAME/DetectMateLibrary.git
+</code></pre>
+<p>!!! note</p>
+<pre><code>If the `development` branch is deleted, a GitHub Action automatically recreates it from `main`.
 </code></pre>
 <h3 id="3-create-a-feature-branch">3. Create a feature branch</h3>
 <p>Every single workpackage should be developed in it's own feature-branch. Use a name that describes the feature:</p>
