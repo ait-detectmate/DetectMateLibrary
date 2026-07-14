@@ -14,10 +14,7 @@ uv sync --dev
 uv run prek install
 
 # Run tests
-uv run pytest -q
-uv run pytest -s                                      # verbose with stdout
-uv run pytest --cov=. --cov-report=term-missing       # with coverage
-uv run pytest tests/test_foo.py                       # single test file
+uv run pytest
 
 # Run linting/formatting (all pre-commit hooks)
 uv run prek run -a
@@ -181,17 +178,6 @@ def set_configuration(self) -> None:
 ```
 
 Omitting either step means a `persist:` block in the YAML is silently ignored with no error.
-
-## Code Quality
-
-Pre-commit hooks enforce:
-- **mypy** strict mode
-- **flake8** linting, **autopep8** formatting (max line 110)
-- **bandit** security checks, **vulture** dead-code detection (70% threshold)
-- **docformatter** docstring style
-
-Python 3.12 is required (see `.python-version`).
-
 
 # Git
 NEVER include "Co-Authored-By ..." in your commit or PR messages.
