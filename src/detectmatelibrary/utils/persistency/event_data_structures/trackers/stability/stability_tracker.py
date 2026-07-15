@@ -12,27 +12,43 @@ from .stability_classifier import StabilityClassifier
 class SingleStabilityTracker(SingleTracker):
     """Tracks stability of a single feature."""
 
-    def __init__(self, min_samples: int = 3, expand_value: bool = False) -> None:
+    def __init__(
+        self,
+        min_samples: int = 3,
+        expand_value: bool = False,
+        time_dependent: bool = False,
+    ) -> None:
         self.min_samples = min_samples
         self.expand_value = expand_value
+        self.time_dependent = time_dependent
         self.change_series: RLEList[bool] = RLEList()
         self.unique_set: Set[Any] = set()
         self.stability_classifier: StabilityClassifier = StabilityClassifier(
             segment_thresholds=[1.1, 0.3, 0.1, 0.01],
         )
         self._accum = set.update if expand_value else set.add
+        # ponytail: O(N) timestamps; switch to fixed-width time buckets if
+        # this ever runs unbounded/streaming.
+        self.timestamps: List[float] = []
         # Opaque slot for detectors to stash per-variable model state that
         # must survive save/load. Schema-free; the tracker does not interpret it.
         self.extra_state: Dict[str, Any] = {}
 
-    def add_value(self, value: Any) -> None:
+    def add_value(self, value: Any, timestamp: float | None = None) -> None:
         """Add a new value to the tracker."""
         before = len(self.unique_set)
         self._accum(self.unique_set, value)
         self.change_series.append(len(self.unique_set) > before)
+        if self.time_dependent and timestamp is not None:
+            self.timestamps.append(float(timestamp))
 
     def classify(self) -> Classification:
         """Classify the variable."""
+        timestamps = (
+            self.timestamps
+            if self.time_dependent and len(self.timestamps) == len(self.change_series)
+            else None
+        )
         if len(self.change_series) < self.min_samples:
             return Classification(
                 type="INSUFFICIENT_DATA",
@@ -48,7 +64,7 @@ class SingleStabilityTracker(SingleTracker):
                 type="RANDOM",
                 reason=f"Unique set size equals number of samples ({len(self.change_series)})"
             )
-        elif self.stability_classifier.is_stable(self.change_series):
+        elif self.stability_classifier.is_stable(self.change_series, timestamps=timestamps):
             return Classification(
                 type="STABLE",
                 reason=(
@@ -70,6 +86,8 @@ class SingleStabilityTracker(SingleTracker):
             "module": self.__class__.__module__,
             "min_samples": self.min_samples,
             "expand_value": self.expand_value,
+            "time_dependent": self.time_dependent,
+            "timestamps": self.timestamps,
             "runs": self.change_series.runs(),
             "unique_set": list(self.unique_set),
             "segment_thresholds": self.stability_classifier.segment_threshs,
@@ -82,6 +100,7 @@ class SingleStabilityTracker(SingleTracker):
         tracker = cls(
             min_samples=state["min_samples"],
             expand_value=state.get("expand_value", False),
+            time_dependent=state.get("time_dependent", False),
         )
         runs = [(bool(r[0]), int(r[1])) for r in state["runs"]]
         tracker.change_series._runs = runs
@@ -92,6 +111,7 @@ class SingleStabilityTracker(SingleTracker):
         tracker.stability_classifier = StabilityClassifier(
             segment_thresholds=state["segment_thresholds"]
         )
+        tracker.timestamps = [float(t) for t in state.get("timestamps", [])]
         tracker.extra_state = state.get("extra_state", {})
         return tracker
 
@@ -132,11 +152,15 @@ class EventStabilityTracker(EventTracker):
         self,
         converter_function: Callable[[Any], Any] = lambda x: x,
         expand_value: bool = False,
+        time_dependent: bool = False,
     ) -> None:
         self.multi_tracker: MultiStabilityTracker  # for type hinting
 
         def make_tracker() -> SingleStabilityTracker:
-            return SingleStabilityTracker(expand_value=expand_value)
+            return SingleStabilityTracker(
+                expand_value=expand_value,
+                time_dependent=time_dependent,
+            )
 
         # Mirror class identity onto the closure so dump()/load() can resolve
         # the underlying SingleStabilityTracker via its module + qualname.

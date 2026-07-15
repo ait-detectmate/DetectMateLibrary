@@ -27,9 +27,9 @@ class EventTracker(EventDataStructure):
         self.converter_function = converter_function
         self.multi_tracker = self.multi_tracker_type(single_tracker_type=self.single_tracker_type)
 
-    def add_data(self, data_object: Any) -> None:
+    def add_data(self, data_object: Any, timestamp: float | None = None) -> None:
         """Add data to the variable trackers."""
-        self.multi_tracker.add_data(data_object)
+        self.multi_tracker.add_data(data_object, timestamp=timestamp)
 
     def get_data(self) -> Dict[str, SingleTracker]:
         """Retrieve the tracker's stored data."""
