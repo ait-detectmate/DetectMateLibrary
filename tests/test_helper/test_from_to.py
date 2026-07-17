@@ -13,6 +13,14 @@ import os
 
 expected_log = "pid=<*> uid=<*> auid=<*> ses=<*> msg='op=<*> "
 expected_log += "acct=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'"
+log_path = "tests/test_data/audit_templates.txt"
+
+binary_path = "tests/test_data/dummy.txt"
+binary_path2 = "tests/test_data/dummy2.txt"
+json_path = "tests/test_data/dummy.json"
+json_path2 = "tests/test_data/dummy2.json"
+yaml_path = "tests/test_data/dummy.yaml"
+yaml_path2 = "tests/test_data/dummy2.yaml"
 
 
 def remove_files(func):
