@@ -235,12 +235,24 @@ for log in From.log(parser, in_path=log_path, do_process=False):
         &quot;&quot;&quot;Save output schema to a binary file.&quot;&quot;&quot;
 
     @staticmethod
+    def binary_file(out_: list[BaseSchema] | list[bytes], out_path: str) -&gt; list[bytes]:
+        &quot;&quot;&quot;Save a list of output schemas to a binary file.&quot;&quot;&quot;
+
+    @staticmethod
     def json(out_: BaseSchema | None, out_path: str) -&gt; BaseSchema | None:
         &quot;&quot;&quot;Save output schema to a JSON file.&quot;&quot;&quot;
 
     @staticmethod
+    def json(out_: list[BaseSchema], out_path: str) -&gt; list[BaseSchema]:
+        &quot;&quot;&quot;Save a list of output schemas to a JSON file.&quot;&quot;&quot;
+
+    @staticmethod
     def yaml(out_: BaseSchema | None, out_path: str) -&gt; BaseSchema | None:
         &quot;&quot;&quot;Save output schema to a YAML file.&quot;&quot;&quot;
+
+    @staticmethod
+    def yaml(out_: list[BaseSchema], out_path: str) -&gt; list[BaseSchema] | None:
+        &quot;&quot;&quot;Save a list of output schemas to a YAML file.&quot;&quot;&quot;
 </code></pre>
 <h3 id="usage_1">Usage</h3>
 <pre><code class="language-python">parser = DummyParser()
