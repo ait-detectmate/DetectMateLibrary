@@ -40,7 +40,7 @@ class From:
     @staticmethod
     def polars(
         component: CoreComponent,
-        df: DataFrame,
+        df: DataFrame | LazyFrame,
         do_process: bool = True,
         renames: dict[str, str] | None = None
     ) -> Iterator[BaseSchema]:
@@ -195,7 +195,7 @@ class FromTo:
     @staticmethod
     def polars2binary_file(
         component: CoreComponent,
-        df: DataFrame,
+        df: DataFrame | LazyFrame,
         out_path: str,
         renames: dict[str, str] | None = None
     ) -> Iterator[BaseSchema]:
@@ -204,7 +204,7 @@ class FromTo:
     @staticmethod
     def polars2json(
         component: CoreComponent,
-        df: DataFrame,
+        df: DataFrame | LazyFrame,
         out_path: str,
         renames: dict[str, str] | None = None
     ) -> Iterator[BaseSchema]:
@@ -213,7 +213,7 @@ class FromTo:
     @staticmethod
     def polars2yaml(
         component: CoreComponent,
-        df: DataFrame,
+        df: DataFrame | LazyFrame,
         out_path: str,
         renames: dict[str, str] | None = None
     ) -> Iterator[BaseSchema]:
