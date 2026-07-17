@@ -7,7 +7,7 @@ import os
 
 import polars as pl
 
-from typing import Iterator
+from typing import Iterator, overload
 import yaml
 import json
 
