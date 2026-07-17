@@ -22,13 +22,53 @@ To install it in a different venv as a library:
 uv pip install --no-cache-dir <directory_detectmatelibrary>
 ```
 
+### Optional dependencies
+
+Not all features require the same dependencies. DetectMateLibrary uses optional extras so you only install what you need:
+Optional Dependency Groups https://pydevtools.com/handbook/explanation/what-are-optional-dependencies-and-dependency-groups/
+
+| Extra | Installs | When you need it |
+|---|---|---|
+| `llm` | `openai`, `tenacity`, `scipy`, `scikit-learn`, `tiktoken`, `pandas` | Using the `LogBatcherParser` (LLM-based log parsing) |
+| `dataframes` | `pandas`, `polars` | Using `EventDataFrame`, `ChunkedEventDataFrame`, or `DataNormalizer` |
+| `polars-rtcompat` | `polars[rtcompat]` | Running on older CPUs without AVX2 support (e.g. some VMs or embedded hardware); not needed for standard deployments |
+| `full` | `llm` + `dataframes` + `polars-rtcompat` | Installing every optional extra at once |
+
+Install an extra with `uv sync`:
+
+```bash
+uv sync --extra dataframes
+```
+
+Or with `uv pip install` / pip when installing as a library:
+
+```bash
+uv pip install "detectmatelibrary[dataframes]"
+# or
+pip install "detectmatelibrary[dataframes]"
+```
+
+Combine multiple extras if needed:
+
+```bash
+uv sync --extra dataframes --extra polars-rtcompat
+```
+
+Or install everything at once with the `full` extra:
+
+```bash
+uv sync --extra full
+# or
+uv pip install "detectmatelibrary[full]"
+```
+
 ## Developer setup
 
 **Purpose**: prepare a development environment with test and lint tooling.
 
 ### Step 1: Install Python development dependencies & pre-commit hooks
 
-- Install dev dependencies (testing, linters, formatters):
+- Install dev dependencies (testing, linters, formatters). The `dev` group also pulls in the `full` extra, so every optional dependency (LLM, dataframes, polars-rtcompat) is installed too:
 
 ```bash
 uv sync --dev
@@ -70,7 +110,7 @@ protoc \
 
 ### Step 3: Run unit tests
 
-Run the full test suite:
+The full test suite covers dataframe and LLM-parser code, so all extras must be present. Since `uv sync --dev` already installs the `full` extra, run all tests with:
 
 ```bash
 uv run --dev pytest -s

@@ -12,23 +12,42 @@ from typing import Any, Callable
 import fsspec
 
 from detectmatelibrary.utils.persistency.event_data_structures.base import EventDataStructure
-from detectmatelibrary.utils.persistency.event_data_structures.dataframes import (
-    EventDataFrame,
-    ChunkedEventDataFrame,
-)
 from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
     EventTracker,
     EventStabilityTracker,
 )
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
-from detectmatelibrary_tools.logging import logger
+from detectmatelibrary.tools.logging import logger
 
 _BACKEND_REGISTRY: dict[str, type[EventDataStructure]] = {
     "EventTracker": EventTracker,
     "EventStabilityTracker": EventStabilityTracker,
-    "EventDataFrame": EventDataFrame,
-    "ChunkedEventDataFrame": ChunkedEventDataFrame,
 }
+
+_DATAFRAME_BACKENDS = {"EventDataFrame", "ChunkedEventDataFrame"}
+
+
+def _get_backend_cls(name: str) -> type[EventDataStructure]:
+    if name in _BACKEND_REGISTRY:
+        return _BACKEND_REGISTRY[name]
+    if name in _DATAFRAME_BACKENDS:
+        try:
+            from detectmatelibrary.utils.persistency.event_data_structures.dataframes import (
+                ChunkedEventDataFrame,
+                EventDataFrame,
+            )
+        except ImportError as e:
+            raise PersistencyLoadError(
+                f"Backend '{name}' requires the 'dataframes' extra: "
+                "pip install 'detectmatelibrary[dataframes]'"
+            ) from e
+        df_registry: dict[str, type[EventDataStructure]] = {
+            "EventDataFrame": EventDataFrame,
+            "ChunkedEventDataFrame": ChunkedEventDataFrame,
+        }
+        return df_registry[name]
+    raise PersistencyLoadError(f"Unknown backend '{name}' — cannot restore event")
+
 
 _EXTENSION_MAP: dict[str, str] = {
     "EventTracker": "msgpack",
@@ -133,16 +152,12 @@ def _load(ep: EventPersistency, fs: Any, root: str) -> None:
             file_path = f"{root}/events/{event_id_str}.{ext}"
             with fs.open(file_path, "rb") as f:
                 data = f.read()
-            if backend_name not in _BACKEND_REGISTRY:
-                raise PersistencyLoadError(
-                    f"Unknown backend '{backend_name}' — cannot restore event '{event_id}'"
-                )
-            backend_cls = _BACKEND_REGISTRY[backend_name]
+            backend_cls = _get_backend_cls(backend_name)
             ep.events_data[event_id] = backend_cls.load(data, **global_kwargs)
 
         class_name = metadata.get("event_data_class")
-        if class_name and class_name in _BACKEND_REGISTRY:
-            ep.event_data_class = _BACKEND_REGISTRY[class_name]
+        if class_name and (class_name in _BACKEND_REGISTRY or class_name in _DATAFRAME_BACKENDS):
+            ep.event_data_class = _get_backend_cls(class_name)
     except PersistencyLoadError:
         raise
     except Exception as e:

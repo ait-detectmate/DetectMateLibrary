@@ -8,7 +8,7 @@ parsers:
             remove_spaces: True
             remove_punctuation: True
             lowercase: True
-            path_templates: tests/test_folder/audit_templates.txt
+            path_templates: tests/test_data/audit_templates.txt
 
     JsonMatcherParser:
         method_type: matcher_parser
