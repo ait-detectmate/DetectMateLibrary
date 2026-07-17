@@ -19,7 +19,7 @@ from typing import Any, Dict, Sequence, cast, Tuple
 from itertools import combinations
 
 from typing_extensions import override
-from detectmatelibrary_tools.logging import logger
+from detectmatelibrary.tools.logging import logger
 
 
 def get_combo(variables: Dict[str, Any]) -> Dict[Tuple[str, ...], Tuple[Any, ...]]:
