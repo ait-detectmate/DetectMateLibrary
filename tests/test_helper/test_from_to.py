@@ -59,6 +59,16 @@ class TestCaseTo:
             assert len(f.readlines()) == 2
 
     @remove_files
+    def test_tobinary_as_list(self):
+        parser = DummyParser()
+        gen = From.log(parser, in_path=log_path, do_process=False)
+        logs = [log.serialize() for log in gen]
+
+        assert To.binary_file(logs, binary_path) == logs
+        with open(binary_path, "r") as f:
+            assert len(f.readlines()) == 9
+
+    @remove_files
     def test_tojson(self):
         parser = DummyParser()
         gen = From.log(parser, in_path=AUDIT_TEMPLATES, do_process=False)
@@ -75,6 +85,16 @@ class TestCaseTo:
             assert len(json.load(f)) == 2
 
     @remove_files
+    def test_tojson_list(self):
+        parser = DummyParser()
+        gen = From.log(parser, in_path=log_path, do_process=False)
+        logs = [log for log in gen]
+
+        assert To.json(logs, json_path) == logs
+        with open(json_path, "r") as f:
+            assert len(json.load(f)) == 9
+
+    @remove_files
     def test_toyaml(self):
         parser = DummyParser()
         gen = From.log(parser, in_path=AUDIT_TEMPLATES, do_process=False)
@@ -89,6 +109,16 @@ class TestCaseTo:
 
         with open(DUMMY_YAML_PATH, "r") as f:
             assert len(yaml.safe_load(f)) == 2
+
+    @remove_files
+    def test_toyaml_list(self):
+        parser = DummyParser()
+        gen = From.log(parser, in_path=log_path, do_process=False)
+        logs = [log for log in gen]
+
+        assert To.yaml(logs, yaml_path) == logs
+        with open(yaml_path, "r") as f:
+            assert len(yaml.safe_load(f)) == 9
 
 
 class TestCaseFrom:

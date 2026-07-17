@@ -71,12 +71,24 @@ class To:
         """Save output schema to a binary file."""
 
     @staticmethod
+    def binary_file(out_: list[BaseSchema] | list[bytes], out_path: str) -> list[bytes]:
+        """Save a list of output schemas to a binary file."""
+
+    @staticmethod
     def json(out_: BaseSchema | None, out_path: str) -> BaseSchema | None:
         """Save output schema to a JSON file."""
 
     @staticmethod
+    def json(out_: list[BaseSchema], out_path: str) -> list[BaseSchema]:
+        """Save a list of output schemas to a JSON file."""
+
+    @staticmethod
     def yaml(out_: BaseSchema | None, out_path: str) -> BaseSchema | None:
         """Save output schema to a YAML file."""
+
+    @staticmethod
+    def yaml(out_: list[BaseSchema], out_path: str) -> list[BaseSchema] | None:
+        """Save a list of output schemas to a YAML file."""
 ```
 
 ### Usage

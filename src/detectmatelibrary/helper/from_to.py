@@ -7,20 +7,49 @@ import os
 
 import polars as pl
 
-from typing import Iterator
+from typing import Iterator, overload
 import yaml
 import json
 
 
+def normalize_output(func):  # type: ignore
+    def norm(*args, **kwargs):  # type: ignore
+        if isinstance(args[0], list):
+            return func(*args, **kwargs)
+        else:
+            aux = func(*args, **kwargs)
+            return aux[0] if aux is not None else None
+    return norm
+
+
 class To:
     @staticmethod
+    @overload
     def binary_file(out_: BaseSchema | bytes | None, out_path: str) -> bytes | None:
+        ...
+
+    @staticmethod
+    @overload
+    def binary_file(out_: list[BaseSchema] | list[bytes], out_path: str) -> list[bytes]:
+        ...
+
+    @staticmethod
+    @normalize_output  # type: ignore
+    def binary_file(
+        out_: BaseSchema | bytes | None | list[BaseSchema] | list[bytes], out_path: str
+    ) -> bytes | None | list[bytes]:
+
         if out_ is None:
             return None
-        elif isinstance(out_, BaseSchema):
-            out_ = out_.serialize()
 
-        data = [str(out_) + "\n"]
+        elif isinstance(out_, BaseSchema):
+            out_ = [out_.serialize()]
+        elif isinstance(out_, list) and isinstance(out_[0], BaseSchema):
+            out_ = [o_.serialize() for o_ in out_]  # type: ignore
+        elif isinstance(out_, bytes):
+            out_ = [out_]
+
+        data = [str(o_) + "\n" for o_ in out_]
         if os.path.exists(out_path):
             with open(out_path, "r") as f:
                 data = f.readlines() + data
@@ -28,19 +57,38 @@ class To:
         with open(out_path, "w") as f:
             f.writelines(data)
 
-        return out_
+        return out_   # type: ignore
 
+    @overload
     @staticmethod
     def json(out_: BaseSchema | None, out_path: str) -> BaseSchema | None:
+        ...
+
+    @overload
+    @staticmethod
+    def json(out_: list[BaseSchema], out_path: str) -> list[BaseSchema]:
+        ...
+
+    @staticmethod
+    @normalize_output  # type: ignore
+    def json(
+        out_: BaseSchema | None | list[BaseSchema], out_path: str
+    ) -> BaseSchema | None | list[BaseSchema]:
+
         if out_ is None:
             return None
+        if isinstance(out_, BaseSchema):
+            out_ = [out_]
 
         data = {}
         if os.path.exists(out_path):
             with open(out_path) as f:
                 data = json.load(f)
 
-        data[len(data)] = out_.as_dict()
+        n = len(data)
+        for i, o_ in enumerate(out_):
+            data[n + i] = o_.as_dict()
+
         with open(out_path, "w") as f:
             obj = literal_eval(str(data))
             json.dump(obj, f, indent=4, ensure_ascii=False)
@@ -48,16 +96,35 @@ class To:
         return out_
 
     @staticmethod
+    @overload
     def yaml(out_: BaseSchema | None, out_path: str) -> BaseSchema | None:
+        ...
+
+    @staticmethod
+    @overload
+    def yaml(out_: list[BaseSchema], out_path: str) -> list[BaseSchema] | None:
+        ...
+
+    @staticmethod
+    @normalize_output  # type: ignore
+    def yaml(
+        out_: BaseSchema | None | list[BaseSchema], out_path: str
+    ) -> BaseSchema | None | list[BaseSchema]:
+
         if out_ is None:
             return None
+        if isinstance(out_, BaseSchema):
+            out_ = [out_]
 
         data = {}
         if os.path.exists(out_path):
             with open(out_path) as f:
                 data = yaml.safe_load(f)
 
-        data[len(data)] = out_.as_dict()
+        n = len(data)
+        for i, o_ in enumerate(out_):
+            data[n + i] = o_.as_dict()
+
         with open(out_path, "w") as f:
             obj = literal_eval(str(data))
             yaml.safe_dump(obj, f, indent=4, default_flow_style=False)
