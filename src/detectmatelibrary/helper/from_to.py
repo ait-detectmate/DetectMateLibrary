@@ -116,7 +116,8 @@ class _Polars:
                     schema = component.input_schema(data)
                     yield schema
 
-        format_vars = [colum for colum in df.columns if colum not in list(renames.values())]
+        columns = df.collect_schema().names()
+        format_vars = [colum for colum in columns if colum not in list(renames.values())]
         df_vars, df = df.select(format_vars), df.select(list(renames.values()))
 
         return From._yield(component, __generator(), do_process=do_process)  # type: ignore
@@ -199,7 +200,8 @@ class From:
         renames = {
             "Content": "log", "ParamList": "variables", "EventIDs": "EventID", "Templates": "template"
         } if renames is None else renames
-        if "ParamList" not in df.columns and "ParamList" in renames:
+        columns = df.columns if isinstance(df, pl.DataFrame) else df.collect_schema().names()
+        if "ParamList" not in columns and "ParamList" in renames:
             del renames["ParamList"]
 
         df = df.rename(renames)
