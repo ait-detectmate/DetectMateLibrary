@@ -211,7 +211,7 @@
     @staticmethod
     def polars(
         component: CoreComponent,
-        df: DataFrame,
+        df: DataFrame | LazyFrame,
         do_process: bool = True,
         renames: dict[str, str] | None = None
     ) -&gt; Iterator[BaseSchema]:
@@ -337,7 +337,7 @@ for log in From.log(parser, in_path=log_path, do_process=False):
     @staticmethod
     def polars2binary_file(
         component: CoreComponent,
-        df: DataFrame,
+        df: DataFrame | LazyFrame,
         out_path: str,
         renames: dict[str, str] | None = None
     ) -&gt; Iterator[BaseSchema]:
@@ -346,7 +346,7 @@ for log in From.log(parser, in_path=log_path, do_process=False):
     @staticmethod
     def polars2json(
         component: CoreComponent,
-        df: DataFrame,
+        df: DataFrame | LazyFrame,
         out_path: str,
         renames: dict[str, str] | None = None
     ) -&gt; Iterator[BaseSchema]:
@@ -355,7 +355,7 @@ for log in From.log(parser, in_path=log_path, do_process=False):
     @staticmethod
     def polars2yaml(
         component: CoreComponent,
-        df: DataFrame,
+        df: DataFrame | LazyFrame,
         out_path: str,
         renames: dict[str, str] | None = None
     ) -&gt; Iterator[BaseSchema]:
