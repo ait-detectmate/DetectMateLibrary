@@ -12,7 +12,8 @@ from detectmatelibrary.utils.persistency.event_persistency import EventPersisten
 
 
 class TestPersistConfig:
-    def test_defaults(self):
+    def test_defaults(self, monkeypatch):
+        monkeypatch.delenv("STATE_DIRECTORY", raising=False)
         cfg = PersistConfig()
         assert cfg.path == "./state"
         assert cfg.interval_seconds == 300
@@ -33,6 +34,25 @@ class TestPersistConfig:
     def test_extra_fields_rejected(self):
         with pytest.raises(ValidationError):
             PersistConfig(unknown_field="value")  # type: ignore
+
+
+class TestPersistConfigStateDirectoryDefault:
+    def test_uses_state_directory_env_when_set(self, monkeypatch):
+        monkeypatch.setenv("STATE_DIRECTORY", "/var/lib/detectmate")
+        assert PersistConfig().path == "/var/lib/detectmate"
+
+    def test_takes_first_path_when_state_directory_is_colon_list(self, monkeypatch):
+        # systemd sets STATE_DIRECTORY colon-separated for multiple StateDirectory= entries
+        monkeypatch.setenv("STATE_DIRECTORY", "/var/lib/a:/var/lib/b")
+        assert PersistConfig().path == "/var/lib/a"
+
+    def test_falls_back_to_state_when_env_unset(self, monkeypatch):
+        monkeypatch.delenv("STATE_DIRECTORY", raising=False)
+        assert PersistConfig().path == "./state"
+
+    def test_explicit_path_overrides_state_directory_env(self, monkeypatch):
+        monkeypatch.setenv("STATE_DIRECTORY", "/var/lib/detectmate")
+        assert PersistConfig(path="s3://bucket/state").path == "s3://bucket/state"
 
 
 class TestCoreDetectorConfigPersistField:
