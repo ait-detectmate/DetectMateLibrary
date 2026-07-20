@@ -91,7 +91,7 @@ And the `parsed_log.json`:
 In this example, we will use the [`RandomDetector`](detectors/random_detector.md) with the parsed logs from the previous example.
 
 ```python
-from detectmatelibrary.parsers.template_matcher import MatcherParser
+from detectmatelibrary.detectors.random_detector import RandomDetector
 from detectmatelibrary.helper.from_to import From, To, FromTo
 
 config_dict = {
