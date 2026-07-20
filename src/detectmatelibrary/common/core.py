@@ -186,6 +186,9 @@ class CoreComponent(Component):
     def get_state(self) -> str:
         return self.fitlogic.get_last_state()
 
+    def get_window_size(self) -> int:
+        return self.data_buffer.get_window_size()
+
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
         is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)
         logger.debug(f"<<{self.name}>> received:\n{data}")

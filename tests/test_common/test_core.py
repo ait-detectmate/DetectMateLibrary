@@ -114,12 +114,14 @@ class MockComponentWithConfigureAndTraining(CoreComponent):
 
 
 class DummyComponentWithBuffer(CoreComponent):
-    def __init__(self, name: str, config: MockConfig = MockConfig()) -> None:
+    def __init__(
+        self, name: str, size: int, config: MockConfig = MockConfig()
+    ) -> None:
         super().__init__(
             name=name,
             config=config,
             type_="DummyWithBuffer",
-            args_buffer=ArgsBuffer(mode="batch", size=3, process_function=sum),
+            args_buffer=ArgsBuffer(mode=BufferMode.BATCH, size=size),
         )
 
 
@@ -131,6 +133,10 @@ class TestConfigCore:
 
         assert isinstance(config, BasicConfig)
         assert config.get_config() == expected
+
+    def test_get_window(self) -> None:
+        assert DummyComponentWithBuffer("test_1", 2).get_window_size() == 2
+        assert DummyComponentWithBuffer("test_2", 3).get_window_size() == 3
 
     def test_initialize_dict(self) -> None:
         config = MockConfig.from_dict(
