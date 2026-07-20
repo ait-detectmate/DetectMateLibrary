@@ -237,7 +237,7 @@ for i, log in enumerate(From.log(parser, &quot;audit.log&quot;, do_process=False
 </code></pre>
 <h2 id="detector">Detector</h2>
 <p>In this example, we will use the <a href="../detectors/random_detector/"><code>RandomDetector</code></a> with the parsed logs from the previous example.</p>
-<pre><code class="language-python">from detectmatelibrary.parsers.template_matcher import MatcherParser
+<pre><code class="language-python">from detectmatelibrary.detectors.random_detector import RandomDetector
 from detectmatelibrary.helper.from_to import From, To, FromTo
 
 config_dict = {
