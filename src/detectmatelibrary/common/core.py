@@ -66,6 +66,14 @@ class PersistencyOp:
         path: str | None = None,
         storage_options: dict[str, Any] | None = None,
     ) -> bytes | None:
+        """Save this component's EventPersistency state.
+
+        When path is None, returns the state as bytes (zip archive).
+        When path is given, writes to that fsspec URI and returns None.
+        Returns None if no persistency is configured. Thread-safe when a
+        PersistencySaver is running: acquires the saver lock before saving
+        (guards against the background save timer and concurrent ingest).
+        """
 
         return PersistencyOp.__apply(
             instance=instance, path=path, storage_options=storage_options, op=persistency.save
@@ -77,6 +85,13 @@ class PersistencyOp:
         path: str | bytes,
         storage_options: dict[str, Any] | None = None,
     ) -> None:
+        """Restore this component's EventPersistency state.
+
+        path may be an fsspec URI string or bytes returned by
+        export_state(). No-op if no persistency is configured. Thread-safe
+        when a PersistencySaver is running: acquires the saver lock before
+        loading (guards against the background save timer).
+        """
 
         PersistencyOp.__apply(
             instance=instance, path=path, storage_options=storage_options, op=persistency.load
