@@ -5,7 +5,7 @@ The basic concat alert aggregation approach aggregates x number of alerts into o
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
 | **Input**  | [DetectorSchema](../schemas.md)    | Alerts from detectors  |
-| **Output** | [OutputSchema](../schemas.md) | Aggregated alerts    |
+| **Output** | [AggregateSchema](../schemas.md) | Aggregated alerts    |
 
 
 # Configuration example

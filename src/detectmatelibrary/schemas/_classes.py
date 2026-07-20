@@ -157,13 +157,13 @@ class DetectorSchema(BaseSchema):
         return schema
 
 
-class OutputSchema(BaseSchema):
-    """Output schema class."""
+class AggregateSchema(BaseSchema):
+    """Aggregate schema class."""
     def __init__(
         self, kwargs: dict[str, Any] | None = None
     ) -> None:
-        super().__init__(schema_class=op.OUTPUT_SCHEMA, kwargs=kwargs)
+        super().__init__(schema_class=op.AGGREGATE_SCHEMA, kwargs=kwargs)
 
-    def copy(self) -> "OutputSchema":
-        schema: OutputSchema = super().copy()  # type: ignore
+    def copy(self) -> "AggregateSchema":
+        schema: AggregateSchema = super().copy()  # type: ignore
         return schema

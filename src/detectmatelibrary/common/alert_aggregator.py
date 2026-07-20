@@ -4,7 +4,7 @@ from detectmatelibrary.common.core import CoreComponent, CoreConfig
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 from detectmatelibrary.utils.aux import get_timestamp
 
-from detectmatelibrary.schemas import DetectorSchema, OutputSchema
+from detectmatelibrary.schemas import DetectorSchema, AggregateSchema
 
 from typing import Any, Optional
 from typing_extensions import override
@@ -52,12 +52,12 @@ class CoreAlertAggregator(CoreComponent):
             config=config,  # type: ignore
             args_buffer=ArgsBuffer(mode=buffer_mode, size=buffer_size),
             input_schema=DetectorSchema,
-            output_schema=OutputSchema,
+            output_schema=AggregateSchema,
         )
 
     @override
     def run(
-        self, input_: list[DetectorSchema] | DetectorSchema, output_: OutputSchema  # type: ignore
+        self, input_: list[DetectorSchema] | DetectorSchema, output_: AggregateSchema  # type: ignore
     ) -> bool:
 
         output_["detectorIDs"] = _extract_field(input_, "detectorID")
@@ -74,7 +74,7 @@ class CoreAlertAggregator(CoreComponent):
     def aggregate_alerts(
         self,
         input_: list[DetectorSchema] | DetectorSchema,
-        output_: OutputSchema,
+        output_: AggregateSchema,
     ) -> bool:
         return True
 
