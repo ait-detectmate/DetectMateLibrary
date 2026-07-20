@@ -30,6 +30,62 @@ class _Stoppable(Protocol):
     def stop(self) -> None: ...
 
 
+class PersistencyOp:
+    @staticmethod
+    def export_state(
+        instance: object,
+        path: str | None = None,
+        storage_options: dict[str, Any] | None = None,
+    ) -> bytes | None:
+        """Save this component's EventPersistency state.
+
+        When path is None, returns the state as bytes (zip archive).
+        When path is given, writes to that fsspec URI and returns None.
+        Returns None if no persistency is configured. Thread-safe when a
+        PersistencySaver is running: acquires the saver lock before saving
+        (guards against the background save timer and concurrent ingest).
+        """
+        # ponytail: local import keeps common.core free of a persistency
+        # package import at module load (see _Stoppable).
+        from detectmatelibrary.utils import persistency
+
+        ep = getattr(instance, "persistency", None)
+        if ep is None:
+            logger.debug("No persistency configured, nothing to export")
+            return None
+        saver = getattr(instance, "saver", None)
+        if saver is not None:
+            with saver.locked():
+                return persistency.save(ep, path, storage_options)
+        return persistency.save(ep, path, storage_options)
+
+    @staticmethod
+    def import_state(
+        instance: object,
+        path: str | bytes,
+        storage_options: dict[str, Any] | None = None,
+    ) -> None:
+        """Restore this component's EventPersistency state.
+
+        path may be an fsspec URI string or bytes returned by
+        export_state(). No-op if no persistency is configured. Thread-safe
+        when a PersistencySaver is running: acquires the saver lock before
+        loading (guards against the background save timer).
+        """
+        from detectmatelibrary.utils import persistency
+
+        ep = getattr(instance, "persistency", None)
+        if ep is None:
+            logger.debug("No persistency configured, nothing to import")
+            return
+        saver = getattr(instance, "saver", None)
+        if saver is not None:
+            with saver.locked():
+                persistency.load(ep, path, storage_options)
+        else:
+            persistency.load(ep, path, storage_options)
+
+
 class TrainBuffer:
     def __init__(self) -> None:
         self.buffer: list[BaseSchema | list[BaseSchema]] = []
@@ -129,56 +185,18 @@ class CoreComponent(Component):
         self.buffer_train = TrainBuffer()
 
     def export_state(
-        self,
-        path: str | None = None,
-        storage_options: dict[str, Any] | None = None,
+        self, path: str | None = None, storage_options: dict[str, Any] | None = None,
     ) -> bytes | None:
-        """Save this component's EventPersistency state.
-
-        When path is None, returns the state as bytes (zip archive).
-        When path is given, writes to that fsspec URI and returns None.
-        Returns None if no persistency is configured. Thread-safe when a
-        PersistencySaver is running: acquires the saver lock before saving
-        (guards against the background save timer and concurrent ingest).
-        """
-        # ponytail: local import keeps common.core free of a persistency
-        # package import at module load (see _Stoppable).
-        from detectmatelibrary.utils import persistency
-
-        ep = getattr(self, "persistency", None)
-        if ep is None:
-            logger.debug(f"{self.name}: no persistency configured, nothing to export")
-            return None
-        saver = getattr(self, "saver", None)
-        if saver is not None:
-            with saver.locked():
-                return persistency.save(ep, path, storage_options)
-        return persistency.save(ep, path, storage_options)
+        return PersistencyOp.export_state(
+            instance=self, path=path, storage_options=storage_options
+        )
 
     def import_state(
-        self,
-        path: str | bytes,
-        storage_options: dict[str, Any] | None = None,
+        self, path: str | bytes, storage_options: dict[str, Any] | None = None
     ) -> None:
-        """Restore this component's EventPersistency state.
-
-        path may be an fsspec URI string or bytes returned by
-        export_state(). No-op if no persistency is configured. Thread-safe
-        when a PersistencySaver is running: acquires the saver lock before
-        loading (guards against the background save timer).
-        """
-        from detectmatelibrary.utils import persistency
-
-        ep = getattr(self, "persistency", None)
-        if ep is None:
-            logger.debug(f"{self.name}: no persistency configured, nothing to import")
-            return
-        saver = getattr(self, "saver", None)
-        if saver is not None:
-            with saver.locked():
-                persistency.load(ep, path, storage_options)
-        else:
-            persistency.load(ep, path, storage_options)
+        return PersistencyOp.import_state(
+            instance=self, path=path, storage_options=storage_options
+        )
 
     def update_state(self, state: StatesL) -> None:
         self.fitlogic.update_state(state)
