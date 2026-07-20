@@ -19,6 +19,8 @@ from typing import Any, Dict, List, Protocol, Callable
 
 setup_logging()
 
+# Persistency ##################################################################
+
 
 class _Stoppable(Protocol):
     """Structural type for objects ``Component`` will stop on context-manager
@@ -59,7 +61,7 @@ class PersistencyOp:
         return op(ep, path, storage_options)
 
     @staticmethod
-    def export_state(
+    def save(
         instance: object,
         path: str | None = None,
         storage_options: dict[str, Any] | None = None,
@@ -70,7 +72,7 @@ class PersistencyOp:
         )
 
     @staticmethod
-    def import_state(
+    def load(
         instance: object,
         path: str | bytes,
         storage_options: dict[str, Any] | None = None,
@@ -80,6 +82,8 @@ class PersistencyOp:
             instance=instance, path=path, storage_options=storage_options, op=persistency.load
         )
 
+
+# Train operations ##################################################################
 
 class TrainBuffer:
     def __init__(self) -> None:
@@ -100,6 +104,8 @@ class TrainBuffer:
     def __iter__(self) -> "TrainBuffer":
         return self
 
+
+# Core component skeleton structure ################################################
 
 class CoreConfig(BasicConfig):
     start_id: int = 10
@@ -157,6 +163,8 @@ class Component:
             self.saver.stop()
 
 
+# Core component ################################################
+
 class CoreComponent(Component):
     """Base class for all components in the system."""
     def __init__(
@@ -182,14 +190,14 @@ class CoreComponent(Component):
     def export_state(
         self, path: str | None = None, storage_options: dict[str, Any] | None = None,
     ) -> bytes | None:
-        return PersistencyOp.export_state(
+        return PersistencyOp.save(
             instance=self, path=path, storage_options=storage_options
         )
 
     def import_state(
         self, path: str | bytes, storage_options: dict[str, Any] | None = None
     ) -> None:
-        return PersistencyOp.import_state(
+        return PersistencyOp.load(
             instance=self, path=path, storage_options=storage_options
         )
 
