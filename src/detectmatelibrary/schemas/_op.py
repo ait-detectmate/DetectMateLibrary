@@ -6,14 +6,14 @@ from typing import NewType, Union, Any
 
 
 # Use Union of actual protobuf classes for better type hints
-SchemaT = Union[s.Schema, s.LogSchema, s.ParserSchema, s.DetectorSchema, s.OutputSchema]  # type: ignore
+SchemaT = Union[s.Schema, s.LogSchema, s.ParserSchema, s.DetectorSchema, s.AggregateSchema]  # type: ignore
 SchemaID = NewType("SchemaID", bytes)
 
 BASE_SCHEMA: SchemaT = s.Schema  # type: ignore
 LOG_SCHEMA: SchemaT = s.LogSchema  # type: ignore
 PARSER_SCHEMA: SchemaT = s.ParserSchema  # type: ignore
 DETECTOR_SCHEMA: SchemaT = s.DetectorSchema  # type: ignore
-OUTPUT_SCHEMA: SchemaT = s.OutputSchema  # type: ignore
+AGGREGATE_SCHEMA: SchemaT = s.AggregateSchema  # type: ignore
 
 __current_version = "1.0.0"
 
