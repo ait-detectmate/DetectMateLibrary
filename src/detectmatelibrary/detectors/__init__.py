@@ -1,4 +1,3 @@
-from .bigram_frequency_detector import BigramFrequencyDetector, BigramFrequencyDetectorConfig
 from .random_detector import RandomDetector, RandomDetectorConfig
 from .new_value_detector import NewValueDetector, NewValueDetectorConfig
 from .new_event_detector import NewEventDetector, NewEventDetectorConfig
@@ -16,7 +15,5 @@ __all__ = [
     "ValueRangeDetector",
     "ValueRangeDetectorConfig",
     "CharsetDetector",
-    "CharsetDetectorConfig",
-    "BigramFrequencyDetector",
-    "BigramFrequencyDetectorConfig"
+    "CharsetDetectorConfig"
 ]
