@@ -51,6 +51,11 @@ class ValueRangeDetector(CoreDetector):
 
     def cast_val_to_numeric(self, configured_variables: Dict[str, Any], k: str, remove: List[str],
                             stage: str) -> bool:
+        # Detection iterates over vars learned in training; a var can be absent from the
+        # current line for variable-length events (get_configured_variables skips positions
+        # beyond the line's variable count). Skip it — caller already handles `not cast`.
+        if k not in configured_variables:
+            return False
         v = configured_variables[k]
         if not isinstance(v, (int, float)):
             try:
