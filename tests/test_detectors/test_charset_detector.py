@@ -392,7 +392,7 @@ class TestCharsetDetectorSetConfigurationPreservesPersist:
 
         detector = CharsetDetector()
         # Simulate persist being enabled by an earlier config load
-        detector.config.persist = PersistConfig(path="./state")
+        detector.config.persist = PersistConfig(path="memory://persist_flag/state")
 
         # Feed configure() with a couple of stable-variable samples
         for _ in range(5):
@@ -407,4 +407,4 @@ class TestCharsetDetectorSetConfigurationPreservesPersist:
         detector.set_configuration()
 
         assert detector.config.persist is not None
-        assert detector.config.persist.path == "./state"
+        assert detector.config.persist.path == "memory://persist_flag/state"

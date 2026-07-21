@@ -238,7 +238,11 @@ class TestBigramFrequencyDetectorEndToEnd:
 
     def test_audit_log_anomalies(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
-        detector = BigramFrequencyDetector()
+        detector = BigramFrequencyDetector(
+            config=BigramFrequencyDetectorConfig(
+                skip_repetitions=False
+            )
+        )
 
         logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
 
