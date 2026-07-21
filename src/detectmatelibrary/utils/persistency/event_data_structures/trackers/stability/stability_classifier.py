@@ -22,9 +22,10 @@ class StabilityClassifier:
         """Index boundaries of n_segments segments over total_len items.
 
         Equal-count by default. When timestamps are given (one per item,
-        chronological, non-zero span), boundaries are equal-DURATION cuts of
-        the observed time span, mapped back to indices. Falls back to
-        equal-count on missing/mismatched/non-finite timestamps or zero span.
+        chronological, non-zero span), boundaries are equal-DURATION
+        cuts of the observed time span, mapped back to indices. Falls
+        back to equal-count on missing/mismatched/non-finite timestamps
+        or zero span.
         """
         try:
             use_time = (
@@ -37,7 +38,7 @@ class StabilityClassifier:
         except TypeError:
             # e.g. a None entry: not comparable/convertible -> equal-count
             use_time = False
-        if use_time:
+        if use_time and timestamps is not None:
             t_first, t_last = timestamps[0], timestamps[-1]
             cuts = [
                 t_first + k * (t_last - t_first) / self.n_segments
@@ -125,7 +126,11 @@ class StabilityClassifier:
     def get_segment_thresholds(self) -> List[float]:
         return self.segment_threshs
 
-    def __call__(self, change_series: RLEList[bool] | List[bool], timestamps: List[float] | None = None) -> bool:
+    def __call__(
+        self,
+        change_series: RLEList[bool] | List[bool],
+        timestamps: List[float] | None = None,
+    ) -> bool:
         return self.is_stable(change_series, timestamps=timestamps)
 
     def __repr__(self) -> str:

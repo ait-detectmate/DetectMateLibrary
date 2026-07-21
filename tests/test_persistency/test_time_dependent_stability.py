@@ -1,7 +1,10 @@
 """Tests for the time_dependent option of the stability trackers."""
 
 from detectmatelibrary.utils.persistency.rle_list import RLEList
-from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_classifier import (
+from detectmatelibrary.utils.persistency import EventPersistency
+from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability import (
+    EventStabilityTracker,
+    SingleStabilityTracker,
     StabilityClassifier,
 )
 
@@ -79,13 +82,9 @@ class TestClassifierTimeBoundaries:
         assert clf_time.get_last_segment_means() == clf_count.get_last_segment_means()
 
 
-from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
-    SingleStabilityTracker,
-)
-
-
 def feed_divergent(tracker: SingleStabilityTracker) -> None:
-    """3 new values spread over ~80s, then a repeated value bursting at t~100."""
+    """3 new values spread over ~80s, then a repeated value bursting at
+    t~100."""
     values = ["a", "b", "c"] + ["c"] * 37
     for value, ts in zip(values, DIVERGENT_TIMES):
         tracker.add_value(value, timestamp=ts)
@@ -138,12 +137,6 @@ class TestSingleStabilityTrackerTimeDependent:
         restored = SingleStabilityTracker.from_state(state)
         assert restored.time_dependent is False
         assert restored.timestamps == []
-
-
-from detectmatelibrary.utils.persistency import EventPersistency
-from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
-    EventStabilityTracker,
-)
 
 
 class TestTimeDependentPlumbing:

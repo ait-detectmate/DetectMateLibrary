@@ -14,11 +14,18 @@ if TYPE_CHECKING:
 class SingleStabilityTracker(SingleTracker):
     """Tracks stability of a single feature."""
 
-    def __init__(self, min_samples: int = 3, add_value_fn: str = "default",
-                 detector_config: "CoreDetectorConfig | None" = None) -> None:
+    def __init__(
+        self,
+        min_samples: int = 3,
+        add_value_fn: str = "default",
+        detector_config: "CoreDetectorConfig | None" = None,
+        time_dependent: bool = False,
+    ) -> None:
         self.min_samples = min_samples
         self.change_series: RLEList[bool] = RLEList()
         self.unique_set: Set[Any] = set()
+        self.time_dependent = time_dependent
+        self.timestamps: List[float] = []
         self.stability_classifier: StabilityClassifier = StabilityClassifier(
             segment_thresholds=[1.1, 0.3, 0.1, 0.01],
         )
@@ -88,6 +95,8 @@ class SingleStabilityTracker(SingleTracker):
             "min_samples": self.min_samples,
             "add_value_fn": self.add_value_fn,
             "detector_config": self.detector_config,
+            "time_dependent": self.time_dependent,
+            "timestamps": self.timestamps,
             "runs": self.change_series.runs(),
             "unique_set": list(self.unique_set),
             "segment_thresholds": self.stability_classifier.segment_threshs,
@@ -100,7 +109,8 @@ class SingleStabilityTracker(SingleTracker):
         tracker = cls(
             min_samples=state["min_samples"],
             add_value_fn=state["add_value_fn"],
-            detector_config=state["detector_config"]
+            detector_config=state["detector_config"],
+            time_dependent=bool(state.get("time_dependent", False)),
         )
         runs = [(bool(r[0]), int(r[1])) for r in state["runs"]]
         tracker.change_series._runs = runs
@@ -152,13 +162,18 @@ class EventStabilityTracker(EventTracker):
         self,
         converter_function: Callable[[Any], Any] = lambda x: x,
         add_value_fn: str = "default",
-        detector_config: "CoreDetectorConfig | None" = None
+        detector_config: "CoreDetectorConfig | None" = None,
+        time_dependent: bool = False,
 
     ) -> None:
         self.multi_tracker: MultiStabilityTracker  # for type hinting
 
         def make_tracker() -> SingleStabilityTracker:
-            return SingleStabilityTracker(add_value_fn=add_value_fn, detector_config=detector_config)
+            return SingleStabilityTracker(
+                add_value_fn=add_value_fn,
+                detector_config=detector_config,
+                time_dependent=time_dependent,
+            )
 
         # Mirror class identity onto the closure so dump()/load() can resolve
         # the underlying SingleStabilityTracker via its module + qualname.
