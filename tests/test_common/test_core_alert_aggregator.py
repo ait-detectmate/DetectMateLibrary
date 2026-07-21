@@ -82,7 +82,7 @@ class TestCoreAlertAggregator:
         assert detector.name == "TestAAG"
         assert isinstance(detector.config, CoreAlertAggregatorConfig)
         assert detector.input_schema == schemas.DetectorSchema
-        assert detector.output_schema == schemas.OutputSchema
+        assert detector.output_schema == schemas.AggregateSchema
 
     def test_incorrect_config_type(self) -> None:
         dummy_config2 = {
@@ -106,7 +106,7 @@ class TestCoreAlertAggregator:
 
     def test_process_input_schema_not_serialized(self) -> None:
         alert_aggregator = MockupAlertAggregator(name="TestAAG", config=MockupConfig())
-        expected_result = schemas.OutputSchema({
+        expected_result = schemas.AggregateSchema({
             "__version__": "1.0.0",
             "detectorIDs": ["1"],
             "detectorTypes": ["dummy"],
@@ -123,7 +123,7 @@ class TestCoreAlertAggregator:
 
     def test_process_input_schema_not_serialized_window_3(self) -> None:
         alert_aggregator = MockupAlertAggregator(name="TestDetector", config=MockupConfig(), buffer_size=3)
-        expected_result = schemas.OutputSchema({
+        expected_result = schemas.AggregateSchema({
             "__version__": "1.0.0",
             "detectorIDs": ["1", "1", "1"],
             "detectorTypes": ["dummy", "dummy", "dummy"],
@@ -146,7 +146,7 @@ class TestCoreAlertAggregator:
         alert_aggregator = MockupAlertAggregatorBuffer(
             name="TestDetector", config=MockupConfig(), buffer_size=3
         )
-        expected_result = schemas.OutputSchema({
+        expected_result = schemas.AggregateSchema({
             "__version__": "1.0.0",
             "detectorIDs": ["1", "1", "1"],
             "detectorTypes": ["dummy", "dummy", "dummy"],

@@ -77,7 +77,7 @@ class TestCaseSchemas:
             "description": "test description",
             "alertsObtain": {"key": "value"}
         }
-        schema = op_schemas.initialize(op_schemas.OUTPUT_SCHEMA, **values)
+        schema = op_schemas.initialize(op_schemas.AGGREGATE_SCHEMA, **values)
 
         assert schema.__version__ == "1.0.0"
         assert schema.detectorIDs == ["test id", "another id"]

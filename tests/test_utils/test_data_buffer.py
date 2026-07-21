@@ -10,6 +10,7 @@ class TestDataBuffer:
         buf.add(1)
         buf.add(2)
         assert results == [1, 2]
+        assert buf.get_window_size() == 1
 
     def test_batch_mode(self):
         buf = DataBuffer(ArgsBuffer(mode=BufferMode.BATCH, process_function=sum, size=3))
@@ -20,6 +21,7 @@ class TestDataBuffer:
         assert result == 6
         # Buffer should be empty after processing
         assert len(buf.buffer) == 0
+        assert buf.get_window_size() == 3
 
     def test_batch_mode2(self):
         results = []
@@ -32,6 +34,7 @@ class TestDataBuffer:
         assert results == [[1, 1, 1]]
         # Buffer should be empty after processing
         assert len(buf.buffer) == 0
+        assert buf.get_window_size() == 3
 
     def test_window_mode(self):
         buf = DataBuffer(ArgsBuffer(mode=BufferMode.WINDOW, process_function=sum, size=2))
@@ -42,6 +45,7 @@ class TestDataBuffer:
         assert buf.add(5) == 7
         # Buffer should contain last two elements
         assert list(buf.buffer) == [2, 5]
+        assert buf.get_window_size() == 2
 
     def test_flush_batch(self):
         results = []

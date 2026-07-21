@@ -5,21 +5,51 @@ from detectmatelibrary.utils.id_generator import SimpleIDGenerator
 from ast import literal_eval
 import os
 
-from polars import DataFrame
-from typing import Iterator
+import polars as pl
+
+from typing import Iterator, overload
 import yaml
 import json
 
 
+def normalize_output(func):  # type: ignore
+    def norm(*args, **kwargs):  # type: ignore
+        if isinstance(args[0], list):
+            return func(*args, **kwargs)
+        else:
+            aux = func(*args, **kwargs)
+            return aux[0] if aux is not None else None
+    return norm
+
+
 class To:
     @staticmethod
+    @overload
     def binary_file(out_: BaseSchema | bytes | None, out_path: str) -> bytes | None:
+        ...
+
+    @staticmethod
+    @overload
+    def binary_file(out_: list[BaseSchema] | list[bytes], out_path: str) -> list[bytes]:
+        ...
+
+    @staticmethod
+    @normalize_output  # type: ignore
+    def binary_file(
+        out_: BaseSchema | bytes | None | list[BaseSchema] | list[bytes], out_path: str
+    ) -> bytes | None | list[bytes]:
+
         if out_ is None:
             return None
-        elif isinstance(out_, BaseSchema):
-            out_ = out_.serialize()
 
-        data = [str(out_) + "\n"]
+        elif isinstance(out_, BaseSchema):
+            out_ = [out_.serialize()]
+        elif isinstance(out_, list) and isinstance(out_[0], BaseSchema):
+            out_ = [o_.serialize() for o_ in out_]  # type: ignore
+        elif isinstance(out_, bytes):
+            out_ = [out_]
+
+        data = [str(o_) + "\n" for o_ in out_]
         if os.path.exists(out_path):
             with open(out_path, "r") as f:
                 data = f.readlines() + data
@@ -27,19 +57,38 @@ class To:
         with open(out_path, "w") as f:
             f.writelines(data)
 
-        return out_
+        return out_   # type: ignore
 
+    @overload
     @staticmethod
     def json(out_: BaseSchema | None, out_path: str) -> BaseSchema | None:
+        ...
+
+    @overload
+    @staticmethod
+    def json(out_: list[BaseSchema], out_path: str) -> list[BaseSchema]:
+        ...
+
+    @staticmethod
+    @normalize_output  # type: ignore
+    def json(
+        out_: BaseSchema | None | list[BaseSchema], out_path: str
+    ) -> BaseSchema | None | list[BaseSchema]:
+
         if out_ is None:
             return None
+        if isinstance(out_, BaseSchema):
+            out_ = [out_]
 
         data = {}
         if os.path.exists(out_path):
             with open(out_path) as f:
                 data = json.load(f)
 
-        data[len(data)] = out_.as_dict()
+        n = len(data)
+        for i, o_ in enumerate(out_):
+            data[n + i] = o_.as_dict()
+
         with open(out_path, "w") as f:
             obj = literal_eval(str(data))
             json.dump(obj, f, indent=4, ensure_ascii=False)
@@ -47,21 +96,98 @@ class To:
         return out_
 
     @staticmethod
+    @overload
     def yaml(out_: BaseSchema | None, out_path: str) -> BaseSchema | None:
+        ...
+
+    @staticmethod
+    @overload
+    def yaml(out_: list[BaseSchema], out_path: str) -> list[BaseSchema] | None:
+        ...
+
+    @staticmethod
+    @normalize_output  # type: ignore
+    def yaml(
+        out_: BaseSchema | None | list[BaseSchema], out_path: str
+    ) -> BaseSchema | None | list[BaseSchema]:
+
         if out_ is None:
             return None
+        if isinstance(out_, BaseSchema):
+            out_ = [out_]
 
         data = {}
         if os.path.exists(out_path):
             with open(out_path) as f:
                 data = yaml.safe_load(f)
 
-        data[len(data)] = out_.as_dict()
+        n = len(data)
+        for i, o_ in enumerate(out_):
+            data[n + i] = o_.as_dict()
+
         with open(out_path, "w") as f:
             obj = literal_eval(str(data))
             yaml.safe_dump(obj, f, indent=4, default_flow_style=False)
 
         return out_
+
+
+class _Polars:
+    @staticmethod
+    def with_dataframe(
+        component: CoreComponent,
+        df: pl.DataFrame,
+        renames: dict[str, str],
+        do_process: bool = True,
+    ) -> Iterator[BaseSchema]:
+
+        def __generator():  # type: ignore
+            for i in range(len(df)):
+                data = df.row(i, named=True)
+                if len(df_vars) > 0:
+                    data["logFormatVariables"] = df_vars.row(i, named=True)
+                data["logID"] = str(i)
+                schema = component.input_schema(data)
+                yield schema
+
+        columns = list(renames.values())
+        format_vars = [colum for colum in df.columns if colum not in columns]
+        df_vars, df = df[format_vars], df[columns]
+
+        return From._yield(component, __generator(), do_process=do_process)  # type: ignore
+
+    @staticmethod
+    def with_lazyframe(
+        component: CoreComponent,
+        df: pl.LazyFrame,
+        renames: dict[str, str],
+        do_process: bool = True,
+    ) -> Iterator[BaseSchema]:
+
+        def __generator():  # type: ignore
+            batch_size, offset = int(2e6), 0
+
+            while True:
+                df_batch = df.slice(offset, batch_size).collect()
+                batch_vars = df_vars.slice(offset, batch_size).collect()
+
+                if df_batch.is_empty():
+                    break
+
+                for i in range(len(df_batch)):
+                    data = df_batch.row(i, named=True)
+                    data_var = batch_vars.row(i, named=True)
+                    if len(data_var) > 0:
+                        data["logFormatVariables"] = data_var
+                    data["logID"] = str(i)
+                    schema = component.input_schema(data)
+                    yield schema
+
+        columns = df.collect_schema().names()
+        format_vars = [colum for colum in columns if colum not in list(renames.values())]
+        df_vars, df = df.select(format_vars), df.select(list(renames.values()))
+
+        return From._yield(component, __generator(), do_process=do_process)  # type: ignore
 
 
 class From:
@@ -133,31 +259,25 @@ class From:
     @staticmethod
     def polars(
         component: CoreComponent,
-        df: DataFrame,
+        df: pl.DataFrame | pl.LazyFrame,
         do_process: bool = True,
         renames: dict[str, str] | None = None
     ) -> Iterator[BaseSchema]:
-        def __generator():  # type: ignore
-            for i in range(len(df)):
-                data = df.row(i, named=True)
-                if len(df_vars) > 0:
-                    data["logFormatVariables"] = df_vars.row(i, named=True)
-                data["logID"] = str(i)
-                schema = component.input_schema(data)
-                yield schema
 
         renames = {
             "Content": "log", "ParamList": "variables", "EventIDs": "EventID", "Templates": "template"
         } if renames is None else renames
-        if "ParamList" not in df.columns and "ParamList" in renames:
+        columns = df.columns if isinstance(df, pl.DataFrame) else df.collect_schema().names()
+        if "ParamList" not in columns and "ParamList" in renames:
             del renames["ParamList"]
 
-        columns = list(renames.values())
         df = df.rename(renames)
-        format_vars = [colum for colum in df.columns if colum not in columns]
-        df_vars, df = df[format_vars], df[columns]
 
-        return From._yield(component, __generator(), do_process=do_process)  # type: ignore
+        return _Polars.with_dataframe(
+            component=component, df=df, do_process=do_process, renames=renames
+        ) if isinstance(df, pl.DataFrame) else _Polars.with_lazyframe(
+            component=component, df=df, do_process=do_process, renames=renames
+        )
 
 
 class FromTo:
@@ -271,7 +391,7 @@ class FromTo:
     @staticmethod
     def polars2binary_file(
         component: CoreComponent,
-        df: DataFrame,
+        df: pl.DataFrame | pl.LazyFrame,
         out_path: str,
         renames: dict[str, str] | None = None
     ) -> Iterator[BaseSchema]:
@@ -283,7 +403,7 @@ class FromTo:
     @staticmethod
     def polars2json(
         component: CoreComponent,
-        df: DataFrame,
+        df: pl.DataFrame | pl.LazyFrame,
         out_path: str,
         renames: dict[str, str] | None = None
     ) -> Iterator[BaseSchema]:
@@ -295,7 +415,7 @@ class FromTo:
     @staticmethod
     def polars2yaml(
         component: CoreComponent,
-        df: DataFrame,
+        df: pl.DataFrame | pl.LazyFrame,
         out_path: str,
         renames: dict[str, str] | None = None
     ) -> Iterator[BaseSchema]:

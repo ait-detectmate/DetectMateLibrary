@@ -8,7 +8,7 @@ from ._classes import (
     LogSchema,
     ParserSchema,
     DetectorSchema,
-    OutputSchema,
+    AggregateSchema,
     FieldNotFound,
 )
 
@@ -18,6 +18,6 @@ __all__ = [
     "LogSchema",
     "ParserSchema",
     "DetectorSchema",
-    "OutputSchema",
+    "AggregateSchema",
     "FieldNotFound"
 ]
