@@ -83,7 +83,7 @@ class TestCharsetDetectorInitialization:
         assert hasattr(detector, 'persistency')
         assert isinstance(detector.persistency.events_data, dict)
 
-    def test_persistency_uses_custom_add_value(self):
+    def test_persistency_uses_expand_value(self):
         """Main persistency must accumulate characters; auto_conf must not."""
         detector = CharsetDetector()
         # Ingest a sample so a SingleStabilityTracker is materialized
@@ -93,7 +93,19 @@ class TestCharsetDetectorInitialization:
             named_variables={"v": "hello"},
         )
         single = detector.persistency.get_event_data(1)["v"]
+        assert single.expand_value is True
         assert single.unique_set == {"h", "e", "l", "o"}
+
+    def test_auto_conf_persistency_does_not_expand(self):
+        detector = CharsetDetector()
+        detector.auto_conf_persistency.ingest_event(
+            event_id=1,
+            event_template="t",
+            named_variables={"v": "hello"},
+        )
+        single = detector.auto_conf_persistency.get_event_data(1)["v"]
+        assert single.expand_value is False
+        assert single.unique_set == {"hello"}
 
     def test_register_persistency_was_called(self):
         """Main persistency should be registered so persist/load round-trips
@@ -392,7 +404,7 @@ class TestCharsetDetectorSetConfigurationPreservesPersist:
 
         detector = CharsetDetector()
         # Simulate persist being enabled by an earlier config load
-        detector.config.persist = PersistConfig(path="memory://persist_flag/state")
+        detector.config.persist = PersistConfig(path="./state")
 
         # Feed configure() with a couple of stable-variable samples
         for _ in range(5):
@@ -407,4 +419,4 @@ class TestCharsetDetectorSetConfigurationPreservesPersist:
         detector.set_configuration()
 
         assert detector.config.persist is not None
-        assert detector.config.persist.path == "memory://persist_flag/state"
+        assert detector.config.persist.path == "./state"
