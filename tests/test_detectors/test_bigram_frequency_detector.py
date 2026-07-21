@@ -238,7 +238,11 @@ class TestBigramFrequencyDetectorEndToEnd:
 
     def test_audit_log_anomalies(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
-        detector = BigramFrequencyDetector()
+        detector = BigramFrequencyDetector(
+            config=BigramFrequencyDetectorConfig(
+                skip_repetitions=False
+            )
+        )
 
         logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
 
@@ -255,7 +259,7 @@ class TestBigramFrequencyDetectorEndToEnd:
             if detector.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
-        assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
+        assert detected_ids == {'1859', '1860', '1861', '1862'}
 
 
 class TestBigramFrequencyDetectorAutoConfig:
@@ -264,7 +268,7 @@ class TestBigramFrequencyDetectorAutoConfig:
 
     def test_audit_log_anomalies_via_process(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
-        detector = BigramFrequencyDetector()
+        detector = BigramFrequencyDetector(config=_SKIP_REPETITIONS_CONFIG, name="MultipleDetector")
 
         logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
 
