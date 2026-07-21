@@ -9,8 +9,8 @@ This module tests the NewValueDetector implementation including:
 """
 
 from detectmatelibrary.common._core_op._fit_logic import TrainState
-from detectmatelibrary.detectors.new_value_detector import NewValueDetector, NewValueDetectorConfig, \
-    BufferMode
+from detectmatelibrary.detectors.new_value_detector import NewValueDetector, NewValueDetectorConfig
+from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.common._core_op._fit_logic import ConfigState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser

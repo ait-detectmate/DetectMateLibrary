@@ -9,7 +9,8 @@ This module tests the CharsetDetector implementation including:
 """
 
 from detectmatelibrary.common._core_op._fit_logic import TrainState
-from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig, BufferMode
+from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig
+from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.common._core_op._fit_logic import ConfigState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
