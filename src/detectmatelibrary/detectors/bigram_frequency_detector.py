@@ -53,12 +53,12 @@ class BigramFrequencyDetectorConfig(CoreDetectorConfig):
            https://github.com/markbaggett/freq.
     @param skip_repetitions boolean that determines whether only distinct values are used for character pair
            counting. This counteracts the problem of imbalanced word frequencies that distort the frequency
-           table generated in a single aminer run.
+           table generated in a single run.
     """
     method_type: str = "bigram_frequency_detector"
     prob_thresh: float = 0.05
     default_freqs: bool = False
-    skip_repetitions: bool = False
+    skip_repetitions: bool = True
 
     use_stable_vars: bool = True
     use_static_vars: bool = True
