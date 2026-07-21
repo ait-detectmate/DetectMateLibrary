@@ -203,3 +203,6 @@ CLAUDE.md
 docs/superpowers/
 docs/design/
 .claude/
+
+# Leaked local persistency state (see PersistConfig default ./state)
+/state/
