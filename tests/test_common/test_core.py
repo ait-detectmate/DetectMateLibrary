@@ -340,7 +340,7 @@ class TestCoreComponent:
             component.process(_make_log(i))
 
         assert len(component.configure_data) == 0
-        assert component.set_configuration_called == 0
+        assert component.set_configuration_called == 1
 
     def test_configuration_keep_configure(self) -> None:
         component = MockComponentWithConfigure(name="DummyCfg4")

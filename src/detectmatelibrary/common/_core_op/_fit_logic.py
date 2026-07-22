@@ -111,6 +111,10 @@ class FitLogic:
         self.train_state, self.configure_state = update_state(
             state=state, train_state=self.train_state, config_state=self.configure_state
         )
+        if self.configure_state == ConfigState.STOP_CONFIGURE:
+            self.config_finished, self._configuration_done = False, True
+        if self.train_state == TrainState.STOP_TRAINING:
+            self.training_finished, self._training_done = False, True
 
     def finish_config(self) -> bool:
         if self._configuration_done and not self.config_finished:

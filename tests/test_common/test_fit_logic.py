@@ -60,3 +60,33 @@ class TestFinishTraining:
             logic.run()
             finish_calls.append(logic.finish_training())
         assert finish_calls.count(True) == 1
+
+    def test_force_stop_config(self) -> None:
+        logic = FitLogic(data_use_configure=20, data_use_training=None)
+
+        # Stop in the middle
+        assert not logic.finish_config()
+        logic.update_state("stop_configuring")
+        assert logic.finish_config()
+        assert not logic.finish_config()
+
+        # Stop after a force start 
+        logic.update_state("keep_configuring")
+        assert not logic.finish_config()
+        logic.update_state("stop_configuring")
+        assert logic.finish_config()
+
+    def test_force_stop_train(self) -> None:
+        logic = FitLogic(data_use_configure=None, data_use_training=20)
+
+        # Stop in the middle
+        assert not logic.finish_training()
+        logic.update_state("stop_training")
+        assert logic.finish_training()
+        assert not logic.finish_training()
+
+        # Stop after a force start 
+        logic.update_state("keep_training")
+        assert not logic.finish_training()
+        logic.update_state("stop_training")
+        assert logic.finish_training()
