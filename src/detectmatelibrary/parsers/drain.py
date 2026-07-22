@@ -14,6 +14,8 @@ class DrainConfig(CoreParserConfig):
     max_childs: int = 10
     sim_thres: float = 0.2
 
+    reset_in_post_train: bool = False
+
 
 class DrainParser(CoreParser):
     def __init__(

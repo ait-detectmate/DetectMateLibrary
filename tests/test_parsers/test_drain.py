@@ -30,3 +30,37 @@ class TestDrainParser:
         parsed = parser.process(schemas.LogSchema({"log": "hello there, general R2D2!"}))
         assert parsed["EventID"] == -1
         assert parsed["template"] == "template not found"
+
+    def test_rest_after_train(self):
+        config_dict = {
+            "parsers": {
+                "DrainParser": {
+                    "method_type": "drain_parser",
+                    "data_use_training": 2,
+                    "reset_in_post_train": True,
+                }
+            }
+        }
+        parser = DrainParser(config=config_dict)
+
+        parsed = parser.process(schemas.LogSchema({"log": "hello there, general kenobi!"}))
+        assert parsed["EventID"] == -1
+        assert parsed["template"] == "templates not yet generated"
+
+        parsed = parser.process(schemas.LogSchema({"log": "hello there, captain kenobi!"}))
+        assert parsed["EventID"] == -1
+        assert parsed["template"] == "templates not yet generated"
+
+        parsed = parser.process(schemas.LogSchema({"log": "hello there, sargent kenobi!"}))
+        assert parsed["EventID"] == 0
+        assert parsed["template"] == "hello there <*> kenobi"
+
+        parser.update_state("keep_training")
+        parsed = parser.process(schemas.LogSchema({"log": "bella ciao bella ciao"}))
+        print(parser.drain_gen.buffer)
+        parser.update_state("stop_training")
+        print(parser.drain_gen.buffer)
+
+        parsed = parser.process(schemas.LogSchema({"log": "hello there, sargent kenobi!"}))
+        assert parsed["EventID"] == -1
+        assert parsed["template"] == "template not found"
