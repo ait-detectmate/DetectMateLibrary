@@ -41,7 +41,8 @@ class DrainParser(CoreParser):
 
     def post_train(self) -> None:
         self.tree_match = self.drain_gen.generate()
-        self.drain_gen.reset()
+        if self.config.reset_in_post_train:
+            self.drain_gen.reset()
 
     def parse(
         self,
