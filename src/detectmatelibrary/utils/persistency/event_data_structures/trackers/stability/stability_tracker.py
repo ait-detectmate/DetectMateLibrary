@@ -19,13 +19,12 @@ class SingleStabilityTracker(SingleTracker):
         min_samples: int = 3,
         expand_value: bool = False,
         time_dependent: bool = False,
+        add_value_fn: str = "default",
+        detector_config: "CoreDetectorConfig | None" = None,
     ) -> None:
         self.min_samples = min_samples
         self.expand_value = expand_value
         self.time_dependent = time_dependent
-    def __init__(self, min_samples: int = 3, add_value_fn: str = "default",
-                 detector_config: "CoreDetectorConfig | None" = None) -> None:
-        self.min_samples = min_samples
         self.change_series: RLEList[bool] = RLEList()
         self.unique_set: Set[Any] = set()
         self.stability_classifier: StabilityClassifier = StabilityClassifier(
@@ -51,7 +50,7 @@ class SingleStabilityTracker(SingleTracker):
     def add_value(self, value: Any, timestamp: float | None = None) -> None:
         """Add a new value to the tracker."""
         before = len(self.unique_set)
-        self.unique_set.add(value)
+        self._accum(self.unique_set, value)
         self.change_series.append(len(self.unique_set) > before)
         if self.time_dependent and timestamp is not None:
             self.timestamps.append(float(timestamp))
@@ -181,8 +180,9 @@ class EventStabilityTracker(EventTracker):
             return SingleStabilityTracker(
                 expand_value=expand_value,
                 time_dependent=time_dependent,
+                add_value_fn=add_value_fn,
+                detector_config=detector_config,
             )
-            return SingleStabilityTracker(add_value_fn=add_value_fn, detector_config=detector_config)
 
         # Mirror class identity onto the closure so dump()/load() can resolve
         # the underlying SingleStabilityTracker via its module + qualname.
