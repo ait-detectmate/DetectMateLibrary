@@ -241,7 +241,7 @@ class TestCoreComponent:
                 })
             )
 
-        assert len(component.train_data) == component.fitlogic.data_used_train
+        assert len(component.train_data) == component.fitlogic.train_state.data_used
         for i, log in enumerate(component.train_data):
             expected = schemas.LogSchema({
                 "__version__": "1.0.0",
@@ -266,7 +266,8 @@ class TestCoreComponent:
                     "hostname": "test_hostname"
                 })
             )
-        total = component.fitlogic.data_use_training + component.fitlogic.config_state.total_need_data
+        total = component.fitlogic.train_state.total_need_data
+        total += component.fitlogic.config_state.total_need_data
         assert len(component.train_data) == total
         for i, log in enumerate(component.train_data):
             expected = schemas.LogSchema({

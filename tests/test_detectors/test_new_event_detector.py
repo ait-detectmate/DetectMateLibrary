@@ -14,7 +14,7 @@ from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
-from detectmatelibrary.common._core_op._fit_logic import EnumState, TrainState
+from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
 
@@ -195,12 +195,12 @@ class TestNewEventDetectorAutoConfig:
         detector.fitlogic.config_state.current = EnumState.STOP
 
         # Phase 2: train — keep training for logs[:TRAIN_UNTIL]
-        detector.fitlogic.train_state = TrainState.KEEP_TRAINING
+        detector.fitlogic.train_state.current = EnumState.KEEP
         for log in logs[:TRAIN_UNTIL]:
             detector.process(log)
 
         # Phase 3: detect — stop training so process() only calls detect()
-        detector.fitlogic.train_state = TrainState.STOP_TRAINING
+        detector.fitlogic.train_state.current = EnumState.STOP
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
             if detector.process(log) is not None:

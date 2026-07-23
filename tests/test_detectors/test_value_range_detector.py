@@ -10,7 +10,6 @@ This module tests the ValueRangeDetector implementation including:
 import logging
 import random
 import pytest
-from detectmatelibrary.common._core_op._fit_logic import TrainState
 from detectmatelibrary.detectors.value_range_detector import (ValueRangeDetector, ValueRangeDetectorConfig,
                                                               BufferMode)
 from detectmatelibrary.common._core_op._fit_logic import EnumState
@@ -369,14 +368,14 @@ class TestValueRangeDetectorAutoConfig:
         detector.fitlogic.config_state.current = EnumState.STOP
 
         # Phase 2: train — keep training for logs[:TRAIN_UNTIL]
-        detector.fitlogic.train_state = TrainState.KEEP_TRAINING
+        detector.fitlogic.train_state.current = EnumState.KEEP
         for log in logs[:TRAIN_UNTIL]:
             logger.setLevel(logging.CRITICAL)
             detector.process(log)
             logger.setLevel(logging.DEBUG)
 
         # Phase 3: detect — stop training so process() only calls detect()
-        detector.fitlogic.train_state = TrainState.STOP_TRAINING
+        detector.fitlogic.train_state.current = EnumState.STOP
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
             if detector.process(log) is not None:

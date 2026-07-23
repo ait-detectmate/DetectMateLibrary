@@ -1,7 +1,7 @@
 """Tests for FitLogic training lifecycle hooks."""
 
 from detectmatelibrary.common._core_op._fit_logic import (
-    FitLogic, FitLogicState, TrainState
+    FitLogic, FitLogicState, EnumState
 )
 
 
@@ -46,7 +46,7 @@ class TestFinishTraining:
 
     def test_finish_training_not_called_with_keep_training(self) -> None:
         logic = FitLogic(data_use_configure=None, data_use_training=None)
-        logic.train_state = TrainState.KEEP_TRAINING
+        logic.train_state.current = EnumState.KEEP
         for _ in range(10):
             state = logic.run()
             assert state == FitLogicState.DO_TRAIN
