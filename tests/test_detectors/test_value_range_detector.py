@@ -98,6 +98,21 @@ class TestValueRangeDetectorInitialization:
         assert tracker.unique_set == {5, 7}
         assert list(tracker.change_series) == [True, True]
 
+    def test_add_value_stores_only_min_max(self):
+        """unique_set stays bounded to {min, max} regardless of how many
+        distinct values are seen; change detection still tracks the true
+        range."""
+        detector = ValueRangeDetector()
+        tracker = SingleStabilityTracker()
+
+        for v in [50, 10, 30, 90, 20, 70]:  # min=10, max=90
+            detector.add_value(tracker, v)
+
+        assert tracker.unique_set == {10, 90}
+        # 50 (first, True), 10 (new min, True), 90 (new max, True) extend range;
+        # 30, 20, 70 fall inside -> False
+        assert list(tracker.change_series) == [True, True, False, True, False, False]
+
 
 class TestValueRangeDetectorTraining:
     """Test ValueRangeDetector training functionality."""
