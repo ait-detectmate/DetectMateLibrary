@@ -3,20 +3,7 @@ from typing import Literal, get_args
 from enum import Enum
 import warnings
 
-
-class FitLogicState(Enum):
-    DO_CONFIG = 0
-    DO_TRAIN = 1
-    NOTHING = 2
-
-    def describe(self) -> str:
-        descriptions = [
-            "Configuring",
-            "Training.",
-            "Default"
-        ]
-        return descriptions[self.value]
-
+# Individual state of config or train ################################################
 
 class EnumState(Enum):
     DEFAULT = 0
@@ -41,6 +28,9 @@ class State:
         self.data_used = 0
         self.current = EnumState.DEFAULT
 
+    def force_keep_doing(self) -> None:
+        self.current = EnumState.KEEP
+
     def keep_doing(self) -> bool:
         if self.current == EnumState.STOP:
             return False
@@ -50,6 +40,7 @@ class State:
         return self.total_need_data is not None and self.total_need_data > self.data_used
 
     def force_finish(self) -> None:
+        self.current = EnumState.STOP
         self.finished, self.ready_to_finish = False, True
 
     def check_if_ready_finish(self) -> None:
@@ -63,24 +54,23 @@ class State:
         return False
 
 
+# Overall state of the core component ##################################################
+
 StatesL = Literal["keep_training", "stop_training", "keep_configuring", "stop_configuring"]
 
 
-def update_state(
-    state: StatesL, train_state: EnumState, config_state: EnumState
-) -> tuple[EnumState, EnumState]:
-    if state == "keep_training":
-        train_state = EnumState.KEEP
-    elif state == "stop_training":
-        train_state = EnumState.STOP
-    elif state == "keep_configuring":
-        config_state = EnumState.KEEP
-    elif state == "stop_configuring":
-        config_state = EnumState.STOP
-    else:
-        warnings.warn(f"State {state} unknown, use: {get_args(StatesL)}")
+class FitLogicState(Enum):
+    DO_CONFIG = 0
+    DO_TRAIN = 1
+    NOTHING = 2
 
-    return train_state, config_state
+    def describe(self) -> str:
+        descriptions = [
+            "Configuring",
+            "Training.",
+            "Default"
+        ]
+        return descriptions[self.value]
 
 
 class FitLogic:
@@ -97,14 +87,16 @@ class FitLogic:
         return self.last_state.describe()
 
     def update_state(self, state: StatesL) -> None:
-        self.train_state.current, self.config_state.current = update_state(
-            state=state, train_state=self.train_state.current, config_state=self.config_state.current
-        )
-        if self.config_state.current == EnumState.STOP:
-            self.config_state.force_finish()
-            
-        if self.train_state.current == EnumState.STOP:
+        if state == "keep_training":
+            self.train_state.force_keep_doing()
+        elif state == "stop_training":
             self.train_state.force_finish()
+        elif state == "keep_configuring":
+            self.config_state.force_keep_doing()
+        elif state == "stop_configuring":
+            self.config_state.force_finish()
+        else:
+            warnings.warn(f"State {state} unknown, use: {get_args(StatesL)}")
 
     def finish_config(self) -> bool:
         return self.config_state.is_finish()
