@@ -11,7 +11,7 @@ This module tests the NewValueDetector implementation including:
 from detectmatelibrary.common._core_op._fit_logic import TrainState
 from detectmatelibrary.detectors.new_value_detector import NewValueDetector, NewValueDetectorConfig, \
     BufferMode
-from detectmatelibrary.common._core_op._fit_logic import ConfigState
+from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
@@ -249,12 +249,12 @@ class TestNewValueDetectorAutoConfig:
         logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
 
         # Phase 1: configure — keep configuring for logs[:TRAIN_UNTIL]
-        detector.fitlogic.configure_state = ConfigState.KEEP_CONFIGURE
+        detector.fitlogic.config_state.current = EnumState.KEEP
         for log in logs[:TRAIN_UNTIL]:
             detector.process(log)
 
         # Transition: stop configure so next process() call triggers set_configuration()
-        detector.fitlogic.configure_state = ConfigState.STOP_CONFIGURE
+        detector.fitlogic.config_state.current = EnumState.STOP
 
         # Phase 2: train — keep training for logs[:TRAIN_UNTIL]
         detector.fitlogic.train_state = TrainState.KEEP_TRAINING
