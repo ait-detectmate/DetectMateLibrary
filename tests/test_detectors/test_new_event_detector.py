@@ -14,7 +14,7 @@ from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
-from detectmatelibrary.common._core_op._fit_logic import ConfigState, TrainState
+from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
 
@@ -187,20 +187,20 @@ class TestNewEventDetectorAutoConfig:
         logs = list(From.log(pars, in_path=AUDIT_LOG, do_process=True))
 
         # Phase 1: configure — keep configuring for logs[:TRAIN_UNTIL]
-        detector.fitlogic.configure_state = ConfigState.KEEP_CONFIGURE
+        detector.fitlogic.config_state.current = EnumState.KEEP
         for log in logs[:TRAIN_UNTIL]:
             detector.process(log)
 
         # Transition: stop configure so next process() call triggers set_configuration()
-        detector.fitlogic.configure_state = ConfigState.STOP_CONFIGURE
+        detector.fitlogic.config_state.current = EnumState.STOP
 
         # Phase 2: train — keep training for logs[:TRAIN_UNTIL]
-        detector.fitlogic.train_state = TrainState.KEEP_TRAINING
+        detector.fitlogic.train_state.current = EnumState.KEEP
         for log in logs[:TRAIN_UNTIL]:
             detector.process(log)
 
         # Phase 3: detect — stop training so process() only calls detect()
-        detector.fitlogic.train_state = TrainState.STOP_TRAINING
+        detector.fitlogic.train_state.current = EnumState.STOP
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
             if detector.process(log) is not None:
