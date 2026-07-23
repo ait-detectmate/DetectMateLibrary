@@ -27,16 +27,6 @@ class ValueRangeDetector(VariableDetector):
         super().__init__(name=name, config=config)
         self.config: ValueRangeDetectorConfig  # type narrowing for IDE
 
-    def cast_val_to_numeric(self, configured_variables: Dict[str, Any], k: str, remove: List[str],
-                            stage: str) -> bool:
-        # Detection iterates over vars learned in training; a var can be absent from the
-        # current line for variable-length events (get_configured_variables skips positions
-        # beyond the line's variable count). Skip it — caller already handles `not cast`.
-        if k not in configured_variables:
-            return False
-        v = configured_variables[k]
-        if not isinstance(v, (int, float)):
-          
     def add_value(self, tracker: SingleStabilityTracker, value: Any) -> None:
         """Add a new value to the tracker (range semantics)."""
         try:
