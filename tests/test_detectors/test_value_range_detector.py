@@ -12,6 +12,9 @@ import random
 import pytest
 from detectmatelibrary.common._core_op._fit_logic import TrainState
 from detectmatelibrary.detectors.value_range_detector import ValueRangeDetector, ValueRangeDetectorConfig
+from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
+    SingleStabilityTracker,
+)
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.common._core_op._fit_logic import ConfigState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
@@ -83,6 +86,18 @@ class TestValueRangeDetectorInitialization:
         assert hasattr(detector, 'persistency')
         assert isinstance(detector.persistency.events_data, dict)
 
+    def test_add_value_updates_tracker(self):
+        """add_value (now a method) applies range semantics to a tracker."""
+        detector = ValueRangeDetector()
+        tracker = SingleStabilityTracker()
+
+        detector.add_value(tracker, "5")   # first value -> change
+        detector.add_value(tracker, "7")   # within/extends range
+        detector.add_value(tracker, "nope")  # non-numeric -> ignored
+
+        assert tracker.unique_set == {5, 7}
+        assert list(tracker.change_series) == [True, True]
+
 
 class TestValueRangeDetectorTraining:
     """Test ValueRangeDetector training functionality."""
@@ -138,8 +153,9 @@ class TestValueRangeDetectorTraining:
         assert min(event_data["test"].unique_set) == min_val
         assert max(event_data["test"].unique_set) == max_val
 
-    def test_train_detect_non_numeric_exit(self):
-        """Test training with non-numeric values and not ignoring them."""
+    def test_train_detect_non_numeric_raises(self):
+        """Non-numeric values raise ValueError when ignore_non_numerical_val is
+        False."""
 
         detector = ValueRangeDetector(config=config, name="CustomInit")
         # Train with multiple values (the minimum and maximum value should be captured)
@@ -154,9 +170,8 @@ class TestValueRangeDetectorTraining:
             "log": "test log message",
             "logFormatVariables": {}
         })
-        with pytest.raises(SystemExit) as excinfo:
+        with pytest.raises(ValueError):
             detector.train(parser_data)
-        assert excinfo.value.code == 1
         normal_data = schemas.ParserSchema({
             "parserType": "test",
             "EventID": 1,
@@ -169,10 +184,9 @@ class TestValueRangeDetectorTraining:
             "logFormatVariables": {}
         })
         detector.train(normal_data)
-        with pytest.raises(SystemExit) as excinfo:
+        with pytest.raises(ValueError):
             output = schemas.DetectorSchema()
             detector.detect(parser_data, output)
-        assert excinfo.value.code == 1
 
     def test_train_detect_non_numeric_ignore(self):
         """Test training with non-numeric values and ignoring them."""

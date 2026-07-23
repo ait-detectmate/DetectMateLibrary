@@ -21,15 +21,14 @@ class CharsetDetector(VariableDetector):
         if isinstance(config, dict):
             config = CharsetDetectorConfig.from_dict(config, name)
 
-        def add_value(cls: SingleStabilityTracker, value: Any) -> None:
-            """Add a new value to the tracker (character-set semantics)."""
-            before = len(cls.unique_set)
-            cls.unique_set.update(value)
-            cls.change_series.append(len(cls.unique_set) > before)
-        self.add_value_fn = add_value
-
         super().__init__(name=name, config=config)
         self.config: CharsetDetectorConfig  # type narrowing for IDE
+
+    def add_value(self, tracker: SingleStabilityTracker, value: Any) -> None:
+        """Add a new value to the tracker (character-set semantics)."""
+        before = len(tracker.unique_set)
+        tracker.unique_set.update(value)
+        tracker.change_series.append(len(tracker.unique_set) > before)
 
     def _event_data_kwargs(self) -> Optional[Dict[str, Any]]:
         return self._stability_kwargs()

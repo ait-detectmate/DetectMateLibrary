@@ -62,43 +62,42 @@ class BigramFrequencyDetector(VariableDetector):
         if isinstance(config, dict):
             config = BigramFrequencyDetectorConfig.from_dict(config, name)
 
-        def add_value(cls: SingleStabilityTracker, value: Any) -> None:
-            """Add a new value to the tracker (bigram-frequency semantics)."""
-            change = False
-            default_freq, default_total = (_default_freq_tables() if self.config.default_freqs else ({}, {}))
-            freq: dict[Any, dict[Any, int]] = cls.extra_state.get("freq", {})
-            total_freq: dict[Any, int] = cls.extra_state.get("total_freq", {})
-            probs: list[float] = []
-            for i in range(-1, len(value)):
-                first: Any = -1 if i == -1 else value[i]
-                second: Any = -1 if i == len(value) - 1 else value[i + 1]
-                prob = 0.0
-                if first in freq and second in freq[first] and total_freq.get(first, 0) > 0:
-                    prob = freq[first][second] / total_freq[first]
-                elif self.config.default_freqs:
-                    if (first in default_freq and second in default_freq[first]
-                            and default_total.get(first, 0) > 0):
-                        prob = default_freq[first][second] / default_total[first]
-                probs.append(prob)
-            if probs:
-                critical_val = sum(probs) / len(probs)
-                change = critical_val > self.config.prob_thresh or any(x == 0.0 for x in probs)
-
-            if self.config.skip_repetitions and value in cls.unique_set:
-                change = False
-            else:
-                for i in range(-1, len(value)):
-                    first = -1 if i == -1 else value[i]
-                    second = -1 if i == len(value) - 1 else value[i + 1]
-                    row = freq.setdefault(first, {})
-                    row[second] = row.get(second, 0) + 1
-                    total_freq[first] = total_freq.get(first, 0) + 1
-            cls.unique_set.add(value)
-            cls.change_series.append(change)
-        self.add_value_fn = add_value
-
         super().__init__(name=name, config=config)
         self.config: BigramFrequencyDetectorConfig  # type narrowing for IDE
+
+    def add_value(self, tracker: SingleStabilityTracker, value: Any) -> None:
+        """Add a new value to the tracker (bigram-frequency semantics)."""
+        change = False
+        default_freq, default_total = (_default_freq_tables() if self.config.default_freqs else ({}, {}))
+        freq: dict[Any, dict[Any, int]] = tracker.extra_state.get("freq", {})
+        total_freq: dict[Any, int] = tracker.extra_state.get("total_freq", {})
+        probs: list[float] = []
+        for i in range(-1, len(value)):
+            first: Any = -1 if i == -1 else value[i]
+            second: Any = -1 if i == len(value) - 1 else value[i + 1]
+            prob = 0.0
+            if first in freq and second in freq[first] and total_freq.get(first, 0) > 0:
+                prob = freq[first][second] / total_freq[first]
+            elif self.config.default_freqs:
+                if (first in default_freq and second in default_freq[first]
+                        and default_total.get(first, 0) > 0):
+                    prob = default_freq[first][second] / default_total[first]
+            probs.append(prob)
+        if probs:
+            critical_val = sum(probs) / len(probs)
+            change = critical_val > self.config.prob_thresh or any(x == 0.0 for x in probs)
+
+        if self.config.skip_repetitions and value in tracker.unique_set:
+            change = False
+        else:
+            for i in range(-1, len(value)):
+                first = -1 if i == -1 else value[i]
+                second = -1 if i == len(value) - 1 else value[i + 1]
+                row = freq.setdefault(first, {})
+                row[second] = row.get(second, 0) + 1
+                total_freq[first] = total_freq.get(first, 0) + 1
+        tracker.unique_set.add(value)
+        tracker.change_series.append(change)
 
     def _event_data_kwargs(self) -> Optional[Dict[str, Any]]:
         return self._stability_kwargs()

@@ -1,4 +1,3 @@
-import sys
 from typing import Any, Dict, Optional
 
 from detectmatelibrary.common.variable_detector import VariableDetector, VariableDetectorConfig
@@ -25,24 +24,23 @@ class ValueRangeDetector(VariableDetector):
         if isinstance(config, dict):
             config = ValueRangeDetectorConfig.from_dict(config, name)
 
-        def add_value(cls: SingleStabilityTracker, value: Any) -> None:
-            """Add a new value to the tracker (range semantics)."""
-            try:
-                value = float(value)
-                value = int(value) if value.is_integer() else value
-            except ValueError:
-                return
-            if len(cls.unique_set) > 0:
-                min_ = min(cls.unique_set)
-                max_ = max(cls.unique_set)
-                cls.change_series.append(value < min_ or value > max_)
-            else:
-                cls.change_series.append(True)
-            cls.unique_set.add(value)
-        self.add_value_fn = add_value
-
         super().__init__(name=name, config=config)
         self.config: ValueRangeDetectorConfig  # type narrowing for IDE
+
+    def add_value(self, tracker: SingleStabilityTracker, value: Any) -> None:
+        """Add a new value to the tracker (range semantics)."""
+        try:
+            value = float(value)
+            value = int(value) if value.is_integer() else value
+        except ValueError:
+            return
+        if len(tracker.unique_set) > 0:
+            min_ = min(tracker.unique_set)
+            max_ = max(tracker.unique_set)
+            tracker.change_series.append(value < min_ or value > max_)
+        else:
+            tracker.change_series.append(True)
+        tracker.unique_set.add(value)
 
     def _event_data_kwargs(self) -> Optional[Dict[str, Any]]:
         return self._stability_kwargs()
@@ -58,12 +56,13 @@ class ValueRangeDetector(VariableDetector):
                 casted = float(v)
                 variables[key] = int(casted) if casted.is_integer() else casted
             except ValueError:
-                logger.error(
+                msg = (
                     f"Non-numeric value '{v}' appeared in {stage} of {type(self).__name__}"
                     f" with the name {self.name}."
                 )
                 if not self.config.ignore_non_numerical_val:
-                    sys.exit(1)
+                    raise ValueError(msg)
+                logger.error(msg)
                 remove.append(key)
         for key in remove:
             del variables[key]
