@@ -1,5 +1,6 @@
 
-from detectmatelibrary.detectors.new_value_combo_detector import NewValueComboDetector, BufferMode
+from detectmatelibrary.detectors.new_value_combo_detector import NewValueComboDetector
+from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.common._config import generate_detector_config
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
