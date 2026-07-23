@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 import detectmatelibrary.schemas as schemas
+from detectmatelibrary.common.parser import CoreParser
 from detectmatelibrary.parsers.logbatcher import LogBatcherParser, LogBatcherParserConfig
 from detectmatelibrary.utils.aux import time_test_mode
 
@@ -32,7 +33,6 @@ def _make_parser():
 
 class TestLogBatcherParserInit:
     def test_is_core_parser(self):
-        from detectmatelibrary.common.parser import CoreParser
         with patch("detectmatelibrary.parsers.logbatcher.engine.parser.OpenAI"):
             parser = LogBatcherParser(config=LogBatcherParserConfig(api_key="k"))
         assert isinstance(parser, CoreParser)

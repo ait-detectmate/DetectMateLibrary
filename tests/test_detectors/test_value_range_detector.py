@@ -11,7 +11,9 @@ import logging
 import random
 import pytest
 from detectmatelibrary.common._core_op._fit_logic import TrainState
+from detectmatelibrary.common.detector import PersistConfig
 from detectmatelibrary.detectors.value_range_detector import ValueRangeDetector, ValueRangeDetectorConfig
+from detectmatelibrary.utils.persistency import PersistencySaver
 from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
     SingleStabilityTracker,
 )
@@ -445,8 +447,6 @@ class TestValueRangeDetectorPersistFixes:
     def test_registers_persistency_saver(self):
         """The detector wires persistency into the base saver hook (was
         missing)."""
-        from detectmatelibrary.common.detector import PersistConfig
-
         detector = ValueRangeDetector(
             config=ValueRangeDetectorConfig(
                 persist=PersistConfig(path="memory://value_range_regpersist/state")
@@ -459,8 +459,6 @@ class TestValueRangeDetectorPersistFixes:
 
     def test_set_configuration_preserves_persist(self):
         """set_configuration keeps the persist config (was dropped)."""
-        from detectmatelibrary.common.detector import PersistConfig
-
         detector = ValueRangeDetector()
         # Simulate persist being enabled by an earlier config load
         detector.config.persist = PersistConfig(path="memory://value_range_persist_flag/state")
@@ -486,11 +484,6 @@ class TestValueRangeDetectorPersistFixes:
         even when the serialized detector_config carries a persist section (it
         would leak a saver thread per variable and clobber the real state
         file)."""
-        from detectmatelibrary.common.detector import PersistConfig
-        from detectmatelibrary.utils.persistency import PersistencySaver
-        from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker \
-            import SingleStabilityTracker
-
         starts: list = []
         monkeypatch.setattr(PersistencySaver, "start", lambda self: starts.append(self))
 
