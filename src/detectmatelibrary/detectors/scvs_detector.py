@@ -18,21 +18,21 @@ def build_count_vec(input_: List[schemas.ParserSchema]) -> tuple[int, ...]:
     return tuple(sequence)
 
 
-class SequenceSetDetectorConfig(CoreDetectorConfig):
+class SCVSDetectorConfig(CoreDetectorConfig):
     method_type: str = "sequence_set_detector_detector"
     window_size: int = 10
 
 
-class SequenceSetDetector(CoreDetector):
+class SCVSDetector(CoreDetector):
     def __init__(
         self,
         name: str = "SequenceSetDetector",
-        config: SequenceSetDetectorConfig | dict[str, Any] = SequenceSetDetectorConfig(),
+        config: SCVSDetectorConfig | dict[str, Any] = SCVSDetectorConfig(),
     ) -> None:
 
         if isinstance(config, dict):
-            config = SequenceSetDetectorConfig.from_dict(config, name)
-        self.config: SequenceSetDetectorConfig
+            config = SCVSDetectorConfig.from_dict(config, name)
+        self.config: SCVSDetectorConfig
 
         super().__init__(
             name=name,
