@@ -10,7 +10,7 @@ def build_count_vec(input_: List[schemas.ParserSchema]) -> tuple[int, ...]:
     for in_ in input_:
         event = in_["EventID"]
         if n < event:
-            for _ in range(n, event + 1):
+            for _ in range(n, event):
                 sequence.append(0)
             n = event
         sequence[event] += 1
@@ -19,14 +19,14 @@ def build_count_vec(input_: List[schemas.ParserSchema]) -> tuple[int, ...]:
 
 
 class SCVSDetectorConfig(CoreDetectorConfig):
-    method_type: str = "sequence_set_detector_detector"
+    method_type: str = "scvs_detector"
     window_size: int = 10
 
 
 class SCVSDetector(CoreDetector):
     def __init__(
         self,
-        name: str = "SequenceSetDetector",
+        name: str = "SCVSDetector",
         config: SCVSDetectorConfig | dict[str, Any] = SCVSDetectorConfig(),
     ) -> None:
 
@@ -51,7 +51,7 @@ class SCVSDetector(CoreDetector):
 
         if build_count_vec(input_) not in self.train_seqs:
             output_["score"] = 1.
-            output_["description"] = "Sequence not found"
+            output_["description"] = "Count vector not found"
             return True
 
         return False
