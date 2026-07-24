@@ -43,6 +43,28 @@ def _found_ratio(logs: list[str], tree_matcher: TreeMatcher) -> float:
     return score / len(results)
 
 
+def _get_best_config(logs: list[str], config: DrainConfig) -> DrainConfig:
+
+    found_ratio: list[float] = []
+    length: list[int] = []
+
+    for config in (comb := Combinations(config))():  # type: ignore
+        drain = _init_drain(config)
+        for input_ in logs:
+            drain.add(input_)
+        tree_matcher = drain.generate()
+
+        found_ratio.append(_found_ratio(logs, tree_matcher))
+        length.append(len(tree_matcher))
+
+    n = max(length)
+    for le, sc in zip(length, found_ratio):
+        comb.add_value((float(le) / n) + sc)
+
+    new_config: DrainConfig = comb.get_best()  # type: ignore
+    return new_config
+
+
 class DrainParser(CoreParser):
     def __init__(
         self,
@@ -64,22 +86,8 @@ class DrainParser(CoreParser):
         self.config_buffer.append(input_["log"])
 
     def set_configuration(self) -> None:
-        found_ratio: list[float] = []
-        length: list[int] = []
-        for config in (comb := Combinations(self.config))():
-            drain = _init_drain(config)  # type: ignore
-            for input_ in self.config_buffer:
-                drain.add(input_)
-            tree_matcher = drain.generate()
-
-            found_ratio.append(_found_ratio(self.config_buffer, tree_matcher))
-            length.append(len(tree_matcher))
-
-        n = max(length)
-        for le, sc in zip(length, found_ratio):
-            comb.add_value((float(le) / n) + sc)
-
-        self.config = comb.get_best()  # type: ignore
+        self.config = _get_best_config(self.config_buffer, config=self.config)
+        self.config_buffer = []
 
     def train(self, input_: schemas.LogSchema) -> None:  # type: ignore
         self.drain_gen.add(input_["log"])
