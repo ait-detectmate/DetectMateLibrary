@@ -1,5 +1,5 @@
 
-from detectmatelibrary.detectors.ecvc_detector import ECVCOp
+from detectmatelibrary.detectors.ecvc_detector import ECVCOp, ECVCDetectorConfig, ECVCDetector
 
 from detectmatelibrary import schemas
 
@@ -60,3 +60,44 @@ class TestECVCOP:
         assert 0.0 == ECVCOp.threshold_cal(y, matrix=matrix, method="default")
         assert 0.575 == ECVCOp.threshold_cal(y, matrix=matrix, method="mean")
         assert 0.4 == ECVCOp.threshold_cal(y, matrix=matrix, method="mode")
+
+
+class TestECVC:
+    def test_window_size(self):
+        ecvc = ECVCDetector(config=ECVCDetectorConfig(window_size=10))
+        assert ecvc.get_window_size() == 10
+
+        ecvc = ECVCDetector(config=ECVCDetectorConfig(window_size=7))
+        assert ecvc.get_window_size() == 7
+
+    def test_ecvc(self):
+        config = {
+            "detectors": {
+                "ECVCDetector": {
+                    "method_type": "ecvc_detector_detector",
+                    "window_size": 3,
+                    "seed": 0,
+                    "validation_per": 0.,
+                    "threshold_method": "mean",
+                    "data_use_training": 30,
+                }
+            }
+        }
+
+        ecvc = ECVCDetector(config=config)
+
+        input_ = []
+        for _ in range(10):
+            input_.extend([schemas.ParserSchema({"EventID": i}) for i in [0, 1, 4, 0]])
+
+        for in_ in input_:
+            ecvc.process(in_)
+        assert ecvc.get_state() == "Default"
+
+        for in_ in input_[5:15]:
+            alert = ecvc.process(in_)
+        assert alert is None
+
+        for in_ in [schemas.ParserSchema({"EventID": i}) for i in [4, 4, 4, 4, 4, 4, 1, 0, 1, 1]]:
+            alert = ecvc.process(in_)
+        assert alert is not None
