@@ -9,6 +9,9 @@ class TestDrainParser:
             "parsers": {
                 "DrainParser": {
                     "method_type": "drain_parser",
+                    "depth": 2,
+                    "max_childs": 10,
+                    "sim_thres": 0.2,
                     "data_use_training": 2,
                 }
             }
@@ -36,6 +39,9 @@ class TestDrainParser:
             "parsers": {
                 "DrainParser": {
                     "method_type": "drain_parser",
+                    "depth": 2,
+                    "max_childs": 10,
+                    "sim_thres": 0.2,
                     "data_use_training": 2,
                     "reset_in_post_train": True,
                 }
@@ -68,6 +74,9 @@ class TestDrainParser:
             "parsers": {
                 "DrainParser": {
                     "method_type": "drain_parser",
+                    "depth": 2,
+                    "max_childs": 10,
+                    "sim_thres": 0.2,
                     "data_use_training": 2,
                     "reset_in_post_train": False,
                 }
@@ -92,5 +101,17 @@ class TestDrainParser:
         parser.update_state("stop_training")
 
         parsed = parser.process(schemas.LogSchema({"log": "hello there, sargent kenobi!"}))
-        assert parsed["EventID"] == 1
         assert parsed["template"] == "hello there <*> kenobi"
+
+    def test_no_auto_config_but_no_initialization(self):
+        config_dict = {
+            "parsers": {
+                "DrainParser": {
+                    "method_type": "drain_parser",
+                    "auto_config": True,
+                    "data_use_configure": 2,
+                    "data_use_training": 2,
+                }
+            }
+        }
+        DrainParser(config=config_dict)

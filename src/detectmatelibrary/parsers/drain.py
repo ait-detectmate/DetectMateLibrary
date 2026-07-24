@@ -16,6 +16,18 @@ class DrainConfig(CoreParserConfig):
 
     reset_in_post_train: bool = False
 
+    finetune: list[list[str | list[Any]]] = [
+        ["depth", [1, 2, 3, 4]],
+        ["max_childs", [10, 40]],
+        ["sim_thres", [0.2, 0.4, 0.6, 0.8]]
+    ]
+
+
+def _init_drain(config: DrainConfig) -> Drain:
+    return Drain(
+        depth=config.depth, max_child=config.max_childs, sim=config.sim_thres,
+    )
+
 
 class DrainParser(CoreParser):
     def __init__(
@@ -29,12 +41,17 @@ class DrainParser(CoreParser):
         super().__init__(name=name, config=config)
 
         self.config: DrainConfig
-        self.drain_gen = Drain(
-            depth=self.config.depth,
-            max_child=self.config.max_childs,
-            sim=self.config.sim_thres,
-        )
+        self.drain_gen = _init_drain(config=config)
         self.tree_match: TreeMatcher | None = None
+
+        self.report: dict[str, float] = {}
+        self.config_buffer: list[schemas.LogSchema] = []
+
+    def configure(self, input_: schemas.LogSchema) -> None:  # type: ignore
+        self.config_buffer.append(input_)
+
+    def set_configuration(self) -> None:
+        pass
 
     def train(self, input_: schemas.LogSchema) -> None:  # type: ignore
         self.drain_gen.add(input_["log"])
