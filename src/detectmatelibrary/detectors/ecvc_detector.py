@@ -16,7 +16,7 @@ class ECVCOp:
         for in_ in input_:
             event = in_["EventID"]
             if n < event:
-                for _ in range(n, event + 1):
+                for _ in range(n, event):
                     sequence.append(0)
                 n = event
             sequence[event] += 1
@@ -56,10 +56,6 @@ class ECVCOp:
             score = score if score < (s := (dif / div)) else s
 
         return float(score)
-
-    @staticmethod
-    def split_set(data: set[tuple[int]], n: int) -> set[tuple[int]]:
-        return {data.pop() for _ in range(n)}
 
     @staticmethod
     def threshold_cal(y_s: np.ndarray, matrix: np.ndarray, method: str) -> float:
