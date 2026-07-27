@@ -4,12 +4,15 @@ import jax
 import flax.linen as nn
 import optax
 
+from functools import lru_cache
+
 from dataclasses import dataclass
 from typing import Any
 from tqdm import tqdm
 from math import ceil
 
 from detectmatelibrary.utils.deep_learning._op import CheckPoint
+from detectmatelibrary.utils.finetune import Combinations
 
 
 ## Model Deeplog
@@ -51,7 +54,7 @@ def train(
     x_val: jnp.ndarray, 
     y_val: jnp.ndarray, 
     trainConfig: TrainConfig = TrainConfig()
-):
+) -> tuple[dict[str, Any], dict[str, float]]:
     @jax.jit
     def train_step(
         params: dict[str, Any], opt_state: optax.OptState, x: jnp.ndarray, y: jnp.ndarray
@@ -100,3 +103,109 @@ def train(
         "Loss Val": loss_val, 
         "Best val": loss_val[best_e]
     }
+
+
+def do_train(
+    model: nn.Module, train_seqs: jnp.ndarray, val_seqs: jnp.ndarray, config: TrainConfig
+) -> tuple[dict[str, Any], dict[str, float]]:
+    return train(
+        model=model, 
+        x=train_seqs[:, :-1, :], 
+        y=train_seqs[:, -1, :].reshape((train_seqs.shape[0])), 
+        x_val=val_seqs[:, :-1, :], 
+        y_val=val_seqs[:, -1, :].reshape((val_seqs.shape[0])), 
+        trainConfig=config
+    ) 
+
+
+## Final model
+default_config = {
+    "Model": {
+        "hidden_dim": 64,
+        "n_layers": 2,
+    },
+    "Train": {
+        "batch_size": 2048,
+        "learning_rate": 0.01,
+        "epochs": 10,
+    },
+}
+
+
+class DeepLog:
+    def __init__(self, config: dict = default_config) -> None:
+        self.config = config
+        self.params = {}
+        self.config_train = TrainConfig(**config["Train"])
+        self.model_trained = False
+        self.model: DeepLogModel | None = None
+
+    def __str__(self) -> str:
+        return str(self.model) + "\n" + str(self.config_train)
+
+    def top_pred(self, x: jnp.ndarray) -> jnp.ndarray:
+        return jnp.argsort(
+            self.model.apply({"params": self.params}, x[None, ..., None]).flatten(),
+            descending=True
+        )
+    
+    def get_best_k(self, seq: jnp.ndarray) -> int:
+        if seq.shape[0] == 0:
+            return 0
+
+        x_s, y_s = seq[:, :-1, :], seq[:, -1]
+        x_s = jnp.argsort(
+            self.model.apply({"params": self.params}, x_s), descending=True
+        )
+
+        return int(jax.scipy.stats.mode(
+            (jnp.arange(x_s.shape[1]) * (x_s == y_s)).sum(1)
+        ).mode + 2)  # give a little space for variation
+
+    @lru_cache
+    def check_anomaly(self, seq: tuple[int], top_k: int) -> bool:
+        if not self.model_trained:
+            return False
+
+        seq = jnp.array(seq)
+        x, y = seq[:-1], seq[-1]
+        return not jnp.isin(y, self.top_pred(x)[:top_k])
+
+    def _prepare_data(self, seqs: list[tuple[int]], var_per: float) -> tuple[jnp.ndarray]:
+        seed = jax.random.key(self.config_train.seed)
+        idx = jax.random.permutation(seed, len(seqs))
+        seqs = jnp.array(seqs)[..., None][idx]
+        train_seqs = seqs[:ceil(len(seqs) * (1 - var_per))]
+        val_seqs = seqs[ceil(len(seqs) * (1 - var_per)):]
+        return train_seqs, val_seqs
+
+    def train(self, seqs: list[tuple[int]], var_per: float) -> dict:
+        train_seqs, val_seqs = self._prepare_data(seqs=seqs, var_per=var_per)
+
+        self.config_train = TrainConfig(**self.config["Train"])
+        self.config["Model"]["output_size"] = train_seqs.max() + 1
+        print("Output shape:", self.config["Model"]["output_size"])
+
+        self.model = DeepLogModel(**self.config["Model"])
+        self.params, stats = do_train(
+            self.model, train_seqs=train_seqs, val_seqs=val_seqs, config=self.config_train
+        ) 
+        self.model_trained = True
+        stats["top_k"] = self.get_best_k(val_seqs)
+
+        return stats
+ 
+    def finetune(self, seqs: list[tuple[int]], var_per: float, epochs: int = 2) -> None:
+        train_seqs, val_seqs = self._prepare_data(seqs=seqs, var_per=var_per)
+        combos = Combinations(config=self.config)
+
+        for comb in combos():
+            comb["Model"]["output_size"] = train_seqs.max() + 1
+            comb["Train"]["epochs"] = epochs
+            model = DeepLogModel(**comb["Model"])
+            config_train = TrainConfig(**comb["Train"])
+
+            _, stats = do_train(model, train_seqs=train_seqs, val_seqs=val_seqs, config=config_train) 
+            combos.add_value(stats["Best val"])
+        self.config = combos.get_best()
+        print(self.config)
