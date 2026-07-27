@@ -1,6 +1,7 @@
 
 import detectmatelibrary.utils.deep_learning._op as op
 import detectmatelibrary.utils.deep_learning.deeplog as deeplog
+import detectmatelibrary.utils.deep_learning.logbert as logbert
 
 import jax.numpy as jnp
 import jax
@@ -90,3 +91,69 @@ class TestDeeplog:
             var_per=0.25
         )
         assert deeplog_.config != config
+
+
+class TestLogBert:
+    def test_logbert_model(self) -> None:
+        model = logbert.LogBertModel(
+            n_embed=3, hidden=8, num_heads=1, n_layers=1, dropout=0.0, max_len=10
+        )
+
+        params = model.init(jax.random.PRNGKey(0), jnp.zeros((1, 5), dtype=jnp.int32))['params']
+        x = jnp.ones((3, 10), dtype=jnp.int32)
+
+        y, dist = model.apply({"params": params}, x)
+        assert y.shape == (3, 10, 3)
+        assert dist.shape == (3, 8)
+
+    def test_logbert_train(self) -> None:
+        config = {
+            "Model": {
+                "hidden": 4,
+                "n_layers": 1,
+                "num_heads": 4,
+                "dropout": 0.0,
+                "max_len": 10,
+            },
+            "Train": {
+                "batch_size": 3,
+                "learning_rate": 0.01,
+                "epochs": 2,
+            },
+        }
+        logbert_ = logbert.LogBert(config=config)
+        stats = logbert_.train(
+            seqs=[
+                [1, 2, 0, 1] for _ in range(4)
+            ],
+            var_per=0.25
+        )
+        assert not logbert_.check_anomaly((1, 2, 0, 1), stats["top_k"])
+        assert logbert_.check_anomaly((1, 2, 3, 0), stats["top_k"])
+
+    def test_logbert_finetune(self) -> None:
+        config = {
+            "Model": {
+                "hidden": 4,
+                "n_layers": 1,
+                "num_heads": 1,
+                "dropout": 0.0,
+                "max_len": 10,
+            },
+            "Train": {
+                "batch_size": 3,
+                "learning_rate": 0.01,
+                "epochs": 2,
+            },
+            "finetune": [
+                ("Model", "n_layers", [2, 3])
+            ]
+        }
+        logbert_ = logbert.LogBert(config=config)
+        logbert_.finetune(
+            seqs=[
+                [1, 2, 0, 1] for _ in range(4)
+            ],
+            var_per=0.25
+        )
+        assert logbert_.config != config

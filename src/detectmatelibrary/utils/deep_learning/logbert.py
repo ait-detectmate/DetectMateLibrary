@@ -101,7 +101,7 @@ class LogBertModel(nn.Module):
         for _ in range(self.n_layers):
             h = TransformerBlock(
                 hidden=self.hidden, num_heads=self.num_heads, dropout=self.dropout
-            )(h, training=training)
+            )(h, training=training)      
         h, dist = h[:, :-1, :], h[:, -1, :]
 
         return nn.Dense(self.n_embed)(h), dist
@@ -233,7 +233,6 @@ class LogBert:
         pred, y = self.top_pred(jnp.array([seq]))
         pred = pred[:, :top_k]
         score = 0
-
         for i in range(pred.shape[0]):
             score += not bool(jnp.isin(y[i], pred[i]))
         return score
