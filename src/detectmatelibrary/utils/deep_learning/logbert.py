@@ -5,6 +5,7 @@ import jax
 import flax.linen as nn
 import optax
 
+from functools import lru_cache
 
 from dataclasses import dataclass
 from typing import Any
@@ -12,6 +13,7 @@ from tqdm import tqdm
 from math import ceil
 
 from detectmatelibrary.utils.deep_learning._op import CheckPoint, Mask
+from detectmatelibrary.utils.finetune import Combinations
 
 
 class PositionEmbedding(nn.Module):
@@ -176,4 +178,113 @@ def train(
     return params, {
         "Loss Epoch": losses_epoch, "Loss Step": losses_step, "Loss Val": loss_val, "Best val": loss_val[best_e]
     }
+
+
+## Final model
+default_config = {
+    "Model": {
+        "hidden": 256,
+        "num_heads": 2,
+        "n_layers": 4,
+        "dropout": 0.0,
+        "max_len": 1000,
+    },
+    "Train": {
+        "batch_size": 256,
+        "learning_rate": 0.01,
+        "epochs": 10,
+    },
+}
+
+
+class LogBert:
+    def __init__(self, config: dict = default_config) -> None:
+        self.config = config
+        self.params = {}
+        self.model: LogBertModel | None = None
+        self.mask: Mask | None = None
+        self.config_train = TrainConfig(**self.config["Train"])
+
+    def __str__(self) -> str:
+        return str(self.model) + "\n" + str(self.config_train)
+    
+    def top_pred(self, x: jnp.ndarray) -> tuple[jnp.ndarray]:
+        m = self.mask(x.shape[0])
+        y, _ = self.model.apply({"params": self.params}, x * m, training=False)
+
+        idx = jnp.nonzero(m == 0)
+        pred = jnp.argsort(y[idx], axis=1, descending=True)
+        return pred, x[idx]
+
+    def get_best_k(self, seq: jnp.ndarray) -> int:
+        if seq.shape[0] == 0:
+            return 0
+
+        pred, y = self.top_pred(seq)
+        return int(jax.scipy.stats.mode(
+            ((y[..., None] == pred) * jnp.arange(pred.shape[1])[None, ...]).sum(1)
+        ).mode + 2)
+
+    @lru_cache
+    def check_anomaly(self, seq: tuple[int], top_k: int) -> int:
+        if self.model is None:
+            return False
+        
+        pred, y = self.top_pred(jnp.array([seq]))
+        pred = pred[:, :top_k]
+        score = 0
+
+        for i in range(pred.shape[0]):
+            score += not bool(jnp.isin(y[i], pred[i]))
+        return score
+
+    def _prepare_data(self, seqs: list[tuple[int]], var_per: float) -> tuple[jnp.ndarray]:
+        seed = jax.random.key(self.config_train.seed)
+        idx = jax.random.permutation(seed, len(seqs))
+        seqs = jnp.array(seqs)[idx]
+        train_seqs = seqs[:ceil(len(seqs) * (1 - var_per))]
+        val_seqs = seqs[ceil(len(seqs) * (1 - var_per)):]
+        return train_seqs, val_seqs
+
+    def train(self, seqs: list[tuple[int]], var_per: float) -> dict:
+        train_seqs, val_seqs = self._prepare_data(seqs=seqs, var_per=var_per)
+
+        self.config_train = TrainConfig(**self.config["Train"])
+        self.config["Model"]["n_embed"] = int(train_seqs.max() + 1)
+        self.model = LogBertModel(**self.config["Model"])
+        self.mask = Mask(
+            seq_size=train_seqs.shape[-1], mask_per=self.config_train.mask_per
+        )
+        self.params, stats = train(
+            model=self.model, 
+            mask=self.mask,
+            x=train_seqs,
+            x_val=val_seqs,
+            trainConfig=self.config_train
+        ) 
+        stats["top_k"] = self.get_best_k(val_seqs)
+
+        return stats
+    
+    def finetune(self, seqs: list[tuple[int]], var_per: float) -> None:
+        train_seqs, val_seqs = self._prepare_data(seqs=seqs, var_per=var_per)
+        combos = Combinations(config=self.config)
+
+        for comb in combos():
+            comb["Model"]["n_embed"] = int(train_seqs.max() + 1)
+            model = LogBertModel(**comb["Model"])
+            config_train = TrainConfig(**comb["Train"])
+            mask = Mask(
+                seq_size=train_seqs.shape[-1], mask_per=config_train.mask_per
+            )
+
+            _, stats = train(
+                model=model, 
+                mask=mask,
+                x=train_seqs,
+                x_val=val_seqs,
+                trainConfig=config_train
+            )
+            combos.add_value(stats["Best val"])
+        self.config = combos.get_best()
         
