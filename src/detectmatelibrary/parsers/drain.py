@@ -33,7 +33,6 @@ def _init_drain(config: DrainConfig) -> Drain:
 
 def _found_ratio(logs: list[str], tree_matcher: TreeMatcher) -> float:
     results = tree_matcher.match_batch(logs).get_all_templates()
-    print(results)
 
     score = 0.0
     for template in results:
