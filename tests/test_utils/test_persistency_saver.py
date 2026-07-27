@@ -5,7 +5,10 @@ import threading
 import fsspec
 import pytest
 
-from detectmatelibrary.utils.persistency.event_data_structures.dataframes import EventDataFrame
+from detectmatelibrary.utils.persistency.event_data_structures.dataframes import (
+    EventDataFrame,
+    ChunkedEventDataFrame,
+)
 from detectmatelibrary.utils.persistency.event_data_structures.trackers import EventStabilityTracker
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from detectmatelibrary.utils.persistency.persistency_saver import (
@@ -164,8 +167,6 @@ class TestPersistencySaverSaveLoad:
 
     def test_load_restores_event_data_kwargs(self):
         """event_data_kwargs must be written back to ep after load."""
-        from detectmatelibrary.utils.persistency.event_data_structures.dataframes import ChunkedEventDataFrame
-
         p = EventPersistency(
             event_data_class=ChunkedEventDataFrame,
             event_data_kwargs={"max_rows": 500},

@@ -10,8 +10,13 @@ This module tests the ValueRangeDetector implementation including:
 import logging
 import random
 import pytest
-from detectmatelibrary.detectors.value_range_detector import (ValueRangeDetector, ValueRangeDetectorConfig,
-                                                              BufferMode)
+from detectmatelibrary.common.detector import PersistConfig
+from detectmatelibrary.detectors.value_range_detector import ValueRangeDetector, ValueRangeDetectorConfig
+from detectmatelibrary.utils.persistency import PersistencySaver
+from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
+    SingleStabilityTracker,
+)
+from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
@@ -82,6 +87,18 @@ class TestValueRangeDetectorInitialization:
         assert hasattr(detector, 'persistency')
         assert isinstance(detector.persistency.events_data, dict)
 
+    def test_add_value_updates_tracker(self):
+        """add_value (now a method) applies range semantics to a tracker."""
+        detector = ValueRangeDetector()
+        tracker = SingleStabilityTracker()
+
+        detector.add_value(tracker, "5")   # first value -> change
+        detector.add_value(tracker, "7")   # within/extends range
+        detector.add_value(tracker, "nope")  # non-numeric -> ignored
+
+        assert tracker.unique_set == {5, 7}
+        assert list(tracker.change_series) == [True, True]
+
 
 class TestValueRangeDetectorTraining:
     """Test ValueRangeDetector training functionality."""
@@ -137,8 +154,9 @@ class TestValueRangeDetectorTraining:
         assert min(event_data["test"].unique_set) == min_val
         assert max(event_data["test"].unique_set) == max_val
 
-    def test_train_detect_non_numeric_exit(self):
-        """Test training with non-numeric values and not ignoring them."""
+    def test_train_detect_non_numeric_raises(self):
+        """Non-numeric values raise ValueError when ignore_non_numerical_val is
+        False."""
 
         detector = ValueRangeDetector(config=config, name="CustomInit")
         # Train with multiple values (the minimum and maximum value should be captured)
@@ -153,9 +171,8 @@ class TestValueRangeDetectorTraining:
             "log": "test log message",
             "logFormatVariables": {}
         })
-        with pytest.raises(SystemExit) as excinfo:
+        with pytest.raises(ValueError):
             detector.train(parser_data)
-        assert excinfo.value.code == 1
         normal_data = schemas.ParserSchema({
             "parserType": "test",
             "EventID": 1,
@@ -168,10 +185,9 @@ class TestValueRangeDetectorTraining:
             "logFormatVariables": {}
         })
         detector.train(normal_data)
-        with pytest.raises(SystemExit) as excinfo:
+        with pytest.raises(ValueError):
             output = schemas.DetectorSchema()
             detector.detect(parser_data, output)
-        assert excinfo.value.code == 1
 
     def test_train_detect_non_numeric_ignore(self):
         """Test training with non-numeric values and ignoring them."""
@@ -426,3 +442,64 @@ class TestValueRangeDetectorGlobalInstances:
                 detected_ids.add(log["logID"])
 
         assert len(detected_ids) > 0
+
+
+class TestValueRangeDetectorPersistFixes:
+    def test_registers_persistency_saver(self):
+        """The detector wires persistency into the base saver hook (was
+        missing)."""
+        detector = ValueRangeDetector(
+            config=ValueRangeDetectorConfig(
+                persist=PersistConfig(path="memory://value_range_regpersist/state")
+            )
+        )
+        # _register_persistency builds a PersistencySaver bound to detector.persistency
+        assert detector.saver is not None
+        assert detector.saver._persistency is detector.persistency
+        detector.saver.stop()
+
+    def test_set_configuration_preserves_persist(self):
+        """set_configuration keeps the persist config (was dropped)."""
+        detector = ValueRangeDetector()
+        # Simulate persist being enabled by an earlier config load
+        detector.config.persist = PersistConfig(path="memory://value_range_persist_flag/state")
+
+        # Feed configure() with a couple of stable-variable samples
+        for _ in range(5):
+            sample = schemas.ParserSchema({
+                "parserType": "test", "EventID": 1, "template": "t",
+                "variables": ["123"], "logID": "x", "parsedLogID": "x",
+                "parserID": "p", "log": "l",
+                "logFormatVariables": {"level": "INFO"},
+            })
+            detector.configure(sample)
+
+        detector.set_configuration()
+
+        assert detector.config.persist is not None
+        assert detector.config.persist.path == "memory://value_range_persist_flag/state"
+
+    def test_tracker_reconstruction_does_not_start_saver(self, monkeypatch):
+        """A tracker reconstructs a throwaway detector by name to recover its
+        add_value closure; that throwaway must not start a PersistencySaver
+        even when the serialized detector_config carries a persist section (it
+        would leak a saver thread per variable and clobber the real state
+        file)."""
+        starts: list = []
+        monkeypatch.setattr(PersistencySaver, "start", lambda self: starts.append(self))
+
+        detector_config = ValueRangeDetectorConfig(
+            auto_config=False,
+            persist=PersistConfig(path="memory://value_range_recon_no_leak/state"),
+        ).to_dict(method_id="ValueRangeDetector")
+        # precondition: the serialized config carries a persist section
+        assert "persist" in detector_config["detectors"]["ValueRangeDetector"]
+
+        tracker = SingleStabilityTracker(
+            add_value_fn="ValueRangeDetector", detector_config=detector_config
+        )
+        # reconstruction recovered the range-semantics add_value closure...
+        tracker.add_value(5)
+        assert 5 in tracker.unique_set
+        # ...but started NO saver (the throwaway instance must not persist)
+        assert starts == []
