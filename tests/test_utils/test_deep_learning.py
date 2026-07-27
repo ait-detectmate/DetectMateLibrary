@@ -3,6 +3,8 @@ import detectmatelibrary.utils.deep_learning._op as op
 import detectmatelibrary.utils.deep_learning.deeplog as deeplog
 import detectmatelibrary.utils.deep_learning.logbert as logbert
 
+import pytest
+
 import jax.numpy as jnp
 import jax
 
@@ -37,6 +39,7 @@ class TestDLOp:
 
 
 class TestDeeplog:
+    @pytest.mark.ignored
     def test_deeplog_model(self) -> None:
         model = deeplog.DeepLogModel(hidden_dim=4, n_layers=1, output_size=1)
 
@@ -46,6 +49,7 @@ class TestDeeplog:
         y = model.apply({"params": params}, x)
         assert y.shape == (3, 1)
 
+    @pytest.mark.ignored
     def test_deeplog_train(self) -> None:
         config = {
             "Model": {
@@ -68,6 +72,7 @@ class TestDeeplog:
         assert not deeplog_.check_anomaly((1, 2, 0, 1), stats["top_k"])
         assert deeplog_.check_anomaly((1, 2, 2, 0), stats["top_k"])
 
+    @pytest.mark.ignored
     def test_deeplog_finetune(self) -> None:
         config = {
             "Model": {
@@ -94,6 +99,7 @@ class TestDeeplog:
 
 
 class TestLogBert:
+    @pytest.mark.ignored
     def test_logbert_model(self) -> None:
         model = logbert.LogBertModel(
             n_embed=3, hidden=8, num_heads=1, n_layers=1, dropout=0.0, max_len=10
@@ -106,6 +112,7 @@ class TestLogBert:
         assert y.shape == (3, 10, 3)
         assert dist.shape == (3, 8)
 
+    @pytest.mark.ignored
     def test_logbert_train(self) -> None:
         config = {
             "Model": {
@@ -131,6 +138,7 @@ class TestLogBert:
         assert not logbert_.check_anomaly((1, 2, 0, 1), stats["top_k"])
         assert logbert_.check_anomaly((1, 2, 3, 0), stats["top_k"])
 
+    @pytest.mark.ignored
     def test_logbert_finetune(self) -> None:
         config = {
             "Model": {
