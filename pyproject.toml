@@ -17,6 +17,8 @@ dependencies = [
     "msgpack>=1.0.0",
     "fsspec>=2024.1.0",
     "pyarrow>=24.0.0",
+    "jax>=0.11.0",
+    "flax>=0.12.8",
 ]
 
 [dependency-groups]
