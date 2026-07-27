@@ -256,11 +256,7 @@ class LogBert:
             seq_size=train_seqs.shape[-1], mask_per=self.config_train.mask_per
         )
         self.params, stats = train(
-            model=self.model, 
-            mask=self.mask,
-            x=train_seqs,
-            x_val=val_seqs,
-            trainConfig=self.config_train
+            model=self.model, mask=self.mask, x=train_seqs, x_val=val_seqs, trainConfig=self.config_train
         ) 
         stats["top_k"] = self.get_best_k(val_seqs)
 
@@ -279,11 +275,7 @@ class LogBert:
             )
 
             _, stats = train(
-                model=model, 
-                mask=mask,
-                x=train_seqs,
-                x_val=val_seqs,
-                trainConfig=config_train
+                model=model, mask=mask, x=train_seqs, x_val=val_seqs, trainConfig=config_train
             )
             combos.add_value(stats["Best val"])
         self.config = combos.get_best()
