@@ -17,9 +17,11 @@ class DeeplogDetectorConfig(DeepLearningDetectorConfig):
             "n_layers": 2,
         },
         "Train": {
+            "seed": 0,
             "batch_size": 2048,
             "learning_rate": 0.01,
             "epochs": 10,
+            "patience": 3,
         },
         "Finetune": [
             ["Model", "hidden_dim", [128, 256, 512]]

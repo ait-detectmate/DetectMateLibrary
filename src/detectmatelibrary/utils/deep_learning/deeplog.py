@@ -15,6 +15,9 @@ from detectmatelibrary.utils.deep_learning.imodel import DeepModel
 from detectmatelibrary.utils.deep_learning._op import CheckPoint
 from detectmatelibrary.utils.finetune import Combinations
 
+import logging
+
+
 ## Model Deeplog
 class DeepLogModel(nn.Module):
     hidden_dim: int
@@ -92,11 +95,11 @@ def train(
         loss_val.append(loss_f(model=model, params=params, x=x_val, y=y_val))
         idx = jax.random.permutation(jax.random.key(epoch), idx)
         if checkpoint(loss=loss_val[-1], epoch=epoch, param=params):
-            print("Early stop")
+            logging.info("Early stop")
             break
     
     best_e, params = checkpoint.load_checkpoint()
-    print(f"Best epoch {best_e} -> Train {losses_epoch[best_e]} Val {loss_val[best_e]}")
+    logging.info(f"Best epoch {best_e} -> Train {losses_epoch[best_e]} Val {loss_val[best_e]}")
     return params, {
         "Loss Epoch": losses_epoch, 
         "Loss Step": losses_step, 
@@ -125,9 +128,11 @@ default_config = {
         "n_layers": 2,
     },
     "Train": {
+        "seed": 0,
         "batch_size": 2048,
         "learning_rate": 0.01,
         "epochs": 10,
+        "patience": 3,
     },
 }
 
@@ -184,7 +189,7 @@ class DeepLog(DeepModel):
 
         self.config_train = TrainConfig(**self.config["Train"])
         self.config["Model"]["output_size"] = train_seqs.max() + 1
-        print("Output shape:", self.config["Model"]["output_size"])
+        logging.info(f"Output shape: {self.config["Model"]["output_size"]}")
 
         self.model = DeepLogModel(**self.config["Model"])
         self.params, stats = do_train(
@@ -208,4 +213,4 @@ class DeepLog(DeepModel):
             _, stats = do_train(model, train_seqs=train_seqs, val_seqs=val_seqs, config=config_train) 
             combos.add_value(stats["Best val"])
         self.config = combos.get_best()
-        print(self.config)
+        logging.info(self.config)

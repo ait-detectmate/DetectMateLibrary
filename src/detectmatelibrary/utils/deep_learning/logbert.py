@@ -16,6 +16,8 @@ from detectmatelibrary.utils.deep_learning._op import CheckPoint, Mask
 from detectmatelibrary.utils.deep_learning.imodel import DeepModel
 from detectmatelibrary.utils.finetune import Combinations
 
+import logging
+
 
 class PositionEmbedding(nn.Module):
     """
@@ -171,11 +173,11 @@ def train(
         losses_epoch.append(step_loss / n_steps)
         idx = jax.random.permutation(jax.random.key(epoch), idx)
         if checkpoint(loss=loss_val[-1], epoch=epoch, param=params):
-            print("Early stop")
+            logging.info("Early stop")
             break
 
     best_e, params = checkpoint.load_checkpoint()
-    print(f"Best epoch {best_e} -> Train {losses_epoch[best_e]} Val {loss_val[best_e]}")
+    logging.info(f"Best epoch {best_e} -> Train {losses_epoch[best_e]} Val {loss_val[best_e]}")
     return params, {
         "Loss Epoch": losses_epoch, "Loss Step": losses_step, "Loss Val": loss_val, "Best val": loss_val[best_e]
     }
@@ -191,9 +193,13 @@ default_config = {
         "max_len": 1000,
     },
     "Train": {
+        "seed": 0,
         "batch_size": 256,
         "learning_rate": 0.01,
         "epochs": 10,
+        "mask_per": 0.4,
+        "alpha": 0.0,
+        "patience": 3,
     },
 }
 
@@ -279,4 +285,5 @@ class LogBert(DeepModel):
             )
             combos.add_value(stats["Best val"])
         self.config = combos.get_best()
+        logging.info(self.config)
         

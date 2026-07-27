@@ -21,9 +21,13 @@ class LogBertDetectorConfig(DeepLearningDetectorConfig):
             "max_len": 1000,
         },
         "Train": {
+            "seed": 0,
             "batch_size": 256,
             "learning_rate": 0.01,
             "epochs": 10,
+            "mask_per": 0.4,
+            "alpha": 0.0,
+            "patience": 3,
         },
         "Finetune": [
             ["Model", "hidden", [64, 128, 256]]
