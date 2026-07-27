@@ -36,6 +36,31 @@ class DummyConfig3(CoreConfig):
     ]
 
 
+hyperparameters_without = {
+    "Model": {
+        "a": 1,
+    },
+    "Train": {
+        "b": 2,
+    },
+}
+
+
+hyperparameters = {
+    "Model": {
+        "a": 1,
+    },
+    "Train": {
+        "b": 2,
+    },
+    "finetune": [
+        ["Model", "a", [1, 2, 3, 4]],
+        ["Train", "b", [10, 40]],
+        ["c", [0.2, 0.4, 0.6, 0.8]]
+    ]
+}
+
+
 class TestCombinations:
     def test_combination_no_overwrite(self):
         comb = Combinations(config := DummyConfig())
@@ -80,3 +105,25 @@ class TestCombinations:
 
         assert config.a == 1
         assert config.b == 10
+
+    def test_compatibility_dl_without(self):
+        with pytest.warns(UserWarning):
+            comb = Combinations(hyperparameters_without)
+
+        for j, _ in enumerate(comb()):
+            comb.add_value(j)
+        config = comb.get_best()
+
+        assert config["Model"]["a"] == 1
+        assert config["Train"]["b"] == 2
+
+    def test_compatibility_with_dl(self):
+        comb = Combinations(hyperparameters)
+
+        for j, _ in enumerate(comb()):
+            comb.add_value(j)
+        config = comb.get_best()
+
+        print(comb.paths)
+        assert config["Model"]["a"] == 1
+        assert config["Train"]["b"] == 10
