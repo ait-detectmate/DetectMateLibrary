@@ -13,6 +13,7 @@ from tqdm import tqdm
 from math import ceil
 
 from detectmatelibrary.utils.deep_learning._op import CheckPoint, Mask
+from detectmatelibrary.utils.deep_learning.imodel import DeepModel
 from detectmatelibrary.utils.finetune import Combinations
 
 
@@ -197,7 +198,7 @@ default_config = {
 }
 
 
-class LogBert:
+class LogBert(DeepModel):
     def __init__(self, config: dict = default_config) -> None:
         self.config = config
         self.params = {}
@@ -245,7 +246,7 @@ class LogBert:
         val_seqs = seqs[ceil(len(seqs) * (1 - var_per)):]
         return train_seqs, val_seqs
 
-    def train(self, seqs: list[tuple[int]], var_per: float) -> dict:
+    def train(self, seqs: list[tuple[int]], var_per: float) -> dict[str, float]:
         train_seqs, val_seqs = self._prepare_data(seqs=seqs, var_per=var_per)
 
         self.config_train = TrainConfig(**self.config["Train"])
