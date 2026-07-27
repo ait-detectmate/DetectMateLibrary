@@ -12,7 +12,7 @@ class DummyConfig(CoreConfig):
     b: int = 10
     c: float = 0.2
 
-    finetune: list[tuple[str, list[Any]]] = [
+    Finetune: list[tuple[str, list[Any]]] = [
         ["a", [1, 2, 3, 4]],
         ["b", [10, 40]],
         ["c", [0.2, 0.4, 0.6, 0.8]]
@@ -29,7 +29,7 @@ class DummyConfig3(CoreConfig):
     a: int = 2
     b: int = 10
 
-    finetune: list[tuple[str, list[Any]]] = [
+    Finetune: list[tuple[str, list[Any]]] = [
         ["a", [1, 2, 3, 4]],
         ["b", [10, 40]],
         ["c", [0.2, 0.4, 0.6, 0.8]]
@@ -53,7 +53,7 @@ hyperparameters = {
     "Train": {
         "b": 2,
     },
-    "finetune": [
+    "Finetune": [
         ["Model", "a", [1, 2, 3, 4]],
         ["Train", "b", [10, 40]],
         ["c", [0.2, 0.4, 0.6, 0.8]]

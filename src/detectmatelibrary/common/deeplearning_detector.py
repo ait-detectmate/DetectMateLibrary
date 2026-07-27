@@ -18,7 +18,7 @@ class DeepLearningDetectorConfig(CoreDetectorConfig):
         "Train": {
 
         },
-        "finetune": [],
+        "Finetune": [],
     }
 
 
@@ -44,13 +44,12 @@ class DeepLearningDetector(CoreDetector):
             config=config
         )
         self.config: DeepLearningDetectorConfig
-
-        self.model = model_cls(config=self.config.hyperparameters)  # type: ignore
+        self.model: DeepModel = model_cls(config=self.config.hyperparameters)  # type: ignore
 
         self.train_seqs: list[tuple[int]] = []
         self.config_seqs: list[tuple[int]] = []
-        self.stats: dict[str, float] = {}
-        self.top_k: float = 0
+        self.stats: dict[str, float | int] = {}
+        self.top_k: int = 0
 
     def train(self, input_: list[schemas.ParserSchema]) -> None:  # type: ignore
         self.train_seqs.append(build_seq(input_))
@@ -67,7 +66,7 @@ class DeepLearningDetector(CoreDetector):
         self.train_seqs = []
 
         if "top_k" in self.stats:
-            self.top_k = self.stats["top_k"]
+            self.top_k = int(self.stats["top_k"])
             print(self.model)
             print("Top k assigned", self.top_k)
 

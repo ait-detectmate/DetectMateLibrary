@@ -246,7 +246,7 @@ class LogBert(DeepModel):
         val_seqs = seqs[ceil(len(seqs) * (1 - var_per)):]
         return train_seqs, val_seqs
 
-    def train(self, seqs: list[tuple[int]], var_per: float) -> dict[str, float]:
+    def train(self, seqs: list[tuple[int]], var_per: float) -> dict[str, int | float]:
         train_seqs, val_seqs = self._prepare_data(seqs=seqs, var_per=var_per)
 
         self.config_train = TrainConfig(**self.config["Train"])

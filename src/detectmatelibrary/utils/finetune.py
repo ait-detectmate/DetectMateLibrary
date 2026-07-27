@@ -13,7 +13,7 @@ class CombOp:
     @staticmethod
     def is_finetune_in_there(config: CoreConfig | dict[str, Any]) -> bool:
         variables = dir(config) if isinstance(config, CoreConfig) else config
-        return "finetune" in variables
+        return "Finetune" in variables
 
     @staticmethod
     def get_value(config: CoreConfig | dict[str, Any], path: str) -> Any:
@@ -53,9 +53,9 @@ class Combinations:
         if not CombOp.is_finetune_in_there(config):
             warnings.warn("No finetune options found")
         else:
-            self.paths = [path[:-1] for path in CombOp.get_value(config, "finetune")]
+            self.paths = [path[:-1] for path in CombOp.get_value(config, "Finetune")]
             self.combs = list(itertools.product(
-                *[path[-1] for path in CombOp.get_value(config, "finetune")]
+                *[path[-1] for path in CombOp.get_value(config, "Finetune")]
             ))
         self.values: list[float] = []
 

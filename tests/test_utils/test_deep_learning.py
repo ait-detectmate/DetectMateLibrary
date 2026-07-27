@@ -84,7 +84,7 @@ class TestDeeplog:
                 "learning_rate": 0.01,
                 "epochs": 2,
             },
-            "finetune": [
+            "Finetune": [
                 ("Model", "hidden_dim", [4, 5])
             ]
         }
@@ -153,7 +153,7 @@ class TestLogBert:
                 "learning_rate": 0.01,
                 "epochs": 2,
             },
-            "finetune": [
+            "Finetune": [
                 ("Model", "n_layers", [2, 3])
             ]
         }

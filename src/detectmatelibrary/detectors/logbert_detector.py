@@ -25,7 +25,7 @@ class LogBertDetectorConfig(DeepLearningDetectorConfig):
             "learning_rate": 0.01,
             "epochs": 10,
         },
-        "finetune": [
+        "Finetune": [
             ["Model", "hidden", [64, 128, 256]]
             ["Model", "n_layers", [1, 2, 3]]
             ["Train", "learning_rate", [0.002, 0.001, 0.005]]

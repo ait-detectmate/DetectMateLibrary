@@ -11,7 +11,7 @@ class DeepModel(ABC):
         pass
 
     @abstractmethod
-    def train(self, seqs: list[tuple[int]], var_per: float) -> dict[str, float]:
+    def train(self, seqs: list[tuple[int]], var_per: float) -> dict[str, int | float]:
         pass
 
     @abstractmethod
