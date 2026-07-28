@@ -14,7 +14,7 @@ def _encode_sequence(sequence: Sequence[int]) -> str:
 
 class NewSequenceDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_sequence_detector"
-    max_sequence_length: int = 5
+    max_sequence_length: int = 3
 
 class NewSequenceDetector(CoreDetector):
     def __init__(
@@ -24,3 +24,66 @@ class NewSequenceDetector(CoreDetector):
     ) -> None:
         if isinstance(config, dict):
             config = NewSequenceDetectorConfig.from_dict(config,name)
+        
+        super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
+        self.config: NewSequenceDetectorConfig
+        self._window: deque[int] = deque(maxlen=self.config.max_sequence_length)
+        self.persistency = persistency.EventPersistency(
+            event_data_class=persistency.EventStabilityTracker,
+        )
+        self.auto_conf_persistency = persistency.EventPersistency(
+            event_data_class=persistency.EventStabilityTracker
+        )
+        self._register_persistency(self.persistency)
+
+
+    def train(self, input_: ParserSchema) -> None:  # type: ignore
+        """Train the detector by learning EventID sequences from the input data."""
+        self._window.append(input_["EventID"])
+        if len(self._window) < self.config.max_sequence_length:
+            return
+        self.persistency.ingest_event(
+            event_id=_encode_sequence(self._window),
+            event_template=input_["template"]
+        )
+
+    def detect(self, input_: ParserSchema, output_: DetectorSchema) -> bool:
+        self._window.append(input_["EventID"])
+        if len(self._window) < self.config.max_sequence_length:
+            return False
+
+        if _encode_sequence(self._window) not in self.persistency.get_events_seen():
+            output_["score"] = 1.0
+            output_["description"] = f"{self.name} detects unknown EventID sequences as anomalies."
+            output_["alertsObtain"].update({
+                f"Sequence {tuple(self._window)}": f"Unknown sequence: {tuple(self._window)}"
+            })
+            return True
+        return False
+
+    def configure(self, input_: ParserSchema) -> None:  # type: ignore
+        self.auto_conf_persistency.ingest_event(
+        event_id=input_["EventID"],
+        event_template=input_["template"]
+    )
+
+    def set_configuration(self) -> None:
+        old_persist = self.config.persist
+        config_dict = generate_detector_config(
+            variable_selection={},
+            detector_name=self.name,
+            method_type=self.config.method_type,
+            max_sequence_length=self.config.max_sequence_length,
+        )
+        self.config = NewSequenceDetectorConfig.from_dict(config_dict, self.name)
+        self.config.persist = old_persist
+        self._window = deque(self._window, maxlen=self.config.max_sequence_length)
+
+    def reset_window(self) -> None:
+        self._window.clear()
+
+    def get_known_sequences(self) -> set[tuple[str, ...]]:
+        return {
+            tuple(encoded.split(_SEQUENCE_SEPARATOR))
+            for encoded in self.persistency.get_events_seen()
+        }
