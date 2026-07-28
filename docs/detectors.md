@@ -92,6 +92,7 @@ List of detectors:
 * [Rule Based](detectors/rule_based.md): Detect anomalies based in a set of rules.
 * [Bigram Frequency](detectors/bigram_frequency.md): Detect bigram-frequency-based anomalies in the logs.
 * [Charset](detectors/charset.md): Detect new characters in the variables in the logs.
+* [SCVS Detector](detectors/scvs_detector.md): Detect new anomalies by looking at different sequence count vectors.
 
 ## Configuration
 

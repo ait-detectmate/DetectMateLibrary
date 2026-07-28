@@ -31,6 +31,7 @@ nav:
     - BiGram Frequency: detectors/bigram_frequency.md
     - CharSet: detectors/charset.md
     - Value Range: detectors/value_range.md
+    - SCVS Detector: detectors/scvs_detector.md
   - Alert Aggregation Methods:
     - Basic Concat: alert_aggregators/basic_concatenation.md
   - Auxiliar:
