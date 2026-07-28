@@ -93,6 +93,7 @@ List of detectors:
 * [Bigram Frequency](detectors/bigram_frequency.md): Detect bigram-frequency-based anomalies in the logs.
 * [Charset](detectors/charset.md): Detect new characters in the variables in the logs.
 * [Deeplog](detectors/deeplog.md): Detect anomalies of a sequence of evend IDs with a LSTM.
+* [LogBert](detectors/logbert.md): Detect anomalies of a sequence of evend IDs with a Transformer.
 
 ## Configuration
 
