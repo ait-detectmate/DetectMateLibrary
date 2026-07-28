@@ -32,6 +32,7 @@ nav:
     - CharSet: detectors/charset.md
     - Value Range: detectors/value_range.md
     - SCVS Detector: detectors/scvs_detector.md
+    - ECVC Detector: detectors/ecvc_detector.md
   - Alert Aggregation Methods:
     - Basic Concat: alert_aggregators/basic_concatenation.md
   - Auxiliar:
