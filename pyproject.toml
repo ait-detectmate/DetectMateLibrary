@@ -28,7 +28,6 @@ dev = [
     "pytest>=8.4.2",
     "pytest-cov>=6.2.1",
     "detectmatelibrary[full]",
-    "ipykernel>=7.3.0",
 ]
 
 [project.optional-dependencies]
