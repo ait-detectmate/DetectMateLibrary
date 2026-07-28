@@ -11,7 +11,7 @@ from typing import Any
 class LogBertDetectorConfig(DeepLearningDetectorConfig):
     method_type: str = "logbert_detector"
 
-    hyperparameters: list[tuple[str | dict[str, str] | list[str], ...]] = {  # type: ignore
+    hyperparameters: dict[str, Any] = {  # type: ignore
         "Model": {
             "n_embed": 10,
             "hidden": 32,
@@ -30,9 +30,9 @@ class LogBertDetectorConfig(DeepLearningDetectorConfig):
             "patience": 3,
         },
         "Finetune": [
-            ["Model", "hidden", [64, 128, 256]]
-            ["Model", "n_layers", [1, 2, 3]]
-            ["Train", "learning_rate", [0.002, 0.001, 0.005]]
+            ["Model", "hidden", [64, 128, 256]],
+            ["Model", "n_layers", [1, 2, 3]],
+            ["Train", "learning_rate", [0.002, 0.001, 0.005]],
         ]
     }
 

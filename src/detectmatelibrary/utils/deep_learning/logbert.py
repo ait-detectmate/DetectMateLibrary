@@ -268,12 +268,13 @@ class LogBert(DeepModel):
 
         return stats
     
-    def finetune(self, seqs: list[tuple[int]], var_per: float) -> None:
+    def finetune(self, seqs: list[tuple[int]], var_per: float, epochs: int = 2) -> None:
         train_seqs, val_seqs = self._prepare_data(seqs=seqs, var_per=var_per)
         combos = Combinations(config=self.config)
 
         for comb in combos():
             comb["Model"]["n_embed"] = int(train_seqs.max() + 1)
+            comb["Train"]["epochs"] = epochs
             model = LogBertModel(**comb["Model"])
             config_train = TrainConfig(**comb["Train"])
             mask = Mask(
