@@ -10,6 +10,7 @@ from detectmatelibrary import schemas
 class DeepLearningDetectorConfig(CoreDetectorConfig):
     window_size: int = 10
     validation_per: float = 0.2
+    finetune_epochs: int = 2
 
     hyperparameters: list[tuple[str | dict[str, str] | list[str], ...]] = {  # type: ignore
         "Model": {
@@ -58,7 +59,9 @@ class DeepLearningDetector(CoreDetector):
         self.config_seqs.append(build_seq(input_))
 
     def set_configuration(self) -> None:
-        self.model.finetune(self.config_seqs, var_per=self.config.validation_per)
+        self.model.finetune(
+            self.config_seqs, var_per=self.config.validation_per, epochs=self.config.finetune_epochs
+        )
         self.config_seqs = []
 
     def post_train(self) -> None:

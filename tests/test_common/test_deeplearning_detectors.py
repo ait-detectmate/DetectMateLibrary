@@ -23,7 +23,7 @@ class DummyDeepModel(DeepModel):
     def train(self, seqs, var_per):
         return {}
 
-    def finetune(self, seqs, var_per, epochs):
+    def finetune(self, seqs, var_per, epochs=2):
         return None
 
 
