@@ -11,7 +11,7 @@ from typing import Any
 class DeeplogDetectorConfig(DeepLearningDetectorConfig):
     method_type: str = "deeplog_detector"
 
-    hyperparameters: list[tuple[str | dict[str, str] | list[str], ...]] = {  # type: ignore
+    hyperparameters: dict[str, Any] = {  # type: ignore
         "Model": {
             "hidden_dim": 64,
             "n_layers": 2,
@@ -24,9 +24,9 @@ class DeeplogDetectorConfig(DeepLearningDetectorConfig):
             "patience": 3,
         },
         "Finetune": [
-            ["Model", "hidden_dim", [128, 256, 512]]
-            ["Model", "n_layers", [1, 2, 3]]
-            ["Train", "learning_rate", [0.01, 0.02, 0.03]]
+            ["Model", "hidden_dim", [128, 256, 512]],
+            ["Model", "n_layers", [1, 2, 3]],
+            ["Train", "learning_rate", [0.01, 0.02, 0.03]],
         ],
     }
 

@@ -6,13 +6,15 @@ from detectmatelibrary.utils.data_buffer import BufferMode
 
 from detectmatelibrary import schemas
 
+from typing import Any
+
 
 class DeepLearningDetectorConfig(CoreDetectorConfig):
     window_size: int = 10
     validation_per: float = 0.2
     finetune_epochs: int = 2
 
-    hyperparameters: list[tuple[str | dict[str, str] | list[str], ...]] = {  # type: ignore
+    hyperparameters: dict[str, Any] = {
         "Model": {
 
         },
