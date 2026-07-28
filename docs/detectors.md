@@ -92,6 +92,7 @@ List of detectors:
 * [Rule Based](detectors/rule_based.md): Detect anomalies based in a set of rules.
 * [Bigram Frequency](detectors/bigram_frequency.md): Detect bigram-frequency-based anomalies in the logs.
 * [Charset](detectors/charset.md): Detect new characters in the variables in the logs.
+* [Deeplog](detectors/deeplog.md): Detect anomalies of a sequence of evend IDs with a LSTM.
 
 ## Configuration
 
@@ -102,6 +103,8 @@ detectors:
   NewValueDetector:
     method_type: new_value_detector
     auto_config: False
+    data_use_configure: None  # Data use for configuration
+    data_use_training: 199  # Data use for training
     params: {}  # global parameters
     events:  # event-specific configuration
       1:  # event_id
