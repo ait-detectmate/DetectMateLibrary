@@ -9,12 +9,15 @@ from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
 _SEQUENCE_SEPARATOR = "\x1f"
 
+
 def _encode_sequence(sequence: Sequence[int]) -> str:
     return _SEQUENCE_SEPARATOR.join(str(event_id) for event_id in sequence)
+
 
 class NewSequenceDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_sequence_detector"
     max_sequence_length: int = 3
+
 
 class NewSequenceDetector(CoreDetector):
     def __init__(
@@ -23,8 +26,8 @@ class NewSequenceDetector(CoreDetector):
             config: NewSequenceDetectorConfig = NewSequenceDetectorConfig()
     ) -> None:
         if isinstance(config, dict):
-            config = NewSequenceDetectorConfig.from_dict(config,name)
-        
+            config = NewSequenceDetectorConfig.from_dict(config, name)
+
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: NewSequenceDetectorConfig
         self._window: deque[int] = deque(maxlen=self.config.max_sequence_length)
@@ -36,9 +39,9 @@ class NewSequenceDetector(CoreDetector):
         )
         self._register_persistency(self.persistency)
 
-
     def train(self, input_: ParserSchema) -> None:  # type: ignore
-        """Train the detector by learning EventID sequences from the input data."""
+        """Train the detector by learning EventID sequences from the input
+        data."""
         self._window.append(input_["EventID"])
         if len(self._window) < self.config.max_sequence_length:
             return
@@ -47,7 +50,7 @@ class NewSequenceDetector(CoreDetector):
             event_template=input_["template"]
         )
 
-    def detect(self, input_: ParserSchema, output_: DetectorSchema) -> bool:
+    def detect(self, input_: ParserSchema, output_: DetectorSchema) -> bool:  # type: ignore
         self._window.append(input_["EventID"])
         if len(self._window) < self.config.max_sequence_length:
             return False
@@ -63,9 +66,9 @@ class NewSequenceDetector(CoreDetector):
 
     def configure(self, input_: ParserSchema) -> None:  # type: ignore
         self.auto_conf_persistency.ingest_event(
-        event_id=input_["EventID"],
-        event_template=input_["template"]
-    )
+            event_id=input_["EventID"],
+            event_template=input_["template"]
+        )
 
     def set_configuration(self) -> None:
         old_persist = self.config.persist
@@ -84,6 +87,6 @@ class NewSequenceDetector(CoreDetector):
 
     def get_known_sequences(self) -> set[tuple[str, ...]]:
         return {
-            tuple(encoded.split(_SEQUENCE_SEPARATOR))
+            tuple(str(encoded).split(_SEQUENCE_SEPARATOR))
             for encoded in self.persistency.get_events_seen()
         }
