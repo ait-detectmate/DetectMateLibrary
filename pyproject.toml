@@ -19,6 +19,9 @@ dependencies = [
     "pyarrow>=24.0.0",
 ]
 
+[tool.pytest.ini_options]
+addopts = "--ignore=local"
+
 [dependency-groups]
 # install with all the dev dependencies:  uv pip install --group dev
 dev = [
