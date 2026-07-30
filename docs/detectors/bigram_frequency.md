@@ -41,25 +41,7 @@ detectors:
 ## Example usage
 
 ```python
-from detectmatelibrary.detectors.bigram_frequency_detector import BigramFrequencyDetector, BufferMode
-import detectmatelibrary.schemas as schemas
-
-detector = BigramFrequencyDetector(name="BigramFrequencyTest", config=cfg)
-
-parsed_data = schemas.ParserSchema({
-    "parserType": "test",
-    "EventID": 1,
-    "template": "test template",
-    "variables": ["var1"],
-    "logID": "1",
-    "parsedLogID": "1",
-    "parserID": "test_parser",
-    "log": "test log message",
-    "logFormatVariables": {"timestamp": "123456"}
-})
-
-
-alert = detector.process(parsed_data)
+--8<-- "docs/examples/detectors/bigram_frequency.py:example"
 ```
 
 Go back [Index](../index.md)
