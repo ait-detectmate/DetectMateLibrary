@@ -1,5 +1,5 @@
 # --8<-- [start:example]
-from detectmatelibrary.detectors.new_value_combo_detector import NewValueComboDetector, NewValueComboDetectorConfig
+from detectmatelibrary.detectors.new_value_combo_detector import NewValueComboDetector
 import detectmatelibrary.schemas as schemas
 
 cfg = {
@@ -21,7 +21,7 @@ cfg = {
                 }
             }
         }
-        
+
     }
 }
 

@@ -1,5 +1,5 @@
 # --8<-- [start:example]
-from detectmatelibrary.detectors.value_range_detector import ValueRangeDetector, BufferMode
+from detectmatelibrary.detectors.value_range_detector import ValueRangeDetector
 import detectmatelibrary.schemas as schemas
 
 cfg = {

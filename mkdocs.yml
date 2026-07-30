@@ -44,7 +44,7 @@ nav:
     - Release Process: release.md
   - Other:
     - Log Formats: other/log_formats.md
-    
+
 markdown_extensions:
   - pymdownx.snippets:
       base_path: ["."]

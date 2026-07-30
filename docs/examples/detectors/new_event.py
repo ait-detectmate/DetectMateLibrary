@@ -1,5 +1,5 @@
 # --8<-- [start:example]
-from detectmatelibrary.detectors.new_event_detector import NewEventDetector, NewEventDetectorConfig
+from detectmatelibrary.detectors.new_event_detector import NewEventDetector
 import detectmatelibrary.schemas as schemas
 
 cfg = {

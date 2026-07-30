@@ -1,5 +1,5 @@
 # --8<-- [start:example]
-from detectmatelibrary.detectors.bigram_frequency_detector import BigramFrequencyDetector, BufferMode
+from detectmatelibrary.detectors.bigram_frequency_detector import BigramFrequencyDetector
 import detectmatelibrary.schemas as schemas
 
 cfg = {
