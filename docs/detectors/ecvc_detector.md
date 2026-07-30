@@ -1,6 +1,6 @@
 # ECVC Detector
 
-The Event Count Vector Clustering Detector (SCVS) detect anomalies by calculating the distance between the count vectors from training and new ones. The method can be found in [this publication](https://dl.acm.org/doi/10.1145/3660768).
+The Event Count Vector Clustering Detector (ECVC) detect anomalies by calculating the distance between the count vectors from training and new ones. The method can be found in [this publication](https://dl.acm.org/doi/10.1145/3660768).
 
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
