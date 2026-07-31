@@ -29,6 +29,7 @@ dev = [
     "prek>=0.3.10",
     "pytest>=8.4.2",
     "pytest-cov>=6.2.1",
+    "pymdown-extensions>=10.0",
     "detectmatelibrary[full]",
 ]
 
