@@ -5,9 +5,11 @@ from functools import partial
 from typing import Any, Callable, Dict, List, Literal, Set, TYPE_CHECKING
 from detectmatelibrary.utils.preview_helpers import list_preview_str
 from detectmatelibrary.utils.persistency.rle_list import RLEList
-
 from ..base import SingleTracker, MultiTracker, EventTracker, Classification
 from .stability_classifier import StabilityClassifier
+
+if TYPE_CHECKING:
+    from detectmatelibrary.common.detector import CoreDetectorConfig
 
 
 def _strip_persist(detector_config: Any, method_id: str) -> Any:
@@ -41,15 +43,14 @@ def _strip_persist(detector_config: Any, method_id: str) -> Any:
 class SingleStabilityTracker(SingleTracker):
     """Tracks stability of a single feature."""
 
-    def __init__(self, min_samples: int = 3, expand_value: bool = False) -> None:
+    def __init__(self, min_samples: int = 3, add_value_fn: str = "default",
+                 detector_config: "CoreDetectorConfig | None" = None) -> None:
         self.min_samples = min_samples
-        self.expand_value = expand_value
         self.change_series: RLEList[bool] = RLEList()
         self.unique_set: Set[Any] = set()
         self.stability_classifier: StabilityClassifier = StabilityClassifier(
             segment_thresholds=[1.1, 0.3, 0.1, 0.01],
         )
-        self._accum = set.update if expand_value else set.add
         # Opaque slot for detectors to stash per-variable model state that
         # must survive save/load. Schema-free; the tracker does not interpret it.
         self.extra_state: Dict[str, Any] = {}
@@ -66,7 +67,7 @@ class SingleStabilityTracker(SingleTracker):
     def add_value(self, value: Any) -> None:
         """Add a new value to the tracker."""
         before = len(self.unique_set)
-        self._accum(self.unique_set, value)
+        self.unique_set.add(value)
         self.change_series.append(len(self.unique_set) > before)
 
     def classify(self) -> Classification:
@@ -107,7 +108,8 @@ class SingleStabilityTracker(SingleTracker):
             "type": self.__class__.__name__,
             "module": self.__class__.__module__,
             "min_samples": self.min_samples,
-            "expand_value": self.expand_value,
+            "add_value_fn": self.add_value_fn,
+            "detector_config": self.detector_config,
             "runs": self.change_series.runs(),
             "unique_set": list(self.unique_set),
             "segment_thresholds": self.stability_classifier.segment_threshs,
@@ -119,7 +121,8 @@ class SingleStabilityTracker(SingleTracker):
         """Restore tracker from a state dict produced by to_state()."""
         tracker = cls(
             min_samples=state["min_samples"],
-            expand_value=state.get("expand_value", False),
+            add_value_fn=state["add_value_fn"],
+            detector_config=state["detector_config"]
         )
         runs = [(bool(r[0]), int(r[1])) for r in state["runs"]]
         tracker.change_series._runs = runs
@@ -169,12 +172,14 @@ class EventStabilityTracker(EventTracker):
     def __init__(
         self,
         converter_function: Callable[[Any], Any] = lambda x: x,
-        expand_value: bool = False,
+        add_value_fn: str = "default",
+        detector_config: "CoreDetectorConfig | None" = None
+
     ) -> None:
         self.multi_tracker: MultiStabilityTracker  # for type hinting
 
         def make_tracker() -> SingleStabilityTracker:
-            return SingleStabilityTracker(expand_value=expand_value)
+            return SingleStabilityTracker(add_value_fn=add_value_fn, detector_config=detector_config)
 
         # Mirror class identity onto the closure so dump()/load() can resolve
         # the underlying SingleStabilityTracker via its module + qualname.

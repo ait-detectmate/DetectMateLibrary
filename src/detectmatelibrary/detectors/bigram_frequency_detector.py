@@ -48,7 +48,7 @@ class BigramFrequencyDetectorConfig(VariableDetectorConfig):
     method_type: str = "bigram_frequency_detector"
     prob_thresh: float = 0.05
     default_freqs: bool = False
-    skip_repetitions: bool = False
+    skip_repetitions: bool = True
 
 
 class BigramFrequencyDetector(VariableDetector):
@@ -59,7 +59,6 @@ class BigramFrequencyDetector(VariableDetector):
         name: str = "BigramFrequencyDetector",
         config: BigramFrequencyDetectorConfig = BigramFrequencyDetectorConfig(),
     ) -> None:
-
         if isinstance(config, dict):
             config = BigramFrequencyDetectorConfig.from_dict(config, name)
 
@@ -125,17 +124,13 @@ class BigramFrequencyDetector(VariableDetector):
             named_variables=configured_variables,
         )
         if configured_variables:
-            known_events = cast(
-                dict[int | str, EventStabilityTracker], self.persistency.get_events_data()
-            )
+            known_events = cast(dict[int | str, EventStabilityTracker], self.persistency.get_events_data())
             self.train_helper(configured_variables, current_event_id, known_events, pre_unique)
 
         if self.config.global_instances:
             global_vars = get_global_variables(input_, self.config.global_instances)
             if global_vars:
-                pre_unique_global = self._snapshot_unique_sets(
-                    known_events.get(GLOBAL_EVENT_ID), global_vars
-                )
+                pre_unique_global = self._snapshot_unique_sets(known_events.get(GLOBAL_EVENT_ID), global_vars)
                 self.persistency.ingest_event(
                     event_id=GLOBAL_EVENT_ID,
                     event_template=input_["template"],
