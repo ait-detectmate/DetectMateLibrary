@@ -582,18 +582,18 @@ class TestNewValueComboDetectorEndToEndWithRealData:
         assert detected_ids == {"1859", "1862", "1865", "1866"}
 
 
-class TestNewValueComboDetectorTimeDependentConfigPreservation:
+class TestNewValueComboDetectorSegmentationConfigPreservation:
     """set_configuration() reassigns self.config twice (pass 1: combo
     candidates, pass 2: final selection), each from a freshly generated config
     dict whose params only ever carry max_combo_size.
 
-    time_dependent, timestamp_variable and timestamp_format must survive
-    both reassignments, the same way persist already does.
+    stability_segmentation, timestamp_variable and timestamp_format must
+    survive both reassignments, the same way persist already does.
     """
 
-    def test_time_dependent_fields_survive_set_configuration(self):
+    def test_segmentation_fields_survive_set_configuration(self):
         cfg = NewValueComboDetectorConfig(
-            time_dependent=True,
+            stability_segmentation="time",
             timestamp_variable="level",
             timestamp_format="%y%m%d %H%M%S",
         )
@@ -616,13 +616,13 @@ class TestNewValueComboDetectorTimeDependentConfigPreservation:
 
         detector.set_configuration(max_combo_size=2)
 
-        assert detector.config.time_dependent is True
+        assert detector.config.stability_segmentation == "time"
         assert detector.config.timestamp_variable == "level"
         assert detector.config.timestamp_format == "%y%m%d %H%M%S"
 
 
-class TestNewValueComboDetectorTimeDependentCombos:
-    """The combo-stability pass must honour time_dependent too.
+class TestNewValueComboDetectorSegmentationCombos:
+    """The combo-stability pass must honour stability_segmentation too.
 
     auto_conf_persistency_combos is built directly in __init__ rather than from
     the _event_data_kwargs hook, and its re-ingest loop in set_configuration
@@ -634,10 +634,10 @@ class TestNewValueComboDetectorTimeDependentCombos:
     """
 
     @staticmethod
-    def _records(time_dependent=True):
+    def _records(segmentation="time"):
         detector = NewValueComboDetector(
             config=NewValueComboDetectorConfig(
-                time_dependent=time_dependent,
+                stability_segmentation=segmentation,
                 timestamp_variable="ts",
             ),
             name="NewValueComboDetector",
@@ -665,16 +665,16 @@ class TestNewValueComboDetectorTimeDependentCombos:
         combo_trackers = detector.auto_conf_persistency_combos.get_events_data()[1].get_data()
         assert ("var_0", "var_1") in combo_trackers
         tracker = combo_trackers[("var_0", "var_1")]
-        assert tracker.time_dependent is True
+        assert tracker.segmentation == "time"
         assert len(tracker.timestamps) == len(tracker.change_series) == 12
         assert tracker.timestamps[1] - tracker.timestamps[0] == 60.0
 
     def test_combo_trackers_stay_count_based_when_flag_is_off(self):
-        detector = self._records(time_dependent=False)
+        detector = self._records(segmentation="count")
         detector.set_configuration(max_combo_size=2)
 
         tracker = detector.auto_conf_persistency_combos.get_events_data()[1].get_data()[
             ("var_0", "var_1")
         ]
-        assert tracker.time_dependent is False
+        assert tracker.segmentation == "count"
         assert tracker.timestamps == []

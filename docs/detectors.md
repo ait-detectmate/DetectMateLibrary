@@ -222,7 +222,7 @@ def set_configuration(self):
 When `auto_config` is `False`, steps 1 and 2 are skipped entirely.
 
 
-### Time-dependent stability (optional)
+### Stability segmentation (optional)
 
 Stability classification splits a variable's change history into four segments and
 compares each segment's rate of change against a threshold. By default the segments
@@ -231,8 +231,8 @@ time they cover. For bursty log sources that is misleading — a variable that c
 constantly during a quiet night and then went silent under a flood of daytime traffic
 looks stable, because the flood supplies enough samples to dominate the later segments.
 
-Setting `time_dependent: true` switches the segmentation to **equal-duration** cuts of
-the observed time span, so each segment covers the same amount of wall-clock time. The
+Setting `stability_segmentation: time` switches the segmentation to **equal-duration** cuts
+of the observed time span, so each segment covers the same amount of wall-clock time. The
 detector then needs an event time per record, which it reads from the log's named
 variables (`logFormatVariables`, i.e. the fields declared in the parser's `log_format`)
 under the name given by `timestamp_variable`.
@@ -247,17 +247,24 @@ detectors:
     method_type: new_value_detector
     auto_config: True
     params:
-      time_dependent: True
+      stability_segmentation: time
       timestamp_variable: Time      # a field name from the parser's log_format
       timestamp_format: "%y%m%d %H%M%S"   # optional; omit to auto-detect
 ```
+
+Setting `stability_segmentation: both` runs *both* segmentations and calls the variable
+stable only when each one does. Neither segmentation subsumes the other — a variable that
+churns in a burst and then settles is unstable by count but stable by time, and one whose
+late churn is buried under a dense tail of repeats is the reverse — so `both` is strictly
+stricter than either. Use it when a false "stable" is more costly than a missed one; use
+`time` when the point is specifically to forgive early churn on a bursty source.
 
 #### Fields
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `time_dependent` | `bool` | `false` | Segment the change history by equal time spans instead of equal sample counts. When `false` (the default) the other two fields are ignored and no timestamps are recorded. |
-| `timestamp_variable` | `str \| null` | `null` | Name of the field in `logFormatVariables` holding the record's event time. Required for `time_dependent` to have any effect. Only named log-format fields are consulted — never the positional `variables` list. |
+| `stability_segmentation` | `"count" \| "time" \| "both"` | `"count"` | How to cut the change history into segments. `count` uses equal sample counts; `time` uses equal time spans; `both` requires the variable to be stable under each. With `count` the other two fields are ignored and no timestamps are recorded. |
+| `timestamp_variable` | `str \| null` | `null` | Name of the field in `logFormatVariables` holding the record's event time. Required for `time` and `both` to have any effect. Only named log-format fields are consulted — never the positional `variables` list. |
 | `timestamp_format` | `str \| null` | `null` | Explicit [`strftime`](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes) pattern for parsing that field. When unset, `TimeFormatHandler` auto-detects the format (ISO 8601, Apache, syslog, numeric epoch seconds/milliseconds, and other common layouts). |
 
 Set `timestamp_format` when the source uses a layout the auto-detection does not
@@ -266,9 +273,9 @@ only parses with an explicit `"%y%m%d %H%M%S"`.
 
 #### Fallback behaviour
 
-Time-dependent segmentation is best-effort and never fails a run:
+Time-aware segmentation is best-effort and never fails a run:
 
-* If `time_dependent` is `true` but `timestamp_variable` is unset, or the named field
+* If `stability_segmentation` is not `count` but `timestamp_variable` is unset, or the named field
   is absent from a record, or its value cannot be parsed, the detector logs a
   **single** warning (once per detector, so a bad config cannot flood the log) and
   falls back to count-based segmentation.
@@ -276,6 +283,8 @@ Time-dependent segmentation is best-effort and never fails a run:
   span is zero, or the equal-duration cut would leave a segment with no observations
   in it, the classifier silently falls back to count-based segmentation for that
   variable.
+* Under `both`, any of the fallbacks above make the time pass reuse the count boundaries,
+  so the mode degrades to plain `count` rather than to an unconditional pass.
 
 In every fallback case classification still runs and produces a result — only the
 segmentation rule changes back to the default.

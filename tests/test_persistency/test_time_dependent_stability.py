@@ -1,4 +1,4 @@
-"""Tests for the time_dependent option of the stability trackers."""
+"""Tests for the stability_segmentation option of the stability trackers."""
 
 import logging
 
@@ -37,6 +37,24 @@ DIVERGENT_TIMES = [0.0, 30.0, 60.0] + [90.0 + 0.001 * i for i in range(37)]
 BURSTY_VALUES = [f"v{i // 2}" for i in range(40)] + ["v19"]
 BURSTY_SERIES = [True, False] * 20 + [False]
 BURSTY_TIMES = [0.001 * i for i in range(40)] + [3600.0]
+
+# Opposite-direction divergence fixture. DIVERGENT_* above is count-STABLE and
+# time-UNSTABLE; this one is count-UNSTABLE and time-STABLE. 30 fresh values one
+# second apart, then the same value repeated 10 times spread over ~17 minutes.
+#
+#   count quarters -> means [1.0, 1.0, 1.0, 0.0]   -> UNSTABLE (segments 2 and 3)
+#   time quarters  -> means [0.938, 0.0, 0.0, 0.0] -> STABLE (0.938 < 1.1)
+#
+# The pair of fixtures is what makes "both" testable in each direction: neither
+# segmentation subsumes the other.
+CHURN_VALUES = [f"v{i}" for i in range(30)] + ["v29"] * 10
+CHURN_TIMES = [float(i) for i in range(30)] + [100.0 * (i + 1) for i in range(10)]
+
+# Both segmentations agree on STABLE: two values, then one of them repeated,
+# evenly spaced so the duration cuts coincide with the count cuts.
+# Both give means [0.2, 0.0, 0.0, 0.0].
+AGREE_VALUES = ["a", "b"] + ["b"] * 38
+AGREE_TIMES = [float(i) for i in range(40)]
 
 
 class TestClassifierTimeBoundaries:
@@ -179,14 +197,26 @@ def feed_divergent(tracker: SingleStabilityTracker) -> None:
         tracker.add_value(value, timestamp=ts)
 
 
-class TestSingleStabilityTrackerTimeDependent:
+def feed_churn(tracker: SingleStabilityTracker) -> None:
+    """30 new values one second apart, then a repeated value over ~17 min."""
+    for value, ts in zip(CHURN_VALUES, CHURN_TIMES):
+        tracker.add_value(value, timestamp=ts)
+
+
+def feed_agreeing(tracker: SingleStabilityTracker) -> None:
+    """One change up front, then a settled value, evenly spaced."""
+    for value, ts in zip(AGREE_VALUES, AGREE_TIMES):
+        tracker.add_value(value, timestamp=ts)
+
+
+class TestSingleStabilityTrackerSegmentation:
     def test_timestamps_stored_only_when_enabled(self):
-        on = SingleStabilityTracker(time_dependent=True)
+        on = SingleStabilityTracker(segmentation="time")
         on.add_value("a", timestamp=1.0)
         on.add_value("b", timestamp=2.0)
         assert on.timestamps == [1.0, 2.0]
 
-        off = SingleStabilityTracker()  # default time_dependent=False
+        off = SingleStabilityTracker()  # default segmentation="count"
         off.add_value("a", timestamp=1.0)
         assert off.timestamps == []
 
@@ -195,13 +225,13 @@ class TestSingleStabilityTrackerTimeDependent:
         feed_divergent(count_mode)
         assert count_mode.classify().type == "STABLE"
 
-        time_mode = SingleStabilityTracker(time_dependent=True)
+        time_mode = SingleStabilityTracker(segmentation="time")
         feed_divergent(time_mode)
         assert time_mode.classify().type == "UNSTABLE"
 
     def test_missing_timestamps_fall_back_to_count_mode(self):
-        # time_dependent on, but values arrive without timestamps
-        tracker = SingleStabilityTracker(time_dependent=True)
+        # time segmentation on, but values arrive without timestamps
+        tracker = SingleStabilityTracker(segmentation="time")
         for value in ["a", "b", "c"] + ["c"] * 37:
             tracker.add_value(value)
         reference = SingleStabilityTracker()
@@ -210,10 +240,10 @@ class TestSingleStabilityTrackerTimeDependent:
         assert tracker.classify().type == reference.classify().type
 
     def test_round_trip_preserves_time_state(self):
-        tracker = SingleStabilityTracker(time_dependent=True)
+        tracker = SingleStabilityTracker(segmentation="time")
         feed_divergent(tracker)
         restored = SingleStabilityTracker.from_state(tracker.to_state())
-        assert restored.time_dependent is True
+        assert restored.segmentation == "time"
         assert restored.timestamps == tracker.timestamps
         assert restored.classify().type == "UNSTABLE"
 
@@ -221,10 +251,10 @@ class TestSingleStabilityTrackerTimeDependent:
         tracker = SingleStabilityTracker()
         tracker.add_value("hello")
         state = tracker.to_state()
-        state.pop("time_dependent", None)  # simulate pre-flag snapshot
+        state.pop("segmentation", None)  # simulate pre-flag snapshot
         state.pop("timestamps", None)
         restored = SingleStabilityTracker.from_state(state)
-        assert restored.time_dependent is False
+        assert restored.segmentation == "count"
         assert restored.timestamps == []
 
     def test_legacy_state_without_add_value_keys_loads(self):
@@ -250,7 +280,7 @@ class TestSingleStabilityTrackerTimeDependent:
         variable selection as a monitoring candidate.
         """
         count_mode = SingleStabilityTracker()
-        time_mode = SingleStabilityTracker(time_dependent=True)
+        time_mode = SingleStabilityTracker(segmentation="time")
         for value, ts in zip(BURSTY_VALUES, BURSTY_TIMES):
             count_mode.add_value(value)
             time_mode.add_value(value, timestamp=ts)
@@ -258,19 +288,19 @@ class TestSingleStabilityTrackerTimeDependent:
         assert time_mode.classify().type == "UNSTABLE"
 
 
-class TestTimeDependentPlumbing:
+class TestSegmentationPlumbing:
     def test_event_tracker_propagates_flag_and_timestamp(self):
-        event_tracker = EventStabilityTracker(time_dependent=True)
+        event_tracker = EventStabilityTracker(segmentation="time")
         event_tracker.add_data({"var1": "a"}, timestamp=1.0)
         event_tracker.add_data({"var1": "b"}, timestamp=2.0)
         single = event_tracker.get_data()["var1"]
-        assert single.time_dependent is True
+        assert single.segmentation == "time"
         assert single.timestamps == [1.0, 2.0]
 
     def test_ingest_event_forwards_timestamp(self):
         storage = EventPersistency(
             EventStabilityTracker,
-            event_data_kwargs={"time_dependent": True},
+            event_data_kwargs={"segmentation": "time"},
         )
         storage.ingest_event(1, "tpl <*>", variables=["a"], timestamp=10.0)
         storage.ingest_event(1, "tpl <*>", variables=["b"], timestamp=20.0)
@@ -285,21 +315,22 @@ class TestTimeDependentPlumbing:
         assert single.timestamps == []
 
     def test_event_tracker_dump_load_preserves_timestamps(self):
-        event_tracker = EventStabilityTracker(time_dependent=True)
+        event_tracker = EventStabilityTracker(segmentation="time")
         event_tracker.add_data({"var1": "a"}, timestamp=1.0)
         event_tracker.add_data({"var1": "b"}, timestamp=2.0)
-        restored = EventStabilityTracker.load(event_tracker.dump(), time_dependent=True)
+        restored = EventStabilityTracker.load(event_tracker.dump(), segmentation="time")
         single = restored.get_data()["var1"]
-        assert single.time_dependent is True
+        assert single.segmentation == "time"
         assert single.timestamps == [1.0, 2.0]
 
 
-class TestTimeDependentWithDetectorAddValueFn:
-    """time_dependent must work when a detector owns the value semantics."""
+class TestSegmentationWithDetectorAddValueFn:
+    """Segmentation="time" must work when a detector owns the value
+    semantics."""
 
     def test_detector_backed_tracker_records_timestamps(self):
         tracker = SingleStabilityTracker(
-            add_value_fn="CharsetDetector", time_dependent=True
+            add_value_fn="CharsetDetector", segmentation="time"
         )
         tracker.add_value("ab", timestamp=1.0)
         tracker.add_value("cd", timestamp=2.0)
@@ -311,7 +342,7 @@ class TestTimeDependentWithDetectorAddValueFn:
         """ValueRangeDetector returns early on non-numeric input without
         appending to change_series; timestamps must not drift."""
         tracker = SingleStabilityTracker(
-            add_value_fn="ValueRangeDetector", time_dependent=True
+            add_value_fn="ValueRangeDetector", segmentation="time"
         )
         tracker.add_value("1", timestamp=1.0)
         tracker.add_value("not-a-number", timestamp=2.0)  # detector records nothing
@@ -321,12 +352,12 @@ class TestTimeDependentWithDetectorAddValueFn:
 
     def test_event_tracker_detector_backed_round_trip(self):
         event_tracker = EventStabilityTracker(
-            add_value_fn="CharsetDetector", time_dependent=True
+            add_value_fn="CharsetDetector", segmentation="time"
         )
         event_tracker.add_data({"var1": "ab"}, timestamp=1.0)
         event_tracker.add_data({"var1": "cd"}, timestamp=2.0)
         restored = EventStabilityTracker.load(
-            event_tracker.dump(), add_value_fn="CharsetDetector", time_dependent=True
+            event_tracker.dump(), add_value_fn="CharsetDetector", segmentation="time"
         )
         single = restored.get_data()["var1"]
         assert single.unique_set == {"a", "b", "c", "d"}
@@ -352,7 +383,7 @@ class TestTimestampResolution:
     # explicitly rather than bare CharsetDetector(). CharsetDetector.__init__'s
     # `config` default argument is a single shared CharsetDetectorConfig()
     # instance (pre-existing mutable-default-arg pitfall, see
-    # TestTimeDependentConfigWiring.test_flag_reaches_per_variable_trackers), and
+    # TestSegmentationConfigWiring.test_flag_reaches_per_variable_trackers), and
     # several tests here mutate `detector.config.*` in place -- writing through
     # to that shared instance and leaking state into any other bare-constructed
     # CharsetDetector for the rest of the process. Passing a fresh config keeps
@@ -363,14 +394,14 @@ class TestTimestampResolution:
 
     def test_parses_iso_timestamp(self):
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.time_dependent = True
+        detector.config.stability_segmentation = "time"
         detector.config.timestamp_variable = "ts"
         assert detector._timestamp(_parser_record("2026-08-04 10:00:00")) == 1785837600.0
 
     def test_parses_explicit_format(self):
         """HDFS loghub style, absent from COMMON_TIME_FORMATS."""
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.time_dependent = True
+        detector.config.stability_segmentation = "time"
         detector.config.timestamp_variable = "ts"
         detector.config.timestamp_format = "%y%m%d %H%M%S"
         first = detector._timestamp(_parser_record("081109 203615"))
@@ -379,7 +410,7 @@ class TestTimestampResolution:
 
     def test_unparseable_warns_once_and_falls_back(self, caplog):
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.time_dependent = True
+        detector.config.stability_segmentation = "time"
         detector.config.timestamp_variable = "ts"
         with caplog.at_level(logging.WARNING):
             assert detector._timestamp(_parser_record("not-a-time")) is None
@@ -388,11 +419,11 @@ class TestTimestampResolution:
         assert len(warnings) == 1
 
     def test_unset_timestamp_variable_warns_once_and_falls_back(self, caplog):
-        """time_dependent without timestamp_variable is an operator error, not
-        an opt-out: it must be distinguishable from a working time-dependent
-        run, and must not flood the log."""
+        """stability_segmentation="time" without timestamp_variable is an
+        operator error, not an opt-out: it must be distinguishable from a
+        working time-dependent run, and must not flood the log."""
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.time_dependent = True  # timestamp_variable left unset
+        detector.config.stability_segmentation = "time"  # timestamp_variable left unset
         with caplog.at_level(logging.WARNING):
             assert detector._timestamp(_parser_record("2026-08-04 10:00:00")) is None
             assert detector._timestamp(_parser_record("2026-08-04 10:00:01")) is None
@@ -409,37 +440,38 @@ class TestTimestampResolution:
 
     def test_missing_variable_warns_and_falls_back(self, caplog):
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.time_dependent = True
+        detector.config.stability_segmentation = "time"
         detector.config.timestamp_variable = "absent"
         with caplog.at_level(logging.WARNING):
             assert detector._timestamp(_parser_record("2026-08-04 10:00:00")) is None
         assert any("timestamp_variable" in r.message for r in caplog.records)
 
 
-class TestTimeDependentConfigWiring:
+class TestSegmentationConfigWiring:
     def test_flag_reaches_per_variable_trackers(self):
         # CharsetDetector's `config` parameter default is a single shared
         # CharsetDetectorConfig() instance (pre-existing mutable-default-arg
-        # pitfall, unrelated to time_dependent). Other tests in this module
-        # mutate `detector.config.*` in place on a bare CharsetDetector(), so
-        # we pass explicit fresh configs here to stay isolated from that.
+        # pitfall, unrelated to stability_segmentation). Other tests in this
+        # module mutate `detector.config.*` in place on a bare
+        # CharsetDetector(), so we pass explicit fresh configs here to stay
+        # isolated from that.
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        assert detector.persistency.event_data_kwargs.get("time_dependent") is None
+        assert detector.persistency.event_data_kwargs.get("segmentation") is None
 
         configured = CharsetDetector(config=CharsetDetectorConfig())
-        configured.config.time_dependent = True
+        configured.config.stability_segmentation = "time"
         rebuilt = CharsetDetector(config=configured.config.to_dict(method_id="CharsetDetector"))
-        assert rebuilt.persistency.event_data_kwargs["time_dependent"] is True
+        assert rebuilt.persistency.event_data_kwargs["segmentation"] == "time"
 
     def test_config_fields_round_trip(self):
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.time_dependent = True
+        detector.config.stability_segmentation = "time"
         detector.config.timestamp_variable = "ts"
         detector.config.timestamp_format = "%y%m%d %H%M%S"
         restored = type(detector.config).from_dict(
             detector.config.to_dict(method_id="CharsetDetector"), "CharsetDetector"
         )
-        assert restored.time_dependent is True
+        assert restored.stability_segmentation == "time"
         assert restored.timestamp_variable == "ts"
         assert restored.timestamp_format == "%y%m%d %H%M%S"
 
@@ -450,7 +482,7 @@ class TestTimeDependentConfigWiring:
                     "method_type": "charset_detector",
                     "auto_config": False,
                     "params": {
-                        "time_dependent": True,
+                        "stability_segmentation": "time",
                         "timestamp_variable": "ts",
                         "timestamp_format": "%y%m%d %H%M%S",
                     },
@@ -469,14 +501,14 @@ class TestTimeDependentConfigWiring:
         detector.train(_parser_record("081109 203615"))
         detector.train(_parser_record("081109 203645"))
         tracker = detector.persistency.get_events_data()[1].get_data()["v"]
-        assert tracker.time_dependent is True
+        assert tracker.segmentation == "time"
         assert len(tracker.timestamps) == len(tracker.change_series) == 2
         assert tracker.timestamps[1] - tracker.timestamps[0] == 30.0
 
-    def test_time_dependent_fields_survive_auto_config_set_configuration(self):
+    def test_segmentation_fields_survive_auto_config_set_configuration(self):
         """set_configuration() reassigns self.config wholesale from a config
         dict generated with empty params (generate_detector_config only emits
-        method_type/auto_config/params/events), so time_dependent,
+        method_type/auto_config/params/events), so stability_segmentation,
         timestamp_variable and timestamp_format must be carried across that
         reassignment explicitly -- same as `persist` already is.
 
@@ -485,7 +517,7 @@ class TestTimeDependentConfigWiring:
         detector takes unless auto_config is explicitly disabled.
         """
         cfg = CharsetDetectorConfig(
-            time_dependent=True,
+            stability_segmentation="time",
             timestamp_variable="ts",
             timestamp_format="%y%m%d %H%M%S",
         )
@@ -496,6 +528,111 @@ class TestTimeDependentConfigWiring:
             detector.configure(_parser_record("081109 203615"))
         detector.set_configuration()
 
-        assert detector.config.time_dependent is True
+        assert detector.config.stability_segmentation == "time"
         assert detector.config.timestamp_variable == "ts"
         assert detector.config.timestamp_format == "%y%m%d %H%M%S"
+
+
+class TestBothSegmentation:
+    """`both` is STABLE only when count and time segmentation agree."""
+
+    def test_rejects_when_only_time_is_unstable(self):
+        count_mode = SingleStabilityTracker()
+        feed_divergent(count_mode)
+        assert count_mode.classify().type == "STABLE"
+
+        time_mode = SingleStabilityTracker(segmentation="time")
+        feed_divergent(time_mode)
+        assert time_mode.classify().type == "UNSTABLE"
+
+        both_mode = SingleStabilityTracker(segmentation="both")
+        feed_divergent(both_mode)
+        assert both_mode.classify().type == "UNSTABLE"
+
+    def test_rejects_when_only_count_is_unstable(self):
+        """The opposite direction: proves neither pass is dead code."""
+        count_mode = SingleStabilityTracker()
+        feed_churn(count_mode)
+        assert count_mode.classify().type == "UNSTABLE"
+
+        time_mode = SingleStabilityTracker(segmentation="time")
+        feed_churn(time_mode)
+        assert time_mode.classify().type == "STABLE"
+
+        both_mode = SingleStabilityTracker(segmentation="both")
+        feed_churn(both_mode)
+        assert both_mode.classify().type == "UNSTABLE"
+
+    def test_accepts_when_both_agree(self):
+        """`both` must not be vacuously strict."""
+        for mode in ("count", "time", "both"):
+            tracker = SingleStabilityTracker(segmentation=mode)
+            feed_agreeing(tracker)
+            assert tracker.classify().type == "STABLE", mode
+
+    def test_without_timestamps_matches_count_mode(self):
+        """No usable timestamps -> the time pass runs on count boundaries, so
+        `both` degrades to plain `count` rather than to a free pass.
+
+        Uses CHURN_VALUES (count-UNSTABLE) precisely because an
+        implementation that degrades to an unconditional free pass would
+        also call an all-STABLE fixture STABLE here; only a fixture that
+        is UNSTABLE when fed without timestamps can tell the two apart.
+        """
+        both_mode = SingleStabilityTracker(segmentation="both")
+        reference = SingleStabilityTracker()
+        for value in CHURN_VALUES:
+            both_mode.add_value(value)  # no timestamp argument
+            reference.add_value(value)
+        assert reference.classify().type == "UNSTABLE"
+        assert both_mode.classify().type == "UNSTABLE"
+
+    def test_reason_reports_both_mean_vectors(self):
+        """The note must carry the *actual* count and time mean vectors, not
+        just the words "count"/"time" -- and they must be distinct, which
+        catches a snapshot-ordering bug where the time pass's overwrite of
+        StabilityClassifier.segment_means leaks into the count half of the note
+        (see the comment at the count_means snapshot in _is_stable()).
+
+        feed_churn is used because its count and time means genuinely
+        differ ([1.0, 1.0, 1.0, 0.0] vs [0.9375, 0.0, 0.0, 0.0]); it
+        also yields UNSTABLE, so this exercises the note on the branch
+        finding 1 wires it into.
+        """
+        tracker = SingleStabilityTracker(segmentation="both")
+        feed_churn(tracker)
+        classification = tracker.classify()
+        assert classification.type == "UNSTABLE"
+        reason = classification.reason
+        assert "count [1.0, 1.0, 1.0, 0.0]" in reason
+        assert "time [0.9375, 0.0, 0.0, 0.0]" in reason
+
+    def test_round_trip_preserves_both_mode(self):
+        tracker = SingleStabilityTracker(segmentation="both")
+        feed_churn(tracker)
+        restored = SingleStabilityTracker.from_state(tracker.to_state())
+        assert restored.segmentation == "both"
+        assert restored.timestamps == tracker.timestamps
+        assert restored.classify().type == "UNSTABLE"
+
+    def test_stability_note_is_not_persisted(self):
+        tracker = SingleStabilityTracker(segmentation="both")
+        feed_agreeing(tracker)
+        tracker.classify()
+        assert "_stability_note" not in tracker.to_state()
+
+    def test_config_accepts_both_and_reaches_trackers(self):
+        configured = CharsetDetector(config=CharsetDetectorConfig())
+        configured.config.stability_segmentation = "both"
+        rebuilt = CharsetDetector(
+            config=configured.config.to_dict(method_id="CharsetDetector")
+        )
+        assert rebuilt.persistency.event_data_kwargs["segmentation"] == "both"
+
+    def test_event_tracker_propagates_both(self):
+        event_tracker = EventStabilityTracker(segmentation="both")
+        event_tracker.add_data({"var1": "a"}, timestamp=1.0)
+        event_tracker.add_data({"var1": "b"}, timestamp=2.0)
+        single = event_tracker.get_data()["var1"]
+        assert single.segmentation == "both"
+        assert single.timestamps == [1.0, 2.0]

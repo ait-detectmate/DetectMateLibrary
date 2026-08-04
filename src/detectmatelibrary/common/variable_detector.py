@@ -18,7 +18,7 @@ from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.tools.logging import logger
 
-from typing import Any, Dict, Optional, cast
+from typing import Any, Dict, Literal, Optional, cast
 from typing_extensions import override
 
 
@@ -26,10 +26,12 @@ class VariableDetectorConfig(CoreDetectorConfig):
     use_stable_vars: bool = True
     use_static_vars: bool = True
 
-    # Time-dependent stability: cut the classifier's segments at equal-duration
-    # boundaries instead of equal-count ones. Needs a per-record event time,
+    # Stability segmentation. "count" cuts the classifier's segments at equal
+    # sample counts (the historical behaviour). "time" cuts them at equal
+    # durations instead. "both" requires the variable to pass under *both*
+    # segmentations. The two time-aware modes need a per-record event time,
     # named here and read from the record's logFormatVariables.
-    time_dependent: bool = False
+    stability_segmentation: Literal["count", "time", "both"] = "count"
     timestamp_variable: str | None = None
     timestamp_format: str | None = None  # None -> TimeFormatHandler auto-detect
 
@@ -56,26 +58,27 @@ class VariableDetector(CoreDetector):
         self._warned_bad_timestamp = False
         self.persistency = EventPersistency(
             event_data_class=self._event_data_class(),
-            event_data_kwargs=self._with_time_flag(self._event_data_kwargs()),
+            event_data_kwargs=self._with_segmentation(self._event_data_kwargs()),
         )
         # auto config checks individual-variable stability to select features
         self.auto_conf_persistency = EventPersistency(
             event_data_class=self._event_data_class(),
-            event_data_kwargs=self._with_time_flag(self._auto_conf_kwargs()),
+            event_data_kwargs=self._with_segmentation(self._auto_conf_kwargs()),
         )
         self._register_persistency(self.persistency)
 
-    def _with_time_flag(self, kwargs: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-        """Add time_dependent to tracker kwargs when the config asks for it.
+    def _with_segmentation(self, kwargs: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """Add the segmentation mode to tracker kwargs when it is not the
+        default.
 
         Done here rather than in _stability_kwargs so every
         VariableDetector subclass is covered -- NewValueDetector
         overrides neither construction hook and NewValueComboDetector
         returns only a converter_function.
         """
-        if not self.config.time_dependent:
+        if self.config.stability_segmentation == "count":
             return kwargs
-        return {**(kwargs or {}), "time_dependent": True}
+        return {**(kwargs or {}), "segmentation": self.config.stability_segmentation}
 
     # ---- construction hooks -------------------------------------------------
 
@@ -114,13 +117,14 @@ class VariableDetector(CoreDetector):
     def _timestamp(self, input_: ParserSchema) -> float | None:
         """Resolve the record's event time, or None to use count
         segmentation."""
-        if not self.config.time_dependent:
+        if self.config.stability_segmentation == "count":
             return None
         if not self.config.timestamp_variable:
-            # Enabling the feature without naming the field is an operator
+            # Selecting a time-aware mode without naming the field is an operator
             # error, not an opt-out -- say so rather than silently no-op.
             self._warn_time_fallback_once(
-                "time_dependent is enabled but timestamp_variable is not set"
+                f"stability_segmentation is {self.config.stability_segmentation!r} "
+                "but timestamp_variable is not set"
             )
             return None
         raw = input_["logFormatVariables"].get(self.config.timestamp_variable)
@@ -260,7 +264,7 @@ class VariableDetector(CoreDetector):
             if selected:
                 variables[event_id] = selected
         old_persist = self.config.persist
-        old_time_dependent = self.config.time_dependent
+        old_segmentation = self.config.stability_segmentation
         old_timestamp_variable = self.config.timestamp_variable
         old_timestamp_format = self.config.timestamp_format
         config_dict = generate_detector_config(
@@ -270,7 +274,7 @@ class VariableDetector(CoreDetector):
         )
         self.config = type(self.config).from_dict(config_dict, self.name)
         self.config.persist = old_persist
-        self.config.time_dependent = old_time_dependent
+        self.config.stability_segmentation = old_segmentation
         self.config.timestamp_variable = old_timestamp_variable
         self.config.timestamp_format = old_timestamp_format
         events = self.config.events

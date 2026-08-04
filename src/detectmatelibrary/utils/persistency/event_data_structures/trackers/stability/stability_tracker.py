@@ -46,12 +46,12 @@ class SingleStabilityTracker(SingleTracker):
     def __init__(
         self,
         min_samples: int = 3,
-        time_dependent: bool = False,
+        segmentation: Literal["count", "time", "both"] = "count",
         add_value_fn: str = "default",
         detector_config: "CoreDetectorConfig | None" = None,
     ) -> None:
         self.min_samples = min_samples
-        self.time_dependent = time_dependent
+        self.segmentation = segmentation
         self.change_series: RLEList[bool] = RLEList()
         self.unique_set: Set[Any] = set()
         self.stability_classifier: StabilityClassifier = StabilityClassifier(
@@ -65,6 +65,9 @@ class SingleStabilityTracker(SingleTracker):
         self.extra_state: Dict[str, Any] = {}
         self.add_value_fn = add_value_fn
         self.detector_config = detector_config
+        # Transient: set by _is_stable() for classify()'s reason string. Not
+        # persisted -- it is derived from change_series on every classify().
+        self._stability_note: str = ""
         self._value_fn: Callable[[Any], None] = self._default_add_value
         if add_value_fn != "default":
             detector_cls = getattr(importlib.import_module("detectmatelibrary.detectors"), add_value_fn)
@@ -91,7 +94,7 @@ class SingleStabilityTracker(SingleTracker):
         """
         before = len(self.change_series)
         self._value_fn(value)
-        if self.time_dependent and timestamp is not None and len(self.change_series) > before:
+        if self.segmentation != "count" and timestamp is not None and len(self.change_series) > before:
             self.timestamps.append(float(timestamp))
 
     def classify(self) -> Classification:
@@ -111,26 +114,62 @@ class SingleStabilityTracker(SingleTracker):
                 type="RANDOM",
                 reason=f"Unique set size equals number of samples ({len(self.change_series)})"
             )
-        elif self.stability_classifier.is_stable(
-            self.change_series, timestamps=self._aligned_timestamps()
-        ):
+        elif self._is_stable():
             return Classification(
                 type="STABLE",
                 reason=(
-                    f"Segment means of change series {self.stability_classifier.get_last_segment_means()} "
-                    f"are below segment thresholds: {self.stability_classifier.get_segment_thresholds()}"
+                    f"{self._stability_note} are below segment thresholds: "
+                    f"{self.stability_classifier.get_segment_thresholds()}"
                 )
             )
         else:
             return Classification(
                 type="UNSTABLE",
-                reason="No classification matched; variable is unstable"
+                reason=(
+                    f"{self._stability_note} exceed segment thresholds: "
+                    f"{self.stability_classifier.get_segment_thresholds()}"
+                )
             )
+
+    def _is_stable(self) -> bool:
+        """Stability verdict under the configured segmentation.
+
+        Sets ``_stability_note`` for ``classify()``'s reason string.
+
+        ``both`` runs the count pass and the time pass over the same
+        change series and requires both. Neither segmentation subsumes
+        the other -- a variable that churns in a burst and then settles is
+        count-UNSTABLE but time-STABLE, and one whose late churn is buried
+        under a dense settled tail is the reverse -- so the conjunction is
+        strictly stricter than either input.
+
+        Deliberately not short-circuited: both passes always run so the
+        note carries both mean vectors, which is what anyone debugging a
+        ``both`` verdict needs. Costs one extra O(runs x n_segments) scan.
+        """
+        clf, ts = self.stability_classifier, self._aligned_timestamps()
+        if self.segmentation != "both":
+            stable = clf.is_stable(self.change_series, timestamps=ts)
+            self._stability_note = f"Segment means of change series {clf.get_last_segment_means()}"
+            return stable
+        count_stable = clf.is_stable(self.change_series)
+        # Snapshot now, not after the time pass: is_stable() rebinds
+        # clf.segment_means to a fresh list on every call, so calling
+        # get_last_segment_means() after the time pass below would return
+        # the time means for both halves of the note instead of the count
+        # means it is meant to capture here.
+        count_means = clf.get_last_segment_means()
+        time_stable = clf.is_stable(self.change_series, timestamps=ts)
+        self._stability_note = (
+            f"Segment means of change series: count {count_means}, "
+            f"time {clf.get_last_segment_means()}"
+        )
+        return count_stable and time_stable
 
     def _aligned_timestamps(self) -> List[float] | None:
         """Timestamps to classify with, or None to fall back to count
         segments."""
-        if self.time_dependent and len(self.timestamps) == len(self.change_series):
+        if self.segmentation != "count" and len(self.timestamps) == len(self.change_series):
             return self.timestamps
         return None
 
@@ -141,7 +180,7 @@ class SingleStabilityTracker(SingleTracker):
             "type": self.__class__.__name__,
             "module": self.__class__.__module__,
             "min_samples": self.min_samples,
-            "time_dependent": self.time_dependent,
+            "segmentation": self.segmentation,
             "timestamps": self.timestamps,
             "add_value_fn": self.add_value_fn,
             "detector_config": self.detector_config,
@@ -159,7 +198,7 @@ class SingleStabilityTracker(SingleTracker):
         # indexing here would KeyError on exactly the states this tolerance is for.
         tracker = cls(
             min_samples=state["min_samples"],
-            time_dependent=state.get("time_dependent", False),
+            segmentation=state.get("segmentation", "count"),
             add_value_fn=state.get("add_value_fn", "default"),
             detector_config=state.get("detector_config"),
         )
@@ -212,7 +251,7 @@ class EventStabilityTracker(EventTracker):
     def __init__(
         self,
         converter_function: Callable[[Any], Any] = lambda x: x,
-        time_dependent: bool = False,
+        segmentation: Literal["count", "time", "both"] = "count",
         add_value_fn: str = "default",
         detector_config: "CoreDetectorConfig | None" = None
 
@@ -221,7 +260,7 @@ class EventStabilityTracker(EventTracker):
 
         def make_tracker() -> SingleStabilityTracker:
             return SingleStabilityTracker(
-                time_dependent=time_dependent,
+                segmentation=segmentation,
                 add_value_fn=add_value_fn,
                 detector_config=detector_config,
             )
