@@ -56,7 +56,7 @@ Each `process()` call passes through a state machine controlled by config fields
 
 Phases in order: **CONFIGURE → TRAIN → DETECT** (phases are skipped when the corresponding field is `None`).
 
-State control enums allow overriding automatic transitions: `TrainState.KEEP_TRAINING` / `STOP_TRAINING` and `ConfigState.KEEP_CONFIGURE` / `STOP_CONFIGURE` on the component's `fit_logic`.
+State control enums allow overriding automatic transitions: `TrainState.KEEP_TRAINING` / `STOP_TRAINING` and `EnumState.KEEP` / `STOP_CONFIGURE` on the component's `fit_logic`.
 
 #### CoreDetectorConfig: EventsConfig
 
