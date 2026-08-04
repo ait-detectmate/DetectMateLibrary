@@ -41,7 +41,7 @@ message DetectorSchema {
     map<string, string> alertsObtain = 12;
 }
 
-message OutputSchema {
+message AggregateSchema {
     optional string __version__ = 1;
     repeated string detectorIDs = 2;
     repeated string detectorTypes = 3;

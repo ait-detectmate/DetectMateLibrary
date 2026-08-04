@@ -114,12 +114,14 @@ class MockComponentWithConfigureAndTraining(CoreComponent):
 
 
 class DummyComponentWithBuffer(CoreComponent):
-    def __init__(self, name: str, config: MockConfig = MockConfig()) -> None:
+    def __init__(
+        self, name: str, size: int, config: MockConfig = MockConfig()
+    ) -> None:
         super().__init__(
             name=name,
             config=config,
             type_="DummyWithBuffer",
-            args_buffer=ArgsBuffer(mode="batch", size=3, process_function=sum),
+            args_buffer=ArgsBuffer(mode=BufferMode.BATCH, size=size),
         )
 
 
@@ -131,6 +133,10 @@ class TestConfigCore:
 
         assert isinstance(config, BasicConfig)
         assert config.get_config() == expected
+
+    def test_get_window(self) -> None:
+        assert DummyComponentWithBuffer("test_1", 2).get_window_size() == 2
+        assert DummyComponentWithBuffer("test_2", 3).get_window_size() == 3
 
     def test_initialize_dict(self) -> None:
         config = MockConfig.from_dict(
@@ -235,7 +241,7 @@ class TestCoreComponent:
                 })
             )
 
-        assert len(component.train_data) == component.fitlogic.data_used_train
+        assert len(component.train_data) == component.fitlogic.train_state.data_used
         for i, log in enumerate(component.train_data):
             expected = schemas.LogSchema({
                 "__version__": "1.0.0",
@@ -260,7 +266,8 @@ class TestCoreComponent:
                     "hostname": "test_hostname"
                 })
             )
-        total = component.fitlogic.data_use_training + component.fitlogic.data_use_configure
+        total = component.fitlogic.train_state.total_need_data
+        total += component.fitlogic.config_state.total_need_data
         assert len(component.train_data) == total
         for i, log in enumerate(component.train_data):
             expected = schemas.LogSchema({
@@ -309,7 +316,7 @@ class TestCoreComponent:
 
         results = [component.process(_make_log(i)) for i in range(10)]
 
-        assert component.fitlogic.data_used_configure == 3
+        assert component.fitlogic.config_state.data_used == 3
         assert len(component.configure_data) == 3
         assert all(r is None for r in results[:3])
         assert component.set_configuration_called == 1
@@ -334,7 +341,7 @@ class TestCoreComponent:
             component.process(_make_log(i))
 
         assert len(component.configure_data) == 0
-        assert component.set_configuration_called == 0
+        assert component.set_configuration_called == 1
 
     def test_configuration_keep_configure(self) -> None:
         component = MockComponentWithConfigure(name="DummyCfg4")

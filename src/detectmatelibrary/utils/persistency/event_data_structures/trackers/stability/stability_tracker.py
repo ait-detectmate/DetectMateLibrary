@@ -1,12 +1,41 @@
 """Tracks whether a variable is converging to a constant value."""
 
-from typing import Any, Callable, Dict, List, Literal, Set
-
+import importlib
+from functools import partial
+from typing import Any, Callable, Dict, List, Literal, Set, TYPE_CHECKING
 from detectmatelibrary.utils.preview_helpers import list_preview_str
 from detectmatelibrary.utils.persistency.rle_list import RLEList
 
 from ..base import SingleTracker, MultiTracker, EventTracker, Classification
 from .stability_classifier import StabilityClassifier
+
+
+def _strip_persist(detector_config: Any, method_id: str) -> Any:
+    """Return a copy of a serialized detector_config with its persist section
+    removed.
+
+    A tracker reconstructs a throwaway detector from this config solely
+    to recover its add_value_fn closure. If the config still carries
+    persist, that throwaway instance starts a PersistencySaver --
+    leaking a saver thread per variable and writing empty state over the
+    real detector's file. No add_value_fn closure reads persist, so
+    dropping it is behaviour-preserving.
+    """
+    if not isinstance(detector_config, dict):
+        return detector_config
+    detectors = detector_config.get("detectors")
+    if not isinstance(detectors, dict):
+        return detector_config
+    entry = detectors.get(method_id)
+    if not (isinstance(entry, dict) and "persist" in entry):
+        return detector_config
+    return {
+        **detector_config,
+        "detectors": {
+            **detectors,
+            method_id: {k: v for k, v in entry.items() if k != "persist"},
+        },
+    }
 
 
 class SingleStabilityTracker(SingleTracker):
@@ -24,6 +53,15 @@ class SingleStabilityTracker(SingleTracker):
         # Opaque slot for detectors to stash per-variable model state that
         # must survive save/load. Schema-free; the tracker does not interpret it.
         self.extra_state: Dict[str, Any] = {}
+        self.add_value_fn = add_value_fn
+        self.detector_config = detector_config
+        if add_value_fn != "default":
+            detector_cls = getattr(importlib.import_module("detectmatelibrary.detectors"), add_value_fn)
+            if detector_config is not None:
+                detector = detector_cls(config=_strip_persist(detector_config, add_value_fn))
+            else:
+                detector = detector_cls()
+            self.add_value = partial(detector.add_value, self)  # type: ignore[method-assign]
 
     def add_value(self, value: Any) -> None:
         """Add a new value to the tracker."""

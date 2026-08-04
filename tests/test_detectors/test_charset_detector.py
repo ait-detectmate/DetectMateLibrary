@@ -8,9 +8,10 @@ This module tests the CharsetDetector implementation including:
 - Input/output schema validation
 """
 
-from detectmatelibrary.common._core_op._fit_logic import TrainState
-from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig, BufferMode
-from detectmatelibrary.common._core_op._fit_logic import ConfigState
+from detectmatelibrary.common.detector import PersistConfig
+from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig
+from detectmatelibrary.utils.data_buffer import BufferMode
+from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
@@ -110,7 +111,6 @@ class TestCharsetDetectorInitialization:
     def test_register_persistency_was_called(self):
         """Main persistency should be registered so persist/load round-trips
         work."""
-        from detectmatelibrary.common.detector import PersistConfig
         cfg = CharsetDetectorConfig(
             persist=PersistConfig(path="memory://charset_regpersist/state")
         )
@@ -334,20 +334,20 @@ class TestCharsetDetectorAutoConfig:
         logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
 
         # Phase 1: configure — keep configuring for logs[:TRAIN_UNTIL]
-        detector.fitlogic.configure_state = ConfigState.KEEP_CONFIGURE
+        detector.fitlogic.config_state.current = EnumState.KEEP
         for log in logs[:TRAIN_UNTIL]:
             detector.process(log)
 
         # Transition: stop configure so next process() call triggers set_configuration()
-        detector.fitlogic.configure_state = ConfigState.STOP_CONFIGURE
+        detector.fitlogic.config_state.current = EnumState.STOP
 
         # Phase 2: train — keep training for logs[:TRAIN_UNTIL]
-        detector.fitlogic.train_state = TrainState.KEEP_TRAINING
+        detector.fitlogic.train_state.current = EnumState.KEEP
         for log in logs[:TRAIN_UNTIL]:
             detector.process(log)
 
         # Phase 3: detect — stop training so process() only calls detect()
-        detector.fitlogic.train_state = TrainState.STOP_TRAINING
+        detector.fitlogic.train_state.current = EnumState.STOP
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
             if detector.process(log) is not None:
@@ -400,8 +400,6 @@ class TestCharsetDetectorGlobalInstances:
 
 class TestCharsetDetectorSetConfigurationPreservesPersist:
     def test_persist_flag_survives_set_configuration(self):
-        from detectmatelibrary.common.detector import PersistConfig
-
         detector = CharsetDetector()
         # Simulate persist being enabled by an earlier config load
         detector.config.persist = PersistConfig(path="./state")

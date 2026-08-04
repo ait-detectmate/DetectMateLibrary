@@ -110,7 +110,7 @@ Fields:
 | receivedTimestamp | int32 | When inputs were received by detector. |
 | alertsObtain | map<string,string> | Additional alert metadata. |
 
-### OutputSchema
+### AggregateSchema
 Output from Alert Aggregations (alerts / findings).
 
 Fields:

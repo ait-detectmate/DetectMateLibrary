@@ -64,8 +64,8 @@ class TestConfigurationEngineAutomatic:
         for log in logs:
             detector.process(log)
 
-        assert detector.fitlogic.data_used_configure == TRAIN_UNTIL
-        assert detector.fitlogic._configuration_done is True
+        assert detector.fitlogic.config_state.data_used == TRAIN_UNTIL
+        assert detector.fitlogic.config_state.ready_to_finish is True
 
         # Train on same logs used for configuration (mirrors detect.py)
         for log in logs[:TRAIN_UNTIL]:
