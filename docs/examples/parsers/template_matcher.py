@@ -24,7 +24,10 @@ cfg = {
 parser = MatcherParser(name="MatcherParser", config=cfg)
 
 # match a log
-input_log = schemas.LogSchema({"logID": "0", "log": "pid=9699 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\"'"})
+input_log = schemas.LogSchema({
+    "logID": "0",
+    "log": "pid=9699 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\"'"
+})
 parsed = parser.process(input_log)  # or parser.parse / parser.match depending on wrapper API
 
 # parsed is a ParserSchema (or an output container). Check fields:

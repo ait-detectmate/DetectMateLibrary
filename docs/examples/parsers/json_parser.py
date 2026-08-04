@@ -31,10 +31,10 @@ print(output.logFormatVariables["request.path"])     # "/api/users"
 # --8<-- [end:basic]
 
 # --8<-- [start:dict-based]
-import json
-from detectmatelibrary.parsers.json_parser import JsonParser
-import detectmatelibrary.schemas as schemas
-from pathlib import Path
+import json  # noqa: E402
+from detectmatelibrary.parsers.json_parser import JsonParser  # noqa: E402
+import detectmatelibrary.schemas as schemas  # noqa: E402
+from pathlib import Path  # noqa: E402
 
 
 ROOT = Path(__file__).resolve().parents[3]
