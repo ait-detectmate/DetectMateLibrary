@@ -46,20 +46,17 @@ class SingleStabilityTracker(SingleTracker):
     def __init__(
         self,
         min_samples: int = 3,
-        expand_value: bool = False,
         time_dependent: bool = False,
         add_value_fn: str = "default",
         detector_config: "CoreDetectorConfig | None" = None,
     ) -> None:
         self.min_samples = min_samples
-        self.expand_value = expand_value
         self.time_dependent = time_dependent
         self.change_series: RLEList[bool] = RLEList()
         self.unique_set: Set[Any] = set()
         self.stability_classifier: StabilityClassifier = StabilityClassifier(
             segment_thresholds=[1.1, 0.3, 0.1, 0.01],
         )
-        self._accum = set.update if expand_value else set.add
         # ponytail: O(N) timestamps; switch to fixed-width time buckets if
         # this ever runs unbounded/streaming.
         self.timestamps: List[float] = []
@@ -68,29 +65,37 @@ class SingleStabilityTracker(SingleTracker):
         self.extra_state: Dict[str, Any] = {}
         self.add_value_fn = add_value_fn
         self.detector_config = detector_config
+        self._value_fn: Callable[[Any], None] = self._default_add_value
         if add_value_fn != "default":
             detector_cls = getattr(importlib.import_module("detectmatelibrary.detectors"), add_value_fn)
             if detector_config is not None:
                 detector = detector_cls(config=_strip_persist(detector_config, add_value_fn))
             else:
                 detector = detector_cls()
-            self.add_value = partial(detector.add_value, self)  # type: ignore[method-assign]
+            self._value_fn = partial(detector.add_value, self)
+
+    def _default_add_value(self, value: Any) -> None:
+        """Default value semantics: one set entry per whole value."""
+        before = len(self.unique_set)
+        self.unique_set.add(value)
+        self.change_series.append(len(self.unique_set) > before)
 
     def add_value(self, value: Any, timestamp: float | None = None) -> None:
-        """Add a new value to the tracker."""
-        before = len(self.unique_set)
-        self._accum(self.unique_set, value)
-        self.change_series.append(len(self.unique_set) > before)
-        if self.time_dependent and timestamp is not None:
+        """Add a new value to the tracker.
+
+        Value semantics belong to ``_value_fn`` -- either the default above or a
+        detector's ``add_value``. Timestamp bookkeeping stays here so
+        ``timestamps`` cannot drift from ``change_series``: a detector may record
+        nothing for a value (ValueRangeDetector on non-numeric input), and a
+        length mismatch silently demotes the variable to count segmentation.
+        """
+        before = len(self.change_series)
+        self._value_fn(value)
+        if self.time_dependent and timestamp is not None and len(self.change_series) > before:
             self.timestamps.append(float(timestamp))
 
     def classify(self) -> Classification:
         """Classify the variable."""
-        timestamps = (
-            self.timestamps
-            if self.time_dependent and len(self.timestamps) == len(self.change_series)
-            else None
-        )
         if len(self.change_series) < self.min_samples:
             return Classification(
                 type="INSUFFICIENT_DATA",
@@ -106,7 +111,9 @@ class SingleStabilityTracker(SingleTracker):
                 type="RANDOM",
                 reason=f"Unique set size equals number of samples ({len(self.change_series)})"
             )
-        elif self.stability_classifier.is_stable(self.change_series, timestamps=timestamps):
+        elif self.stability_classifier.is_stable(
+            self.change_series, timestamps=self._aligned_timestamps()
+        ):
             return Classification(
                 type="STABLE",
                 reason=(
@@ -120,6 +127,13 @@ class SingleStabilityTracker(SingleTracker):
                 reason="No classification matched; variable is unstable"
             )
 
+    def _aligned_timestamps(self) -> List[float] | None:
+        """Timestamps to classify with, or None to fall back to count
+        segments."""
+        if self.time_dependent and len(self.timestamps) == len(self.change_series):
+            return self.timestamps
+        return None
+
     def to_state(self) -> Dict[str, Any]:
         """Serialize tracker state to a plain dict (must be msgpack-
         compatible)."""
@@ -127,7 +141,6 @@ class SingleStabilityTracker(SingleTracker):
             "type": self.__class__.__name__,
             "module": self.__class__.__module__,
             "min_samples": self.min_samples,
-            "expand_value": self.expand_value,
             "time_dependent": self.time_dependent,
             "timestamps": self.timestamps,
             "add_value_fn": self.add_value_fn,
@@ -141,12 +154,14 @@ class SingleStabilityTracker(SingleTracker):
     @classmethod
     def from_state(cls, state: Dict[str, Any]) -> "SingleStabilityTracker":
         """Restore tracker from a state dict produced by to_state()."""
+        # Every optional key is read with .get(): a snapshot old enough to still
+        # carry the removed `expand_value` predates `add_value_fn` too, so
+        # indexing here would KeyError on exactly the states this tolerance is for.
         tracker = cls(
             min_samples=state["min_samples"],
-            expand_value=state.get("expand_value", False),
             time_dependent=state.get("time_dependent", False),
-            add_value_fn=state["add_value_fn"],
-            detector_config=state["detector_config"]
+            add_value_fn=state.get("add_value_fn", "default"),
+            detector_config=state.get("detector_config"),
         )
         runs = [(bool(r[0]), int(r[1])) for r in state["runs"]]
         tracker.change_series._runs = runs
@@ -197,7 +212,6 @@ class EventStabilityTracker(EventTracker):
     def __init__(
         self,
         converter_function: Callable[[Any], Any] = lambda x: x,
-        expand_value: bool = False,
         time_dependent: bool = False,
         add_value_fn: str = "default",
         detector_config: "CoreDetectorConfig | None" = None
@@ -207,7 +221,6 @@ class EventStabilityTracker(EventTracker):
 
         def make_tracker() -> SingleStabilityTracker:
             return SingleStabilityTracker(
-                expand_value=expand_value,
                 time_dependent=time_dependent,
                 add_value_fn=add_value_fn,
                 detector_config=detector_config,

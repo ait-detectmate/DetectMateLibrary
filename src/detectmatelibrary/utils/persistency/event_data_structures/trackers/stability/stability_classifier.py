@@ -22,17 +22,26 @@ class StabilityClassifier:
         """Index boundaries of n_segments segments over total_len items.
 
         Equal-count by default. When timestamps are given (one per item,
-        chronological, non-zero span), boundaries are equal-DURATION
+        non-decreasing, non-zero span), boundaries are equal-DURATION
         cuts of the observed time span, mapped back to indices. Falls
-        back to equal-count on missing/mismatched/non-finite timestamps
-        or zero span.
+        back to equal-count on missing / mismatched / non-finite / out-
+        of-order timestamps, on zero span, and when the duration cut
+        would leave a segment empty.
         """
+        segment_size = total_len / self.n_segments
+        count_boundaries = [int(i * segment_size) for i in range(self.n_segments + 1)]
+        count_boundaries[-1] = total_len
         try:
             use_time = (
                 timestamps is not None
                 and len(timestamps) == total_len
                 and total_len > 0
                 and bool(np.all(np.isfinite(timestamps)))
+                # np.searchsorted below requires sorted input. Merged sources or
+                # concurrent writers can deliver stamps out of order, which would
+                # silently produce wrong boundaries rather than an error. O(N),
+                # same cost as the isfinite scan above.
+                and bool(np.all(np.diff(timestamps) >= 0))
                 and timestamps[-1] > timestamps[0]
             )
         except TypeError:
@@ -47,11 +56,18 @@ class StabilityClassifier:
             boundaries = [int(np.searchsorted(timestamps, t, side="left")) for t in cuts]
             boundaries[0] = 0
             boundaries[-1] = total_len
-            return boundaries
-        segment_size = total_len / self.n_segments
-        boundaries = [int(i * segment_size) for i in range(self.n_segments + 1)]
-        boundaries[-1] = total_len
-        return boundaries
+            # An empty segment gets a nan mean, and `not nan >= thresh` is True --
+            # a free pass. Under equal-duration cuts a bursty series can leave
+            # several segments empty and be called STABLE while churning; a
+            # 1-sample segment's quantized 0/1 mean can misfire the other way.
+            # Equal-count segmentation keeps every segment populated, so fall
+            # back to it whenever the duration cut would not.
+            # ponytail: this drops such series back to count mode wholesale; a
+            # future upgrade could redistribute or merge the empty segments and
+            # keep a (coarser) time-aware verdict.
+            if all(boundaries[i + 1] > boundaries[i] for i in range(self.n_segments)):
+                return boundaries
+        return count_boundaries
 
     def is_stable(
         self,
@@ -61,18 +77,18 @@ class StabilityClassifier:
         """Determine if a list of segment means is stable.
 
         Works efficiently with RLEList without expanding to a full list.
-        When timestamps are given (one per occurrence, chronological),
+        When timestamps are given (one per occurrence, non-decreasing),
         segments are equal-duration cuts of the time span instead of
-        equal-count cuts of the series.
+        equal-count cuts of the series. See ``_segment_boundaries`` for
+        the conditions under which time mode falls back to count mode.
         """
-        # Handle both RLEList and regular list
+        total_len = len(change_series)
+        if total_len == 0:
+            return True
+
+        segment_boundaries = self._segment_boundaries(total_len, timestamps)
+
         if isinstance(change_series, RLEList):
-            total_len = len(change_series)
-            if total_len == 0:
-                return True
-
-            segment_boundaries = self._segment_boundaries(total_len, timestamps)
-
             # Compute segment means directly from RLE runs
             segment_sums = [0.0] * self.n_segments
             segment_counts = [0] * self.n_segments
@@ -98,27 +114,17 @@ class StabilityClassifier:
 
                 position = run_end
 
-            # Calculate means
             self.segment_means = [
                 segment_sums[i] / segment_counts[i] if segment_counts[i] > 0 else np.nan
                 for i in range(self.n_segments)
             ]
         else:
-            if timestamps is not None and len(timestamps) == len(change_series):
-                b = self._segment_boundaries(len(change_series), timestamps)
-                self.segment_means = [
-                    float(np.mean(change_series[b[i]:b[i + 1]])) if b[i + 1] > b[i] else np.nan
-                    for i in range(self.n_segments)
-                ]
-            else:
-                # Original implementation for regular lists
-                self.segment_means = self._compute_segment_means(change_series)
+            self.segment_means = [
+                float(np.mean(change_series[segment_boundaries[i]:segment_boundaries[i + 1]]))
+                if segment_boundaries[i + 1] > segment_boundaries[i] else np.nan
+                for i in range(self.n_segments)
+            ]
         return all([not q >= thresh for q, thresh in zip(self.segment_means, self.segment_threshs)])
-
-    def _compute_segment_means(self, change_series: List[bool]) -> List[float]:
-        """Get means of each segment for a normal list."""
-        segments = np.array_split(change_series, self.n_segments)
-        return list(map(lambda x: np.mean(x) if len(x) > 0 else np.nan, segments))
 
     def get_last_segment_means(self) -> List[float]:
         return self.segment_means

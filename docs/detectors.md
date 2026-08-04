@@ -222,6 +222,65 @@ def set_configuration(self):
 When `auto_config` is `False`, steps 1 and 2 are skipped entirely.
 
 
+### Time-dependent stability (optional)
+
+Stability classification splits a variable's change history into four segments and
+compares each segment's rate of change against a threshold. By default the segments
+are **equal-count**: each holds the same number of observations, regardless of how much
+time they cover. For bursty log sources that is misleading — a variable that changed
+constantly during a quiet night and then went silent under a flood of daytime traffic
+looks stable, because the flood supplies enough samples to dominate the later segments.
+
+Setting `time_dependent: true` switches the segmentation to **equal-duration** cuts of
+the observed time span, so each segment covers the same amount of wall-clock time. The
+detector then needs an event time per record, which it reads from the log's named
+variables (`logFormatVariables`, i.e. the fields declared in the parser's `log_format`)
+under the name given by `timestamp_variable`.
+
+These three parameters live on every `VariableDetector` subclass (`NewValueDetector`,
+`NewValueComboDetector`, `ValueRangeDetector`, `CharsetDetector`, `BigramDetector`, …)
+and go in the detector's top-level `params` block:
+
+```yaml
+detectors:
+  NewValueDetector:
+    method_type: new_value_detector
+    auto_config: True
+    params:
+      time_dependent: True
+      timestamp_variable: Time      # a field name from the parser's log_format
+      timestamp_format: "%y%m%d %H%M%S"   # optional; omit to auto-detect
+```
+
+#### Fields
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `time_dependent` | `bool` | `false` | Segment the change history by equal time spans instead of equal sample counts. When `false` (the default) the other two fields are ignored and no timestamps are recorded. |
+| `timestamp_variable` | `str \| null` | `null` | Name of the field in `logFormatVariables` holding the record's event time. Required for `time_dependent` to have any effect. Only named log-format fields are consulted — never the positional `variables` list. |
+| `timestamp_format` | `str \| null` | `null` | Explicit [`strftime`](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes) pattern for parsing that field. When unset, `TimeFormatHandler` auto-detects the format (ISO 8601, Apache, syslog, numeric epoch seconds/milliseconds, and other common layouts). |
+
+Set `timestamp_format` when the source uses a layout the auto-detection does not
+know. The HDFS loghub corpus, for example, stamps records as `081109 203615`, which
+only parses with an explicit `"%y%m%d %H%M%S"`.
+
+#### Fallback behaviour
+
+Time-dependent segmentation is best-effort and never fails a run:
+
+* If `time_dependent` is `true` but `timestamp_variable` is unset, or the named field
+  is absent from a record, or its value cannot be parsed, the detector logs a
+  **single** warning (once per detector, so a bad config cannot flood the log) and
+  falls back to count-based segmentation.
+* If timestamps stop lining up with the recorded observations, or the observed time
+  span is zero, or the equal-duration cut would leave a segment with no observations
+  in it, the classifier silently falls back to count-based segmentation for that
+  variable.
+
+In every fallback case classification still runs and produces a result — only the
+segmentation rule changes back to the default.
+
+
 ### Saving state (persist)
 
 Detectors can persist their training state to disk (or cloud storage) so it
