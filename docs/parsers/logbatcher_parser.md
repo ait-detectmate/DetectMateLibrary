@@ -63,10 +63,16 @@ parsers:
 
 ## Usage examples
 
-Basic usage — parse a raw log and read the inferred template:
+Basic usage — set up the parser (parsing requires a valid API key):
 
 ```python
 --8<-- "docs/examples/parsers/logbatcher_parser.py:basic"
+```
+
+Using a local Ollama instance:
+
+```python
+--8<-- "docs/examples/parsers/logbatcher_parser.py:ollama"
 ```
 
 Passing config as a dict:
