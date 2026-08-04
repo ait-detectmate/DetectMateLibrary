@@ -1,24 +1,13 @@
-from typing import Any, cast
+from typing import Any, Dict, Optional, cast
 
-from detectmatelibrary.common._config._compile import generate_detector_config
-from detectmatelibrary.common._config._formats import EventsConfig
-from detectmatelibrary.common.detector import (
-    CoreDetectorConfig,
-    CoreDetector,
-    get_configured_variables,
-    get_global_variables,
-    validate_config_coverage,
-)
+from detectmatelibrary.common.variable_detector import VariableDetector, VariableDetectorConfig
+from detectmatelibrary.common.detector import get_configured_variables, get_global_variables
 from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
     EventStabilityTracker,
     SingleStabilityTracker,
 )
-from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
-from detectmatelibrary.utils.data_buffer import BufferMode
-from detectmatelibrary.schemas import ParserSchema, DetectorSchema
+from detectmatelibrary.schemas import ParserSchema
 from detectmatelibrary.constants import GLOBAL_EVENT_ID, DEFAULT_FREQUENCIES
-from typing_extensions import override
-from detectmatelibrary.tools.logging import logger
 
 
 _DEFAULT_FREQ: dict[str, dict[str, int]] | None = None
@@ -47,40 +36,76 @@ def _default_freq_tables() -> tuple[dict[str, dict[str, int]], dict[str, int]]:
     return _DEFAULT_FREQ, _DEFAULT_TOTAL_FREQ
 
 
-class BigramFrequencyDetectorConfig(CoreDetectorConfig):
-    # documentation see: https://github.com/ernstleierzopf/logdata-anomaly-miner/blob/main/source
-    # /root/usr/lib/logdata-anomaly-miner/aminer/analysis/EntropyDetector.py
+class BigramFrequencyDetectorConfig(VariableDetectorConfig):
+    """
+    @param prob_thresh limit for the average probability of character pairs for which anomalies are reported.
+    @param default_freqs initializes the probabilities with default values from
+           https://github.com/markbaggett/freq.
+    @param skip_repetitions boolean that determines whether only distinct values are used for character pair
+           counting. This counteracts the problem of imbalanced word frequencies that distort the frequency
+           table generated in a single run.
+    """
     method_type: str = "bigram_frequency_detector"
     prob_thresh: float = 0.05
     default_freqs: bool = False
-    skip_repetitions: bool = False
-
-    use_stable_vars: bool = True
-    use_static_vars: bool = True
+    skip_repetitions: bool = True
 
 
-class BigramFrequencyDetector(CoreDetector):
+class BigramFrequencyDetector(VariableDetector):
     """Detect bigram-frequency-based anomalies in log data."""
 
     def __init__(
         self,
         name: str = "BigramFrequencyDetector",
-        config: BigramFrequencyDetectorConfig = BigramFrequencyDetectorConfig()
+        config: BigramFrequencyDetectorConfig = BigramFrequencyDetectorConfig(),
     ) -> None:
-
         if isinstance(config, dict):
             config = BigramFrequencyDetectorConfig.from_dict(config, name)
 
-        super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
+        super().__init__(name=name, config=config)
         self.config: BigramFrequencyDetectorConfig  # type narrowing for IDE
-        self.persistency = EventPersistency(
-            event_data_class=EventStabilityTracker,
-        )
-        # auto config checks if individual variables are stable to select combos from
-        self.auto_conf_persistency = EventPersistency(
-            event_data_class=EventStabilityTracker
-        )
-        self._register_persistency(self.persistency)
+
+    def add_value(self, tracker: SingleStabilityTracker, value: Any) -> None:
+        """Add a new value to the tracker (bigram-frequency semantics)."""
+        change = False
+        default_freq, default_total = (_default_freq_tables() if self.config.default_freqs else ({}, {}))
+        freq: dict[Any, dict[Any, int]] = tracker.extra_state.get("freq", {})
+        total_freq: dict[Any, int] = tracker.extra_state.get("total_freq", {})
+        probs: list[float] = []
+        for i in range(-1, len(value)):
+            first: Any = -1 if i == -1 else value[i]
+            second: Any = -1 if i == len(value) - 1 else value[i + 1]
+            prob = 0.0
+            if first in freq and second in freq[first] and total_freq.get(first, 0) > 0:
+                prob = freq[first][second] / total_freq[first]
+            elif self.config.default_freqs:
+                if (first in default_freq and second in default_freq[first]
+                        and default_total.get(first, 0) > 0):
+                    prob = default_freq[first][second] / default_total[first]
+            probs.append(prob)
+        if probs:
+            critical_val = sum(probs) / len(probs)
+            change = critical_val > self.config.prob_thresh or any(x == 0.0 for x in probs)
+
+        if self.config.skip_repetitions and value in tracker.unique_set:
+            change = False
+        else:
+            for i in range(-1, len(value)):
+                first = -1 if i == -1 else value[i]
+                second = -1 if i == len(value) - 1 else value[i + 1]
+                row = freq.setdefault(first, {})
+                row[second] = row.get(second, 0) + 1
+                total_freq[first] = total_freq.get(first, 0) + 1
+        tracker.unique_set.add(value)
+        tracker.change_series.append(change)
+
+    def _event_data_kwargs(self) -> Optional[Dict[str, Any]]:
+        return self._stability_kwargs()
+
+    def _description(self) -> str:
+        return f"{self.name} anomalies in the bigram frequencies."
+
+    # ---- training (overrides base: needs pre-ingest snapshot + freq update) --
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by updating per-variable bigram frequencies."""
@@ -99,17 +124,13 @@ class BigramFrequencyDetector(CoreDetector):
             named_variables=configured_variables,
         )
         if configured_variables:
-            known_events = cast(
-                dict[int | str, EventStabilityTracker], self.persistency.get_events_data()
-            )
+            known_events = cast(dict[int | str, EventStabilityTracker], self.persistency.get_events_data())
             self.train_helper(configured_variables, current_event_id, known_events, pre_unique)
 
         if self.config.global_instances:
             global_vars = get_global_variables(input_, self.config.global_instances)
             if global_vars:
-                pre_unique_global = self._snapshot_unique_sets(
-                    known_events.get(GLOBAL_EVENT_ID), global_vars
-                )
+                pre_unique_global = self._snapshot_unique_sets(known_events.get(GLOBAL_EVENT_ID), global_vars)
                 self.persistency.ingest_event(
                     event_id=GLOBAL_EVENT_ID,
                     event_template=input_["template"],
@@ -167,48 +188,19 @@ class BigramFrequencyDetector(CoreDetector):
                 row[second] = row.get(second, 0) + 1
                 total_freq[first] = total_freq.get(first, 0) + 1
 
-    def detect(
-        self, input_: ParserSchema, output_: DetectorSchema  # type: ignore
-    ) -> bool:
-        """Detect bigram-frequency anomalies in the input data."""
-        alerts: dict[str, str] = {}
-        configured_variables = get_configured_variables(input_, self.config.events)
-        overall_score = 0.0
-        current_event_id = input_["EventID"]
-        known_events = cast(
-            dict[int | str, EventStabilityTracker], self.persistency.get_events_data()
-        )
-        if current_event_id in known_events:
-            overall_score = self.detect_helper(
-                alerts, configured_variables, current_event_id, known_events, overall_score
-            )
-        if self.config.global_instances and GLOBAL_EVENT_ID in known_events:
-            global_vars = get_global_variables(input_, self.config.global_instances)
-            overall_score = self.detect_helper(
-                alerts, global_vars, GLOBAL_EVENT_ID, known_events, overall_score
-            )
-        if overall_score > 0:
-            output_["score"] = overall_score
-            output_["description"] = f"{self.name} anomalies in the bigram frequencies."
-            output_["alertsObtain"].update(alerts)
-            return True
-        return False
+    # ---- detection (overrides _check_event: event-level +1 scoring) ----------
 
-    def detect_helper(
+    def _check_event(
         self,
-        alerts: dict[str, str],
-        variables: dict[str, Any],
-        event_id: "int | str",
-        known_events: "dict[int | str, EventStabilityTracker]",
-        overall_score: float,
+        alerts: Dict[str, str],
+        event_id: Any,
+        event_tracker: EventStabilityTracker,
+        variables: Dict[str, Any],
+        is_global: bool,
     ) -> float:
         anomaly = False
-        default_freq, default_total = (
-            _default_freq_tables() if self.config.default_freqs else ({}, {})
-        )
-        var_trackers = cast(
-            dict[str, SingleStabilityTracker], known_events[event_id].get_data()
-        )
+        default_freq, default_total = (_default_freq_tables() if self.config.default_freqs else ({}, {}))
+        var_trackers = cast(dict[str, SingleStabilityTracker], event_tracker.get_data())
         for var_name, single_tracker in var_trackers.items():
             value: Any = variables.get(var_name)
             if value is None:
@@ -231,55 +223,9 @@ class BigramFrequencyDetector(CoreDetector):
                 continue
             critical_val = sum(probs) / len(probs)
             if critical_val < self.config.prob_thresh:
-                k = f"EventID {event_id} - {var_name}"
-                if event_id == GLOBAL_EVENT_ID:
-                    k = f"Global - {var_name}"
-                alerts[k] = (
+                alerts[self._alert_key(event_id, var_name, is_global)] = (
                     f"Bigram frequency anomaly with value {value}, critical_val {critical_val} and "
                     f"threshold {self.config.prob_thresh}."
                 )
                 anomaly = True
-        if anomaly:
-            overall_score += 1.0
-        return overall_score
-
-    def configure(self, input_: ParserSchema) -> None:  # type: ignore
-        self.auto_conf_persistency.ingest_event(
-            event_id=input_["EventID"],
-            event_template=input_["template"],
-            variables=input_["variables"],
-            named_variables=input_["logFormatVariables"],
-        )
-
-    @override
-    def post_train(self) -> None:
-        if not self.config.auto_config:
-            validate_config_coverage(self.name, self.config.events, self.persistency)
-
-    def set_configuration(self) -> None:
-        variables = {}
-        for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
-            stable = []
-            if self.config.use_stable_vars:
-                stable = tracker.get_features_by_classification("STABLE")  # type: ignore
-            static = []
-            if self.config.use_static_vars:
-                static = tracker.get_features_by_classification("STATIC")  # type: ignore
-            vars_ = stable + static
-            if len(vars_) > 0:
-                variables[event_id] = vars_
-        config_dict = generate_detector_config(
-            variable_selection=variables,
-            detector_name=self.name,
-            method_type=self.config.method_type,
-        )
-        old_persist = self.config.persist
-        self.config = BigramFrequencyDetectorConfig.from_dict(config_dict, self.name)
-        self.config.persist = old_persist
-        events = self.config.events
-        if isinstance(events, EventsConfig) and not events.events:
-            logger.warning(
-                f"[{self.name}] auto_config=True generated an empty configuration. "
-                "No stable variables were found in configure-phase data. "
-                "The detector will produce no alerts."
-            )
+        return 1.0 if anomaly else 0.0

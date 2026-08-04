@@ -5,7 +5,7 @@ Alert aggregation aggregates alerts from detectors.
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
 | **Input**  | [DetectorSchema](schemas.md)    | Alerts from detectors  |
-| **Output** | [OutputSchema](schemas.md) | Aggregated alerts    |
+| **Output** | [AggregateSchema](schemas.md) | Aggregated alerts    |
 
 This document explains expected APIs, how to implement a parser, testing tips and common pitfalls.
 
@@ -24,7 +24,7 @@ class CoreAlertAggregation:
  def aggregate_alerts(
         self,
         input_: list[DetectorSchema] | DetectorSchema,
-        output_: OutputSchema,
+        output_: AggregateSchema,
     ) -> bool:
         return True
 

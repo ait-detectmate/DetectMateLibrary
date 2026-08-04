@@ -11,10 +11,15 @@ from detectmatelibrary.schemas import BaseSchema
 
 from detectmatelibrary.tools.logging import logger, setup_logging
 
-from typing import Any, Dict, List, Protocol
+from detectmatelibrary.utils.persistency import EventPersistency
+from detectmatelibrary.utils import persistency
+
+from typing import Any, Dict, List, Protocol, Callable
 
 
 setup_logging()
+
+# Persistency ##################################################################
 
 
 class _Stoppable(Protocol):
@@ -29,6 +34,71 @@ class _Stoppable(Protocol):
     """
     def stop(self) -> None: ...
 
+
+class PersistencyOp:
+    @staticmethod
+    def __get_persistency(instance: object) -> EventPersistency | None:
+        ep = getattr(instance, "persistency", None)
+        if ep is None:
+            logger.debug("No persistency configured, nothing to export")
+        return ep
+
+    @staticmethod
+    def __apply(
+        instance: object,
+        op: Callable[[EventPersistency, Any, dict[str, Any] | None], bytes | None],
+        path: Any = None,
+        storage_options: dict[str, Any] | None = None,
+    ) -> bytes | None:
+
+        if (ep := PersistencyOp.__get_persistency(instance)) is None:
+            return None
+
+        saver = getattr(instance, "saver", None)
+        if saver is not None:
+            with saver.locked():
+                return op(ep, path, storage_options)
+        return op(ep, path, storage_options)
+
+    @staticmethod
+    def save(
+        instance: object,
+        path: str | None = None,
+        storage_options: dict[str, Any] | None = None,
+    ) -> bytes | None:
+        """Save this component's EventPersistency state.
+
+        When path is None, returns the state as bytes (zip archive).
+        When path is given, writes to that fsspec URI and returns None.
+        Returns None if no persistency is configured. Thread-safe when a
+        PersistencySaver is running: acquires the saver lock before saving
+        (guards against the background save timer and concurrent ingest).
+        """
+
+        return PersistencyOp.__apply(
+            instance=instance, path=path, storage_options=storage_options, op=persistency.save
+        )
+
+    @staticmethod
+    def load(
+        instance: object,
+        path: str | bytes,
+        storage_options: dict[str, Any] | None = None,
+    ) -> None:
+        """Restore this component's EventPersistency state.
+
+        path may be an fsspec URI string or bytes returned by
+        export_state(). No-op if no persistency is configured. Thread-safe
+        when a PersistencySaver is running: acquires the saver lock before
+        loading (guards against the background save timer).
+        """
+
+        PersistencyOp.__apply(
+            instance=instance, path=path, storage_options=storage_options, op=persistency.load
+        )
+
+
+# Train operations ##################################################################
 
 class TrainBuffer:
     def __init__(self) -> None:
@@ -49,6 +119,8 @@ class TrainBuffer:
     def __iter__(self) -> "TrainBuffer":
         return self
 
+
+# Core component skeleton structure ################################################
 
 class CoreConfig(BasicConfig):
     start_id: int = 10
@@ -106,6 +178,8 @@ class Component:
             self.saver.stop()
 
 
+# Core component ################################################
+
 class CoreComponent(Component):
     """Base class for all components in the system."""
     def __init__(
@@ -129,62 +203,27 @@ class CoreComponent(Component):
         self.buffer_train = TrainBuffer()
 
     def export_state(
-        self,
-        path: str | None = None,
-        storage_options: dict[str, Any] | None = None,
+        self, path: str | None = None, storage_options: dict[str, Any] | None = None,
     ) -> bytes | None:
-        """Save this component's EventPersistency state.
-
-        When path is None, returns the state as bytes (zip archive).
-        When path is given, writes to that fsspec URI and returns None.
-        Returns None if no persistency is configured. Thread-safe when a
-        PersistencySaver is running: acquires the saver lock before saving
-        (guards against the background save timer and concurrent ingest).
-        """
-        # ponytail: local import keeps common.core free of a persistency
-        # package import at module load (see _Stoppable).
-        from detectmatelibrary.utils import persistency
-
-        ep = getattr(self, "persistency", None)
-        if ep is None:
-            logger.debug(f"{self.name}: no persistency configured, nothing to export")
-            return None
-        saver = getattr(self, "saver", None)
-        if saver is not None:
-            with saver.locked():
-                return persistency.save(ep, path, storage_options)
-        return persistency.save(ep, path, storage_options)
+        return PersistencyOp.save(
+            instance=self, path=path, storage_options=storage_options
+        )
 
     def import_state(
-        self,
-        path: str | bytes,
-        storage_options: dict[str, Any] | None = None,
+        self, path: str | bytes, storage_options: dict[str, Any] | None = None
     ) -> None:
-        """Restore this component's EventPersistency state.
-
-        path may be an fsspec URI string or bytes returned by
-        export_state(). No-op if no persistency is configured. Thread-safe
-        when a PersistencySaver is running: acquires the saver lock before
-        loading (guards against the background save timer).
-        """
-        from detectmatelibrary.utils import persistency
-
-        ep = getattr(self, "persistency", None)
-        if ep is None:
-            logger.debug(f"{self.name}: no persistency configured, nothing to import")
-            return
-        saver = getattr(self, "saver", None)
-        if saver is not None:
-            with saver.locked():
-                persistency.load(ep, path, storage_options)
-        else:
-            persistency.load(ep, path, storage_options)
+        return PersistencyOp.load(
+            instance=self, path=path, storage_options=storage_options
+        )
 
     def update_state(self, state: StatesL) -> None:
         self.fitlogic.update_state(state)
 
     def get_state(self) -> str:
         return self.fitlogic.get_last_state()
+
+    def get_window_size(self) -> int:
+        return self.data_buffer.get_window_size()
 
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
         is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)
