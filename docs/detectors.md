@@ -280,14 +280,19 @@ Time-aware segmentation is best-effort and never fails a run:
   **single** warning (once per detector, so a bad config cannot flood the log) and
   falls back to count-based segmentation.
 * If timestamps stop lining up with the recorded observations, or the observed time
-  span is zero, or the equal-duration cut would leave a segment with no observations
-  in it, the classifier silently falls back to count-based segmentation for that
-  variable.
+  span is zero, or they arrive out of order, the classifier silently falls back to
+  count-based segmentation for that variable.
 * Under `both`, any of the fallbacks above make the time pass reuse the count boundaries,
   so the mode degrades to plain `count` rather than to an unconditional pass.
 
 In every fallback case classification still runs and produces a result — only the
 segmentation rule changes back to the default.
+
+A segment with no observations in it is *not* a fallback: it scores a mean of 0.0,
+because nothing observed means nothing changed. Equal-duration cuts of a bursty
+variable leave such segments routinely, so `time` on its own is lenient towards a
+burst of churn followed by silence. Use `both` when that leniency matters — the
+count pass keeps every segment populated.
 
 
 ### Saving state (persist)

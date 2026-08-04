@@ -24,16 +24,16 @@ def make_classifier() -> StabilityClassifier:
 # tail is a burst compressed into ~0.04s at the end.
 #
 # The three change stamps are spaced so that each equal-duration quarter of the
-# window holds at least one occurrence (boundaries [0, 1, 2, 3, 40]). An empty
-# quarter would trip the empty-segment fallback in _segment_boundaries and drop
-# the fixture back to count mode -- see
-# TestClassifierTimeBoundaries.test_empty_time_segment_falls_back_to_count_mode.
+# window holds exactly one occurrence (boundaries [0, 1, 2, 3, 40]), which is
+# what puts a lone mean of 1.0 into a quarter whose threshold is 0.3.
 DIVERGENT_SERIES = [True, True, True] + [False] * 37
 DIVERGENT_TIMES = [0.0, 30.0, 60.0] + [90.0 + 0.001 * i for i in range(37)]
 
 # Burst fixture: 20 fresh values, each immediately repeated once, inside 40 ms,
 # then a single further repeat an hour later. Equal-duration quarters put all 40
-# early occurrences in quarter 0 and leave quarters 1 and 2 with nothing in them.
+# early occurrences in quarter 0 and leave quarters 1 and 2 with nothing in them,
+# which scores them 0.0 -- so time mode calls this churning variable STABLE and
+# only count mode (or `both`) catches it.
 BURSTY_VALUES = [f"v{i // 2}" for i in range(40)] + ["v19"]
 BURSTY_SERIES = [True, False] * 20 + [False]
 BURSTY_TIMES = [0.001 * i for i in range(40)] + [3600.0]
@@ -116,31 +116,26 @@ class TestClassifierTimeBoundaries:
         assert clf_time.is_stable(RLEList(series), timestamps=ts) == expected
         assert clf_time.get_last_segment_means() == clf_count.get_last_segment_means()
 
-    def test_empty_time_segment_falls_back_to_count_mode(self):
-        """A segment with no occurrences has a nan mean, and `not nan >=
-        thresh` is True -- an unconditional pass.
+    def test_empty_time_segment_scores_zero(self):
+        """An empty segment means nothing was observed in that window, so its
+        mean is 0.0 -- the boundaries are kept, not discarded.
 
-        Raw equal-duration cuts of BURSTY_TIMES give boundaries [0, 40,
-        40, 40, 41] and means [0.5, nan, nan, 0.0]: two free passes plus
-        segment 0 (whose 1.1 threshold is unreachable by a mean of
-        booleans), which is enough to call this churning variable
-        stable. Equal-count cuts keep every segment populated, so time
-        mode must defer to them here.
+        Equal-duration cuts of BURSTY_TIMES give boundaries [0, 40, 40,
+        40, 41] and means [0.5, 0.0, 0.0, 0.0], which passes: time mode
+        alone is lenient on a burst followed by silence. Count mode
+        still sees the churn, so `both` catches it.
         """
         clf_count = make_classifier()
-        expected = clf_count.is_stable(RLEList(BURSTY_SERIES))
-        assert expected is False  # count mode sees the churn
+        assert clf_count.is_stable(RLEList(BURSTY_SERIES)) is False
 
         clf_time = make_classifier()
-        assert clf_time.is_stable(RLEList(BURSTY_SERIES), timestamps=BURSTY_TIMES) is False
-        assert clf_time.get_last_segment_means() == clf_count.get_last_segment_means()
+        assert clf_time.is_stable(RLEList(BURSTY_SERIES), timestamps=BURSTY_TIMES) is True
+        assert clf_time.get_last_segment_means() == [0.5, 0.0, 0.0, 0.0]
 
-    def test_empty_time_segment_fallback_on_plain_list_path(self):
-        clf_count = make_classifier()
-        expected = clf_count.is_stable(list(BURSTY_SERIES))
+    def test_empty_time_segment_scores_zero_on_plain_list_path(self):
         clf_time = make_classifier()
-        assert clf_time.is_stable(list(BURSTY_SERIES), timestamps=BURSTY_TIMES) == expected
-        assert clf_time.get_last_segment_means() == clf_count.get_last_segment_means()
+        assert clf_time.is_stable(list(BURSTY_SERIES), timestamps=BURSTY_TIMES) is True
+        assert clf_time.get_last_segment_means() == [0.5, 0.0, 0.0, 0.0]
 
     def test_out_of_order_timestamps_fall_back_to_count_mode(self):
         """np.searchsorted requires sorted input.
@@ -272,20 +267,20 @@ class TestSingleStabilityTrackerSegmentation:
         assert restored.detector_config is None
         assert restored.unique_set == {"hello"}
 
-    def test_bursty_series_is_unstable_in_both_modes(self):
-        """Time mode must not turn a churning variable STABLE.
-
-        Empty equal-duration segments would pass unconditionally (means
-        [0.5, nan, nan, 0.0]) and hand this variable to auto-config
-        variable selection as a monitoring candidate.
-        """
-        count_mode = SingleStabilityTracker()
-        time_mode = SingleStabilityTracker(segmentation="time")
+    def test_bursty_series_needs_the_count_pass(self):
+        """A burst followed by silence is time-STABLE (empty quarters score
+        0.0) but count-UNSTABLE, so only `both` refuses to hand it to auto-
+        config variable selection as a monitoring candidate."""
+        trackers = {
+            mode: SingleStabilityTracker(segmentation=mode)
+            for mode in ("count", "time", "both")
+        }
         for value, ts in zip(BURSTY_VALUES, BURSTY_TIMES):
-            count_mode.add_value(value)
-            time_mode.add_value(value, timestamp=ts)
-        assert count_mode.classify().type == "UNSTABLE"
-        assert time_mode.classify().type == "UNSTABLE"
+            for tracker in trackers.values():
+                tracker.add_value(value, timestamp=ts)
+        assert trackers["count"].classify().type == "UNSTABLE"
+        assert trackers["time"].classify().type == "STABLE"
+        assert trackers["both"].classify().type == "UNSTABLE"
 
 
 class TestSegmentationPlumbing:

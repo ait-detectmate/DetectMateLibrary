@@ -25,8 +25,10 @@ class StabilityClassifier:
         non-decreasing, non-zero span), boundaries are equal-DURATION
         cuts of the observed time span, mapped back to indices. Falls
         back to equal-count on missing / mismatched / non-finite / out-
-        of-order timestamps, on zero span, and when the duration cut
-        would leave a segment empty.
+        of-order timestamps and on zero span. A duration cut that leaves
+        a segment empty is kept as-is: nothing observed in that window
+        means no changes in it, which ``is_stable`` scores as a mean of
+        0.0.
         """
         segment_size = total_len / self.n_segments
         count_boundaries = [int(i * segment_size) for i in range(self.n_segments + 1)]
@@ -56,17 +58,7 @@ class StabilityClassifier:
             boundaries = [int(np.searchsorted(timestamps, t, side="left")) for t in cuts]
             boundaries[0] = 0
             boundaries[-1] = total_len
-            # An empty segment gets a nan mean, and `not nan >= thresh` is True --
-            # a free pass. Under equal-duration cuts a bursty series can leave
-            # several segments empty and be called STABLE while churning; a
-            # 1-sample segment's quantized 0/1 mean can misfire the other way.
-            # Equal-count segmentation keeps every segment populated, so fall
-            # back to it whenever the duration cut would not.
-            # ponytail: this drops such series back to count mode wholesale; a
-            # future upgrade could redistribute or merge the empty segments and
-            # keep a (coarser) time-aware verdict.
-            if all(boundaries[i + 1] > boundaries[i] for i in range(self.n_segments)):
-                return boundaries
+            return boundaries
         return count_boundaries
 
     def is_stable(
@@ -81,6 +73,11 @@ class StabilityClassifier:
         segments are equal-duration cuts of the time span instead of
         equal-count cuts of the series. See ``_segment_boundaries`` for
         the conditions under which time mode falls back to count mode.
+
+        A segment with no observations in it scores a mean of 0.0 -- no
+        occurrences means no changes. Equal-duration cuts of a bursty
+        series leave such segments routinely; pair ``time`` with
+        ``count`` (segmentation ``both``) if that leniency matters.
         """
         total_len = len(change_series)
         if total_len == 0:
@@ -115,13 +112,13 @@ class StabilityClassifier:
                 position = run_end
 
             self.segment_means = [
-                segment_sums[i] / segment_counts[i] if segment_counts[i] > 0 else np.nan
+                segment_sums[i] / segment_counts[i] if segment_counts[i] > 0 else 0.0
                 for i in range(self.n_segments)
             ]
         else:
             self.segment_means = [
                 float(np.mean(change_series[segment_boundaries[i]:segment_boundaries[i + 1]]))
-                if segment_boundaries[i + 1] > segment_boundaries[i] else np.nan
+                if segment_boundaries[i + 1] > segment_boundaries[i] else 0.0
                 for i in range(self.n_segments)
             ]
         return all([not q >= thresh for q, thresh in zip(self.segment_means, self.segment_threshs)])
