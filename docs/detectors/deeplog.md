@@ -8,7 +8,7 @@ The Deeplog Detector is inspired from [Deeplog paper](https://dl.acm.org/doi/10.
 | **Output** | [DetectorSchema](../schemas.md) | Combined alert / finding |
 
 ## Description
-Deep learning method that look at the event ID sequence
+Deep learning method that looks at the event ID sequence
 
 ## Configuration
 
