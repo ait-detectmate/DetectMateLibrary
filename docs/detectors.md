@@ -104,8 +104,8 @@ detectors:
   NewValueDetector:
     method_type: new_value_detector
     auto_config: False
-    data_use_configure: None  # Data use for configuration
-    data_use_training: 199  # Data use for training
+    data_use_configure: None  # Data used for configuration
+    data_use_training: 199  # Data used for training
     params: {}  # global parameters
     events:  # event-specific configuration
       1:  # event_id
