@@ -34,7 +34,7 @@ cfg = {
             "method_type": "ecvc_detector_detector",
             "window_size": 10,
             "validation_per": 0.2,
-            "threshold_method": "mean"  # mean, mode, default (default = threshold 0)
+            "threshold_method": "mean"  # mean, default (default = threshold 0)
         }
     }
 }

@@ -59,7 +59,6 @@ class TestECVCOP:
 
         assert 0.0 == ECVCOp.threshold_cal(y, matrix=matrix, method="default")
         assert 0.575 == ECVCOp.threshold_cal(y, matrix=matrix, method="mean")
-        assert 0.4 == ECVCOp.threshold_cal(y, matrix=matrix, method="mode")
 
 
 class TestECVC:

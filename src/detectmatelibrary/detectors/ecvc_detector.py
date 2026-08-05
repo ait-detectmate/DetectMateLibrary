@@ -4,7 +4,6 @@ from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary import schemas
 
-from scipy.stats import mode
 from math import ceil
 import numpy as np
 
@@ -61,8 +60,6 @@ class ECVCOp:
     def threshold_cal(y_s: np.ndarray, matrix: np.ndarray, method: str) -> float:
         if method == "mean":
             return float(np.mean([ECVCOp.calculate_score(y, matrix=matrix) for y in y_s]))
-        elif method == "mode":
-            return float(mode([ECVCOp.calculate_score(y, matrix=matrix) for y in y_s]).mode)
         elif method == "default":
             return 0.0
 
