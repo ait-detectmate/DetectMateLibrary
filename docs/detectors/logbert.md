@@ -8,7 +8,7 @@ The LogBert Detector is inspired from [LogBert paper](https://ieeexplore.ieee.or
 | **Output** | [DetectorSchema](../schemas.md) | Combined alert / finding |
 
 ## Description
-Deep learning method that look at the event ID sequence
+Deep learning method that looks at the event ID sequence
 
 ## Configuration
 
