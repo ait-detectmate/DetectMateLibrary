@@ -1,7 +1,10 @@
 
 from detectmatelibrary.detectors.ecvc_detector import ECVCOp, ECVCDetectorConfig, ECVCDetector
-
+from detectmatelibrary.parsers.template_matcher import MatcherParser
+from detectmatelibrary.helper.from_to import From
 from detectmatelibrary import schemas
+
+from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
 
 import numpy as np
 
@@ -100,3 +103,48 @@ class TestECVC:
         for in_ in [schemas.ParserSchema({"EventID": i}) for i in [4, 4, 4, 4, 4, 4, 1, 0, 1, 1]]:
             alert = ecvc.process(in_)
         assert alert is not None
+
+
+PIPELINE_CONFIG = {
+    "parsers": {
+        "MatcherParser": {
+            "method_type": "matcher_parser",
+            "auto_config": False,
+            "log_format": "type=<Type> msg=audit(<Time>): <Content>",
+            "time_format": None,
+            "params": {
+                "remove_spaces": True,
+                "remove_punctuation": True,
+                "lowercase": True,
+                "path_templates": AUDIT_TEMPLATES,
+            },
+        }
+    },
+    "detectors": {
+        "ECVCDetector": {
+            "method_type": "ecvc_detector_detector",
+            "window_size": 10,
+            "seed": 0,
+            "validation_per": 0.,
+            "threshold_method": "mean",
+            "data_use_training": TRAIN_UNTIL,
+        }
+    }
+}
+
+
+class TestECVCDetectorEndToEnd:
+    """Regression test: full configure/train/detect pipeline on audit.log."""
+
+    def test_audit_log_anomalies(self):
+        parser = MatcherParser(config=PIPELINE_CONFIG)
+        detector = ECVCDetector(config=PIPELINE_CONFIG)
+
+        detected_ids = set()
+        for parsed_log in From.log(parser, in_path=AUDIT_LOG, do_process=True):
+            alert = detector.process(parsed_log)
+            if detector.get_state() == "Default" and alert is not None:
+                detected_ids.update(set([log_id for log_id in alert["logIDs"]]))
+
+        for log_id in {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}:
+            assert log_id in detected_ids
