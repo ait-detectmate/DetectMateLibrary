@@ -1,10 +1,12 @@
 from detectmatelibrary.common._config._compile import generate_detector_config
-from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector, get_configured_variables, \
-    get_global_variables
+from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector
 from detectmatelibrary.utils import persistency
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
+from detectmatelibrary.utils.persistency.component_interfaces import (
+    get_configured_variables, get_global_variables
+)
 
 
 class NewEventDetectorConfig(CoreDetectorConfig):

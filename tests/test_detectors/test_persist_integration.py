@@ -9,7 +9,7 @@ from detectmatelibrary.detectors.new_value_combo_detector import (
 )
 from detectmatelibrary.detectors.new_event_detector import NewEventDetector, NewEventDetectorConfig
 from detectmatelibrary.detectors.rule_detector import RuleDetector
-from detectmatelibrary.common.detector import PersistConfig
+from detectmatelibrary.utils.persistency.component_interfaces import PersistConfig
 from detectmatelibrary.utils.persistency.persistency_saver import PersistencySaver
 
 

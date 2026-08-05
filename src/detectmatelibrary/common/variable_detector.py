@@ -3,9 +3,9 @@ from detectmatelibrary.common._config._compile import generate_detector_config
 from detectmatelibrary.common.detector import (
     CoreDetectorConfig,
     CoreDetector,
-    get_configured_variables,
-    get_global_variables,
-    validate_config_coverage,
+)
+from detectmatelibrary.utils.persistency.component_interfaces import (
+    get_configured_variables, get_global_variables, validate_config_coverage
 )
 from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
     EventStabilityTracker,
