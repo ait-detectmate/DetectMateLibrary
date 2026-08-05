@@ -118,7 +118,7 @@ class CoreComponent(Component):
         self.input_schema, self.output_schema = input_schema, output_schema
 
         self.data_buffer = DataBuffer(args_buffer)
-        self.id_generator = SimpleIDGenerator(self.config.start_id)
+        self.id_generator = SimpleIDGenerator(self.config.start_id, prefix=self.name)
         self.fitlogic = FitLogic(
             data_use_configure=self.config.data_use_configure,
             data_use_training=self.config.data_use_training,
