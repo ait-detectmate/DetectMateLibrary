@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/detectors/charset/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/detectors/ecvc_detector/" />
       <link rel="shortcut icon" href="../../img/favicon.ico" />
-    <title>CharSet - DetectMate Library</title>
+    <title>ECVC Detector - DetectMate Library</title>
     <link rel="stylesheet" href="../../css/theme.css" />
     <link rel="stylesheet" href="../../css/theme_extra.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
@@ -13,9 +13,9 @@
     
       <script>
         // Current page data
-        var mkdocs_page_name = "CharSet";
-        var mkdocs_page_input_path = "detectors/charset.md";
-        var mkdocs_page_url = "/DetectMateLibrary/development/detectors/charset/";
+        var mkdocs_page_name = "ECVC Detector";
+        var mkdocs_page_input_path = "detectors/ecvc_detector.md";
+        var mkdocs_page_url = "/DetectMateLibrary/development/detectors/ecvc_detector/";
       </script>
     
     <!--[if lt IE 9]>
@@ -93,7 +93,13 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../bigram_frequency/">BiGram Frequency</a>
                   </li>
-                  <li class="toctree-l1 current"><a class="reference internal current" href="#">CharSet</a>
+                  <li class="toctree-l1"><a class="reference internal" href="../charset/">CharSet</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../value_range/">Value Range</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../scvs_detector/">SCVS Detector</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">ECVC Detector</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#description">Description</a>
     </li>
@@ -102,12 +108,6 @@
     <li class="toctree-l2"><a class="reference internal" href="#example-usage">Example usage</a>
     </li>
     </ul>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../value_range/">Value Range</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../scvs_detector/">SCVS Detector</a>
-                  </li>
-                  <li class="toctree-l1"><a class="reference internal" href="../ecvc_detector/">ECVC Detector</a>
                   </li>
               </ul>
               <p class="caption"><span class="caption-text">Alert Aggregation Methods</span></p>
@@ -156,7 +156,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
           <li class="breadcrumb-item">Detectors Methods</li>
-      <li class="breadcrumb-item active">CharSet</li>
+      <li class="breadcrumb-item active">ECVC Detector</li>
     <li class="wy-breadcrumbs-aside">
     </li>
   </ul>
@@ -165,8 +165,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
             <div class="section" itemprop="articleBody">
               
-                <h1 id="new-value-detector">New Value Detector</h1>
-<p>The Charset Detector raises alerts when previously unseen characters appear in configured fields. It is useful to detect novelty, configuration drift, or the appearance of new actors in the environment.</p>
+                <h1 id="ecvc-detector">ECVC Detector</h1>
+<p>The Event Count Vector Clustering Detector (ECVC) detects anomalies by calculating the distance between the count vectors from training and new ones. The method can be found in <a href="https://dl.acm.org/doi/10.1145/3660768">this publication</a>.</p>
 <table>
 <thead>
 <tr>
@@ -189,33 +189,30 @@
 </tbody>
 </table>
 <h2 id="description">Description</h2>
-<p>This detector maintains a lightweight set of observed characters per monitored field and emits an alert when a character not present in the set is seen for the first time (subject to configuration).</p>
+<p>A count vector is form by counting the number of appearance of each event ID in a sequence of a specific window size.</p>
 <h2 id="configuration-example">Configuration example</h2>
 <pre><code class="language-yaml">detectors:
-    CharsetDetector:
-        method_type: charset_detector
-        auto_config: False
-        params: {}
-        events:
-            1:
-                test:
-                    params: {}
-                    variables:
-                        - pos: 0
-                          name: var1
-                          params:
-                              threshold: 0.
-                    header_variables:
-                        - pos: level
-                          params: {}
+    SCVSDetector:
+        method_type: scvs_detector
+        window_size: 10
 </code></pre>
 <h2 id="example-usage">Example usage</h2>
-<pre><code class="language-python">from detectmatelibrary.detectors.charset_detector import CharsetDetector
+<pre><code class="language-python">from detectmatelibrary.detectors.ecvc_detector import ECVCDetector
 import detectmatelibrary.schemas as schemas
 
-detector = CharsetDetector(name=&quot;CharsetTest&quot;, config=cfg)
+cfg = {
+    &quot;detectors&quot;: {
+        &quot;ECVCDetector&quot;: {
+            &quot;method_type&quot;: &quot;ecvc_detector_detector&quot;,
+            &quot;window_size&quot;: 10,
+            &quot;validation_per&quot;: 0.2,
+            &quot;threshold_method&quot;: &quot;mean&quot;  # mean, default (default = threshold 0)
+        }
+    }
+}
+detector = ECVCDetector(name=&quot;ECVCDetector&quot;, config=cfg)
 
-parsed_data = schemas.ParserSchema({
+parser_data = schemas.ParserSchema({
     &quot;parserType&quot;: &quot;test&quot;,
     &quot;EventID&quot;: 1,
     &quot;template&quot;: &quot;test template&quot;,
@@ -228,15 +225,15 @@ parsed_data = schemas.ParserSchema({
 })
 
 
-alert = detector.process(parsed_data)
+alert = detector.process(parser_data)
 </code></pre>
 <p>Go back <a href="../../">Index</a></p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../bigram_frequency/" class="btn btn-neutral float-left" title="BiGram Frequency"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-        <a href="../value_range/" class="btn btn-neutral float-right" title="Value Range">Next <span class="icon icon-circle-arrow-right"></span></a>
+        <a href="../scvs_detector/" class="btn btn-neutral float-left" title="SCVS Detector"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../alert_aggregators/basic_concatenation/" class="btn btn-neutral float-right" title="Basic Concat">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
   <hr/>
@@ -259,10 +256,10 @@ alert = detector.process(parsed_data)
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../bigram_frequency/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../scvs_detector/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
-      <span><a href="../value_range/" style="color: #fcfcfc">Next &raquo;</a></span>
+      <span><a href="../../alert_aggregators/basic_concatenation/" style="color: #fcfcfc">Next &raquo;</a></span>
     
   </span>
 </div>

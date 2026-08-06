@@ -129,6 +129,10 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="value_range/">Value Range</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="scvs_detector/">SCVS Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="ecvc_detector/">ECVC Detector</a>
+                  </li>
               </ul>
               <p class="caption"><span class="caption-text">Alert Aggregation Methods</span></p>
               <ul>
@@ -281,6 +285,8 @@ class SimpleThresholdDetector(CoreDetector):
 <li><a href="rule_based/">Rule Based</a>: Detect anomalies based in a set of rules.</li>
 <li><a href="bigram_frequency/">Bigram Frequency</a>: Detect bigram-frequency-based anomalies in the logs.</li>
 <li><a href="charset/">Charset</a>: Detect new characters in the variables in the logs.</li>
+<li><a href="scvs_detector/">SCVS Detector</a>: Detect anomalies by looking at different sequence count vectors.</li>
+<li><a href="ecvc_detector/">ECVC Detector</a>: Detect anomalies by calculating the distance between different sequence count vectors.</li>
 </ul>
 <h2 id="configuration">Configuration</h2>
 <p>When <code>auto_config</code> is set to <code>False</code>, the detector expects an explicit <code>events</code> or <code>global</code> block that specifies exactly which variables to monitor. <code>events</code>refers to event-specific variables while <code>global</code> refers to variables, that are not bound to events (<code>header_variables</code>can but don't have to be event bound):</p>
