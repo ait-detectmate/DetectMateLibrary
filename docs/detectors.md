@@ -94,6 +94,8 @@ List of detectors:
 * [Charset](detectors/charset.md): Detect new characters in the variables in the logs.
 * [Deeplog](detectors/deeplog.md): Detect anomalies of a sequence of evend IDs with a LSTM.
 * [LogBert](detectors/logbert.md): Detect anomalies of a sequence of evend IDs with a Transformer.
+* [SCVS Detector](detectors/scvs_detector.md): Detect anomalies by looking at different sequence count vectors.
+* [ECVC Detector](detectors/ecvc_detector.md): Detect anomalies by calculating the distance between different sequence count vectors.
 
 ## Configuration
 
