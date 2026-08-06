@@ -1,6 +1,6 @@
 # SCVS Detector
 
-The Sequence Count Vector Set Detector (SCVS) detect anomalies by finding count vector that were not present in the training dataset.
+The Sequence Count Vector Set Detector (SCVS) detects anomalies by finding count vectors that were not present in the training dataset.
 
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
@@ -9,7 +9,7 @@ The Sequence Count Vector Set Detector (SCVS) detect anomalies by finding count 
 
 ## Description
 
-A count vector is form by counting the number of appearance of each event ID in a sequence of a specific window size.
+A count vector is formed by counting the number of appearance of each event ID in a sequence of a specific window size.
 
 
 ## Configuration example
