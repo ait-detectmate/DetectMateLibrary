@@ -94,7 +94,7 @@ class TestCoreParser:
             "parserID": "TestParser",
             "EventID": 1,
             "template": "hello",
-            "parsedLogID": "10",
+            "parsedLogID": "TestParser_10",
             "logID": "1",
             "log": "This is a log.",
             "receivedTimestamp": 0,
@@ -115,10 +115,10 @@ class TestCoreParser:
         })
 
         result = parser.process(data)
-        assert result.parsedLogID == "10"
+        assert result.parsedLogID == "TestParser_10"
 
         result = parser.process(data)
-        assert result.parsedLogID == "11"
+        assert result.parsedLogID == "TestParser_11"
 
     def test_none_parser(self) -> None:
         parser = NoneMockupParser(name="TestParser", config=MockupConfig())

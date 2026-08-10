@@ -1,7 +1,7 @@
 from detectmatelibrary.common._config import generate_detector_config
 from detectmatelibrary.common._config._formats import EventsConfig
 from detectmatelibrary.common.variable_detector import VariableDetector, VariableDetectorConfig
-from detectmatelibrary.common.detector import get_configured_variables
+from detectmatelibrary.common._config._compile import get_configured_variables
 
 from detectmatelibrary.utils import persistency
 from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (

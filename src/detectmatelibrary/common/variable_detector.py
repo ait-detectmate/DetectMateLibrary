@@ -1,11 +1,11 @@
-from detectmatelibrary.common._config._formats import EventsConfig
-from detectmatelibrary.common._config._compile import generate_detector_config
+from detectmatelibrary.common._config._formats import _EventInstance, EventsConfig
+from detectmatelibrary.common._config._compile import generate_detector_config, get_configured_variables
 from detectmatelibrary.common.detector import (
     CoreDetectorConfig,
     CoreDetector,
-    get_configured_variables,
-    get_global_variables,
-    validate_config_coverage,
+)
+from detectmatelibrary.utils.persistency.component_interfaces import (
+    validate_config_coverage
 )
 from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
     EventStabilityTracker,
@@ -19,6 +19,27 @@ from detectmatelibrary.tools.logging import logger
 
 from typing import Any, Dict, Optional, cast
 from typing_extensions import override
+
+
+def get_global_variables(
+        input_: ParserSchema,
+        global_instances: Dict[str, _EventInstance],
+) -> Dict[str, Any]:
+    """Extract header variables from event-ID-independent instances.
+
+    Args:
+        input_: Parser schema containing logFormatVariables
+        global_instances: Dict of instance_name -> _EventInstance configs
+
+    Returns:
+        Dict mapping variable names to their values from the input
+    """
+    result: Dict[str, Any] = {}
+    for instance in global_instances.values():
+        for name in instance.header_variables:
+            if name in input_["logFormatVariables"]:
+                result[name] = input_["logFormatVariables"][name]
+    return result
 
 
 class VariableDetectorConfig(CoreDetectorConfig):
