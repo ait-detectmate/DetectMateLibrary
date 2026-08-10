@@ -129,6 +129,10 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="value_range/">Value Range</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="deeplog/">Deeplog Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="logbert/">LogBert Detector</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="scvs_detector/">SCVS Detector</a>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="ecvc_detector/">ECVC Detector</a>
@@ -285,6 +289,8 @@ class SimpleThresholdDetector(CoreDetector):
 <li><a href="rule_based/">Rule Based</a>: Detect anomalies based in a set of rules.</li>
 <li><a href="bigram_frequency/">Bigram Frequency</a>: Detect bigram-frequency-based anomalies in the logs.</li>
 <li><a href="charset/">Charset</a>: Detect new characters in the variables in the logs.</li>
+<li><a href="deeplog/">Deeplog</a>: Detect anomalies of a sequence of evend IDs with a LSTM.</li>
+<li><a href="logbert/">LogBert</a>: Detect anomalies of a sequence of evend IDs with a Transformer.</li>
 <li><a href="scvs_detector/">SCVS Detector</a>: Detect anomalies by looking at different sequence count vectors.</li>
 <li><a href="ecvc_detector/">ECVC Detector</a>: Detect anomalies by calculating the distance between different sequence count vectors.</li>
 </ul>
@@ -294,6 +300,8 @@ class SimpleThresholdDetector(CoreDetector):
   NewValueDetector:
     method_type: new_value_detector
     auto_config: False
+    data_use_configure: None  # Data used for configuration
+    data_use_training: 199  # Data used for training
     params: {}  # global parameters
     events:  # event-specific configuration
       1:  # event_id
