@@ -17,6 +17,8 @@ def _encode_sequence(sequence: Sequence[int]) -> str:
 class NewSequenceDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_sequence_detector"
     max_sequence_length: int = 3
+    sequence_length_candidates: list[int] = [2, 3, 4, 5, 6, 8, 10]
+    # TODO: min and max sequence length would probably be better, min would be 2 and max 10 for example
 
 
 class NewSequenceDetector(CoreDetector):
@@ -34,6 +36,9 @@ class NewSequenceDetector(CoreDetector):
         self.persistency = persistency.EventPersistency(
             event_data_class=persistency.EventStabilityTracker,
         )
+        self._configure_windows: dict[int, deque[int]] = {
+            w: deque(maxlen=w) for w in self.config.sequence_length_candidates
+        }
         self.auto_conf_persistency = persistency.EventPersistency(
             event_data_class=persistency.EventStabilityTracker
         )
@@ -65,18 +70,30 @@ class NewSequenceDetector(CoreDetector):
         return False
 
     def configure(self, input_: ParserSchema) -> None:  # type: ignore
-        self.auto_conf_persistency.ingest_event(
-            event_id=input_["EventID"],
-            event_template=input_["template"]
-        )
+        for w in self.config.sequence_length_candidates:
+            self._configure_windows[w].append(input_["EventID"])
+            if len(self._configure_windows[w]) == w:
+                self.auto_conf_persistency.ingest_event(
+                    event_id=w,
+                    event_template=input_["template"],
+                    named_variables={"seq": tuple(self._configure_windows[w])},
+                )
 
     def set_configuration(self) -> None:
+        stable = []
+        for w in self.config.sequence_length_candidates:
+            tracker = self.auto_conf_persistency.get_events_data()[w].get_data()["seq"]
+            if tracker.classify().type in ("STABLE", "STATIC"):
+                stable.append(w)
+
+        chosen = max(stable) if stable else min(self.config.sequence_length_candidates)
+
         old_persist = self.config.persist
         config_dict = generate_detector_config(
             variable_selection={},
             detector_name=self.name,
             method_type=self.config.method_type,
-            max_sequence_length=self.config.max_sequence_length,
+            max_sequence_length=chosen,
         )
         self.config = NewSequenceDetectorConfig.from_dict(config_dict, self.name)
         self.config.persist = old_persist
