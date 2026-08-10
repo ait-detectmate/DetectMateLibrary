@@ -30,7 +30,7 @@ jobs:
         run: uv run --dev prek run -a
 
       - name: Test with pytest
-        run: uv run --dev pytest -s
+        run: uv run pytest -s --run-ignored
 
       # integration tests for DetectMateService
       - name: Checkout DetectMateService

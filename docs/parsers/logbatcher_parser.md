@@ -63,54 +63,22 @@ parsers:
 
 ## Usage examples
 
-Basic usage — parse a raw log and read the inferred template:
+Basic usage — set up the parser (parsing requires a valid API key):
 
 ```python
-from detectmatelibrary.parsers.logbatcher import LogBatcherParser, LogBatcherParserConfig
-import detectmatelibrary.schemas as schemas
-
-config = LogBatcherParserConfig(
-    api_key="<YOUR_API_KEY>",
-    model="gpt-4o-mini",
-    batch_size=10,
-)
-
-parser = LogBatcherParser(name="LogBatcherParser", config=config)
-
-input_log = schemas.LogSchema({
-    "logID": "1",
-    "log": "User admin logged in from 192.168.1.10",
-})
-
-output = schemas.ParserSchema()
-parser.parse(input_log, output)
-
-print(output["template"])    # e.g. "User <*> logged in from <*>"
-print(output["variables"])   # e.g. ["admin", "192.168.1.10"]
-print(output["EventID"])     # integer index assigned by the cache
+--8<-- "docs/examples/parsers/logbatcher_parser.py:basic"
 ```
 
 Using a local Ollama instance:
 
 ```python
-config = LogBatcherParserConfig(
-    api_key="ollama",
-    model="llama3",
-    base_url="http://localhost:11434/v1",
-    batch_size=10,
-)
-parser = LogBatcherParser(name="LogBatcherParser", config=config)
+--8<-- "docs/examples/parsers/logbatcher_parser.py:ollama"
 ```
 
 Passing config as a dict:
 
 ```python
-parser = LogBatcherParser(config={
-    "method_type": "logbatcher_parser",
-    "api_key": "<YOUR_API_KEY>",
-    "model": "gpt-4o-mini",
-    "batch_size": 10,
-})
+--8<-- "docs/examples/parsers/logbatcher_parser.py:config"
 ```
 
 Go back to [Index](../index.md)

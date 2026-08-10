@@ -8,16 +8,17 @@ This module tests the NewValueDetector implementation including:
 - Input/output schema validation
 """
 
-from detectmatelibrary.common._core_op._fit_logic import TrainState
-from detectmatelibrary.detectors.new_value_detector import NewValueDetector, NewValueDetectorConfig, \
-    BufferMode
-from detectmatelibrary.common._core_op._fit_logic import ConfigState
+from detectmatelibrary.detectors.new_value_detector import NewValueDetector, NewValueDetectorConfig
+from detectmatelibrary.utils.data_buffer import BufferMode
+from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
+
+import pytest
 
 # Set time test mode for consistent timestamps
 time_test_mode()
@@ -216,6 +217,7 @@ _PARSER_CONFIG = {
 class TestNewValueDetectorEndToEnd:
     """Regression test: full configure/train/detect pipeline on audit.log."""
 
+    @pytest.mark.ignored
     def test_audit_log_anomalies(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = NewValueDetector()
@@ -242,6 +244,7 @@ class TestNewValueDetectorAutoConfig:
     """Test that process() drives configure/set_configuration/train/detect
     automatically."""
 
+    @pytest.mark.ignored
     def test_audit_log_anomalies_via_process(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = NewValueDetector()
@@ -249,20 +252,20 @@ class TestNewValueDetectorAutoConfig:
         logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
 
         # Phase 1: configure — keep configuring for logs[:TRAIN_UNTIL]
-        detector.fitlogic.configure_state = ConfigState.KEEP_CONFIGURE
+        detector.fitlogic.config_state.current = EnumState.KEEP
         for log in logs[:TRAIN_UNTIL]:
             detector.process(log)
 
         # Transition: stop configure so next process() call triggers set_configuration()
-        detector.fitlogic.configure_state = ConfigState.STOP_CONFIGURE
+        detector.fitlogic.config_state.current = EnumState.STOP
 
         # Phase 2: train — keep training for logs[:TRAIN_UNTIL]
-        detector.fitlogic.train_state = TrainState.KEEP_TRAINING
+        detector.fitlogic.train_state.current = EnumState.KEEP
         for log in logs[:TRAIN_UNTIL]:
             detector.process(log)
 
         # Phase 3: detect — stop training so process() only calls detect()
-        detector.fitlogic.train_state = TrainState.STOP_TRAINING
+        detector.fitlogic.train_state.current = EnumState.STOP
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
             if detector.process(log) is not None:

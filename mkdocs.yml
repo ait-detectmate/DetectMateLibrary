@@ -31,6 +31,10 @@ nav:
     - BiGram Frequency: detectors/bigram_frequency.md
     - CharSet: detectors/charset.md
     - Value Range: detectors/value_range.md
+    - Deeplog Detector: detectors/deeplog.md
+    - LogBert Detector: detectors/logbert.md
+    - SCVS Detector: detectors/scvs_detector.md
+    - ECVC Detector: detectors/ecvc_detector.md
   - Alert Aggregation Methods:
     - Basic Concat: alert_aggregators/basic_concatenation.md
   - Auxiliar:
@@ -44,3 +48,9 @@ nav:
     - Release Process: release.md
   - Other:
     - Log Formats: other/log_formats.md
+
+markdown_extensions:
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
+  - pymdownx.superfences

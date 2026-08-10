@@ -106,3 +106,7 @@ class DataBuffer:
         if self.buffer:
             clear = self.mode != BufferMode.WINDOW
             return self._process_and_clear(self.buffer, clear=clear)
+
+    def get_window_size(self) -> int:
+        """Return the output size of the buffer."""
+        return 1 if self.size is None else self.size

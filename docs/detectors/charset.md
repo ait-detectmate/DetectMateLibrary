@@ -38,25 +38,7 @@ detectors:
 ## Example usage
 
 ```python
-from detectmatelibrary.detectors.charset_detector import CharsetDetector
-import detectmatelibrary.schemas as schemas
-
-detector = CharsetDetector(name="CharsetTest", config=cfg)
-
-parsed_data = schemas.ParserSchema({
-    "parserType": "test",
-    "EventID": 1,
-    "template": "test template",
-    "variables": ["var1"],
-    "logID": "1",
-    "parsedLogID": "1",
-    "parserID": "test_parser",
-    "log": "test log message",
-    "logFormatVariables": {"timestamp": "123456"}
-})
-
-
-alert = detector.process(parsed_data)
+--8<-- "docs/examples/detectors/charset.py:example"
 ```
 
 Go back [Index](../index.md)

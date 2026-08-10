@@ -2,7 +2,7 @@ from detectmatelibrary.common.alert_aggregator import (
     CoreAlertAggregatorConfig, CoreAlertAggregator
 )
 
-from detectmatelibrary.schemas import DetectorSchema, OutputSchema
+from detectmatelibrary.schemas import DetectorSchema, AggregateSchema
 
 from typing import Any, Optional
 
@@ -24,6 +24,9 @@ class BasicConcatAggregation(CoreAlertAggregator):
         buffer_size: int = config.buffer_size  # type: ignore
         super().__init__(name=name, buffer_size=buffer_size, config=config)
 
-    def aggregate_alerts(self, input_: list[DetectorSchema], output_: OutputSchema) -> bool:  # type: ignore
+    def aggregate_alerts(
+        self, input_: list[DetectorSchema], output_: AggregateSchema  # type: ignore
+    ) -> bool:
+
         output_["description"] = "Basic aggregation by alert concatenation"
         return True

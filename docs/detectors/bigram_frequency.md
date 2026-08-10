@@ -19,7 +19,10 @@ detectors:
     BigramFrequencyDetector:
         method_type: bigram_frequency_detector
         auto_config: False
-        params: {}
+        params:
+            prob_thresh: 0.05        # limit for the average probability of character pairs for which anomalies are reported.
+            default_freqs: False     # initializes the probabilities with default values from https://github.com/markbaggett/freq.
+            skip_repetitions: False  # boolean that determines whether only distinct values are used for character pair counting. This counteracts the problem of imbalanced word frequencies that distort the frequency table generated in a single aminer run.
         events:
             1:
                 test:
@@ -38,25 +41,7 @@ detectors:
 ## Example usage
 
 ```python
-from detectmatelibrary.detectors.bigram_frequency_detector import BigramFrequencyDetector, BufferMode
-import detectmatelibrary.schemas as schemas
-
-detector = BigramFrequencyDetector(name="BigramFrequencyTest", config=cfg)
-
-parsed_data = schemas.ParserSchema({
-    "parserType": "test",
-    "EventID": 1,
-    "template": "test template",
-    "variables": ["var1"],
-    "logID": "1",
-    "parsedLogID": "1",
-    "parserID": "test_parser",
-    "log": "test log message",
-    "logFormatVariables": {"timestamp": "123456"}
-})
-
-
-alert = detector.process(parsed_data)
+--8<-- "docs/examples/detectors/bigram_frequency.py:example"
 ```
 
 Go back [Index](../index.md)

@@ -3,75 +3,60 @@ from typing import Literal, get_args
 from enum import Enum
 import warnings
 
+# Individual state of config or train ################################################
 
-class TrainState(Enum):
+class EnumState(Enum):
     DEFAULT = 0
-    STOP_TRAINING = 1
-    KEEP_TRAINING = 2
+    STOP = 1
+    KEEP = 2
 
     def describe(self) -> str:
         descriptions = [
-            "Follow default training behavior.",
-            "Force stop training.",
-            "Keep training regardless of default behavior."
-        ]
-
-        return descriptions[self.value]
-
-
-class ConfigState(Enum):
-    DEFAULT = 0
-    STOP_CONFIGURE = 1
-    KEEP_CONFIGURE = 2
-
-    def describe(self) -> str:
-        descriptions = [
-            "Follow default configuration behavior.",
-            "Force stop configuration.",
-            "Keep configuring regardless of default behavior."
+            "Follow default behavior.",
+            "Force stop",
+            "Keep doing it regardless of default behavior."
         ]
         return descriptions[self.value]
 
+
+class State:
+    def __init__(self, total_need_data: int | None) -> None:
+        self.total_need_data = total_need_data
+
+        self.ready_to_finish = False
+        self.finished = False
+        self.data_used = 0
+        self.current = EnumState.DEFAULT
+
+    def force_keep_doing(self) -> None:
+        self.current = EnumState.KEEP
+
+    def keep_doing(self) -> bool:
+        if self.current == EnumState.STOP:
+            return False
+        if self.current == EnumState.KEEP:
+            return True
+
+        return self.total_need_data is not None and self.total_need_data > self.data_used
+
+    def force_finish(self) -> None:
+        self.current = EnumState.STOP
+        self.finished, self.ready_to_finish = False, True
+
+    def check_if_ready_finish(self) -> None:
+        if self.data_used > 0 and not self.ready_to_finish:
+                self.ready_to_finish = True
+
+    def is_finish(self) -> bool:
+        if self.ready_to_finish and not self.finished:
+            self.finished = True
+            return True
+        return False
+
+
+# Overall state of the core component ##################################################
 
 StatesL = Literal["keep_training", "stop_training", "keep_configuring", "stop_configuring"]
-
-def update_state(
-    state: StatesL, train_state: TrainState, config_state: ConfigState
-) -> tuple[TrainState, ConfigState]:
-    if state == "keep_training":
-        train_state = TrainState.KEEP_TRAINING
-    elif state == "stop_training":
-        train_state = TrainState.STOP_TRAINING
-    elif state == "keep_configuring":
-        config_state = ConfigState.KEEP_CONFIGURE
-    elif state == "stop_configuring":
-        config_state = ConfigState.STOP_CONFIGURE
-    else:
-        warnings.warn(f"State {state} unknown, use: {get_args(StatesL)}")
-
-    return train_state, config_state
-
-
-def do_training(
-    data_use_training: int | None, index: int, train_state: TrainState
-) -> bool:
-    if train_state == TrainState.STOP_TRAINING:
-        return False
-    elif train_state == TrainState.KEEP_TRAINING:
-        return True
-
-    return data_use_training is not None and data_use_training > index
-
-
-def do_configure(
-    data_use_configure: int | None, index: int, configure_state: ConfigState
-) -> bool:
-    if configure_state == ConfigState.STOP_CONFIGURE:
-        return False
-    elif configure_state == ConfigState.KEEP_CONFIGURE:
-        return True
-
-    return data_use_configure is not None and data_use_configure > index
 
 
 class FitLogicState(Enum):
@@ -82,7 +67,7 @@ class FitLogicState(Enum):
     def describe(self) -> str:
         descriptions = [
             "Configuring",
-            "Training.",
+            "Training",
             "Default"
         ]
         return descriptions[self.value]
@@ -93,58 +78,43 @@ class FitLogic:
         self, data_use_configure: int | None, data_use_training: int | None
     ) -> None:
         
-        self.train_state = TrainState.DEFAULT
-        self.configure_state = ConfigState.DEFAULT
         self.last_state = FitLogicState.NOTHING
 
-        self.data_used_train, self.data_used_configure = 0, 0
-        self._configuration_done, self.config_finished = False, False
-        self._training_done, self.training_finished = False, False
-
-        self.data_use_configure = data_use_configure
-        self.data_use_training = data_use_training
+        self.config_state = State(data_use_configure)
+        self.train_state = State(data_use_training)
 
     def get_last_state(self) -> str:
         return self.last_state.describe()
 
     def update_state(self, state: StatesL) -> None:
-        self.train_state, self.configure_state = update_state(
-            state=state, train_state=self.train_state, config_state=self.configure_state
-        )
+        if state == "keep_training":
+            self.train_state.force_keep_doing()
+        elif state == "stop_training":
+            self.train_state.force_finish()
+        elif state == "keep_configuring":
+            self.config_state.force_keep_doing()
+        elif state == "stop_configuring":
+            self.config_state.force_finish()
+        else:
+            warnings.warn(f"State {state} unknown, use: {get_args(StatesL)}")
 
     def finish_config(self) -> bool:
-        if self._configuration_done and not self.config_finished:
-            self.config_finished = True
-            return True
-        return False
+        return self.config_state.is_finish()
 
     def finish_training(self) -> bool:
-        if self._training_done and not self.training_finished:
-            self.training_finished = True
-            return True
-        return False
+        return self.train_state.is_finish()
 
     def __check_state(self) -> FitLogicState:
-        if do_configure(
-            data_use_configure=self.data_use_configure,
-            index=self.data_used_configure,
-            configure_state=self.configure_state
-        ):
-            self.data_used_configure += 1
+        if self.config_state.keep_doing():
+            self.config_state.data_used += 1
             return FitLogicState.DO_CONFIG
         else:
-            if self.data_used_configure > 0 and not self._configuration_done:
-                self._configuration_done = True
+            self.config_state.check_if_ready_finish()
 
-            if do_training(
-                data_use_training=self.data_use_training,
-                index=self.data_used_train,
-                train_state=self.train_state
-            ):
-                self.data_used_train += 1
+            if self.train_state.keep_doing():
+                self.train_state.data_used += 1
                 return FitLogicState.DO_TRAIN
-            elif self.data_used_train > 0 and not self._training_done:
-                self._training_done = True
+            self.train_state.check_if_ready_finish()
 
         return FitLogicState.NOTHING
     
