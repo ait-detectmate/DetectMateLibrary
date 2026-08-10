@@ -187,35 +187,35 @@
 </tbody>
 </table>
 <h1 id="configuration-example">Configuration example</h1>
-<pre><code class="language-yaml">alert_aggregators:
-    BasicConcatAggregator:
-        method_type: &quot;basic_concat_aggregator&quot;
-        buffer_size: 3
-        auto_config: False
-</code></pre>
+<div class="highlight"><pre><span></span><code><span class="nt">alert_aggregators</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">BasicConcatAggregator</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;basic_concat_aggregator&quot;</span>
+<span class="w">        </span><span class="nt">buffer_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">        </span><span class="nt">auto_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span>
+</code></pre></div>
 <h2 id="example-usage">Example usage</h2>
-<pre><code class="language-python">from detectmatelibrary.alert_aggregation.basic_concat import BasicConcatAggregation
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.alert_aggregation.basic_concat</span><span class="w"> </span><span class="kn">import</span> <span class="n">BasicConcatAggregation</span>
 
-import detectmatelibrary.schemas as schemas
+<span class="kn">import</span><span class="w"> </span><span class="nn">detectmatelibrary.schemas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">schemas</span>
 
-input_ = schemas.DetectorSchema({
-    &quot;detectorID&quot;: &quot;1&quot;,
-    &quot;detectorType&quot;: &quot;dummy&quot;,
-    &quot;alertID&quot;: &quot;2&quot;,
-    &quot;detectionTimestamp&quot;: 0,
-    &quot;logIDs&quot;: [&quot;logID1&quot;],
-    &quot;score&quot;: 0.2,
-    &quot;extractedTimestamps&quot;: [-1],
-    &quot;description&quot;: &quot;hello there&quot;,
-    &quot;receivedTimestamp&quot;: 1,
-    &quot;alertsObtain&quot;: {&quot;99 problems&quot;: &quot;but logs aint one&quot;}
-})
+<span class="n">input_</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">DetectorSchema</span><span class="p">({</span>
+    <span class="s2">&quot;detectorID&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;detectorType&quot;</span><span class="p">:</span> <span class="s2">&quot;dummy&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;alertID&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;detectionTimestamp&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;logIDs&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;logID1&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
+    <span class="s2">&quot;extractedTimestamps&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;hello there&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;receivedTimestamp&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;alertsObtain&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;99 problems&quot;</span><span class="p">:</span> <span class="s2">&quot;but logs aint one&quot;</span><span class="p">}</span>
+<span class="p">})</span>
 
-alert_aggregator = BasicConcatAggregation(
-    &quot;BasicConcatAggregator&quot;, aggregations_config
-)
-alert_aggregator.process(input_)
-</code></pre>
+<span class="n">alert_aggregator</span> <span class="o">=</span> <span class="n">BasicConcatAggregation</span><span class="p">(</span>
+    <span class="s2">&quot;BasicConcatAggregator&quot;</span><span class="p">,</span> <span class="n">aggregations_config</span>
+<span class="p">)</span>
+<span class="n">alert_aggregator</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span>
+</code></pre></div>
               
             </div>
           </div><footer>

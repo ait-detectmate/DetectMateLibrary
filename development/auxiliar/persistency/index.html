@@ -244,20 +244,20 @@ a <code>persist:</code> block in its config and <code>CoreDetector</code> wires 
 <code>init_persistency</code>.</p>
 <hr />
 <h2 id="quick-start">Quick start</h2>
-<pre><code class="language-python">from detectmatelibrary.utils import persistency
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">persistency</span>
 
-ep = persistency.EventPersistency(
-    event_data_class=persistency.EventStabilityTracker,
-)
+<span class="n">ep</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">EventPersistency</span><span class="p">(</span>
+    <span class="n">event_data_class</span><span class="o">=</span><span class="n">persistency</span><span class="o">.</span><span class="n">EventStabilityTracker</span><span class="p">,</span>
+<span class="p">)</span>
 
-ep.ingest_event(
-    event_id=&quot;4624&quot;,
-    event_template=&quot;An account was successfully logged on.&quot;,
-    named_variables={&quot;AccountName&quot;: &quot;alice&quot;, &quot;LogonType&quot;: &quot;3&quot;},
-)
+<span class="n">ep</span><span class="o">.</span><span class="n">ingest_event</span><span class="p">(</span>
+    <span class="n">event_id</span><span class="o">=</span><span class="s2">&quot;4624&quot;</span><span class="p">,</span>
+    <span class="n">event_template</span><span class="o">=</span><span class="s2">&quot;An account was successfully logged on.&quot;</span><span class="p">,</span>
+    <span class="n">named_variables</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;AccountName&quot;</span><span class="p">:</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;LogonType&quot;</span><span class="p">:</span> <span class="s2">&quot;3&quot;</span><span class="p">},</span>
+<span class="p">)</span>
 
-tracker = ep.get_event_data(&quot;4624&quot;)  # or ep[&quot;4624&quot;]
-</code></pre>
+<span class="n">tracker</span> <span class="o">=</span> <span class="n">ep</span><span class="o">.</span><span class="n">get_event_data</span><span class="p">(</span><span class="s2">&quot;4624&quot;</span><span class="p">)</span>  <span class="c1"># or ep[&quot;4624&quot;]</span>
+</code></pre></div>
 <p>That snippet covers the whole in-memory API: pick a backend class, ingest
 events, query state.</p>
 <hr />
@@ -286,15 +286,15 @@ events, query state.</p>
 </tbody>
 </table>
 <p>Common methods:</p>
-<pre><code class="language-python">ep.ingest_event(event_id, event_template, variables=..., named_variables=...)
+<div class="highlight"><pre><span></span><code><span class="n">ep</span><span class="o">.</span><span class="n">ingest_event</span><span class="p">(</span><span class="n">event_id</span><span class="p">,</span> <span class="n">event_template</span><span class="p">,</span> <span class="n">variables</span><span class="o">=...</span><span class="p">,</span> <span class="n">named_variables</span><span class="o">=...</span><span class="p">)</span>
 
-ep.get_event_data(event_id)        # backend for a single event
-ep.get_events_data()               # dict[event_id -&gt; backend]
-ep.get_event_template(event_id)
-ep.get_event_templates()
-ep.get_events_seen()               # all event IDs ever ingested
-ep[event_id]                       # alias for get_event_data
-</code></pre>
+<span class="n">ep</span><span class="o">.</span><span class="n">get_event_data</span><span class="p">(</span><span class="n">event_id</span><span class="p">)</span>        <span class="c1"># backend for a single event</span>
+<span class="n">ep</span><span class="o">.</span><span class="n">get_events_data</span><span class="p">()</span>               <span class="c1"># dict[event_id -&gt; backend]</span>
+<span class="n">ep</span><span class="o">.</span><span class="n">get_event_template</span><span class="p">(</span><span class="n">event_id</span><span class="p">)</span>
+<span class="n">ep</span><span class="o">.</span><span class="n">get_event_templates</span><span class="p">()</span>
+<span class="n">ep</span><span class="o">.</span><span class="n">get_events_seen</span><span class="p">()</span>               <span class="c1"># all event IDs ever ingested</span>
+<span class="n">ep</span><span class="p">[</span><span class="n">event_id</span><span class="p">]</span>                       <span class="c1"># alias for get_event_data</span>
+</code></pre></div>
 <h3 id="available-backends">Available backends</h3>
 <table>
 <thead>
@@ -321,50 +321,50 @@ ep[event_id]                       # alias for get_event_data
 <p>All three are re-exported from the top of the package — <code>persistency.X</code> is the
 canonical import; the deeply nested submodules are an implementation detail.</p>
 <h3 id="persisting-to-disk">Persisting to disk</h3>
-<pre><code class="language-python">saver = persistency.PersistencySaver(
-    ep,
-    persistency.PersistencySaverConfig(
-        path=&quot;./state/my-detector&quot;,
-        save_interval_seconds=300,
-        events_until_save=10_000,     # save after this many ingests, too
-        auto_load=False,
-        storage_options={},           # forwarded to fsspec
-    ),
-)
-saver.start()
-# ... detector runs ...
-saver.stop()    # final flush, stops the background timer
-</code></pre>
+<div class="highlight"><pre><span></span><code><span class="n">saver</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">PersistencySaver</span><span class="p">(</span>
+    <span class="n">ep</span><span class="p">,</span>
+    <span class="n">persistency</span><span class="o">.</span><span class="n">PersistencySaverConfig</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="s2">&quot;./state/my-detector&quot;</span><span class="p">,</span>
+        <span class="n">save_interval_seconds</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+        <span class="n">events_until_save</span><span class="o">=</span><span class="mi">10_000</span><span class="p">,</span>     <span class="c1"># save after this many ingests, too</span>
+        <span class="n">auto_load</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">storage_options</span><span class="o">=</span><span class="p">{},</span>           <span class="c1"># forwarded to fsspec</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">saver</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="c1"># ... detector runs ...</span>
+<span class="n">saver</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>    <span class="c1"># final flush, stops the background timer</span>
+</code></pre></div>
 <p><code>PersistencySaver.save()</code> is thread-safe, and <code>stop()</code> is idempotent. The two
 save triggers (<code>save_interval_seconds</code> and <code>events_until_save</code>) are
 independent — whichever fires first wins.</p>
 <h4 id="restoring-state">Restoring state</h4>
-<pre><code class="language-python">saver = persistency.PersistencySaver(
-    ep,
-    persistency.PersistencySaverConfig(path=&quot;./state/my-detector&quot;, auto_load=True),
-)
-# ep is now pre-populated from disk
-</code></pre>
+<div class="highlight"><pre><span></span><code><span class="n">saver</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">PersistencySaver</span><span class="p">(</span>
+    <span class="n">ep</span><span class="p">,</span>
+    <span class="n">persistency</span><span class="o">.</span><span class="n">PersistencySaverConfig</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;./state/my-detector&quot;</span><span class="p">,</span> <span class="n">auto_load</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="c1"># ep is now pre-populated from disk</span>
+</code></pre></div>
 <p>If <code>auto_load=True</code> and no saved state exists, the constructor raises
 <code>persistency.PersistencyLoadError</code> immediately — fail-fast rather than
 silently starting empty.</p>
 <h4 id="exporting-and-importing-state-on-demand">Exporting and importing state on demand</h4>
 <p>For one-shot transfers — e.g. moving trained state to a new environment, or
 taking a manual snapshot — use the standalone functions directly:</p>
-<pre><code class="language-python">from detectmatelibrary.utils import persistency
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">persistency</span>
 
-# Export to a file URI
-persistency.save(ep, &quot;./snapshots/trained-state&quot;)
+<span class="c1"># Export to a file URI</span>
+<span class="n">persistency</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">ep</span><span class="p">,</span> <span class="s2">&quot;./snapshots/trained-state&quot;</span><span class="p">)</span>
 
-# Export to bytes (no disk I/O — useful when sending state over a network API)
-data: bytes = persistency.save(ep)
+<span class="c1"># Export to bytes (no disk I/O — useful when sending state over a network API)</span>
+<span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">ep</span><span class="p">)</span>
 
-# Import from a file URI
-persistency.load(ep, &quot;./snapshots/trained-state&quot;)
+<span class="c1"># Import from a file URI</span>
+<span class="n">persistency</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ep</span><span class="p">,</span> <span class="s2">&quot;./snapshots/trained-state&quot;</span><span class="p">)</span>
 
-# Import from bytes
-persistency.load(ep, data)
-</code></pre>
+<span class="c1"># Import from bytes</span>
+<span class="n">persistency</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ep</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+</code></pre></div>
 <p><code>save</code> writes the same format as <code>PersistencySaver</code> and resets
 <code>ep._events_since_save</code>. When called without a path it returns the state as a
 zip archive in memory. <code>load</code> accepts either a path string or the bytes
@@ -378,18 +378,18 @@ when a saver is active.</p>
 <p>When working through a detector (the typical path for DetectMateService), use
 the methods on the detector object directly — no need to access
 <code>EventPersistency</code> internals:</p>
-<pre><code class="language-python"># Export to a file URI
-detector.export_state(&quot;./snapshots/my-detector&quot;)
+<div class="highlight"><pre><span></span><code><span class="c1"># Export to a file URI</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">export_state</span><span class="p">(</span><span class="s2">&quot;./snapshots/my-detector&quot;</span><span class="p">)</span>
 
-# Export to bytes (e.g. for an API response)
-data: bytes = detector.export_state()
+<span class="c1"># Export to bytes (e.g. for an API response)</span>
+<span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">export_state</span><span class="p">()</span>
 
-# Import from a file URI
-detector.import_state(&quot;./snapshots/my-detector&quot;)
+<span class="c1"># Import from a file URI</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">import_state</span><span class="p">(</span><span class="s2">&quot;./snapshots/my-detector&quot;</span><span class="p">)</span>
 
-# Import from bytes (e.g. from an API request body)
-detector.import_state(data)
-</code></pre>
+<span class="c1"># Import from bytes (e.g. from an API request body)</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">import_state</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</code></pre></div>
 <p><code>import_state</code> is thread-safe: it acquires the saver lock before loading when
 a <code>PersistencySaver</code> is running. Both methods raise <code>RuntimeError</code> if the
 detector has no persistency configured.</p>
@@ -404,28 +404,28 @@ credentials and tuning knobs go in <code>storage_options</code>.</p>
 <a href="../../detectors/#saving-state-persist">Saving state (persist)</a> for the config
 schema.</p>
 <p>In detector code, the pattern is:</p>
-<pre><code class="language-python">from detectmatelibrary.common.detector import CoreDetector
-from detectmatelibrary.utils import persistency
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.common.detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreDetector</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">persistency</span>
 
-class MyDetector(CoreDetector):
-    def __init__(self, name=&quot;MyDetector&quot;, config=MyDetectorConfig()):
-        super().__init__(name=name, config=config)
-        self.persistency = persistency.EventPersistency(
-            event_data_class=persistency.EventStabilityTracker,
-        )
-        self._register_persistency(self.persistency)
+<span class="k">class</span><span class="w"> </span><span class="nc">MyDetector</span><span class="p">(</span><span class="n">CoreDetector</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;MyDetector&quot;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">MyDetectorConfig</span><span class="p">()):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">persistency</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">EventPersistency</span><span class="p">(</span>
+            <span class="n">event_data_class</span><span class="o">=</span><span class="n">persistency</span><span class="o">.</span><span class="n">EventStabilityTracker</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_register_persistency</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">persistency</span><span class="p">)</span>
 
-    def train(self, input_):
-        self.persistency.ingest_event(
-            event_id=input_[&quot;EventID&quot;],
-            event_template=input_[&quot;template&quot;],
-            named_variables={...},
-        )
+    <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">persistency</span><span class="o">.</span><span class="n">ingest_event</span><span class="p">(</span>
+            <span class="n">event_id</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">&quot;EventID&quot;</span><span class="p">],</span>
+            <span class="n">event_template</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">&quot;template&quot;</span><span class="p">],</span>
+            <span class="n">named_variables</span><span class="o">=</span><span class="p">{</span><span class="o">...</span><span class="p">},</span>
+        <span class="p">)</span>
 
-    def detect(self, input_, output_):
-        tracker = self.persistency.get_events_data().get(input_[&quot;EventID&quot;])
-        # compare against tracker to produce alerts
-</code></pre>
+    <span class="k">def</span><span class="w"> </span><span class="nf">detect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">,</span> <span class="n">output_</span><span class="p">):</span>
+        <span class="n">tracker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">persistency</span><span class="o">.</span><span class="n">get_events_data</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">input_</span><span class="p">[</span><span class="s2">&quot;EventID&quot;</span><span class="p">])</span>
+        <span class="c1"># compare against tracker to produce alerts</span>
+</code></pre></div>
 <p><code>_register_persistency</code> is a one-line wrapper around
 <code>init_persistency</code>; the helper
 honours <code>config.persist</code> and returns <code>None</code> (so <code>self.saver</code> stays <code>None</code>)

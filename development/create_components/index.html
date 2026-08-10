@@ -175,8 +175,8 @@ for custom parsers and detectors. This is useful if you want to develop and test
 components in isolation while still using the same library and schemas.</p>
 <h2 id="usage">Usage</h2>
 <p>The CLI entry point is <code>mate</code> with a <code>create</code> command:</p>
-<pre><code class="language-bash">mate create --type &lt;parser|detector&gt; --name &lt;workspace_name&gt; --dir &lt;target_dir&gt;
-</code></pre>
+<div class="highlight"><pre><span></span><code>mate<span class="w"> </span>create<span class="w"> </span>--type<span class="w"> </span>&lt;parser<span class="p">|</span>detector&gt;<span class="w"> </span>--name<span class="w"> </span>&lt;workspace_name&gt;<span class="w"> </span>--dir<span class="w"> </span>&lt;target_dir&gt;
+</code></pre></div>
 <table>
 <thead>
 <tr>
@@ -201,10 +201,10 @@ components in isolation while still using the same library and schemas.</p>
 </table>
 <h2 id="what-gets-generated">What gets generated</h2>
 <p>For example:</p>
-<pre><code class="language-bash">mate create --type parser --name custom_parser --dir ./workspaces/custom_parser
-</code></pre>
+<div class="highlight"><pre><span></span><code>mate<span class="w"> </span>create<span class="w"> </span>--type<span class="w"> </span>parser<span class="w"> </span>--name<span class="w"> </span>custom_parser<span class="w"> </span>--dir<span class="w"> </span>./workspaces/custom_parser
+</code></pre></div>
 <p>will create:</p>
-<pre><code class="language-text">workspaces/custom_parser/          # workspace root
+<div class="highlight"><pre><span></span><code>workspaces/custom_parser/          # workspace root
 ├── custom_parser/                 # Python package
 │   ├── __init__.py
 │   └── custom_parser.py           # CoreParser-based template
@@ -216,7 +216,7 @@ components in isolation while still using the same library and schemas.</p>
 ├── .pre-commit-config.yaml        # copied from main project
 ├── pyproject.toml                 # minimal project + dev extras
 └── README.md                      # setup instructions
-</code></pre>
+</code></pre></div>
 <h2 id="add-component-to-detectmatelibrary">Add component to DetectMateLibrary</h2>
 <p>To add the new component to the <code>DetectMateLibrary</code>, you need to add the component file to the specific folder and update the import paths.</p>
 <ul>

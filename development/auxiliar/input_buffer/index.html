@@ -205,40 +205,39 @@
 <h2 id="examples">Examples</h2>
 <p>Code examples to show the behaviour of the <strong>DataBuffer</strong> class.</p>
 <h3 id="no-buffer-mode">No Buffer mode</h3>
-<pre><code class="language-python">from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.utils.data_buffer</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataBuffer</span><span class="p">,</span> <span class="n">ArgsBuffer</span><span class="p">,</span> <span class="n">BufferMode</span>
 
-results = []
-buf = DataBuffer(ArgsBuffer(mode=BufferMode.NO_BUF, process_function=results.append))
-buf.add(1)
-buf.add(2)
+<span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">buf</span> <span class="o">=</span> <span class="n">DataBuffer</span><span class="p">(</span><span class="n">ArgsBuffer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="n">BufferMode</span><span class="o">.</span><span class="n">NO_BUF</span><span class="p">,</span> <span class="n">process_function</span><span class="o">=</span><span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">))</span>
+<span class="n">buf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">buf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 
-print(results)  # [1, 2]
-
-</code></pre>
+<span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>  <span class="c1"># [1, 2]</span>
+</code></pre></div>
 <h3 id="batch-mode">Batch mode</h3>
-<pre><code class="language-python">from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.utils.data_buffer</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataBuffer</span><span class="p">,</span> <span class="n">ArgsBuffer</span><span class="p">,</span> <span class="n">BufferMode</span>
 
-results = []
-buf = DataBuffer(ArgsBuffer(mode=BufferMode.BATCH, process_function=results.append, size=3))
+<span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">buf</span> <span class="o">=</span> <span class="n">DataBuffer</span><span class="p">(</span><span class="n">ArgsBuffer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="n">BufferMode</span><span class="o">.</span><span class="n">BATCH</span><span class="p">,</span> <span class="n">process_function</span><span class="o">=</span><span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
 
-buf.add(1)
-print(results)  # []
+<span class="n">buf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>  <span class="c1"># []</span>
 
-buf.add(1)
-print(results)  # []
+<span class="n">buf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>  <span class="c1"># []</span>
 
-buf.add(1)
-print(results)  # [[1, 1, 1]]
-</code></pre>
+<span class="n">buf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>  <span class="c1"># [[1, 1, 1]]</span>
+</code></pre></div>
 <h3 id="window-mode">Window mode</h3>
-<pre><code class="language-python">from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.utils.data_buffer</span><span class="w"> </span><span class="kn">import</span> <span class="n">DataBuffer</span><span class="p">,</span> <span class="n">ArgsBuffer</span><span class="p">,</span> <span class="n">BufferMode</span>
 
-buf = DataBuffer(ArgsBuffer(mode=BufferMode.WINDOW, process_function=sum, size=2))
+<span class="n">buf</span> <span class="o">=</span> <span class="n">DataBuffer</span><span class="p">(</span><span class="n">ArgsBuffer</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="n">BufferMode</span><span class="o">.</span><span class="n">WINDOW</span><span class="p">,</span> <span class="n">process_function</span><span class="o">=</span><span class="nb">sum</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
 
-print(buf.add(1) is None)  # True
-print(buf.add(2))  # 3
-print(buf.add(5))  # 7
-</code></pre>
+<span class="nb">print</span><span class="p">(</span><span class="n">buf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># True</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">buf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>  <span class="c1"># 3</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">buf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="mi">5</span><span class="p">))</span>  <span class="c1"># 7</span>
+</code></pre></div>
 <p>Go back <a href="../../">Index</a></p>
               
             </div>

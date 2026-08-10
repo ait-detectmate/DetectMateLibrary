@@ -172,27 +172,27 @@
 <h2 id="what-is-a-log">What is a log?</h2>
 <p>Logs are messages produced by logging statements in code that describe events or states during execution.</p>
 <p>Example code that produces a log:</p>
-<pre><code class="language-python">import logging
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-var1 = &quot;DetectMate getting started&quot;
-var2 = &quot;what is a log&quot;
+<span class="n">var1</span> <span class="o">=</span> <span class="s2">&quot;DetectMate getting started&quot;</span>
+<span class="n">var2</span> <span class="o">=</span> <span class="s2">&quot;what is a log&quot;</span>
 
-logging.info(f&quot;hello I am a log about {var1} and about {var2}&quot;)
-</code></pre>
+<span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;hello I am a log about </span><span class="si">{</span><span class="n">var1</span><span class="si">}</span><span class="s2"> and about </span><span class="si">{</span><span class="n">var2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
 <p>This produces the message:</p>
-<pre><code>hello I am a log about DetectMate getting started and about what is a log
-</code></pre>
+<div class="highlight"><pre><span></span><code>hello I am a log about DetectMate getting started and about what is a log
+</code></pre></div>
 <p>A log message can be split into a constant part (the template) and variable parts, for example:</p>
 <ul>
 <li>Template: <code>hello I am a log about &lt;*&gt; and about &lt;*&gt;</code></li>
 <li>Variables: <code>["DetectMate getting started", "what is a log"]</code></li>
 </ul>
 <p>Logs often include a prefix with metadata, such as time stamp, log level, or hostnamem, for example:</p>
-<pre><code>INFO [18-05-2005] hello I am a log about DetectMate getting started and about what is a log
-</code></pre>
+<div class="highlight"><pre><span></span><code>INFO [18-05-2005] hello I am a log about DetectMate getting started and about what is a log
+</code></pre></div>
 <p>To extract the metadata we define a log format. For the example above this would be:</p>
-<pre><code>&lt;Level&gt; [&lt;Time&gt;] &lt;Content&gt;
-</code></pre>
+<div class="highlight"><pre><span></span><code>&lt;Level&gt; [&lt;Time&gt;] &lt;Content&gt;
+</code></pre></div>
 <p>Using that format we can separate the message into the components log level <code>Level</code>, time stamp <code>Time</code>, and log message <code>Message</code>:</p>
 <ul>
 <li>Level: <code>INFO</code></li>

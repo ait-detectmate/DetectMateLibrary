@@ -213,12 +213,12 @@
 </ul>
 <h3 id="4-bump-the-version-number">4. Bump the version number</h3>
 <p>Create a new branch from <code>main</code> and update the version string in <code>src/detectmatelibrary/metadata.py</code>:</p>
-<pre><code class="language-python">__version__ = &quot;0.X.Y&quot;  # set to the new release version
-</code></pre>
+<div class="highlight"><pre><span></span><code><span class="n">__version__</span> <span class="o">=</span> <span class="s2">&quot;0.X.Y&quot;</span>  <span class="c1"># set to the new release version</span>
+</code></pre></div>
 <p>The version here must match the tag you will create in step 5 (e.g. version <code>0.4.0</code> corresponds to tag <code>v0.4.0</code>).</p>
 <p>Also make sure <code>uv.lock</code> is up to date:</p>
-<pre><code class="language-bash">uv lock
-</code></pre>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>lock
+</code></pre></div>
 <p>Commit any changes, push the branch, and open a pull request against <code>main</code>. Once CI passes, merge it.</p>
 <h3 id="5-create-a-github-release">5. Create a GitHub release</h3>
 <p>Go to the <a href="https://github.com/ait-detectmate/DetectMateLibrary/releases">Releases page</a> and click <strong>Draft a new release</strong>.</p>

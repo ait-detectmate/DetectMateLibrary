@@ -195,42 +195,42 @@
 <h2 id="description">Description</h2>
 <p>A count vector is form by counting the number of appearance of each event ID in a sequence of a specific window size.</p>
 <h2 id="configuration-example">Configuration example</h2>
-<pre><code class="language-yaml">detectors:
-    SCVSDetector:
-        method_type: scvs_detector
-        window_size: 10
-</code></pre>
+<div class="highlight"><pre><span></span><code><span class="nt">detectors</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">SCVSDetector</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">scvs_detector</span>
+<span class="w">        </span><span class="nt">window_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+</code></pre></div>
 <h2 id="example-usage">Example usage</h2>
-<pre><code class="language-python">from detectmatelibrary.detectors.ecvc_detector import ECVCDetector
-import detectmatelibrary.schemas as schemas
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.detectors.ecvc_detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">ECVCDetector</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">detectmatelibrary.schemas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">schemas</span>
 
-cfg = {
-    &quot;detectors&quot;: {
-        &quot;ECVCDetector&quot;: {
-            &quot;method_type&quot;: &quot;ecvc_detector_detector&quot;,
-            &quot;window_size&quot;: 10,
-            &quot;validation_per&quot;: 0.2,
-            &quot;threshold_method&quot;: &quot;mean&quot;  # mean, default (default = threshold 0)
-        }
-    }
-}
-detector = ECVCDetector(name=&quot;ECVCDetector&quot;, config=cfg)
+<span class="n">cfg</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;detectors&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;ECVCDetector&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;method_type&quot;</span><span class="p">:</span> <span class="s2">&quot;ecvc_detector_detector&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;window_size&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+            <span class="s2">&quot;validation_per&quot;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
+            <span class="s2">&quot;threshold_method&quot;</span><span class="p">:</span> <span class="s2">&quot;mean&quot;</span>  <span class="c1"># mean, default (default = threshold 0)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="n">detector</span> <span class="o">=</span> <span class="n">ECVCDetector</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;ECVCDetector&quot;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
 
-parser_data = schemas.ParserSchema({
-    &quot;parserType&quot;: &quot;test&quot;,
-    &quot;EventID&quot;: 1,
-    &quot;template&quot;: &quot;test template&quot;,
-    &quot;variables&quot;: [&quot;var1&quot;],
-    &quot;logID&quot;: &quot;1&quot;,
-    &quot;parsedLogID&quot;: &quot;1&quot;,
-    &quot;parserID&quot;: &quot;test_parser&quot;,
-    &quot;log&quot;: &quot;test log message&quot;,
-    &quot;logFormatVariables&quot;: {&quot;timestamp&quot;: &quot;123456&quot;}
-})
+<span class="n">parser_data</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">ParserSchema</span><span class="p">({</span>
+    <span class="s2">&quot;parserType&quot;</span><span class="p">:</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;EventID&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;template&quot;</span><span class="p">:</span> <span class="s2">&quot;test template&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;variables&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;var1&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;logID&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;parsedLogID&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;parserID&quot;</span><span class="p">:</span> <span class="s2">&quot;test_parser&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="s2">&quot;test log message&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;logFormatVariables&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="s2">&quot;123456&quot;</span><span class="p">}</span>
+<span class="p">})</span>
 
 
-alert = detector.process(parser_data)
-</code></pre>
+<span class="n">alert</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">parser_data</span><span class="p">)</span>
+</code></pre></div>
 <p>Go back <a href="../../">Index</a></p>
               
             </div>

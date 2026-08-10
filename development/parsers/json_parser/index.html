@@ -200,92 +200,96 @@
 </ul>
 <p>The <code>content_parser</code> value is a <strong>name</strong>, not an inline config. The referenced parser must be defined as a separate sibling entry at the same level as <code>JsonParser</code>.</p>
 <p>Example YAML fragment:</p>
-<pre><code class="language-yaml">parsers:
-  JsonParser:
-    method_type: json_parser
-    params:
-      timestamp_name: &quot;time&quot;
-      content_name: &quot;message&quot;
-      content_parser: JsonMatcherParser   # optional — defaults to &quot;JsonMatcherParser&quot;
-  JsonMatcherParser:
-    method_type: matcher_parser
-    params:
-      path_templates: tests/test_data/test_templates.txt
-</code></pre>
+<div class="highlight"><pre><span></span><code><span class="nt">parsers</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">JsonParser</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">json_parser</span>
+<span class="w">    </span><span class="nt">params</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">timestamp_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;time&quot;</span>
+<span class="w">      </span><span class="nt">content_name</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;message&quot;</span>
+<span class="w">      </span><span class="nt">content_parser</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">JsonMatcherParser</span><span class="w">   </span><span class="c1"># optional — defaults to &quot;JsonMatcherParser&quot;</span>
+<span class="w">  </span><span class="nt">JsonMatcherParser</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">matcher_parser</span>
+<span class="w">    </span><span class="nt">params</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">path_templates</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">tests/test_data/test_templates.txt</span>
+</code></pre></div>
 <h2 id="usage-examples">Usage examples</h2>
 <p>Basic usage — parse JSON and extract fields (no template matching):</p>
-<pre><code class="language-python">import json
-from detectmatelibrary.parsers.json_parser import JsonParser, JsonParserConfig
-import detectmatelibrary.schemas as schemas
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.json_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">JsonParser</span><span class="p">,</span> <span class="n">JsonParserConfig</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">detectmatelibrary.schemas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">schemas</span>
 
 
-config = JsonParserConfig()
-parser = JsonParser(name=&quot;TestParser&quot;, config=config)
+<span class="n">config</span> <span class="o">=</span> <span class="n">JsonParserConfig</span><span class="p">()</span>
+<span class="n">parser</span> <span class="o">=</span> <span class="n">JsonParser</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;TestParser&quot;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
 
-json_log = {
-    &quot;time&quot;: &quot;2023-11-18 10:30:00&quot;,
-    &quot;request&quot;: {
-        &quot;method&quot;: &quot;GET&quot;,
-        &quot;path&quot;: &quot;/api/users&quot;,
-        &quot;headers&quot;: {
-            &quot;content-type&quot;: &quot;application/json&quot;
-        }
-    }
-}
+<span class="n">json_log</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="s2">&quot;2023-11-18 10:30:00&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;request&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;GET&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;path&quot;</span><span class="p">:</span> <span class="s2">&quot;/api/users&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;headers&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;content-type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
 
-input_log = schemas.LogSchema({
-    &quot;logID&quot;: &quot;1&quot;,
-    &quot;log&quot;: json.dumps(json_log)
-})
+<span class="n">input_log</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span>
+    <span class="s2">&quot;logID&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">json_log</span><span class="p">)</span>
+<span class="p">})</span>
 
-output = schemas.ParserSchema()
-parser.parse(input_log, output)
+<span class="n">output</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">ParserSchema</span><span class="p">()</span>
+<span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">input_log</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
 
-print(output.logFormatVariables[&quot;request.method&quot;])   # &quot;GET&quot;
-print(output.logFormatVariables[&quot;request.path&quot;])     # &quot;/api/users&quot;
-</code></pre>
+<span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">logFormatVariables</span><span class="p">[</span><span class="s2">&quot;request.method&quot;</span><span class="p">])</span>   <span class="c1"># &quot;GET&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">logFormatVariables</span><span class="p">[</span><span class="s2">&quot;request.path&quot;</span><span class="p">])</span>     <span class="c1"># &quot;/api/users&quot;</span>
+</code></pre></div>
 <p>Dict-based config (from YAML) — with template matching on the <code>message</code> field:</p>
-<pre><code class="language-python">import json
-from detectmatelibrary.parsers.json_parser import JsonParser
-import detectmatelibrary.schemas as schemas
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">json</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.json_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">JsonParser</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">detectmatelibrary.schemas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">schemas</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>  <span class="c1"># noqa: E402</span>
 
 
-config_dict = {
-    &quot;parsers&quot;: {
-        &quot;JsonParser&quot;: {
-            &quot;method_type&quot;: &quot;json_parser&quot;,
-            &quot;params&quot;: {
-                &quot;timestamp_name&quot;: &quot;time&quot;,
-                &quot;content_name&quot;: &quot;message&quot;,
-            }
-        },
-        &quot;JsonMatcherParser&quot;: {
-            &quot;method_type&quot;: &quot;matcher_parser&quot;,
-            &quot;params&quot;: {
-                &quot;path_templates&quot;: &quot;tests/test_data/test_templates.txt&quot;
-            }
-        }
-    }
-}
-parser = JsonParser(name=&quot;JsonParser&quot;, config=config_dict)
+<span class="n">ROOT</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+<span class="n">templates</span> <span class="o">=</span> <span class="n">ROOT</span> <span class="o">/</span> <span class="s2">&quot;tests&quot;</span> <span class="o">/</span> <span class="s2">&quot;test_data&quot;</span> <span class="o">/</span> <span class="s2">&quot;test_templates.txt&quot;</span>
 
-json_log = {
-    &quot;time&quot;: &quot;2023-11-18 10:30:00&quot;,
-    &quot;message&quot;: &quot;pid=9699 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\&quot;root\&quot;&quot;,
-    &quot;level&quot;: &quot;INFO&quot;
-}
+<span class="n">config_dict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;parsers&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;JsonParser&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;method_type&quot;</span><span class="p">:</span> <span class="s2">&quot;json_parser&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;timestamp_name&quot;</span><span class="p">:</span> <span class="s2">&quot;time&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;content_name&quot;</span><span class="p">:</span> <span class="s2">&quot;message&quot;</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;JsonMatcherParser&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;method_type&quot;</span><span class="p">:</span> <span class="s2">&quot;matcher_parser&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;path_templates&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">templates</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="n">parser</span> <span class="o">=</span> <span class="n">JsonParser</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;JsonParser&quot;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config_dict</span><span class="p">)</span>
 
-input_log = schemas.LogSchema({
-    &quot;logID&quot;: &quot;1&quot;,
-    &quot;log&quot;: json.dumps(json_log)
-})
+<span class="n">json_log</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="s2">&quot;2023-11-18 10:30:00&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;pid=9699 uid=0 auid=4294967295 ses=4294967295 msg=&#39;op=PAM:accounting acct=</span><span class="se">\&quot;</span><span class="s2">root</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;INFO&quot;</span>
+<span class="p">}</span>
 
-output = schemas.ParserSchema()
-parser.parse(input_log, output)
+<span class="n">input_log</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span>
+    <span class="s2">&quot;logID&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">json_log</span><span class="p">)</span>
+<span class="p">})</span>
 
-print(output.logFormatVariables[&quot;level&quot;])  # &quot;INFO&quot;
-print(output.template)                     # &quot;pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='op=PAM:&lt;*&gt; acct=&lt;*&gt;&quot;
-</code></pre>
+<span class="n">output</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">ParserSchema</span><span class="p">()</span>
+<span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">input_log</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">logFormatVariables</span><span class="p">[</span><span class="s2">&quot;level&quot;</span><span class="p">])</span>  <span class="c1"># &quot;INFO&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">template</span><span class="p">)</span>                     <span class="c1"># &quot;pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg=&#39;op=PAM:&lt;*&gt; acct=&lt;*&gt;&quot;</span>
+</code></pre></div>
 <p>Go back <a href="../../">Index</a></p>
               
             </div>

@@ -176,22 +176,22 @@
 </code></pre>
 <h2 id="setup-a-development-environment">Setup a development environment</h2>
 <p>For development we recommend using <a href="https://docs.astral.sh/uv/">uv</a>. You can install all optional dependencies:</p>
-<pre><code class="language-bash">uv sync --dev
-</code></pre>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync<span class="w"> </span>--dev
+</code></pre></div>
 <p><em>Please note that this step is not necessary. <code>uv run --dev</code> will automatically download all dependencies.</em></p>
 <h2 id="use-prek-to-run-code-checks">Use prek to run code checks</h2>
 <p>Every code contributer must use <a href="https://github.com/j178/prek"><code>prek</code></a> to run basic checks at commit time.
 <code>prek</code> is configured via the existing <code>.pre-commit-config.yaml</code>
 and can be installed as part of the <code>dev</code> extras. To ensure pre-commit hooks run before each commit, run:</p>
-<pre><code class="language-bash">uv run prek install
-</code></pre>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>prek<span class="w"> </span>install
+</code></pre></div>
 <p>To run the checks manually, you can execute:</p>
-<pre><code class="language-bash">uv run prek run -a
-</code></pre>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>prek<span class="w"> </span>run<span class="w"> </span>-a
+</code></pre></div>
 <h2 id="add-tests-and-run-pytest">Add tests and run pytest</h2>
 <p>In order to run the tests run the following command. The <code>dev</code> group already includes the <code>full</code> extra, so all optional dependencies are installed automatically:</p>
-<pre><code class="language-bash">uv run --dev pytest
-</code></pre>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--dev<span class="w"> </span>pytest
+</code></pre></div>
               
             </div>
           </div><footer>

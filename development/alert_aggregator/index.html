@@ -201,20 +201,20 @@
 </ul>
 <h2 id="coreparser-minimal-api">CoreParser — minimal API</h2>
 <p>Recommended signatures and behavior:</p>
-<pre><code class="language-python">class CoreAlertAggregation:
- def aggregate_alerts(
-        self,
-        input_: list[DetectorSchema] | DetectorSchema,
-        output_: AggregateSchema,
-    ) -&gt; bool:
-        return True
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">CoreAlertAggregation</span><span class="p">:</span>
+ <span class="k">def</span><span class="w"> </span><span class="nf">aggregate_alerts</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">DetectorSchema</span><span class="p">]</span> <span class="o">|</span> <span class="n">DetectorSchema</span><span class="p">,</span>
+        <span class="n">output_</span><span class="p">:</span> <span class="n">AggregateSchema</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
 
-    @override
-    def train(
-        self, input_: DetectorSchema | list[DetectorSchema]
-    ) -&gt; None:
-        pass
-</code></pre>
+    <span class="nd">@override</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">:</span> <span class="n">DetectorSchema</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">DetectorSchema</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">pass</span>
+</code></pre></div>
 <h2 id="available-alert-aggregation">Available alert aggregation</h2>
 <ul>
 <li><a href="../alert_aggregators/basic_concatenation/">Basic Concat</a></li>

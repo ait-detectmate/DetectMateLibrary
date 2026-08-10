@@ -195,51 +195,50 @@
 <h2 id="description">Description</h2>
 <p>Deep learning method that looks at the event ID sequence</p>
 <h2 id="configuration">Configuration</h2>
-<pre><code class="language-yaml">detectors:
-    DeeplogDetector:
-        method_type: deeplog_detector
-        auto_config: False
-        data_use_training: 10
-        window_size: 3
-        hyperparameters:
-            Model: 
-                hidden_dim: 64
-                n_layers: 2
-            Train: 
-                seed: 0
-                batch_size: 2048
-                learning_rate: 0.01
-                epochs: 10
-                patience: 3
-            Finetune: 
-                - [&quot;Model&quot;, &quot;hidden_dim&quot;, [128, 256, 512]]
-                - [&quot;Model&quot;, &quot;n_layers&quot;, [1, 2, 3]]
-                - [&quot;Train&quot;, &quot;learning_rate&quot;, [0.01, 0.02, 0.03]]
-</code></pre>
+<div class="highlight"><pre><span></span><code><span class="nt">detectors</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">DeeplogDetector</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">deeplog_detector</span>
+<span class="w">        </span><span class="nt">auto_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span>
+<span class="w">        </span><span class="nt">data_use_training</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">        </span><span class="nt">window_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">        </span><span class="nt">hyperparameters</span><span class="p">:</span>
+<span class="w">            </span><span class="nt">Model</span><span class="p">:</span><span class="w"> </span>
+<span class="w">                </span><span class="nt">hidden_dim</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">64</span>
+<span class="w">                </span><span class="nt">n_layers</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+<span class="w">            </span><span class="nt">Train</span><span class="p">:</span><span class="w"> </span>
+<span class="w">                </span><span class="nt">seed</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">                </span><span class="nt">batch_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2048</span>
+<span class="w">                </span><span class="nt">learning_rate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.01</span>
+<span class="w">                </span><span class="nt">epochs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<span class="w">                </span><span class="nt">patience</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
+<span class="w">            </span><span class="nt">Finetune</span><span class="p">:</span><span class="w"> </span>
+<span class="w">                </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;Model&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;hidden_dim&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">128</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">256</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">512</span><span class="p p-Indicator">]]</span>
+<span class="w">                </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;Model&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;n_layers&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">3</span><span class="p p-Indicator">]]</span>
+<span class="w">                </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;Train&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;learning_rate&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.01</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.02</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.03</span><span class="p p-Indicator">]]</span>
+</code></pre></div>
 <h2 id="example-usage">Example usage</h2>
-<pre><code class="language-python">from detectmatelibrary.detectors.deeplog_detector import DeeplogDetector
+<p><div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.detectors.deeplog_detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeeplogDetector</span>
 
-import detectmatelibrary.schemas as schemas
+<span class="kn">import</span><span class="w"> </span><span class="nn">detectmatelibrary.schemas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">schemas</span>
 
-detector = DeeplogDetector(name=&quot;DeeplogDetector&quot;, config=cfg)
+<span class="n">detector</span> <span class="o">=</span> <span class="n">DeeplogDetector</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;DeeplogDetector&quot;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
 
-test_data = schemas.ParserSchema({
-    &quot;parserType&quot;: &quot;test&quot;,
-    &quot;EventID&quot;: 12,
-    &quot;template&quot;: &quot;test template&quot;,
-    &quot;variables&quot;: [&quot;adsasd&quot;, &quot;asdasd&quot;],
-    &quot;logID&quot;: &quot;2&quot;,
-    &quot;parsedLogID&quot;: &quot;2&quot;,
-    &quot;parserID&quot;: &quot;test_parser&quot;,
-    &quot;log&quot;: &quot;test log message&quot;,
-    &quot;logFormatVariables&quot;: {&quot;level&quot;: &quot;CRITICAL&quot;}
-})
-output = schemas.DetectorSchema()
+<span class="n">test_data</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">ParserSchema</span><span class="p">({</span>
+    <span class="s2">&quot;parserType&quot;</span><span class="p">:</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;EventID&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+    <span class="s2">&quot;template&quot;</span><span class="p">:</span> <span class="s2">&quot;test template&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;variables&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;adsasd&quot;</span><span class="p">,</span> <span class="s2">&quot;asdasd&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;logID&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;parsedLogID&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;parserID&quot;</span><span class="p">:</span> <span class="s2">&quot;test_parser&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="s2">&quot;test log message&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;logFormatVariables&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">}</span>
+<span class="p">})</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">DetectorSchema</span><span class="p">()</span>
 
-result = detector.detect(test_data, output)
-
-</code></pre>
-<p>Go back <a href="../../">Index</a></p>
+<span class="n">result</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">test_data</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+</code></pre></div>
+Go back <a href="../../">Index</a></p>
               
             </div>
           </div><footer>

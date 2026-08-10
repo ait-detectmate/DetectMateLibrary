@@ -203,41 +203,41 @@
 <p>Schemas are used to transfer data between components. Each schema implements the methods defined in <code>BaseSchema</code>. This class acts as a wrapper around the underlying Protobuf classes (<code>op.SchemaT</code>).</p>
 <p><img alt="UML" src="../img/uml_schemas.png" /></p>
 <p>All concrete schema classes inherit from <code>BaseSchema</code>. Key utility methods:</p>
-<pre><code class="language-python">class BaseSchema:
-    def __contains__(self, idx: str) -&gt; bool:
-        &quot;&quot;&quot;Return if a variable is in the schema&quot;&quot;&quot;
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">BaseSchema</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return if a variable is in the schema&quot;&quot;&quot;</span>
 
-    def as_dict(self) -&gt; dict[str, Any]:
-        &quot;&quot;&quot;Return the schema variables as a dictionary.&quot;&quot;&quot;
+    <span class="k">def</span><span class="w"> </span><span class="nf">as_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the schema variables as a dictionary.&quot;&quot;&quot;</span>
 
-    def get_schema(self) -&gt; op.SchemaT:
-        &quot;&quot;&quot;Retrieve the current schema instance.&quot;&quot;&quot;
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">op</span><span class="o">.</span><span class="n">SchemaT</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieve the current schema instance.&quot;&quot;&quot;</span>
 
-    def set_schema(self, schema: op.SchemaT) -&gt; None:
-        &quot;&quot;&quot;Set the schema instance and update attributes.&quot;&quot;&quot;
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">schema</span><span class="p">:</span> <span class="n">op</span><span class="o">.</span><span class="n">SchemaT</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Set the schema instance and update attributes.&quot;&quot;&quot;</span>
 
-    def init_schema(self, kwargs: dict[str, Any] | None) -&gt; None:
-        &quot;&quot;&quot;Initialize the schema instance and set attributes.&quot;&quot;&quot;
-        self.var_names = set(var_names)
+    <span class="k">def</span><span class="w"> </span><span class="nf">init_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the schema instance and set attributes.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">var_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">var_names</span><span class="p">)</span>
 
-    def is_field_list(self, field_name: str) -&gt; bool:
-        &quot;&quot;&quot;Check if a field is a list.&quot;&quot;&quot;
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_field_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if a field is a list.&quot;&quot;&quot;</span>
 
-    def copy(self) -&gt; &quot;BaseSchema&quot;:
-        &quot;&quot;&quot;Create a deep copy of the schema instance.&quot;&quot;&quot;
+    <span class="k">def</span><span class="w"> </span><span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;BaseSchema&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a deep copy of the schema instance.&quot;&quot;&quot;</span>
 
-    def serialize(self) -&gt; bytes:
-        &quot;&quot;&quot;Serialize the schema instance to bytes.&quot;&quot;&quot;
+    <span class="k">def</span><span class="w"> </span><span class="nf">serialize</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Serialize the schema instance to bytes.&quot;&quot;&quot;</span>
 
-    def deserialize(self, message: bytes) -&gt; None | op.IncorrectSchema:
-        &quot;&quot;&quot;Deserialize bytes to populate the schema instance.&quot;&quot;&quot;
+    <span class="k">def</span><span class="w"> </span><span class="nf">deserialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">op</span><span class="o">.</span><span class="n">IncorrectSchema</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deserialize bytes to populate the schema instance.&quot;&quot;&quot;</span>
 
-    def check_is_same(self, other: Self) -&gt; None | op.IncorrectSchema:
-        &quot;&quot;&quot;Check if another schema instance is of the same schema type.&quot;&quot;&quot;
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_is_same</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="n">Self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">op</span><span class="o">.</span><span class="n">IncorrectSchema</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if another schema instance is of the same schema type.&quot;&quot;&quot;</span>
 
-    def __eq__(self, other: object) -&gt; bool:
-        &quot;&quot;&quot;Check equality between two schema instances.&quot;&quot;&quot;
-</code></pre>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Check equality between two schema instances.&quot;&quot;&quot;</span>
+</code></pre></div>
 <h2 id="schema-clases">Schema Clases</h2>
 <p>Below are the primary schema classes and their main fields. All fields are optional at the Protobuf level; components should document which fields they require.</p>
 <h3 id="logschema">LogSchema</h3>
@@ -464,39 +464,39 @@
 <h2 id="tutorial">Tutorial</h2>
 <p>Small tutorials of the different schemas.</p>
 <h3 id="initialize-a-schema">Initialize a schema</h3>
-<pre><code class="language-python">from detectmatelibrary import schemas
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary</span><span class="w"> </span><span class="kn">import</span> <span class="n">schemas</span>
 
-kwargs = load_somewhere()  # load the dict
-kwargs[&quot;log&quot;] = &quot;Test log&quot;
+<span class="n">kwargs</span> <span class="o">=</span> <span class="n">load_somewhere</span><span class="p">()</span>  <span class="c1"># load the dict</span>
+<span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;log&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Test log&quot;</span>
 
-log_schema = schemas.LogSchema(kwargs)
-print(log_schema.log == &quot;Test log&quot;)  # True
-</code></pre>
+<span class="n">log_schema</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">log_schema</span><span class="o">.</span><span class="n">log</span> <span class="o">==</span> <span class="s2">&quot;Test log&quot;</span><span class="p">)</span>  <span class="c1"># True</span>
+</code></pre></div>
 <h3 id="assign-values">Assign values</h3>
-<pre><code class="language-python">from detectmatelibrary import schemas
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary</span><span class="w"> </span><span class="kn">import</span> <span class="n">schemas</span>
 
-log_schema = schemas.LogSchema()
-log_schema.log = &quot;Test log&quot;
-print(log_schema[&quot;log&quot;] == log_schema.log)  # True
+<span class="n">log_schema</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">()</span>
+<span class="n">log_schema</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="s2">&quot;Test log&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">log_schema</span><span class="p">[</span><span class="s2">&quot;log&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">log_schema</span><span class="o">.</span><span class="n">log</span><span class="p">)</span>  <span class="c1"># True</span>
 
-log_schema2 = schemas.LogSchema()
-print(log_schema == log_schema2)  # False
+<span class="n">log_schema2</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">log_schema</span> <span class="o">==</span> <span class="n">log_schema2</span><span class="p">)</span>  <span class="c1"># False</span>
 
-log_schema2.log = &quot;Test log&quot;
-print(log_schema == log_schema2)  # True
-</code></pre>
+<span class="n">log_schema2</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="s2">&quot;Test log&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">log_schema</span> <span class="o">==</span> <span class="n">log_schema2</span><span class="p">)</span>  <span class="c1"># True</span>
+</code></pre></div>
 <h3 id="serialization">Serialization</h3>
-<pre><code class="language-python">from detectmatelibrary import schemas
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary</span><span class="w"> </span><span class="kn">import</span> <span class="n">schemas</span>
 
-log_schema = schemas.LogSchema()
-log_schema.log = &quot;Test log&quot;
-serialized = log_schema.serialize()
-print(isinstance(serialized, bytes))  # True
+<span class="n">log_schema</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">()</span>
+<span class="n">log_schema</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="s2">&quot;Test log&quot;</span>
+<span class="n">serialized</span> <span class="o">=</span> <span class="n">log_schema</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">serialized</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">))</span>  <span class="c1"># True</span>
 
-new_log_schema = schemas.LogSchema()
-new_log_schema.deserialize(serialized)
-print(new_log_schema.schema_id == log_schema.schema_id)  # True
-</code></pre>
+<span class="n">new_log_schema</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">()</span>
+<span class="n">new_log_schema</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">serialized</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">new_log_schema</span><span class="o">.</span><span class="n">schema_id</span> <span class="o">==</span> <span class="n">log_schema</span><span class="o">.</span><span class="n">schema_id</span><span class="p">)</span>  <span class="c1"># True</span>
+</code></pre></div>
 <p>Go back <a href="../">Index</a></p>
               
             </div>

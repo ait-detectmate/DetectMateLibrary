@@ -218,66 +218,66 @@
 </table>
 <p>This document describes the minimal API, implementation guidance, a short example detector and a unit test pattern.</p>
 <h2 id="coredetector-minimal-api">CoreDetector — minimal API</h2>
-<pre><code class="language-python">class CoreDetectorConfig(CoreConfig):
-    component_type: str = &quot;detectors&quot;
-    method_type: str = &quot;core_detector&quot;
-    parser: str = &quot;&lt;PLACEHOLDER&gt;&quot;
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">CoreDetectorConfig</span><span class="p">(</span><span class="n">CoreConfig</span><span class="p">):</span>
+    <span class="n">component_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;detectors&quot;</span>
+    <span class="n">method_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;core_detector&quot;</span>
+    <span class="n">parser</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&lt;PLACEHOLDER&gt;&quot;</span>
 
-    auto_config: bool = False
+    <span class="n">auto_config</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 
 
-class CoreDetector(CoreComponent):
-    def run(
-        self, input_: List[ParserSchema] | ParserSchema, output_: DetectorSchema
-    ) -&gt; bool:
-        &quot;&quot;&quot;Define in the Core detector&quot;&quot;&quot;
+<span class="k">class</span><span class="w"> </span><span class="nc">CoreDetector</span><span class="p">(</span><span class="n">CoreComponent</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ParserSchema</span><span class="p">]</span> <span class="o">|</span> <span class="n">ParserSchema</span><span class="p">,</span> <span class="n">output_</span><span class="p">:</span> <span class="n">DetectorSchema</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Define in the Core detector&quot;&quot;&quot;</span>
 
-    def detect(
-        self,
-        input_: List[ParserSchema] | ParserSchema,
-        output_: DetectorSchema,
-    ) -&gt; bool:
-        &quot;&quot;&quot;Empty, must be define in the specific detector&quot;&quot;&quot;
+    <span class="k">def</span><span class="w"> </span><span class="nf">detect</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ParserSchema</span><span class="p">]</span> <span class="o">|</span> <span class="n">ParserSchema</span><span class="p">,</span>
+        <span class="n">output_</span><span class="p">:</span> <span class="n">DetectorSchema</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Empty, must be define in the specific detector&quot;&quot;&quot;</span>
 
-    def train(
-        self, input_: ParserSchema | list[ParserSchema]
-    ) -&gt; None:
-        &quot;&quot;&quot;Empty, can be define in the detector. It trains the detector&quot;&quot;&quot;
-</code></pre>
+    <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">:</span> <span class="n">ParserSchema</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">ParserSchema</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Empty, can be define in the detector. It trains the detector&quot;&quot;&quot;</span>
+</code></pre></div>
 <h2 id="implementing-a-detector-example">Implementing a detector — example</h2>
 <p>Simple detector that raises an alert when a numeric variable exceeds a threshold.</p>
-<pre><code class="language-python">class SimpleThresholdConfig(CoreDetectorConfig):
-    method_type: str = &quot;simple_threshold&quot;
-    threshold: float = 0.0
+<p><div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">SimpleThresholdConfig</span><span class="p">(</span><span class="n">CoreDetectorConfig</span><span class="p">):</span>
+    <span class="n">method_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;simple_threshold&quot;</span>
+    <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
 
-class SimpleThresholdDetector(CoreDetector):
-    def __init__(
-        self, name: str = &quot;SimpleThreshold&quot;,
-        config: SimpleThresholdConfig | dict[str, Any] = SimpleThresholdConfig()
-    ):
+<span class="k">class</span><span class="w"> </span><span class="nc">SimpleThresholdDetector</span><span class="p">(</span><span class="n">CoreDetector</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;SimpleThreshold&quot;</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">SimpleThresholdConfig</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">SimpleThresholdConfig</span><span class="p">()</span>
+    <span class="p">):</span>
 
-        if isinstance(config, dict):
-            config = SimpleThresholdConfig.from_dict(config, name)
-        super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">SimpleThresholdConfig</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">buffer_mode</span><span class="o">=</span><span class="n">BufferMode</span><span class="o">.</span><span class="n">NO_BUF</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
 
-    def detect(
-        self,
-        input_: schemas.ParserSchema,
-        output_: schemas.DetectorSchema
-    ) -&gt; bool:
+    <span class="k">def</span><span class="w"> </span><span class="nf">detect</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_</span><span class="p">:</span> <span class="n">schemas</span><span class="o">.</span><span class="n">ParserSchema</span><span class="p">,</span>
+        <span class="n">output_</span><span class="p">:</span> <span class="n">schemas</span><span class="o">.</span><span class="n">DetectorSchema</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 
-        # calculate is a dummy method
-        if calculate(input_) &gt; self.config.threshold:
+        <span class="c1"># calculate is a dummy method</span>
+        <span class="k">if</span> <span class="n">calculate</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">threshold</span><span class="p">:</span>
 
-            output_[&quot;alertID&quot;] = f&quot;{self.name}-{int(time.time())}&quot;
-            output_[&quot;logIDs&quot;].extend([ev.logID] if ev.logID else [])
-            output_[&quot;score&quot;] = float(value)
-            output_[&quot;description&quot;] = f&quot;Value {value} &gt; threshold {self.config.threshold}&quot;
-            return True
+            <span class="n">output_</span><span class="p">[</span><span class="s2">&quot;alertID&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">output_</span><span class="p">[</span><span class="s2">&quot;logIDs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">ev</span><span class="o">.</span><span class="n">logID</span><span class="p">]</span> <span class="k">if</span> <span class="n">ev</span><span class="o">.</span><span class="n">logID</span> <span class="k">else</span> <span class="p">[])</span>
+            <span class="n">output_</span><span class="p">[</span><span class="s2">&quot;score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">output_</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Value </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2"> &gt; threshold </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">threshold</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">return</span> <span class="kc">True</span>
 
-        return False
-</code></pre>
-<p>To configure the number of logs receive as input, you need to configure the <a href="../auxiliar/input_buffer/">buffer</a> in the initialization of the Detector.</p>
+        <span class="k">return</span> <span class="kc">False</span>
+</code></pre></div>
+To configure the number of logs receive as input, you need to configure the <a href="../auxiliar/input_buffer/">buffer</a> in the initialization of the Detector.</p>
 <h2 id="detectors-methods">Detectors methods</h2>
 <p>List of detectors:</p>
 <ul>
@@ -296,45 +296,45 @@ class SimpleThresholdDetector(CoreDetector):
 </ul>
 <h2 id="configuration">Configuration</h2>
 <p>When <code>auto_config</code> is set to <code>False</code>, the detector expects an explicit <code>events</code> or <code>global</code> block that specifies exactly which variables to monitor. <code>events</code>refers to event-specific variables while <code>global</code> refers to variables, that are not bound to events (<code>header_variables</code>can but don't have to be event bound):</p>
-<pre><code class="language-yaml">detectors:
-  NewValueDetector:
-    method_type: new_value_detector
-    auto_config: False
-    data_use_configure: None  # Data used for configuration
-    data_use_training: 199  # Data used for training
-    params: {}  # global parameters
-    events:  # event-specific configuration
-      1:  # event_id
-        instance1:  # name of instance (arbitrary)
-          params: {}  # additional params
-          variables:
-            - pos: 0  # location of an unnamed variable from the log message
-              name: var1  # name of variable (arbitrary)
-          header_variables:
-            - pos: level  # location of a named variable (defined in log_format of parser)
-    global:  # define global instance for new_value_detector similar to &quot;events&quot;
-      global_instance1:  # define instance name
-        header_variables:  # same logic as header_variables in &quot;events&quot;
-          - pos: Status
-</code></pre>
+<div class="highlight"><pre><span></span><code><span class="nt">detectors</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">NewValueDetector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">new_value_detector</span>
+<span class="w">    </span><span class="nt">auto_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span>
+<span class="w">    </span><span class="nt">data_use_configure</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">None</span><span class="w">  </span><span class="c1"># Data used for configuration</span>
+<span class="w">    </span><span class="nt">data_use_training</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">199</span><span class="w">  </span><span class="c1"># Data used for training</span>
+<span class="w">    </span><span class="nt">params</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span><span class="w">  </span><span class="c1"># global parameters</span>
+<span class="w">    </span><span class="nt">events</span><span class="p">:</span><span class="w">  </span><span class="c1"># event-specific configuration</span>
+<span class="w">      </span><span class="nt">1</span><span class="p">:</span><span class="w">  </span><span class="c1"># event_id</span>
+<span class="w">        </span><span class="nt">instance1</span><span class="p">:</span><span class="w">  </span><span class="c1"># name of instance (arbitrary)</span>
+<span class="w">          </span><span class="nt">params</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span><span class="w">  </span><span class="c1"># additional params</span>
+<span class="w">          </span><span class="nt">variables</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pos</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w">  </span><span class="c1"># location of an unnamed variable from the log message</span>
+<span class="w">              </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">var1</span><span class="w">  </span><span class="c1"># name of variable (arbitrary)</span>
+<span class="w">          </span><span class="nt">header_variables</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pos</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">level</span><span class="w">  </span><span class="c1"># location of a named variable (defined in log_format of parser)</span>
+<span class="w">    </span><span class="nt">global</span><span class="p">:</span><span class="w">  </span><span class="c1"># define global instance for new_value_detector similar to &quot;events&quot;</span>
+<span class="w">      </span><span class="nt">global_instance1</span><span class="p">:</span><span class="w">  </span><span class="c1"># define instance name</span>
+<span class="w">        </span><span class="nt">header_variables</span><span class="p">:</span><span class="w">  </span><span class="c1"># same logic as header_variables in &quot;events&quot;</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pos</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Status</span>
+</code></pre></div>
 <h3 id="configuration-semantics-preliminary">Configuration semantics (preliminary)</h3>
 <p><strong><code>events</code> key</strong> — The integer key is the <code>EventID</code> (or <code>event_id</code>) to monitor (see the <a href="../parsers/template_matcher/">Template Matcher</a> docs for how the EventID is assigned.</p>
 <p><strong><code>global</code> key</strong> - This one has a similar functionality as the <code>events</code> key but refers to variables, that are not bound to events (thus can only contain <code>header_variables</code>).</p>
 <p><strong><code>variables[].pos</code></strong> — The 0-indexed position of the <code>&lt;*&gt;</code> wildcard in the matched template, counting from left to right starting at 0. For example, given:</p>
-<pre><code class="language-text">pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='op=&lt;*&gt; acct=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;'
-</code></pre>
+<div class="highlight"><pre><span></span><code>pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg=&#39;op=&lt;*&gt; acct=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;&#39;
+</code></pre></div>
 <p><code>pos: 0</code> captures <code>pid=</code>, <code>pos: 6</code> captures <code>exe=</code>, etc.</p>
 <p><strong><code>header_variables[].pos</code></strong> — A named field from the log format string (e.g., <code>Type</code>, <code>Time</code>, <code>Content</code>) rather than a wildcard position.</p>
 <h3 id="auto-configuration-optional">Auto-configuration (optional)</h3>
 <p>Detectors can optionally support <strong>auto-configuration</strong> — a process where the detector automatically discovers which variables are worth monitoring, instead of requiring the user to specify them manually.</p>
 <p>Auto-configuration is controlled by the <code>auto_config</code> flag in the pipeline config (e.g. <code>config/pipeline_config_default.yaml</code>):</p>
-<pre><code class="language-yaml">detectors:
-  NewValueDetector:
-    method_type: new_value_detector
-    auto_config: True       # enable auto-configuration
-    params: {}
-    # no &quot;events&quot; block needed — it will be generated automatically
-</code></pre>
+<div class="highlight"><pre><span></span><code><span class="nt">detectors</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">NewValueDetector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">new_value_detector</span>
+<span class="w">    </span><span class="nt">auto_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span><span class="w">       </span><span class="c1"># enable auto-configuration</span>
+<span class="w">    </span><span class="nt">params</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
+<span class="w">    </span><span class="c1"># no &quot;events&quot; block needed — it will be generated automatically</span>
+</code></pre></div>
 <h3 id="how-it-works">How it works</h3>
 <p>When auto-configuration is enabled, the detector goes through two extra phases before training:</p>
 <p><strong>Phase 1 — <code>configure(input_)</code></strong>: The detector ingests events into an <code>EventPersistency</code> instance that uses a tracker backend to analyze variable behavior — for example, whether each variable is stable, random, or still has insufficient data. This instance is typically separate from the one used for training, because the configuration phase needs to observe <em>all</em> variables to decide which ones are worth monitoring, while training only tracks the variables that were selected as a result.</p>
@@ -342,65 +342,65 @@ class SimpleThresholdDetector(CoreDetector):
 <p>After these two phases, the detector proceeds with the normal <code>train()</code> and <code>detect()</code> lifecycle using the generated configuration.</p>
 <h3 id="implementation-pattern">Implementation pattern</h3>
 <p>A detector that supports auto-configuration typically creates a separate <code>EventPersistency</code> instance for this purpose (but doesn't have to):</p>
-<pre><code class="language-python">class MyDetector(CoreDetector):
-    def __init__(self, ...):
-        super().__init__(...)
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MyDetector</span><span class="p">(</span><span class="n">CoreDetector</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">...</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
 
-        # main persistency for training / detection
-        self.persistency = EventPersistency(
-            event_data_class=EventStabilityTracker,
-        )
-        # separate persistency for auto-configuration
-        self.auto_conf_persistency = EventPersistency(
-            event_data_class=EventStabilityTracker,
-        )
-</code></pre>
+        <span class="c1"># main persistency for training / detection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">persistency</span> <span class="o">=</span> <span class="n">EventPersistency</span><span class="p">(</span>
+            <span class="n">event_data_class</span><span class="o">=</span><span class="n">EventStabilityTracker</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># separate persistency for auto-configuration</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">auto_conf_persistency</span> <span class="o">=</span> <span class="n">EventPersistency</span><span class="p">(</span>
+            <span class="n">event_data_class</span><span class="o">=</span><span class="n">EventStabilityTracker</span><span class="p">,</span>
+        <span class="p">)</span>
+</code></pre></div>
 <p>The <code>configure()</code> method ingests all available variables (not just configured ones) so the tracker can assess each one:</p>
-<pre><code class="language-python">def configure(self, input_):
-    self.auto_conf_persistency.ingest_event(
-        event_id=input_[&quot;EventID&quot;],
-        event_template=input_[&quot;template&quot;],
-        variables=input_[&quot;variables&quot;],
-        named_variables=input_[&quot;logFormatVariables&quot;],
-    )
-</code></pre>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">auto_conf_persistency</span><span class="o">.</span><span class="n">ingest_event</span><span class="p">(</span>
+        <span class="n">event_id</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">&quot;EventID&quot;</span><span class="p">],</span>
+        <span class="n">event_template</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">&quot;template&quot;</span><span class="p">],</span>
+        <span class="n">variables</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">&quot;variables&quot;</span><span class="p">],</span>
+        <span class="n">named_variables</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">&quot;logFormatVariables&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+</code></pre></div>
 <p>The <code>set_configuration()</code> method queries the tracker results and generates the final config:</p>
-<pre><code class="language-python">def set_configuration(self):
-    variables = {}
-    for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
-        stable_vars = tracker.get_features_by_classification(&quot;STABLE&quot;)
-        variables[event_id] = stable_vars
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">set_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">variables</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">event_id</span><span class="p">,</span> <span class="n">tracker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_conf_persistency</span><span class="o">.</span><span class="n">get_events_data</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">stable_vars</span> <span class="o">=</span> <span class="n">tracker</span><span class="o">.</span><span class="n">get_features_by_classification</span><span class="p">(</span><span class="s2">&quot;STABLE&quot;</span><span class="p">)</span>
+        <span class="n">variables</span><span class="p">[</span><span class="n">event_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">stable_vars</span>
 
-    config_dict = generate_detector_config(
-        variable_selection=variables,
-        detector_name=self.name,
-        method_type=self.config.method_type,
-    )
-    self.config = MyDetectorConfig.from_dict(config_dict, self.name)
-</code></pre>
+    <span class="n">config_dict</span> <span class="o">=</span> <span class="n">generate_detector_config</span><span class="p">(</span>
+        <span class="n">variable_selection</span><span class="o">=</span><span class="n">variables</span><span class="p">,</span>
+        <span class="n">detector_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">method_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">method_type</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">MyDetectorConfig</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">config_dict</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</code></pre></div>
 <h3 id="full-lifecycle-with-auto-configuration">Full lifecycle with auto-configuration</h3>
-<pre><code class="language-python">1. configure(input_)         # call for each event in the dataset
-2. set_configuration()       # finalize which variables to monitor
-3. train(input_)             # call for each event in the dataset
-4. detect(input_, output_)   # call for each event to detect anomalies
-</code></pre>
+<div class="highlight"><pre><span></span><code><span class="mf">1.</span> <span class="n">configure</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span>         <span class="c1"># call for each event in the dataset</span>
+<span class="mf">2.</span> <span class="n">set_configuration</span><span class="p">()</span>       <span class="c1"># finalize which variables to monitor</span>
+<span class="mf">3.</span> <span class="n">train</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span>             <span class="c1"># call for each event in the dataset</span>
+<span class="mf">4.</span> <span class="n">detect</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="n">output_</span><span class="p">)</span>   <span class="c1"># call for each event to detect anomalies</span>
+</code></pre></div>
 <p>When <code>auto_config</code> is <code>False</code>, steps 1 and 2 are skipped entirely.</p>
 <h3 id="saving-state-persist">Saving state (persist)</h3>
 <p>Detectors can persist their training state to disk (or cloud storage) so it
 can be restored in a later session. Configure this with a top-level <code>persist:</code>
 block in the detector config:</p>
-<pre><code class="language-yaml">detectors:
-  NewValueDetector:
-    method_type: new_value_detector
-    persist:
-      path: ./state               # base path; detector name is appended automatically
-      interval_seconds: 300       # save every N seconds (default: 300)
-      events_until_save: null     # also save after N ingested events (default: disabled)
-      auto_load: false            # restore saved state on startup (default: false)
-      storage_options: {}         # backend credentials (see below)
-    events:
-      ...
-</code></pre>
+<div class="highlight"><pre><span></span><code><span class="nt">detectors</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">NewValueDetector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">new_value_detector</span>
+<span class="w">    </span><span class="nt">persist</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./state</span><span class="w">               </span><span class="c1"># base path; detector name is appended automatically</span>
+<span class="w">      </span><span class="nt">interval_seconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">300</span><span class="w">       </span><span class="c1"># save every N seconds (default: 300)</span>
+<span class="w">      </span><span class="nt">events_until_save</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span><span class="w">     </span><span class="c1"># also save after N ingested events (default: disabled)</span>
+<span class="w">      </span><span class="nt">auto_load</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">            </span><span class="c1"># restore saved state on startup (default: false)</span>
+<span class="w">      </span><span class="nt">storage_options</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span><span class="w">         </span><span class="c1"># backend credentials (see below)</span>
+<span class="w">    </span><span class="nt">events</span><span class="p">:</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+</code></pre></div>
 <p>All fields are optional — <code>persist: {}</code> uses all defaults. Omitting <code>persist:</code> entirely
 disables saving (backward compatible).</p>
 <p>The detector name is automatically appended to <code>path</code>, so <code>path: ./state</code> for a detector
@@ -411,10 +411,10 @@ so <code>./state</code> would resolve to <code>/state</code> (wrong location, ne
 this, set <code>StateDirectory=</code> in your unit file — systemd creates <code>/var/lib/&lt;dir&gt;</code>
 with the right ownership and exports <code>$STATE_DIRECTORY</code>, which the default <code>path</code>
 reads automatically. No explicit <code>path:</code> needed:</p>
-<pre><code class="language-ini">[Service]
-User=detectmate
-StateDirectory=detectmate     # → state at /var/lib/detectmate/&lt;detector&gt;/
-</code></pre>
+<div class="highlight"><pre><span></span><code><span class="k">[Service]</span>
+<span class="na">User</span><span class="o">=</span><span class="s">detectmate</span>
+<span class="na">StateDirectory</span><span class="o">=</span><span class="s">detectmate</span><span class="w">     </span><span class="c1"># → state at /var/lib/detectmate/&lt;detector&gt;/</span>
+</code></pre></div>
 <p>Setting <code>path:</code> explicitly (e.g. an <code>s3://</code> URL) always overrides <code>$STATE_DIRECTORY</code>.</p>
 <h4 id="fields">Fields</h4>
 <table>
@@ -461,39 +461,39 @@ StateDirectory=detectmate     # → state at /var/lib/detectmate/&lt;detector&gt
 </table>
 <h4 id="storage-options-examples">Storage options examples</h4>
 <p><strong>Local filesystem</strong> — no <code>storage_options</code> needed:</p>
-<pre><code class="language-yaml">persist:
-  path: ./state
-</code></pre>
+<div class="highlight"><pre><span></span><code><span class="nt">persist</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./state</span>
+</code></pre></div>
 <p><strong>S3</strong>:</p>
-<pre><code class="language-yaml">persist:
-  path: s3://my-bucket/detector-state
-  storage_options:
-    key: AKIAIOSFODNN7EXAMPLE
-    secret: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-    region_name: eu-west-1
-</code></pre>
+<div class="highlight"><pre><span></span><code><span class="nt">persist</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">s3://my-bucket/detector-state</span>
+<span class="w">  </span><span class="nt">storage_options</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">AKIAIOSFODNN7EXAMPLE</span>
+<span class="w">    </span><span class="nt">secret</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</span>
+<span class="w">    </span><span class="nt">region_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">eu-west-1</span>
+</code></pre></div>
 <p>S3-compatible storage (MinIO, etc.):</p>
-<pre><code class="language-yaml">persist:
-  path: s3://my-bucket/detector-state
-  storage_options:
-    endpoint_url: http://minio:9000
-    key: minioadmin
-    secret: minioadmin
-</code></pre>
+<div class="highlight"><pre><span></span><code><span class="nt">persist</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">s3://my-bucket/detector-state</span>
+<span class="w">  </span><span class="nt">storage_options</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">endpoint_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://minio:9000</span>
+<span class="w">    </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minioadmin</span>
+<span class="w">    </span><span class="nt">secret</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minioadmin</span>
+</code></pre></div>
 <p><strong>Azure Blob Storage</strong>:</p>
-<pre><code class="language-yaml">persist:
-  path: az://my-container/detector-state
-  storage_options:
-    account_name: mystorageaccount
-    account_key: base64encodedkey==
-</code></pre>
+<div class="highlight"><pre><span></span><code><span class="nt">persist</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">az://my-container/detector-state</span>
+<span class="w">  </span><span class="nt">storage_options</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">account_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mystorageaccount</span>
+<span class="w">    </span><span class="nt">account_key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">base64encodedkey==</span>
+</code></pre></div>
 <p><strong>GCS</strong>:</p>
-<pre><code class="language-yaml">persist:
-  path: gs://my-bucket/detector-state
-  storage_options:
-    project: my-gcp-project
-    token: /path/to/service-account.json
-</code></pre>
+<div class="highlight"><pre><span></span><code><span class="nt">persist</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gs://my-bucket/detector-state</span>
+<span class="w">  </span><span class="nt">storage_options</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">project</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-gcp-project</span>
+<span class="w">    </span><span class="nt">token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/service-account.json</span>
+</code></pre></div>
 <p>In practice, credentials are usually supplied via environment variables
 (<code>AWS_ACCESS_KEY_ID</code>, etc.) or instance roles — in which case <code>storage_options</code>
 stays empty or is omitted.</p>

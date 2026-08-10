@@ -193,49 +193,49 @@
 <p><img alt="UML" src="../img/uml_structure.png" /></p>
 <h2 id="components-methods">Components methods</h2>
 <p>Each Core* base class exposes a small, stable API that implementations must implement or may override.</p>
-<pre><code class="language-python">class ConfigComponent(CoreConfig):
-    &quot;&quot;&quot;Contains all the arguments of the component&quot;&quot;&quot;
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">ConfigComponent</span><span class="p">(</span><span class="n">CoreConfig</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Contains all the arguments of the component&quot;&quot;&quot;</span>
 
 
-class Component(CoreComponent):
-    def run(
-        self, input_: List[BaseSchema] | BaseSchema, output_: BaseSchema
-    ) -&gt; bool:
-    &quot;&quot;&quot;Run the component for a specific input&quot;&quot;&quot;
+<span class="k">class</span><span class="w"> </span><span class="nc">Component</span><span class="p">(</span><span class="n">CoreComponent</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]</span> <span class="o">|</span> <span class="n">BaseSchema</span><span class="p">,</span> <span class="n">output_</span><span class="p">:</span> <span class="n">BaseSchema</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run the component for a specific input&quot;&quot;&quot;</span>
 
-    def train(
-        self, input_: List[BaseSchema] | BaseSchema,
-    ) -&gt; None:
-    &quot;&quot;&quot;Train the component with a specific input&quot;&quot;&quot;
+    <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]</span> <span class="o">|</span> <span class="n">BaseSchema</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Train the component with a specific input&quot;&quot;&quot;</span>
 
-    def update_state(self, state: StatesL) -&gt; None:
-    &quot;&quot;&quot;
-    Update the current state by request of the user
-    states:
-    *   keep_training: force to keep training
-    *   stop_training: force to stop training
-    *   keep_configuring: force to keep configuring
-    *   stop_configuring: force to stop configuring
-    &quot;&quot;&quot;
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">StatesL</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Update the current state by request of the user</span>
+<span class="sd">    states:</span>
+<span class="sd">    *   keep_training: force to keep training</span>
+<span class="sd">    *   stop_training: force to stop training</span>
+<span class="sd">    *   keep_configuring: force to keep configuring</span>
+<span class="sd">    *   stop_configuring: force to stop configuring</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    def get_state(self) -&gt; str:
-    &quot;&quot;&quot;
-    Return the current state of the component
-    states:
-    *   Configuring: the component is doing configurations
-    *   Training: the component is training
-    *   Default: the component is just processing data
-    &quot;&quot;&quot;
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the current state of the component</span>
+<span class="sd">    states:</span>
+<span class="sd">    *   Configuring: the component is doing configurations</span>
+<span class="sd">    *   Training: the component is training</span>
+<span class="sd">    *   Default: the component is just processing data</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-    def process(self, data: BaseSchema | bytes) -&gt; BaseSchema | bytes | None:
-    &quot;&quot;&quot;Process the data in a stream fashion (Defined in the CoreComponent)&quot;&quot;&quot;
+    <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">BaseSchema</span> <span class="o">|</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseSchema</span> <span class="o">|</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Process the data in a stream fashion (Defined in the CoreComponent)&quot;&quot;&quot;</span>
 
-    def get_config(self) -&gt; Dict[str, Any]:
-    &quot;&quot;&quot;&quot;Get the configuration of the component (Defined in the CoreComponent)&quot;&quot;&quot;
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;&quot;Get the configuration of the component (Defined in the CoreComponent)&quot;&quot;&quot;</span>
 
-    def update_config(self, new_config: Dict[str, Any]) -&gt; None:
-    &quot;&quot;&quot;&quot;Update the configuration of the component (Defined in the CoreComponent)&quot;&quot;&quot;
-</code></pre>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;&quot;Update the configuration of the component (Defined in the CoreComponent)&quot;&quot;&quot;</span>
+</code></pre></div>
 <p>Go back <a href="../">Index</a></p>
               
             </div>
