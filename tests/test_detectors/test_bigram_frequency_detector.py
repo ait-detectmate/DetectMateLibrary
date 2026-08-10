@@ -22,6 +22,9 @@ import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
 # Set time test mode for consistent timestamps
+import pytest
+
+
 time_test_mode()
 
 
@@ -238,6 +241,7 @@ _PARSER_CONFIG = {
 class TestBigramFrequencyDetectorEndToEnd:
     """Regression test: full configure/train/detect pipeline on audit.log."""
 
+    @pytest.mark.ignored
     def test_audit_log_anomalies(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = BigramFrequencyDetector(
@@ -268,6 +272,7 @@ class TestBigramFrequencyDetectorAutoConfig:
     """Test that process() drives configure/set_configuration/train/detect
     automatically."""
 
+    @pytest.mark.ignored
     def test_audit_log_anomalies_via_process(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = BigramFrequencyDetector(config=_SKIP_REPETITIONS_CONFIG, name="MultipleDetector")

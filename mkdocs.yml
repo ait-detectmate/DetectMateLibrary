@@ -31,6 +31,8 @@ nav:
     - BiGram Frequency: detectors/bigram_frequency.md
     - CharSet: detectors/charset.md
     - Value Range: detectors/value_range.md
+    - Deeplog Detector: detectors/deeplog.md
+    - LogBert Detector: detectors/logbert.md
     - SCVS Detector: detectors/scvs_detector.md
     - ECVC Detector: detectors/ecvc_detector.md
   - Alert Aggregation Methods:

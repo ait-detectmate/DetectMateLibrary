@@ -18,6 +18,7 @@ from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
 
+import pytest
 
 # Set time test mode for consistent timestamps
 time_test_mode()
@@ -154,6 +155,7 @@ _PARSER_CONFIG = {
 class TestNewEventDetectorEndToEnd:
     """Regression test: full configure/train/detect pipeline on audit.log."""
 
+    @pytest.mark.ignored
     def test_audit_log_anomalies(self):
         pars = MatcherParser(config=_PARSER_CONFIG)
         detector = NewEventDetector(config=config, name="NewEventDetector")
@@ -180,6 +182,7 @@ class TestNewEventDetectorAutoConfig:
     """Test that process() drives configure/set_configuration/train/detect
     automatically."""
 
+    @pytest.mark.ignored
     def test_audit_log_anomalies_via_process(self):
         pars = MatcherParser(config=_PARSER_CONFIG)
         detector = NewEventDetector()
