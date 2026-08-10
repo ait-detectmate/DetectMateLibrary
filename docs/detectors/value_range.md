@@ -38,25 +38,7 @@ detectors:
 ## Example usage
 
 ```python
-from detectmatelibrary.detectors.value_range_detector import ValueRangeDetector, BufferMode
-import detectmatelibrary.schemas as schemas
-
-detector = ValueRangeDetector(name="NewValueTest", config=cfg)
-
-parser_data = schemas.ParserSchema({
-    "parserType": "test",
-    "EventID": 1,
-    "template": "test template",
-    "variables": ["1", "2", "17"],
-    "logID": "1",
-    "parsedLogID": "1",
-    "parserID": "test_parser",
-    "log": "test log message",
-    "logFormatVariables": {"timestamp": "123456"}
-})
-
-
-alert = detector.process(parser_data)
+--8<-- "docs/examples/detectors/value_range.py:example"
 ```
 
 Go back [Index](../index.md)

@@ -22,6 +22,9 @@ dependencies = [
     "optax>=0.2.8",
 ]
 
+[tool.pytest.ini_options]
+addopts = "--ignore=local"
+
 [dependency-groups]
 # install with all the dev dependencies:  uv pip install --group dev
 dev = [
@@ -29,6 +32,7 @@ dev = [
     "prek>=0.3.10",
     "pytest>=8.4.2",
     "pytest-cov>=6.2.1",
+    "pymdown-extensions>=10.0",
     "detectmatelibrary[full]",
 ]
 
