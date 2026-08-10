@@ -1,11 +1,11 @@
 from detectmatelibrary.common._config._formats import _EventInstance, EventsConfig
-from detectmatelibrary.common._config._compile import generate_detector_config
+from detectmatelibrary.common._config._compile import generate_detector_config, get_configured_variables
 from detectmatelibrary.common.detector import (
     CoreDetectorConfig,
     CoreDetector,
 )
 from detectmatelibrary.utils.persistency.component_interfaces import (
-    get_configured_variables, validate_config_coverage
+    validate_config_coverage
 )
 from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
     EventStabilityTracker,

@@ -3,13 +3,12 @@ from pydantic import BaseModel, ConfigDict, Field
 import os
 
 from detectmatelibrary.common._config._formats import EventsConfig
-from detectmatelibrary.schemas import ParserSchema
 from detectmatelibrary.tools.logging import logger
 
 from .event_persistency import EventPersistency
 from .persistency_saver import load, save
 
-from typing import Any, Callable, Dict, Protocol
+from typing import Any, Callable, Protocol
 
 
 # Core Component ##################################################################
@@ -108,42 +107,6 @@ class PersistConfig(BaseModel):
     events_until_save: int | None = None
     auto_load: bool = False
     storage_options: dict[str, Any] = {}
-
-
-def get_configured_variables(
-        input_: ParserSchema,
-        log_variables: EventsConfig | dict[str, Any],
-) -> Dict[str, Any]:
-    """Extract variables from input based on what's defined in the config.
-
-    Args:
-        input_: Parser schema containing variables and logFormatVariables
-        log_variables: Config specifying which variables to extract per EventID
-
-    Returns:
-        Dict mapping variable names to their values from the input
-    """
-    event_id = input_["EventID"]
-    result: Dict[str, Any] = {}
-
-    # Get the config for this event
-    event_config = log_variables[event_id] if event_id in log_variables else None
-    if event_config is None:
-        return result
-
-    # Extract template variables by position
-    if hasattr(event_config, "variables"):
-        for pos, var in event_config.variables.items():
-            if isinstance(pos, int) and pos < len(input_["variables"]):
-                result[var.name] = input_["variables"][pos]
-
-    # Extract header/log format variables by name
-    if hasattr(event_config, "header_variables"):
-        for name in event_config.header_variables:
-            if name in input_["logFormatVariables"]:
-                result[name] = input_["logFormatVariables"][name]
-
-    return result
 
 
 def validate_config_coverage(

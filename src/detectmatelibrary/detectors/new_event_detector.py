@@ -5,7 +5,7 @@ from detectmatelibrary.utils import persistency
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
-from detectmatelibrary.utils.persistency.component_interfaces import (
+from detectmatelibrary.common._config._compile import (
     get_configured_variables
 )
 
