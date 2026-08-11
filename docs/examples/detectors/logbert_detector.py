@@ -1,18 +1,18 @@
 # --8<-- [start:example]
-from detectmatelibrary.detectors.deeplog_detector import DeeplogDetector
+from detectmatelibrary.detectors.logbert_detector import LogBertDetector
 
 import detectmatelibrary.schemas as schemas
 
 cfg = {
     "detectors": {
-        "DeeplogDetector": {
-            "method_type": "deeplog_detector",
+        "LogBertDetector": {
+            "method_type": "logbert_detector",
             "auto_config": True,
         }
     }
 }
 
-detector = DeeplogDetector(name="DeeplogDetector", config=cfg)
+detector = LogBertDetector(name="LogBertDetector", config=cfg)
 
 test_data = schemas.ParserSchema({
     "parserType": "test",
