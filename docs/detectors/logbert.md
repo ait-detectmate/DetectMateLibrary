@@ -43,26 +43,6 @@ detectors:
 ## Example usage
 
 ```python
-from detectmatelibrary.detectors.logbert_detector import LogBertDetector
-
-import detectmatelibrary.schemas as schemas
-
-detector = LogBertDetector(name="LogBertDetector", config=cfg)
-
-test_data = schemas.ParserSchema({
-    "parserType": "test",
-    "EventID": 12,
-    "template": "test template",
-    "variables": ["adsasd", "asdasd"],
-    "logID": "2",
-    "parsedLogID": "2",
-    "parserID": "test_parser",
-    "log": "test log message",
-    "logFormatVariables": {"level": "CRITICAL"}
-})
-output = schemas.DetectorSchema()
-
-result = detector.detect(test_data, output)
-
+--8<-- "docs/examples/detectors/logbert_detector.py:example"
 ```
 Go back [Index](../index.md)
