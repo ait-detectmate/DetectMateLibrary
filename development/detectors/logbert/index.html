@@ -226,6 +226,15 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">detectmatelibrary.schemas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">schemas</span>
 
+<span class="n">cfg</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;detectors&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;LogBertDetector&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;method_type&quot;</span><span class="p">:</span> <span class="s2">&quot;logbert_detector&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;auto_config&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
 <span class="n">detector</span> <span class="o">=</span> <span class="n">LogBertDetector</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;LogBertDetector&quot;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
 
 <span class="n">test_data</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">ParserSchema</span><span class="p">({</span>
@@ -241,7 +250,7 @@
 <span class="p">})</span>
 <span class="n">output</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">DetectorSchema</span><span class="p">()</span>
 
-<span class="n">result</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">(</span><span class="n">test_data</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">detect</span><span class="p">([</span><span class="n">test_data</span><span class="p">],</span> <span class="n">output</span><span class="p">)</span>
 </code></pre></div>
 Go back <a href="../../">Index</a></p>
               
