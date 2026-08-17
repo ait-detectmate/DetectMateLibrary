@@ -1,7 +1,7 @@
-from detectmatelibrary.common.core import CoreConfig
-from detectmatelibrary.schemas import BaseSchema
 from detectmatelibrary.utils.persistency.component_interfaces import Stoppable
+from detectmatelibrary.schemas import BaseSchema
 
+from detectmatelibrary.common._config import BasicConfig
 
 from typing import Any, Dict, List
 
@@ -12,7 +12,7 @@ class Component:
         self,
         name: str,
         type_: str = "Core",
-        config: CoreConfig = CoreConfig(),
+        config: BasicConfig = BasicConfig(),
     ) -> None:
         self.name, self.type_, self.config = name, type_, config
         self.saver: Stoppable | None = None

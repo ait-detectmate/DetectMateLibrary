@@ -1,6 +1,7 @@
-from detectmatelibrary.common._core_op._basic_component import Component
 from detectmatelibrary.common._core_op._fit_logic import FitLogicState, StatesL
 from detectmatelibrary.common._core_op._schema_pipeline import SchemaPipeline
+from detectmatelibrary.common._core_op._fed_component import FedOperations
+from detectmatelibrary.common._core_op._basic_component import Component
 from detectmatelibrary.common._core_op._fit_logic import FitLogic
 
 from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
@@ -52,7 +53,7 @@ class CoreConfig(BasicConfig):
     use_config_data_as_training: bool = True
 
 
-class CoreComponent(Component):
+class CoreComponent(Component, FedOperations):
     """Base class for all components in the system."""
     def __init__(
         self,
@@ -63,7 +64,9 @@ class CoreComponent(Component):
         input_schema: type[BaseSchema] = BaseSchema,
         output_schema: type[BaseSchema] = BaseSchema
     ) -> None:
-        super().__init__(name=name, type_=type_, config=config)
+        Component.__init__(self, name=name, type_=type_, config=config)
+        FedOperations.__init__(self)
+        self.config: CoreConfig
         self.input_schema, self.output_schema = input_schema, output_schema
 
         self.data_buffer = DataBuffer(args_buffer)
