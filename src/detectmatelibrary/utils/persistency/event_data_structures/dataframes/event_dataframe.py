@@ -17,7 +17,7 @@ class EventDataFrame(EventDataStructure):
     """
     data: pd.DataFrame = field(default_factory=pd.DataFrame)
 
-    def add_data(self, data: pd.DataFrame, timestamp: float | None = None) -> None:
+    def add_data(self, data: pd.DataFrame) -> None:
         if len(self.data) > 0:
             self.data = pd.concat([self.data, data], ignore_index=True)
         else:

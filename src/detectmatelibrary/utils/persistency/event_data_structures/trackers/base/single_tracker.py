@@ -15,7 +15,7 @@ class SingleTracker(ABC):
     """Tracks whether a single variable is converging to a constant value."""
 
     @abstractmethod
-    def add_value(self, value: Any, timestamp: float | None = None) -> None:
+    def add_value(self, value: Any) -> None:
         """Add a new value to the tracker."""
 
     @abstractmethod
