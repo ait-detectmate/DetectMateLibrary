@@ -1,6 +1,7 @@
 """Tests for the stability_segmentation option of the stability trackers."""
 
 import logging
+import math
 
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig
@@ -172,7 +173,7 @@ class TestClassifierTimeBoundaries:
         times = [float(i // 2) for i in range(40)]  # each stamp used twice
         clf = make_classifier()
         assert clf.is_stable(RLEList(series), timestamps=times) is False
-        assert not any(mean != mean for mean in clf.get_last_segment_means())  # no nan
+        assert not any(math.isnan(mean) for mean in clf.get_last_segment_means())
 
     def test_list_and_rle_agree_on_ragged_length(self):
         """13 items over 4 segments: both paths must cut identically."""
