@@ -25,7 +25,6 @@ class TestJoinOp:
         assert component3._components == component2._components
 
         component1 = component1 + component3
-        print(component2._components)
         assert len(component1._components) == 3
         assert component1._components == component2._components
         assert component1._components == component3._components
@@ -88,6 +87,14 @@ class DummyAppendList(CoreComponent):
         return DummyAppendList(elems=elems)
 
 
+class DummyAppendListEmpty(CoreComponent):
+    def __init__(
+        self, elems: list[str], name: str = "test", *args, **kwargs
+    ) -> None:
+        super().__init__(name, *args, **kwargs)
+        self.elems = elems
+
+
 class TestFedComponent:
     def test_basic_aggregation(self) -> None:
         comp1 = DummyAppendList(elems=[1, 2])
@@ -133,3 +140,17 @@ class TestFedComponent:
         output = comp1.aggregate(unstack=True)
         assert set(comp1.elems) == {1, 2, 3, 4, 5}
         assert isinstance(output, bytes)
+
+    def test_empty_feed_fields(self) -> None:
+        comp1 = DummyAppendListEmpty(elems=[1, 2])
+        comp2 = DummyAppendListEmpty(elems=[3, 4])
+        comp3 = DummyAppendListEmpty(elems=[5])
+
+        with pytest.warns(UserWarning):
+            comp1.to_binary()
+
+        with pytest.warns(UserWarning):
+            comp1.from_binary(b"")
+
+        with pytest.warns(UserWarning):
+            comp1.aggregate_strategy({comp1, comp2, comp3})
