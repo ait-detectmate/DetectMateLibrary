@@ -83,11 +83,19 @@
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#full-lifecycle-with-auto-configuration">Full lifecycle with auto-configuration</a>
     </li>
+    <li class="toctree-l3"><a class="reference internal" href="#stability-segmentation-optional">Stability segmentation (optional)</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#fields">Fields</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#fallback-behaviour">Fallback behaviour</a>
+    </li>
+        </ul>
+    </li>
     <li class="toctree-l3"><a class="reference internal" href="#saving-state-persist">Saving state (persist)</a>
         <ul>
     <li class="toctree-l4"><a class="reference internal" href="#running-under-systemd">Running under systemd</a>
     </li>
-    <li class="toctree-l4"><a class="reference internal" href="#fields">Fields</a>
+    <li class="toctree-l4"><a class="reference internal" href="#fields_1">Fields</a>
     </li>
     <li class="toctree-l4"><a class="reference internal" href="#storage-options-examples">Storage options examples</a>
     </li>
@@ -385,6 +393,90 @@ To configure the number of logs receive as input, you need to configure the <a h
 <span class="mf">4.</span> <span class="n">detect</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="n">output_</span><span class="p">)</span>   <span class="c1"># call for each event to detect anomalies</span>
 </code></pre></div>
 <p>When <code>auto_config</code> is <code>False</code>, steps 1 and 2 are skipped entirely.</p>
+<h3 id="stability-segmentation-optional">Stability segmentation (optional)</h3>
+<p>Stability classification splits a variable's change history into four segments and
+compares each segment's rate of change against a threshold. By default the segments
+are <strong>equal-count</strong>: each holds the same number of observations, regardless of how much
+time they cover. For bursty log sources that is misleading — a variable that changed
+constantly during a quiet night and then went silent under a flood of daytime traffic
+looks stable, because the flood supplies enough samples to dominate the later segments.</p>
+<p>Setting <code>stability_segmentation: time</code> switches the segmentation to <strong>equal-duration</strong> cuts
+of the observed time span, so each segment covers the same amount of wall-clock time. The
+detector then needs an event time per record, which it reads from the log's named
+variables (<code>logFormatVariables</code>, i.e. the fields declared in the parser's <code>log_format</code>)
+under the name given by <code>timestamp_variable</code>.</p>
+<p>These three parameters live on every <code>VariableDetector</code> subclass (<code>NewValueDetector</code>,
+<code>NewValueComboDetector</code>, <code>ValueRangeDetector</code>, <code>CharsetDetector</code>, <code>BigramDetector</code>, …)
+and go in the detector's top-level <code>params</code> block:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">detectors</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">NewValueDetector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">new_value_detector</span>
+<span class="w">    </span><span class="nt">auto_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span>
+<span class="w">    </span><span class="nt">params</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">stability_segmentation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">time</span>
+<span class="w">      </span><span class="nt">timestamp_variable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Time</span><span class="w">      </span><span class="c1"># a field name from the parser&#39;s log_format</span>
+<span class="w">      </span><span class="nt">timestamp_format</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;%y%m%d</span><span class="nv"> </span><span class="s">%H%M%S&quot;</span><span class="w">   </span><span class="c1"># optional; omit to auto-detect</span>
+</code></pre></div>
+<p>Setting <code>stability_segmentation: both</code> runs <em>both</em> segmentations and calls the variable
+stable only when each one does. Neither segmentation subsumes the other — a variable that
+churns in a burst and then settles is unstable by count but stable by time, and one whose
+late churn is buried under a dense tail of repeats is the reverse — so <code>both</code> is strictly
+stricter than either. Use it when a false "stable" is more costly than a missed one; use
+<code>time</code> when the point is specifically to forgive early churn on a bursty source.</p>
+<h4 id="fields">Fields</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>stability_segmentation</code></td>
+<td><code>"count" \| "time" \| "both"</code></td>
+<td><code>"count"</code></td>
+<td>How to cut the change history into segments. <code>count</code> uses equal sample counts; <code>time</code> uses equal time spans; <code>both</code> requires the variable to be stable under each. With <code>count</code> the other two fields are ignored and no timestamps are recorded.</td>
+</tr>
+<tr>
+<td><code>timestamp_variable</code></td>
+<td><code>str \| null</code></td>
+<td><code>null</code></td>
+<td>Name of the field in <code>logFormatVariables</code> holding the record's event time. Required for <code>time</code> and <code>both</code> to have any effect. Only named log-format fields are consulted — never the positional <code>variables</code> list.</td>
+</tr>
+<tr>
+<td><code>timestamp_format</code></td>
+<td><code>str \| null</code></td>
+<td><code>null</code></td>
+<td>Explicit <a href="https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes"><code>strftime</code></a> pattern for parsing that field. When unset, <code>TimeFormatHandler</code> auto-detects the format (ISO 8601, Apache, syslog, numeric epoch seconds/milliseconds, and other common layouts).</td>
+</tr>
+</tbody>
+</table>
+<p>Set <code>timestamp_format</code> when the source uses a layout the auto-detection does not
+know. The HDFS loghub corpus, for example, stamps records as <code>081109 203615</code>, which
+only parses with an explicit <code>"%y%m%d %H%M%S"</code>.</p>
+<h4 id="fallback-behaviour">Fallback behaviour</h4>
+<p>Time-aware segmentation is best-effort and never fails a run:</p>
+<ul>
+<li>If <code>stability_segmentation</code> is not <code>count</code> but <code>timestamp_variable</code> is unset, or the named field
+  is absent from a record, or its value cannot be parsed, the detector logs a
+  <strong>single</strong> warning (once per detector, so a bad config cannot flood the log) and
+  falls back to count-based segmentation.</li>
+<li>If timestamps stop lining up with the recorded observations, or the observed time
+  span is zero, or they arrive out of order, the classifier silently falls back to
+  count-based segmentation for that variable.</li>
+<li>Under <code>both</code>, any of the fallbacks above make the time pass reuse the count boundaries,
+  so the mode degrades to plain <code>count</code> rather than to an unconditional pass.</li>
+</ul>
+<p>In every fallback case classification still runs and produces a result — only the
+segmentation rule changes back to the default.</p>
+<p>A segment with no observations in it is <em>not</em> a fallback: it scores a mean of 0.0,
+because nothing observed means nothing changed. Equal-duration cuts of a bursty
+variable leave such segments routinely, so <code>time</code> on its own is lenient towards a
+burst of churn followed by silence. Use <code>both</code> when that leniency matters — the
+count pass keeps every segment populated.</p>
 <h3 id="saving-state-persist">Saving state (persist)</h3>
 <p>Detectors can persist their training state to disk (or cloud storage) so it
 can be restored in a later session. Configure this with a top-level <code>persist:</code>
@@ -416,7 +508,7 @@ reads automatically. No explicit <code>path:</code> needed:</p>
 <span class="na">StateDirectory</span><span class="o">=</span><span class="s">detectmate</span><span class="w">     </span><span class="c1"># → state at /var/lib/detectmate/&lt;detector&gt;/</span>
 </code></pre></div>
 <p>Setting <code>path:</code> explicitly (e.g. an <code>s3://</code> URL) always overrides <code>$STATE_DIRECTORY</code>.</p>
-<h4 id="fields">Fields</h4>
+<h4 id="fields_1">Fields</h4>
 <table>
 <thead>
 <tr>
