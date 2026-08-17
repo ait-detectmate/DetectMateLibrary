@@ -1,38 +1,36 @@
 # Federation
 
-In this section, we will explain how to use the federation setup. For a component to use federation needs to have implemented the next methods.
+This section explains how to use the federation setup. For a component to support federation, it must implement the following methods:
 
 ```python
-    def to_binary(self) -> bytes | None:
-    """(Federation only) fill it to be compatible with federation ops"""
+def to_binary(self) -> bytes | None:
+    """(Federation only) Serialize to bytes for federation operations."""
 
-    def from_binary(self, binary: bytes) -> object:
-    """(Federation only) fill it to be compatible with federation ops"""
+def from_binary(self, binary: bytes) -> object:
+    """(Federation only) Deserialize from bytes for federation operations."""
 
-    def aggregate_strategy(self, components: set["FedOperations"]) -> None:
-    """(Federation only) fill it to be compatible with federation ops"""
+def aggregate_strategy(self, components: set["FedOperations"]) -> None:
+    """(Federation only) Define how to aggregate a set of federated components."""
 ```
 
-There are two man ways to use federation:
+There are two main ways to use federation:
 
-* **Combine first**: only can be use when all components run locally. The main idea is to simplify the process by allowing components to share memory.
-* **Stack later**: a more standard approach to federated where the "weights" of each component are combine at the end.
+- **Combine first**: This can only be used when all components run locally. The main idea is to simplify the process by allowing components to share memory.
+- **Stack later**: A more standard federated approach where the "weights" or state of each component are combined at the end.
 
 ## Example class
 
-For all the examplaes bellow, we will use this code:
+For all the examples below, we will use this code:
 
 ```python
 --8<-- "docs/examples/others/federation.py:example_1"
 ```
 
-
 ## Combine first
 
-The diagram bellow show the workflow:
+The diagram below shows the workflow:
 
 ![combine](img/fed_combine_first.png)
-
 
 Example 1:
 
@@ -48,9 +46,9 @@ Example 2:
 
 ## Stack
 
-The diagram bellow show the workflow:
+The diagram below shows the workflow:
 
-![combine](img/fed_stack_later.png)
+![stack](img/fed_stack_later.png)
 
 Example 1:
 
