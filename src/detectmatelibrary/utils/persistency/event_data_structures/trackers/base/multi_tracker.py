@@ -13,12 +13,12 @@ class MultiTracker:
         self.single_trackers: Dict[str, SingleTracker] = {}
         self.single_tracker_type: Callable[[], SingleTracker] = single_tracker_type
 
-    def add_data(self, data_object: Dict[str, Any]) -> None:
+    def add_data(self, data_object: Dict[str, Any], timestamp: float | None = None) -> None:
         """Add data to the appropriate feature trackers."""
         for name, value in data_object.items():
             if name not in self.single_trackers:
                 self.single_trackers[name] = self.single_tracker_type()
-            self.single_trackers[name].add_value(value)
+            self.single_trackers[name].add_value(value, timestamp=timestamp)
 
     def get_trackers(self) -> Dict[str, SingleTracker]:
         """Get the current feature trackers."""
