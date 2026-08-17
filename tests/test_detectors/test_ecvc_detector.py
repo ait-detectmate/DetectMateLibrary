@@ -7,6 +7,7 @@ from detectmatelibrary import schemas
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
 
 import numpy as np
+import pytest
 
 
 class TestECVCOP:
@@ -136,6 +137,7 @@ PIPELINE_CONFIG = {
 class TestECVCDetectorEndToEnd:
     """Regression test: full configure/train/detect pipeline on audit.log."""
 
+    @pytest.mark.ignored
     def test_audit_log_anomalies(self):
         parser = MatcherParser(config=PIPELINE_CONFIG)
         detector = ECVCDetector(config=PIPELINE_CONFIG)

@@ -7,6 +7,6 @@ __deprecated__ = False
 __website__ = "https://aecid.ait.ac.at"
 __license__ = "EUPL-1.2"
 __status__ = "Development"
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 __all__ = ['__authors__', '__contact__', '__copyright__', '__date__', '__deprecated__', '__website__',
            '__license__', '__status__', '__version__']
