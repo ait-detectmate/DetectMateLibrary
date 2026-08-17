@@ -44,8 +44,7 @@ class EventPersistency:
         event_id: int | str,
         event_template: str,
         variables: list[Any] = [],
-        named_variables: Dict[str, Any] = {},
-        timestamp: float | None = None,
+        named_variables: Dict[str, Any] = {}
     ) -> None:
         """Ingest event data into the appropriate EventData store."""
         with self._lock:
@@ -61,7 +60,7 @@ class EventPersistency:
                     self.events_data[event_id] = data_structure
 
                 data = data_structure.to_data(all_variables)
-                data_structure.add_data(data, timestamp=timestamp)
+                data_structure.add_data(data)
         # ponytail: fire callbacks outside the lock so a count-triggered save
         # doesn't hold the ingest lock across serialize + file I/O.
         for _cb in self._on_ingest_callbacks:
