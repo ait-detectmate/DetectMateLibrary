@@ -4,6 +4,7 @@ from .new_value_detector import NewValueDetector, NewValueDetectorConfig
 from .new_event_detector import NewEventDetector, NewEventDetectorConfig
 from .value_range_detector import ValueRangeDetector, ValueRangeDetectorConfig
 from .charset_detector import CharsetDetector, CharsetDetectorConfig
+from .new_sequence_detector import NewSequenceDetector, NewSequenceDetectorConfig
 
 __all__ = [
     "random_detector",
@@ -18,5 +19,7 @@ __all__ = [
     "CharsetDetector",
     "CharsetDetectorConfig",
     "BigramFrequencyDetector",
-    "BigramFrequencyDetectorConfig"
+    "BigramFrequencyDetectorConfig",
+    "NewSequenceDetector",
+    "NewSequenceDetectorConfig"
 ]

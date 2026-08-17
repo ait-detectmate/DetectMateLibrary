@@ -27,6 +27,7 @@ nav:
     - New Value: detectors/new_value.md
     - Combo Detector: detectors/combo.md
     - New Event: detectors/new_event.md
+    - New Sequence: detectors/new_sequence.md
     - Rule Based: detectors/rule_based.md
     - BiGram Frequency: detectors/bigram_frequency.md
     - CharSet: detectors/charset.md
