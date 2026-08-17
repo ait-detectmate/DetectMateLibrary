@@ -23,7 +23,7 @@ def _decode_sequence(encoded: str) -> tuple[int, ...]:
     return tuple(int(event_id) for event_id in encoded.split(_SEQUENCE_SEPARATOR))
 
 
-class NewSequenceDetectorConfig(CoreDetectorConfig):
+class EventSequenceDetectorConfig(CoreDetectorConfig):
     """
     @param fixed_window_size length of the sliding EventID window. A window whose exact
            EventID sequence was not seen during training is reported as an anomaly. When
@@ -35,31 +35,31 @@ class NewSequenceDetectorConfig(CoreDetectorConfig):
     @param max_window_size longest window length tried during the auto-configuration
            phase. The longest length whose sequences are classified STABLE or STATIC wins.
     """
-    method_type: str = "new_sequence_detector"
+    method_type: str = "event_sequence_detector"
     min_window_size: int = Field(default=2, ge=1)
     max_window_size: int = Field(default=10, ge=1)
     fixed_window_size: int | None = Field(default=None, ge=1)
 
     @model_validator(mode="after")
-    def _validate_window_range(self) -> "NewSequenceDetectorConfig":
+    def _validate_window_range(self) -> "EventSequenceDetectorConfig":
         if self.max_window_size < self.min_window_size:
             raise ValueError("max_window_size must be >= min_window_size")
         return self
 
 
-class NewSequenceDetector(CoreDetector):
+class EventSequenceDetector(CoreDetector):
     """Detect EventID sequences not encountered in training as anomalies."""
 
     def __init__(
             self,
-            name: str = "NewSequenceDetector",
-            config: NewSequenceDetectorConfig = NewSequenceDetectorConfig()
+            name: str = "EventSequenceDetector",
+            config: EventSequenceDetectorConfig = EventSequenceDetectorConfig()
     ) -> None:
         if isinstance(config, dict):
-            config = NewSequenceDetectorConfig.from_dict(config, name)
+            config = EventSequenceDetectorConfig.from_dict(config, name)
 
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
-        self.config: NewSequenceDetectorConfig
+        self.config: EventSequenceDetectorConfig
         # CoreComponent.process() calls train() *and* run()->detect() for every
         # training event, so a single shared window would ingest each event twice.
         # maxlen is None while unconfigured, but nothing is appended in that state.
@@ -223,7 +223,7 @@ class NewSequenceDetector(CoreDetector):
                 "created and it will neither train nor alert."
             )
             old_persist = self.config.persist
-            self.config = NewSequenceDetectorConfig.from_dict(
+            self.config = EventSequenceDetectorConfig.from_dict(
                 generate_detector_config(
                     variable_selection={},
                     detector_name=self.name,

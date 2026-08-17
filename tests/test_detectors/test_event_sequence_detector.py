@@ -1,6 +1,6 @@
-"""Tests for NewSequenceDetector class.
+"""Tests for EventSequenceDetector class.
 
-This module tests the NewSequenceDetector implementation including:
+This module tests the EventSequenceDetector implementation including:
 - Initialization and configuration
 - Training functionality to learn known EventID sequences
 - Detection logic for unknown sequences
@@ -10,8 +10,8 @@ This module tests the NewSequenceDetector implementation including:
 import pytest
 from pydantic import ValidationError
 
-from detectmatelibrary.detectors.new_sequence_detector import NewSequenceDetector, \
-    NewSequenceDetectorConfig, BufferMode
+from detectmatelibrary.detectors.event_sequence_detector import EventSequenceDetector, \
+    EventSequenceDetectorConfig, BufferMode
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
@@ -27,14 +27,14 @@ time_test_mode()
 config = {
     "detectors": {
         "CustomInit": {
-            "method_type": "new_sequence_detector",
+            "method_type": "event_sequence_detector",
             "auto_config": False,
             "params": {
                 "fixed_window_size": 2
             }
         },
         "MultipleDetector": {
-            "method_type": "new_sequence_detector",
+            "method_type": "event_sequence_detector",
             "auto_config": False,
             "params": {
                 "fixed_window_size": 2
@@ -58,13 +58,13 @@ def _make_schema(event_id, template="test template", log_id="1"):
     })
 
 
-class TestNewSequenceDetectorInitialization:
-    """Test NewSequenceDetector initialization and configuration."""
+class TestEventSequenceDetectorInitialization:
+    """Test EventSequenceDetector initialization and configuration."""
 
     def test_default_initialization(self):
-        detector = NewSequenceDetector()
+        detector = EventSequenceDetector()
 
-        assert detector.name == "NewSequenceDetector"
+        assert detector.name == "EventSequenceDetector"
         assert hasattr(detector, "config")
         assert detector.data_buffer.mode == BufferMode.NO_BUF
         assert detector.input_schema == schemas.ParserSchema
@@ -75,7 +75,7 @@ class TestNewSequenceDetectorInitialization:
         assert (detector.config.min_window_size, detector.config.max_window_size) == (2, 10)
 
     def test_custom_config_initialization(self):
-        detector = NewSequenceDetector(name="CustomInit", config=config)
+        detector = EventSequenceDetector(name="CustomInit", config=config)
 
         assert detector.name == "CustomInit"
         assert detector.config.fixed_window_size == 2
@@ -83,11 +83,11 @@ class TestNewSequenceDetectorInitialization:
         assert isinstance(detector.persistency.events_data, dict)
 
 
-class TestNewSequenceDetectorTraining:
-    """Test NewSequenceDetector training functionality."""
+class TestEventSequenceDetectorTraining:
+    """Test EventSequenceDetector training functionality."""
 
     def test_train_learns_sequence(self):
-        detector = NewSequenceDetector(config=config, name="MultipleDetector")
+        detector = EventSequenceDetector(config=config, name="MultipleDetector")
 
         for event_id in [1, 2, 3]:
             detector.train(_make_schema(event_id))
@@ -96,7 +96,7 @@ class TestNewSequenceDetectorTraining:
         assert detector.get_known_sequences() == {(1, 2), (2, 3)}
 
     def test_train_below_window_length_learns_nothing(self):
-        detector = NewSequenceDetector(config=config, name="MultipleDetector")
+        detector = EventSequenceDetector(config=config, name="MultipleDetector")
 
         # Only one event seen so far, window not yet full (fixed_window_size=2)
         detector.train(_make_schema(1))
@@ -104,11 +104,11 @@ class TestNewSequenceDetectorTraining:
         assert detector.get_known_sequences() == set()
 
 
-class TestNewSequenceDetectorDetection:
-    """Test NewSequenceDetector detection functionality."""
+class TestEventSequenceDetectorDetection:
+    """Test EventSequenceDetector detection functionality."""
 
     def test_detect_known_sequence_no_alert(self):
-        detector = NewSequenceDetector(config=config, name="MultipleDetector")
+        detector = EventSequenceDetector(config=config, name="MultipleDetector")
 
         # Repeating the cycle 1 -> 2 -> 3 teaches sequences (1,2), (2,3), (3,1)
         for event_id in [1, 2, 3, 1, 2, 3]:
@@ -123,7 +123,7 @@ class TestNewSequenceDetectorDetection:
         assert output.score == 0.0
 
     def test_detect_unknown_sequence_alert(self):
-        detector = NewSequenceDetector(config=config, name="MultipleDetector")
+        detector = EventSequenceDetector(config=config, name="MultipleDetector")
 
         for event_id in [1, 2, 3, 1, 2, 3]:
             detector.train(_make_schema(event_id))
@@ -138,7 +138,7 @@ class TestNewSequenceDetectorDetection:
         assert any("Sequence" in key for key in output["alertsObtain"])
 
     def test_detect_below_window_length_no_alert(self):
-        detector = NewSequenceDetector(config=config, name="MultipleDetector")
+        detector = EventSequenceDetector(config=config, name="MultipleDetector")
 
         # First event with an empty detector: window not yet full, can't be an anomaly
         output = schemas.DetectorSchema()
@@ -148,11 +148,11 @@ class TestNewSequenceDetectorDetection:
         assert output.score == 0.0
 
 
-class TestNewSequenceDetectorWindow:
+class TestEventSequenceDetectorWindow:
     """Test sliding-window behaviour."""
 
     def test_reset_window_clears_state(self):
-        detector = NewSequenceDetector(config=config, name="MultipleDetector")
+        detector = EventSequenceDetector(config=config, name="MultipleDetector")
 
         detector.train(_make_schema(1))
         detector.detect(_make_schema(1), schemas.DetectorSchema())
@@ -166,10 +166,10 @@ class TestNewSequenceDetectorWindow:
     def test_train_and_detect_windows_are_independent(self):
         """CoreComponent.process() calls train() and detect() for the same
         event, so a shared window would ingest every training event twice."""
-        detector = NewSequenceDetector(
+        detector = EventSequenceDetector(
             name="Independent",
-            config=NewSequenceDetectorConfig(auto_config=False, fixed_window_size=3,
-                                             data_use_training=6),
+            config=EventSequenceDetectorConfig(auto_config=False, fixed_window_size=3,
+                                               data_use_training=6),
         )
 
         alerts = [
@@ -199,14 +199,14 @@ _PARSER_CONFIG = {
 }
 
 
-class TestNewSequenceDetectorEndToEnd:
+class TestEventSequenceDetectorEndToEnd:
     """Regression test: full train/detect pipeline on audit.log."""
 
     def test_audit_log_anomalies(self):
         pars = MatcherParser(config=_PARSER_CONFIG)
-        detector = NewSequenceDetector(
-            config=NewSequenceDetectorConfig(auto_config=False, fixed_window_size=3),
-            name="NewSequenceDetector",
+        detector = EventSequenceDetector(
+            config=EventSequenceDetectorConfig(auto_config=False, fixed_window_size=3),
+            name="EventSequenceDetector",
         )
 
         logs = list(From.log(pars, in_path=AUDIT_LOG, do_process=True))
@@ -228,7 +228,7 @@ class TestNewSequenceDetectorEndToEnd:
         """Same regression, driven through process() so the configure ->
         set_configuration -> train -> detect lifecycle is exercised."""
         pars = MatcherParser(config=_PARSER_CONFIG)
-        detector = NewSequenceDetector(name="NewSequenceProcess")
+        detector = EventSequenceDetector(name="EventSequenceProcess")
 
         logs = list(From.log(pars, in_path=AUDIT_LOG, do_process=True))
 
@@ -266,16 +266,16 @@ class TestNewSequenceDetectorEndToEnd:
 _STABLE_STREAM = [1] * 8
 
 
-class TestNewSequenceDetectorAutoConfig:
+class TestEventSequenceDetectorAutoConfig:
     """Test the auto-configuration of fixed_window_size."""
 
     def test_short_configure_phase_skips_unfilled_candidates(self):
         """Candidates whose window never filled produce no tracker data and
         must be skipped rather than looked up: 6 configure events cannot fill a
         window of 7 or 8."""
-        detector = NewSequenceDetector(
+        detector = EventSequenceDetector(
             name="ShortConfig",
-            config=NewSequenceDetectorConfig(
+            config=EventSequenceDetectorConfig(
                 data_use_configure=6, data_use_training=1,
                 min_window_size=2, max_window_size=8,
             ),
@@ -288,9 +288,9 @@ class TestNewSequenceDetectorAutoConfig:
 
     def test_set_configuration_preserves_user_config(self):
         """Auto-configuration must only change fixed_window_size."""
-        detector = NewSequenceDetector(
+        detector = EventSequenceDetector(
             name="Preserve",
-            config=NewSequenceDetectorConfig(
+            config=EventSequenceDetectorConfig(
                 parser="MySequenceParser",
                 data_use_configure=6,
                 data_use_training=10,
@@ -312,9 +312,9 @@ class TestNewSequenceDetectorAutoConfig:
     def test_configure_windows_follow_config_changes(self):
         """_configure_windows is built lazily, so changing the range after
         construction must not raise."""
-        detector = NewSequenceDetector(
+        detector = EventSequenceDetector(
             name="LateCandidates",
-            config=NewSequenceDetectorConfig(min_window_size=2, max_window_size=3),
+            config=EventSequenceDetectorConfig(min_window_size=2, max_window_size=3),
         )
         detector.config.min_window_size = 4
         detector.config.max_window_size = 5
@@ -325,9 +325,9 @@ class TestNewSequenceDetectorAutoConfig:
 
     def test_fixed_window_size_skips_auto_config(self):
         """A user-set fixed_window_size wins over the candidate range."""
-        detector = NewSequenceDetector(
+        detector = EventSequenceDetector(
             name="FixedWins",
-            config=NewSequenceDetectorConfig(
+            config=EventSequenceDetectorConfig(
                 data_use_configure=5, data_use_training=1,
                 min_window_size=4, max_window_size=6, fixed_window_size=2,
             ),
@@ -342,9 +342,9 @@ class TestNewSequenceDetectorAutoConfig:
     def test_no_stable_window_size_generates_no_instance(self):
         """No stable candidate must leave the detector unconfigured rather than
         fall back to an arbitrary length that alerts on everything."""
-        detector = NewSequenceDetector(
+        detector = EventSequenceDetector(
             name="NoStable",
-            config=NewSequenceDetectorConfig(
+            config=EventSequenceDetectorConfig(
                 data_use_configure=5, data_use_training=1,
                 # no window of 8+ can fill within a 5-event configure phase
                 min_window_size=8, max_window_size=10,
@@ -365,9 +365,9 @@ class TestNewSequenceDetectorAutoConfig:
     def test_unstable_stream_generates_no_instance(self):
         """The other route to 'no stable candidate': every window fills and
         clears min_samples, but the sequences never settle."""
-        detector = NewSequenceDetector(
+        detector = EventSequenceDetector(
             name="Unstable",
-            config=NewSequenceDetectorConfig(min_window_size=2, max_window_size=4),
+            config=EventSequenceDetectorConfig(min_window_size=2, max_window_size=4),
         )
 
         for i, event_id in enumerate(range(30)):  # every event ID unique
@@ -391,9 +391,9 @@ class TestNewSequenceDetectorAutoConfig:
         assert not detector.detect(_make_schema(9), schemas.DetectorSchema())
 
     def test_auto_config_off_without_fixed_window_size_is_inert(self):
-        detector = NewSequenceDetector(
+        detector = EventSequenceDetector(
             name="NoWindow",
-            config=NewSequenceDetectorConfig(auto_config=False),
+            config=EventSequenceDetectorConfig(auto_config=False),
         )
 
         for event_id in [1, 2, 3, 1, 2, 3]:
@@ -408,9 +408,9 @@ _CYCLE_3_GRAMS = {(1, 2, 3), (2, 3, 1), (3, 1, 2)}
 
 def _save_trained_detector(name, path, fixed_window_size=3):
     """Train the 1 -> 2 -> 3 cycle and persist the resulting model."""
-    detector = NewSequenceDetector(
+    detector = EventSequenceDetector(
         name=name,
-        config=NewSequenceDetectorConfig(
+        config=EventSequenceDetectorConfig(
             auto_config=False,
             fixed_window_size=fixed_window_size,
             persist=PersistConfig(path=path),
@@ -424,17 +424,17 @@ def _save_trained_detector(name, path, fixed_window_size=3):
     return detector
 
 
-class TestNewSequenceDetectorPersist:
+class TestEventSequenceDetectorPersist:
     """Sequences are stored as fixed-length n-grams, so a restored model is
     only valid at the length it was trained with."""
 
     def test_no_saver_by_default(self):
-        assert NewSequenceDetector().saver is None
+        assert EventSequenceDetector().saver is None
 
     def test_saver_created_when_persist_configured(self):
-        detector = NewSequenceDetector(
+        detector = EventSequenceDetector(
             name="NSD_Saver",
-            config=NewSequenceDetectorConfig(
+            config=EventSequenceDetectorConfig(
                 auto_config=False,
                 persist=PersistConfig(path="memory://nsd_saver/state"),
             ),
@@ -446,9 +446,9 @@ class TestNewSequenceDetectorPersist:
         base_path = "memory://nsd_match/state"
         _save_trained_detector("NSD_Match", base_path, fixed_window_size=3)
 
-        det2 = NewSequenceDetector(
+        det2 = EventSequenceDetector(
             name="NSD_Match",
-            config=NewSequenceDetectorConfig(
+            config=EventSequenceDetectorConfig(
                 auto_config=False,
                 fixed_window_size=3,
                 persist=PersistConfig(path=base_path, auto_load=True),
@@ -464,9 +464,9 @@ class TestNewSequenceDetectorPersist:
         base_path = "memory://nsd_reload/state"
         _save_trained_detector("NSD_Reload", base_path, fixed_window_size=3)
 
-        det2 = NewSequenceDetector(
+        det2 = EventSequenceDetector(
             name="NSD_Reload",
-            config=NewSequenceDetectorConfig(
+            config=EventSequenceDetectorConfig(
                 auto_config=False,
                 fixed_window_size=4,  # mismatch: restored model is 3-grams
                 persist=PersistConfig(path=base_path, auto_load=True),
@@ -492,9 +492,9 @@ class TestNewSequenceDetectorPersist:
         det1 = _save_trained_detector("NSD_Import", base_path, fixed_window_size=3)
         det1.export_state(base_path)
 
-        det2 = NewSequenceDetector(
+        det2 = EventSequenceDetector(
             name="NSD_Import",
-            config=NewSequenceDetectorConfig(auto_config=False, fixed_window_size=4),
+            config=EventSequenceDetectorConfig(auto_config=False, fixed_window_size=4),
         )
         det2.import_state(base_path)
 
@@ -508,9 +508,9 @@ class TestNewSequenceDetectorPersist:
         base_path = "memory://nsd_autoconf/state"
         _save_trained_detector("NSD_AutoConf", base_path, fixed_window_size=3)
 
-        det2 = NewSequenceDetector(
+        det2 = EventSequenceDetector(
             name="NSD_AutoConf",
-            config=NewSequenceDetectorConfig(
+            config=EventSequenceDetectorConfig(
                 data_use_configure=5,
                 data_use_training=1,
                 min_window_size=4, max_window_size=5,  # 3 deliberately excluded
@@ -530,9 +530,9 @@ class TestNewSequenceDetectorPersist:
         """The no-instance path replaces the whole config object, so the
         persist block has to be carried over by hand."""
         base_path = "memory://nsd_nostable/state"
-        detector = NewSequenceDetector(
+        detector = EventSequenceDetector(
             name="NSD_NoStable",
-            config=NewSequenceDetectorConfig(
+            config=EventSequenceDetectorConfig(
                 data_use_configure=5,
                 data_use_training=1,
                 # no window of 8+ can fill within a 5-event configure phase
@@ -555,9 +555,9 @@ class TestNewSequenceDetectorPersist:
         base_path = "memory://nsd_continue/state"
         _save_trained_detector("NSD_Continue", base_path, fixed_window_size=3)
 
-        det2 = NewSequenceDetector(
+        det2 = EventSequenceDetector(
             name="NSD_Continue",
-            config=NewSequenceDetectorConfig(
+            config=EventSequenceDetectorConfig(
                 auto_config=False,
                 fixed_window_size=3,
                 persist=PersistConfig(path=base_path, auto_load=True),
@@ -573,23 +573,23 @@ class TestNewSequenceDetectorPersist:
         assert det2.get_known_sequences() == _CYCLE_3_GRAMS | {(7, 8, 9)}
 
 
-class TestNewSequenceDetectorConfigValidation:
+class TestEventSequenceDetectorConfigValidation:
     """Window lengths below 1 disable detection silently, so reject them."""
 
     def test_zero_fixed_window_size_rejected(self):
         with pytest.raises(ValidationError):
-            NewSequenceDetectorConfig(fixed_window_size=0)
+            EventSequenceDetectorConfig(fixed_window_size=0)
 
     def test_zero_min_window_size_rejected(self):
         with pytest.raises(ValidationError):
-            NewSequenceDetectorConfig(min_window_size=0)
+            EventSequenceDetectorConfig(min_window_size=0)
 
     def test_inverted_window_range_rejected(self):
         with pytest.raises(ValidationError):
-            NewSequenceDetectorConfig(min_window_size=5, max_window_size=4)
+            EventSequenceDetectorConfig(min_window_size=5, max_window_size=4)
 
     def test_removed_fields_rejected(self):
         """Extra='forbid': configs written for the old field names must fail
         loudly rather than silently run with defaults."""
         with pytest.raises(ValidationError):
-            NewSequenceDetectorConfig(max_sequence_length=3)
+            EventSequenceDetectorConfig(max_sequence_length=3)

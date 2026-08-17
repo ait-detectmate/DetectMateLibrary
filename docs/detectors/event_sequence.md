@@ -1,6 +1,6 @@
-# New Sequence Detector
+# Event Sequence Detector
 
-The New Sequence Detector raises alerts when a run of consecutive event IDs appears in an order that was never observed during training. It is useful to detect broken or unexpected workflows in an environment where the individual events are all benign on their own.
+The Event Sequence Detector raises alerts when a run of consecutive event IDs appears in an order that was never observed during training. It is useful to detect broken or unexpected workflows in an environment where the individual events are all benign on their own.
 
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
@@ -29,8 +29,8 @@ Longer windows are more specific and therefore alert more readily; if the auto-c
 
 ```yaml
 detectors:
-    NewSequenceDetector:
-        method_type: new_sequence_detector
+    EventSequenceDetector:
+        method_type: event_sequence_detector
         auto_config: False
         params:
             fixed_window_size: 3
@@ -40,8 +40,8 @@ With auto configuration:
 
 ```yaml
 detectors:
-    NewSequenceDetector:
-        method_type: new_sequence_detector
+    EventSequenceDetector:
+        method_type: event_sequence_detector
         auto_config: True
         data_use_configure: 500
         params:
@@ -58,13 +58,13 @@ detectors:
 ## Example usage
 
 ```python
-from detectmatelibrary.detectors.new_sequence_detector import NewSequenceDetector, \
-    NewSequenceDetectorConfig
+from detectmatelibrary.detectors.event_sequence_detector import EventSequenceDetector, \
+    EventSequenceDetectorConfig
 import detectmatelibrary.schemas as schemas
 
-detector = NewSequenceDetector(
-    name="NewSequenceTest",
-    config=NewSequenceDetectorConfig(auto_config=False, fixed_window_size=3),
+detector = EventSequenceDetector(
+    name="EventSequenceTest",
+    config=EventSequenceDetectorConfig(auto_config=False, fixed_window_size=3),
 )
 
 parser_data = schemas.ParserSchema({
