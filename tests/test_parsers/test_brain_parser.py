@@ -21,6 +21,19 @@ TRAIN_LOGS = [
 ]
 PARSE_LOG = "Connection from 192.168.1.4 port 25"
 
+# Two distinct log shapes (different lengths -> different Brain length buckets).
+MULTI_SHAPE_TRAIN_LOGS = [
+    "Connection from 192.168.1.1 port 22",
+    "Connection from 192.168.1.2 port 23",
+    "Connection from 192.168.1.3 port 24",
+    "User root login failed",
+    "User admin login failed",
+    "User guest login failed",
+]
+CONNECTION_PARSE_LOG = "Connection from 192.168.1.9 port 99"
+USER_PARSE_LOG = "User nobody login failed"
+UNRELATED_LOG = "Completely unrelated shutdown event happened"
+
 
 def _train(parser: BrainParser, logs: list[str]) -> schemas.ParserSchema:
     """Feed logs through process() (which drives train -> post_train once
@@ -85,6 +98,54 @@ class TestBrainParserLifecycle:
 
         assert isinstance(result["EventID"], int)
         assert result["EventID"] != -1
+
+
+class TestBrainParserMultiShape:
+    """Training corpora with more than one log shape (length bucket)."""
+
+    def test_distinct_shapes_get_distinct_templates(self):
+        config = BrainParserConfig(data_use_training=len(MULTI_SHAPE_TRAIN_LOGS))
+        parser = BrainParser(config=config)
+
+        for i, log in enumerate(MULTI_SHAPE_TRAIN_LOGS):
+            parser.process(schemas.LogSchema({"logID": str(i), "log": log}))
+        # First process() call past the training quota both finalizes
+        # post_train() and parses this same log through the fresh matcher.
+        conn_result = parser.process(
+            schemas.LogSchema({"logID": "conn", "log": CONNECTION_PARSE_LOG})
+        )
+        user_result = parser.process(
+            schemas.LogSchema({"logID": "user", "log": USER_PARSE_LOG})
+        )
+
+        assert conn_result["template"] == "Connection from <*> port <*>"
+        assert user_result["template"] == "User <*> login failed"
+        assert conn_result["template"] != user_result["template"]
+
+        assert isinstance(conn_result["EventID"], int)
+        assert isinstance(user_result["EventID"], int)
+        assert conn_result["EventID"] != user_result["EventID"]
+
+        assert "192.168.1.9" in conn_result["variables"]
+        assert "99" in conn_result["variables"]
+        assert "nobody" in user_result["variables"]
+
+    def test_no_match_after_training_uses_not_found_fallback(self):
+        config = BrainParserConfig(data_use_training=len(MULTI_SHAPE_TRAIN_LOGS))
+        parser = BrainParser(config=config)
+
+        for i, log in enumerate(MULTI_SHAPE_TRAIN_LOGS):
+            parser.process(schemas.LogSchema({"logID": str(i), "log": log}))
+        result = parser.process(schemas.LogSchema({"logID": "x", "log": UNRELATED_LOG}))
+
+        # Training has genuinely finished (unlike the pre-training fallback
+        # test above, where template_matcher is None) - the "<Not Found>"
+        # here comes from TemplateMatcher failing to match, not from the
+        # "no matcher yet" branch in BrainParser.parse().
+        assert parser.template_matcher is not None
+        assert result["template"] == "<Not Found>"
+        assert result["EventID"] == -1
+        assert result["variables"] == []
 
 
 class TestBrainEngine:
