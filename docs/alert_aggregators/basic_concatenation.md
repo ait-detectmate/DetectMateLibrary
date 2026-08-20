@@ -21,25 +21,5 @@ alert_aggregators:
 ## Example usage
 
 ```python
-from detectmatelibrary.alert_aggregation.basic_concat import BasicConcatAggregation
-
-import detectmatelibrary.schemas as schemas
-
-input_ = schemas.DetectorSchema({
-    "detectorID": "1",
-    "detectorType": "dummy",
-    "alertID": "2",
-    "detectionTimestamp": 0,
-    "logIDs": ["logID1"],
-    "score": 0.2,
-    "extractedTimestamps": [-1],
-    "description": "hello there",
-    "receivedTimestamp": 1,
-    "alertsObtain": {"99 problems": "but logs aint one"}
-})
-
-alert_aggregator = BasicConcatAggregation(
-    "BasicConcatAggregator", aggregations_config
-)
-alert_aggregator.process(input_)
+--8<-- "docs/examples/alert_aggregators/basic_concat.py:example_1"
 ```
