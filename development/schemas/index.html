@@ -468,16 +468,14 @@
 <h3 id="initialize-a-schema">Initialize a schema</h3>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary</span><span class="w"> </span><span class="kn">import</span> <span class="n">schemas</span>
 
-<span class="n">kwargs</span> <span class="o">=</span> <span class="n">load_somewhere</span><span class="p">()</span>  <span class="c1"># load the dict</span>
-<span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;log&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;Test log&quot;</span>
 
-<span class="n">log_schema</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="n">log_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="s2">&quot;Test log&quot;</span><span class="p">}</span>
+
+<span class="n">log_schema</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">(</span><span class="n">log_dict</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">log_schema</span><span class="o">.</span><span class="n">log</span> <span class="o">==</span> <span class="s2">&quot;Test log&quot;</span><span class="p">)</span>  <span class="c1"># True</span>
 </code></pre></div>
 <h3 id="assign-values">Assign values</h3>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary</span><span class="w"> </span><span class="kn">import</span> <span class="n">schemas</span>
-
-<span class="n">log_schema</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><span class="n">log_schema</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">()</span>
 <span class="n">log_schema</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="s2">&quot;Test log&quot;</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">log_schema</span><span class="p">[</span><span class="s2">&quot;log&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">log_schema</span><span class="o">.</span><span class="n">log</span><span class="p">)</span>  <span class="c1"># True</span>
 
@@ -488,16 +486,14 @@
 <span class="nb">print</span><span class="p">(</span><span class="n">log_schema</span> <span class="o">==</span> <span class="n">log_schema2</span><span class="p">)</span>  <span class="c1"># True</span>
 </code></pre></div>
 <h3 id="serialization">Serialization</h3>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary</span><span class="w"> </span><span class="kn">import</span> <span class="n">schemas</span>
-
-<span class="n">log_schema</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><span class="n">log_schema</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">()</span>
 <span class="n">log_schema</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="s2">&quot;Test log&quot;</span>
 <span class="n">serialized</span> <span class="o">=</span> <span class="n">log_schema</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">serialized</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">))</span>  <span class="c1"># True</span>
 
 <span class="n">new_log_schema</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">()</span>
 <span class="n">new_log_schema</span><span class="o">.</span><span class="n">deserialize</span><span class="p">(</span><span class="n">serialized</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">new_log_schema</span><span class="o">.</span><span class="n">schema_id</span> <span class="o">==</span> <span class="n">log_schema</span><span class="o">.</span><span class="n">schema_id</span><span class="p">)</span>  <span class="c1"># True</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">new_log_schema</span> <span class="o">==</span> <span class="n">log_schema</span><span class="p">)</span>  <span class="c1"># True</span>
 </code></pre></div>
 <p>Go back <a href="../">Index</a></p>
               

@@ -200,6 +200,18 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">detectmatelibrary.schemas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">schemas</span>
 
+
+<span class="n">aggregations_config</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;alert_aggregators&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;BasicConcatAggregator&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;method_type&quot;</span><span class="p">:</span> <span class="s2">&quot;basic_concat_aggregator&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;buffer_size&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">&quot;auto_config&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+
 <span class="n">input_</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">DetectorSchema</span><span class="p">({</span>
     <span class="s2">&quot;detectorID&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
     <span class="s2">&quot;detectorType&quot;</span><span class="p">:</span> <span class="s2">&quot;dummy&quot;</span><span class="p">,</span>

@@ -232,7 +232,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 </code></pre></div>
 <h3 id="usage">Usage</h3>
-<div class="highlight"><pre><span></span><code><span class="n">parser</span> <span class="o">=</span> <span class="n">DummyParser</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.tree_matcher</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplateCppTreeMatcher</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.helper.from_to</span><span class="w"> </span><span class="kn">import</span> <span class="n">From</span>
+
+<span class="n">parser</span> <span class="o">=</span> <span class="n">TemplateCppTreeMatcher</span><span class="p">()</span>
 
 <span class="k">for</span> <span class="n">log</span> <span class="ow">in</span> <span class="n">From</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">in_path</span><span class="o">=</span><span class="n">log_path</span><span class="p">,</span> <span class="n">do_process</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">log</span><span class="p">)</span>
@@ -265,9 +268,11 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Save a list of output schemas to a YAML file.&quot;&quot;&quot;</span>
 </code></pre></div>
 <h3 id="usage_1">Usage</h3>
-<div class="highlight"><pre><span></span><code><span class="n">parser</span> <span class="o">=</span> <span class="n">DummyParser</span><span class="p">()</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.helper.from_to</span><span class="w"> </span><span class="kn">import</span> <span class="n">To</span>
+
+<span class="n">parser</span> <span class="o">=</span> <span class="n">TemplateCppTreeMatcher</span><span class="p">()</span>
 <span class="k">for</span> <span class="n">log</span> <span class="ow">in</span> <span class="n">From</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">in_path</span><span class="o">=</span><span class="n">log_path</span><span class="p">,</span> <span class="n">do_process</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="k">assert</span> <span class="n">To</span><span class="o">.</span><span class="n">json</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">output_path</span><span class="p">)</span> <span class="o">==</span> <span class="n">output_schema</span>
+    <span class="n">To</span><span class="o">.</span><span class="n">json</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">output_path</span><span class="p">)</span>
 </code></pre></div>
 <p>Example JSON save file format:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
@@ -384,8 +389,10 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Load DetectMatePerformance Dataframe to yaml&quot;&quot;&quot;</span>
 </code></pre></div>
 <h3 id="usage_2">Usage</h3>
-<div class="highlight"><pre><span></span><code><span class="n">parser</span> <span class="o">=</span> <span class="n">DummyParser</span><span class="p">()</span>
-<span class="k">for</span> <span class="n">parsed_log</span> <span class="ow">in</span> <span class="n">FromTo</span><span class="o">.</span><span class="n">json2json</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">log_path</span><span class="p">,</span> <span class="n">json_path</span><span class="p">):</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.helper.from_to</span><span class="w"> </span><span class="kn">import</span> <span class="n">FromTo</span>
+
+<span class="n">parser</span> <span class="o">=</span> <span class="n">TemplateCppTreeMatcher</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">parsed_log</span> <span class="ow">in</span> <span class="n">FromTo</span><span class="o">.</span><span class="n">log2json</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">log_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">):</span>
     <span class="k">pass</span>
 </code></pre></div>
 <p>Example input data:</p>
