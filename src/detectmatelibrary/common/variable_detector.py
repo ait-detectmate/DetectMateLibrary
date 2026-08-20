@@ -43,6 +43,20 @@ def get_global_variables(
     return result
 
 
+# Operator settings that generate_detector_config never emits, so every
+# from_dict in set_configuration resets them to their defaults. Carried across
+# by hand -- add new operator-facing fields here, not to a copy of this list.
+_CARRIED_SETTINGS = (
+    "persist",
+    "use_stable_vars",
+    "use_static_vars",
+    "stability_segmentation",
+    "stability_require_declining",
+    "timestamp_variable",
+    "timestamp_format",
+)
+
+
 class VariableDetectorConfig(CoreDetectorConfig):
     use_stable_vars: bool = True
     use_static_vars: bool = True
@@ -55,6 +69,11 @@ class VariableDetectorConfig(CoreDetectorConfig):
     stability_segmentation: Literal["count", "time", "both"] = "count"
     timestamp_variable: str | None = None
     timestamp_format: str | None = None  # None -> TimeFormatHandler auto-detect
+
+    # Orthogonal to the segmentation above: an extra conjunct on STABLE
+    # requiring the variable's changes to sit early in its series. Needs no
+    # timestamps -- it reads index positions only.
+    stability_require_declining: bool = False
 
 
 class VariableDetector(CoreDetector):
@@ -79,27 +98,33 @@ class VariableDetector(CoreDetector):
         self._warned_bad_timestamp = False
         self.persistency = EventPersistency(
             event_data_class=self._event_data_class(),
-            event_data_kwargs=self._with_segmentation(self._event_data_kwargs()),
+            event_data_kwargs=self._with_stability_kwargs(self._event_data_kwargs()),
         )
         # auto config checks individual-variable stability to select features
         self.auto_conf_persistency = EventPersistency(
             event_data_class=self._event_data_class(),
-            event_data_kwargs=self._with_segmentation(self._auto_conf_kwargs()),
+            event_data_kwargs=self._with_stability_kwargs(self._auto_conf_kwargs()),
         )
         self._register_persistency(self.persistency)
 
-    def _with_segmentation(self, kwargs: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-        """Add the segmentation mode to tracker kwargs when it is not the
-        default.
+    def _with_stability_kwargs(self, kwargs: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """Add the stability settings to tracker kwargs, each only when it is
+        not the default.
 
         Done here rather than in _stability_kwargs so every
         VariableDetector subclass is covered -- NewValueDetector
         overrides neither construction hook and NewValueComboDetector
         returns only a converter_function.
+
+        Non-defaults only: passing segmentation unconditionally would make
+        every variable collect timestamps it never reads.
         """
-        if self.config.stability_segmentation == "count":
-            return kwargs
-        return {**(kwargs or {}), "segmentation": self.config.stability_segmentation}
+        extra = {}
+        if self.config.stability_segmentation != "count":
+            extra["segmentation"] = self.config.stability_segmentation
+        if self.config.stability_require_declining:
+            extra["require_declining"] = True
+        return {**(kwargs or {}), **extra} if extra else kwargs
 
     # ---- construction hooks -------------------------------------------------
 
@@ -120,6 +145,14 @@ class VariableDetector(CoreDetector):
             "add_value_fn": name,
             "detector_config": self.config.to_dict(method_id=name),
         }
+
+    def _carried_settings(self) -> Dict[str, Any]:
+        """Snapshot the operator settings a config reassignment would drop."""
+        return {field: getattr(self.config, field) for field in _CARRIED_SETTINGS}
+
+    def _restore_settings(self, saved: Dict[str, Any]) -> None:
+        for field, value in saved.items():
+            setattr(self.config, field, value)
 
     def _warn_time_fallback_once(self, reason: str) -> None:
         """Log the first time-dependent misconfiguration, then stay quiet.
@@ -284,20 +317,14 @@ class VariableDetector(CoreDetector):
             selected = stable + static
             if selected:
                 variables[event_id] = selected
-        old_persist = self.config.persist
-        old_segmentation = self.config.stability_segmentation
-        old_timestamp_variable = self.config.timestamp_variable
-        old_timestamp_format = self.config.timestamp_format
+        saved = self._carried_settings()
         config_dict = generate_detector_config(
             variable_selection=variables,
             detector_name=self.name,
             method_type=self.config.method_type,
         )
         self.config = type(self.config).from_dict(config_dict, self.name)
-        self.config.persist = old_persist
-        self.config.stability_segmentation = old_segmentation
-        self.config.timestamp_variable = old_timestamp_variable
-        self.config.timestamp_format = old_timestamp_format
+        self._restore_settings(saved)
         events = self.config.events
         if isinstance(events, EventsConfig) and not events.events:
             logger.warning(

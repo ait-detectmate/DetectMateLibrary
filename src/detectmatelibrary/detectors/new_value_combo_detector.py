@@ -59,7 +59,7 @@ class NewValueComboDetector(VariableDetector):
         # second-pass persistency to learn stability of variable combinations
         self.auto_conf_persistency_combos = persistency.EventPersistency(
             event_data_class=persistency.EventStabilityTracker,
-            event_data_kwargs=self._with_segmentation(
+            event_data_kwargs=self._with_stability_kwargs(
                 {"converter_function": get_all_possible_combos}
             ),
         )
@@ -102,24 +102,11 @@ class NewValueComboDetector(VariableDetector):
         3. Re-ingest all events to learn the stability of those combos (testing
            every possible combo up front would explode combinatorially).
         """
-        old_persist = self.config.persist
-        segmentation_fields = {
-            "stability_segmentation": self.config.stability_segmentation,
-            "timestamp_variable": self.config.timestamp_variable,
-            "timestamp_format": self.config.timestamp_format,
-        }
-
-        def restore_segmentation_fields() -> None:
-            """Carry the segmentation settings across a config reassignment.
-
-            generate_detector_config only emits method_type / auto_config /
-            params / events, so every ``from_dict`` below resets these to their
-            defaults. The re-ingest loop calls ``_timestamp()`` under the pass-1
-            config, so restoring only at the end would leave the combo trackers
-            timestamp-less.
-            """
-            for field, value in segmentation_fields.items():
-                setattr(self.config, field, value)
+        # Restored after *both* reassignments below, not just the last one:
+        # the re-ingest loop calls _timestamp() and pass 2 reads use_stable_vars
+        # under the pass-1 config, so a single restore at the end would run them
+        # on defaults.
+        saved = self._carried_settings()
 
         # pass 1: stable individual variables -> combos
         variable_combos = {}
@@ -134,7 +121,7 @@ class NewValueComboDetector(VariableDetector):
             max_combo_size=max_combo_size or self.config.max_combo_size,
         )
         self.config = NewValueComboDetectorConfig.from_dict(config_dict, self.name)
-        restore_segmentation_fields()
+        self._restore_settings(saved)
 
         # re-ingest all inputs to learn combos under the new configuration
         for input_ in self.inputs:
@@ -169,8 +156,7 @@ class NewValueComboDetector(VariableDetector):
             max_combo_size=max_combo_size or self.config.max_combo_size,
         )
         self.config = NewValueComboDetectorConfig.from_dict(config_dict, self.name)
-        self.config.persist = old_persist
-        restore_segmentation_fields()
+        self._restore_settings(saved)
         events = self.config.events
         if isinstance(events, EventsConfig) and not events.events:
             logger.warning(
