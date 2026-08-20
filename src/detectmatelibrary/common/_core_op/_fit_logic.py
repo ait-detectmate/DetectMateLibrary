@@ -67,7 +67,7 @@ class FitLogicState(Enum):
     def describe(self) -> str:
         descriptions = [
             "Configuring",
-            "Training.",
+            "Training",
             "Default"
         ]
         return descriptions[self.value]

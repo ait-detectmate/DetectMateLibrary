@@ -27,10 +27,15 @@ nav:
     - New Value: detectors/new_value.md
     - Combo Detector: detectors/combo.md
     - New Event: detectors/new_event.md
+    - Event Sequence: detectors/event_sequence.md
     - Rule Based: detectors/rule_based.md
     - BiGram Frequency: detectors/bigram_frequency.md
     - CharSet: detectors/charset.md
     - Value Range: detectors/value_range.md
+    - Deeplog Detector: detectors/deeplog.md
+    - LogBert Detector: detectors/logbert.md
+    - SCVS Detector: detectors/scvs_detector.md
+    - ECVC Detector: detectors/ecvc_detector.md
   - Alert Aggregation Methods:
     - Basic Concat: alert_aggregators/basic_concatenation.md
   - Auxiliar:
@@ -44,3 +49,9 @@ nav:
     - Release Process: release.md
   - Other:
     - Log Formats: other/log_formats.md
+
+markdown_extensions:
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
+  - pymdownx.superfences

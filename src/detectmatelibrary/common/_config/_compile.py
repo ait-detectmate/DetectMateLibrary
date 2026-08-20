@@ -4,6 +4,8 @@ from typing import Any, Dict, List, Sequence, Tuple, Union
 import warnings
 import re
 
+from detectmatelibrary.schemas import ParserSchema
+
 
 def _classify_variables(
     var_names: Sequence[str], var_pattern: re.Pattern[str]
@@ -210,3 +212,39 @@ def generate_detector_config(
     }
 
     return config_dict
+
+
+def get_configured_variables(
+        input_: ParserSchema,
+        log_variables: EventsConfig | dict[str, Any],
+) -> Dict[str, Any]:
+    """Extract variables from input based on what's defined in the config.
+
+    Args:
+        input_: Parser schema containing variables and logFormatVariables
+        log_variables: Config specifying which variables to extract per EventID
+
+    Returns:
+        Dict mapping variable names to their values from the input
+    """
+    event_id = input_["EventID"]
+    result: Dict[str, Any] = {}
+
+    # Get the config for this event
+    event_config = log_variables[event_id] if event_id in log_variables else None
+    if event_config is None:
+        return result
+
+    # Extract template variables by position
+    if hasattr(event_config, "variables"):
+        for pos, var in event_config.variables.items():
+            if isinstance(pos, int) and pos < len(input_["variables"]):
+                result[var.name] = input_["variables"][pos]
+
+    # Extract header/log format variables by name
+    if hasattr(event_config, "header_variables"):
+        for name in event_config.header_variables:
+            if name in input_["logFormatVariables"]:
+                result[name] = input_["logFormatVariables"][name]
+
+    return result

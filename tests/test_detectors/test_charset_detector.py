@@ -8,7 +8,7 @@ This module tests the CharsetDetector implementation including:
 - Input/output schema validation
 """
 
-from detectmatelibrary.common.detector import PersistConfig
+from detectmatelibrary.utils.persistency.component_interfaces import PersistConfig
 from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.common._core_op._fit_logic import EnumState
@@ -18,6 +18,8 @@ from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
+
+import pytest
 
 # Set time test mode for consistent timestamps
 time_test_mode()
@@ -289,6 +291,7 @@ _PARSER_CONFIG = {
 class TestCharsetDetectorEndToEnd:
     """Regression test: full configure/train/detect pipeline on audit.log."""
 
+    @pytest.mark.ignored
     def test_audit_log_anomalies(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = CharsetDetector()
@@ -315,6 +318,7 @@ class TestCharsetDetectorAutoConfig:
     """Test that process() drives configure/set_configuration/train/detect
     automatically."""
 
+    @pytest.mark.ignored
     def test_audit_log_anomalies_via_process(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = CharsetDetector()

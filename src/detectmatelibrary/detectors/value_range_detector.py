@@ -28,19 +28,28 @@ class ValueRangeDetector(VariableDetector):
         self.config: ValueRangeDetectorConfig  # type narrowing for IDE
 
     def add_value(self, tracker: SingleStabilityTracker, value: Any) -> None:
-        """Add a new value to the tracker (range semantics)."""
+        """Add a new value to the tracker (range semantics).
+
+        Only the extremes are stored: ``unique_set`` holds at most two elements
+        ({min, max}), so storage is O(1) per variable instead of O(distinct
+        values). ``change_series`` and the min/max are byte-identical to storing
+        every value. The classifier's RANDOM branch can no longer fire for range
+        variables (size <= 2 never equals the change_series length); monotonic
+        counters stay excluded as UNSTABLE via their all-True series.
+        """
         try:
             value = float(value)
             value = int(value) if value.is_integer() else value
         except ValueError:
             return
-        if len(tracker.unique_set) > 0:
+        if tracker.unique_set:
             min_ = min(tracker.unique_set)
             max_ = max(tracker.unique_set)
             tracker.change_series.append(value < min_ or value > max_)
+            tracker.unique_set = {min(min_, value), max(max_, value)}
         else:
             tracker.change_series.append(True)
-        tracker.unique_set.add(value)
+            tracker.unique_set = {value}
 
     def _event_data_kwargs(self) -> Optional[Dict[str, Any]]:
         return self._stability_kwargs()

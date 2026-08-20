@@ -1,7 +1,8 @@
 from typing import Any, Dict, Optional, cast
 
 from detectmatelibrary.common.variable_detector import VariableDetector, VariableDetectorConfig
-from detectmatelibrary.common.detector import get_configured_variables, get_global_variables
+from detectmatelibrary.common.variable_detector import get_global_variables
+from detectmatelibrary.common._config._compile import get_configured_variables
 from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
     EventStabilityTracker,
     SingleStabilityTracker,
