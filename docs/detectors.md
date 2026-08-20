@@ -260,7 +260,8 @@ These parameters live on every `VariableDetector` subclass (`NewValueDetector`,
 `NewValueComboDetector`, `ValueRangeDetector`, `CharsetDetector`, `BigramDetector`, …)
 and go in the detector's `auto_config_params` block — they are inputs to the
 auto-configuration phase, read only while `auto_config` is `True`, and never
-consulted at detection time:
+consulted at detection time. `segmentation` defaults to `count`; the block below
+opts in to the time-aware mode:
 
 ```yaml
 detectors:
@@ -268,7 +269,7 @@ detectors:
     method_type: new_value_detector
     auto_config: True
     auto_config_params:
-      segmentation: time
+      segmentation: time            # opt-in; the default is count
       timestamp_variable: Time      # a field name from the parser's log_format
       timestamp_format: "%y%m%d %H%M%S"   # optional; omit to auto-detect
 ```
