@@ -4,13 +4,13 @@ from detectmatelibrary.common._config._compile import (
     MissingParamsWarning,
     TypeNotFoundError,
     MethodTypeNotMatch,
-    AutoConfigWarning,
 )
 from detectmatelibrary.common._config._formats import EventsConfig, _EventConfig
 from detectmatelibrary.common._config import BasicConfig
 from pydantic import ValidationError
 from tests.test_data import TEST_CONFIG
 import pytest
+import warnings
 import yaml
 
 
@@ -81,11 +81,16 @@ class TestConfigMethods:
                 config_test, method_id="detector_wrong", component_type="detectors"
             ))
 
-    def test_process_auto_config_warning(self):
-        with pytest.warns(AutoConfigWarning):
-            ConfigMethods.process(ConfigMethods.get_method(
+    def test_process_keeps_params_under_auto_config(self):
+        """params are operational and survive the configure phase, so
+        auto_config: True alongside params is no longer suspicious."""
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            config = ConfigMethods.process(ConfigMethods.get_method(
                 config_test, method_id="detector_weird", component_type="detectors"
             ))
+        assert config["auto_config"] is True
+        assert config["hello"] == "a"
 
 
 class TestParamsFormat:

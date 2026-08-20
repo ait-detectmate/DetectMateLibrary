@@ -10,6 +10,7 @@ negative, a perfectly static one included.
 import numpy as np
 
 from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig
+from detectmatelibrary.common.variable_detector import VariableAutoConfigParams
 from detectmatelibrary.utils.persistency.rle_list import RLEList
 from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
     StabilityClassifier,
@@ -75,7 +76,7 @@ class TestInclineStatistic:
 
     def test_changing_every_step_is_perfectly_uniform(self):
         clf = make_classifier()
-        assert clf.incline(RLEList([True] * 40) ) == 0.0
+        assert clf.incline(RLEList([True] * 40)) == 0.0
 
     def test_too_short_to_have_a_span(self):
         clf = make_classifier()
@@ -97,8 +98,8 @@ class TestInclineStatistic:
             assert clf.incline(RLEList(f)) == clf.incline(f)
 
     def test_sign_always_matches_the_least_squares_slope(self):
-        """k_OLS = k * 12m / n(n-1), a strictly positive factor -- so a
-        polyfit over the same series can never disagree on the verdict."""
+        """k_OLS = k * 12m / n(n-1), a strictly positive factor -- so a polyfit
+        over the same series can never disagree on the verdict."""
         clf, rng = make_classifier(), np.random.default_rng(13)
         for _ in range(200):
             n = int(rng.integers(4, 300))
@@ -198,40 +199,72 @@ class TestRequireDecliningConfigWiring:
     def test_flag_reaches_per_variable_trackers(self):
         # CharsetDetector's `config` default is a shared mutable instance, so
         # pass explicit fresh configs (see test_time_dependent_stability.py).
+        #
+        # require_declining only shapes the configure-phase persistency: the
+        # trained persistency is read by _check_variable, which never calls
+        # classify(), so it never receives stability kwargs at all.
         default = CharsetDetector(config=CharsetDetectorConfig())
         assert default.persistency.event_data_kwargs.get("require_declining") is None
 
         configured = CharsetDetector(config=CharsetDetectorConfig())
-        configured.config.stability_require_declining = True
+        configured.config.auto_config_params.require_declining = True
         rebuilt = CharsetDetector(config=configured.config.to_dict(method_id="CharsetDetector"))
-        assert rebuilt.persistency.event_data_kwargs["require_declining"] is True
+        assert rebuilt.auto_conf_persistency.event_data_kwargs["require_declining"] is True
 
     def test_config_field_round_trips(self):
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.stability_require_declining = True
+        detector.config.auto_config_params.require_declining = True
         restored = type(detector.config).from_dict(
             detector.config.to_dict(method_id="CharsetDetector"), "CharsetDetector"
         )
-        assert restored.stability_require_declining is True
+        assert restored.auto_config_params.require_declining is True
 
     def test_survives_auto_config(self):
-        """set_configuration() rebuilds config from generate_detector_config,
-        which emits none of the operator settings -- they get carried across."""
+        """set_configuration() writes only config.events and flips
+        config.auto_config to False -- it never touches auto_config_params, so
+        operator settings survive because nothing overwrites them."""
         detector = CharsetDetector(config=CharsetDetectorConfig(
-            auto_config=True, stability_require_declining=True, use_static_vars=False,
+            auto_config=True,
+            auto_config_params=VariableAutoConfigParams(
+                require_declining=True, use_static_vars=False,
+            ),
         ))
         detector.set_configuration()
-        assert detector.config.stability_require_declining is True
-        assert detector.config.use_static_vars is False
+        assert detector.config.auto_config_params.require_declining is True
+        assert detector.config.auto_config_params.use_static_vars is False
 
     def test_does_not_pull_in_the_timestamp_requirement(self):
         """The flag is orthogonal to segmentation: no timestamps are asked
         for, and none are collected."""
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.stability_require_declining = True
+        detector.config.auto_config_params.require_declining = True
         rebuilt = CharsetDetector(config=detector.config.to_dict(method_id="CharsetDetector"))
         assert "segmentation" not in rebuilt.persistency.event_data_kwargs
 
         tracker = SingleStabilityTracker(require_declining=True)
         tracker.add_value("a", timestamp=1.0)
         assert tracker.timestamps == []
+
+
+def test_incline_threshold_reaches_the_classifier():
+    """The threshold is configuration, not a constant buried in the
+    classifier."""
+    from detectmatelibrary.common.variable_detector import VariableAutoConfigParams
+    from detectmatelibrary.detectors.new_value_detector import (
+        NewValueDetector,
+        NewValueDetectorConfig,
+    )
+
+    detector = NewValueDetector(
+        name="NewValueDetector",
+        config=NewValueDetectorConfig(
+            auto_config_params=VariableAutoConfigParams(
+                require_declining=True, incline_threshold=-0.25
+            ),
+        ),
+    )
+    persistency = detector.auto_conf_persistency
+    tracker = persistency.event_data_class(**persistency.event_data_kwargs)
+    single = tracker.single_tracker_type()
+    assert single.require_declining is True
+    assert single.stability_classifier.incline_threshold == -0.25

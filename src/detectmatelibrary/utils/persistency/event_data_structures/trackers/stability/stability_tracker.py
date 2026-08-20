@@ -48,6 +48,7 @@ class SingleStabilityTracker(SingleTracker):
         min_samples: int = 3,
         segmentation: Literal["count", "time", "both"] = "count",
         require_declining: bool = False,
+        incline_threshold: float = -0.05,
         add_value_fn: str = "default",
         detector_config: "CoreDetectorConfig | None" = None,
     ) -> None:
@@ -60,6 +61,7 @@ class SingleStabilityTracker(SingleTracker):
         self.unique_set: Set[Any] = set()
         self.stability_classifier: StabilityClassifier = StabilityClassifier(
             segment_thresholds=[1.1, 0.3, 0.1, 0.01],
+            incline_threshold=incline_threshold,
         )
         # ponytail: O(N) timestamps; switch to fixed-width time buckets if
         # this ever runs unbounded/streaming.
@@ -269,6 +271,7 @@ class EventStabilityTracker(EventTracker):
         converter_function: Callable[[Any], Any] = lambda x: x,
         segmentation: Literal["count", "time", "both"] = "count",
         require_declining: bool = False,
+        incline_threshold: float = -0.05,
         add_value_fn: str = "default",
         detector_config: "CoreDetectorConfig | None" = None
 
@@ -279,6 +282,7 @@ class EventStabilityTracker(EventTracker):
             return SingleStabilityTracker(
                 segmentation=segmentation,
                 require_declining=require_declining,
+                incline_threshold=incline_threshold,
                 add_value_fn=add_value_fn,
                 detector_config=detector_config,
             )

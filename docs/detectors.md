@@ -200,7 +200,10 @@ def configure(self, input_):
     )
 ```
 
-The `set_configuration()` method queries the tracker results and generates the final config:
+The `set_configuration()` method queries the tracker results and writes the
+final `events` block. It touches nothing else on the config — everything the
+operator set under `params` or `auto_config_params` must survive untouched, so
+`set_configuration` never rebuilds the config from scratch:
 
 ```python
 def set_configuration(self):
@@ -209,12 +212,8 @@ def set_configuration(self):
         stable_vars = tracker.get_features_by_classification("STABLE")
         variables[event_id] = stable_vars
 
-    config_dict = generate_detector_config(
-        variable_selection=variables,
-        detector_name=self.name,
-        method_type=self.config.method_type,
-    )
-    self.config = MyDetectorConfig.from_dict(config_dict, self.name)
+    self.config.events = generate_events_config(variables, self.name)
+    self.config.auto_config = False
 ```
 
 ### Full lifecycle with auto-configuration
@@ -228,6 +227,19 @@ def set_configuration(self):
 
 When `auto_config` is `False`, steps 1 and 2 are skipped entirely.
 
+That distinction is visible in the config. A detector's settings live in two
+blocks:
+
+* **`auto_config_params`** — inputs *to* the configure phase. They pick which
+  variables the phase selects and are read only while `auto_config` is `True`.
+* **`params`** — operational settings, read during training and detection on
+  every run.
+
+The configure phase writes its results into the top-level `events` block (and,
+for `EventSequenceDetector`, into `fixed_window_size`) and then sets
+`auto_config` to `False`. It never modifies either input block, so a config can
+be rerun with `auto_config: False` and reproduce the same detector.
+
 
 ### Stability segmentation (optional)
 
@@ -238,28 +250,30 @@ time they cover. For bursty log sources that is misleading — a variable that c
 constantly during a quiet night and then went silent under a flood of daytime traffic
 looks stable, because the flood supplies enough samples to dominate the later segments.
 
-Setting `stability_segmentation: time` switches the segmentation to **equal-duration** cuts
+Setting `segmentation: time` switches the segmentation to **equal-duration** cuts
 of the observed time span, so each segment covers the same amount of wall-clock time. The
 detector then needs an event time per record, which it reads from the log's named
 variables (`logFormatVariables`, i.e. the fields declared in the parser's `log_format`)
 under the name given by `timestamp_variable`.
 
-These three parameters live on every `VariableDetector` subclass (`NewValueDetector`,
+These parameters live on every `VariableDetector` subclass (`NewValueDetector`,
 `NewValueComboDetector`, `ValueRangeDetector`, `CharsetDetector`, `BigramDetector`, …)
-and go in the detector's top-level `params` block:
+and go in the detector's `auto_config_params` block — they are inputs to the
+auto-configuration phase, read only while `auto_config` is `True`, and never
+consulted at detection time:
 
 ```yaml
 detectors:
   NewValueDetector:
     method_type: new_value_detector
     auto_config: True
-    params:
-      stability_segmentation: time
+    auto_config_params:
+      segmentation: time
       timestamp_variable: Time      # a field name from the parser's log_format
       timestamp_format: "%y%m%d %H%M%S"   # optional; omit to auto-detect
 ```
 
-Setting `stability_segmentation: both` runs *both* segmentations and calls the variable
+Setting `segmentation: both` runs *both* segmentations and calls the variable
 stable only when each one does. Neither segmentation subsumes the other — a variable that
 churns in a burst and then settles is unstable by count but stable by time, and one whose
 late churn is buried under a dense tail of repeats is the reverse — so `both` is strictly
@@ -268,11 +282,17 @@ stricter than either. Use it when a false "stable" is more costly than a missed 
 
 #### Fields
 
+All of these live in the detector's `auto_config_params` block.
+
 | Field | Type | Default | Description |
 |---|---|---|---|
-| `stability_segmentation` | `"count" \| "time" \| "both"` | `"count"` | How to cut the change history into segments. `count` uses equal sample counts; `time` uses equal time spans; `both` requires the variable to be stable under each. With `count` the other two fields are ignored and no timestamps are recorded. |
+| `use_stable_vars` | `bool` | `true` | Include variables classified `STABLE` in the generated configuration. |
+| `use_static_vars` | `bool` | `true` | Include variables classified `STATIC`. Defaults to `false` on `NewValueComboDetector`. |
+| `segmentation` | `"count" \| "time" \| "both"` | `"count"` | How to cut the change history into segments. `count` uses equal sample counts; `time` uses equal time spans; `both` requires the variable to be stable under each. With `count` the two timestamp fields are ignored and no timestamps are recorded. |
 | `timestamp_variable` | `str \| null` | `null` | Name of the field in `logFormatVariables` holding the record's event time. Required for `time` and `both` to have any effect. Only named log-format fields are consulted — never the positional `variables` list. |
 | `timestamp_format` | `str \| null` | `null` | Explicit [`strftime`](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes) pattern for parsing that field. When unset, `TimeFormatHandler` auto-detects the format (ISO 8601, Apache, syslog, numeric epoch seconds/milliseconds, and other common layouts). |
+| `require_declining` | `bool` | `false` | Add a conjunct to `STABLE` requiring the variable's changes to sit early in its series. Independent of `segmentation` — it reads index positions, not timestamps. |
+| `incline_threshold` | `float` | `-0.05` | The change-centroid cut-off `require_declining` compares against. The centroid runs from `-0.5` (all changes at the very start) to `+0.5` (all at the end); a variable passes when it is at or below this value. Ignored unless `require_declining` is set. |
 
 Set `timestamp_format` when the source uses a layout the auto-detection does not
 know. The HDFS loghub corpus, for example, stamps records as `081109 203615`, which
@@ -282,7 +302,7 @@ only parses with an explicit `"%y%m%d %H%M%S"`.
 
 Time-aware segmentation is best-effort and never fails a run:
 
-* If `stability_segmentation` is not `count` but `timestamp_variable` is unset, or the named field
+* If `segmentation` is not `count` but `timestamp_variable` is unset, or the named field
   is absent from a record, or its value cannot be parsed, the detector logs a
   **single** warning (once per detector, so a bad config cannot flood the log) and
   falls back to count-based segmentation.

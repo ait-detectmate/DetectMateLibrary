@@ -1,10 +1,11 @@
-"""Tests for the stability_segmentation option of the stability trackers."""
+"""Tests for the segmentation option of the stability trackers."""
 
 import logging
 import math
 
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig
+from detectmatelibrary.common.variable_detector import VariableAutoConfigParams
 from detectmatelibrary.utils.persistency.rle_list import RLEList
 from detectmatelibrary.utils.persistency import EventPersistency
 from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
@@ -390,24 +391,24 @@ class TestTimestampResolution:
 
     def test_parses_iso_timestamp(self):
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.stability_segmentation = "time"
-        detector.config.timestamp_variable = "ts"
+        detector.config.auto_config_params.segmentation = "time"
+        detector.config.auto_config_params.timestamp_variable = "ts"
         assert detector._timestamp(_parser_record("2026-08-04 10:00:00")) == 1785837600.0
 
     def test_parses_explicit_format(self):
         """HDFS loghub style, absent from COMMON_TIME_FORMATS."""
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.stability_segmentation = "time"
-        detector.config.timestamp_variable = "ts"
-        detector.config.timestamp_format = "%y%m%d %H%M%S"
+        detector.config.auto_config_params.segmentation = "time"
+        detector.config.auto_config_params.timestamp_variable = "ts"
+        detector.config.auto_config_params.timestamp_format = "%y%m%d %H%M%S"
         first = detector._timestamp(_parser_record("081109 203615"))
         second = detector._timestamp(_parser_record("081109 203645"))
         assert second - first == 30.0
 
     def test_unparseable_warns_once_and_falls_back(self, caplog):
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.stability_segmentation = "time"
-        detector.config.timestamp_variable = "ts"
+        detector.config.auto_config_params.segmentation = "time"
+        detector.config.auto_config_params.timestamp_variable = "ts"
         with caplog.at_level(logging.WARNING):
             assert detector._timestamp(_parser_record("not-a-time")) is None
             assert detector._timestamp(_parser_record("also-not-a-time")) is None
@@ -415,11 +416,11 @@ class TestTimestampResolution:
         assert len(warnings) == 1
 
     def test_unset_timestamp_variable_warns_once_and_falls_back(self, caplog):
-        """stability_segmentation="time" without timestamp_variable is an
-        operator error, not an opt-out: it must be distinguishable from a
-        working time-dependent run, and must not flood the log."""
+        """Segmentation="time" without timestamp_variable is an operator error,
+        not an opt-out: it must be distinguishable from a working time-
+        dependent run, and must not flood the log."""
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.stability_segmentation = "time"  # timestamp_variable left unset
+        detector.config.auto_config_params.segmentation = "time"  # timestamp_variable left unset
         with caplog.at_level(logging.WARNING):
             assert detector._timestamp(_parser_record("2026-08-04 10:00:00")) is None
             assert detector._timestamp(_parser_record("2026-08-04 10:00:01")) is None
@@ -436,8 +437,8 @@ class TestTimestampResolution:
 
     def test_missing_variable_warns_and_falls_back(self, caplog):
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.stability_segmentation = "time"
-        detector.config.timestamp_variable = "absent"
+        detector.config.auto_config_params.segmentation = "time"
+        detector.config.auto_config_params.timestamp_variable = "absent"
         with caplog.at_level(logging.WARNING):
             assert detector._timestamp(_parser_record("2026-08-04 10:00:00")) is None
         assert any("timestamp_variable" in r.message for r in caplog.records)
@@ -447,75 +448,73 @@ class TestSegmentationConfigWiring:
     def test_flag_reaches_per_variable_trackers(self):
         # CharsetDetector's `config` parameter default is a single shared
         # CharsetDetectorConfig() instance (pre-existing mutable-default-arg
-        # pitfall, unrelated to stability_segmentation). Other tests in this
+        # pitfall, unrelated to segmentation). Other tests in this
         # module mutate `detector.config.*` in place on a bare
         # CharsetDetector(), so we pass explicit fresh configs here to stay
         # isolated from that.
+        # segmentation only shapes the configure-phase persistency: the
+        # trained persistency is read by _check_variable, which never calls
+        # classify(), so it never receives stability kwargs at all.
         detector = CharsetDetector(config=CharsetDetectorConfig())
         assert detector.persistency.event_data_kwargs.get("segmentation") is None
 
         configured = CharsetDetector(config=CharsetDetectorConfig())
-        configured.config.stability_segmentation = "time"
+        configured.config.auto_config_params.segmentation = "time"
         rebuilt = CharsetDetector(config=configured.config.to_dict(method_id="CharsetDetector"))
-        assert rebuilt.persistency.event_data_kwargs["segmentation"] == "time"
+        assert rebuilt.auto_conf_persistency.event_data_kwargs["segmentation"] == "time"
 
     def test_config_fields_round_trip(self):
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.stability_segmentation = "time"
-        detector.config.timestamp_variable = "ts"
-        detector.config.timestamp_format = "%y%m%d %H%M%S"
+        detector.config.auto_config_params.segmentation = "time"
+        detector.config.auto_config_params.timestamp_variable = "ts"
+        detector.config.auto_config_params.timestamp_format = "%y%m%d %H%M%S"
         restored = type(detector.config).from_dict(
             detector.config.to_dict(method_id="CharsetDetector"), "CharsetDetector"
         )
-        assert restored.stability_segmentation == "time"
-        assert restored.timestamp_variable == "ts"
-        assert restored.timestamp_format == "%y%m%d %H%M%S"
+        assert restored.auto_config_params.segmentation == "time"
+        assert restored.auto_config_params.timestamp_variable == "ts"
+        assert restored.auto_config_params.timestamp_format == "%y%m%d %H%M%S"
 
-    def test_train_populates_timestamps_end_to_end(self):
-        cfg = {
-            "detectors": {
-                "CharsetDetector": {
-                    "method_type": "charset_detector",
-                    "auto_config": False,
-                    "params": {
-                        "stability_segmentation": "time",
-                        "timestamp_variable": "ts",
-                        "timestamp_format": "%y%m%d %H%M%S",
-                    },
-                    "events": {
-                        1: {
-                            "inst": {
-                                "params": {},
-                                "variables": [{"pos": 0, "name": "v", "params": {}}],
-                            }
-                        }
-                    },
-                }
-            }
-        }
+    def test_configure_populates_timestamps_end_to_end(self):
+        """Segmentation settings reach the configure-phase persistency's
+        trackers end-to-end.
+
+        This used to run through train()/.persistency, but the trained
+        path no longer receives stability kwargs at all (see
+        test_train_path_records_no_timestamps) -- configure()/
+        .auto_conf_persistency is the phase these settings are for.
+        """
+        cfg = CharsetDetectorConfig(
+            auto_config_params=VariableAutoConfigParams(
+                segmentation="time",
+                timestamp_variable="ts",
+                timestamp_format="%y%m%d %H%M%S",
+            ),
+        )
         detector = CharsetDetector(config=cfg, name="CharsetDetector")
-        detector.train(_parser_record("081109 203615"))
-        detector.train(_parser_record("081109 203645"))
-        tracker = detector.persistency.get_events_data()[1].get_data()["v"]
+        detector.configure(_parser_record("081109 203615"))
+        detector.configure(_parser_record("081109 203645"))
+        tracker = detector.auto_conf_persistency.get_events_data()[1].get_data()["var_0"]
         assert tracker.segmentation == "time"
         assert len(tracker.timestamps) == len(tracker.change_series) == 2
         assert tracker.timestamps[1] - tracker.timestamps[0] == 30.0
 
     def test_segmentation_fields_survive_auto_config_set_configuration(self):
-        """set_configuration() reassigns self.config wholesale from a config
-        dict generated with empty params (generate_detector_config only emits
-        method_type/auto_config/params/events), so stability_segmentation,
-        timestamp_variable and timestamp_format must be carried across that
-        reassignment explicitly -- same as `persist` already is.
+        """set_configuration() writes only self.config.events and then flips
+        auto_config to False -- it never rebuilds or reassigns self.config
+        wholesale, so auto_config_params (like every other operator-set field,
+        e.g. `persist`) is left untouched by construction.
 
         auto_config defaults to True and core.py runs
         set_configuration() before train(), so this is the path every
         detector takes unless auto_config is explicitly disabled.
         """
         cfg = CharsetDetectorConfig(
-            stability_segmentation="time",
-            timestamp_variable="ts",
-            timestamp_format="%y%m%d %H%M%S",
+            auto_config_params=VariableAutoConfigParams(
+                segmentation="time",
+                timestamp_variable="ts",
+                timestamp_format="%y%m%d %H%M%S",
+            ),
         )
         detector = CharsetDetector(config=cfg, name="CharsetDetector")
         assert detector.config.auto_config is True
@@ -524,9 +523,9 @@ class TestSegmentationConfigWiring:
             detector.configure(_parser_record("081109 203615"))
         detector.set_configuration()
 
-        assert detector.config.stability_segmentation == "time"
-        assert detector.config.timestamp_variable == "ts"
-        assert detector.config.timestamp_format == "%y%m%d %H%M%S"
+        assert detector.config.auto_config_params.segmentation == "time"
+        assert detector.config.auto_config_params.timestamp_variable == "ts"
+        assert detector.config.auto_config_params.timestamp_format == "%y%m%d %H%M%S"
 
 
 class TestBothSegmentation:
@@ -618,12 +617,14 @@ class TestBothSegmentation:
         assert "_stability_note" not in tracker.to_state()
 
     def test_config_accepts_both_and_reaches_trackers(self):
+        # segmentation only shapes the configure-phase persistency (see
+        # TestSegmentationConfigWiring.test_flag_reaches_per_variable_trackers).
         configured = CharsetDetector(config=CharsetDetectorConfig())
-        configured.config.stability_segmentation = "both"
+        configured.config.auto_config_params.segmentation = "both"
         rebuilt = CharsetDetector(
             config=configured.config.to_dict(method_id="CharsetDetector")
         )
-        assert rebuilt.persistency.event_data_kwargs["segmentation"] == "both"
+        assert rebuilt.auto_conf_persistency.event_data_kwargs["segmentation"] == "both"
 
     def test_event_tracker_propagates_both(self):
         event_tracker = EventStabilityTracker(segmentation="both")
@@ -632,3 +633,67 @@ class TestBothSegmentation:
         single = event_tracker.get_data()["var1"]
         assert single.segmentation == "both"
         assert single.timestamps == [1.0, 2.0]
+
+
+def test_train_path_records_no_timestamps():
+    """Auto-config settings shape the configure-phase persistency only.
+
+    Stability classification is never consulted at detect time, so the
+    trained trackers would carry an unread timestamps list per variable.
+    """
+    from detectmatelibrary.common.variable_detector import VariableAutoConfigParams
+    from detectmatelibrary.detectors.new_value_detector import (
+        NewValueDetector,
+        NewValueDetectorConfig,
+    )
+
+    detector = NewValueDetector(
+        name="NewValueDetector",
+        config=NewValueDetectorConfig(
+            auto_config_params=VariableAutoConfigParams(
+                segmentation="time", timestamp_variable="ts",
+            ),
+        ),
+    )
+    records = [_parser_record(f"2026-08-04 10:{i:02d}:00") for i in range(20)]
+    for record in records:
+        detector.configure(record)
+    detector.set_configuration()
+    for record in records:
+        detector.train(record)
+
+    trained = detector.persistency.get_events_data()[1].get_data()
+    assert trained, "expected the configure phase to select at least one variable"
+    for tracker in trained.values():
+        assert tracker.segmentation == "count"
+        assert tracker.timestamps == []
+
+    # the configure-phase persistency still gets them
+    configured = detector.auto_conf_persistency.get_events_data()[1].get_data()
+    assert any(t.segmentation == "time" for t in configured.values())
+
+
+def test_persisted_state_omits_auto_config_params():
+    """Persisted tracker state never carries auto_config_params: they are
+    configure-phase-only inputs, and CharsetDetector's add_value closure
+    (recovered from `detector_config` on reconstruction, see
+    _strip_auto_config_params in variable_detector.py) reads only
+    operational fields, never auto_config_params.
+    """
+    cfg = CharsetDetectorConfig(
+        auto_config_params=VariableAutoConfigParams(
+            segmentation="time", timestamp_variable="ts",
+        ),
+    )
+    detector = CharsetDetector(config=cfg, name="CharsetDetector")
+    for _ in range(5):
+        detector.configure(_parser_record("2026-08-04 10:00:00"))
+    detector.set_configuration()
+    detector.train(_parser_record("2026-08-04 10:00:00"))
+
+    trained = detector.persistency.get_events_data()[1].get_data()
+    assert trained, "expected the configure phase to select at least one variable"
+    for tracker in trained.values():
+        state = tracker.to_state()
+        entry = state["detector_config"]["detectors"]["CharsetDetector"]
+        assert "auto_config_params" not in entry

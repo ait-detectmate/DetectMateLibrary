@@ -8,6 +8,7 @@ from detectmatelibrary.common.persist import init_persistency
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
+from pydantic import BaseModel, ConfigDict
 from typing_extensions import override
 from typing import Dict, List, Optional, Any, cast
 
@@ -35,12 +36,25 @@ def _extract_logIDs(
     return [str(i["logID"]) for i in input_]
 
 
+class AutoConfigParams(BaseModel):
+    """Inputs to the auto-configuration (configure) phase.
+
+    Empty here: the core detector has no configure-phase inputs. Subclasses
+    add the fields their detector's configure phase reads. Kept apart from the
+    operational `params` block so the phase a setting belongs to is visible in
+    the YAML, not just in the code that reads it.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+
 class CoreDetectorConfig(CoreConfig):
     component_type: str = "detectors"
     method_type: str = "core_detector"
     parser: str = "<PLACEHOLDER>"
 
     auto_config: bool = True
+    auto_config_params: AutoConfigParams = AutoConfigParams()
     events: EventsConfig | dict[str, Any] = {}
     global_instances: Dict[str, _EventInstance] = {}
     persist: PersistConfig | None = None
