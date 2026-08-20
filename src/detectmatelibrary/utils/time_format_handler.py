@@ -85,21 +85,17 @@ class TimeFormatHandler:
             if ts is not None:
                 return ts
 
-        # 3) Numeric epoch (seconds or milliseconds)
+        # 3) Numeric epoch (seconds, milliseconds, microseconds or nanoseconds)
         if re.fullmatch(r"\d+(?:\.\d+)?", time_str):
             try:
-                if "." in time_str:
-                    val = float(time_str)
-                    # if value looks like milliseconds (very large), normalize
-                    if val > 1e12:
-                        val /= 1000.0
-                    return str(int(val))
-                else:
-                    ival = int(time_str)
-                    # heuristic: length >= 13 -> treat as milliseconds
-                    if len(time_str) >= 13:
-                        ival //= 1000
-                    return str(ival)
+                val: float = float(time_str) if "." in time_str else int(time_str)
+                # Fold sub-second units until the value is a plausible seconds
+                # epoch. 1e11 seconds is the year 5138, so anything above that
+                # is ms/us/ns -- folding once only would leave e.g. a
+                # microsecond epoch sitting in milliseconds.
+                while val > 1e11:
+                    val //= 1000
+                return str(int(val))
             except (ValueError, OverflowError):
                 pass
 
