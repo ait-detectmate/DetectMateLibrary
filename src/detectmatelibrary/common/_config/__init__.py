@@ -1,7 +1,13 @@
-from ._compile import ConfigMethods, generate_detector_config
+from ._compile import ConfigMethods, generate_detector_config, generate_events_config
 from ._formats import EventsConfig
 
-__all__ = ["ConfigMethods", "generate_detector_config", "EventsConfig", "BasicConfig"]
+__all__ = [
+    "ConfigMethods",
+    "generate_detector_config",
+    "generate_events_config",
+    "EventsConfig",
+    "BasicConfig",
+]
 
 from pydantic import BaseModel, ConfigDict
 
@@ -69,6 +75,7 @@ class BasicConfig(BaseModel):
         events_data = None
         instances_data = None
         persist_data: dict[str, Any] | None = None
+        auto_params_data: dict[str, Any] | None = None
 
         for field_name, field_value in self:
             # Skip meta fields
@@ -82,6 +89,12 @@ class BasicConfig(BaseModel):
                         events_data = field_value.to_dict()
                     else:
                         events_data = field_value
+            # Its own top-level block, and only when it differs from the
+            # default -- a config that never touches auto-config must serialize
+            # exactly as it did before this block existed.
+            elif field_name == "auto_config_params":
+                if field_value != type(self).model_fields[field_name].default:
+                    auto_params_data = field_value.model_dump()
             # Handle global instances specially (top-level, not in params)
             # Serialized as "global" in YAML (Python field is "global_instances")
             elif field_name == "global_instances" and field_value:
@@ -99,6 +112,9 @@ class BasicConfig(BaseModel):
         # Add params if there are any
         if params:
             result["params"] = params
+
+        if auto_params_data is not None:
+            result["auto_config_params"] = auto_params_data
 
         # Add global instances if they exist (serialized as "global" in YAML)
         if instances_data is not None:

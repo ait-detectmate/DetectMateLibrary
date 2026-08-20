@@ -64,14 +64,9 @@ class MethodTypeNotMatch(Exception):
 class MissingParamsWarning(UserWarning):
     def __init__(self) -> None:
         super().__init__(
-            "'auto_config = False' and no 'params', 'events', 'global', or 'persist' provided. "
-            "Is that intended?"
+            "'auto_config = False' and no 'params', 'auto_config_params', 'events', "
+            "'global', or 'persist' provided. Is that intended?"
         )
-
-
-class AutoConfigWarning(UserWarning):
-    def __init__(self) -> None:
-        super().__init__("'auto_config = True' will overwrite 'events' and 'params'.")
 
 
 class ConfigMethods:
@@ -97,18 +92,18 @@ class ConfigMethods:
     @staticmethod
     def process(config: Dict[str, Any]) -> Dict[str, Any]:
         has_params = "params" in config
+        has_auto_params = "auto_config_params" in config
         has_events = "events" in config
         has_instances = "global" in config
         has_persist = "persist" in config
 
-        no_data = not has_params and not has_events and not has_instances and not has_persist
+        no_data = not (
+            has_params or has_auto_params or has_events or has_instances or has_persist
+        )
         if no_data and not config.get("auto_config", False):
             warnings.warn(MissingParamsWarning())
 
         if has_params:
-            if config.get("auto_config", False):
-                warnings.warn(AutoConfigWarning())
-
             config.update(config["params"])
             config.pop("params")
 
@@ -127,50 +122,13 @@ class ConfigMethods:
         return config
 
 
-def generate_detector_config(
+def _build_events_config(
     variable_selection: Dict[int | str, List[Union[str, Tuple[str, ...]]]],
     detector_name: str,
-    method_type: str,
-    **additional_params: Any
-) -> Dict[str, Any]:
-    """Generate a detector configuration dictionary from variable selections.
+) -> Dict[int | str, Dict[str, Any]]:
+    """Map each event_id to its instance dict.
 
-    Transforms a variable selection mapping into the nested configuration
-    structure required by detector configs. Supports both individual variable
-    names (strings) and tuples of variable names. Each tuple produces a
-    separate detector instance in the config.
-
-    Args:
-        variable_selection: Maps event_id to list of variable names or tuples
-            of variable names. Strings are grouped into a single instance.
-            Each tuple becomes its own instance. Variable names matching
-            'var_\\d+' are positional template variables; others are header
-            variables.
-        detector_name: Name of the detector, used as the base instance_id.
-        method_type: Type of detection method (e.g., "new_value_detector").
-        **additional_params: Additional parameters for the detector's params
-            dict (e.g., max_combo_size=3).
-
-    Returns:
-        Dictionary with structure compatible with detector config classes.
-
-    Examples:
-        Single variable names (one instance per event)::
-
-            config = generate_detector_config(
-                variable_selection={1: ["var_0", "var_1", "level"]},
-                detector_name="MyDetector",
-                method_type="new_value_detector",
-            )
-
-        Tuples of variable names (one instance per tuple)::
-
-            config = generate_detector_config(
-                variable_selection={1: [("username", "src_ip"), ("var_0", "var_1")]},
-                detector_name="MyDetector",
-                method_type="new_value_combo_detector",
-                max_combo_size=2,
-            )
+    Shared by the two generators below.
     """
     var_pattern = re.compile(r"^var_(\d+)$")
 
@@ -200,13 +158,90 @@ def generate_detector_config(
 
         events_config[event_id] = instances
 
+    return events_config
+
+
+def generate_events_config(
+    variable_selection: Dict[int | str, List[Union[str, Tuple[str, ...]]]],
+    detector_name: str,
+) -> EventsConfig:
+    """The `events` block for a variable selection, as the model
+    set_configuration assigns.
+
+    The configure phase produces exactly this. Everything else on a
+    detector config is operator input and must survive the phase
+    untouched, which is why set_configuration writes this instead of
+    rebuilding the config from generate_detector_config.
+    """
+    return EventsConfig._init(_build_events_config(variable_selection, detector_name))
+
+
+def generate_detector_config(
+    variable_selection: Dict[int | str, List[Union[str, Tuple[str, ...]]]],
+    detector_name: str,
+    method_type: str,
+    **additional_params: Any
+) -> Dict[str, Any]:
+    """Generate a detector configuration dictionary from variable selections.
+
+    Transforms a variable selection mapping into the nested configuration
+    structure required by detector configs. Supports both individual variable
+    names (strings) and tuples of variable names. Each tuple produces a
+    separate detector instance in the config.
+
+    Has no production callers: `set_configuration` writes only `config.events`
+    via `generate_events_config` (above), never rebuilds the whole config, so
+    that operator-set `params` and `auto_config_params` survive untouched. This
+    helper remains for callers that want a complete, standalone config dict
+    from a variable selection.
+
+    Args:
+        variable_selection: Maps event_id to list of variable names or tuples
+            of variable names. Strings are grouped into a single instance.
+            Each tuple becomes its own instance. Variable names matching
+            'var_\\d+' are positional template variables; others are header
+            variables.
+        detector_name: Name of the detector, used as the base instance_id.
+        method_type: Type of detection method (e.g., "new_value_detector").
+        **additional_params: Additional parameters for the detector's flat
+            `params` dict — operational settings read during training and
+            detection (e.g. `data_use_training=500`). `ConfigMethods.process`
+            flattens `params` onto the top level and the config classes are
+            `extra="forbid"`, so a key here must name an actual flat field on
+            the target config class. Configure-phase-only settings that now
+            live under `auto_config_params` (e.g. `max_combo_size`) do not
+            belong here — passing one raises `ValidationError` when the
+            result is loaded with `.from_dict`.
+
+    Returns:
+        Dictionary with structure compatible with detector config classes.
+
+    Examples:
+        Single variable names (one instance per event)::
+
+            config = generate_detector_config(
+                variable_selection={1: ["var_0", "var_1", "level"]},
+                detector_name="MyDetector",
+                method_type="new_value_detector",
+            )
+
+        Tuples of variable names (one instance per tuple), with an
+        additional flat operational parameter::
+
+            config = generate_detector_config(
+                variable_selection={1: [("username", "src_ip"), ("var_0", "var_1")]},
+                detector_name="MyDetector",
+                method_type="new_value_combo_detector",
+                data_use_training=500,
+            )
+    """
     config_dict = {
         "detectors": {
             detector_name: {
                 "method_type": method_type,
                 "auto_config": False,
                 "params": additional_params,
-                "events": events_config
+                "events": _build_events_config(variable_selection, detector_name),
             }
         }
     }

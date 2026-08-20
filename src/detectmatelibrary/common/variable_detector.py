@@ -1,6 +1,10 @@
-from detectmatelibrary.common._config._formats import _EventInstance, EventsConfig
-from detectmatelibrary.common._config._compile import generate_detector_config, get_configured_variables
+from detectmatelibrary.common._config._formats import _EventInstance
+from detectmatelibrary.common._config._compile import (
+    generate_events_config,
+    get_configured_variables,
+)
 from detectmatelibrary.common.detector import (
+    AutoConfigParams,
     CoreDetectorConfig,
     CoreDetector,
 )
@@ -43,7 +47,36 @@ def get_global_variables(
     return result
 
 
-class VariableDetectorConfig(CoreDetectorConfig):
+def _strip_auto_config_params(detector_config: Dict[str, Any], method_id: str) -> Dict[str, Any]:
+    """Return a copy of a serialized detector_config with its
+    auto_config_params block removed.
+
+    detector_config is stashed on a tracker and persisted verbatim by
+    to_state(). auto_config_params are configure-phase-only inputs --
+    the standing constraint is that persisted tracker state never
+    carries them. Stripped here, at the point the kwargs are built, so
+    the block never reaches state in the first place.
+    """
+    entry = detector_config.get("detectors", {}).get(method_id, {})
+    if "auto_config_params" not in entry:
+        return detector_config
+    return {
+        **detector_config,
+        "detectors": {
+            **detector_config["detectors"],
+            method_id: {k: v for k, v in entry.items() if k != "auto_config_params"},
+        },
+    }
+
+
+class VariableAutoConfigParams(AutoConfigParams):
+    """Configure-phase inputs shared by every VariableDetector subclass.
+
+    Read only while `auto_config` is True: stability classification decides
+    which variables land in the generated `events` block and is never consulted
+    at detection time.
+    """
+
     use_stable_vars: bool = True
     use_static_vars: bool = True
 
@@ -52,9 +85,21 @@ class VariableDetectorConfig(CoreDetectorConfig):
     # durations instead. "both" requires the variable to pass under *both*
     # segmentations. The two time-aware modes need a per-record event time,
     # named here and read from the record's logFormatVariables.
-    stability_segmentation: Literal["count", "time", "both"] = "count"
+    segmentation: Literal["count", "time", "both"] = "count"
     timestamp_variable: str | None = None
     timestamp_format: str | None = None  # None -> TimeFormatHandler auto-detect
+
+    # Orthogonal to the segmentation above: an extra conjunct on STABLE
+    # requiring the variable's changes to sit early in its series. Needs no
+    # timestamps -- it reads index positions only.
+    require_declining: bool = False
+    # The cut-off require_declining compares the change centroid against.
+    # Ignored unless require_declining is set.
+    incline_threshold: float = -0.05
+
+
+class VariableDetectorConfig(CoreDetectorConfig):
+    auto_config_params: VariableAutoConfigParams = VariableAutoConfigParams()
 
 
 class VariableDetector(CoreDetector):
@@ -79,27 +124,39 @@ class VariableDetector(CoreDetector):
         self._warned_bad_timestamp = False
         self.persistency = EventPersistency(
             event_data_class=self._event_data_class(),
-            event_data_kwargs=self._with_segmentation(self._event_data_kwargs()),
+            # No stability kwargs: the trained trackers are read by _check_variable,
+            # which looks at unique_set / min-max / charset directly and never
+            # calls classify(). Segmentation settings would only make them collect
+            # timestamps nothing reads.
+            event_data_kwargs=self._event_data_kwargs(),
         )
         # auto config checks individual-variable stability to select features
         self.auto_conf_persistency = EventPersistency(
             event_data_class=self._event_data_class(),
-            event_data_kwargs=self._with_segmentation(self._auto_conf_kwargs()),
+            event_data_kwargs=self._with_stability_kwargs(self._auto_conf_kwargs()),
         )
         self._register_persistency(self.persistency)
 
-    def _with_segmentation(self, kwargs: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-        """Add the segmentation mode to tracker kwargs when it is not the
-        default.
+    def _with_stability_kwargs(self, kwargs: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """Add the stability settings to tracker kwargs, each only when it is
+        not the default.
 
         Done here rather than in _stability_kwargs so every
         VariableDetector subclass is covered -- NewValueDetector
         overrides neither construction hook and NewValueComboDetector
         returns only a converter_function.
+
+        Non-defaults only: passing segmentation unconditionally would make
+        every variable collect timestamps it never reads.
         """
-        if self.config.stability_segmentation == "count":
-            return kwargs
-        return {**(kwargs or {}), "segmentation": self.config.stability_segmentation}
+        extra: Dict[str, Any] = {}
+        auto = self.config.auto_config_params
+        if auto.segmentation != "count":
+            extra["segmentation"] = auto.segmentation
+        if auto.require_declining:
+            extra["require_declining"] = True
+            extra["incline_threshold"] = auto.incline_threshold
+        return {**(kwargs or {}), **extra} if extra else kwargs
 
     # ---- construction hooks -------------------------------------------------
 
@@ -118,7 +175,7 @@ class VariableDetector(CoreDetector):
         name = type(self).__name__
         return {
             "add_value_fn": name,
-            "detector_config": self.config.to_dict(method_id=name),
+            "detector_config": _strip_auto_config_params(self.config.to_dict(method_id=name), name),
         }
 
     def _warn_time_fallback_once(self, reason: str) -> None:
@@ -138,21 +195,22 @@ class VariableDetector(CoreDetector):
     def _timestamp(self, input_: ParserSchema) -> float | None:
         """Resolve the record's event time, or None to use count
         segmentation."""
-        if self.config.stability_segmentation == "count":
+        auto = self.config.auto_config_params
+        if auto.segmentation == "count":
             return None
-        if not self.config.timestamp_variable:
+        if not auto.timestamp_variable:
             # Selecting a time-aware mode without naming the field is an operator
             # error, not an opt-out -- say so rather than silently no-op.
             self._warn_time_fallback_once(
-                f"stability_segmentation is {self.config.stability_segmentation!r} "
+                f"segmentation is {auto.segmentation!r} "
                 "but timestamp_variable is not set"
             )
             return None
-        raw = input_["logFormatVariables"].get(self.config.timestamp_variable)
-        ts = self._time_handler.parse_timestamp(str(raw or ""), self.config.timestamp_format)
+        raw = input_["logFormatVariables"].get(auto.timestamp_variable)
+        ts = self._time_handler.parse_timestamp(str(raw or ""), auto.timestamp_format)
         if ts == "0":
             self._warn_time_fallback_once(
-                f"timestamp_variable {self.config.timestamp_variable!r} is missing or "
+                f"timestamp_variable {auto.timestamp_variable!r} is missing or "
                 f"unparseable (got {raw!r})"
             )
             return None
@@ -195,7 +253,6 @@ class VariableDetector(CoreDetector):
             event_id=event_id,
             event_template=input_["template"],
             named_variables=variables,
-            timestamp=self._timestamp(input_),
         )
 
     def detect(self, input_: ParserSchema, output_: DetectorSchema) -> bool:  # type: ignore
@@ -271,35 +328,27 @@ class VariableDetector(CoreDetector):
         variables: Dict[Any, Any] = {}
         for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
             stability_tracker = cast(EventStabilityTracker, tracker)
+            auto = self.config.auto_config_params
             stable = (
                 stability_tracker.get_features_by_classification("STABLE")
-                if self.config.use_stable_vars
+                if auto.use_stable_vars
                 else []
             )
             static = (
                 stability_tracker.get_features_by_classification("STATIC")
-                if self.config.use_static_vars
+                if auto.use_static_vars
                 else []
             )
             selected = stable + static
             if selected:
                 variables[event_id] = selected
-        old_persist = self.config.persist
-        old_segmentation = self.config.stability_segmentation
-        old_timestamp_variable = self.config.timestamp_variable
-        old_timestamp_format = self.config.timestamp_format
-        config_dict = generate_detector_config(
-            variable_selection=variables,
-            detector_name=self.name,
-            method_type=self.config.method_type,
-        )
-        self.config = type(self.config).from_dict(config_dict, self.name)
-        self.config.persist = old_persist
-        self.config.stability_segmentation = old_segmentation
-        self.config.timestamp_variable = old_timestamp_variable
-        self.config.timestamp_format = old_timestamp_format
-        events = self.config.events
-        if isinstance(events, EventsConfig) and not events.events:
+        # Write only what the configure phase produced. Rebuilding the config
+        # from generate_detector_config is what used to drop operator settings:
+        # it emits four keys, so everything else had to be carried across by
+        # hand and a forgotten field failed silently.
+        self.config.events = generate_events_config(variables, self.name)
+        self.config.auto_config = False
+        if not self.config.events.events:
             logger.warning(
                 f"[{self.name}] auto_config=True generated an empty configuration. "
                 "No stable variables were found in configure-phase data. "

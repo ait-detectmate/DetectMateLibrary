@@ -8,9 +8,16 @@ from detectmatelibrary.utils.persistency.rle_list import RLEList
 
 class StabilityClassifier:
     """Classifier for stability based on segment means."""
-    def __init__(self, segment_thresholds: List[float], min_samples: int = 10):
+    def __init__(
+        self,
+        segment_thresholds: List[float],
+        min_samples: int = 10,
+        incline_threshold: float = -0.05,
+    ):
         self.segment_threshs = segment_thresholds
         self.min_samples = min_samples
+        # Only read when a tracker sets require_declining. See incline().
+        self.incline_threshold = incline_threshold
         # for RLELists
         self.segment_sums = [0.0] * len(segment_thresholds)
         self.segment_counts = [0] * len(segment_thresholds)
@@ -122,6 +129,55 @@ class StabilityClassifier:
                 for i in range(self.n_segments)
             ]
         return all([not q >= thresh for q, thresh in zip(self.segment_means, self.segment_threshs)])
+
+    def incline(
+        self, change_series: RLEList[bool] | List[bool]
+    ) -> float:
+        """Change centroid: where in the series the changes sit, in [-0.5, +0.5].
+
+        The mean position of the changes, measured against the midpoint of
+        the series and scaled by the half-span::
+
+            k = (p_bar - n/2) / (n - 2)
+
+        -0.5 is every change at the very start, 0 is uniform churn, +0.5 is
+        every change at the very end. Index 0 is excluded: the first value is
+        always recorded as a change, so counting it would drag every variable
+        negative, a perfectly static one included.
+
+        This is the least-squares slope over the same series with its data-free
+        parts divided out -- for evenly spaced x the OLS denominator is the
+        constant n(n-1)(n-2)/12, and the numerator collapses to m(p_bar - n/2)
+        because only the change positions survive the binary y. The two are
+        related by ``k_OLS = k * 12m / n(n-1)``, a strictly positive factor, so
+        they never disagree on sign. Dropping the leading ``m`` is the point:
+        it is what makes k comparable between events instead of scaling with
+        how many changes happened to occur.
+
+        Runs close in form, so an RLEList costs one pass over ``runs()`` with
+        no expansion. Returns 0.0 when the series is too short to have a span,
+        and -0.5 when nothing ever changed.
+        """
+        n = len(change_series)
+        if n < 3:
+            return 0.0
+        runs = (
+            change_series.runs() if isinstance(change_series, RLEList)
+            else ((value, 1) for value in change_series)
+        )
+        position_sum, n_changes, position = 0, 0, 0
+        for value, count in runs:
+            if value:
+                start = max(position, 1)  # index 0 is excluded
+                length = position + count - start
+                if length > 0:
+                    # sum of start .. start+length-1
+                    position_sum += length * start + length * (length - 1) // 2
+                    n_changes += length
+            position += count
+        if n_changes == 0:
+            return -0.5
+        return (position_sum / n_changes - n / 2) / (n - 2)
 
     def get_last_segment_means(self) -> List[float]:
         return self.segment_means
