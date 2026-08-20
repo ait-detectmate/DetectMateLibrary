@@ -8,29 +8,7 @@ In this section, we will show different examples of the basic usage of the Detec
 In this example, we will use the [`MatcherParser`](parsers/template_matcher.md) to parse audit data from the [AIT Log Data Set V2.0](https://zenodo.org/records/5789064). The code loads the logs, parse them and save the input and output in json files using [`from_to`](helper/from_to.md) module.
 
 ```python
-from detectmatelibrary.parsers.template_matcher import MatcherParser
-from detectmatelibrary.helper.from_to import From, To
-
-
-config_dict = {
-    "parsers": {
-        "MatcherParser": {
-            "auto_config": True,
-            "method_type": "matcher_parser",
-            "path_templates": "ait_audit.txt",
-            "log_format": r'type=<Type> msg=audit\(<Time>:<Serial>\): <Content>'
-        }
-    }
-}
-parser = MatcherParser(name="MatcherParser", config=config_dict)
-
-
-for i, log in enumerate(From.log(parser, "audit.log", do_process=False)):
-    To.json(log, "logs.json")
-
-    parsed_log = parser.process(log)
-    To.json(parsed_log, "parsed_log.json")
-
+--8<-- "docs/examples/others/basic_usage.py:example_1"
 ```
 
 The logs will be saved in `logs.json` in this format:
@@ -91,37 +69,7 @@ And the `parsed_log.json`:
 In this example, we will use the [`RandomDetector`](detectors/random_detector.md) with the parsed logs from the previous example.
 
 ```python
-from detectmatelibrary.detectors.random_detector import RandomDetector
-from detectmatelibrary.helper.from_to import From, To, FromTo
-
-config_dict = {
-    "detectors": {
-        "RandomDetector": {
-            "auto_config": False,
-            "method_type": "random_detector",
-            "params": {},
-            "events": {
-                1: {
-                    "test": {
-                        "params": {},
-                        "variables": [{
-                            "pos": 0,
-                            "name": "process",
-                            "params": {
-                                "threshold": 0.
-                            }
-                        }]
-                    }
-                }
-            }
-        }
-    }
-}
-detector =  RandomDetector(name="RandomDetector", config=config_dict)
-
-for alert in FromTo.json2json(detector, "parsed_log.json", "alerts.json"):
-    if alert is not None:
-        print("Anomaly detected!")
+--8<-- "docs/examples/others/basic_usage.py:example_2"
 ```
 
 The alerts will be saved in `alerts.json` in this format:

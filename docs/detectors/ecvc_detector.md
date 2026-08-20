@@ -16,8 +16,8 @@ A count vector is form by counting the number of appearance of each event ID in 
 
 ```yaml
 detectors:
-    SCVSDetector:
-        method_type: scvs_detector
+    ECVCDetector:
+        method_type: ecvc_detector_detector
         window_size: 10
 ```
 

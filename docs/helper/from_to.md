@@ -54,10 +54,7 @@ class From:
 ### Usage
 
 ```python
-parser = DummyParser()
-
-for log in From.log(parser, in_path=log_path, do_process=False):
-    print(log)
+--8<-- "docs/examples/others/from_to.py:example_1"
 ```
 
 ## To
@@ -94,9 +91,7 @@ class To:
 ### Usage
 
 ```python
-parser = DummyParser()
-for log in From.log(parser, in_path=log_path, do_process=False):
-    assert To.json(log, output_path) == output_schema
+--8<-- "docs/examples/others/from_to.py:example_2"
 ```
 
 Example JSON save file format:
@@ -223,9 +218,7 @@ class FromTo:
 ### Usage
 
 ```python
-parser = DummyParser()
-for parsed_log in FromTo.json2json(parser, log_path, json_path):
-    pass
+--8<-- "docs/examples/others/from_to.py:example_3"
 ```
 
 Example input data:
