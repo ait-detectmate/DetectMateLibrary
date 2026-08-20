@@ -88,14 +88,12 @@ class TimeFormatHandler:
         # 3) Numeric epoch (seconds, milliseconds, microseconds or nanoseconds)
         if re.fullmatch(r"\d+(?:\.\d+)?", time_str):
             try:
-                val: float = float(time_str) if "." in time_str else int(time_str)
-                # Fold sub-second units until the value is a plausible seconds
-                # epoch. 1e11 seconds is the year 5138, so anything above that
-                # is ms/us/ns -- folding once only would leave e.g. a
-                # microsecond epoch sitting in milliseconds.
-                while val > 1e11:
+                val = int(time_str.split(".", 1)[0])
+                # Fold sub-second units until the value is a plausible seconds epoch.
+                # 100_000_000_000 seconds is the year 5138, so anything above that is ms/us/ns.
+                while val > 100_000_000_000:
                     val //= 1000
-                return str(int(val))
+                return str(val)
             except (ValueError, OverflowError):
                 pass
 
