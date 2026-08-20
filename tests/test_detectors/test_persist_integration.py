@@ -1,7 +1,14 @@
+import logging
 import threading
 
 import fsspec
+import numpy as np
+import pytest
 
+from detectmatelibrary import schemas
+from detectmatelibrary.detectors.ecvc_detector import ECVCDetector, ECVCDetectorConfig
+from detectmatelibrary.detectors.scvs_detector import SCVSDetector, SCVSDetectorConfig
+from detectmatelibrary.utils.sequence_encoding import decode_count_vec, encode_count_vec
 from detectmatelibrary.detectors.new_value_detector import NewValueDetector, NewValueDetectorConfig
 from detectmatelibrary.detectors.new_value_combo_detector import (
     NewValueComboDetector,
@@ -267,3 +274,171 @@ class TestDetectorExportImportState:
             stop.set()
             t.join(timeout=2.0)
             det.saver.stop()
+
+
+# Count-vector detectors (SCVS / ECVC) ######################################
+
+WINDOW_SIZE = 4
+# Distinct count vectors over EventIDs 0/1/4, each WINDOW_SIZE events long.
+TRAIN_WINDOWS = [[0, 1, 4, 0], [1, 1, 0, 0], [4, 0, 1, 1], [0, 0, 4, 4]]
+UNSEEN_WINDOW = [4, 4, 4, 4]
+
+
+def _window(event_ids):
+    return [schemas.ParserSchema({"EventID": i}) for i in event_ids]
+
+
+class TestCountVecCodec:
+    def test_round_trip(self):
+        assert decode_count_vec(encode_count_vec(10, (2, 1, 0, 0, 1))) == (10, (2, 1, 0, 0, 1))
+
+    def test_window_size_distinguishes_identical_vectors(self):
+        # The same count vector learned at another window size must not match.
+        assert encode_count_vec(4, (1, 1)) != encode_count_vec(8, (1, 1))
+
+
+class TestSCVSDetectorPersist:
+    def test_no_saver_by_default(self):
+        det = SCVSDetector()
+        assert det.saver is None
+
+    def test_saver_created_when_persist_configured(self):
+        det = SCVSDetector(
+            name="SCVS1",
+            config=SCVSDetectorConfig(
+                auto_config=False,
+                persist=PersistConfig(path="memory://scvs_saver/state"),
+            ),
+        )
+        assert det.saver is not None
+        det.saver.stop()
+
+    def test_save_and_reload(self):
+        base_path = "memory://scvs_reload/state"
+        det_name = "SCVS_Reload"
+
+        det1 = SCVSDetector(
+            name=det_name,
+            config=SCVSDetectorConfig(
+                auto_config=False,
+                window_size=WINDOW_SIZE,
+                persist=PersistConfig(path=base_path),
+            ),
+        )
+        for window in TRAIN_WINDOWS:
+            det1.train(_window(window))
+        assert isinstance(det1.saver, PersistencySaver)
+        det1.saver.save()
+        det1.saver.stop()
+
+        det2 = SCVSDetector(
+            name=det_name,
+            config=SCVSDetectorConfig(
+                auto_config=False,
+                window_size=WINDOW_SIZE,
+                persist=PersistConfig(path=base_path, auto_load=True),
+            ),
+        )
+        assert det2.get_known_count_vecs() == det1.get_known_count_vecs()
+        # A restored detector detects without retraining.
+        assert det2.detect(_window(TRAIN_WINDOWS[0]), schemas.DetectorSchema()) is False
+        assert det2.detect(_window(UNSEEN_WINDOW), schemas.DetectorSchema()) is True
+        det2.saver.stop()
+
+    def test_import_state_warns_on_window_size_mismatch(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        det1 = SCVSDetector(
+            name="SCVS_WSSrc",
+            config=SCVSDetectorConfig(auto_config=False, window_size=WINDOW_SIZE),
+        )
+        for window in TRAIN_WINDOWS:
+            det1.train(_window(window))
+        state = det1.export_state()
+
+        det2 = SCVSDetector(
+            name="SCVS_WSDst",
+            config=SCVSDetectorConfig(auto_config=False, window_size=WINDOW_SIZE + 2),
+        )
+        with caplog.at_level(logging.WARNING):
+            det2.import_state(state)
+        assert any("window_size" in r.message for r in caplog.records)
+
+
+class TestECVCDetectorPersist:
+    def test_no_saver_by_default(self):
+        det = ECVCDetector()
+        assert det.saver is None
+
+    def test_saver_created_when_persist_configured(self):
+        det = ECVCDetector(
+            name="ECVC1",
+            config=ECVCDetectorConfig(
+                auto_config=False,
+                persist=PersistConfig(path="memory://ecvc_saver/state"),
+            ),
+        )
+        assert det.saver is not None
+        det.saver.stop()
+
+    def test_save_and_reload_rebuilds_model(self):
+        """A reloaded ECVC must derive the same matrix and threshold.
+
+        post_train() splits train from validation by iteration order
+        over the learned vectors, so a restored model only equals a
+        freshly trained one because _derive() sorts them first.
+        """
+        base_path = "memory://ecvc_reload/state"
+        det_name = "ECVC_Reload"
+        config_args = dict(
+            auto_config=False,
+            window_size=WINDOW_SIZE,
+            validation_per=0.5,
+            seed=0,
+            threshold_method="mean",
+        )
+
+        det1 = ECVCDetector(
+            name=det_name,
+            config=ECVCDetectorConfig(
+                persist=PersistConfig(path=base_path), **config_args
+            ),
+        )
+        for window in TRAIN_WINDOWS:
+            det1.train(_window(window))
+        det1.post_train()
+        assert det1.count_vecs is not None
+        assert isinstance(det1.saver, PersistencySaver)
+        det1.saver.save()
+        det1.saver.stop()
+
+        det2 = ECVCDetector(
+            name=det_name,
+            config=ECVCDetectorConfig(
+                persist=PersistConfig(path=base_path, auto_load=True), **config_args
+            ),
+        )
+        assert det2.count_vecs is not None
+        assert np.array_equal(det2.count_vecs, det1.count_vecs)
+        assert det2.threshold == det1.threshold
+        det2.saver.stop()
+
+    def test_import_state_rebuilds_model(self):
+        config_args = dict(
+            auto_config=False, window_size=WINDOW_SIZE, validation_per=0.5, seed=0
+        )
+        det1 = ECVCDetector(name="ECVC_ImpSrc", config=ECVCDetectorConfig(**config_args))
+        for window in TRAIN_WINDOWS:
+            det1.train(_window(window))
+        det1.post_train()
+        state = det1.export_state()
+
+        det2 = ECVCDetector(name="ECVC_ImpDst", config=ECVCDetectorConfig(**config_args))
+        assert det2.count_vecs is None  # nothing learned yet
+        det2.import_state(state)
+        assert det2.count_vecs is not None
+        assert np.array_equal(det2.count_vecs, det1.count_vecs)
+
+    def test_untrained_detector_stays_silent(self):
+        det = ECVCDetector(name="ECVC_Empty", config=ECVCDetectorConfig(auto_config=False))
+        assert det.detect(_window(UNSEEN_WINDOW), schemas.DetectorSchema()) is False
