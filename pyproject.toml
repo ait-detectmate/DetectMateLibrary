@@ -17,7 +17,13 @@ dependencies = [
     "msgpack>=1.0.0",
     "fsspec>=2024.1.0",
     "pyarrow>=24.0.0",
+    "jax>=0.11.0",
+    "flax>=0.12.8",
+    "optax>=0.2.8",
 ]
+
+[tool.pytest.ini_options]
+addopts = "--ignore=local"
 
 [dependency-groups]
 # install with all the dev dependencies:  uv pip install --group dev
@@ -26,6 +32,7 @@ dev = [
     "prek>=0.3.10",
     "pytest>=8.4.2",
     "pytest-cov>=6.2.1",
+    "pymdown-extensions>=10.0",
     "detectmatelibrary[full]",
 ]
 

@@ -12,7 +12,7 @@ class DummyConfig(CoreConfig):
     b: int = 10
     c: float = 0.2
 
-    finetune: list[tuple[str, list[Any]]] = [
+    Finetune: list[tuple[str, list[Any]]] = [
         ["a", [1, 2, 3, 4]],
         ["b", [10, 40]],
         ["c", [0.2, 0.4, 0.6, 0.8]]
@@ -29,11 +29,36 @@ class DummyConfig3(CoreConfig):
     a: int = 2
     b: int = 10
 
-    finetune: list[tuple[str, list[Any]]] = [
+    Finetune: list[tuple[str, list[Any]]] = [
         ["a", [1, 2, 3, 4]],
         ["b", [10, 40]],
         ["c", [0.2, 0.4, 0.6, 0.8]]
     ]
+
+
+hyperparameters_without = {
+    "Model": {
+        "a": 1,
+    },
+    "Train": {
+        "b": 2,
+    },
+}
+
+
+hyperparameters = {
+    "Model": {
+        "a": 1,
+    },
+    "Train": {
+        "b": 2,
+    },
+    "Finetune": [
+        ["Model", "a", [1, 2, 3, 4]],
+        ["Train", "b", [10, 40]],
+        ["c", [0.2, 0.4, 0.6, 0.8]]
+    ]
+}
 
 
 class TestCombinations:
@@ -80,3 +105,25 @@ class TestCombinations:
 
         assert config.a == 1
         assert config.b == 10
+
+    def test_compatibility_dl_without(self):
+        with pytest.warns(UserWarning):
+            comb = Combinations(hyperparameters_without)
+
+        for j, _ in enumerate(comb()):
+            comb.add_value(j)
+        config = comb.get_best()
+
+        assert config["Model"]["a"] == 1
+        assert config["Train"]["b"] == 2
+
+    def test_compatibility_with_dl(self):
+        comb = Combinations(hyperparameters)
+
+        for j, _ in enumerate(comb()):
+            comb.add_value(j)
+        config = comb.get_best()
+
+        print(comb.paths)
+        assert config["Model"]["a"] == 1
+        assert config["Train"]["b"] == 10

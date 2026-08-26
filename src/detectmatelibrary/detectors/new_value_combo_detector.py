@@ -1,24 +1,18 @@
 from detectmatelibrary.common._config import generate_detector_config
 from detectmatelibrary.common._config._formats import EventsConfig
+from detectmatelibrary.common.variable_detector import VariableDetector, VariableDetectorConfig
+from detectmatelibrary.common._config._compile import get_configured_variables
 
-from detectmatelibrary.common.detector import (
-    CoreDetectorConfig,
-    CoreDetector,
-    get_configured_variables,
-    get_global_variables,
-    validate_config_coverage,
+from detectmatelibrary.utils import persistency
+from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
+    SingleStabilityTracker,
 )
 
-from detectmatelibrary.utils.data_buffer import BufferMode
-from detectmatelibrary.utils import persistency
+from detectmatelibrary.schemas import ParserSchema
 
-from detectmatelibrary.schemas import ParserSchema, DetectorSchema
-from detectmatelibrary.constants import GLOBAL_EVENT_ID
-
-from typing import Any, Dict, Sequence, cast, Tuple
+from typing import Any, Dict, Optional, Sequence, Tuple, cast
 from itertools import combinations
 
-from typing_extensions import override
 from detectmatelibrary.tools.logging import logger
 
 
@@ -27,14 +21,11 @@ def get_combo(variables: Dict[str, Any]) -> Dict[Tuple[str, ...], Tuple[Any, ...
     return {tuple(variables.keys()): tuple(variables.values())}
 
 
-def _combine(
-    iterable: Sequence[str], max_combo_length: int = 2
-) -> list[Tuple[str, ...]]:
+def _combine(iterable: Sequence[str], max_combo_length: int = 2) -> list[Tuple[str, ...]]:
     """Get all possible combinations of an iterable."""
     combos: list[Tuple[str, ...]] = []
     for i in range(2, min(len(iterable), max_combo_length, 5) + 1):
-        combo = list(combinations(iterable, i))
-        combos.extend(combo)
+        combos.extend(list(combinations(iterable, i)))
     return combos
 
 
@@ -43,146 +34,94 @@ def get_all_possible_combos(
 ) -> Dict[Tuple[str, ...], Tuple[Any, ...]]:
     """Get all combinations of specified variables as key-value pairs."""
     combo_dict = {}
-    combos = _combine(list(variables.keys()), max_combo_length)
-    for combo in combos:
-        key = tuple(combo)  # Use tuple of variable names as key
-        value = tuple(variables[var] for var in combo)
-        combo_dict[key] = value
+    for combo in _combine(list(variables.keys()), max_combo_length):
+        combo_dict[tuple(combo)] = tuple(variables[var] for var in combo)
     return combo_dict
 
 
-class NewValueComboDetectorConfig(CoreDetectorConfig):
+class NewValueComboDetectorConfig(VariableDetectorConfig):
     method_type: str = "new_value_combo_detector"
 
     max_combo_size: int = 3
-    use_stable_vars: bool = True
     use_static_vars: bool = False
 
 
-class NewValueComboDetector(CoreDetector):
+class NewValueComboDetector(VariableDetector):
     def __init__(
         self,
         name: str = "NewValueComboDetector",
-        config: NewValueComboDetectorConfig = NewValueComboDetectorConfig()
+        config: NewValueComboDetectorConfig = NewValueComboDetectorConfig(),
     ) -> None:
-
         if isinstance(config, dict):
             config = NewValueComboDetectorConfig.from_dict(config, name)
-        super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
-
-        self.config = cast(NewValueComboDetectorConfig, self.config)
-        self.persistency = persistency.EventPersistency(
-            event_data_class=persistency.EventStabilityTracker,
-            event_data_kwargs={"converter_function": get_combo}
-        )
-        # auto config checks if individual variables are stable to select combos from
-        self.auto_conf_persistency = persistency.EventPersistency(
-            event_data_class=persistency.EventStabilityTracker
-        )
+        super().__init__(name=name, config=config)
+        self.config: NewValueComboDetectorConfig  # type narrowing for IDE
+        # second-pass persistency to learn stability of variable combinations
         self.auto_conf_persistency_combos = persistency.EventPersistency(
             event_data_class=persistency.EventStabilityTracker,
-            event_data_kwargs={"converter_function": get_all_possible_combos}
+            event_data_kwargs=self._with_segmentation(
+                {"converter_function": get_all_possible_combos}
+            ),
         )
         self.inputs: list[ParserSchema] = []
-        self._register_persistency(self.persistency)
 
-    def train(self, input_: ParserSchema) -> None:  # type: ignore
-        config = cast(NewValueComboDetectorConfig, self.config)
-        configured_variables = get_configured_variables(input_, config.events)
-        self.persistency.ingest_event(
-            event_id=input_["EventID"],
-            event_template=input_["template"],
-            named_variables=configured_variables
+    def _event_data_kwargs(self) -> Optional[Dict[str, Any]]:
+        return {"converter_function": get_combo}
+
+    def _auto_conf_kwargs(self) -> Optional[Dict[str, Any]]:
+        return None  # first-pass auto-config tracks individual variables
+
+    def _prepare_variables(self, variables: Dict[str, Any], stage: str) -> Dict[str, Any]:
+        if stage == "detection":
+            return cast(Dict[str, Any], get_combo(variables))
+        return variables
+
+    def _check_variable(
+        self, tracker: SingleStabilityTracker, value: Any, key: Any
+    ) -> Optional[str]:
+        if value not in tracker.unique_set:
+            return f"Unknown value combination: {value}"
+        return None
+
+    def _description(self) -> str:
+        return (
+            f"{self.name} detects value combinations not encountered "
+            "in training as anomalies."
         )
-        if config.global_instances:
-            global_vars = get_global_variables(input_, config.global_instances)
-            if global_vars:
-                self.persistency.ingest_event(
-                    event_id=GLOBAL_EVENT_ID,
-                    event_template=input_["template"],
-                    named_variables=global_vars
-                )
-
-    def detect(
-        self, input_: ParserSchema, output_: DetectorSchema  # type: ignore
-    ) -> bool:
-        alerts: Dict[str, str] = {}
-        config = cast(NewValueComboDetectorConfig, self.config)
-        configured_variables = get_configured_variables(input_, config.events)
-        combo_dict = get_combo(configured_variables)
-
-        overall_score = 0.0
-        current_event_id = input_["EventID"]
-        known_events = self.persistency.get_events_data()
-
-        if current_event_id in known_events:
-            event_tracker = known_events[current_event_id]
-            for combo_key, multi_tracker in event_tracker.get_data().items():
-                value_tuple = combo_dict.get(combo_key)
-                if value_tuple is None:
-                    continue
-                if value_tuple not in multi_tracker.unique_set:
-                    alerts[f"EventID {current_event_id} - {combo_key}"] = (
-                        f"Unknown value combination: {value_tuple}"
-                    )
-                    overall_score += 1.0
-
-        if config.global_instances and GLOBAL_EVENT_ID in known_events:
-            global_vars = get_global_variables(input_, config.global_instances)
-            global_combo_dict = get_combo(global_vars)
-            global_tracker = known_events[GLOBAL_EVENT_ID]
-            for combo_key, multi_tracker in global_tracker.get_data().items():
-                value_tuple = global_combo_dict.get(combo_key)
-                if value_tuple is None:
-                    continue
-                if value_tuple not in multi_tracker.unique_set:
-                    alerts[f"Global - {combo_key}"] = f"Unknown value combination: {value_tuple}"
-                    overall_score += 1.0
-
-        if overall_score > 0:
-            output_["score"] = overall_score
-            output_["description"] = (
-                f"{self.name} detects value combinations not encountered "
-                "in training as anomalies."
-            )
-            output_["alertsObtain"].update(alerts)
-            return True
-        return False
-
-    @override
-    def post_train(self) -> None:
-        config = cast(NewValueComboDetectorConfig, self.config)
-        if not config.auto_config:
-            validate_config_coverage(self.name, config.events, self.persistency)
 
     def configure(self, input_: ParserSchema) -> None:  # type: ignore
-        """Configure the detector based on the stability of individual
-        variables, then learn value combinations based on that
-        configuration."""
-        # store inputs to re-ingest after the first step of the configuration process
+        # store inputs to re-ingest after the first configuration pass
         self.inputs.append(input_)
-
-        # first pass to learn variable stability of all variables
-        self.auto_conf_persistency.ingest_event(
-            event_id=input_["EventID"],
-            event_template=input_["template"],
-            variables=input_["variables"],
-            named_variables=input_["logFormatVariables"],
-        )
+        super().configure(input_)
 
     def set_configuration(self, max_combo_size: int | None = None) -> None:
-        """Set the detector configuration based on the stability of variable
-        combinations.
+        """Set configuration based on the stability of variable combinations.
 
-        The process is as follows:
-        1. Analyze the stability of individual variables to identify which are stable.
+        1. Analyze individual-variable stability to identify stable variables.
         2. Generate an initial config with combos of stable variables.
-        3. Re-ingest all events to learn the stability of these combos (testing all possible combos right away
-        would explode combinatorially).
+        3. Re-ingest all events to learn the stability of those combos (testing
+           every possible combo up front would explode combinatorially).
         """
-        config = cast(NewValueComboDetectorConfig, self.config)
-        old_persist = config.persist
-        # run WITH auto_conf_persistency
+        old_persist = self.config.persist
+        segmentation_fields = {
+            "stability_segmentation": self.config.stability_segmentation,
+            "timestamp_variable": self.config.timestamp_variable,
+            "timestamp_format": self.config.timestamp_format,
+        }
+
+        def restore_segmentation_fields() -> None:
+            """Carry the segmentation settings across a config reassignment.
+
+            generate_detector_config only emits method_type / auto_config /
+            params / events, so every ``from_dict`` below resets these to their
+            defaults. The re-ingest loop calls ``_timestamp()`` under the pass-1
+            config, so restoring only at the end would leave the combo trackers
+            timestamp-less.
+            """
+            for field, value in segmentation_fields.items():
+                setattr(self.config, field, value)
+
+        # pass 1: stable individual variables -> combos
         variable_combos = {}
         for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
             stable_vars = tracker.get_features_by_classification("STABLE")  # type: ignore
@@ -192,42 +131,46 @@ class NewValueComboDetector(CoreDetector):
             variable_selection=variable_combos,
             detector_name=self.name,
             method_type=self.config.method_type,
-            max_combo_size=max_combo_size or config.max_combo_size
+            max_combo_size=max_combo_size or self.config.max_combo_size,
         )
-        # Update the config object from the dictionary instead of replacing it
         self.config = NewValueComboDetectorConfig.from_dict(config_dict, self.name)
+        restore_segmentation_fields()
 
-        # Re-ingest all inputs to learn combos based on new configuration
+        # re-ingest all inputs to learn combos under the new configuration
         for input_ in self.inputs:
             configured_variables = get_configured_variables(input_, self.config.events)
             self.auto_conf_persistency_combos.ingest_event(
                 event_id=input_["EventID"],
                 event_template=input_["template"],
-                named_variables=configured_variables
+                named_variables=configured_variables,
+                timestamp=self._timestamp(input_),
             )
 
-        # rerun to set final config WITH auto_conf_persistency_combos
+        # pass 2: stable/static combos -> final config
         combo_selection = {}
         for event_id, tracker in self.auto_conf_persistency_combos.get_events_data().items():
-            stable_combos = []
-            if self.config.use_stable_vars:
-                stable_combos = tracker.get_features_by_classification("STABLE")  # type: ignore
-            static_combos = []
-            if self.config.use_static_vars:
-                static_combos = tracker.get_features_by_classification("STATIC")  # type: ignore
+            stable_combos = (
+                tracker.get_features_by_classification("STABLE")  # type: ignore
+                if self.config.use_stable_vars
+                else []
+            )
+            static_combos = (
+                tracker.get_features_by_classification("STATIC")  # type: ignore
+                if self.config.use_static_vars
+                else []
+            )
             combos = stable_combos + static_combos
-            # Keep combos as tuples - each will become a separate config entry
-            if len(combos) > 0:
+            if combos:
                 combo_selection[event_id] = combos
         config_dict = generate_detector_config(
             variable_selection=combo_selection,
             detector_name=self.name,
             method_type=self.config.method_type,
-            max_combo_size=max_combo_size or self.config.max_combo_size
+            max_combo_size=max_combo_size or self.config.max_combo_size,
         )
-        # Update the config object from the dictionary instead of replacing it
         self.config = NewValueComboDetectorConfig.from_dict(config_dict, self.name)
         self.config.persist = old_persist
+        restore_segmentation_fields()
         events = self.config.events
         if isinstance(events, EventsConfig) and not events.events:
             logger.warning(

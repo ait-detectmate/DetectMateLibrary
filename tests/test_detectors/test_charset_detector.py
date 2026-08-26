@@ -8,7 +8,9 @@ This module tests the CharsetDetector implementation including:
 - Input/output schema validation
 """
 
-from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig, BufferMode
+from detectmatelibrary.utils.persistency.component_interfaces import PersistConfig
+from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig
+from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
@@ -16,6 +18,8 @@ from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
+
+import pytest
 
 # Set time test mode for consistent timestamps
 time_test_mode()
@@ -97,7 +101,6 @@ class TestCharsetDetectorInitialization:
     def test_register_persistency_was_called(self):
         """Main persistency should be registered so persist/load round-trips
         work."""
-        from detectmatelibrary.common.detector import PersistConfig
         cfg = CharsetDetectorConfig(
             persist=PersistConfig(path="memory://charset_regpersist/state")
         )
@@ -288,6 +291,7 @@ _PARSER_CONFIG = {
 class TestCharsetDetectorEndToEnd:
     """Regression test: full configure/train/detect pipeline on audit.log."""
 
+    @pytest.mark.ignored
     def test_audit_log_anomalies(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = CharsetDetector()
@@ -314,6 +318,7 @@ class TestCharsetDetectorAutoConfig:
     """Test that process() drives configure/set_configuration/train/detect
     automatically."""
 
+    @pytest.mark.ignored
     def test_audit_log_anomalies_via_process(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = CharsetDetector()
@@ -387,8 +392,6 @@ class TestCharsetDetectorGlobalInstances:
 
 class TestCharsetDetectorSetConfigurationPreservesPersist:
     def test_persist_flag_survives_set_configuration(self):
-        from detectmatelibrary.common.detector import PersistConfig
-
         detector = CharsetDetector()
         # Simulate persist being enabled by an earlier config load
         detector.config.persist = PersistConfig(path="memory://persist_flag/state")

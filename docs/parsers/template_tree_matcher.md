@@ -47,33 +47,7 @@ parsers:
 Simple usage — load templates and match a log:
 
 ```python
-from detectmatelibrary.parsers.tree_matcher import TemplateTreeMatcher
-from detectmatelibrary import schemas
-
-# instantiate parser (config can be a dict or a config object)
-cfg = {
-    "parsers": {
-        "TreeMatcher": {
-            "method_type": "tree_matcher",
-            "params": {
-                "path_templates": "tests/test_data/test_templates.txt"
-            }
-        }
-    }
-}
-
-parser = TemplateTreeMatcher(name="TreeMatcher", config=cfg)
-
-# match a log
-input_log = schemas.LogSchema({
-    "logID": "0",
-    "log": "pid=9699 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\"'"
-})
-parsed = parser.process(input_log)  # or call parser.parse / parser.match depending on the API
-
-# parsed is a ParserSchema. Inspect fields:
-print(parsed.template)   # matched template text
-print(parsed.variables)  # list of extracted parameters
+--8<-- "docs/examples/parsers/template_tree_matcher.py"
 ```
 
 Go back to [Index](../index.md)
