@@ -3,7 +3,7 @@ import warnings
 from typing import Self, overload
 
 
-class IncompabtibleFed(Exception):
+class IncompatibleFed(Exception):
     def __init__(self) -> None:
         super().__init__("Instances are incompatible")
 
@@ -12,7 +12,7 @@ class _CompOp:
     @staticmethod
     def is_compatible(main_inst: object, other_inst: object) -> None:
         if not isinstance(other_inst, type(main_inst)):
-            raise IncompabtibleFed()
+            raise IncompatibleFed()
 
     @staticmethod
     def reset(main_inst: object, attr: str) -> None:
@@ -47,6 +47,7 @@ class _CompOp:
 
 
 class FedOperations:
+    """Operations related to the federation learning / agregation."""
     __COMPONENT: str = "_components"
 
     def __init__(self) -> None:
@@ -54,11 +55,15 @@ class FedOperations:
         _CompOp.reset(self, self.__COMPONENT)
 
     def __add__(self, other: object) -> Self:
+        """Add other components to do the aggregation in a combine first
+        approach."""
         _CompOp.combine(self, attr=self.__COMPONENT, other_inst=other)
 
         return self
 
     def __sub__(self, other: object) -> Self:
+        """Remove other components to do the aggregation in a combine first
+        approach."""
         _CompOp.uncombine(self, attr=self.__COMPONENT, other_inst=other)
 
         return self
@@ -69,6 +74,8 @@ class FedOperations:
 
     @overload
     def stack(self, other: object | list[object]) -> None:
+        """Stack other components to do the aggregation in a stack later
+        approach."""
         pass
 
     def stack(self, other: object | list[object | bytes] | bytes) -> None:
@@ -93,8 +100,9 @@ class FedOperations:
         return None
 
     def from_binary(self, binary: bytes) -> object:
-        warnings.warn(f"To binary not implemented, return None for {binary!r}")
+        warnings.warn(f"From binary not implemented, return None for {binary!r}")
         return None
 
     def aggregate_strategy(self, components: set["FedOperations"]) -> None:
+        """Aggregation strategy use by the component."""
         warnings.warn(f"No strategy found, aggregations does nothing for {components}")

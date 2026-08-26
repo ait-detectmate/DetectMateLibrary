@@ -1,4 +1,4 @@
-from detectmatelibrary.common._core_op._fed_component import IncompabtibleFed
+from detectmatelibrary.common._core_op._fed_component import IncompatibleFed
 from detectmatelibrary.common.core import CoreComponent
 
 import struct
@@ -43,9 +43,9 @@ class TestJoinOp:
         component1 = DummyComponent2(name="comp_1")
         component2 = DummyComponent(name="comp_2")
 
-        with pytest.raises(IncompabtibleFed):
+        with pytest.raises(IncompatibleFed):
             component1 + component2
-        with pytest.raises(IncompabtibleFed):
+        with pytest.raises(IncompatibleFed):
             component1 - component2
 
     def test_stack(self) -> None:
