@@ -196,6 +196,7 @@
 </table>
 <h2 id="description">Description</h2>
 <p>A count vector is formed by counting the number of appearance of each event ID in a sequence of a specific window size.</p>
+<p>Count vectors learned during training are stored via <a href="../../auxiliar/persistency/">persistency</a>, so a trained model can be saved and restored with a <code>persist:</code> block. A count vector is only comparable within the window it was counted over, so restoring state at a different <code>window_size</code> logs a warning — the restored vectors cannot match and every window would alert.</p>
 <h2 id="configuration-example">Configuration example</h2>
 <div class="highlight"><pre><span></span><code><span class="nt">detectors</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">SCVSDetector</span><span class="p">:</span>
