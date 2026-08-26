@@ -1,15 +1,17 @@
 # Random Detector
 
-The Random Detector produces randomized alerts for incoming parsed logs. It is useful for testing pipelines, alert routing, and downstream consumers without needing a real detection model.
+The Random Detector inspects incoming ParserSchema instances and, according to its configuration, emits alerts with synthetic content. It can be configured to sample specific log variables, set thresholds or control alert frequency. Use it for integration testing, load testing, or as a simple example of a detector implementation.
+
+## In/out
 
 |            | Schema                 | Description        |
 |------------|------------------------|--------------------|
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Generated alerts |
 
-## Description
+## Configuration arguments
 
-The detector inspects incoming ParserSchema instances and, according to its configuration, emits alerts with synthetic content. It can be configured to sample specific log variables, set thresholds or control alert frequency. Use it for integration testing, load testing, or as a simple example of a detector implementation.
+Arguments used in the initalization of the component.
 
 <!-- Start arguments -->
 | Field  | Type  | Default Value| Description|
@@ -25,9 +27,13 @@ The detector inspects incoming ParserSchema instances and, according to its conf
 |global_instances|object|{}|Configuration for a specific instance within an event.|
 <!-- End arguments -->
 
+## Examples
+
+Examples to use the component in the DetectMate environment.
+
 ## Service usage
 
-To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService).
+To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example bellow.
 
 <!-- Start config -->
 ```yaml
@@ -46,7 +52,9 @@ detectors:
 ```
 <!-- End config -->
 
-## Example usage
+## Library usage
+
+To use it as a python script, you can follow the example bellow.
 
 ```python
 --8<-- "docs/examples/detectors/random_detector.py:example"
