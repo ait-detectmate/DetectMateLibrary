@@ -4,6 +4,8 @@ The Random Detector inspects incoming ParserSchema instances and, according to i
 
 ## In/out
 
+Input and output schemas in the pipeline
+
 |            | Schema                 | Description        |
 |------------|------------------------|--------------------|
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
