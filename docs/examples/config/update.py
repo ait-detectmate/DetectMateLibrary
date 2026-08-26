@@ -9,7 +9,7 @@ import yaml
 def append_docs(docs: str, start_cmd: str, end_cmd: str, add: str) -> None:
     start_idx = docs.index(start_cmd)
     end_idx = docs.index(end_cmd)
-    if start_idx < end_idx:
+    if start_idx > end_idx:
         raise Exception(f"'{start_cmd}' should be before '{end_cmd}'")
 
     return docs[:start_idx + 1] + [add] + docs[end_idx:]
