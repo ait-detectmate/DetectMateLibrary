@@ -247,7 +247,7 @@ requires-dist = [
     { name = "detectmatelibrary", extras = ["dataframes"], marker = "extra == 'full'" },
     { name = "detectmatelibrary", extras = ["llm"], marker = "extra == 'full'" },
     { name = "detectmatelibrary", extras = ["polars-rtcompat"], marker = "extra == 'full'" },
-    { name = "detectmateperformance", git = "https://github.com/ait-detectmate/DetectMatePerformance" },
+    { name = "detectmateperformance", specifier = ">=0.1.5" },
     { name = "fsspec", specifier = ">=2024.1.0" },
     { name = "msgpack", specifier = ">=1.0.0" },
     { name = "numpy", specifier = ">=2.3.2" },
@@ -279,8 +279,8 @@ dev = [
 
 [[package]]
 name = "detectmateperformance"
-version = "0.1.0"
-source = { git = "https://github.com/ait-detectmate/DetectMatePerformance#a5bb075b0bd15e406430e77ccbfcf6fe94a50ab0" }
+version = "0.1.5"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "levenshtein" },
     { name = "numpy" },
@@ -288,6 +288,10 @@ dependencies = [
     { name = "pybind11" },
     { name = "setuptools" },
     { name = "tqdm" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4b/59/92a2666a0062173607e83cf3b1fb9657cbb098c88284102de91202676c6c/detectmateperformance-0.1.5.tar.gz", hash = "sha256:67aa98302a7fc797070a8b0c6eacd147649f1f3df74e24e2753fdf1c0bdaaa1c", size = 826361, upload-time = "2026-08-26T07:28:41.683Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/65/c3/5386d48d8979655662de51ba1fdf685f6cd92e021efd13bed7a980dc981c/detectmateperformance-0.1.5-py3-none-any.whl", hash = "sha256:82b1b0d8c0163dab66b251a5766c34140a22b683a567b5075b25386bc6cd5eaa", size = 836303, upload-time = "2026-08-26T07:28:39.719Z" },
 ]
 
 [[package]]
