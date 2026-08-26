@@ -1,21 +1,15 @@
 from typing import Any, List
 
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
+from detectmatelibrary.utils import persistency
 from detectmatelibrary.utils.data_buffer import BufferMode
+from detectmatelibrary.utils.sequence_encoding import (
+    build_count_vec,
+    decode_count_vec,
+    encode_count_vec,
+    warn_on_window_size_mismatch,
+)
 from detectmatelibrary import schemas
-
-
-def build_count_vec(input_: List[schemas.ParserSchema]) -> tuple[int, ...]:
-    sequence, n = [0], 0
-    for in_ in input_:
-        event = in_["EventID"]
-        if n < event:
-            for _ in range(n, event):
-                sequence.append(0)
-            n = event
-        sequence[event] += 1
-
-    return tuple(sequence)
 
 
 class SCVSDetectorConfig(CoreDetectorConfig):
@@ -40,18 +34,46 @@ class SCVSDetector(CoreDetector):
             config=config,
             buffer_size=config.window_size
         )
-        self.train_seqs: set[tuple[int, ...]] = set()
+        # ponytail: only events_seen is used here — count vectors carry no
+        # variables. EventPersistency still requires an event_data_class.
+        self.persistency = persistency.EventPersistency(
+            event_data_class=persistency.EventStabilityTracker,
+        )
+        self._register_persistency(self.persistency)  # restores state when auto_load
+        warn_on_window_size_mismatch(self.name, self.persistency, self.config.window_size)
+
+    def import_state(
+        self, path: str | bytes, storage_options: dict[str, Any] | None = None
+    ) -> None:
+        """Load state, then check it was trained at the configured window size.
+
+        Unlike `auto_load`, this runs after construction, so the check in
+        `__init__` has already passed and has to be redone here.
+        """
+        super().import_state(path, storage_options)
+        warn_on_window_size_mismatch(self.name, self.persistency, self.config.window_size)
 
     def train(self, input_: List[schemas.ParserSchema]) -> None:  # type: ignore
-        self.train_seqs.add(build_count_vec(input_))
+        self.persistency.ingest_event(
+            event_id=encode_count_vec(self.config.window_size, build_count_vec(input_)),
+            event_template=input_[-1]["template"],
+        )
 
     def detect(
         self, input_: List[schemas.ParserSchema], output_: schemas.DetectorSchema,  # type: ignore
     ) -> bool:
 
-        if build_count_vec(input_) not in self.train_seqs:
+        key = encode_count_vec(self.config.window_size, build_count_vec(input_))
+        if key not in self.persistency.get_events_seen():
             output_["score"] = 1.
             output_["description"] = "Count vector not found"
             return True
 
         return False
+
+    def get_known_count_vecs(self) -> set[tuple[int, ...]]:
+        """Return the count vectors learned during training."""
+        return {
+            decode_count_vec(str(encoded))[1]
+            for encoded in self.persistency.get_events_seen()
+        }
