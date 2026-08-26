@@ -74,49 +74,57 @@ def get_frequecy_vector(
             s = re.sub(rgex, "<*>", s)
         for de in delimiter:
             s = re.sub(de, "", s)
-        if dataset == "HealthApp":
-            s = re.sub(":", ": ", s)
-            s = re.sub("=", "= ", s)
-            s = re.sub(r"\|", "| ", s)
-        if dataset == "Android":
-            s = re.sub(r"\(", "( ", s)
-            s = re.sub(r"\)", ") ", s)
-        if dataset == "Android":
-            s = re.sub(":", ": ", s)
-            s = re.sub("=", "= ", s)
-        if dataset == "HPC":
-            s = re.sub("=", "= ", s)
-            s = re.sub("-", "- ", s)
-            s = re.sub(":", ": ", s)
-        if dataset == "BGL":
-            s = re.sub("=", "= ", s)
-            s = re.sub(r"\.\.", ".. ", s)
-            s = re.sub(r"\(", "( ", s)
-            s = re.sub(r"\)", ") ", s)
-        if dataset == "Hadoop":
-            s = re.sub("_", "_ ", s)
-            s = re.sub(":", ": ", s)
-            s = re.sub("=", "= ", s)
-            s = re.sub(r"\(", "( ", s)
-            s = re.sub(r"\)", ") ", s)
-        if dataset == "HDFS":
-            s = re.sub(":", ": ", s)
-        if dataset == "Linux":
-            s = re.sub("=", "= ", s)
-            s = re.sub(":", ": ", s)
-        if dataset == "Spark":
-            s = re.sub(":", ": ", s)
-        if dataset == "Thunderbird":
-            s = re.sub(":", ": ", s)
-            s = re.sub("=", "= ", s)
-        if dataset == "Windows":
-            s = re.sub(":", ": ", s)
-            s = re.sub("=", "= ", s)
-            s = re.sub(r"\[", "[ ", s)
-            s = re.sub("]", "] ", s)
-        if dataset == "Zookeeper":
-            s = re.sub(":", ": ", s)
-            s = re.sub("=", "= ", s)
+        # Disabled: the following rules are hand-tuned to the specific
+        # benchmark datasets (HealthApp, Android, HDFS, ...). This is a form
+        # of overfitting to the benchmark - the parser looks artificially
+        # good on exactly these datasets, but its performance no longer says
+        # anything about how it does on new, unseen logs. For a fair
+        # evaluation of generalization, the preprocessing should be
+        # dataset-agnostic. The logic is kept for reference but commented out.
+
+        # if dataset == "HealthApp":
+        #     s = re.sub(":", ": ", s)
+        #     s = re.sub("=", "= ", s)
+        #     s = re.sub(r"\|", "| ", s)
+        # if dataset == "Android":
+        #     s = re.sub(r"\(", "( ", s)
+        #     s = re.sub(r"\)", ") ", s)
+        # if dataset == "Android":
+        #     s = re.sub(":", ": ", s)
+        #     s = re.sub("=", "= ", s)
+        # if dataset == "HPC":
+        #     s = re.sub("=", "= ", s)
+        #     s = re.sub("-", "- ", s)
+        #     s = re.sub(":", ": ", s)
+        # if dataset == "BGL":
+        #     s = re.sub("=", "= ", s)
+        #     s = re.sub(r"\.\.", ".. ", s)
+        #     s = re.sub(r"\(", "( ", s)
+        #     s = re.sub(r"\)", ") ", s)
+        # if dataset == "Hadoop":
+        #     s = re.sub("_", "_ ", s)
+        #     s = re.sub(":", ": ", s)
+        #     s = re.sub("=", "= ", s)
+        #     s = re.sub(r"\(", "( ", s)
+        #     s = re.sub(r"\)", ") ", s)
+        # if dataset == "HDFS":
+        #     s = re.sub(":", ": ", s)
+        # if dataset == "Linux":
+        #     s = re.sub("=", "= ", s)
+        #     s = re.sub(":", ": ", s)
+        # if dataset == "Spark":
+        #     s = re.sub(":", ": ", s)
+        # if dataset == "Thunderbird":
+        #     s = re.sub(":", ": ", s)
+        #     s = re.sub("=", "= ", s)
+        # if dataset == "Windows":
+        #     s = re.sub(":", ": ", s)
+        #     s = re.sub("=", "= ", s)
+        #     s = re.sub(r"\[", "[ ", s)
+        #     s = re.sub("]", "] ", s)
+        # if dataset == "Zookeeper":
+        #     s = re.sub(":", ": ", s)
+        #     s = re.sub("=", "= ", s)
         s = re.sub(",", ", ", s)
         tokens = re.sub(" +", " ", s).split(" ")
         tokens.insert(0, str(line_id))
@@ -202,7 +210,9 @@ class tupletree:  # lowercase name kept for fidelity with upstream Brain.py
         self.tuple_vector = tuple_vector
         self.group_len = group_len
 
-    def find_root(self, threshold_per: int) -> tuple[RootSetDetailID, RootSet, RootSetDetail]:
+    def find_root(
+        self, threshold_per: int
+    ) -> tuple[RootSetDetailID, RootSet, RootSetDetail]:
         root_set_detail_id: RootSetDetailID = {}
         root_set_detail: RootSetDetail = {}
         root_set: RootSet = {}
@@ -214,8 +224,12 @@ class tupletree:  # lowercase name kept for fidelity with upstream Brain.py
             for fc_w in fc:
                 if fc_w[0] >= threshold:
                     self.sorted_tuple_vector[i].append((int(count[0]), -1, -1))
-                    root_set_detail_id.setdefault(fc_w, []).append(self.sorted_tuple_vector[i])
-                    root_set.setdefault(fc_w, []).append(self.word_combinations_reverse[i])
+                    root_set_detail_id.setdefault(fc_w, []).append(
+                        self.sorted_tuple_vector[i]
+                    )
+                    root_set.setdefault(fc_w, []).append(
+                        self.word_combinations_reverse[i]
+                    )
                     root_set_detail.setdefault(fc_w, []).append(self.tuple_vector[i])
                     break
                 if fc_w[0] >= m:
@@ -223,12 +237,18 @@ class tupletree:  # lowercase name kept for fidelity with upstream Brain.py
                     m = fc_w[0]
                 if fc_w == fc[-1]:
                     self.sorted_tuple_vector[i].append((int(count[0]), -1, -1))
-                    root_set_detail_id.setdefault(candidate, []).append(self.sorted_tuple_vector[i])
-                    root_set.setdefault(candidate, []).append(self.word_combinations_reverse[i])
+                    root_set_detail_id.setdefault(candidate, []).append(
+                        self.sorted_tuple_vector[i]
+                    )
+                    root_set.setdefault(candidate, []).append(
+                        self.word_combinations_reverse[i]
+                    )
                     root_set_detail.setdefault(fc_w, []).append(self.tuple_vector[i])
         return root_set_detail_id, root_set, root_set_detail
 
-    def up_split(self, root_set_detail: RootSetDetailID, root_set: RootSet) -> RootSetDetailID:
+    def up_split(
+        self, root_set_detail: RootSetDetailID, root_set: RootSet
+    ) -> RootSetDetailID:
         for key in root_set:
             tree_node = root_set[key]
             father_count: list[FreqCountPair] = []
@@ -373,4 +393,6 @@ class LogParser:
     def parse(self, contents: list[str]) -> list[str]:
         """Derive the Brain template set for a batch of log message
         contents."""
-        return derive_templates(contents, self.threshold, self.delimiter, self.rex, self.dataset)
+        return derive_templates(
+            contents, self.threshold, self.delimiter, self.rex, self.dataset
+        )
