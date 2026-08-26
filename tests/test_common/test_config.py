@@ -23,7 +23,7 @@ config_test = load_test_config()
 
 
 class DummyConfigDoc(BasicConfig):
-    hello: str = Field(default="Hello", description="a way to salute people")
+    hello: str | None = Field(default="Hello", description="a way to salute people")
     dont_show: str = Field(default="a", description="<$IGNORE$> dont show stuff")
     auto_config: bool = Field(
         default=True,
@@ -67,7 +67,7 @@ class TestConfigDocs:
         } in docs
         assert {
             'Name': 'hello',
-            'Type': 'string',
+            'Type': 'string, null',
             'Default value': 'Hello',
             'Description': 'a way to salute people'
         } in docs

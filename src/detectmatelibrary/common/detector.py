@@ -54,7 +54,7 @@ class CoreDetectorConfig(CoreConfig):
         default={}, description=_EventInstance.__doc__
     )
     persist: PersistConfig | None = Field(
-        default=None, description="Persistence configuration, if None no persistency is use."
+        default=None, description="<$IGNORE$>"
     )
 
 

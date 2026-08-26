@@ -17,13 +17,12 @@ The detector inspects incoming ParserSchema instances and, according to its conf
 |method_type|string|random_detector|Indicates what type of method is.|
 |auto_config|boolean|True|Runs the configuration step before the training process.|
 |start_id|integer|10|Number use to start the unique ID generator.|
-|data_use_training|unknown|None|Data use for training, if None, training is not done.|
-|data_use_configure|unknown|None|Data use for configuration, if None, configuration is not done.|
+|data_use_training|integer, null|None|Data use for training, if None, training is not done.|
+|data_use_configure|integer, null|None|Data use for configuration, if None, configuration is not done.|
 |use_config_data_as_training|boolean|True|Combine the configure data in the training process if True.|
 |parser|string|PARSER|Name of the parser used.|
-|events|unknown|{}|Events configuration dict keyed by event_id.|
+|events|object|{}|Events configuration dict keyed by event_id.|
 |global_instances|object|{}|Configuration for a specific instance within an event.|
-|persist|unknown|None|Persistence configuration, if None no persistency is use.|
 <!-- End arguments -->
 
 ## Service usage
