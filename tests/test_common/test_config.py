@@ -24,6 +24,7 @@ config_test = load_test_config()
 
 class DummyConfigDoc(BasicConfig):
     hello: str = Field(default="Hello", description="a way to salute people")
+    dont_show: str = Field(default="a", description="<$IGNORE$> dont show stuff")
     auto_config: bool = Field(
         default=True,
         description="Runs the configuration step before the training process."

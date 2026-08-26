@@ -40,11 +40,14 @@ class BasicConfig(BaseModel):
     def get_docs(self) -> list[dict[str, str]]:
         docs = []
         for field_name, field_info in self.model_json_schema().get("properties", {}).items():
+            description = field_info.get("description", "No description provided.")
+            if "<$IGNORE$>" in description:
+                continue
             docs.append({
                 "Name": field_name,
                 "Type": field_info.get("type", "unknown"),
                 "Default value": getattr(self, field_name),
-                "Description": field_info.get("description", "No description provided.")
+                "Description": description
             })
         return docs
 
