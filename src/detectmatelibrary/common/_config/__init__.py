@@ -3,7 +3,7 @@ from ._formats import EventsConfig
 
 __all__ = ["ConfigMethods", "generate_detector_config", "EventsConfig", "BasicConfig"]
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from typing_extensions import Self
 from typing import Any, Dict
@@ -23,10 +23,30 @@ class BasicConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    method_type: str = "default_method_type"
-    component_type: str = "default_type"
+    method_type: str = Field(
+        default="default_method_type",
+        description="Indicates what type of method is."
+    )
+    component_type: str = Field(
+        default="default_type",
+        description="Component type that the class inherent from."
+    )
 
-    auto_config: bool = False
+    auto_config: bool = Field(
+        default=False,
+        description="Runs the configuration step before the training process."
+    )
+
+    def get_docs(self) -> list[dict[str, str]]:
+        docs = []
+        for field_name, field_info in self.model_json_schema().get("properties", {}).items():
+            docs.append({
+                "Name": field_name,
+                "Type": field_info.get("type", "unknown"),
+                "Default value": getattr(self, field_name),
+                "Description": field_info.get("description", "No description provided.")
+            })
+        return docs
 
     def get_config(self) -> Dict[str, Any]:
         """Return the configuration as a dictionary."""
