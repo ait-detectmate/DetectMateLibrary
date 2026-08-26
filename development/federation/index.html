@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/federation/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Federation - DetectMate Library</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Federation";
+        var mkdocs_page_input_path = "federation.md";
+        var mkdocs_page_url = "/DetectMateLibrary/development/federation/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> DetectMate Library
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../installation/">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../basic_usage/">Basic usage</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../create_components/">Create new component</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Components</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../basic_idea/">Basic concepts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../overall_architecture/">Overall architecture</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../schemas/">Schemas</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Federation</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#example-class">Example class</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#combine-first">Combine first</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#stack">Stack</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/">Parsers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/">Detectors</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../alert_aggregator/">Alert Aggregation</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Parsers Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/template_matcher/">Template Matcher</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/template_tree_matcher/">Template Tree Matcher</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/json_parser/">Json Parser</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/logbatcher_parser/">LogBatcher Parser</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Detectors Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/random_detector/">Random Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/new_value/">New Value</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/combo/">Combo Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/new_event/">New Event</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/event_sequence/">Event Sequence</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/rule_based/">Rule Based</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/bigram_frequency/">BiGram Frequency</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/charset/">CharSet</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/value_range/">Value Range</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/deeplog/">Deeplog Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/logbert/">LogBert Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/scvs_detector/">SCVS Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/ecvc_detector/">ECVC Detector</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Alert Aggregation Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../alert_aggregators/basic_concatenation/">Basic Concat</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Auxiliar</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../auxiliar/persistency/">Persistency</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../auxiliar/input_buffer/">Data buffer</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Helpers</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../helper/from_to/">From to</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribution</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../contribution/">Contributing</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../development/">Development</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../release/">Release Process</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Other</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../other/log_formats/">Log Formats</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">DetectMate Library</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Components</li>
+      <li class="breadcrumb-item active">Federation</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="federation">Federation</h1>
+<p>This section explains how to use the federation setup. For a component to support federation, it must implement the following methods:</p>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">to_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;(Federation only) Serialize to bytes for federation operations.&quot;&quot;&quot;</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">from_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binary</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;(Federation only) Deserialize from bytes for federation operations.&quot;&quot;&quot;</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">aggregate_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="s2">&quot;FedOperations&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;(Federation only) Define how to aggregate a set of federated components.&quot;&quot;&quot;</span>
+</code></pre></div>
+<p>There are two main ways to use federation:</p>
+<ul>
+<li><strong>Combine first</strong>: This can only be used when all components run locally. The main idea is to simplify the process by allowing components to share memory.</li>
+<li><strong>Stack later</strong>: A more standard federated approach where the "weights" or state of each component are combined at the end.</li>
+</ul>
+<h2 id="example-class">Example class</h2>
+<p>For all the examples below, we will use this code:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.common.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreComponent</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">struct</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">NewComponent</span><span class="p">(</span><span class="n">CoreComponent</span><span class="p">):</span>  <span class="c1"># Inherent from CoreComponent</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elems</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">elems</span> <span class="o">=</span> <span class="n">elems</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;FedExample&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">aggregate_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">components</span><span class="p">):</span>
+        <span class="n">final_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">components</span><span class="p">:</span>
+            <span class="n">final_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">component</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>
+
+        <span class="n">final_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">final_list</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">components</span><span class="p">:</span>
+            <span class="n">component</span><span class="o">.</span><span class="n">elems</span> <span class="o">=</span> <span class="n">final_list</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&gt;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span><span class="si">}</span><span class="s2">h&quot;</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binary</span><span class="p">):</span>
+        <span class="n">num_ints</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">binary</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
+        <span class="n">elems</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&gt;</span><span class="si">{</span><span class="n">num_ints</span><span class="si">}</span><span class="s2">h&quot;</span><span class="p">,</span> <span class="n">binary</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">NewComponent</span><span class="p">(</span><span class="n">elems</span><span class="o">=</span><span class="n">elems</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="combine-first">Combine first</h2>
+<p>The diagram below shows the workflow:</p>
+<p><img alt="combine" src="../img/fed_combine_first.png" /></p>
+<p>Example 1:</p>
+<div class="highlight"><pre><span></span><code><span class="n">detector1</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<span class="n">detector2</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="n">detector3</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">6</span><span class="p">])</span>
+
+<span class="n">detector1</span> <span class="o">+</span> <span class="n">detector2</span> <span class="o">+</span> <span class="n">detector3</span>
+
+<span class="n">detector2</span><span class="o">.</span><span class="n">aggregate</span><span class="p">()</span>  <span class="c1"># Detector 2 is used as centralize node</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dectector 3&quot;</span><span class="p">,</span> <span class="n">detector3</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># All detectors have been updated</span>
+</code></pre></div>
+<p>Example 2:</p>
+<div class="highlight"><pre><span></span><code><span class="n">detector1</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<span class="n">detector2</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="n">detector3</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">6</span><span class="p">])</span>
+
+<span class="n">detector1</span> <span class="o">+</span> <span class="n">detector2</span> <span class="o">+</span> <span class="n">detector3</span>
+
+<span class="n">detector2</span><span class="o">.</span><span class="n">aggregate</span><span class="p">()</span>  <span class="c1"># Detector 2 is used as centralize node</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dectector 3&quot;</span><span class="p">,</span> <span class="n">detector3</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># All detectors have been updated</span>
+</code></pre></div>
+<h2 id="stack">Stack</h2>
+<p>The diagram below shows the workflow:</p>
+<p><img alt="stack" src="../img/fed_stack_later.png" /></p>
+<p>Example 1:</p>
+<div class="highlight"><pre><span></span><code><span class="n">detector1</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<span class="n">detector2</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="n">detector3</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">6</span><span class="p">])</span>
+
+<span class="n">detector1</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">detector2</span><span class="p">,</span> <span class="n">detector3</span><span class="p">])</span>
+
+<span class="n">detector2</span><span class="o">.</span><span class="n">aggregate</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Detector 3&quot;</span><span class="p">,</span> <span class="n">detector3</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># It is not longer combine but stack, so it will not work</span>
+
+<span class="n">detector1</span><span class="o">.</span><span class="n">aggregate</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Detector 3&quot;</span><span class="p">,</span> <span class="n">detector3</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># Now it will work</span>
+</code></pre></div>
+<p>Example 2:</p>
+<div class="highlight"><pre><span></span><code><span class="n">detector1</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+
+<span class="n">binary2</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span><span class="o">.</span><span class="n">to_binary</span><span class="p">()</span>
+<span class="n">binary3</span> <span class="o">=</span> <span class="p">(</span><span class="n">detector3</span> <span class="o">:=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">6</span><span class="p">]))</span><span class="o">.</span><span class="n">to_binary</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Binary of Detector 3&quot;</span><span class="p">,</span> <span class="n">binary3</span><span class="p">)</span>
+
+<span class="n">detector1</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">binary2</span><span class="p">,</span> <span class="n">binary3</span><span class="p">])</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">detector1</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">unstack</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># unstack = True will free memory</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Detector 1&quot;</span><span class="p">,</span> <span class="n">detector1</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># Detector 1 has been updated</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Output binary&quot;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>  <span class="c1"># Output that we send to other componets</span>
+
+<span class="c1"># We update detector 3 now</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Detector 3&quot;</span><span class="p">,</span> <span class="n">detector3</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># Now detector 3 is not in the share memory so it will not work</span>
+<span class="n">detector3</span> <span class="o">=</span> <span class="n">detector3</span><span class="o">.</span><span class="n">from_binary</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Detector 3&quot;</span><span class="p">,</span> <span class="n">detector3</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># Now it will work</span>
+</code></pre></div>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../schemas/" class="btn btn-neutral float-left" title="Schemas"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../parsers/" class="btn btn-neutral float-right" title="Parsers">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../schemas/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../parsers/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+      <script src="../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
