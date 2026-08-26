@@ -1,5 +1,7 @@
 from detectmatelibrary.common._core_op._fit_logic import FitLogicState, StatesL
 from detectmatelibrary.common._core_op._schema_pipeline import SchemaPipeline
+from detectmatelibrary.common._core_op._fed_component import FedOperations
+from detectmatelibrary.common._core_op._basic_component import Component
 from detectmatelibrary.common._core_op._fit_logic import FitLogic
 
 from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
@@ -16,7 +18,6 @@ from typing import Any, Dict, List
 from pydantic import Field
 
 from detectmatelibrary.utils.persistency.component_interfaces import PersistencyOp
-from detectmatelibrary.utils.persistency.component_interfaces import Stoppable
 
 
 setup_logging()
@@ -44,7 +45,7 @@ class TrainBuffer:
         return self
 
 
-# Core component skeleton structure ################################################
+# Core component ################################################
 
 class CoreConfig(BasicConfig):
     start_id: int = Field(
@@ -65,58 +66,7 @@ class CoreConfig(BasicConfig):
     )
 
 
-class Component:
-    """Empty methods."""
-    def __init__(
-        self,
-        name: str,
-        type_: str = "Core",
-        config: CoreConfig = CoreConfig(),
-    ) -> None:
-        self.name, self.type_, self.config = name, type_, config
-        self.saver: Stoppable | None = None
-
-    def __repr__(self) -> str:
-        return f"<{self.type_}> {self.name}: {self.config}"
-
-    def run(
-        self, input_: List[BaseSchema] | BaseSchema, output_: BaseSchema
-    ) -> bool:
-        return False
-
-    def train(
-        self, input_: List[BaseSchema] | BaseSchema,
-    ) -> None:
-        pass
-
-    def configure(
-        self, input_: List[BaseSchema] | BaseSchema,
-    ) -> None:
-        pass
-
-    def set_configuration(self) -> None:
-        pass
-
-    def post_train(self) -> None:
-        pass
-
-    def get_config(self) -> Dict[str, Any]:
-        return self.config.get_config()
-
-    def update_config(self, new_config: Dict[str, Any]) -> None:
-        self.config.update_config(new_config)
-
-    def __enter__(self) -> "Component":
-        return self
-
-    def __exit__(self, *_: Any) -> None:
-        if self.saver is not None:
-            self.saver.stop()
-
-
-# Core component ################################################
-
-class CoreComponent(Component):
+class CoreComponent(Component, FedOperations):
     """Base class for all components in the system."""
     def __init__(
         self,
@@ -127,7 +77,9 @@ class CoreComponent(Component):
         input_schema: type[BaseSchema] = BaseSchema,
         output_schema: type[BaseSchema] = BaseSchema
     ) -> None:
-        super().__init__(name=name, type_=type_, config=config)
+        Component.__init__(self, name=name, type_=type_, config=config)
+        FedOperations.__init__(self)
+        self.config: CoreConfig
         self.input_schema, self.output_schema = input_schema, output_schema
 
         self.data_buffer = DataBuffer(args_buffer)

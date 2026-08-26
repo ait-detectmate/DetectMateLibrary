@@ -1,7 +1,7 @@
 """Detect EventID sequences that were not observed during training."""
 
 from collections import deque
-from typing import Any, Sequence
+from typing import Any
 
 from pydantic import Field, model_validator
 
@@ -10,17 +10,8 @@ from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector
 from detectmatelibrary.tools.logging import logger
 from detectmatelibrary.utils import persistency
 from detectmatelibrary.utils.data_buffer import BufferMode
+from detectmatelibrary.utils.sequence_encoding import decode_sequence, encode_sequence
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
-
-_SEQUENCE_SEPARATOR = "\x1f"
-
-
-def _encode_sequence(sequence: Sequence[int]) -> str:
-    return _SEQUENCE_SEPARATOR.join(str(event_id) for event_id in sequence)
-
-
-def _decode_sequence(encoded: str) -> tuple[int, ...]:
-    return tuple(int(event_id) for event_id in encoded.split(_SEQUENCE_SEPARATOR))
 
 
 class EventSequenceDetectorConfig(CoreDetectorConfig):
@@ -102,7 +93,7 @@ class EventSequenceDetector(CoreDetector):
         restored = self.persistency.get_events_seen()
         if not restored:
             return None
-        length = len(_decode_sequence(str(next(iter(restored)))))
+        length = len(decode_sequence(str(next(iter(restored)))))
         if length != self.config.fixed_window_size:
             logger.warning(
                 f"[{self.name}] restored state holds sequences of length {length}, but "
@@ -135,7 +126,7 @@ class EventSequenceDetector(CoreDetector):
         if len(self._train_window) < length:
             return
         self.persistency.ingest_event(
-            event_id=_encode_sequence(self._train_window),
+            event_id=encode_sequence(self._train_window),
             event_template=input_["template"]
         )
 
@@ -152,7 +143,7 @@ class EventSequenceDetector(CoreDetector):
         if len(self._detect_window) < length:
             return False
 
-        if _encode_sequence(self._detect_window) in self.persistency.get_events_seen():
+        if encode_sequence(self._detect_window) in self.persistency.get_events_seen():
             return False
 
         sequence = tuple(self._detect_window)
@@ -259,6 +250,6 @@ class EventSequenceDetector(CoreDetector):
     def get_known_sequences(self) -> set[tuple[int, ...]]:
         """Return the EventID sequences learned during training."""
         return {
-            _decode_sequence(str(encoded))
+            decode_sequence(str(encoded))
             for encoded in self.persistency.get_events_seen()
         }
