@@ -40,7 +40,7 @@ class CoreDetectorConfig(CoreConfig):
     component_type: str = Field(default="detectors", description="<$IGNORE$>")
     method_type: str = Field(default="core_detector", description="<$IGNORE$>")
     parser: str = Field(
-        default="<PLACEHOLDER>", description="Name of the parser used."
+        default="PARSER", description="Name of the parser used."
     )
 
     auto_config: bool = Field(
