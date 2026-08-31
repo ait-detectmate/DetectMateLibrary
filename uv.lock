@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.12"
 resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'win32'",
@@ -272,7 +272,7 @@ requires-dist = [
     { name = "detectmatelibrary", extras = ["dataframes"], marker = "extra == 'full'" },
     { name = "detectmatelibrary", extras = ["llm"], marker = "extra == 'full'" },
     { name = "detectmatelibrary", extras = ["polars-rtcompat"], marker = "extra == 'full'" },
-    { name = "detectmateperformance", specifier = ">=0.1.0" },
+    { name = "detectmateperformance", specifier = ">=0.1.6" },
     { name = "flax", specifier = ">=0.12.8" },
     { name = "fsspec", specifier = ">=2024.1.0" },
     { name = "jax", specifier = ">=0.11.0" },
@@ -308,7 +308,7 @@ dev = [
 
 [[package]]
 name = "detectmateperformance"
-version = "0.1.0"
+version = "0.1.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "levenshtein" },
@@ -318,9 +318,9 @@ dependencies = [
     { name = "setuptools" },
     { name = "tqdm" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e8/2b/7ff298303c5ba3ba4899d1f3854b214f63a4fac4eff191012f5608f5149e/detectmateperformance-0.1.0.tar.gz", hash = "sha256:2630d509e7e2bbe6b5bcc857e8f25dfae7d99e9e2cc52f5981da9171600531dc", size = 552409, upload-time = "2026-06-12T10:42:13.326Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/11/98/f6c94f35ac03ddc3ae234301e85b2bbebeac74f5f1cc7914547400c8bc06/detectmateperformance-0.1.6.tar.gz", hash = "sha256:eeb134670603e2c79cc8c1610c904b9519249e09d61b57ea1a52dc1715c09bf2", size = 873170, upload-time = "2026-08-31T14:48:58.59Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/68/dd/3db227cd60d170203ab82dd2e670bcb50c6111769c39ac8dd64935fa4c1d/detectmateperformance-0.1.0-py3-none-any.whl", hash = "sha256:db70f239e53aa17a983f99948c9239c143744c03044eeae454f546fedbaf69a5", size = 557939, upload-time = "2026-06-12T10:42:11.526Z" },
+    { url = "https://files.pythonhosted.org/packages/4f/e3/3b78712e9eb34b96386e778e8eef88cc858fbe501cd24c66c976cbbd91f5/detectmateperformance-0.1.6-py3-none-any.whl", hash = "sha256:0407c154b6d149e4114edd4aa1066bfb093e01c6bc1536f15e65e41667169c5b", size = 886560, upload-time = "2026-08-31T14:48:57.19Z" },
 ]
 
 [[package]]
@@ -407,8 +407,8 @@ name = "httpcore2"
 version = "2.12.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "h11" },
-    { name = "truststore" },
+    { name = "h11", marker = "sys_platform != 'emscripten'" },
+    { name = "truststore", marker = "sys_platform != 'emscripten'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/be/ad/f4f0e57345f1870f3e8cb624e058d7eca6e5a27d33bcc3311d9b618734cd/httpcore2-2.12.0.tar.gz", hash = "sha256:9293522bba0aa7c4c8e9e3f040c16575bd8868e155a77fa30c7a9085a5eae648", size = 67548, upload-time = "2026-08-18T13:22:08.211Z" }
 wheels = [
