@@ -1,26 +1,24 @@
 # Drain parser
 
-The parsed is based in the official [Drain publication](https://ieeexplore.ieee.org/document/8029742).
+The parser is derived from the official [Drain publication](https://ieeexplore.ieee.org/document/8029742).
 
-This parser wraps functionality from the DetectMatePerformance project: https://github.com/ait-detectmate/DetectMatePerformance. Prefer  use the performance implementation when parsing many log lines in non-stream (batch) mode.
+It also wraps functionality from the DetectMatePerformance project: https://github.com/ait-detectmate/DetectMatePerformance. When parsing large numbers of log lines in non-stream (batch) mode, it is recommended to use the performance-oriented implementation.
 
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
 | **Input**  | [LogSchema](../schemas.md) | Unstructured log   |
 | **Output** | [ParserSchema](../schemas.md) | Structured log   |
 
-WARNING: This parser is not yet in a stable release and may behave differently across platforms or hardware.
-
 ## Configuration
 
-Drain parser arguments:
+Drain parser parameters:
 
-- `method_type` (string): parser type identifier (for example `"tree_matcher"`).
-- `depth` (int): Number of word layers.
-- `max_childs` (int): max number of childs allow in the length layer.
-- `sim_thres` (float): similarity threshold.
-- `reset_in_post_train` (bool): if true remove the logs in the train buffer when the templates are generated. Otherwise, it safe them for the next train.
-- `auto_config` (bool): whether to attempt an optional auto-configuration phase (not required).
+- `method_type` (string): identifier for the parser type (e.g., `"tree_matcher"`).
+- `depth` (int): number of token/word levels.
+- `max_childs` (int): maximum number of children allowed in the given layer.
+- `sim_thres` (float): threshold used for similarity.
+- `reset_in_post_train` (bool): if enabled, clears logs from the training buffer once templates are created; otherwise, it keeps them for the next training cycle.
+- `auto_config` (bool): indicates whether to run an optional auto-configuration step (not mandatory).
 
 Example YAML fragment:
 ```yaml
