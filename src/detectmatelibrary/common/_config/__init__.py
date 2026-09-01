@@ -7,6 +7,7 @@ __all__ = [
     "generate_events_config",
     "EventsConfig",
     "BasicConfig",
+    "AutoConfigParams",
 ]
 
 from pydantic import BaseModel, ConfigDict
@@ -24,6 +25,25 @@ def random_id(length: int = 10) -> str:
     return "".join(str(choice(characters)) for _ in range(length))
 
 
+class AutoConfigParams(BaseModel):
+    """Inputs to the auto-configuration (configure) phase.
+
+    Empty here: no component has configure-phase inputs by default. Subclasses
+    add the fields their own configure phase reads. Kept apart from the
+    operational `params` block so the phase a setting belongs to is visible in
+    the YAML, not just in the code that reads it.
+
+    Lives beside `auto_config` on `BasicConfig` rather than on any one
+    component type: `auto_config` and `Component.configure()` are both declared
+    at the base, so the block that feeds that phase belongs there too. Empty by
+    default, and `to_dict` omits it while it stays at its default, so a
+    component whose configure phase takes no inputs serializes exactly as it
+    did before this block existed.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+
 class BasicConfig(BaseModel):
     """Base configuration class with helper methods."""
 
@@ -33,6 +53,7 @@ class BasicConfig(BaseModel):
     component_type: str = "default_type"
 
     auto_config: bool = False
+    auto_config_params: AutoConfigParams = AutoConfigParams()
 
     def get_config(self) -> Dict[str, Any]:
         """Return the configuration as a dictionary."""

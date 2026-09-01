@@ -240,6 +240,16 @@ for `EventSequenceDetector`, into `fixed_window_size`) and then sets
 `auto_config` to `False`. It never modifies either input block, so a config can
 be rerun with `auto_config: False` and reproduce the same detector.
 
+Both `auto_config` and `Component.configure()` are declared on the shared base,
+so `auto_config_params` is declared there too — on `BasicConfig`, beside
+`auto_config` — rather than on the detector config alone. Detectors are the only
+component type with a real configure phase today, so they are the only ones that
+narrow the block with fields; parsers and alert aggregators inherit it empty, and
+an empty block is omitted from the serialized config, so their YAML is unaffected.
+A component type that grows a configure phase later subclasses `AutoConfigParams`
+and overrides the field, exactly as the variable, combo and sequence detector
+families do.
+
 
 ### Stability classification (optional)
 
