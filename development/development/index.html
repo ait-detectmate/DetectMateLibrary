@@ -139,6 +139,10 @@
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#add-tests-and-run-pytest">Add tests and run pytest</a>
     </li>
+    <li class="toctree-l2"><a class="reference internal" href="#write-testable-code-snippets-for-the-documentation">Write testable code snippets for the documentation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#render-and-verify-the-documentation">Render and verify the documentation</a>
+    </li>
     </ul>
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../release/">Release Process</a>
@@ -196,6 +200,52 @@ and can be installed as part of the <code>dev</code> extras. To ensure pre-commi
 <p>In order to run the tests run the following command. The <code>dev</code> group already includes the <code>full</code> extra, so all optional dependencies are installed automatically:</p>
 <div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--dev<span class="w"> </span>pytest
 </code></pre></div>
+<h2 id="write-testable-code-snippets-for-the-documentation">Write testable code snippets for the documentation</h2>
+<p>Code examples in the docs are not pasted inline. They live as standalone Python
+files under <code>docs/examples/</code>, mirrored by category (<code>docs/examples/parsers/</code>,
+<code>docs/examples/detectors/</code>), and are pulled into the Markdown pages via
+<a href="https://facelessuser.github.io/pymdown-extensions/extensions/snippets/"><code>pymdownx.snippets</code></a>.
+This way every snippet in the docs is an actual <code>.py</code> file that gets executed by
+the test suite, so a broken example fails CI instead of silently shipping.</p>
+<p><strong>1. Add the snippet file.</strong> Put your example under <code>docs/examples/&lt;category&gt;/</code>.
+By convention the filename matches its documentation page (<code>charset.md</code> →
+<code>docs/examples/detectors/charset.py</code>). Wrap the part you want to show in section
+markers:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># --8&lt;-- [start:basic]</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.logbatcher</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogBatcherParser</span><span class="p">,</span> <span class="n">LogBatcherParserConfig</span>
+<span class="c1"># ...</span>
+<span class="c1"># --8&lt;-- [end:basic]</span>
+</code></pre></div>
+<p><strong>2. Include it in the <code>.md</code> page.</strong> Paths are relative to the repo root
+(<code>base_path</code> is set to <code>.</code>). Reference the section by name:</p>
+<div class="highlight"><pre><span></span><code><span class="sb">```python</span>
+<span class="o">--</span><span class="mi">8</span><span class="o">&lt;--</span> <span class="s2">&quot;docs/examples/parsers/logbatcher_parser.py:basic&quot;</span>
+<span class="sb">```</span>
+</code></pre></div>
+<p>You can also include the whole file by dropping the <code>:section</code> suffix
+(<code>--8&lt;-- "docs/examples/parsers/template_tree_matcher.py"</code>), but section markers
+are the norm. Because <code>check_paths: true</code> is set, the build aborts if the file or
+marker doesn't exist — a missing snippet is caught at build time.</p>
+<p><strong>3. Make sure it's testable.</strong> The test (<code>tests/test_docs/test_doc_examples.py</code>)
+globs every <code>.py</code> under <code>docs/examples/</code> and runs each one as a script via
+<code>runpy.run_path(..., run_name="__main__")</code>. There is no plugin and no assert
+requirement: a snippet passes as long as it runs standalone without raising. If
+your example needs something unavailable in CI (e.g. an API key), comment out
+those calls rather than letting them fail. Run the snippet tests together with
+the rest of the suite:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--dev<span class="w"> </span>pytest
+</code></pre></div>
+<h2 id="render-and-verify-the-documentation">Render and verify the documentation</h2>
+<p>Build the static site:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--dev<span class="w"> </span>mkdocs<span class="w"> </span>build
+</code></pre></div>
+<p>For a live local preview while editing:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--dev<span class="w"> </span>mkdocs<span class="w"> </span>serve
+</code></pre></div>
+<p><code>mkdocs</code> comes in transitively via <code>mike</code> in the <code>dev</code> group, so <code>--dev</code> is
+required. There is no <code>--strict</code> mode configured; the hard check on the docs is
+<code>check_paths: true</code> from <code>pymdownx.snippets</code>, which fails the build on a missing
+snippet or marker.</p>
               
             </div>
           </div><footer>
