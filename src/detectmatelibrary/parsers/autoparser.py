@@ -2,15 +2,17 @@ from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
 from detectmatelibrary import schemas
 
 from detectmateperformance.match_tree import TreeMatcher
-from detectmateperformance.auto_parser import AutoParse
+from detectmateperformance.autoparser import AutoParse
 
 
 from typing import Any
+import warnings
+import re
 
 
 class AutoParserConfig(CoreParserConfig):
     method_type: str = "auto_parser"
-    num_use: int = 10
+    fix_type: str = ""
 
 
 class AutoParser(CoreParser):
@@ -25,7 +27,7 @@ class AutoParser(CoreParser):
         super().__init__(name=name, config=config)
 
         self.config: AutoParserConfig
-        self.auto_gen = AutoParse(num_use=self.config.num_use)
+        self.auto_gen = AutoParse(num_use=self.config.data_use_training)
         self.tree_match: TreeMatcher | None = None
 
         self.config_buffer: list[str] = []
@@ -34,7 +36,11 @@ class AutoParser(CoreParser):
         self.auto_gen.add(input_["log"])
 
     def post_train(self) -> None:
-        self.tree_match = self.auto_gen.generate()
+        try:
+            self.tree_match, _regex = self.auto_gen.generate(self.config.fix_type)
+            self.config._regex = re.compile(_regex)
+        except RuntimeError as e:
+            warnings.warn(str(e))
 
     def parse(
         self,
