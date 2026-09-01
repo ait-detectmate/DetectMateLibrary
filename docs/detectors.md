@@ -321,27 +321,6 @@ It is not a harmless no-op: classification decides `INSUFFICIENT_DATA`,
 `STATIC` and `RANDOM` before any method is consulted, so a method-less config
 would silently classify every remaining variable `STABLE`.
 
-#### Breaking change: the old fields are gone
-
-`segmentation`, `require_declining` and `incline_threshold` no longer exist.
-`VariableAutoConfigParams` sets `extra="forbid"`, so a config still using the old
-spellings now raises `ValidationError` at load time rather than being silently
-ignored. Two familiar configurations translate as follows:
-
-| old | new |
-|---|---|
-| `segmentation: both` | `index: True, time: True, decision: consensus` |
-| `segmentation: count, require_declining: True` | `index: True, slope_index: True, decision: consensus` |
-
-Calling `StabilityClassifier` directly has a related gap the config layer does not:
-previously, with no method selection at all, passing `timestamps` to `is_stable`
-was self-sufficient — stamps present meant equal-duration cuts, always. Now
-`is_stable(series, timestamps=ts)` honours `timestamps` only when a time-axis
-method (`time` or `slope_time`) is enabled. A caller who kept an existing
-`is_stable(series, timestamps=ts)` call without also turning on `time` or
-`slope_time` now gets index-axis classification silently, with no error and no
-warning.
-
 #### Fields
 
 All of these live in the detector's `auto_config_params` block.
