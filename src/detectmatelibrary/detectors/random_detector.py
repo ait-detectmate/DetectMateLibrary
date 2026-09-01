@@ -1,4 +1,4 @@
-from detectmatelibrary.common._config._formats import EventsConfig, Variable
+from detectmatelibrary.common._config._formats import Variable
 
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 
@@ -7,14 +7,17 @@ from detectmatelibrary.utils.data_buffer import BufferMode
 import detectmatelibrary.schemas as schemas
 
 from typing_extensions import override
-from typing import List, Any
+from typing import List
+
+from pydantic import Field
 import numpy as np
 
 
 class RandomDetectorConfig(CoreDetectorConfig):
-    method_type: str = "random_detector"
-
-    events: EventsConfig | dict[str, Any] = {}
+    method_type: str = Field(
+        default="random_detector",
+        description="Indicates what type of method is."
+    )
 
 
 class RandomDetector(CoreDetector):

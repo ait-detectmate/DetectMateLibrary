@@ -10,6 +10,7 @@ from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
 from typing_extensions import override
 from typing import Dict, List, Optional, Any, cast
+from pydantic import Field
 
 from detectmatelibrary.utils.persistency.component_interfaces import PersistConfig
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
@@ -36,14 +37,25 @@ def _extract_logIDs(
 
 
 class CoreDetectorConfig(CoreConfig):
-    component_type: str = "detectors"
-    method_type: str = "core_detector"
-    parser: str = "<PLACEHOLDER>"
+    component_type: str = Field(default="detectors", description="<$IGNORE$>")
+    method_type: str = Field(default="core_detector", description="<$IGNORE$>")
+    parser: str = Field(
+        default="PARSER", description="Name of the parser used."
+    )
 
-    auto_config: bool = True
-    events: EventsConfig | dict[str, Any] = {}
-    global_instances: Dict[str, _EventInstance] = {}
-    persist: PersistConfig | None = None
+    auto_config: bool = Field(
+        default=True,
+        description="Runs the configuration step before the training process."
+    )
+    events: EventsConfig | dict[str, Any] = Field(
+        default={}, description=EventsConfig.__doc__,
+    )
+    global_instances: Dict[str, _EventInstance] = Field(
+        default={}, description=_EventInstance.__doc__
+    )
+    persist: PersistConfig | None = Field(
+        default=None, description="<$IGNORE$>"
+    )
 
 
 class CoreDetector(CoreComponent):

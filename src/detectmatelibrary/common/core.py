@@ -15,6 +15,7 @@ from detectmatelibrary.tools.logging import logger, setup_logging
 
 
 from typing import Any
+from pydantic import Field
 
 from detectmatelibrary.utils.persistency.component_interfaces import PersistencyOp
 
@@ -47,10 +48,22 @@ class TrainBuffer:
 # Core component ################################################
 
 class CoreConfig(BasicConfig):
-    start_id: int = 10
-    data_use_training: int | None = None
-    data_use_configure: int | None = None
-    use_config_data_as_training: bool = True
+    start_id: int = Field(
+        default=10,
+        description="Number use to start the unique ID generator."
+    )
+    data_use_training: int | None = Field(
+        default=None,
+        description="Data use for training, if None, training is not done."
+    )
+    data_use_configure: int | None = Field(
+        default=None,
+        description="Data use for configuration, if None, configuration is not done.",
+    )
+    use_config_data_as_training: bool = Field(
+        default=True,
+        description="Combine the configure data in the training process if True."
+    )
 
 
 class CoreComponent(Component, FedOperations):

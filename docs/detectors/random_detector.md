@@ -1,38 +1,62 @@
 # Random Detector
 
-The Random Detector produces randomized alerts for incoming parsed logs. It is useful for testing pipelines, alert routing, and downstream consumers without needing a real detection model.
+The Random Detector inspects incoming ParserSchema instances and, according to its configuration, emits alerts with synthetic content. It can be configured to sample specific log variables, set thresholds or control alert frequency. Use it for integration testing, load testing, or as a simple example of a detector implementation.
+
+## In/out
+
+Input and output schemas in the pipeline
 
 |            | Schema                 | Description        |
 |------------|------------------------|--------------------|
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Generated alerts |
 
-## Description
+## Configuration arguments
 
-The detector inspects incoming ParserSchema instances and, according to its configuration, emits alerts with synthetic content. It can be configured to sample specific log variables, set thresholds or control alert frequency. Use it for integration testing, load testing, or as a simple example of a detector implementation.
+Arguments used in the initalization of the component.
 
-## Configuration example
+<!-- Start arguments -->
+| Field  | Type  | Default Value| Description|
+|-------|------|-----|---|
+|method_type|string|random_detector|Indicates what type of method is.|
+|auto_config|boolean|True|Runs the configuration step before the training process.|
+|start_id|integer|10|Number use to start the unique ID generator.|
+|data_use_training|integer, null|None|Data use for training, if None, training is not done.|
+|data_use_configure|integer, null|None|Data use for configuration, if None, configuration is not done.|
+|use_config_data_as_training|boolean|True|Combine the configure data in the training process if True.|
+|parser|string|PARSER|Name of the parser used.|
+|events|object|{}|Events configuration dict keyed by event_id.|
+|global_instances|object|{}|Configuration for a specific instance within an event.|
+<!-- End arguments -->
 
+## Examples
+
+Examples to use the component in the DetectMate environment.
+
+## Service usage
+
+To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example bellow.
+
+<!-- Start config -->
 ```yaml
-    RandomDetector:
+detectors:
+    <COMPONENT_NAME>:
         method_type: random_detector
-        auto_config: False
-        params: {}
-        events:
-            1:
-                test:
-                    params: {}
-                    variables:
-                        - pos: 0
-                          name: var1
-                          params:
-                              threshold: 0.
-                    header_variables:
-                        - pos: level
-                          params: {}
+        auto_config: true
+        params:
+            start_id: 10
+            data_use_training: null
+            data_use_configure: null
+            use_config_data_as_training: true
+            parser: PARSER
+            global_instances: {}
+        events: {}
 ```
+<!-- End config -->
 
-## Example usage
+## Library usage
+
+To use it as a python script, you can follow the example bellow.
 
 ```python
 --8<-- "docs/examples/detectors/random_detector.py:example"

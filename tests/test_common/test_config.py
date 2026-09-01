@@ -8,7 +8,7 @@ from detectmatelibrary.common._config._compile import (
 )
 from detectmatelibrary.common._config._formats import EventsConfig, _EventConfig
 from detectmatelibrary.common._config import BasicConfig
-from pydantic import ValidationError
+from pydantic import ValidationError, Field
 from tests.test_data import TEST_CONFIG
 import pytest
 import yaml
@@ -20,6 +20,57 @@ def load_test_config() -> dict:
 
 
 config_test = load_test_config()
+
+
+class DummyConfigDoc(BasicConfig):
+    hello: str | None = Field(default="Hello", description="a way to salute people")
+    dont_show: str = Field(default="a", description="<$IGNORE$> dont show stuff")
+    auto_config: bool = Field(
+        default=True,
+        description="Runs the configuration step before the training process."
+    )
+
+
+class TestConfigDocs:
+    def test_get_configs(self):
+        docs = BasicConfig().get_docs()
+
+        assert len(docs) == 3
+        assert {
+            'Name': 'method_type',
+            'Type': 'string',
+            'Default value': 'default_method_type',
+            'Description': 'Indicates what type of method is.'
+        } in docs
+        assert {
+            'Name': 'component_type',
+            'Type': 'string',
+            'Default value': 'default_type',
+            'Description': 'Component type that the class inherent from.'
+        } in docs
+        assert {
+            'Name': 'auto_config',
+            'Type': 'boolean',
+            'Default value': False,
+            'Description': 'Runs the configuration step before the training process.'
+        } in docs
+
+    def test_inherent_class_docs(self):
+        docs = DummyConfigDoc().get_docs()
+
+        assert len(docs) == 4
+        assert {
+            'Name': 'auto_config',
+            'Type': 'boolean',
+            'Default value': True,
+            'Description': 'Runs the configuration step before the training process.'
+        } in docs
+        assert {
+            'Name': 'hello',
+            'Type': 'string, null',
+            'Default value': 'Hello',
+            'Description': 'a way to salute people'
+        } in docs
 
 
 class TestConfigMethods:
