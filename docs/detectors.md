@@ -241,27 +241,40 @@ for `EventSequenceDetector`, into `fixed_window_size`) and then sets
 be rerun with `auto_config: False` and reproduce the same detector.
 
 
-### Stability segmentation (optional)
+### Stability classification (optional)
 
-Stability classification splits a variable's change history into four segments and
-compares each segment's rate of change against a threshold. By default the segments
-are **equal-count**: each holds the same number of observations, regardless of how much
-time they cover. For bursty log sources that is misleading — a variable that changed
-constantly during a quiet night and then went silent under a flood of daytime traffic
-looks stable, because the flood supplies enough samples to dominate the later segments.
+Stability classification decides whether a variable's change history counts as
+`STABLE` by running one or more classification methods against it and combining
+their verdicts. There are four independent methods, over two primitives and two
+axes:
 
-Setting `segmentation: time` switches the segmentation to **equal-duration** cuts
-of the observed time span, so each segment covers the same amount of wall-clock time. The
-detector then needs an event time per record, which it reads from the log's named
-variables (`logFormatVariables`, i.e. the fields declared in the parser's `log_format`)
-under the name given by `timestamp_variable`.
+| method | what it thresholds | axis |
+|---|---|---|
+| `index` | segment-mean thresholds | equal-count boundaries |
+| `time` | segment-mean thresholds | equal-duration boundaries |
+| `slope_index` | change centroid vs. `slope_threshold` | index positions |
+| `slope_time` | change centroid vs. `slope_threshold` | normalized timestamps |
+
+Any subset of the four may be enabled, and any single one may stand alone. The
+default — `index` alone — is the historical behaviour: each segment's mean rate
+of change is compared against a threshold, and the segments are **equal-count**:
+each holds the same number of observations, regardless of how much time they
+cover. For bursty log sources that is misleading — a variable that changed
+constantly during a quiet night and then went silent under a flood of daytime
+traffic looks stable, because the flood supplies enough samples to dominate the
+later segments. Enabling `time` cuts the same four segments at **equal
+durations** instead, so each segment covers the same amount of wall-clock time;
+the detector then needs an event time per record, which it reads from the log's
+named variables (`logFormatVariables`, i.e. the fields declared in the parser's
+`log_format`) under the name given by `timestamp_variable`. `slope_index` and
+`slope_time` ask a different question — whether the change centroid sits early
+or late in the series — on the index axis and the time axis respectively.
 
 These parameters live on every `VariableDetector` subclass (`NewValueDetector`,
 `NewValueComboDetector`, `ValueRangeDetector`, `CharsetDetector`, `BigramDetector`, …)
 and go in the detector's `auto_config_params` block — they are inputs to the
 auto-configuration phase, read only while `auto_config` is `True`, and never
-consulted at detection time. `segmentation` defaults to `count`; the block below
-opts in to the time-aware mode:
+consulted at detection time.
 
 ```yaml
 detectors:
@@ -269,17 +282,65 @@ detectors:
     method_type: new_value_detector
     auto_config: True
     auto_config_params:
-      segmentation: time            # opt-in; the default is count
-      timestamp_variable: Time      # a field name from the parser's log_format
-      timestamp_format: "%y%m%d %H%M%S"   # optional; omit to auto-detect
+      use_stable_vars: True
+      use_static_vars: True
+      classification:
+        index: True            # segment-mean thresholds, equal-count cuts
+        time: False            # segment-mean thresholds, equal-duration cuts
+        slope_index: False     # change centroid over index positions
+        slope_time: False      # change centroid over normalized time
+        slope_threshold: -0.05 # shared by both slope methods
+        decision: consensus    # consensus | majority
+      timestamp_variable: Time
+      timestamp_format: "%y%m%d %H%M%S"
 ```
 
-Setting `segmentation: both` runs *both* segmentations and calls the variable
-stable only when each one does. Neither segmentation subsumes the other — a variable that
-churns in a burst and then settles is unstable by count but stable by time, and one whose
-late churn is buried under a dense tail of repeats is the reverse — so `both` is strictly
-stricter than either. Use it when a false "stable" is more costly than a missed one; use
-`time` when the point is specifically to forgive early churn on a bursty source.
+Defaults reproduce the historical behaviour exactly: `index: True`, the other
+three `False`, `decision: consensus`, `slope_threshold: -0.05`. A config that
+sets nothing under `classification` classifies identically to before this change.
+
+#### The decision rule
+
+When more than one method is enabled, `decision` picks how their verdicts
+combine. `consensus` requires every enabled method to return stable; `majority`
+requires strictly more than half of them to.
+
+| enabled | `consensus` needs | `majority` needs | differ? |
+|---|---|---|---|
+| 1 | 1/1 | 1/1 | no |
+| 2 | 2/2 | 2/2 (a 1–1 tie is UNSTABLE) | no |
+| 3 | 3/3 | 2/3 | yes |
+| 4 | 4/4 | 3/4 (a 2–2 tie is UNSTABLE) | yes |
+
+Ties resolve to UNSTABLE. That keeps `majority` from ever being more lenient
+than a coin-flip, and makes it collapse onto `consensus` at one and two enabled
+methods — turning a third method on is the only place the rule starts to matter.
+
+**All four methods false is a config error**, rejected by a pydantic validator.
+It is not a harmless no-op: classification decides `INSUFFICIENT_DATA`,
+`STATIC` and `RANDOM` before any method is consulted, so a method-less config
+would silently classify every remaining variable `STABLE`.
+
+#### Breaking change: the old fields are gone
+
+`segmentation`, `require_declining` and `incline_threshold` no longer exist.
+`VariableAutoConfigParams` sets `extra="forbid"`, so a config still using the old
+spellings now raises `ValidationError` at load time rather than being silently
+ignored. Two familiar configurations translate as follows:
+
+| old | new |
+|---|---|
+| `segmentation: both` | `index: True, time: True, decision: consensus` |
+| `segmentation: count, require_declining: True` | `index: True, slope_index: True, decision: consensus` |
+
+Calling `StabilityClassifier` directly has a related gap the config layer does not:
+previously, with no method selection at all, passing `timestamps` to `is_stable`
+was self-sufficient — stamps present meant equal-duration cuts, always. Now
+`is_stable(series, timestamps=ts)` honours `timestamps` only when a time-axis
+method (`time` or `slope_time`) is enabled. A caller who kept an existing
+`is_stable(series, timestamps=ts)` call without also turning on `time` or
+`slope_time` now gets index-axis classification silently, with no error and no
+warning.
 
 #### Fields
 
@@ -289,38 +350,59 @@ All of these live in the detector's `auto_config_params` block.
 |---|---|---|---|
 | `use_stable_vars` | `bool` | `true` | Include variables classified `STABLE` in the generated configuration. |
 | `use_static_vars` | `bool` | `true` | Include variables classified `STATIC`. Defaults to `false` on `NewValueComboDetector`. |
-| `segmentation` | `"count" \| "time" \| "both"` | `"count"` | How to cut the change history into segments. `count` uses equal sample counts; `time` uses equal time spans; `both` requires the variable to be stable under each. With `count` the two timestamp fields are ignored and no timestamps are recorded. |
-| `timestamp_variable` | `str \| null` | `null` | Name of the field in `logFormatVariables` holding the record's event time. Required for `time` and `both` to have any effect. Only named log-format fields are consulted — never the positional `variables` list. |
+| `classification` | `ClassificationMethods` | see below | Which classification methods run and how their verdicts combine. |
+| `timestamp_variable` | `str \| null` | `null` | Name of the field in `logFormatVariables` holding the record's event time. Required for `time` and `slope_time` to have any effect. Only named log-format fields are consulted — never the positional `variables` list. |
 | `timestamp_format` | `str \| null` | `null` | Explicit [`strftime`](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes) pattern for parsing that field. When unset, `TimeFormatHandler` auto-detects the format (ISO 8601, Apache, syslog, numeric epoch seconds/milliseconds, and other common layouts). |
-| `require_declining` | `bool` | `false` | Add a conjunct to `STABLE` requiring the variable's changes to sit early in its series. Independent of `segmentation` — it reads index positions, not timestamps. |
-| `incline_threshold` | `float` | `-0.05` | The change-centroid cut-off `require_declining` compares against. The centroid runs from `-0.5` (all changes at the very start) to `+0.5` (all at the end); a variable passes when it is at or below this value. Ignored unless `require_declining` is set. |
 
 Set `timestamp_format` when the source uses a layout the auto-detection does not
 know. The HDFS loghub corpus, for example, stamps records as `081109 203615`, which
 only parses with an explicit `"%y%m%d %H%M%S"`.
 
+`classification`'s six fields:
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| `index` | `bool` | `true` | Segment-mean thresholds, equal-count boundaries. |
+| `time` | `bool` | `false` | Segment-mean thresholds, equal-duration boundaries. Needs `timestamp_variable`. |
+| `slope_index` | `bool` | `false` | Change centroid vs. `slope_threshold`, measured on index positions. |
+| `slope_time` | `bool` | `false` | Change centroid vs. `slope_threshold`, measured on normalized timestamps. Needs `timestamp_variable`. |
+| `slope_threshold` | `float` | `-0.05` | The change-centroid cut-off both slope methods compare against, on a shared `[-0.5, +0.5]` scale. A variable passes when its centroid is at or below this value. |
+| `decision` | `"consensus" \| "majority"` | `"consensus"` | How verdicts from more than one enabled method combine; see above. |
+
 #### Fallback behaviour
 
-Time-aware segmentation is best-effort and never fails a run:
+Time-aware classification is best-effort and never fails a run:
 
-* If `segmentation` is not `count` but `timestamp_variable` is unset, or the named field
-  is absent from a record, or its value cannot be parsed, the detector logs a
+* If `time` or `slope_time` is enabled but `timestamp_variable` is unset, or the named
+  field is absent from a record, or its value cannot be parsed, the detector logs a
   **single** warning (once per detector, so a bad config cannot flood the log) and
-  falls back to count-based segmentation.
+  falls back to the index axis.
 * If timestamps stop lining up with the recorded observations, or the observed time
-  span is zero, or they arrive out of order, the classifier silently falls back to
-  count-based segmentation for that variable.
-* Under `both`, any of the fallbacks above make the time pass reuse the count boundaries,
-  so the mode degrades to plain `count` rather than to an unconditional pass.
+  span is zero, or they arrive out of order, `time` silently reuses the equal-index
+  cuts, and `slope_time` computes its centroid on the index axis instead — it
+  degrades to `slope_index`.
+* Under `majority`, a fallen-back method still casts its own vote: if `slope_index`
+  and `slope_time` are both enabled and timestamps are unusable, both entries compute
+  the same index-axis centroid, and that verdict carries two of the votes rather than
+  one. This is deliberate — dropping a fallen-back method from the vote would change
+  the enabled count from variable to variable and make `majority` mean something
+  different for each one. The reason string names the axis each slope actually used,
+  so a doubled vote is visible in the note.
+* The same doubling applies to the segment-threshold pair: if `index` and `time` are
+  both enabled and timestamps are unusable, `time` silently reuses the same equal-count
+  cuts as `index`, so an identical verdict again carries two votes under `majority`
+  rather than one. Unlike the slope pair, the reason string does not surface this —
+  each entry is still labelled by its configured method name (`index` or `time`), not
+  by the axis it actually used, so a doubled segment-pair vote is invisible in the note.
 
 In every fallback case classification still runs and produces a result — only the
-segmentation rule changes back to the default.
+axis behind it changes back to index.
 
 A segment with no observations in it is *not* a fallback: it scores a mean of 0.0,
 because nothing observed means nothing changed. Equal-duration cuts of a bursty
 variable leave such segments routinely, so `time` on its own is lenient towards a
-burst of churn followed by silence. Use `both` when that leniency matters — the
-count pass keeps every segment populated.
+burst of churn followed by silence. Enable `index` and `time` together when that
+leniency matters — the index pass keeps every segment populated.
 
 
 ### Saving state (persist)

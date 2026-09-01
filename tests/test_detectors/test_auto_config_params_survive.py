@@ -40,8 +40,7 @@ def _schema(event_id: int, level: str, log_id: str):
 _AUTO = dict(
     use_stable_vars=True,
     use_static_vars=True,
-    segmentation="time",
-    require_declining=True,
+    classification=dict(index=False, time=True, slope_index=True),
     timestamp_variable="level",
     timestamp_format="%y%m%d %H%M%S",
 )
@@ -53,8 +52,7 @@ def _assert_auto_params_intact(config):
     auto = config.auto_config_params
     assert auto.use_stable_vars is True
     assert auto.use_static_vars is True
-    assert auto.segmentation == "time"
-    assert auto.require_declining is True
+    assert auto.classification.enabled == ("time", "slope_index")
     assert auto.timestamp_variable == "level"
     assert auto.timestamp_format == "%y%m%d %H%M%S"
 

@@ -1,4 +1,4 @@
-"""Tests for the segmentation option of the stability trackers."""
+"""Tests for the time-axis classification methods of the stability trackers."""
 
 import logging
 import math
@@ -12,13 +12,26 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
     StabilityClassifier,
     SingleStabilityTracker,
     EventStabilityTracker,
+    ClassificationMethods,
 )
 
 THRESHOLDS = [1.1, 0.3, 0.1, 0.01]  # same defaults SingleStabilityTracker uses
 
 
-def make_classifier() -> StabilityClassifier:
-    return StabilityClassifier(segment_thresholds=THRESHOLDS)
+def make_index_classifier() -> StabilityClassifier:
+    """Equal-index cuts -- the reference every fallback test compares to."""
+    return StabilityClassifier(
+        segment_thresholds=THRESHOLDS,
+        classification=ClassificationMethods(index=True),
+    )
+
+
+def make_time_classifier() -> StabilityClassifier:
+    """Equal-duration cuts -- what this file is about."""
+    return StabilityClassifier(
+        segment_thresholds=THRESHOLDS,
+        classification=ClassificationMethods(index=False, time=True),
+    )
 
 
 # Divergence fixture: 3 changes up front, then a quiet tail of 37.
@@ -60,60 +73,60 @@ AGREE_TIMES = [float(i) for i in range(40)]
 
 
 class TestClassifierTimeBoundaries:
-    def test_count_mode_is_stable_on_divergent_fixture(self):
-        clf = make_classifier()
+    def test_index_mode_is_stable_on_divergent_fixture(self):
+        clf = make_index_classifier()
         # count segments of 10: means [0.3, 0, 0, 0] -> all below thresholds
         assert clf.is_stable(RLEList(DIVERGENT_SERIES)) is True
 
     def test_time_mode_is_unstable_on_divergent_fixture(self):
-        clf = make_classifier()
+        clf = make_time_classifier()
         # time quarters put a lone change (mean 1.0) into segment 2 (thresh 0.3)
         assert clf.is_stable(RLEList(DIVERGENT_SERIES), timestamps=DIVERGENT_TIMES) is False
 
-    def test_uniform_timestamps_match_count_mode(self):
+    def test_uniform_timestamps_match_index_mode(self):
         # N divisible by n_segments -> boundaries coincide exactly
         series = [True, False, False, True, False, False, False, False]
         ts = [float(i) for i in range(8)]
-        clf_count = make_classifier()
+        clf_count = make_index_classifier()
         clf_count.is_stable(RLEList(series))
-        clf_time = make_classifier()
+        clf_time = make_time_classifier()
         clf_time.is_stable(RLEList(series), timestamps=ts)
         assert clf_time.get_last_segment_means() == clf_count.get_last_segment_means()
 
     def test_plain_list_path_supports_timestamps(self):
-        clf = make_classifier()
+        clf = make_time_classifier()
         assert clf.is_stable(list(DIVERGENT_SERIES), timestamps=DIVERGENT_TIMES) is False
 
-    def test_zero_span_falls_back_to_count_mode(self):
+    def test_zero_span_falls_back_to_index_mode(self):
         series = [True, False, False, False, False, False, False, False]
-        clf_count = make_classifier()
+        clf_count = make_index_classifier()
         expected = clf_count.is_stable(RLEList(series))
-        clf_time = make_classifier()
+        clf_time = make_time_classifier()
         result = clf_time.is_stable(RLEList(series), timestamps=[5.0] * 8)
         assert result == expected
         assert clf_time.get_last_segment_means() == clf_count.get_last_segment_means()
 
-    def test_length_mismatch_falls_back_to_count_mode(self):
+    def test_length_mismatch_falls_back_to_index_mode(self):
         series = [True, False, False, False, False, False, False, False]
-        clf_count = make_classifier()
+        clf_count = make_index_classifier()
         expected = clf_count.is_stable(RLEList(series))
-        clf_time = make_classifier()
+        clf_time = make_time_classifier()
         assert clf_time.is_stable(RLEList(series), timestamps=[1.0, 2.0]) == expected
 
-    def test_none_timestamp_entry_falls_back_to_count_mode(self):
+    def test_none_timestamp_entry_falls_back_to_index_mode(self):
         series = [True, False, False, False, False, False, False, False]
-        clf_count = make_classifier()
+        clf_count = make_index_classifier()
         expected = clf_count.is_stable(RLEList(series))
-        clf_time = make_classifier()
+        clf_time = make_time_classifier()
         ts = [0.0, 1.0, None, 3.0, 4.0, 5.0, 6.0, 7.0]
         assert clf_time.is_stable(RLEList(series), timestamps=ts) == expected
         assert clf_time.get_last_segment_means() == clf_count.get_last_segment_means()
 
-    def test_nan_timestamp_entry_falls_back_to_count_mode(self):
+    def test_nan_timestamp_entry_falls_back_to_index_mode(self):
         series = [True, False, False, False, False, False, False, False]
-        clf_count = make_classifier()
+        clf_count = make_index_classifier()
         expected = clf_count.is_stable(RLEList(series))
-        clf_time = make_classifier()
+        clf_time = make_time_classifier()
         ts = [0.0, 1.0, float("nan"), 3.0, 4.0, 5.0, 6.0, 7.0]
         assert clf_time.is_stable(RLEList(series), timestamps=ts) == expected
         assert clf_time.get_last_segment_means() == clf_count.get_last_segment_means()
@@ -127,19 +140,19 @@ class TestClassifierTimeBoundaries:
         alone is lenient on a burst followed by silence. Count mode
         still sees the churn, so `both` catches it.
         """
-        clf_count = make_classifier()
+        clf_count = make_index_classifier()
         assert clf_count.is_stable(RLEList(BURSTY_SERIES)) is False
 
-        clf_time = make_classifier()
+        clf_time = make_time_classifier()
         assert clf_time.is_stable(RLEList(BURSTY_SERIES), timestamps=BURSTY_TIMES) is True
         assert clf_time.get_last_segment_means() == [0.5, 0.0, 0.0, 0.0]
 
     def test_empty_time_segment_scores_zero_on_plain_list_path(self):
-        clf_time = make_classifier()
+        clf_time = make_time_classifier()
         assert clf_time.is_stable(list(BURSTY_SERIES), timestamps=BURSTY_TIMES) is True
         assert clf_time.get_last_segment_means() == [0.5, 0.0, 0.0, 0.0]
 
-    def test_out_of_order_timestamps_fall_back_to_count_mode(self):
+    def test_out_of_order_timestamps_fall_back_to_index_mode(self):
         """np.searchsorted requires sorted input.
 
         UNSORTED_TIMES is SORTED_TIMES with two entries transposed --
@@ -153,35 +166,35 @@ class TestClassifierTimeBoundaries:
         unsorted_times = list(sorted_times)
         unsorted_times[9], unsorted_times[30] = unsorted_times[30], unsorted_times[9]
 
-        clf_count = make_classifier()
+        clf_count = make_index_classifier()
         expected = clf_count.is_stable(RLEList(series))
-        clf_time = make_classifier()
+        clf_time = make_time_classifier()
         assert clf_time.is_stable(RLEList(series), timestamps=unsorted_times) == expected
         assert clf_time.get_last_segment_means() == clf_count.get_last_segment_means()
 
     def test_sorted_timestamps_still_use_time_mode(self):
         """The monotonicity guard must not disable time mode for valid
         input."""
-        clf = make_classifier()
+        clf = make_time_classifier()
         assert clf.is_stable(RLEList(DIVERGENT_SERIES), timestamps=DIVERGENT_TIMES) is False
-        count = make_classifier()
-        count.is_stable(RLEList(DIVERGENT_SERIES))
-        assert clf.get_last_segment_means() != count.get_last_segment_means()
+        index = make_index_classifier()
+        index.is_stable(RLEList(DIVERGENT_SERIES))
+        assert clf.get_last_segment_means() != index.get_last_segment_means()
 
     def test_equal_timestamps_are_not_treated_as_out_of_order(self):
         """Duplicate stamps are non-decreasing, so they stay in time mode."""
         series = [True, False] * 20
         times = [float(i // 2) for i in range(40)]  # each stamp used twice
-        clf = make_classifier()
+        clf = make_time_classifier()
         assert clf.is_stable(RLEList(series), timestamps=times) is False
         assert not any(math.isnan(mean) for mean in clf.get_last_segment_means())
 
     def test_list_and_rle_agree_on_ragged_length(self):
         """13 items over 4 segments: both paths must cut identically."""
         series = [True, False, True] + [False] * 10
-        clf_list = make_classifier()
+        clf_list = make_index_classifier()
         clf_list.is_stable(list(series))
-        clf_rle = make_classifier()
+        clf_rle = make_index_classifier()
         clf_rle.is_stable(RLEList(series))
         assert clf_list.get_last_segment_means() == clf_rle.get_last_segment_means()
 
@@ -208,12 +221,12 @@ def feed_agreeing(tracker: SingleStabilityTracker) -> None:
 
 class TestSingleStabilityTrackerSegmentation:
     def test_timestamps_stored_only_when_enabled(self):
-        on = SingleStabilityTracker(segmentation="time")
+        on = SingleStabilityTracker(classification=ClassificationMethods(index=False, time=True))
         on.add_value("a", timestamp=1.0)
         on.add_value("b", timestamp=2.0)
         assert on.timestamps == [1.0, 2.0]
 
-        off = SingleStabilityTracker()  # default segmentation="count"
+        off = SingleStabilityTracker()  # default classification=ClassificationMethods(index=True)
         off.add_value("a", timestamp=1.0)
         assert off.timestamps == []
 
@@ -222,13 +235,13 @@ class TestSingleStabilityTrackerSegmentation:
         feed_divergent(count_mode)
         assert count_mode.classify().type == "STABLE"
 
-        time_mode = SingleStabilityTracker(segmentation="time")
+        time_mode = SingleStabilityTracker(classification=ClassificationMethods(index=False, time=True))
         feed_divergent(time_mode)
         assert time_mode.classify().type == "UNSTABLE"
 
-    def test_missing_timestamps_fall_back_to_count_mode(self):
-        # time segmentation on, but values arrive without timestamps
-        tracker = SingleStabilityTracker(segmentation="time")
+    def test_missing_timestamps_fall_back_to_index_mode(self):
+        # time classification on, but values arrive without timestamps
+        tracker = SingleStabilityTracker(classification=ClassificationMethods(index=False, time=True))
         for value in ["a", "b", "c"] + ["c"] * 37:
             tracker.add_value(value)
         reference = SingleStabilityTracker()
@@ -237,10 +250,10 @@ class TestSingleStabilityTrackerSegmentation:
         assert tracker.classify().type == reference.classify().type
 
     def test_round_trip_preserves_time_state(self):
-        tracker = SingleStabilityTracker(segmentation="time")
+        tracker = SingleStabilityTracker(classification=ClassificationMethods(index=False, time=True))
         feed_divergent(tracker)
         restored = SingleStabilityTracker.from_state(tracker.to_state())
-        assert restored.segmentation == "time"
+        assert restored.classification == ClassificationMethods(index=False, time=True)
         assert restored.timestamps == tracker.timestamps
         assert restored.classify().type == "UNSTABLE"
 
@@ -248,10 +261,10 @@ class TestSingleStabilityTrackerSegmentation:
         tracker = SingleStabilityTracker()
         tracker.add_value("hello")
         state = tracker.to_state()
-        state.pop("segmentation", None)  # simulate pre-flag snapshot
+        state.pop("classification", None)  # simulate pre-flag snapshot
         state.pop("timestamps", None)
         restored = SingleStabilityTracker.from_state(state)
-        assert restored.segmentation == "count"
+        assert restored.classification == ClassificationMethods(index=True)
         assert restored.timestamps == []
 
     def test_legacy_state_without_add_value_keys_loads(self):
@@ -269,35 +282,38 @@ class TestSingleStabilityTrackerSegmentation:
         assert restored.detector_config is None
         assert restored.unique_set == {"hello"}
 
-    def test_bursty_series_needs_the_count_pass(self):
+    def test_bursty_series_needs_the_index_pass(self):
         """A burst followed by silence is time-STABLE (empty quarters score
-        0.0) but count-UNSTABLE, so only `both` refuses to hand it to auto-
+        0.0) but index-UNSTABLE, so only `both` refuses to hand it to auto-
         config variable selection as a monitoring candidate."""
         trackers = {
-            mode: SingleStabilityTracker(segmentation=mode)
-            for mode in ("count", "time", "both")
+            "index": SingleStabilityTracker(classification=ClassificationMethods(index=True)),
+            "time": SingleStabilityTracker(classification=ClassificationMethods(index=False, time=True)),
+            "both": SingleStabilityTracker(classification=ClassificationMethods(index=True, time=True)),
         }
         for value, ts in zip(BURSTY_VALUES, BURSTY_TIMES):
             for tracker in trackers.values():
                 tracker.add_value(value, timestamp=ts)
-        assert trackers["count"].classify().type == "UNSTABLE"
+        assert trackers["index"].classify().type == "UNSTABLE"
         assert trackers["time"].classify().type == "STABLE"
         assert trackers["both"].classify().type == "UNSTABLE"
 
 
 class TestSegmentationPlumbing:
     def test_event_tracker_propagates_flag_and_timestamp(self):
-        event_tracker = EventStabilityTracker(segmentation="time")
+        event_tracker = EventStabilityTracker(
+            classification=ClassificationMethods(index=False, time=True)
+        )
         event_tracker.add_data({"var1": "a"}, timestamp=1.0)
         event_tracker.add_data({"var1": "b"}, timestamp=2.0)
         single = event_tracker.get_data()["var1"]
-        assert single.segmentation == "time"
+        assert single.classification == ClassificationMethods(index=False, time=True)
         assert single.timestamps == [1.0, 2.0]
 
     def test_ingest_event_forwards_timestamp(self):
         storage = EventPersistency(
             EventStabilityTracker,
-            event_data_kwargs={"segmentation": "time"},
+            event_data_kwargs={"classification": {"index": False, "time": True}},
         )
         storage.ingest_event(1, "tpl <*>", variables=["a"], timestamp=10.0)
         storage.ingest_event(1, "tpl <*>", variables=["b"], timestamp=20.0)
@@ -312,12 +328,16 @@ class TestSegmentationPlumbing:
         assert single.timestamps == []
 
     def test_event_tracker_dump_load_preserves_timestamps(self):
-        event_tracker = EventStabilityTracker(segmentation="time")
+        event_tracker = EventStabilityTracker(
+            classification=ClassificationMethods(index=False, time=True)
+        )
         event_tracker.add_data({"var1": "a"}, timestamp=1.0)
         event_tracker.add_data({"var1": "b"}, timestamp=2.0)
-        restored = EventStabilityTracker.load(event_tracker.dump(), segmentation="time")
+        restored = EventStabilityTracker.load(
+            event_tracker.dump(), classification={"index": False, "time": True}
+        )
         single = restored.get_data()["var1"]
-        assert single.segmentation == "time"
+        assert single.classification == ClassificationMethods(index=False, time=True)
         assert single.timestamps == [1.0, 2.0]
 
 
@@ -327,7 +347,8 @@ class TestSegmentationWithDetectorAddValueFn:
 
     def test_detector_backed_tracker_records_timestamps(self):
         tracker = SingleStabilityTracker(
-            add_value_fn="CharsetDetector", segmentation="time"
+            add_value_fn="CharsetDetector",
+            classification=ClassificationMethods(index=False, time=True),
         )
         tracker.add_value("ab", timestamp=1.0)
         tracker.add_value("cd", timestamp=2.0)
@@ -339,7 +360,8 @@ class TestSegmentationWithDetectorAddValueFn:
         """ValueRangeDetector returns early on non-numeric input without
         appending to change_series; timestamps must not drift."""
         tracker = SingleStabilityTracker(
-            add_value_fn="ValueRangeDetector", segmentation="time"
+            add_value_fn="ValueRangeDetector",
+            classification=ClassificationMethods(index=False, time=True),
         )
         tracker.add_value("1", timestamp=1.0)
         tracker.add_value("not-a-number", timestamp=2.0)  # detector records nothing
@@ -349,12 +371,15 @@ class TestSegmentationWithDetectorAddValueFn:
 
     def test_event_tracker_detector_backed_round_trip(self):
         event_tracker = EventStabilityTracker(
-            add_value_fn="CharsetDetector", segmentation="time"
+            add_value_fn="CharsetDetector",
+            classification=ClassificationMethods(index=False, time=True),
         )
         event_tracker.add_data({"var1": "ab"}, timestamp=1.0)
         event_tracker.add_data({"var1": "cd"}, timestamp=2.0)
         restored = EventStabilityTracker.load(
-            event_tracker.dump(), add_value_fn="CharsetDetector", segmentation="time"
+            event_tracker.dump(),
+            add_value_fn="CharsetDetector",
+            classification={"index": False, "time": True},
         )
         single = restored.get_data()["var1"]
         assert single.unique_set == {"a", "b", "c", "d"}
@@ -380,7 +405,7 @@ class TestTimestampResolution:
     # explicitly rather than bare CharsetDetector(). CharsetDetector.__init__'s
     # `config` default argument is a single shared CharsetDetectorConfig()
     # instance (pre-existing mutable-default-arg pitfall, see
-    # TestSegmentationConfigWiring.test_flag_reaches_per_variable_trackers), and
+    # TestClassificationConfigWiring.test_flag_reaches_per_variable_trackers), and
     # several tests here mutate `detector.config.*` in place -- writing through
     # to that shared instance and leaking state into any other bare-constructed
     # CharsetDetector for the rest of the process. Passing a fresh config keeps
@@ -391,14 +416,14 @@ class TestTimestampResolution:
 
     def test_parses_iso_timestamp(self):
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.auto_config_params.segmentation = "time"
+        detector.config.auto_config_params.classification = ClassificationMethods(index=False, time=True)
         detector.config.auto_config_params.timestamp_variable = "ts"
         assert detector._timestamp(_parser_record("2026-08-04 10:00:00")) == 1785837600.0
 
     def test_parses_explicit_format(self):
         """HDFS loghub style, absent from COMMON_TIME_FORMATS."""
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.auto_config_params.segmentation = "time"
+        detector.config.auto_config_params.classification = ClassificationMethods(index=False, time=True)
         detector.config.auto_config_params.timestamp_variable = "ts"
         detector.config.auto_config_params.timestamp_format = "%y%m%d %H%M%S"
         first = detector._timestamp(_parser_record("081109 203615"))
@@ -407,7 +432,7 @@ class TestTimestampResolution:
 
     def test_unparseable_warns_once_and_falls_back(self, caplog):
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.auto_config_params.segmentation = "time"
+        detector.config.auto_config_params.classification = ClassificationMethods(index=False, time=True)
         detector.config.auto_config_params.timestamp_variable = "ts"
         with caplog.at_level(logging.WARNING):
             assert detector._timestamp(_parser_record("not-a-time")) is None
@@ -416,11 +441,13 @@ class TestTimestampResolution:
         assert len(warnings) == 1
 
     def test_unset_timestamp_variable_warns_once_and_falls_back(self, caplog):
-        """Segmentation="time" without timestamp_variable is an operator error,
-        not an opt-out: it must be distinguishable from a working time-
-        dependent run, and must not flood the log."""
+        """A time-axis classification method without timestamp_variable is an
+        operator error, not an opt-out: it must be distinguishable from a
+        working time-dependent run, and must not flood the log."""
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.auto_config_params.segmentation = "time"  # timestamp_variable left unset
+        detector.config.auto_config_params.classification = ClassificationMethods(
+            index=False, time=True
+        )  # timestamp_variable left unset
         with caplog.at_level(logging.WARNING):
             assert detector._timestamp(_parser_record("2026-08-04 10:00:00")) is None
             assert detector._timestamp(_parser_record("2026-08-04 10:00:01")) is None
@@ -437,46 +464,51 @@ class TestTimestampResolution:
 
     def test_missing_variable_warns_and_falls_back(self, caplog):
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.auto_config_params.segmentation = "time"
+        detector.config.auto_config_params.classification = ClassificationMethods(index=False, time=True)
         detector.config.auto_config_params.timestamp_variable = "absent"
         with caplog.at_level(logging.WARNING):
             assert detector._timestamp(_parser_record("2026-08-04 10:00:00")) is None
         assert any("timestamp_variable" in r.message for r in caplog.records)
 
 
-class TestSegmentationConfigWiring:
+class TestClassificationConfigWiring:
     def test_flag_reaches_per_variable_trackers(self):
         # CharsetDetector's `config` parameter default is a single shared
         # CharsetDetectorConfig() instance (pre-existing mutable-default-arg
-        # pitfall, unrelated to segmentation). Other tests in this
+        # pitfall, unrelated to classification). Other tests in this
         # module mutate `detector.config.*` in place on a bare
         # CharsetDetector(), so we pass explicit fresh configs here to stay
         # isolated from that.
-        # segmentation only shapes the configure-phase persistency: the
+        # classification only shapes the configure-phase persistency: the
         # trained persistency is read by _check_variable, which never calls
-        # classify(), so it never receives stability kwargs at all.
+        # classify(), so it never receives classification kwargs at all.
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        assert detector.persistency.event_data_kwargs.get("segmentation") is None
+        assert detector.persistency.event_data_kwargs.get("classification") is None
 
         configured = CharsetDetector(config=CharsetDetectorConfig())
-        configured.config.auto_config_params.segmentation = "time"
+        configured.config.auto_config_params.classification = ClassificationMethods(
+            index=False, time=True
+        )
         rebuilt = CharsetDetector(config=configured.config.to_dict(method_id="CharsetDetector"))
-        assert rebuilt.auto_conf_persistency.event_data_kwargs["segmentation"] == "time"
+        block = rebuilt.auto_conf_persistency.event_data_kwargs["classification"]
+        assert ClassificationMethods(**block).enabled == ("time",)
 
     def test_config_fields_round_trip(self):
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.auto_config_params.segmentation = "time"
+        detector.config.auto_config_params.classification = ClassificationMethods(
+            index=False, time=True
+        )
         detector.config.auto_config_params.timestamp_variable = "ts"
         detector.config.auto_config_params.timestamp_format = "%y%m%d %H%M%S"
         restored = type(detector.config).from_dict(
             detector.config.to_dict(method_id="CharsetDetector"), "CharsetDetector"
         )
-        assert restored.auto_config_params.segmentation == "time"
+        assert restored.auto_config_params.classification.enabled == ("time",)
         assert restored.auto_config_params.timestamp_variable == "ts"
         assert restored.auto_config_params.timestamp_format == "%y%m%d %H%M%S"
 
     def test_configure_populates_timestamps_end_to_end(self):
-        """Segmentation settings reach the configure-phase persistency's
+        """The classification block reaches the configure-phase persistency's
         trackers end-to-end.
 
         This used to run through train()/.persistency, but the trained
@@ -486,7 +518,7 @@ class TestSegmentationConfigWiring:
         """
         cfg = CharsetDetectorConfig(
             auto_config_params=VariableAutoConfigParams(
-                segmentation="time",
+                classification=ClassificationMethods(index=False, time=True),
                 timestamp_variable="ts",
                 timestamp_format="%y%m%d %H%M%S",
             ),
@@ -495,11 +527,11 @@ class TestSegmentationConfigWiring:
         detector.configure(_parser_record("081109 203615"))
         detector.configure(_parser_record("081109 203645"))
         tracker = detector.auto_conf_persistency.get_events_data()[1].get_data()["var_0"]
-        assert tracker.segmentation == "time"
+        assert tracker.classification.enabled == ("time",)
         assert len(tracker.timestamps) == len(tracker.change_series) == 2
         assert tracker.timestamps[1] - tracker.timestamps[0] == 30.0
 
-    def test_segmentation_fields_survive_auto_config_set_configuration(self):
+    def test_classification_fields_survive_auto_config_set_configuration(self):
         """set_configuration() writes only self.config.events and then flips
         auto_config to False -- it never rebuilds or reassigns self.config
         wholesale, so auto_config_params (like every other operator-set field,
@@ -511,7 +543,7 @@ class TestSegmentationConfigWiring:
         """
         cfg = CharsetDetectorConfig(
             auto_config_params=VariableAutoConfigParams(
-                segmentation="time",
+                classification=ClassificationMethods(index=False, time=True),
                 timestamp_variable="ts",
                 timestamp_format="%y%m%d %H%M%S",
             ),
@@ -523,24 +555,24 @@ class TestSegmentationConfigWiring:
             detector.configure(_parser_record("081109 203615"))
         detector.set_configuration()
 
-        assert detector.config.auto_config_params.segmentation == "time"
+        assert detector.config.auto_config_params.classification.enabled == ("time",)
         assert detector.config.auto_config_params.timestamp_variable == "ts"
         assert detector.config.auto_config_params.timestamp_format == "%y%m%d %H%M%S"
 
 
-class TestBothSegmentation:
-    """`both` is STABLE only when count and time segmentation agree."""
+class TestIndexAndTimeTogether:
+    """Index + time is STABLE only when both methods agree."""
 
     def test_rejects_when_only_time_is_unstable(self):
         count_mode = SingleStabilityTracker()
         feed_divergent(count_mode)
         assert count_mode.classify().type == "STABLE"
 
-        time_mode = SingleStabilityTracker(segmentation="time")
+        time_mode = SingleStabilityTracker(classification=ClassificationMethods(index=False, time=True))
         feed_divergent(time_mode)
         assert time_mode.classify().type == "UNSTABLE"
 
-        both_mode = SingleStabilityTracker(segmentation="both")
+        both_mode = SingleStabilityTracker(classification=ClassificationMethods(index=True, time=True))
         feed_divergent(both_mode)
         assert both_mode.classify().type == "UNSTABLE"
 
@@ -550,18 +582,23 @@ class TestBothSegmentation:
         feed_churn(count_mode)
         assert count_mode.classify().type == "UNSTABLE"
 
-        time_mode = SingleStabilityTracker(segmentation="time")
+        time_mode = SingleStabilityTracker(classification=ClassificationMethods(index=False, time=True))
         feed_churn(time_mode)
         assert time_mode.classify().type == "STABLE"
 
-        both_mode = SingleStabilityTracker(segmentation="both")
+        both_mode = SingleStabilityTracker(classification=ClassificationMethods(index=True, time=True))
         feed_churn(both_mode)
         assert both_mode.classify().type == "UNSTABLE"
 
     def test_accepts_when_both_agree(self):
         """`both` must not be vacuously strict."""
-        for mode in ("count", "time", "both"):
-            tracker = SingleStabilityTracker(segmentation=mode)
+        modes = {
+            "index": ClassificationMethods(index=True),
+            "time": ClassificationMethods(index=False, time=True),
+            "both": ClassificationMethods(index=True, time=True),
+        }
+        for mode, methods in modes.items():
+            tracker = SingleStabilityTracker(classification=methods)
             feed_agreeing(tracker)
             assert tracker.classify().type == "STABLE", mode
 
@@ -574,7 +611,7 @@ class TestBothSegmentation:
         also call an all-STABLE fixture STABLE here; only a fixture that
         is UNSTABLE when fed without timestamps can tell the two apart.
         """
-        both_mode = SingleStabilityTracker(segmentation="both")
+        both_mode = SingleStabilityTracker(classification=ClassificationMethods(index=True, time=True))
         reference = SingleStabilityTracker()
         for value in CHURN_VALUES:
             both_mode.add_value(value)  # no timestamp argument
@@ -594,44 +631,49 @@ class TestBothSegmentation:
         also yields UNSTABLE, so this exercises the note on the branch
         finding 1 wires it into.
         """
-        tracker = SingleStabilityTracker(segmentation="both")
+        tracker = SingleStabilityTracker(classification=ClassificationMethods(index=True, time=True))
         feed_churn(tracker)
         classification = tracker.classify()
         assert classification.type == "UNSTABLE"
         reason = classification.reason
-        assert "count [1.0, 1.0, 1.0, 0.0]" in reason
-        assert "time [0.9375, 0.0, 0.0, 0.0]" in reason
+        assert "index: means [1.0, 1.0, 1.0, 0.0]" in reason
+        assert "time: means [0.9375, 0.0, 0.0, 0.0]" in reason
 
     def test_round_trip_preserves_both_mode(self):
-        tracker = SingleStabilityTracker(segmentation="both")
+        tracker = SingleStabilityTracker(classification=ClassificationMethods(index=True, time=True))
         feed_churn(tracker)
         restored = SingleStabilityTracker.from_state(tracker.to_state())
-        assert restored.segmentation == "both"
+        assert restored.classification == ClassificationMethods(index=True, time=True)
         assert restored.timestamps == tracker.timestamps
         assert restored.classify().type == "UNSTABLE"
 
     def test_stability_note_is_not_persisted(self):
-        tracker = SingleStabilityTracker(segmentation="both")
+        tracker = SingleStabilityTracker(classification=ClassificationMethods(index=True, time=True))
         feed_agreeing(tracker)
         tracker.classify()
         assert "_stability_note" not in tracker.to_state()
 
     def test_config_accepts_both_and_reaches_trackers(self):
-        # segmentation only shapes the configure-phase persistency (see
-        # TestSegmentationConfigWiring.test_flag_reaches_per_variable_trackers).
+        # classification only shapes the configure-phase persistency (see
+        # TestClassificationConfigWiring.test_flag_reaches_per_variable_trackers).
         configured = CharsetDetector(config=CharsetDetectorConfig())
-        configured.config.auto_config_params.segmentation = "both"
+        configured.config.auto_config_params.classification = ClassificationMethods(
+            index=True, time=True
+        )
         rebuilt = CharsetDetector(
             config=configured.config.to_dict(method_id="CharsetDetector")
         )
-        assert rebuilt.auto_conf_persistency.event_data_kwargs["segmentation"] == "both"
+        block = rebuilt.auto_conf_persistency.event_data_kwargs["classification"]
+        assert ClassificationMethods(**block).enabled == ("index", "time")
 
     def test_event_tracker_propagates_both(self):
-        event_tracker = EventStabilityTracker(segmentation="both")
+        event_tracker = EventStabilityTracker(
+            classification=ClassificationMethods(index=True, time=True)
+        )
         event_tracker.add_data({"var1": "a"}, timestamp=1.0)
         event_tracker.add_data({"var1": "b"}, timestamp=2.0)
         single = event_tracker.get_data()["var1"]
-        assert single.segmentation == "both"
+        assert single.classification == ClassificationMethods(index=True, time=True)
         assert single.timestamps == [1.0, 2.0]
 
 
@@ -651,7 +693,8 @@ def test_train_path_records_no_timestamps():
         name="NewValueDetector",
         config=NewValueDetectorConfig(
             auto_config_params=VariableAutoConfigParams(
-                segmentation="time", timestamp_variable="ts",
+                classification=ClassificationMethods(index=False, time=True),
+                timestamp_variable="ts",
             ),
         ),
     )
@@ -665,12 +708,12 @@ def test_train_path_records_no_timestamps():
     trained = detector.persistency.get_events_data()[1].get_data()
     assert trained, "expected the configure phase to select at least one variable"
     for tracker in trained.values():
-        assert tracker.segmentation == "count"
+        assert tracker.classification.enabled == ("index",)
         assert tracker.timestamps == []
 
     # the configure-phase persistency still gets them
     configured = detector.auto_conf_persistency.get_events_data()[1].get_data()
-    assert any(t.segmentation == "time" for t in configured.values())
+    assert any(t.classification.enabled == ("time",) for t in configured.values())
 
 
 def test_persisted_state_omits_auto_config_params():
@@ -682,7 +725,8 @@ def test_persisted_state_omits_auto_config_params():
     """
     cfg = CharsetDetectorConfig(
         auto_config_params=VariableAutoConfigParams(
-            segmentation="time", timestamp_variable="ts",
+            classification=ClassificationMethods(index=False, time=True),
+            timestamp_variable="ts",
         ),
     )
     detector = CharsetDetector(config=cfg, name="CharsetDetector")

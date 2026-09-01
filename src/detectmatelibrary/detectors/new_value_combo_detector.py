@@ -70,7 +70,7 @@ class NewValueComboDetector(VariableDetector):
         # second-pass persistency to learn stability of variable combinations
         self.auto_conf_persistency_combos = persistency.EventPersistency(
             event_data_class=persistency.EventStabilityTracker,
-            event_data_kwargs=self._with_stability_kwargs(
+            event_data_kwargs=self._with_classification_kwargs(
                 {"converter_function": get_all_possible_combos}
             ),
         )

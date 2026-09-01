@@ -15,6 +15,9 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers.stabilit
     EventStabilityTracker,
     SingleStabilityTracker,
 )
+from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability import (
+    ClassificationMethods,
+)
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
@@ -22,7 +25,7 @@ from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.tools.logging import logger
 
-from typing import Any, Dict, Literal, Optional, cast
+from typing import Any, Dict, Optional, cast
 from typing_extensions import override
 
 
@@ -80,22 +83,14 @@ class VariableAutoConfigParams(AutoConfigParams):
     use_stable_vars: bool = True
     use_static_vars: bool = True
 
-    # Stability segmentation. "count" cuts the classifier's segments at equal
-    # sample counts (the historical behaviour). "time" cuts them at equal
-    # durations instead. "both" requires the variable to pass under *both*
-    # segmentations. The two time-aware modes need a per-record event time,
-    # named here and read from the record's logFormatVariables.
-    segmentation: Literal["count", "time", "both"] = "count"
+    # Which stability classification methods decide STABLE, and how their
+    # verdicts combine. Four independent methods over two primitives and two
+    # axes; see ClassificationMethods. The two time-axis methods (`time`,
+    # `slope_time`) need a per-record event time, named here and read from the
+    # record's logFormatVariables.
+    classification: ClassificationMethods = ClassificationMethods()
     timestamp_variable: str | None = None
     timestamp_format: str | None = None  # None -> TimeFormatHandler auto-detect
-
-    # Orthogonal to the segmentation above: an extra conjunct on STABLE
-    # requiring the variable's changes to sit early in its series. Needs no
-    # timestamps -- it reads index positions only.
-    require_declining: bool = False
-    # The cut-off require_declining compares the change centroid against.
-    # Ignored unless require_declining is set.
-    incline_threshold: float = -0.05
 
 
 class VariableDetectorConfig(CoreDetectorConfig):
@@ -124,39 +119,37 @@ class VariableDetector(CoreDetector):
         self._warned_bad_timestamp = False
         self.persistency = EventPersistency(
             event_data_class=self._event_data_class(),
-            # No stability kwargs: the trained trackers are read by _check_variable,
-            # which looks at unique_set / min-max / charset directly and never
-            # calls classify(). Segmentation settings would only make them collect
-            # timestamps nothing reads.
+            # No classification kwargs: the trained trackers are read by
+            # _check_variable, which looks at unique_set / min-max / charset
+            # directly and never calls classify(). A classification block
+            # would only make them collect timestamps nothing reads.
             event_data_kwargs=self._event_data_kwargs(),
         )
         # auto config checks individual-variable stability to select features
         self.auto_conf_persistency = EventPersistency(
             event_data_class=self._event_data_class(),
-            event_data_kwargs=self._with_stability_kwargs(self._auto_conf_kwargs()),
+            event_data_kwargs=self._with_classification_kwargs(self._auto_conf_kwargs()),
         )
         self._register_persistency(self.persistency)
 
-    def _with_stability_kwargs(self, kwargs: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-        """Add the stability settings to tracker kwargs, each only when it is
-        not the default.
+    def _with_classification_kwargs(
+        self, kwargs: Optional[Dict[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
+        """Add the classification block to tracker kwargs, unless it is the
+        default.
 
-        Done here rather than in _stability_kwargs so every
-        VariableDetector subclass is covered -- NewValueDetector
-        overrides neither construction hook and NewValueComboDetector
-        returns only a converter_function.
+        Done here rather than in _stability_kwargs so every VariableDetector
+        subclass is covered -- NewValueDetector overrides neither construction
+        hook and NewValueComboDetector returns only a converter_function.
 
-        Non-defaults only: passing segmentation unconditionally would make
-        every variable collect timestamps it never reads.
+        Non-defaults only: forwarding the default block would be noise, and a
+        block naming a time-axis method would make every variable collect
+        timestamps it never reads.
         """
-        extra: Dict[str, Any] = {}
         auto = self.config.auto_config_params
-        if auto.segmentation != "count":
-            extra["segmentation"] = auto.segmentation
-        if auto.require_declining:
-            extra["require_declining"] = True
-            extra["incline_threshold"] = auto.incline_threshold
-        return {**(kwargs or {}), **extra} if extra else kwargs
+        if auto.classification == ClassificationMethods():
+            return kwargs
+        return {**(kwargs or {}), "classification": auto.classification.model_dump()}
 
     # ---- construction hooks -------------------------------------------------
 
@@ -188,21 +181,22 @@ class VariableDetector(CoreDetector):
             return
         self._warned_bad_timestamp = True
         logger.warning(
-            "%s: %s; falling back to count-based stability segmentation.",
+            "%s: %s; falling back to the index axis for stability classification.",
             self.name, reason,
         )
 
     def _timestamp(self, input_: ParserSchema) -> float | None:
-        """Resolve the record's event time, or None to use count
-        segmentation."""
+        """Resolve the record's event time, or None if no enabled
+        classification method reads the time axis."""
         auto = self.config.auto_config_params
-        if auto.segmentation == "count":
+        if not auto.classification.needs_timestamps:
             return None
         if not auto.timestamp_variable:
-            # Selecting a time-aware mode without naming the field is an operator
-            # error, not an opt-out -- say so rather than silently no-op.
+            # Selecting a time-axis method without naming the field is an
+            # operator error, not an opt-out -- say so rather than silently
+            # no-op.
             self._warn_time_fallback_once(
-                f"segmentation is {auto.segmentation!r} "
+                "a time-axis classification method is enabled "
                 "but timestamp_variable is not set"
             )
             return None
