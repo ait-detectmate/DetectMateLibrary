@@ -1,4 +1,6 @@
 from detectmatelibrary.common._config._formats import EventsConfig, _EventInstance
+# Re-exported: subclasses spell it `from detectmatelibrary.common.detector import AutoConfigParams`.
+from detectmatelibrary.common._config import AutoConfigParams as AutoConfigParams  # noqa: F401
 from detectmatelibrary.common.core import CoreComponent, CoreConfig
 
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode

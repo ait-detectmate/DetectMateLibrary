@@ -17,7 +17,7 @@ detectors:
     NewValueComboDetector:
         method_type: new_value_combo_detector
         auto_config: False
-        params:
+        auto_config_params:
             max_combo_size: 3
         events:
             1:
