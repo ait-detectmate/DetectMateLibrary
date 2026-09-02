@@ -85,8 +85,10 @@
     </li>
     <li class="toctree-l3"><a class="reference internal" href="#full-lifecycle-with-auto-configuration">Full lifecycle with auto-configuration</a>
     </li>
-    <li class="toctree-l3"><a class="reference internal" href="#stability-segmentation-optional">Stability segmentation (optional)</a>
+    <li class="toctree-l3"><a class="reference internal" href="#stability-classification-optional">Stability classification (optional)</a>
         <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#the-decision-rule">The decision rule</a>
+    </li>
     <li class="toctree-l4"><a class="reference internal" href="#fields">Fields</a>
     </li>
     <li class="toctree-l4"><a class="reference internal" href="#fallback-behaviour">Fallback behaviour</a>
@@ -379,19 +381,18 @@ To configure the number of logs receive as input, you need to configure the <a h
         <span class="n">named_variables</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">&quot;logFormatVariables&quot;</span><span class="p">],</span>
     <span class="p">)</span>
 </code></pre></div>
-<p>The <code>set_configuration()</code> method queries the tracker results and generates the final config:</p>
+<p>The <code>set_configuration()</code> method queries the tracker results and writes the
+final <code>events</code> block. It touches nothing else on the config — everything the
+operator set under <code>params</code> or <code>auto_config_params</code> must survive untouched, so
+<code>set_configuration</code> never rebuilds the config from scratch:</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">set_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="n">variables</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">event_id</span><span class="p">,</span> <span class="n">tracker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_conf_persistency</span><span class="o">.</span><span class="n">get_events_data</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">stable_vars</span> <span class="o">=</span> <span class="n">tracker</span><span class="o">.</span><span class="n">get_features_by_classification</span><span class="p">(</span><span class="s2">&quot;STABLE&quot;</span><span class="p">)</span>
         <span class="n">variables</span><span class="p">[</span><span class="n">event_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">stable_vars</span>
 
-    <span class="n">config_dict</span> <span class="o">=</span> <span class="n">generate_detector_config</span><span class="p">(</span>
-        <span class="n">variable_selection</span><span class="o">=</span><span class="n">variables</span><span class="p">,</span>
-        <span class="n">detector_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-        <span class="n">method_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">method_type</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">MyDetectorConfig</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">config_dict</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">events</span> <span class="o">=</span> <span class="n">generate_events_config</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">auto_config</span> <span class="o">=</span> <span class="kc">False</span>
 </code></pre></div>
 <h3 id="full-lifecycle-with-auto-configuration">Full lifecycle with auto-configuration</h3>
 <div class="highlight"><pre><span></span><code><span class="mf">1.</span> <span class="n">configure</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span>         <span class="c1"># call for each event in the dataset</span>
@@ -400,37 +401,151 @@ To configure the number of logs receive as input, you need to configure the <a h
 <span class="mf">4.</span> <span class="n">detect</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="n">output_</span><span class="p">)</span>   <span class="c1"># call for each event to detect anomalies</span>
 </code></pre></div>
 <p>When <code>auto_config</code> is <code>False</code>, steps 1 and 2 are skipped entirely.</p>
-<h3 id="stability-segmentation-optional">Stability segmentation (optional)</h3>
-<p>Stability classification splits a variable's change history into four segments and
-compares each segment's rate of change against a threshold. By default the segments
-are <strong>equal-count</strong>: each holds the same number of observations, regardless of how much
-time they cover. For bursty log sources that is misleading — a variable that changed
-constantly during a quiet night and then went silent under a flood of daytime traffic
-looks stable, because the flood supplies enough samples to dominate the later segments.</p>
-<p>Setting <code>stability_segmentation: time</code> switches the segmentation to <strong>equal-duration</strong> cuts
-of the observed time span, so each segment covers the same amount of wall-clock time. The
-detector then needs an event time per record, which it reads from the log's named
-variables (<code>logFormatVariables</code>, i.e. the fields declared in the parser's <code>log_format</code>)
-under the name given by <code>timestamp_variable</code>.</p>
-<p>These three parameters live on every <code>VariableDetector</code> subclass (<code>NewValueDetector</code>,
+<p>That distinction is visible in the config. A detector's settings live in two
+blocks:</p>
+<ul>
+<li><strong><code>auto_config_params</code></strong> — inputs <em>to</em> the configure phase. They pick which
+  variables the phase selects and are read only while <code>auto_config</code> is <code>True</code>.</li>
+<li><strong><code>params</code></strong> — operational settings, read during training and detection on
+  every run.</li>
+</ul>
+<p>The configure phase writes its results into the top-level <code>events</code> block (and,
+for <code>EventSequenceDetector</code>, into <code>fixed_window_size</code>) and then sets
+<code>auto_config</code> to <code>False</code>. It never modifies either input block, so a config can
+be rerun with <code>auto_config: False</code> and reproduce the same detector.</p>
+<p>Both <code>auto_config</code> and <code>Component.configure()</code> are declared on the shared base,
+so <code>auto_config_params</code> is declared there too — on <code>BasicConfig</code>, beside
+<code>auto_config</code> — rather than on the detector config alone. Detectors are the only
+component type with a real configure phase today, so they are the only ones that
+narrow the block with fields; parsers and alert aggregators inherit it empty, and
+an empty block is omitted from the serialized config, so their YAML is unaffected.
+A component type that grows a configure phase later subclasses <code>AutoConfigParams</code>
+and overrides the field, exactly as the variable, combo and sequence detector
+families do.</p>
+<h3 id="stability-classification-optional">Stability classification (optional)</h3>
+<p>Stability classification decides whether a variable's change history counts as
+<code>STABLE</code> by running one or more classification methods against it and combining
+their verdicts. There are four independent methods, over two primitives and two
+axes:</p>
+<table>
+<thead>
+<tr>
+<th>method</th>
+<th>what it thresholds</th>
+<th>axis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>index</code></td>
+<td>segment-mean thresholds</td>
+<td>equal-count boundaries</td>
+</tr>
+<tr>
+<td><code>time</code></td>
+<td>segment-mean thresholds</td>
+<td>equal-duration boundaries</td>
+</tr>
+<tr>
+<td><code>slope_index</code></td>
+<td>change centroid vs. <code>slope_threshold</code></td>
+<td>index positions</td>
+</tr>
+<tr>
+<td><code>slope_time</code></td>
+<td>change centroid vs. <code>slope_threshold</code></td>
+<td>normalized timestamps</td>
+</tr>
+</tbody>
+</table>
+<p>Any subset of the four may be enabled, and any single one may stand alone. The
+default — <code>index</code> alone — is the historical behaviour: each segment's mean rate
+of change is compared against a threshold, and the segments are <strong>equal-count</strong>:
+each holds the same number of observations, regardless of how much time they
+cover. For bursty log sources that is misleading — a variable that changed
+constantly during a quiet night and then went silent under a flood of daytime
+traffic looks stable, because the flood supplies enough samples to dominate the
+later segments. Enabling <code>time</code> cuts the same four segments at <strong>equal
+durations</strong> instead, so each segment covers the same amount of wall-clock time;
+the detector then needs an event time per record, which it reads from the log's
+named variables (<code>logFormatVariables</code>, i.e. the fields declared in the parser's
+<code>log_format</code>) under the name given by <code>timestamp_variable</code>. <code>slope_index</code> and
+<code>slope_time</code> ask a different question — whether the change centroid sits early
+or late in the series — on the index axis and the time axis respectively.</p>
+<p>These parameters live on every <code>VariableDetector</code> subclass (<code>NewValueDetector</code>,
 <code>NewValueComboDetector</code>, <code>ValueRangeDetector</code>, <code>CharsetDetector</code>, <code>BigramDetector</code>, …)
-and go in the detector's top-level <code>params</code> block:</p>
+and go in the detector's <code>auto_config_params</code> block — they are inputs to the
+auto-configuration phase, read only while <code>auto_config</code> is <code>True</code>, and never
+consulted at detection time.</p>
 <div class="highlight"><pre><span></span><code><span class="nt">detectors</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">NewValueDetector</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">new_value_detector</span>
 <span class="w">    </span><span class="nt">auto_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span>
-<span class="w">    </span><span class="nt">params</span><span class="p">:</span>
-<span class="w">      </span><span class="nt">stability_segmentation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">time</span>
-<span class="w">      </span><span class="nt">timestamp_variable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Time</span><span class="w">      </span><span class="c1"># a field name from the parser&#39;s log_format</span>
-<span class="w">      </span><span class="nt">timestamp_format</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;%y%m%d</span><span class="nv"> </span><span class="s">%H%M%S&quot;</span><span class="w">   </span><span class="c1"># optional; omit to auto-detect</span>
+<span class="w">    </span><span class="nt">auto_config_params</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">use_stable_vars</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span>
+<span class="w">      </span><span class="nt">use_static_vars</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span>
+<span class="w">      </span><span class="nt">classification</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span><span class="w">            </span><span class="c1"># segment-mean thresholds, equal-count cuts</span>
+<span class="w">        </span><span class="nt">time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w">            </span><span class="c1"># segment-mean thresholds, equal-duration cuts</span>
+<span class="w">        </span><span class="nt">slope_index</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w">     </span><span class="c1"># change centroid over index positions</span>
+<span class="w">        </span><span class="nt">slope_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w">      </span><span class="c1"># change centroid over normalized time</span>
+<span class="w">        </span><span class="nt">slope_threshold</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-0.05</span><span class="w"> </span><span class="c1"># shared by both slope methods</span>
+<span class="w">        </span><span class="nt">decision</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consensus</span><span class="w">    </span><span class="c1"># consensus | majority</span>
+<span class="w">      </span><span class="nt">timestamp_variable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Time</span>
+<span class="w">      </span><span class="nt">timestamp_format</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;%y%m%d</span><span class="nv"> </span><span class="s">%H%M%S&quot;</span>
 </code></pre></div>
-<p>Setting <code>stability_segmentation: both</code> runs <em>both</em> segmentations and calls the variable
-stable only when each one does. Neither segmentation subsumes the other — a variable that
-churns in a burst and then settles is unstable by count but stable by time, and one whose
-late churn is buried under a dense tail of repeats is the reverse — so <code>both</code> is strictly
-stricter than either. Use it when a false "stable" is more costly than a missed one; use
-<code>time</code> when the point is specifically to forgive early churn on a bursty source.</p>
+<p>Defaults reproduce the historical behaviour exactly: <code>index: True</code>, the other
+three <code>False</code>, <code>decision: consensus</code>, <code>slope_threshold: -0.05</code>. A config that
+sets nothing under <code>classification</code> classifies identically to before this change.</p>
+<h4 id="the-decision-rule">The decision rule</h4>
+<p>When more than one method is enabled, <code>decision</code> picks how their verdicts
+combine. <code>consensus</code> requires every enabled method to return stable; <code>majority</code>
+requires strictly more than half of them to.</p>
+<table>
+<thead>
+<tr>
+<th>enabled</th>
+<th><code>consensus</code> needs</th>
+<th><code>majority</code> needs</th>
+<th>differ?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>1/1</td>
+<td>1/1</td>
+<td>no</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2/2</td>
+<td>2/2 (a 1–1 tie is UNSTABLE)</td>
+<td>no</td>
+</tr>
+<tr>
+<td>3</td>
+<td>3/3</td>
+<td>2/3</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>4</td>
+<td>4/4</td>
+<td>3/4 (a 2–2 tie is UNSTABLE)</td>
+<td>yes</td>
+</tr>
+</tbody>
+</table>
+<p>Ties resolve to UNSTABLE. That keeps <code>majority</code> from ever being more lenient
+than a coin-flip, and makes it collapse onto <code>consensus</code> at one and two enabled
+methods — turning a third method on is the only place the rule starts to matter.</p>
+<p><strong>All four methods false is a config error</strong>, rejected by a pydantic validator.
+It is not a harmless no-op: classification decides <code>INSUFFICIENT_DATA</code>,
+<code>STATIC</code> and <code>RANDOM</code> before any method is consulted, so a method-less config
+would silently classify every remaining variable <code>STABLE</code>.</p>
 <h4 id="fields">Fields</h4>
+<p>All of these live in the detector's <code>auto_config_params</code> block.</p>
 <table>
 <thead>
 <tr>
@@ -442,16 +557,28 @@ stricter than either. Use it when a false "stable" is more costly than a missed 
 </thead>
 <tbody>
 <tr>
-<td><code>stability_segmentation</code></td>
-<td><code>"count" \| "time" \| "both"</code></td>
-<td><code>"count"</code></td>
-<td>How to cut the change history into segments. <code>count</code> uses equal sample counts; <code>time</code> uses equal time spans; <code>both</code> requires the variable to be stable under each. With <code>count</code> the other two fields are ignored and no timestamps are recorded.</td>
+<td><code>use_stable_vars</code></td>
+<td><code>bool</code></td>
+<td><code>true</code></td>
+<td>Include variables classified <code>STABLE</code> in the generated configuration.</td>
+</tr>
+<tr>
+<td><code>use_static_vars</code></td>
+<td><code>bool</code></td>
+<td><code>true</code></td>
+<td>Include variables classified <code>STATIC</code>. Defaults to <code>false</code> on <code>NewValueComboDetector</code>.</td>
+</tr>
+<tr>
+<td><code>classification</code></td>
+<td><code>ClassificationMethods</code></td>
+<td>see below</td>
+<td>Which classification methods run and how their verdicts combine.</td>
 </tr>
 <tr>
 <td><code>timestamp_variable</code></td>
 <td><code>str \| null</code></td>
 <td><code>null</code></td>
-<td>Name of the field in <code>logFormatVariables</code> holding the record's event time. Required for <code>time</code> and <code>both</code> to have any effect. Only named log-format fields are consulted — never the positional <code>variables</code> list.</td>
+<td>Name of the field in <code>logFormatVariables</code> holding the record's event time. Required for <code>time</code> and <code>slope_time</code> to have any effect. Only named log-format fields are consulted — never the positional <code>variables</code> list.</td>
 </tr>
 <tr>
 <td><code>timestamp_format</code></td>
@@ -464,26 +591,87 @@ stricter than either. Use it when a false "stable" is more costly than a missed 
 <p>Set <code>timestamp_format</code> when the source uses a layout the auto-detection does not
 know. The HDFS loghub corpus, for example, stamps records as <code>081109 203615</code>, which
 only parses with an explicit <code>"%y%m%d %H%M%S"</code>.</p>
+<p><code>classification</code>'s six fields:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>index</code></td>
+<td><code>bool</code></td>
+<td><code>true</code></td>
+<td>Segment-mean thresholds, equal-count boundaries.</td>
+</tr>
+<tr>
+<td><code>time</code></td>
+<td><code>bool</code></td>
+<td><code>false</code></td>
+<td>Segment-mean thresholds, equal-duration boundaries. Needs <code>timestamp_variable</code>.</td>
+</tr>
+<tr>
+<td><code>slope_index</code></td>
+<td><code>bool</code></td>
+<td><code>false</code></td>
+<td>Change centroid vs. <code>slope_threshold</code>, measured on index positions.</td>
+</tr>
+<tr>
+<td><code>slope_time</code></td>
+<td><code>bool</code></td>
+<td><code>false</code></td>
+<td>Change centroid vs. <code>slope_threshold</code>, measured on normalized timestamps. Needs <code>timestamp_variable</code>.</td>
+</tr>
+<tr>
+<td><code>slope_threshold</code></td>
+<td><code>float</code></td>
+<td><code>-0.05</code></td>
+<td>The change-centroid cut-off both slope methods compare against, on a shared <code>[-0.5, +0.5]</code> scale. A variable passes when its centroid is at or below this value.</td>
+</tr>
+<tr>
+<td><code>decision</code></td>
+<td><code>"consensus" \| "majority"</code></td>
+<td><code>"consensus"</code></td>
+<td>How verdicts from more than one enabled method combine; see above.</td>
+</tr>
+</tbody>
+</table>
 <h4 id="fallback-behaviour">Fallback behaviour</h4>
-<p>Time-aware segmentation is best-effort and never fails a run:</p>
+<p>Time-aware classification is best-effort and never fails a run:</p>
 <ul>
-<li>If <code>stability_segmentation</code> is not <code>count</code> but <code>timestamp_variable</code> is unset, or the named field
-  is absent from a record, or its value cannot be parsed, the detector logs a
+<li>If <code>time</code> or <code>slope_time</code> is enabled but <code>timestamp_variable</code> is unset, or the named
+  field is absent from a record, or its value cannot be parsed, the detector logs a
   <strong>single</strong> warning (once per detector, so a bad config cannot flood the log) and
-  falls back to count-based segmentation.</li>
+  falls back to the index axis.</li>
 <li>If timestamps stop lining up with the recorded observations, or the observed time
-  span is zero, or they arrive out of order, the classifier silently falls back to
-  count-based segmentation for that variable.</li>
-<li>Under <code>both</code>, any of the fallbacks above make the time pass reuse the count boundaries,
-  so the mode degrades to plain <code>count</code> rather than to an unconditional pass.</li>
+  span is zero, or they arrive out of order, <code>time</code> silently reuses the equal-index
+  cuts, and <code>slope_time</code> computes its centroid on the index axis instead — it
+  degrades to <code>slope_index</code>.</li>
+<li>Under <code>majority</code>, a fallen-back method still casts its own vote: if <code>slope_index</code>
+  and <code>slope_time</code> are both enabled and timestamps are unusable, both entries compute
+  the same index-axis centroid, and that verdict carries two of the votes rather than
+  one. This is deliberate — dropping a fallen-back method from the vote would change
+  the enabled count from variable to variable and make <code>majority</code> mean something
+  different for each one. The reason string names the axis each slope actually used,
+  so a doubled vote is visible in the note.</li>
+<li>The same doubling applies to the segment-threshold pair: if <code>index</code> and <code>time</code> are
+  both enabled and timestamps are unusable, <code>time</code> silently reuses the same equal-count
+  cuts as <code>index</code>, so an identical verdict again carries two votes under <code>majority</code>
+  rather than one. Unlike the slope pair, the reason string does not surface this —
+  each entry is still labelled by its configured method name (<code>index</code> or <code>time</code>), not
+  by the axis it actually used, so a doubled segment-pair vote is invisible in the note.</li>
 </ul>
 <p>In every fallback case classification still runs and produces a result — only the
-segmentation rule changes back to the default.</p>
+axis behind it changes back to index.</p>
 <p>A segment with no observations in it is <em>not</em> a fallback: it scores a mean of 0.0,
 because nothing observed means nothing changed. Equal-duration cuts of a bursty
 variable leave such segments routinely, so <code>time</code> on its own is lenient towards a
-burst of churn followed by silence. Use <code>both</code> when that leniency matters — the
-count pass keeps every segment populated.</p>
+burst of churn followed by silence. Enable <code>index</code> and <code>time</code> together when that
+leniency matters — the index pass keeps every segment populated.</p>
 <h3 id="saving-state-persist">Saving state (persist)</h3>
 <p>Detectors can persist their training state to disk (or cloud storage) so it
 can be restored in a later session. Configure this with a top-level <code>persist:</code>

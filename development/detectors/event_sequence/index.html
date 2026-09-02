@@ -100,6 +100,10 @@
     <li class="toctree-l2"><a class="reference internal" href="#auto-configuration">Auto configuration</a>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#configuration-example">Configuration example</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#auto_config_params">auto_config_params</a>
+    </li>
+        </ul>
     </li>
     <li class="toctree-l2"><a class="reference internal" href="#example-usage">Example usage</a>
     </li>
@@ -223,7 +227,7 @@
 <span class="w">        </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">event_sequence_detector</span>
 <span class="w">        </span><span class="nt">auto_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span>
 <span class="w">        </span><span class="nt">data_use_configure</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">500</span>
-<span class="w">        </span><span class="nt">params</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">auto_config_params</span><span class="p">:</span>
 <span class="w">            </span><span class="nt">min_window_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
 <span class="w">            </span><span class="nt">max_window_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
 </code></pre></div>
@@ -239,8 +243,20 @@
 <tr>
 <td><code>fixed_window_size</code></td>
 <td><code>None</code></td>
-<td>Length of the sliding event-ID window. Overrides <code>min_window_size</code>/<code>max_window_size</code> and skips auto configuration. Auto configuration writes its own choice here. While it is <code>None</code> the detector neither trains nor alerts. Must be <code>&gt;= 1</code>.</td>
+<td>Length of the sliding event-ID window. Overrides the <code>auto_config_params</code> window range and skips auto configuration. Auto configuration writes its own choice here. While it is <code>None</code> the detector neither trains nor alerts. Must be <code>&gt;= 1</code>.</td>
 </tr>
+</tbody>
+</table>
+<h4 id="auto_config_params"><code>auto_config_params</code></h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
 <tr>
 <td><code>min_window_size</code></td>
 <td><code>2</code></td>
