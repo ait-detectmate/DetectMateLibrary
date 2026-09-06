@@ -25,11 +25,9 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
     ClassificationMethods,
 )
 
-THRESHOLDS = [1.1, 0.3, 0.1, 0.01]  # same defaults SingleStabilityTracker uses
-
 
 def make_classifier(**kwargs) -> StabilityClassifier:
-    return StabilityClassifier(segment_thresholds=THRESHOLDS, **kwargs)
+    return StabilityClassifier(**kwargs)
 
 
 def series(n: int, *change_ranges: range) -> list:
@@ -300,8 +298,14 @@ class TestSlopeVerdictsOnTrackers:
         assert "slope_index:" not in reason and "time:" not in reason
 
     def test_early_classify_reasons_are_untouched(self):
-        """STATIC / RANDOM / INSUFFICIENT_DATA are decided before any method is
-        consulted, so no method setting can reach them."""
+        """STATIC / RANDOM, and INSUFFICIENT_DATA below the tracker's own
+        min_samples, are decided before any method is consulted, so no method
+        setting can reach them.
+
+        (A segment method adds a second INSUFFICIENT_DATA floor at the
+        segment count, after STATIC and RANDOM; that one does read the
+        block.)
+        """
         static = SingleStabilityTracker(
             classification=ClassificationMethods(index=False, slope_time=True)
         )
@@ -395,7 +399,8 @@ class TestStatePersistence:
         state = SingleStabilityTracker().to_state()
         assert isinstance(state["classification"], dict)
         assert set(state["classification"]) == {
-            "index", "time", "slope_index", "slope_time", "slope_threshold", "decision",
+            "index", "time", "segment_thresholds", "slope_index", "slope_time",
+            "slope_threshold", "decision",
         }
 
     def test_old_keys_are_gone_from_state(self):
@@ -766,7 +771,7 @@ class TestDetails:
         clf.verdicts(RLEList(EARLY))
         detail = clf.get_last_details()["index"]
         assert "index:" in detail and "STABLE" in detail
-        assert str(THRESHOLDS) in detail
+        assert str(ClassificationMethods().segment_thresholds) in detail
 
     def test_slope_method_reports_the_centroid_and_threshold(self):
         clf = make_classifier(classification=methods(slope_index=True))

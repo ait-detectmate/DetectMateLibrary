@@ -1,6 +1,8 @@
 from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
     EventStabilityTracker,
     SingleStabilityTracker,
+    ClassificationMethods,
+    _classification_from_state,
 )
 
 
@@ -135,3 +137,194 @@ class TestSingleStabilityTrackerExtraState:
         r_single = restored.get_data()["var1"]
         assert r_single.extra_state["freq"] == {-1: {"a": 2}, "a": {"b": 1}}
         assert r_single.extra_state["total_freq"] == {-1: 2, "a": 1}
+
+
+class TestSegmentThresholdsOnTheTracker:
+    """The threshold list lives in the block and only there."""
+
+    def test_default_tracker_uses_the_historical_list(self):
+        tracker = SingleStabilityTracker()
+        assert tracker.stability_classifier.segment_threshs == [1.1, 0.3, 0.1, 0.01]
+        assert tracker.stability_classifier.n_segments == 4
+
+    def test_constructor_copies_the_block_deeply(self):
+        """An EventStabilityTracker shares one block across every variable
+        tracker it builds; a shallow copy would leave the list shared."""
+        block = ClassificationMethods(segment_thresholds=[0.5, 0.4])
+        tracker = SingleStabilityTracker(classification=block)
+        block.segment_thresholds.append(0.3)
+        assert tracker.classification.segment_thresholds == [0.5, 0.4]
+        assert tracker.stability_classifier.n_segments == 2
+
+    def test_setter_copies_the_block_deeply_too(self):
+        block = ClassificationMethods(segment_thresholds=[0.5, 0.4])
+        tracker = SingleStabilityTracker()
+        tracker.classification = block
+        block.segment_thresholds[0] = 9.9
+        assert tracker.classification.segment_thresholds == [0.5, 0.4]
+
+    def test_block_swap_re_derives_count_and_reason(self):
+        """One ingest, several verdicts: the grid's whole premise."""
+        tracker = SingleStabilityTracker()
+        for i in range(24):
+            tracker.add_value(f"v{i % 5}")  # 5 values cycling -> not STATIC, not RANDOM
+        tracker.classification = ClassificationMethods(segment_thresholds=[0.9, 0.9])
+        assert tracker.stability_classifier.n_segments == 2
+        assert "[0.9, 0.9]" in tracker.classify().reason
+        tracker.classification = ClassificationMethods(segment_thresholds=[0.9] * 6)
+        assert tracker.stability_classifier.n_segments == 6
+        assert "[0.9, 0.9, 0.9, 0.9, 0.9, 0.9]" in tracker.classify().reason
+
+
+class TestSegmentThresholdsState:
+    """to_state() carries the list inside the block; from_state() reads it from
+    wherever an older library version put it."""
+
+    @staticmethod
+    def _ingested(**kwargs) -> SingleStabilityTracker:
+        tracker = SingleStabilityTracker(**kwargs)
+        for v in ["a", "b", "a", "c", "a"]:
+            tracker.add_value(v)
+        return tracker
+
+    def test_to_state_has_no_top_level_key(self):
+        state = self._ingested(
+            classification=ClassificationMethods(segment_thresholds=[0.5, 0.2])
+        ).to_state()
+        assert "segment_thresholds" not in state
+        assert state["classification"]["segment_thresholds"] == [0.5, 0.2]
+
+    def test_from_state_restores_the_list_from_the_block(self):
+        original = self._ingested(
+            classification=ClassificationMethods(segment_thresholds=[0.5, 0.2])
+        )
+        restored = SingleStabilityTracker.from_state(original.to_state())
+        assert restored.classification == original.classification
+        assert restored.stability_classifier.segment_threshs == [0.5, 0.2]
+
+    def test_block_list_wins_over_a_top_level_key(self):
+        """First row of the migration table: a block with the field is taken
+        as-is, whatever else the state carries."""
+        state = self._ingested().to_state()
+        state["classification"]["segment_thresholds"] = [0.7, 0.6]
+        state["segment_thresholds"] = [0.1, 0.1, 0.1]
+        assert _classification_from_state(state).segment_thresholds == [0.7, 0.6]
+
+    def test_0_5_3_state_merges_the_top_level_list_into_the_block(self):
+        """Second row: the four-method split (0.5.3) wrote the block without
+        the field and the list at top level."""
+        state = self._ingested(
+            classification=ClassificationMethods(index=True, time=True, decision="majority")
+        ).to_state()
+        del state["classification"]["segment_thresholds"]
+        state["segment_thresholds"] = [0.8, 0.4, 0.2]
+        restored = SingleStabilityTracker.from_state(state)
+        assert restored.classification.enabled == ("index", "time")
+        assert restored.classification.decision == "majority"
+        assert restored.stability_classifier.segment_threshs == [0.8, 0.4, 0.2]
+        assert restored.stability_classifier.n_segments == 3
+
+    def test_block_without_field_and_no_top_level_key_gets_the_default(self):
+        """Third row: never written, tolerated."""
+        state = self._ingested().to_state()
+        del state["classification"]["segment_thresholds"]
+        state.pop("segment_thresholds", None)
+        restored = SingleStabilityTracker.from_state(state)
+        assert restored.stability_classifier.segment_threshs == [1.1, 0.3, 0.1, 0.01]
+
+    def test_pre_four_method_state_keeps_its_top_level_list(self):
+        """Fourth row: legacy segmentation / require_declining /
+        incline_threshold plus the top-level list."""
+        state = self._ingested().to_state()
+        del state["classification"]
+        state.update(
+            segmentation="both",
+            require_declining=True,
+            incline_threshold=-0.2,
+            segment_thresholds=[0.9, 0.5],
+        )
+        restored = SingleStabilityTracker.from_state(state)
+        assert restored.classification.enabled == ("index", "time", "slope_index")
+        assert restored.classification.slope_threshold == -0.2
+        assert restored.classification.decision == "consensus"
+        assert restored.stability_classifier.segment_threshs == [0.9, 0.5]
+
+    def test_pre_four_method_state_without_a_list_gets_the_default(self):
+        """Fifth row: never written, tolerated."""
+        state = self._ingested().to_state()
+        del state["classification"]
+        state.pop("segment_thresholds", None)
+        state["segmentation"] = "time"
+        restored = SingleStabilityTracker.from_state(state)
+        assert restored.classification.enabled == ("time",)
+        assert restored.stability_classifier.segment_threshs == [1.1, 0.3, 0.1, 0.01]
+
+
+class TestSegmentFloor:
+    """A series shorter than the segment count is INSUFFICIENT_DATA rather than
+    scored over empty segments.
+
+    One test per cell of the spec's §7 table; L = series length, n =
+    segment count, m = the tracker's min_samples.
+    """
+
+    @staticmethod
+    def _fed(tracker: SingleStabilityTracker, values) -> SingleStabilityTracker:
+        for v in values:
+            tracker.add_value(v)
+        return tracker
+
+    def test_three_of_two_values_under_four_segments_is_insufficient(self):
+        """At defaults (m=3, n=4, L=3): today's one behaviour change."""
+        verdict = self._fed(SingleStabilityTracker(), ["a", "b", "a"]).classify()
+        assert verdict.type == "INSUFFICIENT_DATA"
+        assert verdict.reason == "Not enough data for 4 segments (have 3, need 4)"
+
+    def test_four_observations_clear_the_default_floor(self):
+        verdict = self._fed(SingleStabilityTracker(), ["a", "b", "a", "a"]).classify()
+        assert verdict.type in ("STABLE", "UNSTABLE")
+
+    def test_static_keeps_the_tracker_floor(self):
+        """With m <= L < n and one unique value, STATIC is decided before
+        segments."""
+        tracker = SingleStabilityTracker(
+            classification=ClassificationMethods(segment_thresholds=[0.5] * 10)
+        )
+        assert self._fed(tracker, ["a", "a", "a"]).classify().type == "STATIC"
+
+    def test_random_keeps_the_tracker_floor(self):
+        """With m <= L < n and every value unique, RANDOM is decided before
+        segments."""
+        tracker = SingleStabilityTracker(
+            classification=ClassificationMethods(segment_thresholds=[0.5] * 10)
+        )
+        assert self._fed(tracker, ["a", "b", "c"]).classify().type == "RANDOM"
+
+    def test_slope_only_block_has_no_segment_floor(self):
+        """With m <= L < n and no segment method, the list is never read, so it
+        must not gate the verdict."""
+        tracker = SingleStabilityTracker(
+            classification=ClassificationMethods(
+                index=False, slope_index=True, segment_thresholds=[0.5] * 10
+            )
+        )
+        assert self._fed(tracker, ["a", "b", "a"]).classify().type in ("STABLE", "UNSTABLE")
+
+    def test_the_larger_floor_governs(self):
+        """When m=10 > n=4 and L=9, step 1 fires with its own reason."""
+        tracker = SingleStabilityTracker(min_samples=10)
+        verdict = self._fed(tracker, ["a", "b", "a", "b", "a", "b", "a", "b", "a"]).classify()
+        assert verdict.type == "INSUFFICIENT_DATA"
+        assert verdict.reason == "Not enough data (have 9, need 10)"
+
+    def test_floor_follows_a_block_swap(self):
+        """Five observations: verdict under four segments, INSUFFICIENT_DATA
+        under eight, verdict again after swapping back."""
+        tracker = self._fed(SingleStabilityTracker(), ["a", "b", "a", "b", "a"])
+        assert tracker.classify().type in ("STABLE", "UNSTABLE")
+        tracker.classification = ClassificationMethods(segment_thresholds=[0.5] * 8)
+        verdict = tracker.classify()
+        assert verdict.type == "INSUFFICIENT_DATA"
+        assert verdict.reason == "Not enough data for 8 segments (have 5, need 8)"
+        tracker.classification = ClassificationMethods()
+        assert tracker.classify().type in ("STABLE", "UNSTABLE")

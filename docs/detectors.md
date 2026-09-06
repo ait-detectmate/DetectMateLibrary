@@ -267,12 +267,13 @@ axes:
 
 Any subset of the four may be enabled, and any single one may stand alone. The
 default — `index` alone — is the historical behaviour: each segment's mean rate
-of change is compared against a threshold, and the segments are **equal-count**:
+of change is compared against its entry in `segment_thresholds` — four segments
+by default, one threshold per segment — and the segments are **equal-count**:
 each holds the same number of observations, regardless of how much time they
 cover. For bursty log sources that is misleading — a variable that changed
 constantly during a quiet night and then went silent under a flood of daytime
 traffic looks stable, because the flood supplies enough samples to dominate the
-later segments. Enabling `time` cuts the same four segments at **equal
+later segments. Enabling `time` cuts the same segments at **equal
 durations** instead, so each segment covers the same amount of wall-clock time;
 the detector then needs an event time per record, which it reads from the log's
 named variables (`logFormatVariables`, i.e. the fields declared in the parser's
@@ -297,6 +298,7 @@ detectors:
       classification:
         index: True            # segment-mean thresholds, equal-count cuts
         time: False            # segment-mean thresholds, equal-duration cuts
+        segment_thresholds: [1.1, 0.3, 0.1, 0.01]  # one per segment; the length is the segment count
         slope_index: False     # change centroid over index positions
         slope_time: False      # change centroid over normalized time
         slope_threshold: -0.05 # shared by both slope methods
@@ -306,8 +308,11 @@ detectors:
 ```
 
 Defaults reproduce the historical behaviour exactly: `index: True`, the other
-three `False`, `decision: consensus`, `slope_threshold: -0.05`. A config that
-sets nothing under `classification` classifies identically to before this change.
+three `False`, `segment_thresholds: [1.1, 0.3, 0.1, 0.01]`, `decision: consensus`,
+`slope_threshold: -0.05`. A config that sets nothing under `classification`
+classifies identically to before these changes on every series with at least
+four observations; the one exception is the segment floor described under
+"Fields" below.
 
 #### The decision rule
 
@@ -347,16 +352,25 @@ Set `timestamp_format` when the source uses a layout the auto-detection does not
 know. The HDFS loghub corpus, for example, stamps records as `081109 203615`, which
 only parses with an explicit `"%y%m%d %H%M%S"`.
 
-`classification`'s six fields:
+`classification`'s seven fields:
 
 | Field | Type | Default | Description |
 |---|---|---|---|
 | `index` | `bool` | `true` | Segment-mean thresholds, equal-count boundaries. |
 | `time` | `bool` | `false` | Segment-mean thresholds, equal-duration boundaries. Needs `timestamp_variable`. |
+| `segment_thresholds` | `list[float]` | `[1.1, 0.3, 0.1, 0.01]` | Per-segment upper bounds on the mean change rate for `index` and `time`. The list's length is the segment count. Entries must be positive and finite and the list must not be empty; an entry above one exempts its segment. |
 | `slope_index` | `bool` | `false` | Change centroid vs. `slope_threshold`, measured on index positions. |
 | `slope_time` | `bool` | `false` | Change centroid vs. `slope_threshold`, measured on normalized timestamps. Needs `timestamp_variable`. |
 | `slope_threshold` | `float` | `-0.05` | The change-centroid cut-off both slope methods compare against, on a shared `[-0.5, +0.5]` scale. A variable passes when its centroid is at or below this value. |
 | `decision` | `"consensus" \| "majority"` | `"consensus"` | How verdicts from more than one enabled method combine; see above. |
+
+The segment methods need at least one observation per segment. A variable with
+fewer observations than segments is classified `INSUFFICIENT_DATA` (with a reason
+naming the segment count) rather than scored over empty segments. The tracker's
+own `min_samples` stays the floor for `STATIC` and `RANDOM`, which are decided
+before any segment is cut; the effective minimum for a `STABLE` / `UNSTABLE`
+verdict is the larger of the two. A block with only slope methods enabled cuts no
+segments and has no such floor.
 
 #### Fallback behaviour
 
@@ -388,10 +402,11 @@ In every fallback case classification still runs and produces a result — only 
 axis behind it changes back to index.
 
 A segment with no observations in it is *not* a fallback: it scores a mean of 0.0,
-because nothing observed means nothing changed. Equal-duration cuts of a bursty
-variable leave such segments routinely, so `time` on its own is lenient towards a
-burst of churn followed by silence. Enable `index` and `time` together when that
-leniency matters — the index pass keeps every segment populated.
+because nothing observed means nothing changed. Once the segment floor above is
+met, equal-index cuts never leave a segment empty; equal-duration cuts of a bursty
+variable still do, routinely, so `time` on its own is lenient towards a burst of
+churn followed by silence. Enable `index` and `time` together when that leniency
+matters — the index pass keeps every segment populated.
 
 
 ### Saving state (persist)

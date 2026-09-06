@@ -17,6 +17,9 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers.stabilit
     SingleStabilityTracker,
     EventStabilityTracker,
 )
+from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
+    ClassificationMethods,
+)
 
 
 def test_persistency_load_error_is_exception():
@@ -86,6 +89,20 @@ class TestSingleStabilityTrackerState:
         t2 = SingleStabilityTracker.from_state(state)
         assert len(t2.change_series) == 0
         assert len(t2.unique_set) == 0
+
+    def test_non_default_thresholds_round_trip_inside_the_block(self):
+        tracker = SingleStabilityTracker(
+            min_samples=3,
+            classification=ClassificationMethods(segment_thresholds=[0.5, 0.25, 0.125]),
+        )
+        for v in ["a", "b", "a", "c", "a"]:
+            tracker.add_value(v)
+        state = tracker.to_state()
+        assert "segment_thresholds" not in state
+        restored = SingleStabilityTracker.from_state(state)
+        assert restored.stability_classifier.segment_threshs == [0.5, 0.25, 0.125]
+        assert restored.classification == tracker.classification
+        assert restored.to_state()["classification"] == state["classification"]
 
 
 class TestEventTrackerDumpLoad:
