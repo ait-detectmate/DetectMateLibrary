@@ -7,6 +7,7 @@ from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary import schemas
 
 from typing import Any
+import logging
 
 
 class DeepLearningDetectorConfig(CoreDetectorConfig):
@@ -72,8 +73,8 @@ class DeepLearningDetector(CoreDetector):
 
         if "top_k" in self.stats:
             self.top_k = int(self.stats["top_k"])
-            print(self.model)
-            print("Top k assigned", self.top_k)
+            logging.info(self.model)
+            logging.info(f"Top k assigned {self.top_k}")
 
     def detect(
         self,

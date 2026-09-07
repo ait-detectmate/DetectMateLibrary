@@ -1,4 +1,4 @@
-from detectmatelibrary.common._config._compile import generate_detector_config
+from detectmatelibrary.common._config._compile import generate_events_config
 from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector
 from detectmatelibrary.common.variable_detector import get_global_variables
 from detectmatelibrary.utils import persistency
@@ -88,12 +88,7 @@ class NewEventDetector(CoreDetector):
         )
 
     def set_configuration(self) -> None:
-        old_persist = self.config.persist
-        config_dict = generate_detector_config(
-            variable_selection={},
-            detector_name=self.name,
-            method_type=self.config.method_type
-        )
-        # Update the config object from the dictionary instead of replacing it
-        self.config = NewEventDetectorConfig.from_dict(config_dict, self.name)
-        self.config.persist = old_persist
+        # This detector keys on EventIDs only -- it selects no variables, so
+        # the configure phase produces an empty events block.
+        self.config.events = generate_events_config({}, self.name)
+        self.config.auto_config = False

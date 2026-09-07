@@ -14,6 +14,7 @@ nav:
     - Basic concepts: basic_idea.md
     - Overall architecture: overall_architecture.md
     - Schemas: schemas.md
+    - Federation: federation.md
     - Parsers: parsers.md
     - Detectors: detectors.md
     - Alert Aggregation: alert_aggregator.md
@@ -22,6 +23,7 @@ nav:
     - Template Tree Matcher: parsers/template_tree_matcher.md
     - Json Parser: parsers/json_parser.md
     - LogBatcher Parser: parsers/logbatcher_parser.md
+    - Drain Parser: parsers/drain_parser.md
   - Detectors Methods:
     - Random Detector: detectors/random_detector.md
     - New Value: detectors/new_value.md

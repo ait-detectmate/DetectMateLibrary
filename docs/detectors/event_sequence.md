@@ -44,14 +44,19 @@ detectors:
         method_type: event_sequence_detector
         auto_config: True
         data_use_configure: 500
-        params:
+        auto_config_params:
             min_window_size: 2
             max_window_size: 10
 ```
 
 | Parameter | Default | Description |
 |---|---|---|
-| `fixed_window_size` | `None` | Length of the sliding event-ID window. Overrides `min_window_size`/`max_window_size` and skips auto configuration. Auto configuration writes its own choice here. While it is `None` the detector neither trains nor alerts. Must be `>= 1`. |
+| `fixed_window_size` | `None` | Length of the sliding event-ID window. Overrides the `auto_config_params` window range and skips auto configuration. Auto configuration writes its own choice here. While it is `None` the detector neither trains nor alerts. Must be `>= 1`. |
+
+#### `auto_config_params`
+
+| Field | Default | Description |
+|---|---|---|
 | `min_window_size` | `2` | Shortest window length tried during auto configuration. Must be `>= 1`. |
 | `max_window_size` | `10` | Longest window length tried during auto configuration. Must be `>= min_window_size`. |
 

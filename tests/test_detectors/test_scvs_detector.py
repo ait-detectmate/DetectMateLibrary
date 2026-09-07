@@ -1,5 +1,6 @@
 
-from detectmatelibrary.detectors.scvs_detector import build_count_vec, SCVSDetector, SCVSDetectorConfig
+from detectmatelibrary.detectors.scvs_detector import SCVSDetector, SCVSDetectorConfig
+from detectmatelibrary.utils.sequence_encoding import build_count_vec
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 from detectmatelibrary import schemas

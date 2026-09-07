@@ -108,5 +108,6 @@ def test_my_parser_parse():
 - [Template Matcher](parsers/template_matcher.md): matches logs against a predefined set of `<*>` templates.
 - [Template Tree Matcher](parsers/template_tree_matcher.md): matches logs against a predefined set of `<*>` templates using a tree structure.
 - [LogBatcher Parser](parsers/logbatcher_parser.md): LLM-based parser that infers templates from raw logs with no training data.
+- [Drain parser](parsers/drain_parser.md): Parser inspired by [Drain Publication](https://ieeexplore.ieee.org/document/8029742).
 
 Go back to [Index](index.md)

@@ -70,14 +70,42 @@ class Component(CoreComponent):
     *   Default: the component is just processing data
     """
 
+    def export_state(
+        self, path: str | None = None, storage_options: dict[str, Any] | None = None,
+    ) -> bytes | None:
+    """Export the current state if persistency class was implemented"""
+
+    def import_state(
+        self, path: str | bytes, storage_options: dict[str, Any] | None = None
+    ) -> None:
+    """Import the current state if persistency class was implemented"""
+
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
     """Process the data in a stream fashion (Defined in the CoreComponent)"""
 
     def get_config(self) -> Dict[str, Any]:
-    """"Get the configuration of the component (Defined in the CoreComponent)"""
+    """Get the configuration of the component (Defined in the CoreComponent)"""
 
     def update_config(self, new_config: Dict[str, Any]) -> None:
-    """"Update the configuration of the component (Defined in the CoreComponent)"""
+    """Update the configuration of the component (Defined in the CoreComponent)"""
+
+    def get_window_size(self) -> int:
+    """Get window size of the data buffer"""
+
+    def stack(self, other: object | list[object | bytes] | bytes) -> None:
+    """(Federation only) stack multiple components for federation tasks"""
+
+    def aggregate(self, unstack: bool = False) -> None | bytes:
+    """(Federation only) aggregate multiple components"""
+
+    def to_binary(self) -> bytes | None:
+    """(Federation only) fill it to be compatible with federation ops"""
+
+    def from_binary(self, binary: bytes) -> object:
+    """(Federation only) fill it to be compatible with federation ops"""
+
+    def aggregate_strategy(self, components: set["FedOperations"]) -> None:
+    """(Federation only) fill it to be compatible with federation ops"""
 ```
 
 Go back [Index](index.md)

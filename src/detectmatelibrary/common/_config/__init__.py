@@ -1,7 +1,14 @@
-from ._compile import ConfigMethods, generate_detector_config
+from ._compile import ConfigMethods, generate_detector_config, generate_events_config
 from ._formats import EventsConfig
 
-__all__ = ["ConfigMethods", "generate_detector_config", "EventsConfig", "BasicConfig"]
+__all__ = [
+    "ConfigMethods",
+    "generate_detector_config",
+    "generate_events_config",
+    "EventsConfig",
+    "BasicConfig",
+    "AutoConfigParams",
+]
 
 from pydantic import BaseModel, ConfigDict
 
@@ -18,6 +25,25 @@ def random_id(length: int = 10) -> str:
     return "".join(str(choice(characters)) for _ in range(length))
 
 
+class AutoConfigParams(BaseModel):
+    """Inputs to the auto-configuration (configure) phase.
+
+    Empty here: no component has configure-phase inputs by default. Subclasses
+    add the fields their own configure phase reads. Kept apart from the
+    operational `params` block so the phase a setting belongs to is visible in
+    the YAML, not just in the code that reads it.
+
+    Lives beside `auto_config` on `BasicConfig` rather than on any one
+    component type: `auto_config` and `Component.configure()` are both declared
+    at the base, so the block that feeds that phase belongs there too. Empty by
+    default, and `to_dict` omits it while it stays at its default, so a
+    component whose configure phase takes no inputs serializes exactly as it
+    did before this block existed.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+
 class BasicConfig(BaseModel):
     """Base configuration class with helper methods."""
 
@@ -27,6 +53,7 @@ class BasicConfig(BaseModel):
     component_type: str = "default_type"
 
     auto_config: bool = False
+    auto_config_params: AutoConfigParams = AutoConfigParams()
 
     def get_config(self) -> Dict[str, Any]:
         """Return the configuration as a dictionary."""
@@ -69,6 +96,7 @@ class BasicConfig(BaseModel):
         events_data = None
         instances_data = None
         persist_data: dict[str, Any] | None = None
+        auto_params_data: dict[str, Any] | None = None
 
         for field_name, field_value in self:
             # Skip meta fields
@@ -82,6 +110,12 @@ class BasicConfig(BaseModel):
                         events_data = field_value.to_dict()
                     else:
                         events_data = field_value
+            # Its own top-level block, and only when it differs from the
+            # default -- a config that never touches auto-config must serialize
+            # exactly as it did before this block existed.
+            elif field_name == "auto_config_params":
+                if field_value != type(self).model_fields[field_name].default:
+                    auto_params_data = field_value.model_dump()
             # Handle global instances specially (top-level, not in params)
             # Serialized as "global" in YAML (Python field is "global_instances")
             elif field_name == "global_instances" and field_value:
@@ -99,6 +133,9 @@ class BasicConfig(BaseModel):
         # Add params if there are any
         if params:
             result["params"] = params
+
+        if auto_params_data is not None:
+            result["auto_config_params"] = auto_params_data
 
         # Add global instances if they exist (serialized as "global" in YAML)
         if instances_data is not None:
