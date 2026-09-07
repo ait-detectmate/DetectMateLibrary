@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/0.5.3/development/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Development - DetectMate Library</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+        <link href="../css/version-select.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Development";
+        var mkdocs_page_input_path = "development.md";
+        var mkdocs_page_url = "/DetectMateLibrary/0.5.3/development/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> DetectMate Library
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../installation/">Installation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../basic_usage/">Basic usage</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../create_components/">Create new component</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Components</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../basic_idea/">Basic concepts</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../overall_architecture/">Overall architecture</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../schemas/">Schemas</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../federation/">Federation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/">Parsers</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/">Detectors</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../alert_aggregator/">Alert Aggregation</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Parsers Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/template_matcher/">Template Matcher</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/template_tree_matcher/">Template Tree Matcher</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/json_parser/">Json Parser</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/logbatcher_parser/">LogBatcher Parser</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/drain_parser/">Drain Parser</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Detectors Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/random_detector/">Random Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/new_value/">New Value</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/combo/">Combo Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/new_event/">New Event</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/event_sequence/">Event Sequence</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/rule_based/">Rule Based</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/bigram_frequency/">BiGram Frequency</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/charset/">CharSet</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/value_range/">Value Range</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/deeplog/">Deeplog Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/logbert/">LogBert Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/scvs_detector/">SCVS Detector</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../detectors/ecvc_detector/">ECVC Detector</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Alert Aggregation Methods</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../alert_aggregators/basic_concatenation/">Basic Concat</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Auxiliar</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../auxiliar/persistency/">Persistency</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../auxiliar/input_buffer/">Data buffer</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Helpers</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../helper/from_to/">From to</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribution</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../contribution/">Contributing</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Development</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#setup-a-development-environment">Setup a development environment</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#use-prek-to-run-code-checks">Use prek to run code checks</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#add-tests-and-run-pytest">Add tests and run pytest</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#write-testable-code-snippets-for-the-documentation">Write testable code snippets for the documentation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#render-and-verify-the-documentation">Render and verify the documentation</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../release/">Release Process</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Other</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../other/log_formats/">Log Formats</a>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">DetectMate Library</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Contribution</li>
+      <li class="breadcrumb-item active">Development</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="development">Development</h1>
+<p>This section describes how to setup a development environment and how to contribute to <code>DetectMateLibrary</code>.</p>
+<p>!!! note</p>
+<pre><code>Read the [Contribution Guide](contribution.md) to follow and understand the development workflow.
+</code></pre>
+<h2 id="setup-a-development-environment">Setup a development environment</h2>
+<p>For development we recommend using <a href="https://docs.astral.sh/uv/">uv</a>. You can install all optional dependencies:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync<span class="w"> </span>--dev
+</code></pre></div>
+<p><em>Please note that this step is not necessary. <code>uv run --dev</code> will automatically download all dependencies.</em></p>
+<h2 id="use-prek-to-run-code-checks">Use prek to run code checks</h2>
+<p>Every code contributer must use <a href="https://github.com/j178/prek"><code>prek</code></a> to run basic checks at commit time.
+<code>prek</code> is configured via the existing <code>.pre-commit-config.yaml</code>
+and can be installed as part of the <code>dev</code> extras. To ensure pre-commit hooks run before each commit, run:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>prek<span class="w"> </span>install
+</code></pre></div>
+<p>To run the checks manually, you can execute:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>prek<span class="w"> </span>run<span class="w"> </span>-a
+</code></pre></div>
+<h2 id="add-tests-and-run-pytest">Add tests and run pytest</h2>
+<p>In order to run the tests run the following command. The <code>dev</code> group already includes the <code>full</code> extra, so all optional dependencies are installed automatically:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--dev<span class="w"> </span>pytest
+</code></pre></div>
+<h2 id="write-testable-code-snippets-for-the-documentation">Write testable code snippets for the documentation</h2>
+<p>Code examples in the docs are not pasted inline. They live as standalone Python
+files under <code>docs/examples/</code>, mirrored by category (<code>docs/examples/parsers/</code>,
+<code>docs/examples/detectors/</code>), and are pulled into the Markdown pages via
+<a href="https://facelessuser.github.io/pymdown-extensions/extensions/snippets/"><code>pymdownx.snippets</code></a>.
+This way every snippet in the docs is an actual <code>.py</code> file that gets executed by
+the test suite, so a broken example fails CI instead of silently shipping.</p>
+<p><strong>1. Add the snippet file.</strong> Put your example under <code>docs/examples/&lt;category&gt;/</code>.
+By convention the filename matches its documentation page (<code>charset.md</code> →
+<code>docs/examples/detectors/charset.py</code>). Wrap the part you want to show in section
+markers:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># --8&lt;-- [start:basic]</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.logbatcher</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogBatcherParser</span><span class="p">,</span> <span class="n">LogBatcherParserConfig</span>
+<span class="c1"># ...</span>
+<span class="c1"># --8&lt;-- [end:basic]</span>
+</code></pre></div>
+<p><strong>2. Include it in the <code>.md</code> page.</strong> Paths are relative to the repo root
+(<code>base_path</code> is set to <code>.</code>). Reference the section by name:</p>
+<div class="highlight"><pre><span></span><code><span class="sb">```python</span>
+<span class="o">--</span><span class="mi">8</span><span class="o">&lt;--</span> <span class="s2">&quot;docs/examples/parsers/logbatcher_parser.py:basic&quot;</span>
+<span class="sb">```</span>
+</code></pre></div>
+<p>You can also include the whole file by dropping the <code>:section</code> suffix
+(<code>--8&lt;-- "docs/examples/parsers/template_tree_matcher.py"</code>), but section markers
+are the norm. Because <code>check_paths: true</code> is set, the build aborts if the file or
+marker doesn't exist — a missing snippet is caught at build time.</p>
+<p><strong>3. Make sure it's testable.</strong> The test (<code>tests/test_docs/test_doc_examples.py</code>)
+globs every <code>.py</code> under <code>docs/examples/</code> and runs each one as a script via
+<code>runpy.run_path(..., run_name="__main__")</code>. There is no plugin and no assert
+requirement: a snippet passes as long as it runs standalone without raising. If
+your example needs something unavailable in CI (e.g. an API key), comment out
+those calls rather than letting them fail. Run the snippet tests together with
+the rest of the suite:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--dev<span class="w"> </span>pytest
+</code></pre></div>
+<h2 id="render-and-verify-the-documentation">Render and verify the documentation</h2>
+<p>Build the static site:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--dev<span class="w"> </span>mkdocs<span class="w"> </span>build
+</code></pre></div>
+<p>For a live local preview while editing:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--dev<span class="w"> </span>mkdocs<span class="w"> </span>serve
+</code></pre></div>
+<p><code>mkdocs</code> comes in transitively via <code>mike</code> in the <code>dev</code> group, so <code>--dev</code> is
+required. There is no <code>--strict</code> mode configured; the hard check on the docs is
+<code>check_paths: true</code> from <code>pymdownx.snippets</code>, which fails the build on a missing
+snippet or marker.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../contribution/" class="btn btn-neutral float-left" title="Contributing"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../release/" class="btn btn-neutral float-right" title="Release Process">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../contribution/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../release/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+      <script src="../js/version-select.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
