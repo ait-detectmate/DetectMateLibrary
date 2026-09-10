@@ -1,8 +1,12 @@
 # Auto Parser
 
-Parse the logs using the templates saved in the dataset. (HDFS, BGL, Audit, SysLog, Apache, OpenVPN, Thunderbird).
+The auto parser uses a brute-force strategy: it iterates through every log-type record in the internal dataset and chooses the regex and templates that best matches the provided logs.
 
-It wraps functionality from the DetectMatePerformance project: https://github.com/ait-detectmate/DetectMatePerformance. When parsing large numbers of log lines in non-stream (batch) mode, it is recommended to use the performance-oriented implementation.
+Compared with Template Matcher approaches, its key benefit is that you don’t need to supply templates or regex formatting during initialization, which makes it more convenient for rapid deployments. Its main drawback is that it only performs well for log types that are already included in the internal dataset.
+
+The built-in dataset of log types cannot be modified by users and currently supports: HDFS, BGL, Audit, Syslog, OpenVPN, DNSmasq, and Apache.
+
+It wraps functionality from the DetectMatePerformance project: https://github.com/ait-detectmate/DetectMatePerformance.
 
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
@@ -13,7 +17,7 @@ It wraps functionality from the DetectMatePerformance project: https://github.co
 
 Auto parser parameters:
 
-- `method_type` (string): identifier for the parser type (e.g., `"aut_parser"`).
+- `method_type` (string): identifier for the parser type (e.g., `"auto_parser"`).
 - `fix_type` (str): fix type of logs to process.
 
 
