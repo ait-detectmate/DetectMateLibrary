@@ -624,6 +624,40 @@ class TestNewValueComboDetectorClassificationConfigPreservation:
         assert detector.config.auto_config_params.timestamp_variable == "level"
         assert detector.config.auto_config_params.timestamp_format == "%y%m%d %H%M%S"
 
+    @staticmethod
+    def _configured(classification: ClassificationMethods) -> NewValueComboDetector:
+        cfg = NewValueComboDetectorConfig(
+            auto_config_params=ComboAutoConfigParams(classification=classification),
+        )
+        detector = NewValueComboDetector(config=cfg, name="NewValueComboDetector")
+        for i in range(10):
+            detector.configure(schemas.ParserSchema({
+                "parserType": "test",
+                "EventID": 1,
+                "template": "Template 1",
+                "variables": ["constant", f"varying_{i}", "another_constant"],
+                "logID": str(i),
+                "parsedLogID": str(i),
+                "parserID": "test_parser",
+                "log": "test log",
+                "logFormatVariables": {},
+            }))
+        return detector
+
+    def test_threshold_only_block_reaches_the_trackers(self):
+        """The config layer forwards the block iff it differs from the default,
+        so a block that differs only in its list must be forwarded."""
+        detector = self._configured(ClassificationMethods(segment_thresholds=[0.5, 0.5]))
+        trackers = detector.auto_conf_persistency.get_events_data()[1].get_data()
+        assert trackers["var_1"].stability_classifier.segment_threshs == [0.5, 0.5]
+        assert trackers["var_1"].stability_classifier.n_segments == 2
+
+    def test_default_block_is_still_the_default_on_the_trackers(self):
+        detector = self._configured(ClassificationMethods())
+        trackers = detector.auto_conf_persistency.get_events_data()[1].get_data()
+        assert trackers["var_1"].classification == ClassificationMethods()
+        assert trackers["var_1"].stability_classifier.segment_threshs == [1.1, 0.3, 0.1, 0.01]
+
 
 class TestNewValueComboDetectorClassificationCombos:
     """The combo-stability pass must honour the classification block too.

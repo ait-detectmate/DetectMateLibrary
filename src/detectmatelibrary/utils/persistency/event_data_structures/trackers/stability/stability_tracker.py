@@ -49,38 +49,54 @@ def _as_methods(
     to_state() writes a dict and the config layer forwards a dict, so the
     tracker has to take both without either caller converting first.
 
-    Returns a copy when given a model instance: an ``EventStabilityTracker``
-    shares one passed-in ``ClassificationMethods`` across every per-variable
-    tracker it creates, so storing the caller's instance as-is would let a
-    later in-place mutation of it silently change every variable already
-    built from it.
+    Returns a deep copy when given a model instance: an
+    ``EventStabilityTracker`` shares one passed-in ``ClassificationMethods``
+    across every per-variable tracker it creates, so storing the caller's
+    instance as-is would let a later in-place mutation of it silently change
+    every variable already built from it. Deep, because the block carries a
+    list (``segment_thresholds``) and a shallow copy would leave that list
+    shared.
     """
     if classification is None:
         return ClassificationMethods()
     if isinstance(classification, ClassificationMethods):
-        return classification.model_copy()
+        return classification.model_copy(deep=True)
     return ClassificationMethods(**classification)
 
 
 def _classification_from_state(state: Dict[str, Any]) -> ClassificationMethods:
     """The classification block for a state dict, old or new.
 
-    Legacy snapshots predate the four-method split. Their `segmentation`
-    enum maps onto the two segment-threshold methods and `require_declining`
-    onto `slope_index`; their semantics were always AND, so they decide by
-    consensus. This is the only place the old names survive -- the config
-    layer rejects them outright.
+    Two generations of state predate the current shape, and this is the
+    only place their names survive -- the config layer rejects them
+    outright.
+
+    * 0.5.3 (the four-method split) wrote the ``classification`` block
+      without ``segment_thresholds`` and the list as a top-level key.
+    * Earlier snapshots have no block at all: their ``segmentation`` enum
+      maps onto the two segment-threshold methods and ``require_declining``
+      onto ``slope_index``; their semantics were always AND, so they decide
+      by consensus. They too carried the list at top level.
+
+    The list is resolved the same way in both cases: one inside the block
+    wins, else the top-level key, else the field default. Every read is
+    ``.get()``, matching the tolerance ``from_state`` already extends to
+    snapshots older than ``add_value_fn``.
     """
     if "classification" in state:
-        return ClassificationMethods(**state["classification"])
-    segmentation = state.get("segmentation", "count")
-    return ClassificationMethods(
-        index=segmentation in ("count", "both"),
-        time=segmentation in ("time", "both"),
-        slope_index=bool(state.get("require_declining", False)),
-        slope_threshold=state.get("incline_threshold", -0.05),
-        decision="consensus",
-    )
+        block = dict(state["classification"])
+    else:
+        segmentation = state.get("segmentation", "count")
+        block = {
+            "index": segmentation in ("count", "both"),
+            "time": segmentation in ("time", "both"),
+            "slope_index": bool(state.get("require_declining", False)),
+            "slope_threshold": state.get("incline_threshold", -0.05),
+            "decision": "consensus",
+        }
+    if "segment_thresholds" not in block and "segment_thresholds" in state:
+        block["segment_thresholds"] = state["segment_thresholds"]
+    return ClassificationMethods(**block)
 
 
 class SingleStabilityTracker(SingleTracker):
@@ -97,7 +113,6 @@ class SingleStabilityTracker(SingleTracker):
         self.change_series: RLEList[bool] = RLEList()
         self.unique_set: Set[Any] = set()
         self.stability_classifier: StabilityClassifier = StabilityClassifier(
-            segment_thresholds=[1.1, 0.3, 0.1, 0.01],
             classification=_as_methods(classification),
         )
         # ponytail: O(N) timestamps; switch to fixed-width time buckets if
@@ -165,21 +180,41 @@ class SingleStabilityTracker(SingleTracker):
             self.timestamps.append(float(timestamp))
 
     def classify(self) -> Classification:
-        """Classify the variable."""
-        if len(self.change_series) < self.min_samples:
+        """Classify the variable.
+
+        Five steps, in order: below the tracker's ``min_samples`` is
+        INSUFFICIENT_DATA; one unique value is STATIC; every value unique is
+        RANDOM; fewer observations than the enabled segment methods need
+        (one per segment) is INSUFFICIENT_DATA again, with a reason naming
+        the segment count; otherwise the methods decide STABLE / UNSTABLE.
+        The segment floor sits after STATIC and RANDOM so those two stay on
+        the tracker's floor alone: three identical values are STATIC under
+        any segment count. The effective minimum for a STABLE / UNSTABLE
+        verdict is therefore the larger of ``min_samples`` and the segment
+        count when a segment method is enabled, and ``min_samples`` alone
+        otherwise.
+        """
+        n_have = len(self.change_series)
+        if n_have < self.min_samples:
             return Classification(
                 type="INSUFFICIENT_DATA",
-                reason=f"Not enough data (have {len(self.change_series)}, need {self.min_samples})"
+                reason=f"Not enough data (have {n_have}, need {self.min_samples})"
             )
         elif len(self.unique_set) == 1:
             return Classification(
                 type="STATIC",
                 reason="Unique set size is 1"
             )
-        elif len(self.unique_set) == len(self.change_series):
+        elif len(self.unique_set) == n_have:
             return Classification(
                 type="RANDOM",
-                reason=f"Unique set size equals number of samples ({len(self.change_series)})"
+                reason=f"Unique set size equals number of samples ({n_have})"
+            )
+        elif n_have < self.stability_classifier.min_samples:
+            n_segments = self.stability_classifier.n_segments
+            return Classification(
+                type="INSUFFICIENT_DATA",
+                reason=f"Not enough data for {n_segments} segments (have {n_have}, need {n_segments})"
             )
         stable = self._is_stable()
         return Classification(
@@ -231,7 +266,6 @@ class SingleStabilityTracker(SingleTracker):
             "detector_config": self.detector_config,
             "runs": self.change_series.runs(),
             "unique_set": list(self.unique_set),
-            "segment_thresholds": self.stability_classifier.segment_threshs,
             "extra_state": self.extra_state,
         }
 
@@ -244,8 +278,9 @@ class SingleStabilityTracker(SingleTracker):
         indexing here would KeyError on exactly the states this tolerance is
         for. The same applies to the classification block -- snapshots written
         before the four-method split carry `segmentation` / `require_declining`
-        / `incline_threshold` instead, and _classification_from_state
-        translates them.
+        / `incline_threshold` instead, and those from 0.5.3 carry
+        `segment_thresholds` at top level; _classification_from_state
+        translates both.
         """
         classification = _classification_from_state(state)
         tracker = cls(
@@ -260,13 +295,6 @@ class SingleStabilityTracker(SingleTracker):
         tracker.unique_set = {
             tuple(v) if isinstance(v, list) else v for v in state["unique_set"]
         }
-        # Rebuilding the classifier drops the one __init__ made, so the block
-        # is passed from the local -- reading tracker.classification here would
-        # read through the very object being replaced.
-        tracker.stability_classifier = StabilityClassifier(
-            segment_thresholds=state["segment_thresholds"],
-            classification=classification,
-        )
         tracker.timestamps = [float(t) for t in state.get("timestamps", [])]
         tracker.extra_state = state.get("extra_state", {})
         return tracker
