@@ -414,7 +414,7 @@ dev = [
 
 [[package]]
 name = "detectmateperformance"
-version = "0.1.8"
+version = "0.1.10"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "levenshtein" },
@@ -424,9 +424,9 @@ dependencies = [
     { name = "setuptools" },
     { name = "tqdm" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/19/37/4757736fbf892286702329ed79e2699650cf650d537a3b9f3b6739bd7cd5/detectmateperformance-0.1.8.tar.gz", hash = "sha256:400e9521bb7189c8fd77dbe654e3188f3406503943ce8e844901b07f264fe51c", size = 880700, upload-time = "2026-09-01T11:36:05.007Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/19/6a/806c87c3e4d4043e2c79d29137b6b68627a7847ce330a2e656174bc06f29/detectmateperformance-0.1.10.tar.gz", hash = "sha256:19052f4e8bd11c7c4eaa7e26aaa7de22f06768a3c1381d552116800c5deb0673", size = 880975, upload-time = "2026-09-07T12:10:11.047Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/84/4c/f036847ec039b6c5b038acc4d28d8cf81e04a6310f5963316fc5528518eb/detectmateperformance-0.1.8-py3-none-any.whl", hash = "sha256:aab51e7865da5e00cbdca0d7673d26f644fd741bf8009414826d64d0fcef7aeb", size = 892732, upload-time = "2026-09-01T11:36:03.441Z" },
+    { url = "https://files.pythonhosted.org/packages/96/d2/d48136fe825b95b5f08076d0ed372eeb99e50413e77f391330fc09f8ac1a/detectmateperformance-0.1.10-py3-none-any.whl", hash = "sha256:c81552944415f6c5e685041a3ae2d5cb1dea83f82955bf23f29824e5d7b5c748", size = 893042, upload-time = "2026-09-07T12:10:09.432Z" },
 ]
 
 [[package]]
