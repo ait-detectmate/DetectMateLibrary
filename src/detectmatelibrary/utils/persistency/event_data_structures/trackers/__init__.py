@@ -11,7 +11,8 @@ from .stability import (
     StabilityClassifier,
     SingleStabilityTracker,
     MultiStabilityTracker,
-    EventStabilityTracker
+    EventStabilityTracker,
+    ClassificationMethods,
 )
 from .base import (
     EventTracker,
@@ -29,4 +30,5 @@ __all__ = [
     "SingleStabilityTracker",
     "MultiStabilityTracker",
     "EventStabilityTracker",
+    "ClassificationMethods",
 ]

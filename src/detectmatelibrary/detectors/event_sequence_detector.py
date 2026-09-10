@@ -5,8 +5,8 @@ from typing import Any
 
 from pydantic import Field, model_validator
 
-from detectmatelibrary.common._config._compile import generate_detector_config
-from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector
+from detectmatelibrary.common._config._compile import generate_events_config
+from detectmatelibrary.common.detector import AutoConfigParams, CoreDetectorConfig, CoreDetector
 from detectmatelibrary.tools.logging import logger
 from detectmatelibrary.utils import persistency
 from detectmatelibrary.utils.data_buffer import BufferMode
@@ -14,28 +14,37 @@ from detectmatelibrary.utils.sequence_encoding import decode_sequence, encode_se
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
 
+class SequenceAutoConfigParams(AutoConfigParams):
+    """Configure-phase inputs: the candidate window lengths to try.
+
+    @param min_window_size shortest window length tried during the
+           auto-configuration phase. Only used while `fixed_window_size` is None.
+    @param max_window_size longest window length tried during the
+           auto-configuration phase. The longest length whose sequences are
+           classified STABLE or STATIC wins.
+    """
+
+    min_window_size: int = Field(default=2, ge=1)
+    max_window_size: int = Field(default=10, ge=1)
+
+    @model_validator(mode="after")
+    def _validate_window_range(self) -> "SequenceAutoConfigParams":
+        if self.max_window_size < self.min_window_size:
+            raise ValueError("max_window_size must be >= min_window_size")
+        return self
+
+
 class EventSequenceDetectorConfig(CoreDetectorConfig):
     """
     @param fixed_window_size length of the sliding EventID window. A window whose exact
            EventID sequence was not seen during training is reported as an anomaly. When
-           set it overrides `min_window_size`/`max_window_size` and skips
+           set it overrides the `auto_config_params` window range and skips
            auto-configuration; auto-configuration writes its own choice here. While it is
            None the detector is unconfigured and neither trains nor alerts.
-    @param min_window_size shortest window length tried during the auto-configuration
-           phase. Only used while `fixed_window_size` is None.
-    @param max_window_size longest window length tried during the auto-configuration
-           phase. The longest length whose sequences are classified STABLE or STATIC wins.
     """
     method_type: str = "event_sequence_detector"
-    min_window_size: int = Field(default=2, ge=1)
-    max_window_size: int = Field(default=10, ge=1)
     fixed_window_size: int | None = Field(default=None, ge=1)
-
-    @model_validator(mode="after")
-    def _validate_window_range(self) -> "EventSequenceDetectorConfig":
-        if self.max_window_size < self.min_window_size:
-            raise ValueError("max_window_size must be >= min_window_size")
-        return self
+    auto_config_params: SequenceAutoConfigParams = SequenceAutoConfigParams()
 
 
 class EventSequenceDetector(CoreDetector):
@@ -165,7 +174,8 @@ class EventSequenceDetector(CoreDetector):
         """
         if self.config.fixed_window_size is not None:
             return
-        for length in range(self.config.min_window_size, self.config.max_window_size + 1):
+        auto = self.config.auto_config_params
+        for length in range(auto.min_window_size, auto.max_window_size + 1):
             window = self._configure_windows.setdefault(length, deque(maxlen=length))
             window.append(input_["EventID"])
             if len(window) == length:
@@ -207,22 +217,15 @@ class EventSequenceDetector(CoreDetector):
                 stable.append(int(length))
 
         if not stable:
+            auto = self.config.auto_config_params
             logger.warning(
                 f"[{self.name}] auto_config=True found no stable window size in "
-                f"[{self.config.min_window_size}..{self.config.max_window_size}]. "
+                f"[{auto.min_window_size}..{auto.max_window_size}]. "
                 "Generating an empty configuration — no instance of this detector is "
                 "created and it will neither train nor alert."
             )
-            old_persist = self.config.persist
-            self.config = EventSequenceDetectorConfig.from_dict(
-                generate_detector_config(
-                    variable_selection={},
-                    detector_name=self.name,
-                    method_type=self.config.method_type,
-                ),
-                self.name,
-            )
-            self.config.persist = old_persist
+            self.config.events = generate_events_config({}, self.name)
+            self.config.auto_config = False
             self._release_configure_state()
             return
 
@@ -231,7 +234,9 @@ class EventSequenceDetector(CoreDetector):
             f"[{self.name}] auto_config selected fixed_window_size={chosen} "
             f"from stable candidates {sorted(stable)}."
         )
+        self.config.events = generate_events_config({}, self.name)
         self._set_window_length(chosen)
+        self.config.auto_config = False
         self._release_configure_state()
 
     def _release_configure_state(self) -> None:

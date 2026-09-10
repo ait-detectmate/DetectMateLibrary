@@ -72,7 +72,7 @@ class EventTracker(EventDataStructure):
         ``multi_tracker_type`` recorded in the snapshot. For any subclass,
         ``cls(**kwargs)`` is called instead, which lets subclasses with
         closure-based factories (e.g. ``EventStabilityTracker``'s
-        ``segmentation``) rebuild their factory so it survives load.
+        ``classification``) rebuild their factory so it survives load.
 
         Contract for subclasses: ``__init__`` must accept the kwargs forwarded
         to ``load()`` and must not require additional positional arguments.

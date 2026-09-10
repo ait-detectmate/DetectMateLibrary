@@ -7,7 +7,7 @@ cfg = {
         "NewValueTest": {
             "method_type": "new_value_combo_detector",
             "auto_config": False,
-            "params": {
+            "auto_config_params": {
                 "max_combo_size": 4
             },
             "events": {
