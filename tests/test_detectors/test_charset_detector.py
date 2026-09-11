@@ -134,7 +134,7 @@ class TestCharsetDetectorTraining:
                 detector.train(parser_data)
 
         # Only event 1 should be tracked (based on events config)
-        assert len(detector.persistency.event_struct.data) == 1
+        assert len(detector.persistency) == 1
         event_data = detector.persistency.get_event_data(1)
         assert event_data is not None
         # With expand_value=True, unique_set contains individual characters

@@ -96,7 +96,7 @@ def _serialize(ep: EventPersistency) -> dict[str, bytes]:
     metadata = {
         "version": 1,
         "saved_at": datetime.now(timezone.utc).isoformat(),
-        "events_seen": list(ep.events_seen),
+        "events_seen": list(ep.get_events_seen()),
         "event_templates": {str(k): v for k, v in ep.event_struct.templates.items()},
         "event_backends": event_backends,
         "event_extensions": event_extensions,

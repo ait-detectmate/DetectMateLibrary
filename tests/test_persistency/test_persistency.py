@@ -49,7 +49,7 @@ class TestEventPersistency:
         """Test initialization with EventDataFrame backend."""
         persistency = EventPersistency(event_data_class=EventDataFrame)
         assert persistency is not None
-        assert persistency.event_struct.data_class == EventDataFrame
+        assert persistency.get_class() == EventDataFrame
 
     def test_initialization_with_polars_backend(self):
         """Test initialization with ChunkedEventDataFrame backend."""
@@ -58,7 +58,7 @@ class TestEventPersistency:
             event_data_kwargs={"max_rows": 100},
         )
         assert persistency is not None
-        assert persistency.event_struct.data_class == ChunkedEventDataFrame
+        assert persistency.get_class() == ChunkedEventDataFrame
 
     def test_initialization_with_tracker_backend(self):
         """Test initialization with EventVariableTrackerData backend."""
@@ -67,7 +67,7 @@ class TestEventPersistency:
             event_data_kwargs={"tracker_type": SingleStabilityTracker},
         )
         assert persistency is not None
-        assert persistency.event_struct.data_class == EventTracker
+        assert persistency.get_class() == EventTracker
 
     def test_ingest_single_event(self):
         """Test ingesting a single event."""

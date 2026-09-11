@@ -28,6 +28,7 @@ def get_all_variables(
 
 
 class EventStruct:
+    """Event structure of the Event Persistency."""
     def __init__(
         self,
         event_data_class: Type[EventDataStructure],
@@ -101,9 +102,7 @@ class EventPersistencyBase:
         self._events_since_save += 1
         self.events_seen.add(event_id)
         if variables or named_variables:
-            all_variables = get_all_variables(
-                variables, named_variables, variable_blacklist=self.variable_blacklist
-            )
+            all_variables = self.get_all_variables(variables, named_variables)
             self.event_struct.update_data_structure(
                 event_id, variables=all_variables, template=event_template, timestamp=timestamp
             )
@@ -127,23 +126,7 @@ class EventPersistencyBase:
         return d_struct.get_data() if (d_struct := self.event_struct[event_id]) is not None else None
 
     def get_events_data(self) -> Dict[int | str, EventDataStructure]:
-        """Retrieve the events data that is currently stored.
-
-        Returns:
-            A dictionary mapping event IDs to their corresponding EventDataStructure instances.
-
-            Example:
-            {
-                1: EventTracker(data={
-                    'var_0': SingleTracker(...),
-                    'var_1': SingleTracker(...),
-                }),
-                2: EventTracker(data={
-                    'var_0': SingleTracker(...)
-                }),
-                ...
-            }
-        """
+        """Retrieve the events data that is currently stored."""
         return self.event_struct.data
 
     def get_event_template(self, event_id: int | str) -> str | None:
@@ -154,6 +137,9 @@ class EventPersistencyBase:
         """Retrieve all event templates."""
         return self.event_struct.templates
 
+    def get_class(self) -> Type[EventDataStructure]:
+        return self.event_struct.data_class
+
     def __getitem__(self, event_id: int | str) -> EventDataStructure | None:
         return self.event_struct[event_id]
 
@@ -162,6 +148,9 @@ class EventPersistencyBase:
             f"EventPersistency(num_event_types={len(self.event_struct.data)}, "
             f"keys={list(self.event_struct.data.keys())})"
         )
+
+    def __len__(self) -> int:
+        return len(self.get_events_data())
 
 
 class EventPersistency(EventPersistencyBase):
