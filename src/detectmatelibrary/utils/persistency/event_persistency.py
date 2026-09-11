@@ -5,20 +5,30 @@ from .event_data_structures.base import EventDataStructure
 
 
 # -------- Generic persistency --------
+def get_all_variables(
+    variables: list[Any],
+    log_format_variables: Dict[str, Any],
+    variable_blacklist: List[str | int],
+    event_var_prefix: str = "var_",
+) -> dict[str, list[Any]]:
+    """Combine log format variables and event variables into a single
+    dictionary.
 
-class EventPersistency:
+    Schema-friendly by using string column names.
     """
-    Event-based persistency orchestrator:
-    - manages multiple EventDataStructure instances, one per event ID
-    - doesn't know retention strategy
-    - only delegates to EventDataStructure
+    all_vars: dict[str, list[Any]] = {
+        k: v for k, v in log_format_variables.items()
+        if k not in variable_blacklist
+    }
+    all_vars.update({
+        f"{event_var_prefix}{i}": val for i, val in enumerate(variables)
+        if i not in variable_blacklist
+    })
+    return all_vars
 
-    Args:
-        event_data_class: The EventDataStructure subclass to use for storing event data.
-        variable_blacklist: Variable names to exclude from storage. "Content" is excluded by default.
-        event_data_kwargs: Additional keyword arguments to pass to the EventDataStructure constructor.
-    """
 
+class EventPersistencyBase:
+    """Event Persistency without lock protection."""
     def __init__(
         self,
         event_data_class: Type[EventDataStructure],
@@ -33,11 +43,16 @@ class EventPersistency:
         self.variable_blacklist = variable_blacklist or []
         self.event_templates: Dict[int | str, str] = {}
         self._events_since_save: int = 0
-        self._on_ingest_callbacks: list[Callable[[], None]] = []
-        # ponytail: RLock shared with PersistencySaver so ingest/save/load are
-        # mutually exclusive. On-ingest callbacks fire outside this lock, so
-        # re-entrancy is no longer required — kept as RLock (harmless, safer).
-        self._lock = threading.RLock()
+
+    def get_all_variables(
+        self, variables: list[Any], log_format_variables: Dict[str, Any], event_var_prefix: str = "var_",
+    ) -> dict[str, list[Any]]:
+        return get_all_variables(
+            variables=variables,
+            log_format_variables=log_format_variables,
+            variable_blacklist=self.variable_blacklist,
+            event_var_prefix=event_var_prefix
+        )
 
     def ingest_event(
         self,
@@ -47,25 +62,21 @@ class EventPersistency:
         named_variables: Dict[str, Any] = {},
         timestamp: float | None = None,
     ) -> None:
-        """Ingest event data into the appropriate EventData store."""
-        with self._lock:
-            self._events_since_save += 1
-            self.events_seen.add(event_id)
-            if variables or named_variables:
-                self.event_templates[event_id] = event_template
-                all_variables = self.get_all_variables(variables, named_variables)
+        self._events_since_save += 1
+        self.events_seen.add(event_id)
+        if variables or named_variables:
+            self.event_templates[event_id] = event_template
+            all_variables = get_all_variables(
+                variables, named_variables, variable_blacklist=self.variable_blacklist
+            )
 
-                data_structure = self.events_data.get(event_id)
-                if data_structure is None:
-                    data_structure = self.event_data_class(**self.event_data_kwargs)
-                    self.events_data[event_id] = data_structure
+            data_structure = self.events_data.get(event_id)
+            if data_structure is None:
+                data_structure = self.event_data_class(**self.event_data_kwargs)
+                self.events_data[event_id] = data_structure
 
-                data = data_structure.to_data(all_variables)
-                data_structure.add_data(data, timestamp=timestamp)
-        # ponytail: fire callbacks outside the lock so a count-triggered save
-        # doesn't hold the ingest lock across serialize + file I/O.
-        for _cb in self._on_ingest_callbacks:
-            _cb()
+            data = data_structure.to_data(all_variables)
+            data_structure.add_data(data, timestamp=timestamp)
 
     @property
     def events_since_save(self) -> int:
@@ -75,10 +86,6 @@ class EventPersistency:
     def reset_events_since_save(self) -> None:
         """Reset the events-since-save counter after a successful save."""
         self._events_since_save = 0
-
-    def register_on_ingest(self, callback: Callable[[], None]) -> None:
-        """Register a callback invoked after every ingest_event call."""
-        self._on_ingest_callbacks.append(callback)
 
     def get_events_seen(self) -> set[int | str]:
         """Retrieve all event IDs observed via ingest_event(), regardless of
@@ -118,28 +125,6 @@ class EventPersistency:
         """Retrieve all event templates."""
         return self.event_templates
 
-    def get_all_variables(
-        self,
-        variables: list[Any],
-        log_format_variables: Dict[str, Any],
-        # variable_blacklist: List[str | int],
-        event_var_prefix: str = "var_",
-    ) -> dict[str, list[Any]]:
-        """Combine log format variables and event variables into a single
-        dictionary.
-
-        Schema-friendly by using string column names.
-        """
-        all_vars: dict[str, list[Any]] = {
-            k: v for k, v in log_format_variables.items()
-            if k not in self.variable_blacklist
-        }
-        all_vars.update({
-            f"{event_var_prefix}{i}": val for i, val in enumerate(variables)
-            if i not in self.variable_blacklist
-        })
-        return all_vars
-
     def __getitem__(self, event_id: int | str) -> EventDataStructure | None:
         return self.events_data.get(event_id)
 
@@ -148,3 +133,61 @@ class EventPersistency:
             f"EventPersistency(num_event_types={len(self.events_data)}, "
             f"keys={list(self.events_data.keys())})"
         )
+
+
+class EventPersistency(EventPersistencyBase):
+    """
+    Event-based persistency orchestrator:
+    - manages multiple EventDataStructure instances, one per event ID
+    - doesn't know retention strategy
+    - only delegates to EventDataStructure
+
+    Args:
+        event_data_class: The EventDataStructure subclass to use for storing event data.
+        variable_blacklist: Variable names to exclude from storage. "Content" is excluded by default.
+        event_data_kwargs: Additional keyword arguments to pass to the EventDataStructure constructor.
+    """
+
+    def __init__(
+        self,
+        event_data_class: Type[EventDataStructure],
+        variable_blacklist: Optional[List[str | int]] = ["Content"],
+        *,
+        event_data_kwargs: Optional[dict[str, Any]] = None,
+    ):
+        super().__init__(
+            event_data_class=event_data_class,
+            variable_blacklist=variable_blacklist,
+            event_data_kwargs=event_data_kwargs
+        )
+        self._on_ingest_callbacks: list[Callable[[], None]] = []
+        # ponytail: RLock shared with PersistencySaver so ingest/save/load are
+        # mutually exclusive. On-ingest callbacks fire outside this lock, so
+        # re-entrancy is no longer required — kept as RLock (harmless, safer).
+        self._lock = threading.RLock()
+
+    def ingest_event(
+        self,
+        event_id: int | str,
+        event_template: str,
+        variables: list[Any] = [],
+        named_variables: Dict[str, Any] = {},
+        timestamp: float | None = None,
+    ) -> None:
+        """Ingest event data into the appropriate EventData store."""
+        with self._lock:
+            super().ingest_event(
+                event_id=event_id,
+                event_template=event_template,
+                variables=variables,
+                named_variables=named_variables,
+                timestamp=timestamp
+            )
+        # ponytail: fire callbacks outside the lock so a count-triggered save
+        # doesn't hold the ingest lock across serialize + file I/O.
+        for _cb in self._on_ingest_callbacks:
+            _cb()
+
+    def register_on_ingest(self, callback: Callable[[], None]) -> None:
+        """Register a callback invoked after every ingest_event call."""
+        self._on_ingest_callbacks.append(callback)
