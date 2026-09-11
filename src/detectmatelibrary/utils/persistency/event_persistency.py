@@ -38,6 +38,30 @@ class EventStruct:
         self.data_kwargs = event_data_kwargs or {}
         self.templates: Dict[int | str, str] = {}
 
+    def __contains__(self, event_id: int | str) -> bool:
+        return event_id in self.data
+
+    def __getitem__(self, event_id: int | str) -> EventDataStructure | None:
+        return self.data.get(event_id, None)
+
+    def update_data_structure(
+        self,
+        event_id: int | str,
+        variables: dict[str, list[Any]],
+        template: str,
+        timestamp: float | None
+    ) -> None:
+        self.templates[event_id] = template
+
+        if event_id not in self:
+            self.data[event_id] = self.data_class(**self.data_kwargs)
+
+        data = self[event_id].to_data(variables)  # type: ignore
+        self[event_id].add_data(data, timestamp=timestamp)  # type: ignore
+
+    def get_template(self, event_id: int | str) -> str | None:
+        return self.templates.get(event_id, None)
+
 
 class EventPersistencyBase:
     """Event Persistency without lock protection."""
@@ -77,18 +101,12 @@ class EventPersistencyBase:
         self._events_since_save += 1
         self.events_seen.add(event_id)
         if variables or named_variables:
-            self.event_struct.templates[event_id] = event_template
             all_variables = get_all_variables(
                 variables, named_variables, variable_blacklist=self.variable_blacklist
             )
-
-            data_structure = self.event_struct.data.get(event_id)
-            if data_structure is None:
-                data_structure = self.event_struct.data_class(**self.event_struct.data_kwargs)
-                self.event_struct.data[event_id] = data_structure
-
-            data = data_structure.to_data(all_variables)
-            data_structure.add_data(data, timestamp=timestamp)
+            self.event_struct.update_data_structure(
+                event_id, variables=all_variables, template=event_template, timestamp=timestamp
+            )
 
     @property
     def events_since_save(self) -> int:
@@ -106,8 +124,7 @@ class EventPersistencyBase:
 
     def get_event_data(self, event_id: int | str) -> Any | None:
         """Retrieve the data for a specific event ID."""
-        data_structure = self.event_struct.data.get(event_id)
-        return data_structure.get_data() if data_structure is not None else None
+        return d_struct.get_data() if (d_struct := self.event_struct[event_id]) is not None else None
 
     def get_events_data(self) -> Dict[int | str, EventDataStructure]:
         """Retrieve the events data that is currently stored.
@@ -131,14 +148,14 @@ class EventPersistencyBase:
 
     def get_event_template(self, event_id: int | str) -> str | None:
         """Retrieve the template for a specific event ID."""
-        return self.event_struct.templates.get(event_id)
+        return self.event_struct.get_template(event_id)
 
     def get_event_templates(self) -> Dict[int | str, str]:
         """Retrieve all event templates."""
         return self.event_struct.templates
 
     def __getitem__(self, event_id: int | str) -> EventDataStructure | None:
-        return self.event_struct.data.get(event_id)
+        return self.event_struct[event_id]
 
     def __repr__(self) -> str:
         return (
