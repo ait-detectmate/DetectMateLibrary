@@ -32,6 +32,9 @@ class EventDataStructure(ABC):
         """Convert raw data into the appropriate data format for storage."""
         pass
 
+    def as_dict(self) -> list[dict[int | str, Any]]:
+        return []
+
     @abstractmethod
     def dump(self) -> bytes:
         """Serialize full state to bytes.

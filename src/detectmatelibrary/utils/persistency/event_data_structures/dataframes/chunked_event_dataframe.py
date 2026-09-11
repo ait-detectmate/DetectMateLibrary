@@ -69,6 +69,9 @@ class ChunkedEventDataFrame(EventDataStructure):
             return self.chunks[0]
         return pl.concat(self.chunks, how="vertical", rechunk=False)
 
+    def as_dict(self) -> list[dict[int | str, Any]]:
+        return self.get_data().to_pandas().to_dict("records")  # type: ignore
+
     def get_variables(self) -> Any:
         if not self.chunks:
             return []

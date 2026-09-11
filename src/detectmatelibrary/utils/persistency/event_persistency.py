@@ -70,7 +70,7 @@ class EventStruct:
         if not isinstance(other, EventStruct) or len(self) != len(other):
             return False
         for elem1, elem2 in zip(self.data.values(), other.data.values()):
-            if elem1.as_dict() != elem2.as_dict():  # type: ignore
+            if elem1.as_dict() != elem2.as_dict():
                 return False
 
         return True

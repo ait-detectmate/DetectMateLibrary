@@ -517,3 +517,19 @@ class TestAggregationUsage:
 
         persistency = persistency.combine(persistency2)
         assert persistency == persistency3
+
+    def test_combine_mix(self) -> None:
+        persistency = EventPersistency(event_data_class=ChunkedEventDataFrame)
+        persistency.ingest_event(**SAMPLE_EVENT_1)
+
+        persistency2 = EventPersistency(event_data_class=EventDataFrame)
+        persistency2.ingest_event(**SAMPLE_EVENT_3)
+        persistency2.ingest_event(**SAMPLE_EVENT_2)
+
+        persistency3 = EventPersistency(event_data_class=EventDataFrame)
+        persistency3.ingest_event(**SAMPLE_EVENT_1)
+        persistency3.ingest_event(**SAMPLE_EVENT_3)
+        persistency3.ingest_event(**SAMPLE_EVENT_2)
+
+        persistency = persistency.combine(persistency2)
+        assert persistency == persistency3
