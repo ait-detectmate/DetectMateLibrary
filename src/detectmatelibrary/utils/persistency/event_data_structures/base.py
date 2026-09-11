@@ -11,7 +11,15 @@ class EventDataStructure(ABC):
     template: str = ""
 
     @abstractmethod
-    def add_data(self, data_object: Any, timestamp: float | None = None) -> None: ...
+    def _add_data(self, data_object: Any, timestamp: float | None = None) -> None: ...
+
+    def add_data(
+        self, data_object: Any, timestamp: float | None = None, do_preprocess: bool = False
+    ) -> None:
+        self._add_data(
+            self.to_data(data_object) if do_preprocess else data_object,
+            timestamp=timestamp
+        )
 
     @abstractmethod
     def get_data(self) -> Any: ...

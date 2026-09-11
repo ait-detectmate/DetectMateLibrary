@@ -56,9 +56,7 @@ class EventStruct:
 
         if event_id not in self:
             self.data[event_id] = self.data_class(**self.data_kwargs)
-
-        data = self[event_id].to_data(variables)  # type: ignore
-        self[event_id].add_data(data, timestamp=timestamp)  # type: ignore
+        self[event_id].add_data(variables, timestamp=timestamp, do_preprocess=True)  # type: ignore
 
     def get_template(self, event_id: int | str) -> str | None:
         return self.templates.get(event_id, None)
