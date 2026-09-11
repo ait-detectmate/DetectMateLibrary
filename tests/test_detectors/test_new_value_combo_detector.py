@@ -101,7 +101,7 @@ class TestNewValueComboDetectorTraining:
                 detector.train(parser_data)
 
         # Only event 1 should be tracked (based on events config)
-        assert len(detector.persistency.event_struct.events_data) == 1
+        assert len(detector.persistency.event_struct.data) == 1
 
 
 class TestNewValueComboDetectorDetection:

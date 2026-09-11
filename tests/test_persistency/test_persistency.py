@@ -49,7 +49,7 @@ class TestEventPersistency:
         """Test initialization with EventDataFrame backend."""
         persistency = EventPersistency(event_data_class=EventDataFrame)
         assert persistency is not None
-        assert persistency.event_struct.event_data_class == EventDataFrame
+        assert persistency.event_struct.data_class == EventDataFrame
 
     def test_initialization_with_polars_backend(self):
         """Test initialization with ChunkedEventDataFrame backend."""
@@ -58,7 +58,7 @@ class TestEventPersistency:
             event_data_kwargs={"max_rows": 100},
         )
         assert persistency is not None
-        assert persistency.event_struct.event_data_class == ChunkedEventDataFrame
+        assert persistency.event_struct.data_class == ChunkedEventDataFrame
 
     def test_initialization_with_tracker_backend(self):
         """Test initialization with EventVariableTrackerData backend."""
@@ -67,7 +67,7 @@ class TestEventPersistency:
             event_data_kwargs={"tracker_type": SingleStabilityTracker},
         )
         assert persistency is not None
-        assert persistency.event_struct.event_data_class == EventTracker
+        assert persistency.event_struct.data_class == EventTracker
 
     def test_ingest_single_event(self):
         """Test ingesting a single event."""
@@ -366,7 +366,7 @@ class TestEventPersistencyIntegration:
             )
 
         # Verify tracker functionality
-        data_structure = persistency.event_struct.events_data["E001"]
+        data_structure = persistency.event_struct.data["E001"]
         assert isinstance(data_structure, EventTracker)
 
     def test_mixed_event_ids_and_templates(self):
