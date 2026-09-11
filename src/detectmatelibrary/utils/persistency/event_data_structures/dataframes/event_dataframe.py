@@ -39,6 +39,9 @@ class EventDataFrame(EventDataStructure):
         self.data.to_parquet(buf, engine="pyarrow", index=False)
         return buf.getvalue()
 
+    def as_dict(self) -> list[dict[int | str, Any]]:
+        return self.get_data().to_dict("records")   # type: ignore
+
     @classmethod
     def load(cls, data: bytes, **kwargs: Any) -> "EventDataFrame":
         """Restore DataFrame from Parquet bytes.

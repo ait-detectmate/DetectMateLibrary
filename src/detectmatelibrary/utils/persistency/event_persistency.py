@@ -1,10 +1,9 @@
 import threading
-from typing import Any, Callable, Dict, List, Optional, Type
+from typing import Any, Callable, Dict, List, Optional, Type, Self
 
 from .event_data_structures.base import EventDataStructure
 
 
-# -------- Generic persistency --------
 def get_all_variables(
     variables: list[Any],
     log_format_variables: Dict[str, Any],
@@ -45,6 +44,9 @@ class EventStruct:
     def __getitem__(self, event_id: int | str) -> EventDataStructure | None:
         return self.data.get(event_id, None)
 
+    def get_events(self) -> list[int | str]:
+        return list(self.data.keys())
+
     def update_data_structure(
         self,
         event_id: int | str,
@@ -60,6 +62,18 @@ class EventStruct:
 
     def get_template(self, event_id: int | str) -> str | None:
         return self.templates.get(event_id, None)
+
+    def __len__(self) -> int:
+        return len(self.data)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, EventStruct) or len(self) != len(other):
+            return False
+        for elem1, elem2 in zip(self.data.values(), other.data.values()):
+            if elem1.as_dict() != elem2.as_dict():  # type: ignore
+                return False
+
+        return True
 
 
 class EventPersistencyBase:
@@ -148,14 +162,19 @@ class EventPersistencyBase:
         )
 
     def __len__(self) -> int:
-        return len(self.get_events_data())
+        return len(self.event_struct)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, EventPersistencyBase) or len(self) != len(other):
+            return False
+        return self.events_seen == other.events_seen and self.event_struct == other.event_struct
 
 
 class EventPersistency(EventPersistencyBase):
     """
     Event-based persistency orchestrator:
     - manages multiple EventDataStructure instances, one per event ID
-    - doesn't know retention strategy
+    - doesn't know retention strategyvalue
     - only delegates to EventDataStructure
 
     Args:
@@ -207,3 +226,14 @@ class EventPersistency(EventPersistencyBase):
     def register_on_ingest(self, callback: Callable[[], None]) -> None:
         """Register a callback invoked after every ingest_event call."""
         self._on_ingest_callbacks.append(callback)
+
+    def combine(self, other: "EventPersistency") -> Self:
+        """Combine two Event persistency."""
+        for event in other.event_struct.get_events():
+            templates = other.event_struct.get_template(event)
+            for vars in other.event_struct[event].as_dict():  # type: ignore
+                self.ingest_event(
+                    event_id=event, event_template=templates, named_variables=vars  # type: ignore
+                )
+
+        return self
