@@ -65,7 +65,7 @@ class TestNewEventDetectorInitialization:
 
         assert detector.name == "CustomInit"
         assert hasattr(detector, 'persistency')
-        assert isinstance(detector.persistency.events_data, dict)
+        assert isinstance(detector.persistency.event_struct.data, dict)
 
 
 class TestNewEventDetectorTraining:
@@ -89,7 +89,7 @@ class TestNewEventDetectorTraining:
             })
             detector.train(parser_data)
 
-        assert len(detector.persistency.events_seen) == len(event_ids)
+        assert len(detector.persistency.get_events_seen()) == len(event_ids)
         event_seen = detector.persistency.get_events_seen()
         assert event_seen == event_ids
 

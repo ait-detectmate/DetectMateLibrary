@@ -1,16 +1,15 @@
-import threading
-from typing import Any, Callable, Dict, List, Optional, Type
-
 from .event_data_structures.base import EventDataStructure
+from .basic_persistency import EventPersistencyBase
+
+from typing import Any, Callable, Dict, List, Optional, Type, Self
+import threading
 
 
-# -------- Generic persistency --------
-
-class EventPersistency:
+class EventPersistency(EventPersistencyBase):
     """
     Event-based persistency orchestrator:
     - manages multiple EventDataStructure instances, one per event ID
-    - doesn't know retention strategy
+    - doesn't know retention strategyvalue
     - only delegates to EventDataStructure
 
     Args:
@@ -26,13 +25,11 @@ class EventPersistency:
         *,
         event_data_kwargs: Optional[dict[str, Any]] = None,
     ):
-        self.events_data: Dict[int | str, EventDataStructure] = {}
-        self.events_seen: set[int | str] = set()
-        self.event_data_class = event_data_class
-        self.event_data_kwargs = event_data_kwargs or {}
-        self.variable_blacklist = variable_blacklist or []
-        self.event_templates: Dict[int | str, str] = {}
-        self._events_since_save: int = 0
+        super().__init__(
+            event_data_class=event_data_class,
+            variable_blacklist=variable_blacklist,
+            event_data_kwargs=event_data_kwargs
+        )
         self._on_ingest_callbacks: list[Callable[[], None]] = []
         # ponytail: RLock shared with PersistencySaver so ingest/save/load are
         # mutually exclusive. On-ingest callbacks fire outside this lock, so
@@ -49,102 +46,29 @@ class EventPersistency:
     ) -> None:
         """Ingest event data into the appropriate EventData store."""
         with self._lock:
-            self._events_since_save += 1
-            self.events_seen.add(event_id)
-            if variables or named_variables:
-                self.event_templates[event_id] = event_template
-                all_variables = self.get_all_variables(variables, named_variables)
-
-                data_structure = self.events_data.get(event_id)
-                if data_structure is None:
-                    data_structure = self.event_data_class(**self.event_data_kwargs)
-                    self.events_data[event_id] = data_structure
-
-                data = data_structure.to_data(all_variables)
-                data_structure.add_data(data, timestamp=timestamp)
+            super().ingest_event(
+                event_id=event_id,
+                event_template=event_template,
+                variables=variables,
+                named_variables=named_variables,
+                timestamp=timestamp
+            )
         # ponytail: fire callbacks outside the lock so a count-triggered save
         # doesn't hold the ingest lock across serialize + file I/O.
         for _cb in self._on_ingest_callbacks:
             _cb()
 
-    @property
-    def events_since_save(self) -> int:
-        """Number of events ingested since the last successful save."""
-        return self._events_since_save
-
-    def reset_events_since_save(self) -> None:
-        """Reset the events-since-save counter after a successful save."""
-        self._events_since_save = 0
-
     def register_on_ingest(self, callback: Callable[[], None]) -> None:
         """Register a callback invoked after every ingest_event call."""
         self._on_ingest_callbacks.append(callback)
 
-    def get_events_seen(self) -> set[int | str]:
-        """Retrieve all event IDs observed via ingest_event(), regardless of
-        whether variables were extracted."""
-        return self.events_seen
+    def combine(self, other: "EventPersistency") -> Self:
+        """Combine two Event persistency."""
+        for event in other.event_struct.get_events():
+            templates = other.event_struct.get_template(event)
+            for vars in other.event_struct[event].as_dict():  # type: ignore
+                self.ingest_event(
+                    event_id=event, event_template=templates, named_variables=vars  # type: ignore
+                )
 
-    def get_event_data(self, event_id: int | str) -> Any | None:
-        """Retrieve the data for a specific event ID."""
-        data_structure = self.events_data.get(event_id)
-        return data_structure.get_data() if data_structure is not None else None
-
-    def get_events_data(self) -> Dict[int | str, EventDataStructure]:
-        """Retrieve the events data that is currently stored.
-
-        Returns:
-            A dictionary mapping event IDs to their corresponding EventDataStructure instances.
-
-            Example:
-            {
-                1: EventTracker(data={
-                    'var_0': SingleTracker(...),
-                    'var_1': SingleTracker(...),
-                }),
-                2: EventTracker(data={
-                    'var_0': SingleTracker(...)
-                }),
-                ...
-            }
-        """
-        return self.events_data
-
-    def get_event_template(self, event_id: int | str) -> str | None:
-        """Retrieve the template for a specific event ID."""
-        return self.event_templates.get(event_id)
-
-    def get_event_templates(self) -> Dict[int | str, str]:
-        """Retrieve all event templates."""
-        return self.event_templates
-
-    def get_all_variables(
-        self,
-        variables: list[Any],
-        log_format_variables: Dict[str, Any],
-        # variable_blacklist: List[str | int],
-        event_var_prefix: str = "var_",
-    ) -> dict[str, list[Any]]:
-        """Combine log format variables and event variables into a single
-        dictionary.
-
-        Schema-friendly by using string column names.
-        """
-        all_vars: dict[str, list[Any]] = {
-            k: v for k, v in log_format_variables.items()
-            if k not in self.variable_blacklist
-        }
-        all_vars.update({
-            f"{event_var_prefix}{i}": val for i, val in enumerate(variables)
-            if i not in self.variable_blacklist
-        })
-        return all_vars
-
-    def __getitem__(self, event_id: int | str) -> EventDataStructure | None:
-        return self.events_data.get(event_id)
-
-    def __repr__(self) -> str:
-        return (
-            f"EventPersistency(num_event_types={len(self.events_data)}, "
-            f"keys={list(self.events_data.keys())})"
-        )
+        return self

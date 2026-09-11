@@ -83,7 +83,7 @@ class TestEventSequenceDetectorInitialization:
         assert detector.name == "CustomInit"
         assert detector.config.fixed_window_size == 2
         assert hasattr(detector, "persistency")
-        assert isinstance(detector.persistency.events_data, dict)
+        assert isinstance(detector.persistency.event_struct.data, dict)
 
 
 class TestEventSequenceDetectorTraining:

@@ -24,7 +24,7 @@ class ChunkedEventDataFrame(EventDataStructure):
     chunks: list[pl.DataFrame] = field(default_factory=list)
     _rows: int = 0
 
-    def add_data(self, data: pl.DataFrame, timestamp: float | None = None) -> None:
+    def _add_data(self, data: pl.DataFrame, timestamp: float | None = None) -> None:
         if data.height == 0:
             return
         self.chunks.append(data)
@@ -68,6 +68,9 @@ class ChunkedEventDataFrame(EventDataStructure):
         if len(self.chunks) == 1:
             return self.chunks[0]
         return pl.concat(self.chunks, how="vertical", rechunk=False)
+
+    def as_dict(self) -> list[dict[int | str, Any]]:
+        return self.get_data().to_pandas().to_dict("records")  # type: ignore
 
     def get_variables(self) -> Any:
         if not self.chunks:

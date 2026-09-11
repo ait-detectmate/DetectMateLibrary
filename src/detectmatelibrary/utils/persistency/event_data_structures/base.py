@@ -11,7 +11,15 @@ class EventDataStructure(ABC):
     template: str = ""
 
     @abstractmethod
-    def add_data(self, data_object: Any, timestamp: float | None = None) -> None: ...
+    def _add_data(self, data_object: Any, timestamp: float | None = None) -> None: ...
+
+    def add_data(
+        self, data_object: Any, timestamp: float | None = None, do_preprocess: bool = False
+    ) -> None:
+        self._add_data(
+            self.to_data(data_object) if do_preprocess else data_object,
+            timestamp=timestamp
+        )
 
     @abstractmethod
     def get_data(self) -> Any: ...
@@ -23,6 +31,9 @@ class EventDataStructure(ABC):
     def to_data(self, raw_data: Any) -> Any:
         """Convert raw data into the appropriate data format for storage."""
         pass
+
+    def as_dict(self) -> list[dict[int | str, Any]]:
+        return []
 
     @abstractmethod
     def dump(self) -> bytes:

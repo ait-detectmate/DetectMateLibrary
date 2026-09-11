@@ -17,7 +17,7 @@ class EventDataFrame(EventDataStructure):
     """
     data: pd.DataFrame = field(default_factory=pd.DataFrame)
 
-    def add_data(self, data: pd.DataFrame, timestamp: float | None = None) -> None:
+    def _add_data(self, data: pd.DataFrame, timestamp: float | None = None) -> None:
         if len(self.data) > 0:
             self.data = pd.concat([self.data, data], ignore_index=True)
         else:
@@ -38,6 +38,9 @@ class EventDataFrame(EventDataStructure):
         buf = io.BytesIO()
         self.data.to_parquet(buf, engine="pyarrow", index=False)
         return buf.getvalue()
+
+    def as_dict(self) -> list[dict[int | str, Any]]:
+        return self.get_data().to_dict("records")   # type: ignore
 
     @classmethod
     def load(cls, data: bytes, **kwargs: Any) -> "EventDataFrame":

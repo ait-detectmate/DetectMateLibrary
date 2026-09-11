@@ -517,21 +517,21 @@ class TestConfigWiring:
         # trained persistency is read by _check_variable, which never calls
         # classify(), so it never receives classification kwargs at all.
         default = CharsetDetector(config=CharsetDetectorConfig())
-        assert default.persistency.event_data_kwargs.get("classification") is None
+        assert default.persistency.event_struct.data_kwargs.get("classification") is None
 
         configured = CharsetDetector(config=CharsetDetectorConfig())
         configured.config.auto_config_params.classification = ClassificationMethods(
             index=True, slope_index=True
         )
         rebuilt = CharsetDetector(config=configured.config.to_dict(method_id="CharsetDetector"))
-        block = rebuilt.auto_conf_persistency.event_data_kwargs["classification"]
+        block = rebuilt.auto_conf_persistency.event_struct.data_kwargs["classification"]
         assert ClassificationMethods(**block).enabled == ("index", "slope_index")
 
     def test_default_block_is_not_forwarded(self):
         """Forwarding the default would be noise; the tracker already has
         it."""
         default = CharsetDetector(config=CharsetDetectorConfig())
-        assert "classification" not in (default.auto_conf_persistency.event_data_kwargs or {})
+        assert "classification" not in (default.auto_conf_persistency.event_struct.data_kwargs or {})
 
     def test_config_field_round_trips(self):
         detector = CharsetDetector(config=CharsetDetectorConfig())
@@ -567,7 +567,7 @@ class TestConfigWiring:
             index=True, slope_index=True
         )
         rebuilt = CharsetDetector(config=detector.config.to_dict(method_id="CharsetDetector"))
-        assert "classification" not in (rebuilt.persistency.event_data_kwargs or {})
+        assert "classification" not in (rebuilt.persistency.event_struct.data_kwargs or {})
 
         tracker = SingleStabilityTracker(
             classification=ClassificationMethods(index=True, slope_index=True)
@@ -612,7 +612,7 @@ def test_slope_threshold_reaches_the_classifier():
         ),
     )
     persistency = detector.auto_conf_persistency
-    tracker = persistency.event_data_class(**persistency.event_data_kwargs)
+    tracker = persistency.event_struct.data_class(**persistency.event_struct.data_kwargs)
     single = tracker.single_tracker_type()
     assert single.classification.enabled == ("index", "slope_index")
     assert single.stability_classifier.classification.slope_threshold == -0.25
