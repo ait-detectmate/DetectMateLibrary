@@ -66,7 +66,7 @@ def _coerce_event_id(k: str) -> int | str:
 
 def _safe_event_data_kwargs(ep: EventPersistency) -> dict[str, Any]:
     safe = {}
-    for k, v in ep.event_data_kwargs.items():
+    for k, v in ep.event_struct.event_data_kwargs.items():
         try:
             json.dumps(v)
             safe[k] = v
@@ -86,7 +86,7 @@ def _serialize(ep: EventPersistency) -> dict[str, bytes]:
     event_backends: dict[str, str] = {}
     event_extensions: dict[str, str] = {}
 
-    for event_id, data_structure in ep.events_data.items():
+    for event_id, data_structure in ep.event_struct.events_data.items():
         backend_name = type(data_structure).__name__
         ext = _EXTENSION_MAP.get(backend_name, "bin")
         event_backends[str(event_id)] = backend_name
@@ -97,11 +97,11 @@ def _serialize(ep: EventPersistency) -> dict[str, bytes]:
         "version": 1,
         "saved_at": datetime.now(timezone.utc).isoformat(),
         "events_seen": list(ep.events_seen),
-        "event_templates": {str(k): v for k, v in ep.event_templates.items()},
+        "event_templates": {str(k): v for k, v in ep.event_struct.event_templates.items()},
         "event_backends": event_backends,
         "event_extensions": event_extensions,
         "event_data_kwargs": _safe_event_data_kwargs(ep),
-        "event_data_class": ep.event_data_class.__name__,  # read back by _load
+        "event_data_class": ep.event_struct.event_data_class.__name__,  # read back by _load
     }
     files["metadata.json"] = json.dumps(metadata, indent=2).encode()
     return files
@@ -136,15 +136,15 @@ def _load(ep: EventPersistency, fs: Any, root: str) -> None:
         with fs.open(meta_path, "r") as f:
             metadata = json.load(f)
 
-        ep.events_data = {}
-        ep.event_templates = {}
+        ep.event_struct.events_data = {}
+        ep.event_struct.event_templates = {}
 
         ep.events_seen = set(metadata["events_seen"])
-        ep.event_templates = {
+        ep.event_struct.event_templates = {
             _coerce_event_id(k): v for k, v in metadata["event_templates"].items()
         }
         global_kwargs = metadata.get("event_data_kwargs", {})
-        ep.event_data_kwargs = global_kwargs
+        ep.event_struct.event_data_kwargs = global_kwargs
 
         for event_id_str, backend_name in metadata["event_backends"].items():
             event_id = _coerce_event_id(event_id_str)
@@ -153,11 +153,11 @@ def _load(ep: EventPersistency, fs: Any, root: str) -> None:
             with fs.open(file_path, "rb") as f:
                 data = f.read()
             backend_cls = _get_backend_cls(backend_name)
-            ep.events_data[event_id] = backend_cls.load(data, **global_kwargs)
+            ep.event_struct.events_data[event_id] = backend_cls.load(data, **global_kwargs)
 
         class_name = metadata.get("event_data_class")
         if class_name and (class_name in _BACKEND_REGISTRY or class_name in _DATAFRAME_BACKENDS):
-            ep.event_data_class = _get_backend_cls(class_name)
+            ep.event_struct.event_data_class = _get_backend_cls(class_name)
     except PersistencyLoadError:
         raise
     except Exception as e:
