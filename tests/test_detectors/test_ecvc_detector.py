@@ -150,3 +150,20 @@ class TestECVCDetectorEndToEnd:
 
         for log_id in {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}:
             assert log_id in detected_ids
+
+    @pytest.mark.ignored
+    def test_audit_log_anomalie_fed(self):
+        parser = MatcherParser(config=PIPELINE_CONFIG)
+        detector1 = ECVCDetector(config=PIPELINE_CONFIG)
+        detector2 = ECVCDetector(config=PIPELINE_CONFIG)
+
+        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
+        for log in logs:
+            detector1.process(log)
+
+        thress = detector1.threshold
+        (detector1 + detector2).aggregate()
+
+        assert detector2.persistency == detector1.persistency
+        assert (detector2.count_vecs == detector1.count_vecs).all()
+        assert detector2.threshold == thress
