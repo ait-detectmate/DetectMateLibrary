@@ -314,6 +314,31 @@ class TestCharsetDetectorEndToEnd:
         assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
 
     @pytest.mark.ignored
+    def test_audit_log_anomalies_to_binary(self):
+        parser = MatcherParser(config=_PARSER_CONFIG)
+        detector = CharsetDetector()
+
+        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
+
+        for log in logs[:TRAIN_UNTIL]:
+            detector.configure(log)
+        detector.set_configuration()
+
+        for log in logs[:TRAIN_UNTIL]:
+            detector.train(log)
+
+        detector2 = CharsetDetector()
+        detector2.from_binary(detector.to_binary())
+
+        detected_ids: set[str] = set()
+        for log in logs[TRAIN_UNTIL:]:
+            output = schemas.DetectorSchema()
+            if detector2.detect(log, output_=output):
+                detected_ids.add(log["logID"])
+
+        assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
+
+    @pytest.mark.ignored
     def test_audit_log_anomalie_fed(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector1 = CharsetDetector()

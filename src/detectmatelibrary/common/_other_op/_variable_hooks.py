@@ -3,6 +3,7 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers.stabilit
      EventStabilityTracker, SingleStabilityTracker
 )
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
+from detectmatelibrary.utils.persistency.persistency_saver import load, save
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 
 from detectmatelibrary.common._config._formats import _EventInstance
@@ -209,3 +210,9 @@ class VariablesLogic(VaribaleHooks):
 
         for component in components:
             component.persistency = self.persistency
+
+    def persistency2binary(self) -> bytes:
+        return save(self.persistency)  # type: ignore
+
+    def binary2persistency(self, binary: bytes) -> None:
+        load(self.persistency, path=binary)

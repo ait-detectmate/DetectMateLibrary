@@ -142,3 +142,9 @@ class VariableDetector(CoreDetector, VariablesLogic):
 
     def aggregate_strategy(self, components: set["VariableDetector"]) -> None:  # type: ignore
         self.combine(components)  # type: ignore
+
+    def to_binary(self) -> bytes:
+        return self.persistency2binary()
+
+    def from_binary(self, binary: bytes) -> None:
+        self.binary2persistency(binary)

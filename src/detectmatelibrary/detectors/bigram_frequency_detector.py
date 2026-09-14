@@ -9,7 +9,7 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers.stabilit
 )
 from detectmatelibrary.schemas import ParserSchema
 from detectmatelibrary.constants import GLOBAL_EVENT_ID, DEFAULT_FREQUENCIES
-
+import warnings
 
 _DEFAULT_FREQ: dict[str, dict[str, int]] | None = None
 _DEFAULT_TOTAL_FREQ: dict[str, int] | None = None
@@ -230,3 +230,10 @@ class BigramFrequencyDetector(VariableDetector):
                 )
                 anomaly = True
         return 1.0 if anomaly else 0.0
+
+    def to_binary(self) -> bytes:
+        warnings.warn("Diasbale for now")
+        return bytes()
+
+    def from_binary(self, binary: bytes) -> None:
+        warnings.warn("Diasbale for now")
