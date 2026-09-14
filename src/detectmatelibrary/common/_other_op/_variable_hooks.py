@@ -12,7 +12,7 @@ from detectmatelibrary.common.detector import AutoConfigParams
 from detectmatelibrary.tools.logging import logger
 from detectmatelibrary.schemas import ParserSchema
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, cast
 
 
 def get_global_variables(
@@ -78,14 +78,11 @@ class VariableHooks:
         self.config_vars = config_vars
         self._time_handler = _time_handler
 
-    def _init_persistency(self) -> EventPersistency:
-        return EventPersistency(
+        self.persistency = EventPersistency(
             event_data_class=self._event_data_class(),
             event_data_kwargs=self._event_data_kwargs(),
         )
-
-    def _init_auto_persistency(self) -> EventPersistency:
-        return EventPersistency(
+        self.auto_conf_persistency = EventPersistency(
             event_data_class=self._event_data_class(),
             event_data_kwargs=self._with_classification_kwargs(self._auto_conf_kwargs()),
         )
@@ -165,3 +162,33 @@ class VariableHooks:
 
     def _description(self) -> str:
         return f"{self.name} detected anomalies."
+
+    def _check_event(
+        self,
+        alerts: Dict[str, str],
+        event_id: Any,
+        event_tracker: EventStabilityTracker,
+        variables: Dict[str, Any],
+        is_global: bool,
+    ) -> float:
+        """Loop the event's per-variable trackers, accumulate alerts, score +1
+        per anomalous variable."""
+        score = 0.0
+        var_trackers = cast(Dict[str, SingleStabilityTracker], event_tracker.get_data())
+        for key, tracker in var_trackers.items():
+            value = variables.get(key)
+            if value is None:
+                continue
+            message = self._check_variable(tracker, value, key)
+            if message:
+                alerts[self._alert_key(event_id, key, is_global)] = message
+                score += 1.0
+        return score
+
+    def _ingest(self, input_: ParserSchema, variables: Dict[str, Any], event_id: Any) -> None:
+        variables = self._prepare_variables(variables, "training")
+        self.persistency.ingest_event(
+            event_id=event_id,
+            event_template=input_["template"],
+            named_variables=variables,
+        )

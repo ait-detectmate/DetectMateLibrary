@@ -1,6 +1,5 @@
 from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
     EventStabilityTracker,
-    SingleStabilityTracker,
 )
 from detectmatelibrary.utils.persistency.component_interfaces import (
     validate_config_coverage
@@ -58,9 +57,6 @@ class VariableDetector(CoreDetector, VariableHooks):
             _time_handler=_time_handler,
             config_vars=self.config.auto_config_params
         )
-
-        self.persistency = self._init_persistency()
-        self.auto_conf_persistency = self._init_auto_persistency()
         self._register_persistency(self.persistency)
 
     def _stability_kwargs(self) -> Dict[str, Any]:
@@ -77,14 +73,6 @@ class VariableDetector(CoreDetector, VariableHooks):
             global_vars = get_global_variables(input_, self.config.global_instances)
             if global_vars:
                 self._ingest(input_, global_vars, GLOBAL_EVENT_ID)
-
-    def _ingest(self, input_: ParserSchema, variables: Dict[str, Any], event_id: Any) -> None:
-        variables = self._prepare_variables(variables, "training")
-        self.persistency.ingest_event(
-            event_id=event_id,
-            event_template=input_["template"],
-            named_variables=variables,
-        )
 
     def detect(self, input_: ParserSchema, output_: DetectorSchema) -> bool:  # type: ignore
         alerts: Dict[str, str] = {}
@@ -115,28 +103,6 @@ class VariableDetector(CoreDetector, VariableHooks):
             output_["alertsObtain"].update(alerts)
             return True
         return False
-
-    def _check_event(
-        self,
-        alerts: Dict[str, str],
-        event_id: Any,
-        event_tracker: EventStabilityTracker,
-        variables: Dict[str, Any],
-        is_global: bool,
-    ) -> float:
-        """Loop the event's per-variable trackers, accumulate alerts, score +1
-        per anomalous variable."""
-        score = 0.0
-        var_trackers = cast(Dict[str, SingleStabilityTracker], event_tracker.get_data())
-        for key, tracker in var_trackers.items():
-            value = variables.get(key)
-            if value is None:
-                continue
-            message = self._check_variable(tracker, value, key)
-            if message:
-                alerts[self._alert_key(event_id, key, is_global)] = message
-                score += 1.0
-        return score
 
     def configure(self, input_: ParserSchema) -> None:  # type: ignore
         self.auto_conf_persistency.ingest_event(
