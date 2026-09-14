@@ -239,36 +239,27 @@ class TestNewValueDetectorEndToEnd:
 
         assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
 
-
-class TestNewValueDetectorAutoConfig:
-    """Test that process() drives configure/set_configuration/train/detect
-    automatically."""
-
     @pytest.mark.ignored
-    def test_audit_log_anomalies_via_process(self):
+    def test_audit_log_anomalies_to_binary(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = NewValueDetector()
 
         logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
 
-        # Phase 1: configure — keep configuring for logs[:TRAIN_UNTIL]
-        detector.fitlogic.config_state.current = EnumState.KEEP
         for log in logs[:TRAIN_UNTIL]:
-            detector.process(log)
+            detector.configure(log)
+        detector.set_configuration()
 
-        # Transition: stop configure so next process() call triggers set_configuration()
-        detector.fitlogic.config_state.current = EnumState.STOP
-
-        # Phase 2: train — keep training for logs[:TRAIN_UNTIL]
-        detector.fitlogic.train_state.current = EnumState.KEEP
         for log in logs[:TRAIN_UNTIL]:
-            detector.process(log)
+            detector.train(log)
 
-        # Phase 3: detect — stop training so process() only calls detect()
-        detector.fitlogic.train_state.current = EnumState.STOP
+        detector2 = NewValueDetector()
+        detector2.from_binary(detector.to_binary())
+
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            if detector.process(log) is not None:
+            output = schemas.DetectorSchema()
+            if detector2.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
         assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
@@ -300,6 +291,40 @@ class TestNewValueDetectorAutoConfig:
         for log in logs[TRAIN_UNTIL:]:
             output = schemas.DetectorSchema()
             if detector2.detect(log, output_=output):
+                detected_ids.add(log["logID"])
+
+        assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
+
+
+class TestNewValueDetectorAutoConfig:
+    """Test that process() drives configure/set_configuration/train/detect
+    automatically."""
+
+    @pytest.mark.ignored
+    def test_audit_log_anomalies_via_process(self):
+        parser = MatcherParser(config=_PARSER_CONFIG)
+        detector = NewValueDetector()
+
+        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
+
+        # Phase 1: configure — keep configuring for logs[:TRAIN_UNTIL]
+        detector.fitlogic.config_state.current = EnumState.KEEP
+        for log in logs[:TRAIN_UNTIL]:
+            detector.process(log)
+
+        # Transition: stop configure so next process() call triggers set_configuration()
+        detector.fitlogic.config_state.current = EnumState.STOP
+
+        # Phase 2: train — keep training for logs[:TRAIN_UNTIL]
+        detector.fitlogic.train_state.current = EnumState.KEEP
+        for log in logs[:TRAIN_UNTIL]:
+            detector.process(log)
+
+        # Phase 3: detect — stop training so process() only calls detect()
+        detector.fitlogic.train_state.current = EnumState.STOP
+        detected_ids: set[str] = set()
+        for log in logs[TRAIN_UNTIL:]:
+            if detector.process(log) is not None:
                 detected_ids.add(log["logID"])
 
         assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}

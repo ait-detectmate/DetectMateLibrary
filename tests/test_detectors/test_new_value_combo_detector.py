@@ -590,6 +590,31 @@ class TestNewValueComboDetectorEndToEndWithRealData:
         assert detected_ids == {"1859", "1862", "1865", "1866"}
 
     @pytest.mark.ignored
+    def test_audit_log_anomalies_to_binary(self):
+        parser = MatcherParser(config=_PARSER_CONFIG)
+        detector = NewValueComboDetector()
+
+        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
+
+        for log in logs[:TRAIN_UNTIL]:
+            detector.configure(log)
+        detector.set_configuration()
+
+        for log in logs[:TRAIN_UNTIL]:
+            detector.train(log)
+
+        detector2 = NewValueComboDetector()
+        detector2.from_binary(detector.to_binary())
+
+        detected_ids: set[str] = set()
+        for log in logs[TRAIN_UNTIL:]:
+            output = schemas.DetectorSchema()
+            if detector2.detect(log, output_=output):
+                detected_ids.add(log["logID"])
+
+        assert detected_ids == {"1859", "1862", "1865", "1866"}
+
+    @pytest.mark.ignored
     def test_audit_log_anomalie_fed(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector1 = NewValueComboDetector()
