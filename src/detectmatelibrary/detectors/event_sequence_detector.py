@@ -1,19 +1,20 @@
-"""Detect EventID sequences that were not observed during training."""
+from detectmatelibrary.common._other_op._variable_hooks import VariablesLogic
+from detectmatelibrary.common._config._compile import generate_events_config
+from detectmatelibrary.common._config import AutoConfigParams
+
+from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector
+
+from detectmatelibrary.tools.logging import logger
+from detectmatelibrary.utils.sequence_encoding import decode_sequence, encode_sequence
+from detectmatelibrary.utils.data_buffer import BufferMode
+from detectmatelibrary.utils import persistency
+
+from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
 from collections import deque
 from typing import Any
 
 from pydantic import Field, model_validator
-
-from detectmatelibrary.common._config._compile import generate_events_config
-from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector
-from detectmatelibrary.common._config import AutoConfigParams
-
-from detectmatelibrary.tools.logging import logger
-from detectmatelibrary.utils import persistency
-from detectmatelibrary.utils.data_buffer import BufferMode
-from detectmatelibrary.utils.sequence_encoding import decode_sequence, encode_sequence
-from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
 
 class SequenceAutoConfigParams(AutoConfigParams):
@@ -49,7 +50,7 @@ class EventSequenceDetectorConfig(CoreDetectorConfig):
     auto_config_params: SequenceAutoConfigParams = SequenceAutoConfigParams()
 
 
-class EventSequenceDetector(CoreDetector):
+class EventSequenceDetector(CoreDetector, VariablesLogic):
     """Detect EventID sequences not encountered in training as anomalies."""
 
     def __init__(
@@ -60,25 +61,16 @@ class EventSequenceDetector(CoreDetector):
         if isinstance(config, dict):
             config = EventSequenceDetectorConfig.from_dict(config, name)
 
-        super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
+        CoreDetector.__init__(self, name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: EventSequenceDetectorConfig
-        # CoreComponent.process() calls train() *and* run()->detect() for every
-        # training event, so a single shared window would ingest each event twice.
-        # maxlen is None while unconfigured, but nothing is appended in that state.
         self._train_window: deque[int] = deque(maxlen=self.config.fixed_window_size)
         self._detect_window: deque[int] = deque(maxlen=self.config.fixed_window_size)
-        # ponytail: only events_seen is used here — sequences carry no variables.
-        # EventPersistency still requires an event_data_class, and changing it would
-        # change the on-disk format for no gain.
-        self.persistency = persistency.EventPersistency(
-            event_data_class=persistency.EventStabilityTracker,
-        )
         self._configure_windows: dict[int, deque[int]] = {}
-        self.auto_conf_persistency = persistency.EventPersistency(
-            event_data_class=persistency.EventStabilityTracker
-        )
-        self._register_persistency(self.persistency)  # restores state when auto_load
-        self._restored_length = self._adopt_restored_length()
+
+        VariablesLogic.__init__(self, name=self.name)
+        self._register_persistency(self.persistency)
+        self._adopt_restored_length()
+
         if not self.config.auto_config and self.config.fixed_window_size is None:
             logger.warning(
                 f"[{self.name}] auto_config=False but no fixed_window_size was given. "
@@ -91,7 +83,7 @@ class EventSequenceDetector(CoreDetector):
         self._train_window = deque(self._train_window, maxlen=length)
         self._detect_window = deque(self._detect_window, maxlen=length)
 
-    def _adopt_restored_length(self) -> int | None:
+    def _adopt_restored_length(self) -> None:
         """Align `fixed_window_size` with restored state, if any.
 
         Sequences are stored as fixed-length n-grams, so a model trained at one
@@ -103,16 +95,17 @@ class EventSequenceDetector(CoreDetector):
         """
         restored = self.persistency.get_events_seen()
         if not restored:
-            return None
-        length = len(decode_sequence(str(next(iter(restored)))))
-        if length != self.config.fixed_window_size:
-            logger.warning(
-                f"[{self.name}] restored state holds sequences of length {length}, but "
-                f"fixed_window_size is {self.config.fixed_window_size}. Using the "
-                "persisted length — the restored model is only valid at that length."
-            )
-            self._set_window_length(length)
-        return length
+            self._restored_length = None
+        else:
+            length = len(decode_sequence(str(next(iter(restored)))))
+            if length != self.config.fixed_window_size:
+                logger.warning(
+                    f"[{self.name}] restored state holds sequences of length {length}, but "
+                    f"fixed_window_size is {self.config.fixed_window_size}. Using the "
+                    "persisted length — the restored model is only valid at that length."
+                )
+                self._set_window_length(length)
+            self._restored_length = length
 
     def import_state(
         self, path: str | bytes, storage_options: dict[str, Any] | None = None
@@ -122,8 +115,8 @@ class EventSequenceDetector(CoreDetector):
         Unlike `auto_load`, this runs after construction, so the length check in
         `__init__` has already passed and has to be redone here.
         """
-        super().import_state(path, storage_options)
-        self._restored_length = self._adopt_restored_length()
+        CoreDetector.import_state(self, path, storage_options)
+        self._adopt_restored_length()
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by learning EventID sequences from the input
@@ -260,3 +253,10 @@ class EventSequenceDetector(CoreDetector):
             decode_sequence(str(encoded))
             for encoded in self.persistency.get_events_seen()
         }
+
+    def aggregate_strategy(self, components: set["EventSequenceDetector"]) -> None:  # type: ignore
+        self.combine(components)  # type: ignore
+
+        self._adopt_restored_length()
+        for component in components:
+            component._adopt_restored_length()
