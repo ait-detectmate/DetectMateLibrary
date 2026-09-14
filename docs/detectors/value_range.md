@@ -7,6 +7,9 @@ The Value Range Detector raises alerts when numerical values outside of known ra
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Alert / finding |
 
+
+✅ Federation compatible.
+
 ## Description
 
 This detector maintains a lightweight set of observed values per monitored field and emits an alert when a value outside the learned range is seen (subject to configuration).

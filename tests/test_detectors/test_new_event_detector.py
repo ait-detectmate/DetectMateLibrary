@@ -177,6 +177,34 @@ class TestNewEventDetectorEndToEnd:
 
         assert detected_ids == {"1863"}
 
+    @pytest.mark.ignored
+    def test_audit_log_anomalie_fed(self):
+        parser = MatcherParser(config=_PARSER_CONFIG)
+        detector1 = NewEventDetector()
+        detector2 = NewEventDetector()
+
+        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
+        for log in logs[:TRAIN_UNTIL]:
+            detector1.configure(log)
+            detector2.configure(log)
+
+        detector1.set_configuration()
+        detector2.set_configuration()
+
+        for log in logs[:TRAIN_UNTIL]:
+            detector1.train(log)
+
+        (detector1 + detector2).aggregate()
+        assert detector2.persistency == detector1.persistency
+
+        detected_ids: set[str] = set()
+        for log in logs[TRAIN_UNTIL:]:
+            output = schemas.DetectorSchema()
+            if detector2.detect(log, output_=output):
+                detected_ids.add(log["logID"])
+
+        assert detected_ids == {"1863"}
+
 
 class TestNewEventDetectorAutoConfig:
     """Test that process() drives configure/set_configuration/train/detect
@@ -207,34 +235,6 @@ class TestNewEventDetectorAutoConfig:
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
             if detector.process(log) is not None:
-                detected_ids.add(log["logID"])
-
-        assert detected_ids == {"1863"}
-
-    @pytest.mark.ignored
-    def test_audit_log_anomalie_fed(self):
-        parser = MatcherParser(config=_PARSER_CONFIG)
-        detector1 = NewEventDetector()
-        detector2 = NewEventDetector()
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-        for log in logs[:TRAIN_UNTIL]:
-            detector1.configure(log)
-            detector2.configure(log)
-
-        detector1.set_configuration()
-        detector2.set_configuration()
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector1.train(log)
-
-        (detector1 + detector2).aggregate()
-        assert detector2.persistency == detector1.persistency
-
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
-            if detector2.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
         assert detected_ids == {"1863"}

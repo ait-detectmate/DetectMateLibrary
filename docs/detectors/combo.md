@@ -7,6 +7,8 @@ The New Combo Value Detector raises alerts when previously unseen combinations o
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Combined alert / finding |
 
+✅ Federation compatible (Binary not available).
+
 ## Description
 This detector maintains a lightweight set of observed combination of values per monitored fields and emits an alert when a combination is not present in the set seen for the first time (subject to configuration).
 

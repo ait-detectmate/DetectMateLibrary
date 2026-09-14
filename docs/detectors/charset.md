@@ -7,6 +7,8 @@ The Charset Detector raises alerts when previously unseen characters appear in c
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Alert / finding |
 
+✅ Federation compatible,
+
 ## Description
 
 This detector maintains a lightweight set of observed characters per monitored field and emits an alert when a character not present in the set is seen for the first time (subject to configuration).

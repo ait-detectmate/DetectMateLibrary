@@ -7,6 +7,8 @@ The Bigram Frequency Detector raises alerts when a variable's character bigrams 
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Alert / finding |
 
+✅ Federation compatible (Binary not available).
+
 ## Description
 
 For each configured variable, the detector walks every observed value character-by-character (with virtual boundary characters before the first and after the last) and updates a per-(event, variable) bigram frequency table. At detect time, the average per-bigram conditional probability of a new value is computed against this table. Values scoring below `prob_thresh` (default `0.05`) are flagged. When `default_freqs` is enabled, a built-in English bigram table acts as a fallback for bigrams unseen during training.
