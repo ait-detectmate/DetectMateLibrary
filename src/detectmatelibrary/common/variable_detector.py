@@ -7,6 +7,7 @@ from detectmatelibrary.common.detector import (
     AutoConfigParams,
     CoreDetectorConfig,
     CoreDetector,
+    _time_handler
 )
 from detectmatelibrary.utils.persistency.component_interfaces import (
     validate_config_coverage
@@ -73,21 +74,8 @@ def _strip_auto_config_params(detector_config: Dict[str, Any], method_id: str) -
 
 
 class VariableAutoConfigParams(AutoConfigParams):
-    """Configure-phase inputs shared by every VariableDetector subclass.
-
-    Read only while `auto_config` is True: stability classification decides
-    which variables land in the generated `events` block and is never consulted
-    at detection time.
-    """
-
     use_stable_vars: bool = True
     use_static_vars: bool = True
-
-    # Which stability classification methods decide STABLE, and how their
-    # verdicts combine. Four independent methods over two primitives and two
-    # axes; see ClassificationMethods. The two time-axis methods (`time`,
-    # `slope_time`) need a per-record event time, named here and read from the
-    # record's logFormatVariables.
     classification: ClassificationMethods = ClassificationMethods()
     timestamp_variable: str | None = None
     timestamp_format: str | None = None  # None -> TimeFormatHandler auto-detect
@@ -97,61 +85,37 @@ class VariableDetectorConfig(CoreDetectorConfig):
     auto_config_params: VariableAutoConfigParams = VariableAutoConfigParams()
 
 
-class VariableDetector(CoreDetector):
-    """Abstract base for detectors that learn a per-variable model from
-    configured log variables and flag anomalous values at detection time.
+class VariableHooks:
+    def __init__(
+        self,
+        name: str,
+        _time_handler: TimeFormatHandler = TimeFormatHandler(),
+        config_vars: VariableAutoConfigParams = VariableAutoConfigParams(),
+    ) -> None:
+        self.name = name
+        self._warned_bad_timestamp: bool = False
+        self.config_vars = config_vars
+        self._time_handler = _time_handler
 
-    Subclasses override a small set of hooks:
-      - ``_check_variable`` (required): the per-variable anomaly test.
-      - ``_prepare_variables`` (optional): transform variables per stage.
-      - ``_event_data_kwargs`` / ``_auto_conf_kwargs`` (optional): tracker
-        construction kwargs.
-      - ``_description`` / ``_alert_key`` (optional): output formatting.
-
-    The five lifecycle methods (train/detect/configure/post_train/
-    set_configuration) live here and are shared by all subclasses.
-    """
-
-    def __init__(self, name: str, config: VariableDetectorConfig) -> None:
-        super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
-        self.config: VariableDetectorConfig  # type narrowing for IDE
-        self._time_handler = TimeFormatHandler()
-        self._warned_bad_timestamp = False
-        self.persistency = EventPersistency(
+    def _init_persistency(self) -> EventPersistency:
+        return EventPersistency(
             event_data_class=self._event_data_class(),
-            # No classification kwargs: the trained trackers are read by
-            # _check_variable, which looks at unique_set / min-max / charset
-            # directly and never calls classify(). A classification block
-            # would only make them collect timestamps nothing reads.
             event_data_kwargs=self._event_data_kwargs(),
         )
-        # auto config checks individual-variable stability to select features
-        self.auto_conf_persistency = EventPersistency(
+
+    def _init_auto_persistency(self) -> EventPersistency:
+        return EventPersistency(
             event_data_class=self._event_data_class(),
             event_data_kwargs=self._with_classification_kwargs(self._auto_conf_kwargs()),
         )
-        self._register_persistency(self.persistency)
 
     def _with_classification_kwargs(
         self, kwargs: Optional[Dict[str, Any]]
     ) -> Optional[Dict[str, Any]]:
-        """Add the classification block to tracker kwargs, unless it is the
-        default.
 
-        Done here rather than in _stability_kwargs so every VariableDetector
-        subclass is covered -- NewValueDetector overrides neither construction
-        hook and NewValueComboDetector returns only a converter_function.
-
-        Non-defaults only: forwarding the default block would be noise, and a
-        block naming a time-axis method would make every variable collect
-        timestamps it never reads.
-        """
-        auto = self.config.auto_config_params
-        if auto.classification == ClassificationMethods():
+        if self.config_vars.classification == ClassificationMethods():
             return kwargs
-        return {**(kwargs or {}), "classification": auto.classification.model_dump()}
-
-    # ---- construction hooks -------------------------------------------------
+        return {**(kwargs or {}), "classification": self.config_vars.classification.model_dump()}
 
     def _event_data_class(self) -> type:
         return EventStabilityTracker
@@ -163,13 +127,7 @@ class VariableDetector(CoreDetector):
         return self._event_data_kwargs()
 
     def _stability_kwargs(self) -> Dict[str, Any]:
-        """Kwargs for detectors whose tracker rebinds a per-detector
-        ``add_value`` closure (charset / value_range / bigram)."""
-        name = type(self).__name__
-        return {
-            "add_value_fn": name,
-            "detector_config": _strip_auto_config_params(self.config.to_dict(method_id=name), name),
-        }
+        return {}
 
     def _warn_time_fallback_once(self, reason: str) -> None:
         """Log the first time-dependent misconfiguration, then stay quiet.
@@ -188,29 +146,24 @@ class VariableDetector(CoreDetector):
     def _timestamp(self, input_: ParserSchema) -> float | None:
         """Resolve the record's event time, or None if no enabled
         classification method reads the time axis."""
-        auto = self.config.auto_config_params
-        if not auto.classification.needs_timestamps:
+        if not self.config_vars.classification.needs_timestamps:
             return None
-        if not auto.timestamp_variable:
-            # Selecting a time-axis method without naming the field is an
-            # operator error, not an opt-out -- say so rather than silently
-            # no-op.
+        if not self.config_vars.timestamp_variable:
             self._warn_time_fallback_once(
                 "a time-axis classification method is enabled "
                 "but timestamp_variable is not set"
             )
             return None
-        raw = input_["logFormatVariables"].get(auto.timestamp_variable)
-        ts = self._time_handler.parse_timestamp(str(raw or ""), auto.timestamp_format)
+
+        raw = input_["logFormatVariables"].get(self.config_vars.timestamp_variable)
+        ts = self._time_handler.parse_timestamp(str(raw or ""), self.config_vars.timestamp_format)
         if ts == "0":
             self._warn_time_fallback_once(
-                f"timestamp_variable {auto.timestamp_variable!r} is missing or "
+                f"timestamp_variable {self.config_vars.timestamp_variable!r} is missing or "
                 f"unparseable (got {raw!r})"
             )
             return None
         return float(ts)
-
-    # ---- per-detector hooks -------------------------------------------------
 
     def _prepare_variables(self, variables: Dict[str, Any], stage: str) -> Dict[str, Any]:
         """Transform extracted variables.
@@ -232,7 +185,43 @@ class VariableDetector(CoreDetector):
     def _description(self) -> str:
         return f"{self.name} detected anomalies."
 
-    # ---- shared lifecycle ---------------------------------------------------
+
+class VariableDetector(CoreDetector, VariableHooks):
+    """Abstract base for detectors that learn a per-variable model from
+    configured log variables and flag anomalous values at detection time.
+
+    Subclasses override a small set of hooks:
+      - ``_check_variable`` (required): the per-variable anomaly test.
+      - ``_prepare_variables`` (optional): transform variables per stage.
+      - ``_event_data_kwargs`` / ``_auto_conf_kwargs`` (optional): tracker
+        construction kwargs.
+      - ``_description`` / ``_alert_key`` (optional): output formatting.
+
+    The five lifecycle methods (train/detect/configure/post_train/
+    set_configuration) live here and are shared by all subclasses.
+    """
+
+    def __init__(self, name: str, config: VariableDetectorConfig) -> None:
+        CoreDetector.__init__(self, name=name, buffer_mode=BufferMode.NO_BUF, config=config)
+        self.config: VariableDetectorConfig  # type narrowing for IDE
+        VariableHooks.__init__(
+            self,
+            name=self.name,
+            _time_handler=_time_handler,
+            config_vars=self.config.auto_config_params
+        )
+
+        self.persistency = self._init_persistency()
+        self.auto_conf_persistency = self._init_auto_persistency()
+        self._register_persistency(self.persistency)
+
+    def _stability_kwargs(self) -> Dict[str, Any]:
+        """Redfine to be specific to the detector."""
+        name = type(self).__name__
+        return {
+            "add_value_fn": name,
+            "detector_config": _strip_auto_config_params(self.config.to_dict(method_id=name), name),
+        }
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         self._ingest(input_, get_configured_variables(input_, self.config.events), input_["EventID"])
@@ -288,10 +277,7 @@ class VariableDetector(CoreDetector):
         is_global: bool,
     ) -> float:
         """Loop the event's per-variable trackers, accumulate alerts, score +1
-        per anomalous variable.
-
-        Bigram overrides this for event-level scoring.
-        """
+        per anomalous variable."""
         score = 0.0
         var_trackers = cast(Dict[str, SingleStabilityTracker], event_tracker.get_data())
         for key, tracker in var_trackers.items():
@@ -336,10 +322,7 @@ class VariableDetector(CoreDetector):
             selected = stable + static
             if selected:
                 variables[event_id] = selected
-        # Write only what the configure phase produced. Rebuilding the config
-        # from generate_detector_config is what used to drop operator settings:
-        # it emits four keys, so everything else had to be carried across by
-        # hand and a forgotten field failed silently.
+
         self.config.events = generate_events_config(variables, self.name)
         self.config.auto_config = False
         if not self.config.events.events:
