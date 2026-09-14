@@ -33,6 +33,16 @@ class VariableDetectorConfig(CoreDetectorConfig):
     auto_config_params: VariableAutoConfigParams = VariableAutoConfigParams()
 
 
+def add_variables(
+    vars: Dict[Any, Any], tracker: EventStabilityTracker, auto: VariableAutoConfigParams, e_id: int | str
+) -> None:
+    stable = tracker.get_features_by_classification("STABLE") if auto.use_stable_vars else []
+    static = tracker.get_features_by_classification("STATIC") if auto.use_static_vars else []
+    selected = stable + static
+    if selected:
+        vars[e_id] = selected
+
+
 class VariableDetector(CoreDetector, VariablesLogic):
     """Abstract base for detectors that learn a per-variable model from
     configured log variables and flag anomalous values at detection time.
@@ -52,10 +62,7 @@ class VariableDetector(CoreDetector, VariablesLogic):
         CoreDetector.__init__(self, name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: VariableDetectorConfig
         VariablesLogic.__init__(
-            self,
-            name=self.name,
-            _time_handler=_time_handler,
-            config_vars=self.config.auto_config_params
+            self, name=self.name, _time_handler=_time_handler, config_vars=self.config.auto_config_params
         )
         self._register_persistency(self.persistency)
 
@@ -123,19 +130,7 @@ class VariableDetector(CoreDetector, VariablesLogic):
         for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
             stability_tracker = cast(EventStabilityTracker, tracker)
             auto = self.config.auto_config_params
-            stable = (
-                stability_tracker.get_features_by_classification("STABLE")
-                if auto.use_stable_vars
-                else []
-            )
-            static = (
-                stability_tracker.get_features_by_classification("STATIC")
-                if auto.use_static_vars
-                else []
-            )
-            selected = stable + static
-            if selected:
-                variables[event_id] = selected
+            add_variables(variables, tracker=stability_tracker, auto=auto, e_id=event_id)
 
         self.config.events = generate_events_config(variables, self.name)
         self.config.auto_config = False
