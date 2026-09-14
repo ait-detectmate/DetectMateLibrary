@@ -416,6 +416,37 @@ class TestValueRangeDetectorAutoConfig:
 
         assert detected_ids == {'1859', '1860', '1861', '1862'}
 
+    @pytest.mark.ignored
+    def test_audit_log_anomalie_fed(self):
+        parser = MatcherParser(config=_PARSER_CONFIG)
+        detector1 = ValueRangeDetector()
+        detector2 = ValueRangeDetector()
+
+        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
+        for log in logs[:TRAIN_UNTIL]:
+            detector1.configure(log)
+            detector2.configure(log)
+
+        detector1.set_configuration()
+        detector2.set_configuration()
+
+        for log in logs[:TRAIN_UNTIL]:
+            detector1.train(log)
+
+        assert len(detector2.persistency) == 0
+
+        (detector1 + detector2).aggregate()
+        assert detector2.persistency == detector1.persistency
+        assert len(detector2.persistency) != 0
+
+        detected_ids: set[str] = set()
+        for log in logs[TRAIN_UNTIL:]:
+            output = schemas.DetectorSchema()
+            if detector2.detect(log, output_=output):
+                detected_ids.add(log["logID"])
+
+        assert detected_ids == {'1859', '1860', '1861', '1862'}
+
 
 class TestValueRangeDetectorGlobalInstances:
     """Tests event-ID-independent global instance detection."""

@@ -139,3 +139,10 @@ class VariableDetector(CoreDetector, VariablesLogic):
                 "No stable variables were found in configure-phase data. "
                 "The detector will produce no alerts."
             )
+
+    def aggregate_strategy(self, components: set["VariableDetector"]) -> None:  # type: ignore
+        for component in components:
+            self.persistency.combine(component.persistency)
+
+        for component in components:
+            component.persistency = self.persistency
