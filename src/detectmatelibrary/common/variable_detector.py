@@ -12,7 +12,7 @@ from detectmatelibrary.common._config._compile import (
     get_configured_variables,
 )
 from detectmatelibrary.common._other_op._variable_hooks import (
-    get_global_variables, strip_auto_config_params, VariableAutoConfigParams, VariableHooks
+    get_global_variables, strip_auto_config_params, VariableAutoConfigParams, VariablesLogic
 
 )
 from detectmatelibrary.common.detector import (
@@ -33,7 +33,7 @@ class VariableDetectorConfig(CoreDetectorConfig):
     auto_config_params: VariableAutoConfigParams = VariableAutoConfigParams()
 
 
-class VariableDetector(CoreDetector, VariableHooks):
+class VariableDetector(CoreDetector, VariablesLogic):
     """Abstract base for detectors that learn a per-variable model from
     configured log variables and flag anomalous values at detection time.
 
@@ -51,7 +51,7 @@ class VariableDetector(CoreDetector, VariableHooks):
     def __init__(self, name: str, config: VariableDetectorConfig) -> None:
         CoreDetector.__init__(self, name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: VariableDetectorConfig
-        VariableHooks.__init__(
+        VariablesLogic.__init__(
             self,
             name=self.name,
             _time_handler=_time_handler,

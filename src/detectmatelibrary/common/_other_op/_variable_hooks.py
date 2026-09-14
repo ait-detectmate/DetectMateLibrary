@@ -66,26 +66,12 @@ class VariableAutoConfigParams(AutoConfigParams):
     timestamp_format: str | None = None  # None -> TimeFormatHandler auto-detect
 
 
-class VariableHooks:
-    def __init__(
-        self,
-        name: str,
-        _time_handler: TimeFormatHandler = TimeFormatHandler(),
-        config_vars: VariableAutoConfigParams = VariableAutoConfigParams(),
-    ) -> None:
+class VaribaleHooks:
+    """Hooks use to define the dfferent behaviours in th next subclasses."""
+    def __init__(self, name: str, config_vars: VariableAutoConfigParams) -> None:
         self.name = name
         self._warned_bad_timestamp: bool = False
         self.config_vars = config_vars
-        self._time_handler = _time_handler
-
-        self.persistency = EventPersistency(
-            event_data_class=self._event_data_class(),
-            event_data_kwargs=self._event_data_kwargs(),
-        )
-        self.auto_conf_persistency = EventPersistency(
-            event_data_class=self._event_data_class(),
-            event_data_kwargs=self._with_classification_kwargs(self._auto_conf_kwargs()),
-        )
 
     def _with_classification_kwargs(
         self, kwargs: Optional[Dict[str, Any]]
@@ -107,42 +93,6 @@ class VariableHooks:
     def _stability_kwargs(self) -> Dict[str, Any]:
         return {}
 
-    def _warn_time_fallback_once(self, reason: str) -> None:
-        """Log the first time-dependent misconfiguration, then stay quiet.
-
-        A bad config would otherwise emit one warning per record, so the
-        flag latches after the first message.
-        """
-        if self._warned_bad_timestamp:
-            return
-        self._warned_bad_timestamp = True
-        logger.warning(
-            "%s: %s; falling back to the index axis for stability classification.",
-            self.name, reason,
-        )
-
-    def _timestamp(self, input_: ParserSchema) -> float | None:
-        """Resolve the record's event time, or None if no enabled
-        classification method reads the time axis."""
-        if not self.config_vars.classification.needs_timestamps:
-            return None
-        if not self.config_vars.timestamp_variable:
-            self._warn_time_fallback_once(
-                "a time-axis classification method is enabled "
-                "but timestamp_variable is not set"
-            )
-            return None
-
-        raw = input_["logFormatVariables"].get(self.config_vars.timestamp_variable)
-        ts = self._time_handler.parse_timestamp(str(raw or ""), self.config_vars.timestamp_format)
-        if ts == "0":
-            self._warn_time_fallback_once(
-                f"timestamp_variable {self.config_vars.timestamp_variable!r} is missing or "
-                f"unparseable (got {raw!r})"
-            )
-            return None
-        return float(ts)
-
     def _prepare_variables(self, variables: Dict[str, Any], stage: str) -> Dict[str, Any]:
         """Transform extracted variables.
 
@@ -162,6 +112,65 @@ class VariableHooks:
 
     def _description(self) -> str:
         return f"{self.name} detected anomalies."
+
+
+class VariablesLogic(VaribaleHooks):
+    """Variables logic combining the hooks and persistency class."""
+    def __init__(
+        self,
+        name: str,
+        _time_handler: TimeFormatHandler = TimeFormatHandler(),
+        config_vars: VariableAutoConfigParams = VariableAutoConfigParams(),
+    ) -> None:
+
+        super().__init__(name=name, config_vars=config_vars)
+        self._time_handler = _time_handler
+        self.persistency = EventPersistency(
+            event_data_class=self._event_data_class(),
+            event_data_kwargs=self._event_data_kwargs(),
+        )
+        self.auto_conf_persistency = EventPersistency(
+            event_data_class=self._event_data_class(),
+            event_data_kwargs=self._with_classification_kwargs(self._auto_conf_kwargs()),
+        )
+
+    def _warn_time_fallback_once(self, reason: str) -> None:
+        """Log the first time-dependent misconfiguration, then stay quiet.
+
+        A bad config would otherwise emit one warning per record, so the
+        flag latches after the first message.
+        """
+        if self._warned_bad_timestamp:
+            return
+        self._warned_bad_timestamp = True
+        logger.warning(
+            "%s: %s; falling back to the index axis for stability classification.",
+            self.name, reason,
+        )
+
+    def _timestamp(self, input_: ParserSchema) -> float | None:
+        """Resolve the record's event time, or None if no enabled
+        classification method reads the time axis."""
+        if not self.config_vars.classification.needs_timestamps:
+            return None
+
+        if not self.config_vars.timestamp_variable:
+            self._warn_time_fallback_once(
+                "a time-axis classification method is enabled "
+                "but timestamp_variable is not set"
+            )
+            return None
+
+        raw = input_["logFormatVariables"].get(self.config_vars.timestamp_variable)
+        ts = self._time_handler.parse_timestamp(str(raw or ""), self.config_vars.timestamp_format)
+        if ts == "0":
+            self._warn_time_fallback_once(
+                f"timestamp_variable {self.config_vars.timestamp_variable!r} is missing or "
+                f"unparseable (got {raw!r})"
+            )
+            return None
+
+        return float(ts)
 
     def _check_event(
         self,
