@@ -1,6 +1,6 @@
 from detectmatelibrary.common._config._compile import generate_events_config
 from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector
-from detectmatelibrary.common.variable_detector import get_global_variables
+from detectmatelibrary.common._other_op._variable_hooks import get_global_variables
 from detectmatelibrary.utils import persistency
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.utils.data_buffer import BufferMode

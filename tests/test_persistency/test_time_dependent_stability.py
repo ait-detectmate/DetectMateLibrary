@@ -5,7 +5,7 @@ import math
 
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig
-from detectmatelibrary.common.variable_detector import VariableAutoConfigParams
+from detectmatelibrary.common._other_op._variable_hooks import VariableAutoConfigParams
 from detectmatelibrary.utils.persistency.rle_list import RLEList
 from detectmatelibrary.utils.persistency import EventPersistency
 from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
@@ -683,7 +683,7 @@ def test_train_path_records_no_timestamps():
     Stability classification is never consulted at detect time, so the
     trained trackers would carry an unread timestamps list per variable.
     """
-    from detectmatelibrary.common.variable_detector import VariableAutoConfigParams
+    from detectmatelibrary.common._other_op._variable_hooks import VariableAutoConfigParams
     from detectmatelibrary.detectors.new_value_detector import (
         NewValueDetector,
         NewValueDetectorConfig,
