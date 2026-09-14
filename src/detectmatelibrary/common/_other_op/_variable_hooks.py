@@ -6,8 +6,7 @@ from detectmatelibrary.utils.persistency.event_persistency import EventPersisten
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 
 from detectmatelibrary.common._config._formats import _EventInstance
-from detectmatelibrary.common.detector import AutoConfigParams
-
+from detectmatelibrary.common._config import AutoConfigParams
 
 from detectmatelibrary.tools.logging import logger
 from detectmatelibrary.schemas import ParserSchema

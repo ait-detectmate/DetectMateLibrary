@@ -57,7 +57,6 @@ class VariableDetector(CoreDetector, VariablesLogic):
     The five lifecycle methods (train/detect/configure/post_train/
     set_configuration) live here and are shared by all subclasses.
     """
-
     def __init__(self, name: str, config: VariableDetectorConfig) -> None:
         CoreDetector.__init__(self, name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: VariableDetectorConfig

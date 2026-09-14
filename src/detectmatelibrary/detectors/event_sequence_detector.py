@@ -6,7 +6,9 @@ from typing import Any
 from pydantic import Field, model_validator
 
 from detectmatelibrary.common._config._compile import generate_events_config
-from detectmatelibrary.common.detector import AutoConfigParams, CoreDetectorConfig, CoreDetector
+from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector
+from detectmatelibrary.common._config import AutoConfigParams
+
 from detectmatelibrary.tools.logging import logger
 from detectmatelibrary.utils import persistency
 from detectmatelibrary.utils.data_buffer import BufferMode
