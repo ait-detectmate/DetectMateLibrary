@@ -193,10 +193,19 @@ class VariablesLogic(VaribaleHooks):
                 score += 1.0
         return score
 
-    def _ingest(self, input_: ParserSchema, variables: Dict[str, Any], event_id: Any) -> None:
+    def _ingest(
+        self, input_: ParserSchema, variables: Dict[str, Any], event_id: Any
+    ) -> None:
         variables = self._prepare_variables(variables, "training")
         self.persistency.ingest_event(
             event_id=event_id,
             event_template=input_["template"],
-            named_variables=variables,
+            named_variables=variables
         )
+
+    def combine(self, components: set["VariablesLogic"]) -> None:
+        for component in components:
+            self.persistency.combine(component.persistency)
+
+        for component in components:
+            component.persistency = self.persistency

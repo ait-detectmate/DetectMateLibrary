@@ -141,8 +141,4 @@ class VariableDetector(CoreDetector, VariablesLogic):
             )
 
     def aggregate_strategy(self, components: set["VariableDetector"]) -> None:  # type: ignore
-        for component in components:
-            self.persistency.combine(component.persistency)
-
-        for component in components:
-            component.persistency = self.persistency
+        self.combine(components)  # type: ignore
