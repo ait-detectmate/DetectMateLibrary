@@ -13,7 +13,7 @@ from detectmatelibrary.common._config._compile import (
     get_configured_variables,
 )
 from detectmatelibrary.common._other_op._variable_hooks import (
-    get_global_variables, _strip_auto_config_params, VariableAutoConfigParams, VariableHooks
+    get_global_variables, strip_auto_config_params, VariableAutoConfigParams, VariableHooks
 
 )
 from detectmatelibrary.common.detector import (
@@ -68,7 +68,7 @@ class VariableDetector(CoreDetector, VariableHooks):
         name = type(self).__name__
         return {
             "add_value_fn": name,
-            "detector_config": _strip_auto_config_params(self.config.to_dict(method_id=name), name),
+            "detector_config": strip_auto_config_params(self.config.to_dict(method_id=name), name),
         }
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore

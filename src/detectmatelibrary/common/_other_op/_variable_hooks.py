@@ -36,7 +36,7 @@ def get_global_variables(
     return result
 
 
-def _strip_auto_config_params(detector_config: Dict[str, Any], method_id: str) -> Dict[str, Any]:
+def strip_auto_config_params(detector_config: Dict[str, Any], method_id: str) -> Dict[str, Any]:
     """Return a copy of a serialized detector_config with its
     auto_config_params block removed.
 
