@@ -2,54 +2,63 @@ site_name: DetectMate Library
 site_url: https://ait-detectmate.github.io/DetectMateLibrary/
 
 theme:
-  name: readthedocs
+  name: material # windmill is auch cool
 
 nav:
   - Home: index.md
-  - Getting Started:
-    - Installation: installation.md
-    - Basic usage: basic_usage.md
-    - Create new component: create_components.md
-  - Components:
-    - Basic concepts: basic_idea.md
-    - Overall architecture: overall_architecture.md
-    - Schemas: schemas.md
-    - Federation: federation.md
-    - Parsers: parsers.md
-    - Detectors: detectors.md
-    - Alert Aggregation: alert_aggregator.md
-  - Parsers Methods:
-    - Template Matcher: parsers/template_matcher.md
-    - Template Tree Matcher: parsers/template_tree_matcher.md
-    - Json Parser: parsers/json_parser.md
-    - LogBatcher Parser: parsers/logbatcher_parser.md
-  - Detectors Methods:
-    - Random Detector: detectors/random_detector.md
-    - New Value: detectors/new_value.md
-    - Combo Detector: detectors/combo.md
-    - New Event: detectors/new_event.md
-    - Event Sequence: detectors/event_sequence.md
-    - Rule Based: detectors/rule_based.md
-    - BiGram Frequency: detectors/bigram_frequency.md
-    - CharSet: detectors/charset.md
-    - Value Range: detectors/value_range.md
-    - Deeplog Detector: detectors/deeplog.md
-    - LogBert Detector: detectors/logbert.md
-    - SCVS Detector: detectors/scvs_detector.md
-    - ECVC Detector: detectors/ecvc_detector.md
-  - Alert Aggregation Methods:
-    - Basic Concat: alert_aggregators/basic_concatenation.md
-  - Auxiliar:
-    - Persistency: auxiliar/persistency.md
-    - Data buffer: auxiliar/input_buffer.md
-  - Helpers:
-    - From to: helper/from_to.md
-  - Contribution:
+
+  - User Guide:
+    - What is DetectMate?: user_guide/what_is_detectmate.md
+    - Installation: user_guide/installation.md
+    - Basic knowledge: user_guide/basic_knowledge.md
+    - Quickstart: user_guide/quickstart.md
+    - Tutorial (end-to-end): user_guide/tutorial.md
+
+  - Advanced Guide:
+    - Overall architecture: advanced/overall_architecture.md
+    - Components:
+      - Schemas: schemas.md
+      - Federation: federation.md
+      - Parsers: parsers.md
+      - Detectors: detectors.md
+      - Alert Aggregation: alert_aggregator.md
+    - Parser types:
+      - Template Matcher: parsers/template_matcher.md
+      - Template Tree Matcher: parsers/template_tree_matcher.md
+      - Json Parser: parsers/json_parser.md
+      - LogBatcher Parser: parsers/logbatcher_parser.md
+      - Auto Parser: parsers/auto_parser.md
+      - Drain Parser: parsers/drain_parser.md
+    - Detector types:
+      - Random Detector: detectors/random_detector.md
+      - New Value: detectors/new_value.md
+      - Combo Detector: detectors/combo.md
+      - New Event: detectors/new_event.md
+      - Event Sequence: detectors/event_sequence.md
+      - Rule Based: detectors/rule_based.md
+      - BiGram Frequency: detectors/bigram_frequency.md
+      - CharSet: detectors/charset.md
+      - Value Range: detectors/value_range.md
+      - Deeplog Detector: detectors/deeplog.md
+      - LogBert Detector: detectors/logbert.md
+      - SCVS Detector: detectors/scvs_detector.md
+      - ECVC Detector: detectors/ecvc_detector.md
+    - Alert Aggregation methods:
+      - Basic Concat: alert_aggregators/basic_concatenation.md
+    - Helpers:
+      - From: helper/from.md
+      - To: helper/to.md
+      - FromTo: helper/fromto.md
+    - Auxiliary:
+      - Persistency: auxiliar/persistency.md
+      - Data buffer: auxiliar/input_buffer.md
+    - Other:
+      - Log Formats: other/log_formats.md
+
+  - How to contribute:
     - Contributing: contribution.md
     - Development: development.md
     - Release Process: release.md
-  - Other:
-    - Log Formats: other/log_formats.md
 
 markdown_extensions:
   - pymdownx.snippets:

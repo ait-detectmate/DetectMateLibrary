@@ -21,8 +21,8 @@ uv sync --extra llm
 
 `LogBatcherParser` wraps the [LogBatcher](https://github.com/LogIntelligence/LogBatcher) engine (MIT, LogIntelligence 2024) as a `CoreParser`. Parsing proceeds in two phases:
 
-1. **Cache lookup** — the incoming log is matched against previously seen templates using a hash-based exact match followed by a tree-based similarity check. If a match is found, no LLM call is made.
-2. **LLM query** — on a cache miss, the log is submitted to the configured model. The returned template is stored in the cache for future reuse.
+1. **Cache lookup**  --  the incoming log is matched against previously seen templates using a hash-based exact match followed by a tree-based similarity check. If a match is found, no LLM call is made.
+2. **LLM query**  --  on a cache miss, the log is submitted to the configured model. The returned template is stored in the cache for future reuse.
 
 Variable slots in templates use the `<*>` wildcard notation (e.g. `User <*> logged in from <*>`). Extracted variables are written to `output_["variables"]` in order of appearance.
 
@@ -63,7 +63,7 @@ parsers:
 
 ## Usage examples
 
-Basic usage — set up the parser (parsing requires a valid API key):
+Basic usage  --  set up the parser (parsing requires a valid API key):
 
 ```python
 --8<-- "docs/examples/parsers/logbatcher_parser.py:basic"

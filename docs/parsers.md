@@ -1,4 +1,4 @@
-# Components: Parsers
+# Parsers
 
 Parsers convert unstructured raw logs into structured ParserSchema objects that downstream detectors consume.
 
@@ -15,7 +15,7 @@ This document explains expected APIs, how to implement a parser, testing tips an
 - `CoreParser.run()` handles lifecycle and calls `parse()` for each input; implement pure parsing logic inside `parse()` where possible.
 - Use a typed `Config` class (subclass of `CoreParserConfig`) to hold runtime parameters.
 
-## CoreParser — minimal API
+## CoreParser  --  minimal API
 
 Recommended signatures and behavior:
 
@@ -36,18 +36,18 @@ class CoreParser:
         """Optional: train internal models. Can be a no-op for stateless parsers."""
 ```
 
-## ParserSchema — what to populate
+## ParserSchema  --  what to populate
 
 Minimum fields commonly expected by downstream components:
 
-- `EventID` (int) — identifier for the matched template/event
-- `template` (string) — event template text
-- `variables` (repeated string) — extracted parameters (extend the list)
-- `parsedLogID` / `logID` — identifiers linking raw and parsed records
-- `parsedTimestamp` / `receivedTimestamp` — timestamps
+- `EventID` (int)  --  identifier for the matched template/event
+- `template` (string)  --  event template text
+- `variables` (repeated string)  --  extracted parameters (extend the list)
+- `parsedLogID` / `logID`  --  identifiers linking raw and parsed records
+- `parsedTimestamp` / `receivedTimestamp`  --  timestamps
 
 
-## Creating a new parser — step by step
+## Creating a new parser  --  step by step
 
 1. Create a Config class inheriting `CoreParserConfig`.
 2. Create parser class inheriting `CoreParser`.
@@ -62,13 +62,19 @@ from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
 from detectmatelibrary import schemas
 from typing import Any
 
+
 class MyParserConfig(CoreParserConfig):
     method_type: str = "my_parser"
     # add parser-specific settings here
     pattern: str | None = None
 
+
 class MyParser(CoreParser):
-    def __init__(self, name: str = "MyParser", config: MyParserConfig | dict[str, Any] = MyParserConfig()):
+    def __init__(
+        self,
+        name: str = "MyParser",
+        config: MyParserConfig | dict[str, Any] = MyParserConfig(),
+    ):
         if isinstance(config, dict):
             config = MyParserConfig.from_dict(config, name)
         super().__init__(name=name, config=config)
@@ -108,5 +114,6 @@ def test_my_parser_parse():
 - [Template Matcher](parsers/template_matcher.md): matches logs against a predefined set of `<*>` templates.
 - [Template Tree Matcher](parsers/template_tree_matcher.md): matches logs against a predefined set of `<*>` templates using a tree structure.
 - [LogBatcher Parser](parsers/logbatcher_parser.md): LLM-based parser that infers templates from raw logs with no training data.
+- [Drain parser](parsers/drain_parser.md): Parser inspired by [Drain Publication](https://ieeexplore.ieee.org/document/8029742).
 
 Go back to [Index](index.md)

@@ -2,7 +2,7 @@
 
 This catalog covers 18 common log formats and provides ready-to-use `log_format` patterns for the DetectMate parsers, such as the [MatcherParser](../parsers/template_matcher.md).
 
-**Key concept:** `log_format` splits a raw log line into structured header fields that become entries in `ParserSchema.logFormatVariables`. The special `<Content>` token captures the variable message body, which is then matched against your template file to produce `EventID` and `variables`. Formats without `<Content>` are fully structured — no template file is needed.
+**Key concept:** `log_format` splits a raw log line into structured header fields that become entries in `ParserSchema.logFormatVariables`. The special `<Content>` token captures the variable message body, which is then matched against your template file to produce `EventID` and `variables`. Formats without `<Content>` are fully structured  --  no template file is needed.
 
 **Generic configuration:**
 
@@ -77,7 +77,7 @@ Dec 10 07:07:38 LabSZ sshd[24206]: Failed password for invalid user test9 from 1
 
 ### ApacheAccess
 
-Apache httpd access log (Combined Log Format). Each line is fully structured — no template file is required.
+Apache httpd access log (Combined Log Format). Each line is fully structured  --  no template file is required.
 
 ```text
 64.242.88.10 - - [07/Mar/2004:16:10:02 -0800] "GET /twiki/bin/edit/Main/Double_bounce_sender?topicparent=Main.ConfigurationVariables HTTP/1.1" 401 12846 "-" "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.2) Gecko/20021202"
@@ -237,7 +237,7 @@ Thunderbird supercomputer log. Similar to BGL but from a different cluster; incl
 
 ### Linux
 
-Linux syslog format (RFC 3164). Produced by `syslog`, `rsyslog`, and `syslog-ng` — covers auth, cron, kernel messages, and more.
+Linux syslog format (RFC 3164). Produced by `syslog`, `rsyslog`, and `syslog-ng`  --  covers auth, cron, kernel messages, and more.
 
 ```text
 Jun 14 15:16:02 combo sshd(pam_unix)[19939]: authentication failure; logname= uid=0 euid=0 tty=NODEVssh ruser= rhost=218.188.2.4

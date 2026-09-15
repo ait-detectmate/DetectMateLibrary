@@ -11,7 +11,7 @@ Extracts structured information from JSON-formatted logs. Optionally delegates p
 
 Relevant config options:
 
-- `method_type` (string): parser type identifier — must be `json_parser`.
+- `method_type` (string): parser type identifier  --  must be `json_parser`.
 - `params.timestamp_name` (string): JSON key to use as the timestamp (default `"time"`).
 - `params.content_name` (string): JSON key whose value is forwarded to the content parser (default `"message"`).
 - `params.content_parser` (string): name of a **sibling** parser entry in the `parsers` section that handles the content field (default `"JsonMatcherParser"`).
@@ -27,7 +27,7 @@ parsers:
     params:
       timestamp_name: "time"
       content_name: "message"
-      content_parser: JsonMatcherParser   # optional — defaults to "JsonMatcherParser"
+      content_parser: JsonMatcherParser   # optional  --  defaults to "JsonMatcherParser"
   JsonMatcherParser:
     method_type: matcher_parser
     params:
@@ -37,13 +37,13 @@ parsers:
 
 ## Usage examples
 
-Basic usage — parse JSON and extract fields (no template matching):
+Basic usage  --  parse JSON and extract fields (no template matching):
 
 ```python
 --8<-- "docs/examples/parsers/json_parser.py:basic"
 ```
 
-Dict-based config (from YAML) — with template matching on the `message` field:
+Dict-based config (from YAML)  --  with template matching on the `message` field:
 
 ```python
 --8<-- "docs/examples/parsers/json_parser.py:dict-based"

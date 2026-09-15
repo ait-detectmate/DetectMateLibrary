@@ -68,7 +68,7 @@ parsers:
 
 ## Usage examples
 
-Simple usage — load templates and match a log:
+Simple usage  --  load templates and match a log:
 
 ```python
 --8<-- "docs/examples/parsers/template_matcher.py:example"
