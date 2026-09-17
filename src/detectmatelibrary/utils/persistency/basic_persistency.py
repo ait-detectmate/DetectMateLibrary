@@ -25,7 +25,7 @@ def get_all_variables(
     return all_vars
 
 
-class EventStruct:
+class PersistencyStruct:
     """Event structure of the Event Persistency."""
     def __init__(
         self,
@@ -66,7 +66,7 @@ class EventStruct:
         return len(self.data)
 
     def __eq__(self, other: object) -> bool:
-        if not isinstance(other, EventStruct) or len(self) != len(other):
+        if not isinstance(other, PersistencyStruct) or len(self) != len(other):
             return False
         for elem1, elem2 in zip(self.data.values(), other.data.values()):
             if elem1.as_dict() != elem2.as_dict():
@@ -84,7 +84,7 @@ class EventPersistencyBase:
         *,
         event_data_kwargs: Optional[dict[str, Any]] = None,
     ):
-        self.event_struct = EventStruct(
+        self.event_struct = PersistencyStruct(
             event_data_class, event_data_kwargs=event_data_kwargs
         )
 
