@@ -7,6 +7,8 @@ The Event Sequence Detector raises alerts when a run of consecutive event IDs ap
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Alert / finding |
 
+✅ Federation compatible (Binary not available).
+
 ## Description
 
 The detector slides a window of `fixed_window_size` event IDs over the log stream. During training every full window is stored as a known sequence; during detection a window whose exact sequence is not in that set is reported as an anomaly.

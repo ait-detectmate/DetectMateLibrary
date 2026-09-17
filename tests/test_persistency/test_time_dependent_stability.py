@@ -5,7 +5,7 @@ import math
 
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig
-from detectmatelibrary.common.variable_detector import VariableAutoConfigParams
+from detectmatelibrary.common._other_op._variable_hooks import VariableAutoConfigParams
 from detectmatelibrary.utils.persistency.rle_list import RLEList
 from detectmatelibrary.utils.persistency import EventPersistency
 from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
@@ -483,14 +483,14 @@ class TestClassificationConfigWiring:
         # trained persistency is read by _check_variable, which never calls
         # classify(), so it never receives classification kwargs at all.
         detector = CharsetDetector(config=CharsetDetectorConfig())
-        assert detector.persistency.event_data_kwargs.get("classification") is None
+        assert detector.persistency.event_struct.data_kwargs.get("classification") is None
 
         configured = CharsetDetector(config=CharsetDetectorConfig())
         configured.config.auto_config_params.classification = ClassificationMethods(
             index=False, time=True
         )
         rebuilt = CharsetDetector(config=configured.config.to_dict(method_id="CharsetDetector"))
-        block = rebuilt.auto_conf_persistency.event_data_kwargs["classification"]
+        block = rebuilt.auto_conf_persistency.event_struct.data_kwargs["classification"]
         assert ClassificationMethods(**block).enabled == ("time",)
 
     def test_config_fields_round_trip(self):
@@ -663,7 +663,7 @@ class TestIndexAndTimeTogether:
         rebuilt = CharsetDetector(
             config=configured.config.to_dict(method_id="CharsetDetector")
         )
-        block = rebuilt.auto_conf_persistency.event_data_kwargs["classification"]
+        block = rebuilt.auto_conf_persistency.event_struct.data_kwargs["classification"]
         assert ClassificationMethods(**block).enabled == ("index", "time")
 
     def test_event_tracker_propagates_both(self):
@@ -683,7 +683,7 @@ def test_train_path_records_no_timestamps():
     Stability classification is never consulted at detect time, so the
     trained trackers would carry an unread timestamps list per variable.
     """
-    from detectmatelibrary.common.variable_detector import VariableAutoConfigParams
+    from detectmatelibrary.common._other_op._variable_hooks import VariableAutoConfigParams
     from detectmatelibrary.detectors.new_value_detector import (
         NewValueDetector,
         NewValueDetectorConfig,

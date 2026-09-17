@@ -1,20 +1,22 @@
-from detectmatelibrary.common._config._compile import generate_events_config
 from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector
-from detectmatelibrary.common.variable_detector import get_global_variables
-from detectmatelibrary.utils import persistency
+
+from detectmatelibrary.common._other_op._variable_hooks import get_global_variables
+from detectmatelibrary.common._other_op._variable_hooks import VariablesLogic
+
+from detectmatelibrary.common._config._compile import get_configured_variables
+from detectmatelibrary.common._config._compile import generate_events_config
+
+
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
-from detectmatelibrary.common._config._compile import (
-    get_configured_variables
-)
 
 
 class NewEventDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_event_detector"
 
 
-class NewEventDetector(CoreDetector):
+class NewEventDetector(CoreDetector, VariablesLogic):
     """Detect new values in log data as anomalies based on learned values."""
 
     def __init__(
@@ -26,30 +28,19 @@ class NewEventDetector(CoreDetector):
         if isinstance(config, dict):
             config = NewEventDetectorConfig.from_dict(config, name)
 
-        super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
+        CoreDetector.__init__(self, name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: NewEventDetectorConfig
-        self.persistency = persistency.EventPersistency(
-            event_data_class=persistency.EventStabilityTracker,
-        )
-        # auto config checks if individual variables are stable to select combos from
-        self.auto_conf_persistency = persistency.EventPersistency(
-            event_data_class=persistency.EventStabilityTracker
-        )
+
+        VariablesLogic.__init__(self, name=self.name)
         self._register_persistency(self.persistency)
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by learning values from the input data."""
-        self.persistency.ingest_event(
-            event_id=input_["EventID"],
-            event_template=input_["template"]
-        )
+        self._ingest(event_id=input_["EventID"], input_=input_, variables={})
         if self.config.global_instances:
             global_vars = get_global_variables(input_, self.config.global_instances)
             if global_vars:
-                self.persistency.ingest_event(
-                    event_id=GLOBAL_EVENT_ID,
-                    event_template=input_["template"]
-                )
+                self._ingest(event_id=GLOBAL_EVENT_ID, input_=input_, variables={})
 
     def detect(
         self, input_:  ParserSchema, output_: DetectorSchema  # type: ignore
@@ -92,3 +83,6 @@ class NewEventDetector(CoreDetector):
         # the configure phase produces an empty events block.
         self.config.events = generate_events_config({}, self.name)
         self.config.auto_config = False
+
+    def aggregate_strategy(self, components: set["NewEventDetector"]) -> None:  # type: ignore
+        self.combine(components)  # type: ignore

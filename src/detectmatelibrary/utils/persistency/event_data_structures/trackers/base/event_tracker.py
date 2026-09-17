@@ -9,10 +9,10 @@ from detectmatelibrary.utils.preview_helpers import format_dict_repr
 
 from .multi_tracker import MultiTracker
 from .single_tracker import SingleTracker
-from ...base import EventDataStructure
+from ...base import EventDataset
 
 
-class EventTracker(EventDataStructure):
+class EventTracker(EventDataset):
     """Event data structure that tracks the behavior of each event over time /
     number of events."""
 
@@ -27,7 +27,7 @@ class EventTracker(EventDataStructure):
         self.converter_function = converter_function
         self.multi_tracker = self.multi_tracker_type(single_tracker_type=self.single_tracker_type)
 
-    def add_data(self, data_object: Any, timestamp: float | None = None) -> None:
+    def _add_data(self, data_object: Any, timestamp: float | None = None) -> None:
         """Add data to the variable trackers."""
         self.multi_tracker.add_data(data_object, timestamp=timestamp)
 
