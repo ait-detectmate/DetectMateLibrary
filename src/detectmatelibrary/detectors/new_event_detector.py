@@ -9,9 +9,13 @@ from detectmatelibrary.common._config._compile import (
     get_configured_variables
 )
 
+from pydantic import Field
+
 
 class NewEventDetectorConfig(CoreDetectorConfig):
-    method_type: str = "new_event_detector"
+    method_type: str = Field(
+        default="new_event_detector", description="Indicates what type of method it is."
+    )
 
 
 class NewEventDetector(CoreDetector):

@@ -1,5 +1,7 @@
 from typing import Any, Dict, Optional, cast
 
+from pydantic import Field
+
 from detectmatelibrary.common.variable_detector import VariableDetector, VariableDetectorConfig
 from detectmatelibrary.common.variable_detector import get_global_variables
 from detectmatelibrary.common._config._compile import get_configured_variables
@@ -38,18 +40,31 @@ def _default_freq_tables() -> tuple[dict[str, dict[str, int]], dict[str, int]]:
 
 
 class BigramFrequencyDetectorConfig(VariableDetectorConfig):
-    """
-    @param prob_thresh limit for the average probability of character pairs for which anomalies are reported.
-    @param default_freqs initializes the probabilities with default values from
-           https://github.com/markbaggett/freq.
-    @param skip_repetitions boolean that determines whether only distinct values are used for character pair
-           counting. This counteracts the problem of imbalanced word frequencies that distort the frequency
-           table generated in a single run.
-    """
-    method_type: str = "bigram_frequency_detector"
-    prob_thresh: float = 0.05
-    default_freqs: bool = False
-    skip_repetitions: bool = True
+    method_type: str = Field(
+        default="bigram_frequency_detector", description="Indicates what type of method it is."
+    )
+    prob_thresh: float = Field(
+        default=0.05,
+        description=(
+            "Limit for the average probability of character pairs below "
+            "which anomalies are reported."
+        ),
+    )
+    default_freqs: bool = Field(
+        default=False,
+        description=(
+            "Initialize the probabilities with default values from "
+            "https://github.com/markbaggett/freq."
+        ),
+    )
+    skip_repetitions: bool = Field(
+        default=True,
+        description=(
+            "Only use distinct values for character-pair counting. This "
+            "counteracts the problem of imbalanced word frequencies that "
+            "distort the frequency table generated in a single run."
+        ),
+    )
 
 
 class BigramFrequencyDetector(VariableDetector):

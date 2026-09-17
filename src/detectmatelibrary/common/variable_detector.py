@@ -20,6 +20,7 @@ from detectmatelibrary.tools.logging import logger
 
 from typing import Any, Dict, Literal, Optional, cast
 from typing_extensions import override
+from pydantic import Field
 
 
 def get_global_variables(
@@ -44,17 +45,39 @@ def get_global_variables(
 
 
 class VariableDetectorConfig(CoreDetectorConfig):
-    use_stable_vars: bool = True
-    use_static_vars: bool = True
-
-    # Stability segmentation. "count" cuts the classifier's segments at equal
-    # sample counts (the historical behaviour). "time" cuts them at equal
-    # durations instead. "both" requires the variable to pass under *both*
-    # segmentations. The two time-aware modes need a per-record event time,
-    # named here and read from the record's logFormatVariables.
-    stability_segmentation: Literal["count", "time", "both"] = "count"
-    timestamp_variable: str | None = None
-    timestamp_format: str | None = None  # None -> TimeFormatHandler auto-detect
+    use_stable_vars: bool = Field(
+        default=True,
+        description="Select variables classified as STABLE when auto-configuring.",
+    )
+    use_static_vars: bool = Field(
+        default=True,
+        description="Select variables classified as STATIC when auto-configuring.",
+    )
+    stability_segmentation: Literal["count", "time", "both"] = Field(
+        default="count",
+        description=(
+            "How to segment values for stability classification. 'count' cuts "
+            "segments at equal sample counts (the historical behaviour), 'time' "
+            "cuts them at equal durations instead, and 'both' requires the "
+            "variable to pass under both segmentations. The time-aware modes "
+            "need timestamp_variable to be set."
+        ),
+    )
+    timestamp_variable: str | None = Field(
+        default=None,
+        description=(
+            "Name of the log field holding the event timestamp, read from the "
+            "record's logFormatVariables. Required by the 'time'/'both' "
+            "stability segmentation modes."
+        ),
+    )
+    timestamp_format: str | None = Field(
+        default=None,
+        description=(
+            "Expected format of timestamp_variable. If None, the format is "
+            "auto-detected."
+        ),
+    )
 
 
 class VariableDetector(CoreDetector):

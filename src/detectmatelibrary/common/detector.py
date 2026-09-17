@@ -10,6 +10,7 @@ from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
 from typing_extensions import override
 from typing import Dict, List, Optional, Any, cast
+from pydantic import Field
 
 from detectmatelibrary.utils.persistency.component_interfaces import PersistConfig
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
@@ -18,17 +19,16 @@ from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 _time_handler = TimeFormatHandler()
 
 
-def _extract_timestamp(
-    input_: List[ParserSchema] | ParserSchema
-) -> List[int]:
+def _extract_timestamp(input_: List[ParserSchema] | ParserSchema) -> List[int]:
     if not isinstance(input_, list):
         input_ = [input_]
-    return [int(_time_handler.parse_timestamp(i["logFormatVariables"]["Time"])) for i in input_]
+    return [
+        int(_time_handler.parse_timestamp(i["logFormatVariables"]["Time"]))
+        for i in input_
+    ]
 
 
-def _extract_logIDs(
-    input_: List[ParserSchema] | ParserSchema
-) -> List[str]:
+def _extract_logIDs(input_: List[ParserSchema] | ParserSchema) -> List[str]:
     if not isinstance(input_, list):
         input_ = [input_]
 
@@ -36,17 +36,25 @@ def _extract_logIDs(
 
 
 class CoreDetectorConfig(CoreConfig):
-    component_type: str = "detectors"
-    method_type: str = "core_detector"
-    parser: str = "<PLACEHOLDER>"
+    component_type: str = Field(default="detectors", description="<$IGNORE$>")
+    method_type: str = Field(default="core_detector", description="<$IGNORE$>")
+    parser: str = Field(default="PARSER", description="Name of the parser used.")
 
-    auto_config: bool = True
-    events: EventsConfig | dict[str, Any] = {}
-    global_instances: Dict[str, _EventInstance] = {}
-    persist: PersistConfig | None = None
+    auto_config: bool = Field(
+        default=True,
+        description="Runs the configuration step before the training process.",
+    )
+    events: EventsConfig | dict[str, Any] = Field(
+        default={},
+        description=EventsConfig.__doc__,
+    )
+    global_instances: Dict[str, _EventInstance] = Field(
+        default={}, description=_EventInstance.__doc__
+    )
+    persist: PersistConfig | None = Field(default=None, description="<$IGNORE$>")
 
 
-class CoreDetector(CoreComponent):
+class CoreDetector(CoreComponent[ParserSchema, DetectorSchema]):
     def __init__(
         self,
         name: str = "CoreDetector",
@@ -66,14 +74,18 @@ class CoreDetector(CoreComponent):
             output_schema=DetectorSchema,
         )
 
-    def _register_persistency(self, event_persistency: persistency.EventPersistency) -> None:
+    def _register_persistency(
+        self, event_persistency: persistency.EventPersistency
+    ) -> None:
         self.saver = init_persistency(
             self.name, cast(CoreDetectorConfig, self.config), event_persistency
         )
 
     @override
     def run(
-        self, input_: List[ParserSchema] | ParserSchema, output_: DetectorSchema  # type: ignore
+        self,
+        input_: List[ParserSchema] | ParserSchema,
+        output_: DetectorSchema,
     ) -> bool:
 
         output_["detectorID"] = self.name
@@ -82,7 +94,7 @@ class CoreDetector(CoreComponent):
         output_["extractedTimestamps"] = _extract_timestamp(input_)
         output_["receivedTimestamp"] = get_timestamp()
 
-        if (anomaly_detected := self.detect(input_=input_, output_=output_)):
+        if anomaly_detected := self.detect(input_=input_, output_=output_):
             output_["alertID"] = str(self.id_generator())
             output_["detectionTimestamp"] = get_timestamp()
 
@@ -97,13 +109,15 @@ class CoreDetector(CoreComponent):
 
     @override
     def train(
-        self, input_: ParserSchema | list[ParserSchema]  # type: ignore
+        self,
+        input_: ParserSchema | list[ParserSchema],
     ) -> None:
         pass
 
     @override
     def configure(
-        self, input_: ParserSchema | list[ParserSchema]  # type: ignore
+        self,
+        input_: ParserSchema | list[ParserSchema],
     ) -> None:
         pass
 

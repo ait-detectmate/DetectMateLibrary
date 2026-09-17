@@ -6,29 +6,35 @@ from detectmatelibrary.utils.deep_learning.deeplog import DeepLog
 
 
 from typing import Any
+from pydantic import Field
 
 
 class DeeplogDetectorConfig(DeepLearningDetectorConfig):
-    method_type: str = "deeplog_detector"
+    method_type: str = Field(
+        default="deeplog_detector", description="Indicates what type of method it is."
+    )
 
-    hyperparameters: dict[str, Any] = {  # type: ignore
-        "Model": {
-            "hidden_dim": 64,
-            "n_layers": 2,
+    hyperparameters: dict[str, Any] = Field(
+        default={
+            "Model": {
+                "hidden_dim": 64,
+                "n_layers": 2,
+            },
+            "Train": {
+                "seed": 0,
+                "batch_size": 2048,
+                "learning_rate": 0.01,
+                "epochs": 10,
+                "patience": 3,
+            },
+            "Finetune": [
+                ["Model", "hidden_dim", [128, 256, 512]],
+                ["Model", "n_layers", [1, 2, 3]],
+                ["Train", "learning_rate", [0.01, 0.02, 0.03]],
+            ],
         },
-        "Train": {
-            "seed": 0,
-            "batch_size": 2048,
-            "learning_rate": 0.01,
-            "epochs": 10,
-            "patience": 3,
-        },
-        "Finetune": [
-            ["Model", "hidden_dim", [128, 256, 512]],
-            ["Model", "n_layers", [1, 2, 3]],
-            ["Train", "learning_rate", [0.01, 0.02, 0.03]],
-        ],
-    }
+        description="Model, training and hyperparameter-search settings for the DeepLog model.",
+    )
 
 
 class DeeplogDetector(DeepLearningDetector):

@@ -11,10 +11,17 @@ from detectmatelibrary.utils.sequence_encoding import (
 )
 from detectmatelibrary import schemas
 
+from pydantic import Field
+
 
 class SCVSDetectorConfig(CoreDetectorConfig):
-    method_type: str = "scvs_detector"
-    window_size: int = 10
+    method_type: str = Field(
+        default="scvs_detector", description="Indicates what type of method it is."
+    )
+    window_size: int = Field(
+        default=10,
+        description="Length of the event-ID window a count vector is built over.",
+    )
 
 
 class SCVSDetector(CoreDetector):

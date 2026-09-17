@@ -5,9 +5,13 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers.stabilit
 
 from typing import Any, Dict, Optional
 
+from pydantic import Field
+
 
 class CharsetDetectorConfig(VariableDetectorConfig):
-    method_type: str = "charset_detector"
+    method_type: str = Field(
+        default="charset_detector", description="Indicates what type of method it is."
+    )
 
 
 class CharsetDetector(VariableDetector):

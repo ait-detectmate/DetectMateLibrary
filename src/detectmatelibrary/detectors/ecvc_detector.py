@@ -13,6 +13,7 @@ from detectmatelibrary import schemas
 
 from math import ceil
 import numpy as np
+from pydantic import Field
 
 
 class ECVCOp:
@@ -63,11 +64,32 @@ class ECVCOp:
 
 
 class ECVCDetectorConfig(CoreDetectorConfig):
-    method_type: str = "ecvc_detector_detector"
-    window_size: int = 10
-    validation_per: float = 0.2
-    seed: int = 0
-    threshold_method: str = "mean"
+    method_type: str = Field(
+        default="ecvc_detector_detector", description="Indicates what type of method it is."
+    )
+    window_size: int = Field(
+        default=10,
+        description="Length of the event-ID window a count vector is built over.",
+    )
+    validation_per: float = Field(
+        default=0.2,
+        description=(
+            "Fraction of the learned count vectors held out as a validation "
+            "split and used to derive the anomaly threshold."
+        ),
+    )
+    seed: int = Field(
+        default=0,
+        description="Random seed used to shuffle count vectors into train/validation splits.",
+    )
+    threshold_method: str = Field(
+        default="mean",
+        description=(
+            "Method used to derive the anomaly threshold from the validation "
+            "split: 'mean' averages the distance scores, 'default' uses a "
+            "fixed threshold of 0."
+        ),
+    )
 
 
 class ECVCDetector(CoreDetector):

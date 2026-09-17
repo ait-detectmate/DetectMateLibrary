@@ -2,6 +2,10 @@
 
 The New Event Detector raises alerts when previously unseen log templates, distinguished by event IDs, appear in log data. It is useful to detect unexpected types of events in the environment.
 
+## In/out
+
+Input and output schemas in the pipeline
+
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
@@ -11,19 +15,48 @@ The New Event Detector raises alerts when previously unseen log templates, disti
 
 This detector maintains a lightweight set of observed event IDs and emits an alert when an event ID not present in the set is seen for the first time (subject to configuration).
 
+## Configuration arguments
 
-## Configuration example
+Arguments used in the initalization of the component.
 
+<!-- Start arguments -->
+| Field  | Type  | Default Value| Description|
+|-------|------|-----|---|
+|method_type|string|new_event_detector|Indicates what type of method it is.|
+|auto_config|boolean|True|Runs the configuration step before the training process.|
+|start_id|integer|10|Number use to start the unique ID generator.|
+|data_use_training|integer, null|None|Data use for training, if None, training is not done.|
+|data_use_configure|integer, null|None|Data use for configuration, if None, configuration is not done.|
+|use_config_data_as_training|boolean|True|Combine the configure data in the training process if True.|
+|parser|string|PARSER|Name of the parser used.|
+|events|object|{}|Events configuration dict keyed by event_id.|
+|global_instances|object|{}|Configuration for a specific instance within an event.|
+<!-- End arguments -->
+
+## Examples
+Examples to use the component in the DetectMate environment.
+### Service usage
+
+To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example below.
+
+<!-- Start config -->
 ```yaml
 detectors:
-    NewEventDetector:
+    <COMPONENT_NAME>:
         method_type: new_event_detector
-        auto_config: False
-        params: {}
+        auto_config: true
+        params:
+            start_id: 10
+            data_use_training: null
+            data_use_configure: null
+            use_config_data_as_training: true
+            parser: PARSER
+            global_instances: {}
+        events: {}
 ```
-
-
-## Example usage
+<!-- End config -->
+### Library usage
+To use it as a python script, you can follow the example below.
 
 ```python
 --8<-- "docs/examples/detectors/new_event.py:example"

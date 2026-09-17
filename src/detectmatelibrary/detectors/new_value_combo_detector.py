@@ -13,6 +13,8 @@ from detectmatelibrary.schemas import ParserSchema
 from typing import Any, Dict, Optional, Sequence, Tuple, cast
 from itertools import combinations
 
+from pydantic import Field
+
 from detectmatelibrary.tools.logging import logger
 
 
@@ -40,10 +42,18 @@ def get_all_possible_combos(
 
 
 class NewValueComboDetectorConfig(VariableDetectorConfig):
-    method_type: str = "new_value_combo_detector"
+    method_type: str = Field(
+        default="new_value_combo_detector", description="Indicates what type of method it is."
+    )
 
-    max_combo_size: int = 3
-    use_static_vars: bool = False
+    max_combo_size: int = Field(
+        default=3,
+        description="Maximum number of variables combined together when generating value combinations.",
+    )
+    use_static_vars: bool = Field(
+        default=False,
+        description="Select variable combinations classified as STATIC when auto-configuring.",
+    )
 
 
 class NewValueComboDetector(VariableDetector):

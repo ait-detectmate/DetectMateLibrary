@@ -1,4 +1,4 @@
-from detectmatelibrary.common._config._formats import EventsConfig, Variable
+from detectmatelibrary.common._config._formats import Variable
 
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 
@@ -7,14 +7,16 @@ from detectmatelibrary.utils.data_buffer import BufferMode
 import detectmatelibrary.schemas as schemas
 
 from typing_extensions import override
-from typing import List, Any
+from typing import List
+
+from pydantic import Field
 import numpy as np
 
 
 class RandomDetectorConfig(CoreDetectorConfig):
-    method_type: str = "random_detector"
-
-    events: EventsConfig | dict[str, Any] = {}
+    method_type: str = Field(
+        default="random_detector", description="Indicates what type of method it is."
+    )
 
 
 class RandomDetector(CoreDetector):
@@ -22,7 +24,9 @@ class RandomDetector(CoreDetector):
     data."""
 
     def __init__(
-        self, name: str = "RandomDetector", config: RandomDetectorConfig = RandomDetectorConfig()
+        self,
+        name: str = "RandomDetector",
+        config: RandomDetectorConfig = RandomDetectorConfig(),
     ) -> None:
         if isinstance(config, dict):
             config = RandomDetectorConfig.from_dict(config, name)
@@ -30,13 +34,15 @@ class RandomDetector(CoreDetector):
         self.config: RandomDetectorConfig
 
     @override
-    def train(self, input_: List[schemas.ParserSchema] | schemas.ParserSchema) -> None:  # type: ignore
+    def train(self, input_: List[schemas.ParserSchema] | schemas.ParserSchema) -> None:
         """Training is not applicable for RandomDetector."""
         return
 
     @override
     def detect(
-        self, input_: schemas.ParserSchema, output_: schemas.DetectorSchema  # type: ignore
+        self,
+        input_: schemas.ParserSchema,  # type: ignore
+        output_: schemas.DetectorSchema,
     ) -> bool:
         """Detect anomalies randomly in the input data."""
         overall_score = 0.0
@@ -53,7 +59,11 @@ class RandomDetector(CoreDetector):
             if random > log_variable.params["threshold"]:
                 score = 1.0
                 # Variable has .name, Header has .pos (str)
-                var_name = log_variable.name if isinstance(log_variable, Variable) else log_variable.pos
+                var_name = (
+                    log_variable.name
+                    if isinstance(log_variable, Variable)
+                    else log_variable.pos
+                )
                 alerts.update({var_name: str(score)})
             overall_score += score
 

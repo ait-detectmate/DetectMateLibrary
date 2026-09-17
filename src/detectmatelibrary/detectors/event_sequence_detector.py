@@ -15,21 +15,38 @@ from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
 
 class EventSequenceDetectorConfig(CoreDetectorConfig):
-    """
-    @param fixed_window_size length of the sliding EventID window. A window whose exact
-           EventID sequence was not seen during training is reported as an anomaly. When
-           set it overrides `min_window_size`/`max_window_size` and skips
-           auto-configuration; auto-configuration writes its own choice here. While it is
-           None the detector is unconfigured and neither trains nor alerts.
-    @param min_window_size shortest window length tried during the auto-configuration
-           phase. Only used while `fixed_window_size` is None.
-    @param max_window_size longest window length tried during the auto-configuration
-           phase. The longest length whose sequences are classified STABLE or STATIC wins.
-    """
-    method_type: str = "event_sequence_detector"
-    min_window_size: int = Field(default=2, ge=1)
-    max_window_size: int = Field(default=10, ge=1)
-    fixed_window_size: int | None = Field(default=None, ge=1)
+    method_type: str = Field(
+        default="event_sequence_detector", description="Indicates what type of method it is."
+    )
+    min_window_size: int = Field(
+        default=2,
+        ge=1,
+        description=(
+            "Shortest window length tried during the auto-configuration phase. "
+            "Only used while fixed_window_size is None."
+        ),
+    )
+    max_window_size: int = Field(
+        default=10,
+        ge=1,
+        description=(
+            "Longest window length tried during the auto-configuration phase. "
+            "The longest length whose sequences are classified STABLE or "
+            "STATIC wins."
+        ),
+    )
+    fixed_window_size: int | None = Field(
+        default=None,
+        ge=1,
+        description=(
+            "Length of the sliding EventID window. A window whose exact "
+            "EventID sequence was not seen during training is reported as an "
+            "anomaly. When set it overrides min_window_size/max_window_size "
+            "and skips auto-configuration; auto-configuration writes its own "
+            "choice here. While it is None the detector is unconfigured and "
+            "neither trains nor alerts."
+        ),
+    )
 
     @model_validator(mode="after")
     def _validate_window_range(self) -> "EventSequenceDetectorConfig":

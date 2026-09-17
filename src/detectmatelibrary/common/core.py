@@ -1,7 +1,7 @@
 from detectmatelibrary.common._core_op._fit_logic import FitLogicState, StatesL
 from detectmatelibrary.common._core_op._schema_pipeline import SchemaPipeline
 from detectmatelibrary.common._core_op._fed_component import FedOperations
-from detectmatelibrary.common._core_op._basic_component import Component
+from detectmatelibrary.common._core_op._basic_component import Component, TInput, TOutput
 from detectmatelibrary.common._core_op._fit_logic import FitLogic
 
 from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
@@ -15,6 +15,7 @@ from detectmatelibrary.tools.logging import logger, setup_logging
 
 
 from typing import Any
+from pydantic import Field
 
 from detectmatelibrary.utils.persistency.component_interfaces import PersistencyOp
 
@@ -46,15 +47,28 @@ class TrainBuffer:
 
 # Core component ################################################
 
+
 class CoreConfig(BasicConfig):
-    start_id: int = 10
-    data_use_training: int | None = None
-    data_use_configure: int | None = None
-    use_config_data_as_training: bool = True
+    start_id: int = Field(
+        default=10, description="Number use to start the unique ID generator."
+    )
+    data_use_training: int | None = Field(
+        default=None,
+        description="Data use for training, if None, training is not done.",
+    )
+    data_use_configure: int | None = Field(
+        default=None,
+        description="Data use for configuration, if None, configuration is not done.",
+    )
+    use_config_data_as_training: bool = Field(
+        default=True,
+        description="Combine the configure data in the training process if True.",
+    )
 
 
-class CoreComponent(Component, FedOperations):
+class CoreComponent(Component[TInput, TOutput], FedOperations):
     """Base class for all components in the system."""
+
     def __init__(
         self,
         name: str,
@@ -62,7 +76,7 @@ class CoreComponent(Component, FedOperations):
         config: CoreConfig = CoreConfig(),
         args_buffer: ArgsBuffer = ArgsBuffer(BufferMode.NO_BUF),
         input_schema: type[BaseSchema] = BaseSchema,
-        output_schema: type[BaseSchema] = BaseSchema
+        output_schema: type[BaseSchema] = BaseSchema,
     ) -> None:
         Component.__init__(self, name=name, type_=type_, config=config)
         FedOperations.__init__(self)
@@ -78,7 +92,9 @@ class CoreComponent(Component, FedOperations):
         self.buffer_train = TrainBuffer()
 
     def export_state(
-        self, path: str | None = None, storage_options: dict[str, Any] | None = None,
+        self,
+        path: str | None = None,
+        storage_options: dict[str, Any] | None = None,
     ) -> bytes | None:
         return PersistencyOp.save(
             instance=self, path=path, storage_options=storage_options
