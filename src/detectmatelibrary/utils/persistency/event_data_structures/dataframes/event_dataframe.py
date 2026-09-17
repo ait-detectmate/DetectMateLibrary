@@ -4,11 +4,11 @@ from dataclasses import dataclass, field
 
 import pandas as pd
 
-from ..base import EventDataStructure
+from ..base import EventDataset
 
 
 @dataclass
-class EventDataFrame(EventDataStructure):
+class EventDataFrame(EventDataset):
     """
     Pandas DataFrame backend:
     - Ingest appends data (expensive)

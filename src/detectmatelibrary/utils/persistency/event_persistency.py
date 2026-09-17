@@ -1,4 +1,4 @@
-from .event_data_structures.base import EventDataStructure
+from .event_data_structures.base import EventDataset
 from .basic_persistency import EventPersistencyBase
 
 from typing import Any, Callable, Dict, List, Optional, Type, Self
@@ -20,7 +20,7 @@ class EventPersistency(EventPersistencyBase):
 
     def __init__(
         self,
-        event_data_class: Type[EventDataStructure],
+        event_data_class: Type[EventDataset],
         variable_blacklist: Optional[List[str | int]] = ["Content"],
         *,
         event_data_kwargs: Optional[dict[str, Any]] = None,

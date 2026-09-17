@@ -1,4 +1,4 @@
-from .event_data_structures.base import EventDataStructure
+from .event_data_structures.base import EventDataset
 
 from typing import Any, Dict, List, Type, Optional
 
@@ -29,10 +29,10 @@ class EventStruct:
     """Event structure of the Event Persistency."""
     def __init__(
         self,
-        event_data_class: Type[EventDataStructure],
+        event_data_class: Type[EventDataset],
         event_data_kwargs: Optional[dict[str, Any]] = None,
     ) -> None:
-        self.data: Dict[int | str, EventDataStructure] = {}
+        self.data: Dict[int | str, EventDataset] = {}
         self.data_class = event_data_class
         self.data_kwargs = event_data_kwargs or {}
         self.templates: Dict[int | str, str] = {}
@@ -40,7 +40,7 @@ class EventStruct:
     def __contains__(self, event_id: int | str) -> bool:
         return event_id in self.data
 
-    def __getitem__(self, event_id: int | str) -> EventDataStructure | None:
+    def __getitem__(self, event_id: int | str) -> EventDataset | None:
         return self.data.get(event_id, None)
 
     def get_events(self) -> list[int | str]:
@@ -79,7 +79,7 @@ class EventPersistencyBase:
     """Event Persistency without lock protection."""
     def __init__(
         self,
-        event_data_class: Type[EventDataStructure],
+        event_data_class: Type[EventDataset],
         variable_blacklist: Optional[List[str | int]] = ["Content"],
         *,
         event_data_kwargs: Optional[dict[str, Any]] = None,
@@ -136,7 +136,7 @@ class EventPersistencyBase:
         """Retrieve the data for a specific event ID."""
         return d_struct.get_data() if (d_struct := self.event_struct[event_id]) is not None else None
 
-    def get_events_data(self) -> Dict[int | str, EventDataStructure]:
+    def get_events_data(self) -> Dict[int | str, EventDataset]:
         """Retrieve the events data that is currently stored."""
         return self.event_struct.data
 
@@ -148,10 +148,10 @@ class EventPersistencyBase:
         """Retrieve all event templates."""
         return self.event_struct.templates
 
-    def get_class(self) -> Type[EventDataStructure]:
+    def get_class(self) -> Type[EventDataset]:
         return self.event_struct.data_class
 
-    def __getitem__(self, event_id: int | str) -> EventDataStructure | None:
+    def __getitem__(self, event_id: int | str) -> EventDataset | None:
         return self.event_struct[event_id]
 
     def __repr__(self) -> str:

@@ -9,10 +9,10 @@ from detectmatelibrary.utils.preview_helpers import format_dict_repr
 
 from .multi_tracker import MultiTracker
 from .single_tracker import SingleTracker
-from ...base import EventDataStructure
+from ...base import EventDataset
 
 
-class EventTracker(EventDataStructure):
+class EventTracker(EventDataset):
     """Event data structure that tracks the behavior of each event over time /
     number of events."""
 

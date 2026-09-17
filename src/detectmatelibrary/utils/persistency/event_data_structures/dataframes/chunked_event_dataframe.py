@@ -6,12 +6,12 @@ from dataclasses import dataclass, field
 import msgpack
 import polars as pl
 
-from ..base import EventDataStructure
+from ..base import EventDataset
 
 
 # -------- Polars backends --------
 @dataclass
-class ChunkedEventDataFrame(EventDataStructure):
+class ChunkedEventDataFrame(EventDataset):
     """
     Streaming-friendly Polars DataFrame backend:
     - Ingest appends chunks (cheap)

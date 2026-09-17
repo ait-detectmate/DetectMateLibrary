@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class EventDataStructure(ABC):
+class EventDataset(ABC):
     """Storage backend interface for event-based data analysis."""
 
     event_id: int = -1
@@ -45,7 +45,7 @@ class EventDataStructure(ABC):
 
     @classmethod
     @abstractmethod
-    def load(cls, data: bytes, **kwargs: Any) -> "EventDataStructure":
+    def load(cls, data: bytes, **kwargs: Any) -> "EventDataset":
         """Restore state from bytes produced by dump()."""
         ...
 

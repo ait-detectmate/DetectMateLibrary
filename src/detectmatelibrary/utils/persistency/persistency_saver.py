@@ -11,7 +11,7 @@ from typing import Any, Callable
 
 import fsspec
 
-from detectmatelibrary.utils.persistency.event_data_structures.base import EventDataStructure
+from detectmatelibrary.utils.persistency.event_data_structures.base import EventDataset
 from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
     EventTracker,
     EventStabilityTracker,
@@ -19,7 +19,7 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from detectmatelibrary.tools.logging import logger
 
-_BACKEND_REGISTRY: dict[str, type[EventDataStructure]] = {
+_BACKEND_REGISTRY: dict[str, type[EventDataset]] = {
     "EventTracker": EventTracker,
     "EventStabilityTracker": EventStabilityTracker,
 }
@@ -27,7 +27,7 @@ _BACKEND_REGISTRY: dict[str, type[EventDataStructure]] = {
 _DATAFRAME_BACKENDS = {"EventDataFrame", "ChunkedEventDataFrame"}
 
 
-def _get_backend_cls(name: str) -> type[EventDataStructure]:
+def _get_backend_cls(name: str) -> type[EventDataset]:
     if name in _BACKEND_REGISTRY:
         return _BACKEND_REGISTRY[name]
     if name in _DATAFRAME_BACKENDS:
@@ -41,7 +41,7 @@ def _get_backend_cls(name: str) -> type[EventDataStructure]:
                 f"Backend '{name}' requires the 'dataframes' extra: "
                 "pip install 'detectmatelibrary[dataframes]'"
             ) from e
-        df_registry: dict[str, type[EventDataStructure]] = {
+        df_registry: dict[str, type[EventDataset]] = {
             "EventDataFrame": EventDataFrame,
             "ChunkedEventDataFrame": ChunkedEventDataFrame,
         }
