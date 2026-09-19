@@ -1,19 +1,142 @@
-# FromTo helper
+# From / To helper
+
+Utility methods to help developers load and save different schema objects. Supported formats:
+
+- **Log files**: Read-only. Load plain log files and convert entries to LogSchema objects.
+- **Binary files**: Files that store the serialized bytes of schema objects.
+- **JSON files**: Files that store schema objects in JSON format.
+- **YAML files**: Files that store schema objects in YAML format.
+
+## From
+
+The `From` class is responsible for loading different input formats.
+
+```python
+class From:
+    @staticmethod
+    def log(
+        component: CoreComponent, in_path: str, do_process: bool = True
+    ) -> Iterator[BaseSchema]:
+        """Load logs as input schemas."""
+
+    @staticmethod
+    def binary_file(
+        component: CoreComponent, in_path: str, do_process: bool = True
+    ) -> Iterator[BaseSchema]:
+        """Load binary files as input schemas."""
+
+    @staticmethod
+    def json(
+        component: CoreComponent, in_path: str, do_process: bool = True
+    ) -> Iterator[BaseSchema]:
+        """Load JSON files as input schemas."""
+
+    @staticmethod
+    def yaml(
+        component: CoreComponent, in_path: str, do_process: bool = True
+    ) -> Iterator[BaseSchema]:
+        """Load YAML files as input schemas."""
+
+    @staticmethod
+    def polars(
+        component: CoreComponent,
+        df: DataFrame | LazyFrame,
+        do_process: bool = True,
+        renames: dict[str, str] | None = None,
+    ) -> Iterator[BaseSchema]:
+        """
+        Load Polars dataframe as input schemas follow DetectMatePerformance format.
+
+        *  renames: allow to rename the dataframe inside the method
+        """
+```
+
+### Usage
+
+```python
+--8<-- "docs/examples/others/from_to.py:example_1"
+```
+
+## To
+
+The `To` class is responsible for saving schema objects to files.
+
+```python
+class To:
+    @staticmethod
+    def binary_file(out_: BaseSchema | bytes | None, out_path: str) -> bytes | None:
+        """Save output schema to a binary file."""
+
+    @staticmethod
+    def binary_file(out_: list[BaseSchema] | list[bytes], out_path: str) -> list[bytes]:
+        """Save a list of output schemas to a binary file."""
+
+    @staticmethod
+    def json(out_: BaseSchema | None, out_path: str) -> BaseSchema | None:
+        """Save output schema to a JSON file."""
+
+    @staticmethod
+    def json(out_: list[BaseSchema], out_path: str) -> list[BaseSchema]:
+        """Save a list of output schemas to a JSON file."""
+
+    @staticmethod
+    def yaml(out_: BaseSchema | None, out_path: str) -> BaseSchema | None:
+        """Save output schema to a YAML file."""
+
+    @staticmethod
+    def yaml(out_: list[BaseSchema], out_path: str) -> list[BaseSchema] | None:
+        """Save a list of output schemas to a YAML file."""
+```
+
+### Usage
+
+```python
+--8<-- "docs/examples/others/from_to.py:example_2"
+```
+
+Example JSON save file format:
+
+```json
+{
+    "0": {
+        "logID": "0",
+        "hostname": "",
+        "log": "pid=<*> uid=<*> auid=<*> ses=<*> msg='op=<*> acct=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'",
+        "logSource": "",
+        "__version__": "1.0.0"
+    },
+    "1": {
+        "logID": "1",
+        "hostname": "",
+        "log": "pid=<*> uid=<*> auid=<*> ses=<*> msg='unit=<*> comm=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'",
+        "logSource": "",
+        "__version__": "1.0.0"
+    }
+}
+```
+
+## FromTo
 
 The `FromTo` class loads and saves inputs and outputs in a single operation.
 
 ```python
 class FromTo:
     @staticmethod
-    def log2binary_file(component: CoreComponent, in_path: str, out_path: str) -> Iterator[BaseSchema]:
+    def log2binary_file(
+        component: CoreComponent, in_path: str, out_path: str
+    ) -> Iterator[BaseSchema]:
         """Load a log file and save it to a binary file."""
 
     @staticmethod
-    def log2json(component: CoreComponent, in_path: str, out_path: str) -> Iterator[BaseSchema]:
+    def log2json(
+        component: CoreComponent, in_path: str, out_path: str
+    ) -> Iterator[BaseSchema]:
         """Load a log file and save it to a JSON file."""
 
     @staticmethod
-    def log2yaml(component: CoreComponent, in_path: str, out_path: str) -> Iterator[BaseSchema]:
+    def log2yaml(
+        component: CoreComponent, in_path: str, out_path: str
+    ) -> Iterator[BaseSchema]:
         """Load a log file and save it to a YAML file."""
 
     @staticmethod
@@ -75,7 +198,7 @@ class FromTo:
         component: CoreComponent,
         df: DataFrame | LazyFrame,
         out_path: str,
-        renames: dict[str, str] | None = None
+        renames: dict[str, str] | None = None,
     ) -> Iterator[BaseSchema]:
         """Load DetectMatePerformance Dataframe to binary file"""
 
@@ -84,7 +207,7 @@ class FromTo:
         component: CoreComponent,
         df: DataFrame | LazyFrame,
         out_path: str,
-        renames: dict[str, str] | None = None
+        renames: dict[str, str] | None = None,
     ) -> Iterator[BaseSchema]:
         """Load DetectMatePerformance Dataframe to json"""
 
@@ -93,7 +216,7 @@ class FromTo:
         component: CoreComponent,
         df: DataFrame | LazyFrame,
         out_path: str,
-        renames: dict[str, str] | None = None
+        renames: dict[str, str] | None = None,
     ) -> Iterator[BaseSchema]:
         """Load DetectMatePerformance Dataframe to yaml"""
 ```

@@ -20,7 +20,7 @@ class CoreDetectorConfig(CoreConfig):
     method_type: str = "core_detector"
     parser: str = "<PLACEHOLDER>"
 
-    auto_config: bool = False
+    auto_config: bool = True
 
 
 class CoreDetector(CoreComponent):
@@ -124,6 +124,52 @@ detectors:
           - pos: Status
 ```
 
+
+### Common parameters (all detectors)
+
+There are some parameters, that **every** detector inhertis from `CoreDetectorConfig`/`CoreConfig`/`BasicConfig`, regardless of what it does. The other parameters, that are **specific** for the respective detector, are explained right at the detectors documentation page, later on.
+
+<!-- Start common_arguments -->
+| Field  | Type  | Default Value| Description|
+|-------|------|-----|---|
+|auto_config|boolean|True|Runs the configuration step before the training process.|
+|start_id|integer|10|Number use to start the unique ID generator.|
+|data_use_training|integer, null|None|Data use for training, if None, training is not done.|
+|data_use_configure|integer, null|None|Data use for configuration, if None, configuration is not done.|
+|use_config_data_as_training|boolean|True|Combine the configure data in the training process if True.|
+|parser|string|PARSER|Name of the parser used.|
+|events|object|{}|Events configuration dict keyed by event_id.|
+|global_instances|object|{}|Configuration for a specific instance within an event.|
+<!-- End common_arguments -->
+
+Beyond the common parameters, two groups of detectors inherit group-specific configurations.
+
+### Per-variable model detectors
+
+The detectors that learn a per-variable model ([Bigram Frequency](detectors/bigram_frequency.md), [Charset](detectors/charset.md), [Combo Detector](detectors/combo.md), [New Value](detectors/new_value.md), [Value Range](detectors/value_range.md)) share the following parameters, inherited from `VariableDetectorConfig`.
+
+<!-- Start variable_arguments -->
+| Field  | Type  | Default Value| Description|
+|-------|------|-----|---|
+|use_stable_vars|boolean|True|Select variables classified as STABLE when auto-configuring.|
+|use_static_vars|boolean|True|Select variables classified as STATIC when auto-configuring.|
+|stability_segmentation|string|count|How to segment values for stability classification. 'count' cuts segments at equal sample counts (the historical behaviour), 'time' cuts them at equal durations instead, and 'both' requires the variable to pass under both segmentations. The time-aware modes need timestamp_variable to be set.|
+|timestamp_variable|string, null|None|Name of the log field holding the event timestamp, read from the record's logFormatVariables. Required by the 'time'/'both' stability segmentation modes.|
+|timestamp_format|string, null|None|Expected format of timestamp_variable. If None, the format is auto-detected.|
+<!-- End variable_arguments -->
+
+### Deep learning detectors
+
+The two neural detectors ([Deeplog](detectors/deeplog.md), [LogBert](detectors/logbert.md)) share the following parameters, inherited from `DeepLearningDetectorConfig`.
+
+<!-- Start deeplearning_arguments -->
+| Field  | Type  | Default Value| Description|
+|-------|------|-----|---|
+|window_size|integer|10|Number of consecutive events used as one training/detection sequence.|
+|validation_per|number|0.2|Fraction of data held out for validation during (fine)training.|
+|finetune_epochs|integer|2|Number of epochs used when finetuning during the configuration phase.|
+|hyperparameters|object|{'Model': {}, 'Train': {}, 'Finetune': []}|Model, training and hyperparameter-search settings passed to the underlying deep learning model.|
+<!-- End deeplearning_arguments -->
 
 ### Configuration semantics (preliminary)
 

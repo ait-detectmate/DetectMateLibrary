@@ -36,11 +36,35 @@ class BasicConfig(BaseModel):
         description="Runs the configuration step before the training process.",
     )
 
-    def get_docs(self) -> list[dict[str, str]]:
+    def get_docs(
+        self, exclude_inherited_from: "type[BasicConfig] | None" = None
+    ) -> list[dict[str, str]]:
+        """List this config's fields as doc rows.
+
+        Args:
+            exclude_inherited_from: if given, fields also declared on this
+                base class are left out *unless this subclass overrides
+                their default* -- so a subclass's doc table can show only
+                what it adds or changes itself, while still surfacing a
+                changed default (e.g. ``method_type``, or a subclass that
+                narrows an inherited field like ``use_static_vars``).
+        """
+        exclude: set[str] = set()
+        if exclude_inherited_from is not None:
+            base_fields = exclude_inherited_from.model_fields
+            own_fields = type(self).model_fields
+            exclude = {
+                name
+                for name, base_field in base_fields.items()
+                if name in own_fields
+                and own_fields[name].default == base_field.default
+            }
         docs = []
         for field_na, field_info in (
             self.model_json_schema().get("properties", {}).items()
         ):
+            if field_na in exclude:
+                continue
             desc = field_info.get("description", "No description provided.")
             if "<$IGNORE$>" in desc:
                 continue

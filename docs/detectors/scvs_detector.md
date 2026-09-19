@@ -19,25 +19,16 @@ Count vectors learned during training are stored via [persistency](../auxiliar/p
 
 ## Configuration arguments
 
-Arguments used in the initalization of the component.
+Only parameters specific to this detector are listed below -- see [Common parameters](../detectors.md#common-parameters-all-detectors) in the Detectors overview for the rest.
 
 <!-- Start arguments -->
 | Field  | Type  | Default Value| Description|
 |-------|------|-----|---|
 |method_type|string|scvs_detector|Indicates what type of method it is.|
-|auto_config|boolean|True|Runs the configuration step before the training process.|
-|start_id|integer|10|Number use to start the unique ID generator.|
-|data_use_training|integer, null|None|Data use for training, if None, training is not done.|
-|data_use_configure|integer, null|None|Data use for configuration, if None, configuration is not done.|
-|use_config_data_as_training|boolean|True|Combine the configure data in the training process if True.|
-|parser|string|PARSER|Name of the parser used.|
-|events|object|{}|Events configuration dict keyed by event_id.|
-|global_instances|object|{}|Configuration for a specific instance within an event.|
 |window_size|integer|10|Length of the event-ID window a count vector is built over.|
 <!-- End arguments -->
 
 ## Examples
-Examples to use the component in the DetectMate environment.
 ### Service usage
 
 To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example below.

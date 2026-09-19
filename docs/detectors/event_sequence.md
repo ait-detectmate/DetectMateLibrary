@@ -31,27 +31,18 @@ Longer windows are more specific and therefore alert more readily; if the auto-c
 
 ## Configuration arguments
 
-Arguments used in the initalization of the component.
+Only parameters specific to this detector are listed below -- see [Common parameters](../detectors.md#common-parameters-all-detectors) in the Detectors overview for the rest.
 
 <!-- Start arguments -->
 | Field  | Type  | Default Value| Description|
 |-------|------|-----|---|
 |method_type|string|event_sequence_detector|Indicates what type of method it is.|
-|auto_config|boolean|True|Runs the configuration step before the training process.|
-|start_id|integer|10|Number use to start the unique ID generator.|
-|data_use_training|integer, null|None|Data use for training, if None, training is not done.|
-|data_use_configure|integer, null|None|Data use for configuration, if None, configuration is not done.|
-|use_config_data_as_training|boolean|True|Combine the configure data in the training process if True.|
-|parser|string|PARSER|Name of the parser used.|
-|events|object|{}|Events configuration dict keyed by event_id.|
-|global_instances|object|{}|Configuration for a specific instance within an event.|
 |min_window_size|integer|2|Shortest window length tried during the auto-configuration phase. Only used while fixed_window_size is None.|
 |max_window_size|integer|10|Longest window length tried during the auto-configuration phase. The longest length whose sequences are classified STABLE or STATIC wins.|
 |fixed_window_size|integer, null|None|Length of the sliding EventID window. A window whose exact EventID sequence was not seen during training is reported as an anomaly. When set it overrides min_window_size/max_window_size and skips auto-configuration; auto-configuration writes its own choice here. While it is None the detector is unconfigured and neither trains nor alerts.|
 <!-- End arguments -->
 
 ## Examples
-Examples to use the component in the DetectMate environment.
 ### Service usage
 
 To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example below.
