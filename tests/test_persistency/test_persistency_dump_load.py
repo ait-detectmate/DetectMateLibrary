@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from detectmatelibrary.utils.persistency.persistency_saver import PersistencyLoadError
 from detectmatelibrary.utils.persistency.event_data_structures.base import (
-    EventDataStructure,
+    EventDataset,
 )
 from detectmatelibrary.utils.persistency.event_data_structures.dataframes.event_dataframe import (
     EventDataFrame,
@@ -29,13 +29,13 @@ def test_persistency_load_error_is_exception():
 
 
 def test_event_data_structure_has_dump_load():
-    assert hasattr(EventDataStructure, "dump")
-    assert hasattr(EventDataStructure, "load")
+    assert hasattr(EventDataset, "dump")
+    assert hasattr(EventDataset, "load")
 
 
 def test_subclass_without_dump_load_cannot_be_instantiated():
     @dataclass
-    class _Incomplete(EventDataStructure):
+    class _Incomplete(EventDataset):
         def add_data(self, data_object): pass
         def get_data(self): pass
         def get_variables(self): pass

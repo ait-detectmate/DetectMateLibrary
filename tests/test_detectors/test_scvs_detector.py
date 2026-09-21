@@ -97,3 +97,24 @@ class TestSCVSDetectorEndToEnd:
 
         for log_id in {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}:
             assert log_id in detected_ids
+
+    @pytest.mark.ignored
+    def test_audit_log_anomalie_fed(self):
+        parser = MatcherParser(config=PIPELINE_CONFIG)
+        detector1 = SCVSDetector()
+        detector2 = SCVSDetector()
+
+        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
+        for log in logs[:TRAIN_UNTIL]:
+            detector1.process(log)
+
+        (detector1 + detector2).aggregate()
+        assert detector2.persistency == detector1.persistency
+
+        detected_ids: set[str] = set()
+        for log in logs[TRAIN_UNTIL:]:
+            if detector2.process(log) is not None:
+                detected_ids.add(log["logID"])
+
+        for log_id in {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}:
+            assert log_id in detected_ids
