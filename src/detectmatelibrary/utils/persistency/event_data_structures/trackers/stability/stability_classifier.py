@@ -38,26 +38,57 @@ def _timestamps_usable(timestamps: List[float] | None, total_len: int) -> bool:
 
 
 class StabilityClassifier:
-    """Classifier for stability based on segment means."""
-    def __init__(
-        self,
-        segment_thresholds: List[float],
-        min_samples: int = 10,
-        classification: ClassificationMethods | None = None,
-    ):
-        self.segment_threshs = segment_thresholds
-        self.min_samples = min_samples
+    """Classifier for stability based on segment means.
+
+    Holds no thresholds of its own: ``segment_threshs``, ``n_segments`` and
+    ``min_samples`` are read through the ``ClassificationMethods`` block it
+    carries, so reassigning ``classification`` changes all three along with
+    the enabled methods. The tracker's ``classification`` setter relies on
+    that to take several verdicts, under several blocks, from one ingest.
+
+    The block is stored by reference, not copied: a caller sharing one block
+    across classifiers shares later edits to it. ``SingleStabilityTracker``
+    deep-copies before constructing, so per-variable trackers never share.
+    """
+    def __init__(self, classification: ClassificationMethods | None = None):
+        if classification is not None and not isinstance(classification, ClassificationMethods):
+            raise TypeError(
+                "StabilityClassifier takes a ClassificationMethods block. The "
+                "segment_thresholds and min_samples constructor arguments are gone; "
+                "the thresholds moved onto the block, so pass "
+                "ClassificationMethods(segment_thresholds=[...]) instead."
+            )
         self.classification = classification or ClassificationMethods()
-        # for RLELists
-        self.segment_sums = [0.0] * len(segment_thresholds)
-        self.segment_counts = [0] * len(segment_thresholds)
-        self.n_segments = len(self.segment_threshs)
         # for lists
         self.segment_means: List[float] = []
         # Transient, rebuilt by every verdicts() call: one human-readable line
         # per enabled method, which is what the tracker's reason string is
         # assembled from. Never persisted -- it is derived from the series.
         self.last_details: Dict[str, str] = {}
+
+    @property
+    def segment_threshs(self) -> List[float]:
+        """Per-segment upper bounds on the mean change rate, from the block."""
+        return self.classification.segment_thresholds
+
+    @property
+    def n_segments(self) -> int:
+        """Segment count: the length of the threshold list."""
+        return len(self.classification.segment_thresholds)
+
+    @property
+    def min_samples(self) -> int:
+        """Fewest observations the enabled methods can be applied to.
+
+        The segment methods need one observation per segment: with fewer,
+        equal-index cuts leave segments empty, and an empty segment scores a
+        mean of 0.0, which passes any positive threshold. A slope-only block
+        cuts no segments, so its floor is 0 (``slope()`` already returns 0.0
+        below three observations, which only a tracker with
+        ``min_samples < 3`` reaches). ``SingleStabilityTracker.classify``
+        composes this with the tracker's own ``min_samples``.
+        """
+        return self.n_segments if self.classification.needs_segments else 0
 
     def _segment_boundaries(self, total_len: int, timestamps: List[float] | None = None) -> List[int]:
         """Index boundaries of n_segments segments over total_len items.
@@ -341,7 +372,8 @@ class StabilityClassifier:
         return self.segment_means
 
     def get_segment_thresholds(self) -> List[float]:
-        return self.segment_threshs
+        """A copy of the block's threshold list, safe for a caller to keep."""
+        return list(self.segment_threshs)
 
     def __call__(
         self, change_series: RLEList[bool] | List[bool], timestamps: List[float] | None = None

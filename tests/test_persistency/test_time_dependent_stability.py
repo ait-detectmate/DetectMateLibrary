@@ -15,22 +15,20 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
     ClassificationMethods,
 )
 
-THRESHOLDS = [1.1, 0.3, 0.1, 0.01]  # same defaults SingleStabilityTracker uses
+THRESHOLDS = [1.1, 0.3, 0.1, 0.01]  # same defaults ClassificationMethods uses
 
 
 def make_index_classifier() -> StabilityClassifier:
     """Equal-index cuts -- the reference every fallback test compares to."""
     return StabilityClassifier(
-        segment_thresholds=THRESHOLDS,
-        classification=ClassificationMethods(index=True),
+        classification=ClassificationMethods(index=True, segment_thresholds=THRESHOLDS),
     )
 
 
 def make_time_classifier() -> StabilityClassifier:
     """Equal-duration cuts -- what this file is about."""
     return StabilityClassifier(
-        segment_thresholds=THRESHOLDS,
-        classification=ClassificationMethods(index=False, time=True),
+        classification=ClassificationMethods(index=False, time=True, segment_thresholds=THRESHOLDS),
     )
 
 
