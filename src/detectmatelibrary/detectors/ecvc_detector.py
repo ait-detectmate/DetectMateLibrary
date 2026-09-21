@@ -1,7 +1,8 @@
 from typing import Any, Collection, List
 
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
-from detectmatelibrary.utils import persistency
+from detectmatelibrary.common._other_op._variable_hooks import VariablesLogic
+
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.utils.sequence_encoding import (
     build_count_vec,
@@ -70,7 +71,7 @@ class ECVCDetectorConfig(CoreDetectorConfig):
     threshold_method: str = "mean"
 
 
-class ECVCDetector(CoreDetector):
+class ECVCDetector(CoreDetector, VariablesLogic):
     def __init__(
         self,
         name: str = "ECVCDetector",
@@ -81,50 +82,32 @@ class ECVCDetector(CoreDetector):
             config = ECVCDetectorConfig.from_dict(config, name)
         self.config: ECVCDetectorConfig
 
-        super().__init__(
-            name=name,
-            buffer_mode=BufferMode.WINDOW,
-            config=config,
-            buffer_size=config.window_size
+        CoreDetector.__init__(
+            self, name=name, buffer_mode=BufferMode.WINDOW, config=config, buffer_size=config.window_size
         )
+        VariablesLogic.__init__(self, name=self.name)
+        self._register_persistency(self.persistency)
+        warn_on_window_size_mismatch(self.name, self.persistency, self.config.window_size)
+
         self.count_vecs: np.ndarray | None = None
         self.threshold: float = 0
-        # ponytail: only events_seen is used here — count vectors carry no
-        # variables. EventPersistency still requires an event_data_class.
-        self.persistency = persistency.EventPersistency(
-            event_data_class=persistency.EventStabilityTracker,
-        )
-        self._register_persistency(self.persistency)  # restores state when auto_load
-        warn_on_window_size_mismatch(self.name, self.persistency, self.config.window_size)
-        self._derive()  # no-op unless auto_load restored count vectors
+        self.build_count_vec()  # no-op unless auto_load restored count vectors
 
     def import_state(
         self, path: str | bytes, storage_options: dict[str, Any] | None = None
     ) -> None:
-        """Load state, then rebuild the matrix and threshold from it.
-
-        Unlike `auto_load`, this runs after construction, so the derivation in
-        `__init__` has already run against an empty store and has to be redone.
-        """
-        super().import_state(path, storage_options)
+        CoreDetector.import_state(self, path, storage_options)
         warn_on_window_size_mismatch(self.name, self.persistency, self.config.window_size)
-        self._derive()
+        self.build_count_vec()
 
     def train(self, input_: List[schemas.ParserSchema]) -> None:  # type: ignore
-        self.persistency.ingest_event(
+        self._ingest(
             event_id=encode_count_vec(self.config.window_size, ECVCOp.build_count_vec(input_)),
-            event_template=input_[-1]["template"],
+            input_=input_[-1],
+            variables={}
         )
 
-    def _derive(self) -> None:
-        """Build the count vector matrix and threshold from the learned
-        vectors.
-
-        The vectors are sorted first: restored keys are strings, whose set
-        iteration order is hash-randomized per process, and the seeded shuffle
-        below splits train from validation by that order. Sorting makes a
-        restored model identical to a freshly trained one.
-        """
+    def build_count_vec(self) -> None:
         seqs = sorted(
             decode_count_vec(str(encoded))[1]
             for encoded in self.persistency.get_events_seen()
@@ -143,7 +126,7 @@ class ECVCDetector(CoreDetector):
             )
 
     def post_train(self) -> None:
-        self._derive()
+        self.build_count_vec()
 
     def detect(
         self, input_: List[schemas.ParserSchema], output_: schemas.DetectorSchema,  # type: ignore
@@ -161,3 +144,10 @@ class ECVCDetector(CoreDetector):
             return True
 
         return False
+
+    def aggregate_strategy(self, components: set["ECVCDetector"]) -> None:  # type: ignore
+        self.combine(components)  # type: ignore
+
+        self.build_count_vec()
+        for component in components:
+            component.build_count_vec()

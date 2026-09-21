@@ -7,6 +7,9 @@ The Event Count Vector Clustering Detector (ECVC) detects anomalies by calculati
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Alert / finding |
 
+✅ Federation compatible (Binary not available).
+
+
 ## Description
 
 A count vector is form by counting the number of appearance of each event ID in a sequence of a specific window size.

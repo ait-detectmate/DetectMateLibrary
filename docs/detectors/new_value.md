@@ -7,6 +7,9 @@ The New Value Detector raises alerts when previously unseen values appear in con
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Alert / finding |
 
+✅ Federation compatible.
+
+
 ## Description
 
 This detector maintains a lightweight set of observed values per monitored field and emits an alert when a value not present in the set is seen for the first time (subject to configuration).

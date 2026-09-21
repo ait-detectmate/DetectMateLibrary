@@ -1,8 +1,8 @@
 from detectmatelibrary.common._config import generate_events_config
+from detectmatelibrary.common._other_op._variable_hooks import VariableAutoConfigParams
 from detectmatelibrary.common.variable_detector import (
     VariableDetector,
     VariableDetectorConfig,
-    VariableAutoConfigParams,
 )
 from detectmatelibrary.common._config._compile import get_configured_variables
 
