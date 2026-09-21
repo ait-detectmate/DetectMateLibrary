@@ -88,6 +88,8 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../parsers/logbatcher_parser/">LogBatcher Parser</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/auto_parser/">Auto Parser</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../parsers/drain_parser/">Drain Parser</a>
                   </li>
               </ul>
@@ -178,13 +180,13 @@
                 <h1 id="federation">Federation</h1>
 <p>This section explains how to use the federation setup. For a component to support federation, it must implement the following methods:</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">to_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;(Federation only) Serialize to bytes for federation operations.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""(Federation only) Serialize to bytes for federation operations."""</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">from_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binary</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;(Federation only) Deserialize from bytes for federation operations.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""(Federation only) Deserialize from bytes for federation operations."""</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">aggregate_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="s2">&quot;FedOperations&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;(Federation only) Define how to aggregate a set of federated components.&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">aggregate_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="s2">"FedOperations"</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""(Federation only) Define how to aggregate a set of federated components."""</span>
 </code></pre></div>
 <p>There are two main ways to use federation:</p>
 <ul>
@@ -200,7 +202,7 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">NewComponent</span><span class="p">(</span><span class="n">CoreComponent</span><span class="p">):</span>  <span class="c1"># Inherent from CoreComponent</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">elems</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">elems</span> <span class="o">=</span> <span class="n">elems</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;FedExample&quot;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"FedExample"</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">aggregate_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">components</span><span class="p">):</span>
         <span class="n">final_list</span> <span class="o">=</span> <span class="p">[]</span>
@@ -212,11 +214,11 @@
             <span class="n">component</span><span class="o">.</span><span class="n">elems</span> <span class="o">=</span> <span class="n">final_list</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">to_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&gt;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span><span class="si">}</span><span class="s2">h&quot;</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="sa">f</span><span class="s2">"&gt;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span><span class="si">}</span><span class="s2">h"</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">from_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binary</span><span class="p">):</span>
         <span class="n">num_ints</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">binary</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
-        <span class="n">elems</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&gt;</span><span class="si">{</span><span class="n">num_ints</span><span class="si">}</span><span class="s2">h&quot;</span><span class="p">,</span> <span class="n">binary</span><span class="p">))</span>
+        <span class="n">elems</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="sa">f</span><span class="s2">"&gt;</span><span class="si">{</span><span class="n">num_ints</span><span class="si">}</span><span class="s2">h"</span><span class="p">,</span> <span class="n">binary</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">NewComponent</span><span class="p">(</span><span class="n">elems</span><span class="o">=</span><span class="n">elems</span><span class="p">)</span>
 </code></pre></div>
 <h2 id="combine-first">Combine first</h2>
@@ -231,7 +233,7 @@
 
 <span class="n">detector2</span><span class="o">.</span><span class="n">aggregate</span><span class="p">()</span>  <span class="c1"># Detector 2 is used as centralize node</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dectector 3&quot;</span><span class="p">,</span> <span class="n">detector3</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># All detectors have been updated</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Dectector 3"</span><span class="p">,</span> <span class="n">detector3</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># All detectors have been updated</span>
 </code></pre></div>
 <p>Example 2:</p>
 <div class="highlight"><pre><span></span><code><span class="n">detector1</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
@@ -242,7 +244,7 @@
 
 <span class="n">detector2</span><span class="o">.</span><span class="n">aggregate</span><span class="p">()</span>  <span class="c1"># Detector 2 is used as centralize node</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dectector 3&quot;</span><span class="p">,</span> <span class="n">detector3</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># All detectors have been updated</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Dectector 3"</span><span class="p">,</span> <span class="n">detector3</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># All detectors have been updated</span>
 </code></pre></div>
 <h2 id="stack">Stack</h2>
 <p>The diagram below shows the workflow:</p>
@@ -255,28 +257,28 @@
 <span class="n">detector1</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">detector2</span><span class="p">,</span> <span class="n">detector3</span><span class="p">])</span>
 
 <span class="n">detector2</span><span class="o">.</span><span class="n">aggregate</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Detector 3&quot;</span><span class="p">,</span> <span class="n">detector3</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># It is not longer combine but stack, so it will not work</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Detector 3"</span><span class="p">,</span> <span class="n">detector3</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># It is not longer combine but stack, so it will not work</span>
 
 <span class="n">detector1</span><span class="o">.</span><span class="n">aggregate</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Detector 3&quot;</span><span class="p">,</span> <span class="n">detector3</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># Now it will work</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Detector 3"</span><span class="p">,</span> <span class="n">detector3</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># Now it will work</span>
 </code></pre></div>
 <p>Example 2:</p>
 <div class="highlight"><pre><span></span><code><span class="n">detector1</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
 
 <span class="n">binary2</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span><span class="o">.</span><span class="n">to_binary</span><span class="p">()</span>
 <span class="n">binary3</span> <span class="o">=</span> <span class="p">(</span><span class="n">detector3</span> <span class="o">:=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">6</span><span class="p">]))</span><span class="o">.</span><span class="n">to_binary</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Binary of Detector 3&quot;</span><span class="p">,</span> <span class="n">binary3</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Binary of Detector 3"</span><span class="p">,</span> <span class="n">binary3</span><span class="p">)</span>
 
 <span class="n">detector1</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">binary2</span><span class="p">,</span> <span class="n">binary3</span><span class="p">])</span>
 <span class="n">output</span> <span class="o">=</span> <span class="n">detector1</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">unstack</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># unstack = True will free memory</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Detector 1&quot;</span><span class="p">,</span> <span class="n">detector1</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># Detector 1 has been updated</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Output binary&quot;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>  <span class="c1"># Output that we send to other componets</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Detector 1"</span><span class="p">,</span> <span class="n">detector1</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># Detector 1 has been updated</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Output binary"</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>  <span class="c1"># Output that we send to other componets</span>
 
 <span class="c1"># We update detector 3 now</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Detector 3&quot;</span><span class="p">,</span> <span class="n">detector3</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># Now detector 3 is not in the share memory so it will not work</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Detector 3"</span><span class="p">,</span> <span class="n">detector3</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># Now detector 3 is not in the share memory so it will not work</span>
 <span class="n">detector3</span> <span class="o">=</span> <span class="n">detector3</span><span class="o">.</span><span class="n">from_binary</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Detector 3&quot;</span><span class="p">,</span> <span class="n">detector3</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># Now it will work</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Detector 3"</span><span class="p">,</span> <span class="n">detector3</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># Now it will work</span>
 </code></pre></div>
               
             </div>

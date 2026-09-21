@@ -122,6 +122,8 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../parsers/logbatcher_parser/">LogBatcher Parser</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/auto_parser/">Auto Parser</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../parsers/drain_parser/">Drain Parser</a>
                   </li>
               </ul>
@@ -235,9 +237,9 @@
 <p>This document describes the minimal API, implementation guidance, a short example detector and a unit test pattern.</p>
 <h2 id="coredetector-minimal-api">CoreDetector — minimal API</h2>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">CoreDetectorConfig</span><span class="p">(</span><span class="n">CoreConfig</span><span class="p">):</span>
-    <span class="n">component_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;detectors&quot;</span>
-    <span class="n">method_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;core_detector&quot;</span>
-    <span class="n">parser</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&lt;PLACEHOLDER&gt;&quot;</span>
+    <span class="n">component_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"detectors"</span>
+    <span class="n">method_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"core_detector"</span>
+    <span class="n">parser</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"&lt;PLACEHOLDER&gt;"</span>
 
     <span class="n">auto_config</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -246,29 +248,29 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ParserSchema</span><span class="p">]</span> <span class="o">|</span> <span class="n">ParserSchema</span><span class="p">,</span> <span class="n">output_</span><span class="p">:</span> <span class="n">DetectorSchema</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Define in the Core detector&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Define in the Core detector"""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">detect</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ParserSchema</span><span class="p">]</span> <span class="o">|</span> <span class="n">ParserSchema</span><span class="p">,</span>
         <span class="n">output_</span><span class="p">:</span> <span class="n">DetectorSchema</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Empty, must be define in the specific detector&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Empty, must be define in the specific detector"""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">:</span> <span class="n">ParserSchema</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">ParserSchema</span><span class="p">]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Empty, can be define in the detector. It trains the detector&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Empty, can be define in the detector. It trains the detector"""</span>
 </code></pre></div>
 <h2 id="implementing-a-detector-example">Implementing a detector — example</h2>
 <p>Simple detector that raises an alert when a numeric variable exceeds a threshold.</p>
 <p><div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">SimpleThresholdConfig</span><span class="p">(</span><span class="n">CoreDetectorConfig</span><span class="p">):</span>
-    <span class="n">method_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;simple_threshold&quot;</span>
+    <span class="n">method_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"simple_threshold"</span>
     <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">SimpleThresholdDetector</span><span class="p">(</span><span class="n">CoreDetector</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;SimpleThreshold&quot;</span><span class="p">,</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"SimpleThreshold"</span><span class="p">,</span>
         <span class="n">config</span><span class="p">:</span> <span class="n">SimpleThresholdConfig</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">SimpleThresholdConfig</span><span class="p">()</span>
     <span class="p">):</span>
 
@@ -285,10 +287,10 @@
         <span class="c1"># calculate is a dummy method</span>
         <span class="k">if</span> <span class="n">calculate</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">threshold</span><span class="p">:</span>
 
-            <span class="n">output_</span><span class="p">[</span><span class="s2">&quot;alertID&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="n">output_</span><span class="p">[</span><span class="s2">&quot;logIDs&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">ev</span><span class="o">.</span><span class="n">logID</span><span class="p">]</span> <span class="k">if</span> <span class="n">ev</span><span class="o">.</span><span class="n">logID</span> <span class="k">else</span> <span class="p">[])</span>
-            <span class="n">output_</span><span class="p">[</span><span class="s2">&quot;score&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-            <span class="n">output_</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Value </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2"> &gt; threshold </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">threshold</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">output_</span><span class="p">[</span><span class="s2">"alertID"</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span><span class="si">}</span><span class="s2">"</span>
+            <span class="n">output_</span><span class="p">[</span><span class="s2">"logIDs"</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">ev</span><span class="o">.</span><span class="n">logID</span><span class="p">]</span> <span class="k">if</span> <span class="n">ev</span><span class="o">.</span><span class="n">logID</span> <span class="k">else</span> <span class="p">[])</span>
+            <span class="n">output_</span><span class="p">[</span><span class="s2">"score"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">output_</span><span class="p">[</span><span class="s2">"description"</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"Value </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2"> &gt; threshold </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">threshold</span><span class="si">}</span><span class="s2">"</span>
             <span class="k">return</span> <span class="kc">True</span>
 
         <span class="k">return</span> <span class="kc">False</span>
@@ -329,16 +331,16 @@ To configure the number of logs receive as input, you need to configure the <a h
 <span class="w">              </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">var1</span><span class="w">  </span><span class="c1"># name of variable (arbitrary)</span>
 <span class="w">          </span><span class="nt">header_variables</span><span class="p">:</span>
 <span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pos</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">level</span><span class="w">  </span><span class="c1"># location of a named variable (defined in log_format of parser)</span>
-<span class="w">    </span><span class="nt">global</span><span class="p">:</span><span class="w">  </span><span class="c1"># define global instance for new_value_detector similar to &quot;events&quot;</span>
+<span class="w">    </span><span class="nt">global</span><span class="p">:</span><span class="w">  </span><span class="c1"># define global instance for new_value_detector similar to "events"</span>
 <span class="w">      </span><span class="nt">global_instance1</span><span class="p">:</span><span class="w">  </span><span class="c1"># define instance name</span>
-<span class="w">        </span><span class="nt">header_variables</span><span class="p">:</span><span class="w">  </span><span class="c1"># same logic as header_variables in &quot;events&quot;</span>
+<span class="w">        </span><span class="nt">header_variables</span><span class="p">:</span><span class="w">  </span><span class="c1"># same logic as header_variables in "events"</span>
 <span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pos</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Status</span>
 </code></pre></div>
 <h3 id="configuration-semantics-preliminary">Configuration semantics (preliminary)</h3>
 <p><strong><code>events</code> key</strong> — The integer key is the <code>EventID</code> (or <code>event_id</code>) to monitor (see the <a href="../parsers/template_matcher/">Template Matcher</a> docs for how the EventID is assigned.</p>
 <p><strong><code>global</code> key</strong> - This one has a similar functionality as the <code>events</code> key but refers to variables, that are not bound to events (thus can only contain <code>header_variables</code>).</p>
 <p><strong><code>variables[].pos</code></strong> — The 0-indexed position of the <code>&lt;*&gt;</code> wildcard in the matched template, counting from left to right starting at 0. For example, given:</p>
-<div class="highlight"><pre><span></span><code>pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg=&#39;op=&lt;*&gt; acct=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;&#39;
+<div class="highlight"><pre><span></span><code>pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='op=&lt;*&gt; acct=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;'
 </code></pre></div>
 <p><code>pos: 0</code> captures <code>pid=</code>, <code>pos: 6</code> captures <code>exe=</code>, etc.</p>
 <p><strong><code>header_variables[].pos</code></strong> — A named field from the log format string (e.g., <code>Type</code>, <code>Time</code>, <code>Content</code>) rather than a wildcard position.</p>
@@ -350,7 +352,7 @@ To configure the number of logs receive as input, you need to configure the <a h
 <span class="w">    </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">new_value_detector</span>
 <span class="w">    </span><span class="nt">auto_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span><span class="w">       </span><span class="c1"># enable auto-configuration</span>
 <span class="w">    </span><span class="nt">params</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
-<span class="w">    </span><span class="c1"># no &quot;events&quot; block needed — it will be generated automatically</span>
+<span class="w">    </span><span class="c1"># no "events" block needed — it will be generated automatically</span>
 </code></pre></div>
 <h3 id="how-it-works">How it works</h3>
 <p>When auto-configuration is enabled, the detector goes through two extra phases before training:</p>
@@ -375,10 +377,10 @@ To configure the number of logs receive as input, you need to configure the <a h
 <p>The <code>configure()</code> method ingests all available variables (not just configured ones) so the tracker can assess each one:</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">):</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">auto_conf_persistency</span><span class="o">.</span><span class="n">ingest_event</span><span class="p">(</span>
-        <span class="n">event_id</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">&quot;EventID&quot;</span><span class="p">],</span>
-        <span class="n">event_template</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">&quot;template&quot;</span><span class="p">],</span>
-        <span class="n">variables</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">&quot;variables&quot;</span><span class="p">],</span>
-        <span class="n">named_variables</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">&quot;logFormatVariables&quot;</span><span class="p">],</span>
+        <span class="n">event_id</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">"EventID"</span><span class="p">],</span>
+        <span class="n">event_template</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">"template"</span><span class="p">],</span>
+        <span class="n">variables</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">"variables"</span><span class="p">],</span>
+        <span class="n">named_variables</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">"logFormatVariables"</span><span class="p">],</span>
     <span class="p">)</span>
 </code></pre></div>
 <p>The <code>set_configuration()</code> method queries the tracker results and writes the
@@ -388,7 +390,7 @@ operator set under <code>params</code> or <code>auto_config_params</code> must s
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">set_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="n">variables</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">event_id</span><span class="p">,</span> <span class="n">tracker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_conf_persistency</span><span class="o">.</span><span class="n">get_events_data</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">stable_vars</span> <span class="o">=</span> <span class="n">tracker</span><span class="o">.</span><span class="n">get_features_by_classification</span><span class="p">(</span><span class="s2">&quot;STABLE&quot;</span><span class="p">)</span>
+        <span class="n">stable_vars</span> <span class="o">=</span> <span class="n">tracker</span><span class="o">.</span><span class="n">get_features_by_classification</span><span class="p">(</span><span class="s2">"STABLE"</span><span class="p">)</span>
         <span class="n">variables</span><span class="p">[</span><span class="n">event_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">stable_vars</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">events</span> <span class="o">=</span> <span class="n">generate_events_config</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
@@ -460,12 +462,13 @@ axes:</p>
 </table>
 <p>Any subset of the four may be enabled, and any single one may stand alone. The
 default — <code>index</code> alone — is the historical behaviour: each segment's mean rate
-of change is compared against a threshold, and the segments are <strong>equal-count</strong>:
+of change is compared against its entry in <code>segment_thresholds</code> — four segments
+by default, one threshold per segment — and the segments are <strong>equal-count</strong>:
 each holds the same number of observations, regardless of how much time they
 cover. For bursty log sources that is misleading — a variable that changed
 constantly during a quiet night and then went silent under a flood of daytime
 traffic looks stable, because the flood supplies enough samples to dominate the
-later segments. Enabling <code>time</code> cuts the same four segments at <strong>equal
+later segments. Enabling <code>time</code> cuts the same segments at <strong>equal
 durations</strong> instead, so each segment covers the same amount of wall-clock time;
 the detector then needs an event time per record, which it reads from the log's
 named variables (<code>logFormatVariables</code>, i.e. the fields declared in the parser's
@@ -487,16 +490,20 @@ consulted at detection time.</p>
 <span class="w">      </span><span class="nt">classification</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span><span class="w">            </span><span class="c1"># segment-mean thresholds, equal-count cuts</span>
 <span class="w">        </span><span class="nt">time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w">            </span><span class="c1"># segment-mean thresholds, equal-duration cuts</span>
+<span class="w">        </span><span class="nt">segment_thresholds</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1.1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.3</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.01</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># one per segment; the length is the segment count</span>
 <span class="w">        </span><span class="nt">slope_index</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w">     </span><span class="c1"># change centroid over index positions</span>
 <span class="w">        </span><span class="nt">slope_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w">      </span><span class="c1"># change centroid over normalized time</span>
 <span class="w">        </span><span class="nt">slope_threshold</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-0.05</span><span class="w"> </span><span class="c1"># shared by both slope methods</span>
 <span class="w">        </span><span class="nt">decision</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consensus</span><span class="w">    </span><span class="c1"># consensus | majority</span>
 <span class="w">      </span><span class="nt">timestamp_variable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Time</span>
-<span class="w">      </span><span class="nt">timestamp_format</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;%y%m%d</span><span class="nv"> </span><span class="s">%H%M%S&quot;</span>
+<span class="w">      </span><span class="nt">timestamp_format</span><span class="p">:</span><span class="w"> </span><span class="s">"%y%m%d</span><span class="nv"> </span><span class="s">%H%M%S"</span>
 </code></pre></div>
 <p>Defaults reproduce the historical behaviour exactly: <code>index: True</code>, the other
-three <code>False</code>, <code>decision: consensus</code>, <code>slope_threshold: -0.05</code>. A config that
-sets nothing under <code>classification</code> classifies identically to before this change.</p>
+three <code>False</code>, <code>segment_thresholds: [1.1, 0.3, 0.1, 0.01]</code>, <code>decision: consensus</code>,
+<code>slope_threshold: -0.05</code>. A config that sets nothing under <code>classification</code>
+classifies identically to before these changes on every series with at least
+four observations; the one exception is the segment floor described under
+"Fields" below.</p>
 <h4 id="the-decision-rule">The decision rule</h4>
 <p>When more than one method is enabled, <code>decision</code> picks how their verdicts
 combine. <code>consensus</code> requires every enabled method to return stable; <code>majority</code>
@@ -591,7 +598,7 @@ would silently classify every remaining variable <code>STABLE</code>.</p>
 <p>Set <code>timestamp_format</code> when the source uses a layout the auto-detection does not
 know. The HDFS loghub corpus, for example, stamps records as <code>081109 203615</code>, which
 only parses with an explicit <code>"%y%m%d %H%M%S"</code>.</p>
-<p><code>classification</code>'s six fields:</p>
+<p><code>classification</code>'s seven fields:</p>
 <table>
 <thead>
 <tr>
@@ -613,6 +620,12 @@ only parses with an explicit <code>"%y%m%d %H%M%S"</code>.</p>
 <td><code>bool</code></td>
 <td><code>false</code></td>
 <td>Segment-mean thresholds, equal-duration boundaries. Needs <code>timestamp_variable</code>.</td>
+</tr>
+<tr>
+<td><code>segment_thresholds</code></td>
+<td><code>list[float]</code></td>
+<td><code>[1.1, 0.3, 0.1, 0.01]</code></td>
+<td>Per-segment upper bounds on the mean change rate for <code>index</code> and <code>time</code>. The list's length is the segment count. Entries must be positive and finite and the list must not be empty; an entry above one exempts its segment.</td>
 </tr>
 <tr>
 <td><code>slope_index</code></td>
@@ -640,6 +653,13 @@ only parses with an explicit <code>"%y%m%d %H%M%S"</code>.</p>
 </tr>
 </tbody>
 </table>
+<p>The segment methods need at least one observation per segment. A variable with
+fewer observations than segments is classified <code>INSUFFICIENT_DATA</code> (with a reason
+naming the segment count) rather than scored over empty segments. The tracker's
+own <code>min_samples</code> stays the floor for <code>STATIC</code> and <code>RANDOM</code>, which are decided
+before any segment is cut; the effective minimum for a <code>STABLE</code> / <code>UNSTABLE</code>
+verdict is the larger of the two. A block with only slope methods enabled cuts no
+segments and has no such floor.</p>
 <h4 id="fallback-behaviour">Fallback behaviour</h4>
 <p>Time-aware classification is best-effort and never fails a run:</p>
 <ul>
@@ -668,10 +688,11 @@ only parses with an explicit <code>"%y%m%d %H%M%S"</code>.</p>
 <p>In every fallback case classification still runs and produces a result — only the
 axis behind it changes back to index.</p>
 <p>A segment with no observations in it is <em>not</em> a fallback: it scores a mean of 0.0,
-because nothing observed means nothing changed. Equal-duration cuts of a bursty
-variable leave such segments routinely, so <code>time</code> on its own is lenient towards a
-burst of churn followed by silence. Enable <code>index</code> and <code>time</code> together when that
-leniency matters — the index pass keeps every segment populated.</p>
+because nothing observed means nothing changed. Once the segment floor above is
+met, equal-index cuts never leave a segment empty; equal-duration cuts of a bursty
+variable still do, routinely, so <code>time</code> on its own is lenient towards a burst of
+churn followed by silence. Enable <code>index</code> and <code>time</code> together when that leniency
+matters — the index pass keeps every segment populated.</p>
 <h3 id="saving-state-persist">Saving state (persist)</h3>
 <p>Detectors can persist their training state to disk (or cloud storage) so it
 can be restored in a later session. Configure this with a top-level <code>persist:</code>

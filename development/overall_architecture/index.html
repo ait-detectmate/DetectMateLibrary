@@ -88,6 +88,8 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../parsers/logbatcher_parser/">LogBatcher Parser</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/auto_parser/">Auto Parser</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../parsers/drain_parser/">Drain Parser</a>
                   </li>
               </ul>
@@ -200,75 +202,75 @@
 <h2 id="components-methods">Components methods</h2>
 <p>Each Core* base class exposes a small, stable API that implementations must implement or may override.</p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">ConfigComponent</span><span class="p">(</span><span class="n">CoreConfig</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Contains all the arguments of the component&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Contains all the arguments of the component"""</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Component</span><span class="p">(</span><span class="n">CoreComponent</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]</span> <span class="o">|</span> <span class="n">BaseSchema</span><span class="p">,</span> <span class="n">output_</span><span class="p">:</span> <span class="n">BaseSchema</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Run the component for a specific input&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Run the component for a specific input"""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]</span> <span class="o">|</span> <span class="n">BaseSchema</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Train the component with a specific input&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Train the component with a specific input"""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">update_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">StatesL</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Update the current state by request of the user</span>
 <span class="sd">    states:</span>
 <span class="sd">    *   keep_training: force to keep training</span>
 <span class="sd">    *   stop_training: force to stop training</span>
 <span class="sd">    *   keep_configuring: force to keep configuring</span>
 <span class="sd">    *   stop_configuring: force to stop configuring</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Return the current state of the component</span>
 <span class="sd">    states:</span>
 <span class="sd">    *   Configuring: the component is doing configurations</span>
 <span class="sd">    *   Training: the component is training</span>
 <span class="sd">    *   Default: the component is just processing data</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">export_state</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">storage_options</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Export the current state if persistency class was implemented&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Export the current state if persistency class was implemented"""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">import_state</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">storage_options</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Import the current state if persistency class was implemented&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Import the current state if persistency class was implemented"""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">BaseSchema</span> <span class="o">|</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseSchema</span> <span class="o">|</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Process the data in a stream fashion (Defined in the CoreComponent)&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Process the data in a stream fashion (Defined in the CoreComponent)"""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the configuration of the component (Defined in the CoreComponent)&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Get the configuration of the component (Defined in the CoreComponent)"""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">update_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_config</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the configuration of the component (Defined in the CoreComponent)&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Update the configuration of the component (Defined in the CoreComponent)"""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">get_window_size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get window size of the data buffer&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Get window size of the data buffer"""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">stack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">object</span> <span class="o">|</span> <span class="nb">bytes</span><span class="p">]</span> <span class="o">|</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;(Federation only) stack multiple components for federation tasks&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""(Federation only) stack multiple components for federation tasks"""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unstack</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bytes</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;(Federation only) aggregate multiple components&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""(Federation only) aggregate multiple components"""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">to_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;(Federation only) fill it to be compatible with federation ops&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""(Federation only) fill it to be compatible with federation ops"""</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">from_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binary</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;(Federation only) fill it to be compatible with federation ops&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""(Federation only) fill it to be compatible with federation ops"""</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">aggregate_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="s2">&quot;FedOperations&quot;</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;(Federation only) fill it to be compatible with federation ops&quot;&quot;&quot;</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">aggregate_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="s2">"FedOperations"</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""(Federation only) fill it to be compatible with federation ops"""</span>
 </code></pre></div>
 <p>Go back <a href="../">Index</a></p>
               

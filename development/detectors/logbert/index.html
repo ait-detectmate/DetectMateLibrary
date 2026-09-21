@@ -80,6 +80,8 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../parsers/logbatcher_parser/">LogBatcher Parser</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/auto_parser/">Auto Parser</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../parsers/drain_parser/">Drain Parser</a>
                   </li>
               </ul>
@@ -223,9 +225,9 @@
 <span class="w">                </span><span class="nt">alpha</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
 <span class="w">                </span><span class="nt">patience</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
 <span class="w">            </span><span class="nt">Finetune</span><span class="p">:</span><span class="w"> </span>
-<span class="w">                </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;Model&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;hidden&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">64</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">128</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">256</span><span class="p p-Indicator">]]</span>
-<span class="w">                </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;Model&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;n_layers&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">3</span><span class="p p-Indicator">]]</span>
-<span class="w">                </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&quot;Train&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&quot;learning_rate&quot;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.002</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.001</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.005</span><span class="p p-Indicator">]]</span>
+<span class="w">                </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"Model"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"hidden"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">64</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">128</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">256</span><span class="p p-Indicator">]]</span>
+<span class="w">                </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"Model"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"n_layers"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">3</span><span class="p p-Indicator">]]</span>
+<span class="w">                </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"Train"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">"learning_rate"</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.002</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.001</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.005</span><span class="p p-Indicator">]]</span>
 </code></pre></div>
 <h2 id="example-usage">Example usage</h2>
 <p><div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.detectors.logbert_detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogBertDetector</span>
@@ -233,26 +235,26 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">detectmatelibrary.schemas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">schemas</span>
 
 <span class="n">cfg</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;detectors&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;LogBertDetector&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;method_type&quot;</span><span class="p">:</span> <span class="s2">&quot;logbert_detector&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;auto_config&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="s2">"detectors"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"LogBertDetector"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"method_type"</span><span class="p">:</span> <span class="s2">"logbert_detector"</span><span class="p">,</span>
+            <span class="s2">"auto_config"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
         <span class="p">}</span>
     <span class="p">}</span>
 <span class="p">}</span>
 
-<span class="n">detector</span> <span class="o">=</span> <span class="n">LogBertDetector</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;LogBertDetector&quot;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
+<span class="n">detector</span> <span class="o">=</span> <span class="n">LogBertDetector</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"LogBertDetector"</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
 
 <span class="n">test_data</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">ParserSchema</span><span class="p">({</span>
-    <span class="s2">&quot;parserType&quot;</span><span class="p">:</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;EventID&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
-    <span class="s2">&quot;template&quot;</span><span class="p">:</span> <span class="s2">&quot;test template&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;variables&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;adsasd&quot;</span><span class="p">,</span> <span class="s2">&quot;asdasd&quot;</span><span class="p">],</span>
-    <span class="s2">&quot;logID&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;parsedLogID&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;parserID&quot;</span><span class="p">:</span> <span class="s2">&quot;test_parser&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="s2">&quot;test log message&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;logFormatVariables&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;CRITICAL&quot;</span><span class="p">}</span>
+    <span class="s2">"parserType"</span><span class="p">:</span> <span class="s2">"test"</span><span class="p">,</span>
+    <span class="s2">"EventID"</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+    <span class="s2">"template"</span><span class="p">:</span> <span class="s2">"test template"</span><span class="p">,</span>
+    <span class="s2">"variables"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"adsasd"</span><span class="p">,</span> <span class="s2">"asdasd"</span><span class="p">],</span>
+    <span class="s2">"logID"</span><span class="p">:</span> <span class="s2">"2"</span><span class="p">,</span>
+    <span class="s2">"parsedLogID"</span><span class="p">:</span> <span class="s2">"2"</span><span class="p">,</span>
+    <span class="s2">"parserID"</span><span class="p">:</span> <span class="s2">"test_parser"</span><span class="p">,</span>
+    <span class="s2">"log"</span><span class="p">:</span> <span class="s2">"test log message"</span><span class="p">,</span>
+    <span class="s2">"logFormatVariables"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"level"</span><span class="p">:</span> <span class="s2">"CRITICAL"</span><span class="p">}</span>
 <span class="p">})</span>
 <span class="n">output</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">DetectorSchema</span><span class="p">()</span>
 

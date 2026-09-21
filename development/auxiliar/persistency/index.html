@@ -80,6 +80,8 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../parsers/logbatcher_parser/">LogBatcher Parser</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/auto_parser/">Auto Parser</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../parsers/drain_parser/">Drain Parser</a>
                   </li>
               </ul>
@@ -257,12 +259,12 @@ a <code>persist:</code> block in its config and <code>CoreDetector</code> wires 
 <span class="p">)</span>
 
 <span class="n">ep</span><span class="o">.</span><span class="n">ingest_event</span><span class="p">(</span>
-    <span class="n">event_id</span><span class="o">=</span><span class="s2">&quot;4624&quot;</span><span class="p">,</span>
-    <span class="n">event_template</span><span class="o">=</span><span class="s2">&quot;An account was successfully logged on.&quot;</span><span class="p">,</span>
-    <span class="n">named_variables</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;AccountName&quot;</span><span class="p">:</span> <span class="s2">&quot;alice&quot;</span><span class="p">,</span> <span class="s2">&quot;LogonType&quot;</span><span class="p">:</span> <span class="s2">&quot;3&quot;</span><span class="p">},</span>
+    <span class="n">event_id</span><span class="o">=</span><span class="s2">"4624"</span><span class="p">,</span>
+    <span class="n">event_template</span><span class="o">=</span><span class="s2">"An account was successfully logged on."</span><span class="p">,</span>
+    <span class="n">named_variables</span><span class="o">=</span><span class="p">{</span><span class="s2">"AccountName"</span><span class="p">:</span> <span class="s2">"alice"</span><span class="p">,</span> <span class="s2">"LogonType"</span><span class="p">:</span> <span class="s2">"3"</span><span class="p">},</span>
 <span class="p">)</span>
 
-<span class="n">tracker</span> <span class="o">=</span> <span class="n">ep</span><span class="o">.</span><span class="n">get_event_data</span><span class="p">(</span><span class="s2">&quot;4624&quot;</span><span class="p">)</span>  <span class="c1"># or ep[&quot;4624&quot;]</span>
+<span class="n">tracker</span> <span class="o">=</span> <span class="n">ep</span><span class="o">.</span><span class="n">get_event_data</span><span class="p">(</span><span class="s2">"4624"</span><span class="p">)</span>  <span class="c1"># or ep["4624"]</span>
 </code></pre></div>
 <p>That snippet covers the whole in-memory API: pick a backend class, ingest
 events, query state.</p>
@@ -330,7 +332,7 @@ canonical import; the deeply nested submodules are an implementation detail.</p>
 <div class="highlight"><pre><span></span><code><span class="n">saver</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">PersistencySaver</span><span class="p">(</span>
     <span class="n">ep</span><span class="p">,</span>
     <span class="n">persistency</span><span class="o">.</span><span class="n">PersistencySaverConfig</span><span class="p">(</span>
-        <span class="n">path</span><span class="o">=</span><span class="s2">&quot;./state/my-detector&quot;</span><span class="p">,</span>
+        <span class="n">path</span><span class="o">=</span><span class="s2">"./state/my-detector"</span><span class="p">,</span>
         <span class="n">save_interval_seconds</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
         <span class="n">events_until_save</span><span class="o">=</span><span class="mi">10_000</span><span class="p">,</span>     <span class="c1"># save after this many ingests, too</span>
         <span class="n">auto_load</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -347,7 +349,7 @@ independent — whichever fires first wins.</p>
 <h4 id="restoring-state">Restoring state</h4>
 <div class="highlight"><pre><span></span><code><span class="n">saver</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">PersistencySaver</span><span class="p">(</span>
     <span class="n">ep</span><span class="p">,</span>
-    <span class="n">persistency</span><span class="o">.</span><span class="n">PersistencySaverConfig</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;./state/my-detector&quot;</span><span class="p">,</span> <span class="n">auto_load</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+    <span class="n">persistency</span><span class="o">.</span><span class="n">PersistencySaverConfig</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">"./state/my-detector"</span><span class="p">,</span> <span class="n">auto_load</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
 <span class="p">)</span>
 <span class="c1"># ep is now pre-populated from disk</span>
 </code></pre></div>
@@ -360,13 +362,13 @@ taking a manual snapshot — use the standalone functions directly:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">persistency</span>
 
 <span class="c1"># Export to a file URI</span>
-<span class="n">persistency</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">ep</span><span class="p">,</span> <span class="s2">&quot;./snapshots/trained-state&quot;</span><span class="p">)</span>
+<span class="n">persistency</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">ep</span><span class="p">,</span> <span class="s2">"./snapshots/trained-state"</span><span class="p">)</span>
 
 <span class="c1"># Export to bytes (no disk I/O — useful when sending state over a network API)</span>
 <span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">ep</span><span class="p">)</span>
 
 <span class="c1"># Import from a file URI</span>
-<span class="n">persistency</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ep</span><span class="p">,</span> <span class="s2">&quot;./snapshots/trained-state&quot;</span><span class="p">)</span>
+<span class="n">persistency</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ep</span><span class="p">,</span> <span class="s2">"./snapshots/trained-state"</span><span class="p">)</span>
 
 <span class="c1"># Import from bytes</span>
 <span class="n">persistency</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ep</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
@@ -385,13 +387,13 @@ when a saver is active.</p>
 the methods on the detector object directly — no need to access
 <code>EventPersistency</code> internals:</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># Export to a file URI</span>
-<span class="n">detector</span><span class="o">.</span><span class="n">export_state</span><span class="p">(</span><span class="s2">&quot;./snapshots/my-detector&quot;</span><span class="p">)</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">export_state</span><span class="p">(</span><span class="s2">"./snapshots/my-detector"</span><span class="p">)</span>
 
 <span class="c1"># Export to bytes (e.g. for an API response)</span>
 <span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">export_state</span><span class="p">()</span>
 
 <span class="c1"># Import from a file URI</span>
-<span class="n">detector</span><span class="o">.</span><span class="n">import_state</span><span class="p">(</span><span class="s2">&quot;./snapshots/my-detector&quot;</span><span class="p">)</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">import_state</span><span class="p">(</span><span class="s2">"./snapshots/my-detector"</span><span class="p">)</span>
 
 <span class="c1"># Import from bytes (e.g. from an API request body)</span>
 <span class="n">detector</span><span class="o">.</span><span class="n">import_state</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
@@ -414,7 +416,7 @@ schema.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">persistency</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MyDetector</span><span class="p">(</span><span class="n">CoreDetector</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;MyDetector&quot;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">MyDetectorConfig</span><span class="p">()):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"MyDetector"</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">MyDetectorConfig</span><span class="p">()):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">persistency</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">EventPersistency</span><span class="p">(</span>
             <span class="n">event_data_class</span><span class="o">=</span><span class="n">persistency</span><span class="o">.</span><span class="n">EventStabilityTracker</span><span class="p">,</span>
@@ -423,13 +425,13 @@ schema.</p>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">persistency</span><span class="o">.</span><span class="n">ingest_event</span><span class="p">(</span>
-            <span class="n">event_id</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">&quot;EventID&quot;</span><span class="p">],</span>
-            <span class="n">event_template</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">&quot;template&quot;</span><span class="p">],</span>
+            <span class="n">event_id</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">"EventID"</span><span class="p">],</span>
+            <span class="n">event_template</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">"template"</span><span class="p">],</span>
             <span class="n">named_variables</span><span class="o">=</span><span class="p">{</span><span class="o">...</span><span class="p">},</span>
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">detect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">,</span> <span class="n">output_</span><span class="p">):</span>
-        <span class="n">tracker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">persistency</span><span class="o">.</span><span class="n">get_events_data</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">input_</span><span class="p">[</span><span class="s2">&quot;EventID&quot;</span><span class="p">])</span>
+        <span class="n">tracker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">persistency</span><span class="o">.</span><span class="n">get_events_data</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">input_</span><span class="p">[</span><span class="s2">"EventID"</span><span class="p">])</span>
         <span class="c1"># compare against tracker to produce alerts</span>
 </code></pre></div>
 <p><code>_register_persistency</code> is a one-line wrapper around

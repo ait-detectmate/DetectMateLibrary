@@ -100,6 +100,8 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../parsers/logbatcher_parser/">LogBatcher Parser</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/auto_parser/">Auto Parser</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../parsers/drain_parser/">Drain Parser</a>
                   </li>
               </ul>
@@ -237,9 +239,9 @@ Optional Dependency Groups https://pydevtools.com/handbook/explanation/what-are-
 <div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>dataframes
 </code></pre></div>
 <p>Or with <code>uv pip install</code> / pip when installing as a library:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;detectmatelibrary[dataframes]&quot;</span>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"detectmatelibrary[dataframes]"</span>
 <span class="c1"># or</span>
-pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;detectmatelibrary[dataframes]&quot;</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"detectmatelibrary[dataframes]"</span>
 </code></pre></div>
 <p>Combine multiple extras if needed:</p>
 <div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>dataframes<span class="w"> </span>--extra<span class="w"> </span>polars-rtcompat
@@ -247,7 +249,7 @@ pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot
 <p>Or install everything at once with the <code>full</code> extra:</p>
 <div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>full
 <span class="c1"># or</span>
-uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;detectmatelibrary[full]&quot;</span>
+uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"detectmatelibrary[full]"</span>
 </code></pre></div>
 <h2 id="developer-setup">Developer setup</h2>
 <p><strong>Purpose</strong>: prepare a development environment with test and lint tooling.</p>

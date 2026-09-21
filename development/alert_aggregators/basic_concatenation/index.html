@@ -80,6 +80,8 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../parsers/logbatcher_parser/">LogBatcher Parser</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/auto_parser/">Auto Parser</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../parsers/drain_parser/">Drain Parser</a>
                   </li>
               </ul>
@@ -195,7 +197,7 @@
 <h1 id="configuration-example">Configuration example</h1>
 <div class="highlight"><pre><span></span><code><span class="nt">alert_aggregators</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">BasicConcatAggregator</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;basic_concat_aggregator&quot;</span>
+<span class="w">        </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="s">"basic_concat_aggregator"</span>
 <span class="w">        </span><span class="nt">buffer_size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3</span>
 <span class="w">        </span><span class="nt">auto_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span>
 </code></pre></div>
@@ -206,31 +208,31 @@
 
 
 <span class="n">aggregations_config</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;alert_aggregators&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;BasicConcatAggregator&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;method_type&quot;</span><span class="p">:</span> <span class="s2">&quot;basic_concat_aggregator&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;buffer_size&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
-            <span class="s2">&quot;auto_config&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s2">"alert_aggregators"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"BasicConcatAggregator"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"method_type"</span><span class="p">:</span> <span class="s2">"basic_concat_aggregator"</span><span class="p">,</span>
+            <span class="s2">"buffer_size"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">"auto_config"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
         <span class="p">}</span>
     <span class="p">}</span>
 <span class="p">}</span>
 
 
 <span class="n">input_</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">DetectorSchema</span><span class="p">({</span>
-    <span class="s2">&quot;detectorID&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;detectorType&quot;</span><span class="p">:</span> <span class="s2">&quot;dummy&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;alertID&quot;</span><span class="p">:</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;detectionTimestamp&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="s2">&quot;logIDs&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;logID1&quot;</span><span class="p">],</span>
-    <span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
-    <span class="s2">&quot;extractedTimestamps&quot;</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
-    <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;hello there&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;receivedTimestamp&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">&quot;alertsObtain&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;99 problems&quot;</span><span class="p">:</span> <span class="s2">&quot;but logs aint one&quot;</span><span class="p">}</span>
+    <span class="s2">"detectorID"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
+    <span class="s2">"detectorType"</span><span class="p">:</span> <span class="s2">"dummy"</span><span class="p">,</span>
+    <span class="s2">"alertID"</span><span class="p">:</span> <span class="s2">"2"</span><span class="p">,</span>
+    <span class="s2">"detectionTimestamp"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">"logIDs"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"logID1"</span><span class="p">],</span>
+    <span class="s2">"score"</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
+    <span class="s2">"extractedTimestamps"</span><span class="p">:</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"hello there"</span><span class="p">,</span>
+    <span class="s2">"receivedTimestamp"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">"alertsObtain"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"99 problems"</span><span class="p">:</span> <span class="s2">"but logs aint one"</span><span class="p">}</span>
 <span class="p">})</span>
 
 <span class="n">alert_aggregator</span> <span class="o">=</span> <span class="n">BasicConcatAggregation</span><span class="p">(</span>
-    <span class="s2">&quot;BasicConcatAggregator&quot;</span><span class="p">,</span> <span class="n">aggregations_config</span>
+    <span class="s2">"BasicConcatAggregator"</span><span class="p">,</span> <span class="n">aggregations_config</span>
 <span class="p">)</span>
 <span class="n">alert_aggregator</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span>
 </code></pre></div>

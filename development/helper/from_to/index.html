@@ -80,6 +80,8 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../parsers/logbatcher_parser/">LogBatcher Parser</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/auto_parser/">Auto Parser</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../parsers/drain_parser/">Drain Parser</a>
                   </li>
               </ul>
@@ -202,25 +204,25 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span>
         <span class="n">component</span><span class="p">:</span> <span class="n">CoreComponent</span><span class="p">,</span> <span class="n">in_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">do_process</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load logs as input schemas.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load logs as input schemas."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">binary_file</span><span class="p">(</span>
         <span class="n">component</span><span class="p">:</span> <span class="n">CoreComponent</span><span class="p">,</span> <span class="n">in_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">do_process</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load binary files as input schemas.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load binary files as input schemas."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">json</span><span class="p">(</span>
         <span class="n">component</span><span class="p">:</span> <span class="n">CoreComponent</span><span class="p">,</span> <span class="n">in_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">do_process</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load JSON files as input schemas.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load JSON files as input schemas."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">yaml</span><span class="p">(</span>
         <span class="n">component</span><span class="p">:</span> <span class="n">CoreComponent</span><span class="p">,</span> <span class="n">in_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">do_process</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load YAML files as input schemas.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load YAML files as input schemas."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">polars</span><span class="p">(</span>
@@ -229,11 +231,11 @@
         <span class="n">do_process</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">renames</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Load Polars dataframe as input schemas follow DetectMatePerformance format.</span>
 
 <span class="sd">        *  renames: allow to rename the dataframe inside the method</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
 </code></pre></div>
 <h3 id="usage">Usage</h3>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.tree_matcher</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplateCppTreeMatcher</span>
@@ -249,27 +251,27 @@
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">To</span><span class="p">:</span>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">binary_file</span><span class="p">(</span><span class="n">out_</span><span class="p">:</span> <span class="n">BaseSchema</span> <span class="o">|</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save output schema to a binary file.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Save output schema to a binary file."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">binary_file</span><span class="p">(</span><span class="n">out_</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">bytes</span><span class="p">],</span> <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">bytes</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save a list of output schemas to a binary file.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Save a list of output schemas to a binary file."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">json</span><span class="p">(</span><span class="n">out_</span><span class="p">:</span> <span class="n">BaseSchema</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseSchema</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save output schema to a JSON file.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Save output schema to a JSON file."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">json</span><span class="p">(</span><span class="n">out_</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">],</span> <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save a list of output schemas to a JSON file.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Save a list of output schemas to a JSON file."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">yaml</span><span class="p">(</span><span class="n">out_</span><span class="p">:</span> <span class="n">BaseSchema</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BaseSchema</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save output schema to a YAML file.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Save output schema to a YAML file."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">yaml</span><span class="p">(</span><span class="n">out_</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">],</span> <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Save a list of output schemas to a YAML file.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Save a list of output schemas to a YAML file."""</span>
 </code></pre></div>
 <h3 id="usage_1">Usage</h3>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.helper.from_to</span><span class="w"> </span><span class="kn">import</span> <span class="n">To</span>
@@ -280,19 +282,19 @@
 </code></pre></div>
 <p>Example JSON save file format:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;0&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;logID&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;hostname&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;log&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg=&#39;op=&lt;*&gt; acct=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;&#39;&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;logSource&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;__version__&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span>
+<span class="w">    </span><span class="nt">"0"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"logID"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"hostname"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"log"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='op=&lt;*&gt; acct=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;'"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"logSource"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"__version__"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.0.0"</span>
 <span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="nt">&quot;1&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;logID&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;hostname&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;log&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg=&#39;unit=&lt;*&gt; comm=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;&#39;&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;logSource&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;__version__&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span>
+<span class="w">    </span><span class="nt">"1"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"logID"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"hostname"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"log"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='unit=&lt;*&gt; comm=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;'"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"logSource"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"__version__"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.0.0"</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
@@ -301,69 +303,69 @@
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">FromTo</span><span class="p">:</span>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">log2binary_file</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n">CoreComponent</span><span class="p">,</span> <span class="n">in_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a log file and save it to a binary file.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load a log file and save it to a binary file."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">log2json</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n">CoreComponent</span><span class="p">,</span> <span class="n">in_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a log file and save it to a JSON file.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load a log file and save it to a JSON file."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">log2yaml</span><span class="p">(</span><span class="n">component</span><span class="p">:</span> <span class="n">CoreComponent</span><span class="p">,</span> <span class="n">in_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a log file and save it to a YAML file.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load a log file and save it to a YAML file."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">binary_file2binary_file</span><span class="p">(</span>
         <span class="n">component</span><span class="p">:</span> <span class="n">CoreComponent</span><span class="p">,</span> <span class="n">in_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a binary file and save it to a binary file.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load a binary file and save it to a binary file."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">binary_file2json</span><span class="p">(</span>
         <span class="n">component</span><span class="p">:</span> <span class="n">CoreComponent</span><span class="p">,</span> <span class="n">in_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a binary file and save it to a JSON file.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load a binary file and save it to a JSON file."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">binary_file2yaml</span><span class="p">(</span>
         <span class="n">component</span><span class="p">:</span> <span class="n">CoreComponent</span><span class="p">,</span> <span class="n">in_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a binary file and save it to a YAML file.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load a binary file and save it to a YAML file."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">json2binary_file</span><span class="p">(</span>
         <span class="n">component</span><span class="p">:</span> <span class="n">CoreComponent</span><span class="p">,</span> <span class="n">in_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a JSON file and save it to a binary file.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load a JSON file and save it to a binary file."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">json2json</span><span class="p">(</span>
         <span class="n">component</span><span class="p">:</span> <span class="n">CoreComponent</span><span class="p">,</span> <span class="n">in_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a JSON file and save it to a JSON file.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load a JSON file and save it to a JSON file."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">json2yaml</span><span class="p">(</span>
         <span class="n">component</span><span class="p">:</span> <span class="n">CoreComponent</span><span class="p">,</span> <span class="n">in_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a JSON file and save it to a YAML file.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load a JSON file and save it to a YAML file."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">yaml2binary_file</span><span class="p">(</span>
         <span class="n">component</span><span class="p">:</span> <span class="n">CoreComponent</span><span class="p">,</span> <span class="n">in_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a YAML file and save it to a binary file.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load a YAML file and save it to a binary file."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">yaml2json</span><span class="p">(</span>
         <span class="n">component</span><span class="p">:</span> <span class="n">CoreComponent</span><span class="p">,</span> <span class="n">in_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a YAML file and save it to a JSON file.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load a YAML file and save it to a JSON file."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">yaml2yaml</span><span class="p">(</span>
         <span class="n">component</span><span class="p">:</span> <span class="n">CoreComponent</span><span class="p">,</span> <span class="n">in_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a YAML file and save it to a YAML file.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load a YAML file and save it to a YAML file."""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">polars2binary_file</span><span class="p">(</span>
@@ -372,7 +374,7 @@
         <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">renames</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load DetectMatePerformance Dataframe to binary file&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load DetectMatePerformance Dataframe to binary file"""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">polars2json</span><span class="p">(</span>
@@ -381,7 +383,7 @@
         <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">renames</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load DetectMatePerformance Dataframe to json&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load DetectMatePerformance Dataframe to json"""</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">polars2yaml</span><span class="p">(</span>
@@ -390,7 +392,7 @@
         <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">renames</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">BaseSchema</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load DetectMatePerformance Dataframe to yaml&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Load DetectMatePerformance Dataframe to yaml"""</span>
 </code></pre></div>
 <h3 id="usage_2">Usage</h3>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.helper.from_to</span><span class="w"> </span><span class="kn">import</span> <span class="n">FromTo</span>
@@ -401,59 +403,59 @@
 </code></pre></div>
 <p>Example input data:</p>
 <div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;0&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;logID&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;hostname&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;log&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg=&#39;op=&lt;*&gt; acct=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;&#39;&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;logSource&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;__version__&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span>
+<span class="w">    </span><span class="nt">"0"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"logID"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"hostname"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"log"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='op=&lt;*&gt; acct=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;'"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"logSource"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"__version__"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.0.0"</span>
 <span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="nt">&quot;1&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;logID&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;hostname&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;log&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg=&#39;unit=&lt;*&gt; comm=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;&#39;&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;logSource&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;__version__&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span>
+<span class="w">    </span><span class="nt">"1"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"logID"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"hostname"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"log"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='unit=&lt;*&gt; comm=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;'"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"logSource"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"__version__"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.0.0"</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>
 <p>Example output data after parsing:</p>
 <p><div class="highlight"><pre><span></span><code><span class="p">{</span>
-<span class="w">    </span><span class="nt">&quot;0&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;template&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;This is a dummy template&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;parsedTimestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1771336089</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;EventID&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;logFormatVariables&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;Time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span>
+<span class="w">    </span><span class="nt">"0"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"template"</span><span class="p">:</span><span class="w"> </span><span class="s2">"This is a dummy template"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"parsedTimestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1771336089</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"EventID"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"logFormatVariables"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">"Time"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span>
 <span class="w">        </span><span class="p">},</span>
-<span class="w">        </span><span class="nt">&quot;parserID&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DummyParser&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;parserType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;dummy_parser&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;log&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg=&#39;op=&lt;*&gt; acct=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;&#39;&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;variables&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">            </span><span class="s2">&quot;dummy_variable&quot;</span>
+<span class="w">        </span><span class="nt">"parserID"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DummyParser"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"parserType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"dummy_parser"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"log"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='op=&lt;*&gt; acct=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;'"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"variables"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="s2">"dummy_variable"</span>
 <span class="w">        </span><span class="p">],</span>
-<span class="w">        </span><span class="nt">&quot;receivedTimestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1771336089</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;logID&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;__version__&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;parsedLogID&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;10&quot;</span>
+<span class="w">        </span><span class="nt">"receivedTimestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1771336089</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"logID"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"__version__"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.0.0"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"parsedLogID"</span><span class="p">:</span><span class="w"> </span><span class="s2">"10"</span>
 <span class="w">    </span><span class="p">},</span>
-<span class="w">    </span><span class="nt">&quot;1&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">        </span><span class="nt">&quot;template&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;This is a dummy template&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;parsedTimestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1771336089</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;EventID&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;logFormatVariables&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;Time&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0&quot;</span>
+<span class="w">    </span><span class="nt">"1"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">"template"</span><span class="p">:</span><span class="w"> </span><span class="s2">"This is a dummy template"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"parsedTimestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1771336089</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"EventID"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"logFormatVariables"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">"Time"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span>
 <span class="w">        </span><span class="p">},</span>
-<span class="w">        </span><span class="nt">&quot;parserID&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DummyParser&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;parserType&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;dummy_parser&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;log&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg=&#39;unit=&lt;*&gt; comm=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;&#39;&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;variables&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">            </span><span class="s2">&quot;dummy_variable&quot;</span>
+<span class="w">        </span><span class="nt">"parserID"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DummyParser"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"parserType"</span><span class="p">:</span><span class="w"> </span><span class="s2">"dummy_parser"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"log"</span><span class="p">:</span><span class="w"> </span><span class="s2">"pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='unit=&lt;*&gt; comm=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;'"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"variables"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="s2">"dummy_variable"</span>
 <span class="w">        </span><span class="p">],</span>
-<span class="w">        </span><span class="nt">&quot;receivedTimestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1771336089</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;logID&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;__version__&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span><span class="p">,</span>
-<span class="w">        </span><span class="nt">&quot;parsedLogID&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;11&quot;</span>
+<span class="w">        </span><span class="nt">"receivedTimestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1771336089</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"logID"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"__version__"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.0.0"</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">"parsedLogID"</span><span class="p">:</span><span class="w"> </span><span class="s2">"11"</span>
 <span class="w">    </span><span class="p">}</span>
 <span class="p">}</span>
 </code></pre></div>

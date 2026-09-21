@@ -92,6 +92,8 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../logbatcher_parser/">LogBatcher Parser</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../auto_parser/">Auto Parser</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../drain_parser/">Drain Parser</a>
                   </li>
               </ul>
@@ -246,7 +248,7 @@
 <li>Templates use <code>&lt;*&gt;</code> for wildcard slots.</li>
 </ul>
 <p>Example template file (templates.txt):
-<div class="highlight"><pre><span></span><code>pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg=&#39;op=PAM:&lt;*&gt; acct=&lt;*&gt;
+<div class="highlight"><pre><span></span><code>pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='op=PAM:&lt;*&gt; acct=&lt;*&gt;
 login success: user=&lt;*&gt; source=&lt;*&gt;
 </code></pre></div></p>
 <h2 id="configuration">Configuration</h2>
@@ -278,28 +280,28 @@ login success: user=&lt;*&gt; source=&lt;*&gt;
 
 
 <span class="n">ROOT</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
-<span class="n">templates</span> <span class="o">=</span> <span class="n">ROOT</span> <span class="o">/</span> <span class="s2">&quot;tests&quot;</span> <span class="o">/</span> <span class="s2">&quot;test_data&quot;</span> <span class="o">/</span> <span class="s2">&quot;test_templates.txt&quot;</span>
+<span class="n">templates</span> <span class="o">=</span> <span class="n">ROOT</span> <span class="o">/</span> <span class="s2">"tests"</span> <span class="o">/</span> <span class="s2">"test_data"</span> <span class="o">/</span> <span class="s2">"test_templates.txt"</span>
 <span class="c1"># instantiate parser (config can be a dict or config object)</span>
 <span class="n">cfg</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;parsers&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;MatcherParser&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;method_type&quot;</span><span class="p">:</span> <span class="s2">&quot;matcher_parser&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;params&quot;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s2">&quot;path_templates&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">templates</span><span class="p">),</span>
-                <span class="s2">&quot;remove_spaces&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                <span class="s2">&quot;remove_punctuation&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
-                <span class="s2">&quot;lowercase&quot;</span><span class="p">:</span> <span class="kc">True</span>
+    <span class="s2">"parsers"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"MatcherParser"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"method_type"</span><span class="p">:</span> <span class="s2">"matcher_parser"</span><span class="p">,</span>
+            <span class="s2">"params"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"path_templates"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">templates</span><span class="p">),</span>
+                <span class="s2">"remove_spaces"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">"remove_punctuation"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">"lowercase"</span><span class="p">:</span> <span class="kc">True</span>
             <span class="p">}</span>
         <span class="p">}</span>
     <span class="p">}</span>
 <span class="p">}</span>
 
-<span class="n">parser</span> <span class="o">=</span> <span class="n">MatcherParser</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;MatcherParser&quot;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
+<span class="n">parser</span> <span class="o">=</span> <span class="n">MatcherParser</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"MatcherParser"</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">cfg</span><span class="p">)</span>
 
 <span class="c1"># match a log</span>
 <span class="n">input_log</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span>
-    <span class="s2">&quot;logID&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="s2">&quot;pid=9699 uid=0 auid=4294967295 ses=4294967295 msg=&#39;op=PAM:accounting acct=</span><span class="se">\&quot;</span><span class="s2">root</span><span class="se">\&quot;</span><span class="s2">&#39;&quot;</span>
+    <span class="s2">"logID"</span><span class="p">:</span> <span class="s2">"0"</span><span class="p">,</span>
+    <span class="s2">"log"</span><span class="p">:</span> <span class="s2">"pid=9699 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=</span><span class="se">\"</span><span class="s2">root</span><span class="se">\"</span><span class="s2">'"</span>
 <span class="p">})</span>
 <span class="n">parsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">input_log</span><span class="p">)</span>  <span class="c1"># or parser.parse / parser.match depending on wrapper API</span>
 

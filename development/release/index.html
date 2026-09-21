@@ -80,6 +80,8 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../parsers/logbatcher_parser/">LogBatcher Parser</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../parsers/auto_parser/">Auto Parser</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../parsers/drain_parser/">Drain Parser</a>
                   </li>
               </ul>
@@ -219,7 +221,7 @@
 </ul>
 <h3 id="4-bump-the-version-number">4. Bump the version number</h3>
 <p>Create a new branch from <code>main</code> and update the version string in <code>src/detectmatelibrary/metadata.py</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="n">__version__</span> <span class="o">=</span> <span class="s2">&quot;0.X.Y&quot;</span>  <span class="c1"># set to the new release version</span>
+<div class="highlight"><pre><span></span><code><span class="n">__version__</span> <span class="o">=</span> <span class="s2">"0.X.Y"</span>  <span class="c1"># set to the new release version</span>
 </code></pre></div>
 <p>The version here must match the tag you will create in step 5 (e.g. version <code>0.4.0</code> corresponds to tag <code>v0.4.0</code>).</p>
 <p>Also make sure <code>uv.lock</code> is up to date:</p>

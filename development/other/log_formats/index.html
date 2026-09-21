@@ -80,6 +80,8 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../parsers/logbatcher_parser/">LogBatcher Parser</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/auto_parser/">Auto Parser</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../parsers/drain_parser/">Drain Parser</a>
                   </li>
               </ul>
@@ -239,7 +241,7 @@
 <span class="w">  </span><span class="nt">MyParser</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">matcher_parser</span>
 <span class="w">    </span><span class="nt">auto_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-<span class="w">    </span><span class="nt">log_format</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;&lt;Date&gt;</span><span class="nv"> </span><span class="s">&lt;Time&gt;</span><span class="nv"> </span><span class="s">&lt;Level&gt;</span><span class="nv"> </span><span class="s">&lt;Component&gt;:</span><span class="nv"> </span><span class="s">&lt;Content&gt;&quot;</span>
+<span class="w">    </span><span class="nt">log_format</span><span class="p">:</span><span class="w"> </span><span class="s">"&lt;Date&gt;</span><span class="nv"> </span><span class="s">&lt;Time&gt;</span><span class="nv"> </span><span class="s">&lt;Level&gt;</span><span class="nv"> </span><span class="s">&lt;Component&gt;:</span><span class="nv"> </span><span class="s">&lt;Content&gt;"</span>
 <span class="w">    </span><span class="nt">params</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">path_templates</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">path/to/templates.txt</span><span class="w">  </span><span class="c1"># only required when log_format contains &lt;Content&gt;</span>
 </code></pre></div>
@@ -369,7 +371,7 @@
 <h2 id="security">Security</h2>
 <h3 id="audit">audit</h3>
 <p>Linux auditd log. Produced by the kernel audit subsystem; records system calls, authentication, and policy events.</p>
-<div class="highlight"><pre><span></span><code>type=USER_ACCT msg=audit(1642723741.072:375): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg=&#39;op=PAM:accounting acct=&quot;root&quot; exe=&quot;/usr/sbin/cron&quot; hostname=? addr=? terminal=cron res=success&#39;
+<div class="highlight"><pre><span></span><code>type=USER_ACCT msg=audit(1642723741.072:375): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct="root" exe="/usr/sbin/cron" hostname=? addr=? terminal=cron res=success'
 </code></pre></div>
 <p><strong><code>log_format</code>:</strong> <code>type=&lt;Type&gt; msg=audit(&lt;Time&gt;): &lt;Content&gt;</code></p>
 <p><strong>Variable noise patterns:</strong> Numeric field values (<code>=\d+</code>), IP addresses (<code>(\d+\.){3}\d+</code>).</p>
@@ -384,7 +386,7 @@
 <h2 id="web-network">Web &amp; Network</h2>
 <h3 id="apacheaccess">ApacheAccess</h3>
 <p>Apache httpd access log (Combined Log Format). Each line is fully structured — no template file is required.</p>
-<div class="highlight"><pre><span></span><code>64.242.88.10 - - [07/Mar/2004:16:10:02 -0800] &quot;GET /twiki/bin/edit/Main/Double_bounce_sender?topicparent=Main.ConfigurationVariables HTTP/1.1&quot; 401 12846 &quot;-&quot; &quot;Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.2) Gecko/20021202&quot;
+<div class="highlight"><pre><span></span><code>64.242.88.10 - - [07/Mar/2004:16:10:02 -0800] "GET /twiki/bin/edit/Main/Double_bounce_sender?topicparent=Main.ConfigurationVariables HTTP/1.1" 401 12846 "-" "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.2) Gecko/20021202"
 </code></pre></div>
 <p><strong><code>log_format</code>:</strong> <code>&lt;IP&gt; - - [&lt;Time&gt;] "&lt;RequestType&gt; &lt;Request&gt; &lt;Version&gt;" &lt;Status&gt; &lt;ResponseSize&gt; "&lt;Referer&gt;" "&lt;UserAgent&gt;"</code></p>
 <blockquote>
@@ -436,7 +438,7 @@
 <hr />
 <h3 id="openstack">OpenStack</h3>
 <p>OpenStack service log (Nova, Neutron, etc.). Structured with a request context field.</p>
-<div class="highlight"><pre><span></span><code>nova-manage.log 2016-09-28 03:51:11.899 25746 INFO nova.metadata.handler [req-5a1f3f8a-fd7a-4dc5-bb32-f642b2de2e74 - - - - -] 127.0.0.1 &quot;GET /openstack/2012-08-10/meta-data/local-ipv4&quot; status: 200 len: 14 time: 0.007720
+<div class="highlight"><pre><span></span><code>nova-manage.log 2016-09-28 03:51:11.899 25746 INFO nova.metadata.handler [req-5a1f3f8a-fd7a-4dc5-bb32-f642b2de2e74 - - - - -] 127.0.0.1 "GET /openstack/2012-08-10/meta-data/local-ipv4" status: 200 len: 14 time: 0.007720
 </code></pre></div>
 <p><strong><code>log_format</code>:</strong> <code>&lt;Logrecord&gt; &lt;Date&gt; &lt;Time&gt; &lt;Pid&gt; &lt;Level&gt; &lt;Component&gt; [&lt;ADDR&gt;] &lt;Content&gt;</code></p>
 <p><strong>Variable noise patterns:</strong> IP addresses (<code>((\d+\.){3}\d+,?)+</code>), file paths (<code>/.+?\s</code>), numeric values (<code>\d+</code>).</p>
@@ -486,7 +488,7 @@
 <hr />
 <h3 id="mac">Mac</h3>
 <p>macOS unified system log (pre-Unified Logging). Produced by system daemons and user-space processes.</p>
-<div class="highlight"><pre><span></span><code>Jul  9 00:17:03 calvisitor-10-105-160-95 com.apple.backupd[12396] (Error): VSDBUtil: Failed to change_attributes for volume &quot;/Volumes/SanDisk USB Drive&quot;
+<div class="highlight"><pre><span></span><code>Jul  9 00:17:03 calvisitor-10-105-160-95 com.apple.backupd[12396] (Error): VSDBUtil: Failed to change_attributes for volume "/Volumes/SanDisk USB Drive"
 </code></pre></div>
 <p><strong><code>log_format</code>:</strong> <code>&lt;Month&gt;  &lt;Date&gt; &lt;Time&gt; &lt;User&gt; &lt;Component&gt;[&lt;PID&gt;]( (&lt;Address&gt;))?: &lt;Content&gt;</code></p>
 <blockquote>

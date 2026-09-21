@@ -80,6 +80,8 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../logbatcher_parser/">LogBatcher Parser</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../auto_parser/">Auto Parser</a>
+                  </li>
                   <li class="toctree-l1 current"><a class="reference internal current" href="#">Drain Parser</a>
     <ul class="current">
     <li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a>
@@ -222,32 +224,32 @@
 
 <span class="c1"># instantiate parser (config can be a dict or a config object)</span>
 <span class="n">config_dict</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;parsers&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;DrainParser&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;method_type&quot;</span><span class="p">:</span> <span class="s2">&quot;drain_parser&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;data_use_training&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-            <span class="s2">&quot;reset_in_post_train&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s2">"parsers"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"DrainParser"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"method_type"</span><span class="p">:</span> <span class="s2">"drain_parser"</span><span class="p">,</span>
+            <span class="s2">"data_use_training"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s2">"reset_in_post_train"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
         <span class="p">}</span>
     <span class="p">}</span>
 <span class="p">}</span>
 
 <span class="n">parser</span> <span class="o">=</span> <span class="n">DrainParser</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config_dict</span><span class="p">)</span>
 
-<span class="n">parsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="s2">&quot;hello there, general kenobi!&quot;</span><span class="p">}))</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">&quot;template&quot;</span><span class="p">])</span>  <span class="c1"># &quot;templates not yet generated&quot;</span>
+<span class="n">parsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">"log"</span><span class="p">:</span> <span class="s2">"hello there, general kenobi!"</span><span class="p">}))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">"template"</span><span class="p">])</span>  <span class="c1"># "templates not yet generated"</span>
 
-<span class="n">parsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="s2">&quot;hello there, captain kenobi!&quot;</span><span class="p">}))</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">&quot;template&quot;</span><span class="p">])</span>  <span class="c1"># &quot;templates not yet generated&quot;</span>
+<span class="n">parsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">"log"</span><span class="p">:</span> <span class="s2">"hello there, captain kenobi!"</span><span class="p">}))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">"template"</span><span class="p">])</span>  <span class="c1"># "templates not yet generated"</span>
 
-<span class="n">parsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="s2">&quot;hello there, sargent kenobi!&quot;</span><span class="p">}))</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">&quot;template&quot;</span><span class="p">])</span>  <span class="c1"># &quot;hello there &lt;*&gt; kenobi&quot;</span>
+<span class="n">parsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">"log"</span><span class="p">:</span> <span class="s2">"hello there, sargent kenobi!"</span><span class="p">}))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">"template"</span><span class="p">])</span>  <span class="c1"># "hello there &lt;*&gt; kenobi"</span>
 
-<span class="n">parser</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="s2">&quot;keep_training&quot;</span><span class="p">)</span>
-<span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="s2">&quot;bella ciao bella ciao&quot;</span><span class="p">}))</span>
-<span class="n">parser</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="s2">&quot;stop_training&quot;</span><span class="p">)</span>
+<span class="n">parser</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="s2">"keep_training"</span><span class="p">)</span>
+<span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">"log"</span><span class="p">:</span> <span class="s2">"bella ciao bella ciao"</span><span class="p">}))</span>
+<span class="n">parser</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="s2">"stop_training"</span><span class="p">)</span>
 
-<span class="n">parsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="s2">&quot;hello there, sargent kenobi!&quot;</span><span class="p">}))</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">&quot;template&quot;</span><span class="p">])</span>  <span class="c1"># &quot;hello there &lt;*&gt; kenobi&quot;</span>
+<span class="n">parsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">"log"</span><span class="p">:</span> <span class="s2">"hello there, sargent kenobi!"</span><span class="p">}))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">"template"</span><span class="p">])</span>  <span class="c1"># "hello there &lt;*&gt; kenobi"</span>
 </code></pre></div>
 <p>Simple usage (Reset = True):</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.drain</span><span class="w"> </span><span class="kn">import</span> <span class="n">DrainParser</span>
@@ -255,39 +257,39 @@
 
 <span class="c1"># instantiate parser (config can be a dict or a config object)</span>
 <span class="n">config_dict</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;parsers&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;DrainParser&quot;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s2">&quot;method_type&quot;</span><span class="p">:</span> <span class="s2">&quot;drain_parser&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;data_use_training&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
-            <span class="s2">&quot;reset_in_post_train&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s2">"parsers"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"DrainParser"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"method_type"</span><span class="p">:</span> <span class="s2">"drain_parser"</span><span class="p">,</span>
+            <span class="s2">"data_use_training"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s2">"reset_in_post_train"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
         <span class="p">}</span>
     <span class="p">}</span>
 <span class="p">}</span>
 
 <span class="n">parser</span> <span class="o">=</span> <span class="n">DrainParser</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config_dict</span><span class="p">)</span>
 
-<span class="n">parsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="s2">&quot;hello there, general kenobi!&quot;</span><span class="p">}))</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">&quot;template&quot;</span><span class="p">])</span>  <span class="c1"># &quot;templates not yet generated&quot;</span>
+<span class="n">parsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">"log"</span><span class="p">:</span> <span class="s2">"hello there, general kenobi!"</span><span class="p">}))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">"template"</span><span class="p">])</span>  <span class="c1"># "templates not yet generated"</span>
 
-<span class="n">parsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="s2">&quot;hello there, captain kenobi!&quot;</span><span class="p">}))</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">&quot;template&quot;</span><span class="p">])</span>  <span class="c1"># &quot;templates not yet generated&quot;</span>
+<span class="n">parsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">"log"</span><span class="p">:</span> <span class="s2">"hello there, captain kenobi!"</span><span class="p">}))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">"template"</span><span class="p">])</span>  <span class="c1"># "templates not yet generated"</span>
 
-<span class="n">parsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="s2">&quot;hello there, sargent kenobi!&quot;</span><span class="p">}))</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">&quot;template&quot;</span><span class="p">])</span>  <span class="c1"># &quot;hello there &lt;*&gt; kenobi&quot;</span>
+<span class="n">parsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">"log"</span><span class="p">:</span> <span class="s2">"hello there, sargent kenobi!"</span><span class="p">}))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">"template"</span><span class="p">])</span>  <span class="c1"># "hello there &lt;*&gt; kenobi"</span>
 
-<span class="n">parser</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="s2">&quot;keep_training&quot;</span><span class="p">)</span>
-<span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="s2">&quot;bella ciao bella ciao&quot;</span><span class="p">}))</span>
-<span class="n">parser</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="s2">&quot;stop_training&quot;</span><span class="p">)</span>
+<span class="n">parser</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="s2">"keep_training"</span><span class="p">)</span>
+<span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">"log"</span><span class="p">:</span> <span class="s2">"bella ciao bella ciao"</span><span class="p">}))</span>
+<span class="n">parser</span><span class="o">.</span><span class="n">update_state</span><span class="p">(</span><span class="s2">"stop_training"</span><span class="p">)</span>
 
-<span class="n">parsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="s2">&quot;hello there, sargent kenobi!&quot;</span><span class="p">}))</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">&quot;template&quot;</span><span class="p">])</span>  <span class="c1"># &quot;template not found&quot;</span>
+<span class="n">parsed</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">"log"</span><span class="p">:</span> <span class="s2">"hello there, sargent kenobi!"</span><span class="p">}))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">"template"</span><span class="p">])</span>  <span class="c1"># "template not found"</span>
 </code></pre></div>
 <p>Go back to <a href="../../">Index</a></p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href="../logbatcher_parser/" class="btn btn-neutral float-left" title="LogBatcher Parser"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../auto_parser/" class="btn btn-neutral float-left" title="Auto Parser"><span class="icon icon-circle-arrow-left"></span> Previous</a>
         <a href="../../detectors/random_detector/" class="btn btn-neutral float-right" title="Random Detector">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
@@ -311,7 +313,7 @@
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href="../logbatcher_parser/" style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../auto_parser/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
       <span><a href="../../detectors/random_detector/" style="color: #fcfcfc">Next &raquo;</a></span>

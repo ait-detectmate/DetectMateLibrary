@@ -80,6 +80,8 @@
                   </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../parsers/logbatcher_parser/">LogBatcher Parser</a>
                   </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../parsers/auto_parser/">Auto Parser</a>
+                  </li>
                   <li class="toctree-l1"><a class="reference internal" href="../../parsers/drain_parser/">Drain Parser</a>
                   </li>
               </ul>
@@ -255,11 +257,11 @@
 <span class="w">    </span><span class="nt">auto_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span>
 <span class="w">    </span><span class="nt">params</span><span class="p">:</span>
 <span class="w">      </span><span class="nt">rules</span><span class="p">:</span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">rule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;R001</span><span class="nv"> </span><span class="s">-</span><span class="nv"> </span><span class="s">TemplateNotFound&quot;</span>
-<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">rule</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;R002</span><span class="nv"> </span><span class="s">-</span><span class="nv"> </span><span class="s">SpecificKeyword&quot;</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">rule</span><span class="p">:</span><span class="w"> </span><span class="s">"R001</span><span class="nv"> </span><span class="s">-</span><span class="nv"> </span><span class="s">TemplateNotFound"</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">rule</span><span class="p">:</span><span class="w"> </span><span class="s">"R002</span><span class="nv"> </span><span class="s">-</span><span class="nv"> </span><span class="s">SpecificKeyword"</span>
 <span class="w">          </span><span class="nt">args</span><span class="p">:</span>
-<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;critical&quot;</span>
-<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;anomaly&quot;</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"critical"</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">"anomaly"</span>
 </code></pre></div>
 <h2 id="example-usage">Example usage</h2>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">detectmatelibrary.detectors.rule_detector</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">rd</span>
@@ -268,15 +270,15 @@
 <span class="n">rule_detector</span> <span class="o">=</span> <span class="n">rd</span><span class="o">.</span><span class="n">RuleDetector</span><span class="p">()</span>
 
 <span class="n">parser_data</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">ParserSchema</span><span class="p">({</span>
-    <span class="s2">&quot;parserType&quot;</span><span class="p">:</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;EventID&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="s2">&quot;template&quot;</span><span class="p">:</span> <span class="s2">&quot;test template&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;variables&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;var1&quot;</span><span class="p">],</span>
-    <span class="s2">&quot;logID&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;parsedLogID&quot;</span><span class="p">:</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;parserID&quot;</span><span class="p">:</span> <span class="s2">&quot;test_parser&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="s2">&quot;test log message&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;logFormatVariables&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="s2">&quot;123456&quot;</span><span class="p">}</span>
+    <span class="s2">"parserType"</span><span class="p">:</span> <span class="s2">"test"</span><span class="p">,</span>
+    <span class="s2">"EventID"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">"template"</span><span class="p">:</span> <span class="s2">"test template"</span><span class="p">,</span>
+    <span class="s2">"variables"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"var1"</span><span class="p">],</span>
+    <span class="s2">"logID"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
+    <span class="s2">"parsedLogID"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">,</span>
+    <span class="s2">"parserID"</span><span class="p">:</span> <span class="s2">"test_parser"</span><span class="p">,</span>
+    <span class="s2">"log"</span><span class="p">:</span> <span class="s2">"test log message"</span><span class="p">,</span>
+    <span class="s2">"logFormatVariables"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"timestamp"</span><span class="p">:</span> <span class="s2">"123456"</span><span class="p">}</span>
 <span class="p">})</span>
 
 <span class="n">alert</span> <span class="o">=</span> <span class="n">rule_detector</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">parser_data</span><span class="p">)</span>
