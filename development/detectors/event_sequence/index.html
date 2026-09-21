@@ -204,6 +204,7 @@
 </tr>
 </tbody>
 </table>
+<p>✅ Federation compatible (Binary not available).</p>
 <h2 id="description">Description</h2>
 <p>The detector slides a window of <code>fixed_window_size</code> event IDs over the log stream. During training every full window is stored as a known sequence; during detection a window whose exact sequence is not in that set is reported as an anomaly.</p>
 <p>Because a novel event stays inside the window for <code>fixed_window_size</code> steps, a single unexpected event produces up to <code>fixed_window_size</code> consecutive alerts — one per window it invalidates. This is intentional: each of those windows is a distinct sequence that was never trained.</p>
