@@ -1,6 +1,8 @@
 from .event_data_structures.base import EventDataset
+from .slow_persistency import SlowPersistency
 
 from typing import Any, Dict, List, Type, Optional
+import json
 
 
 def get_all_variables(
@@ -37,6 +39,9 @@ class PersistencyStruct:
         self.data_kwargs = event_data_kwargs or {}
         self.templates: Dict[int | str, str] = {}
 
+        self.columns: list[str] = ["EventIDs", "Timestamps", "Vars"]
+        self.slow_persistency = SlowPersistency(self.columns)
+
     def __contains__(self, event_id: int | str) -> bool:
         return event_id in self.data
 
@@ -58,6 +63,9 @@ class PersistencyStruct:
         if event_id not in self:
             self.data[event_id] = self.data_class(**self.data_kwargs)
         self[event_id].add_data(variables, timestamp=timestamp, do_preprocess=True)  # type: ignore
+        self.slow_persistency.add(
+            [event_id, timestamp, json.dumps(variables).encode("utf-8")]
+        )
 
     def get_template(self, event_id: int | str) -> str | None:
         return self.templates.get(event_id, None)

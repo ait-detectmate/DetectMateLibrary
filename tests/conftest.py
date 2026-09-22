@@ -1,5 +1,6 @@
 # conftest.py
 import pytest
+import os
 
 
 def pytest_addoption(parser):
@@ -21,3 +22,8 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if "ignored" in item.keywords:
             item.add_marker(skip_marker)
+
+
+def pytest_sessionfinish(session, exitstatus):
+    if os.path.exists(path := ".slow_persistency.csv"):
+        os.remove(path)

@@ -85,7 +85,7 @@ class SlowPersistency:
         if os.path.exists(self.path):
             os.remove(self.path)
 
-    def add(self, row: list[str]) -> None:
+    def add(self, row: list[Any]) -> None:
         self.buffer.append(row)
         self.buffer_current_size += 1
 

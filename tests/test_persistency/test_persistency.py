@@ -5,8 +5,6 @@ EventDataFrame (Pandas) and ChunkedEventDataFrame (Polars).
 """
 
 
-import pandas as pd
-import polars as pl
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from detectmatelibrary.utils.persistency.event_data_structures.dataframes import (
     EventDataFrame,
@@ -18,6 +16,10 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
     EventStabilityTracker
 )
 from detectmatelibrary.utils.persistency.slow_persistency import SlowPersistency, Manager
+from detectmatelibrary.utils.persistency.basic_persistency import PersistencyStruct, get_all_variables
+
+import pandas as pd
+import polars as pl
 import os
 
 
@@ -51,7 +53,6 @@ class TestSlowPersisntecy:
 
         persistency.add(["a", 2])
         assert len(persistency.buffer) == 1
-        print(persistency.file_manager.test_buffer)
         assert len(persistency.file_manager.test_buffer) == 0
 
         persistency.add(["b", 1])
@@ -79,6 +80,26 @@ class TestSlowPersisntecy:
 
         persistency.reset()
         assert not os.path.exists(persistency.path)
+
+
+class TestPersistencyStruct:
+    def test_add_slow(self) -> None:
+        pers_struct = PersistencyStruct(EventStabilityTracker)
+        vars = get_all_variables(
+            variables=["a", "b"],
+            log_format_variables={"hi": 2},
+            variable_blacklist=[]
+        )
+
+        pers_struct.update_data_structure(
+            event_id="E01", variables=vars, template="as", timestamp=None
+        )
+        pers_struct.slow_persistency.push_buffer()
+
+        df = pers_struct.slow_persistency.table.file2DataFrame()
+
+        assert df["EventIDs"][0] == "E01"
+        assert len(df) == 1
 
 
 class TestEventPersistency:
