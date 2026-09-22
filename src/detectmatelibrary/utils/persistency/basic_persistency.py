@@ -59,11 +59,12 @@ class PersistencyStruct:
         template: str,
         timestamp: float | None
     ) -> None:
-        self.templates[event_id] = template
 
-        if event_id not in self:
-            self.data[event_id] = self.data_class(**self.data_kwargs)
-        self[event_id].add_data(variables, timestamp=timestamp, do_preprocess=True)  # type: ignore
+        if len(variables) > 0:
+            self.templates[event_id] = template
+            if event_id not in self:
+                self.data[event_id] = self.data_class(**self.data_kwargs)
+            self[event_id].add_data(variables, timestamp=timestamp, do_preprocess=True)  # type: ignore
 
         self.slow_persistency.add(
             [event_id, template, timestamp, json.dumps(variables).encode("utf-8")]
@@ -126,11 +127,11 @@ class EventPersistencyBase:
     ) -> None:
         self._events_since_save += 1
         self.events_seen.add(event_id)
-        if variables or named_variables:
-            all_variables = self.get_all_variables(variables, named_variables)
-            self.event_struct.update_data_structure(
-                event_id, variables=all_variables, template=event_template, timestamp=timestamp
-            )
+        all_variables = self.get_all_variables(variables, named_variables)
+
+        self.event_struct.update_data_structure(
+            event_id, variables=all_variables, template=event_template, timestamp=timestamp
+        )
 
     @property
     def events_since_save(self) -> int:

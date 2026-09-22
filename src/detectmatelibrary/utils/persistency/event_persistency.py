@@ -3,6 +3,8 @@ from .basic_persistency import EventPersistencyBase
 
 from typing import Any, Callable, Dict, List, Optional, Type, Self
 import threading
+import json
+import ast
 
 
 class EventPersistency(EventPersistencyBase):
@@ -64,11 +66,13 @@ class EventPersistency(EventPersistencyBase):
 
     def combine(self, other: "EventPersistency") -> Self:
         """Combine two Event persistency."""
-        for event in other.event_struct.get_events():
-            templates = other.event_struct.get_template(event)
-            for vars in other.event_struct[event].as_dict():  # type: ignore
-                self.ingest_event(
-                    event_id=event, event_template=templates, named_variables=vars  # type: ignore
-                )
+        df = other.event_struct.get_data()
+        for i in range(df.shape[0]):
+            row = df.row(i, named=True)
+            self.ingest_event(
+                event_id=row["EventIDs"],
+                event_template=row["Templates"],
+                named_variables=json.loads(ast.literal_eval(row["Vars"]))
+            )
 
         return self
