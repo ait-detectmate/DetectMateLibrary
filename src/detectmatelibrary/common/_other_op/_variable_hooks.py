@@ -3,7 +3,6 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers.stabilit
      EventStabilityTracker, SingleStabilityTracker
 )
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
-from detectmatelibrary.utils.persistency.persistency_saver import load, save
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 
 from detectmatelibrary.common._config._formats import _EventInstance
@@ -13,6 +12,8 @@ from detectmatelibrary.tools.logging import logger
 from detectmatelibrary.schemas import ParserSchema
 
 from typing import Any, Dict, Optional, cast
+import polars as pl
+import io
 
 
 def get_global_variables(
@@ -206,13 +207,17 @@ class VariablesLogic(VaribaleHooks):
 
     def combine(self, components: set["VariablesLogic"]) -> None:
         for component in components:
-            self.persistency.combine(component.persistency)
+            if self != component:
+                self.persistency.combine(component.persistency)
 
         for component in components:
             component.persistency = self.persistency
 
     def persistency2binary(self) -> bytes:
-        return save(self.persistency)  # type: ignore
+        return self.persistency.event_struct.get_data().serialize()  # type: ignore
 
     def binary2persistency(self, binary: bytes) -> None:
-        load(self.persistency, path=binary)
+        self.persistency.event_struct.overwrite_slow(
+            pl.DataFrame.deserialize(io.BytesIO(binary))
+        )
+        self.persistency.combine(self.persistency)  # Fill fast persistency with slow

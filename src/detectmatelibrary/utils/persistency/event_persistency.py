@@ -74,5 +74,4 @@ class EventPersistency(EventPersistencyBase):
                 event_template=row["Templates"],
                 named_variables=json.loads(ast.literal_eval(row["Vars"]))
             )
-
         return self

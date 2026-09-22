@@ -31,6 +31,7 @@ from typing import Any, Dict, cast
 
 class VariableDetectorConfig(CoreDetectorConfig):
     auto_config_params: VariableAutoConfigParams = VariableAutoConfigParams()
+    method_type: str = "variable_detector"
 
 
 def add_variables(
@@ -57,7 +58,12 @@ class VariableDetector(CoreDetector, VariablesLogic):
     The five lifecycle methods (train/detect/configure/post_train/
     set_configuration) live here and are shared by all subclasses.
     """
-    def __init__(self, name: str, config: VariableDetectorConfig) -> None:
+    def __init__(
+        self, name: str, config: VariableDetectorConfig = VariableDetectorConfig()
+    ) -> None:
+        if isinstance(config, dict):
+            config = VariableDetectorConfig.from_dict(config, name)
+
         CoreDetector.__init__(self, name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: VariableDetectorConfig
         VariablesLogic.__init__(
@@ -146,5 +152,8 @@ class VariableDetector(CoreDetector, VariablesLogic):
     def to_binary(self) -> bytes:
         return self.persistency2binary()
 
-    def from_binary(self, binary: bytes) -> None:
-        self.binary2persistency(binary)
+    def from_binary(self, binary: bytes) -> "VariableDetector":
+        var_detect = type(self)(name=self.name, config=self.config)
+        var_detect.binary2persistency(binary)
+
+        return var_detect

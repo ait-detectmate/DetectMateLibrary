@@ -89,6 +89,9 @@ class PersistencyStruct:
         self.slow_persistency.push_buffer()
         return self.slow_persistency.load()
 
+    def overwrite_slow(self, df: pl.DataFrame) -> None:
+        self.slow_persistency = SlowPersistency.from_dataframe(df)
+
 
 class EventPersistencyBase:
     """Event Persistency without lock protection."""

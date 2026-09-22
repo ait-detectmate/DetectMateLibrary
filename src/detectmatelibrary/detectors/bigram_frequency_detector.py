@@ -235,5 +235,5 @@ class BigramFrequencyDetector(VariableDetector):
         warnings.warn("Diasbale for now")
         return bytes()
 
-    def from_binary(self, binary: bytes) -> None:
+    def from_binary(self, binary: bytes) -> None:  # type: ignore
         warnings.warn("Diasbale for now")

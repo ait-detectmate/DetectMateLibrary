@@ -4,15 +4,15 @@ from typing import Self, overload
 
 
 class IncompatibleFed(Exception):
-    def __init__(self) -> None:
-        super().__init__("Instances are incompatible")
+    def __init__(self, inst_1: object, inst_2: object) -> None:
+        super().__init__(f"Instances are incompatible {type(inst_1)} - {type(inst_2)}")
 
 
 class _CompOp:
     @staticmethod
     def is_compatible(main_inst: object, other_inst: object) -> None:
         if not isinstance(other_inst, type(main_inst)):
-            raise IncompatibleFed()
+            raise IncompatibleFed(main_inst, other_inst)
 
     @staticmethod
     def reset(main_inst: object, attr: str) -> None:
