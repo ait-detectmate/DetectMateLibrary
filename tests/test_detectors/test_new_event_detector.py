@@ -65,7 +65,7 @@ class TestNewEventDetectorInitialization:
 
         assert detector.name == "CustomInit"
         assert hasattr(detector, 'persistency')
-        assert isinstance(detector.persistency.event_struct.data, dict)
+        assert isinstance(detector.persistency.event_struct.fast_persistency, dict)
 
 
 class TestNewEventDetectorTraining:

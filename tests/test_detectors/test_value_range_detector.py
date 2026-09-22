@@ -85,7 +85,7 @@ class TestValueRangeDetectorInitialization:
 
         assert detector.name == "CustomInit"
         assert hasattr(detector, 'persistency')
-        assert isinstance(detector.persistency.event_struct.data, dict)
+        assert isinstance(detector.persistency.event_struct.fast_persistency, dict)
 
     def test_add_value_updates_tracker(self):
         """add_value (now a method) applies range semantics to a tracker."""

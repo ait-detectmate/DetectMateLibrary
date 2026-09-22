@@ -84,7 +84,7 @@ class TestCharsetDetectorInitialization:
 
         assert detector.name == "CustomInit"
         assert hasattr(detector, 'persistency')
-        assert isinstance(detector.persistency.event_struct.data, dict)
+        assert isinstance(detector.persistency.event_struct.fast_persistency, dict)
 
     def test_persistency_uses_custom_add_value(self):
         """Main persistency must accumulate characters; auto_conf must not."""

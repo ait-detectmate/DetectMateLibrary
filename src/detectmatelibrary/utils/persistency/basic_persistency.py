@@ -35,7 +35,7 @@ class PersistencyStruct:
         event_data_class: Type[EventDataset],
         event_data_kwargs: Optional[dict[str, Any]] = None,
     ) -> None:
-        self.data: Dict[int | str, EventDataset] = {}
+        self.fast_persistency: Dict[int | str, EventDataset] = {}
         self.data_class = event_data_class
         self.data_kwargs = event_data_kwargs or {}
         self.templates: Dict[int | str, str] = {}
@@ -44,13 +44,13 @@ class PersistencyStruct:
         self.slow_persistency = SlowPersistency(self.columns)
 
     def __contains__(self, event_id: int | str) -> bool:
-        return event_id in self.data
+        return event_id in self.fast_persistency
 
     def __getitem__(self, event_id: int | str) -> EventDataset | None:
-        return self.data.get(event_id, None)
+        return self.fast_persistency.get(event_id, None)
 
     def get_events(self) -> list[int | str]:
-        return list(self.data.keys())
+        return list(self.fast_persistency.keys())
 
     def update_data_structure(
         self,
@@ -63,7 +63,7 @@ class PersistencyStruct:
         if len(variables) > 0:
             self.templates[event_id] = template
             if event_id not in self:
-                self.data[event_id] = self.data_class(**self.data_kwargs)
+                self.fast_persistency[event_id] = self.data_class(**self.data_kwargs)
             self[event_id].add_data(variables, timestamp=timestamp, do_preprocess=True)  # type: ignore
 
         self.slow_persistency.add(
@@ -74,12 +74,12 @@ class PersistencyStruct:
         return self.templates.get(event_id, None)
 
     def __len__(self) -> int:
-        return len(self.data)
+        return len(self.fast_persistency)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, PersistencyStruct) or len(self) != len(other):
             return False
-        for elem1, elem2 in zip(self.data.values(), other.data.values()):
+        for elem1, elem2 in zip(self.fast_persistency.values(), other.fast_persistency.values()):
             if elem1.as_dict() != elem2.as_dict():
                 return False
 
@@ -156,7 +156,7 @@ class EventPersistencyBase:
 
     def get_events_data(self) -> Dict[int | str, EventDataset]:
         """Retrieve the events data that is currently stored."""
-        return self.event_struct.data
+        return self.event_struct.fast_persistency
 
     def get_event_template(self, event_id: int | str) -> str | None:
         """Retrieve the template for a specific event ID."""
@@ -174,8 +174,8 @@ class EventPersistencyBase:
 
     def __repr__(self) -> str:
         return (
-            f"EventPersistency(num_event_types={len(self.event_struct.data)}, "
-            f"keys={list(self.event_struct.data.keys())})"
+            f"EventPersistency(num_event_types={len(self.event_struct.fast_persistency)}, "
+            f"keys={list(self.event_struct.fast_persistency.keys())})"
         )
 
     def __len__(self) -> int:

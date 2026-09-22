@@ -83,7 +83,6 @@ class TestFederation:
 
         detector1.stack(detector2.to_binary())
         result = detector1.aggregate()
-        print("detector1", detector1.persistency.event_struct.get_data())
 
         detector3 = VariableDetector(name="detector", config=CONFIG)
         detector3 = detector3.from_binary(result)

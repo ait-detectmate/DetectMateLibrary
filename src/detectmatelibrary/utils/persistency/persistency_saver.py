@@ -86,7 +86,7 @@ def _serialize(ep: EventPersistency) -> dict[str, bytes]:
     event_backends: dict[str, str] = {}
     event_extensions: dict[str, str] = {}
 
-    for event_id, data_structure in ep.event_struct.data.items():
+    for event_id, data_structure in ep.event_struct.fast_persistency.items():
         backend_name = type(data_structure).__name__
         ext = _EXTENSION_MAP.get(backend_name, "bin")
         event_backends[str(event_id)] = backend_name
@@ -136,7 +136,7 @@ def _load(ep: EventPersistency, fs: Any, root: str) -> None:
         with fs.open(meta_path, "r") as f:
             metadata = json.load(f)
 
-        ep.event_struct.data = {}
+        ep.event_struct.fast_persistency = {}
         ep.event_struct.templates = {}
 
         ep.events_seen = set(metadata["events_seen"])
@@ -153,7 +153,7 @@ def _load(ep: EventPersistency, fs: Any, root: str) -> None:
             with fs.open(file_path, "rb") as f:
                 data = f.read()
             backend_cls = _get_backend_cls(backend_name)
-            ep.event_struct.data[event_id] = backend_cls.load(data, **global_kwargs)
+            ep.event_struct.fast_persistency[event_id] = backend_cls.load(data, **global_kwargs)
 
         class_name = metadata.get("event_data_class")
         if class_name and (class_name in _BACKEND_REGISTRY or class_name in _DATAFRAME_BACKENDS):

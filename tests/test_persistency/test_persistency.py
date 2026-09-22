@@ -435,7 +435,7 @@ class TestEventPersistencyIntegration:
             )
 
         # Verify tracker functionality
-        data_structure = persistency.event_struct.data["E001"]
+        data_structure = persistency.event_struct.fast_persistency["E001"]
         assert isinstance(data_structure, EventTracker)
 
     def test_mixed_event_ids_and_templates(self):
