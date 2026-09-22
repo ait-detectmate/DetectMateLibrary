@@ -17,6 +17,8 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
     SingleStabilityTracker,
     EventStabilityTracker
 )
+from detectmatelibrary.utils.persistency.slow_persistency import SlowPersistency, Manager
+import os
 
 
 # Sample test data - variables is a list, not a dict
@@ -40,6 +42,43 @@ SAMPLE_EVENT_3 = {
     "variables": ["bob", "192.168.1.2"],
     "named_variables": {"timestamp": "2024-01-01 10:02:00"},
 }
+
+
+class TestSlowPersisntecy:
+    def test_buffer(self) -> None:
+        persistency = SlowPersistency(columns=[], file_manager=Manager, buffer_size=2)
+        persistency.file_manager.test_buffer = []  # Remove columns name insertion
+
+        persistency.add(["a", 2])
+        assert len(persistency.buffer) == 1
+        print(persistency.file_manager.test_buffer)
+        assert len(persistency.file_manager.test_buffer) == 0
+
+        persistency.add(["b", 1])
+        assert len(persistency.buffer) == 0
+        assert len(persistency.file_manager.test_buffer) == 2
+
+        persistency.add(["c", 1])
+        assert len(persistency.buffer) == 1
+        assert len(persistency.file_manager.test_buffer) == 2
+
+        persistency.push_buffer()
+        assert len(persistency.buffer) == 0
+        assert len(persistency.file_manager.test_buffer) == 3
+
+    def test_csv_frame_file(self) -> None:
+        persistency = SlowPersistency(columns=["char", "int"], buffer_size=2)
+        persistency.add(["a", 2])
+        persistency.add(["b", 2])
+
+        assert os.path.exists(persistency.path)
+
+        df = persistency.table.file2DataFrame()
+        expected = pl.DataFrame({"char": ["a", "b"], "int": [2, 2]})
+        assert df.equals(expected)
+
+        persistency.reset()
+        assert not os.path.exists(persistency.path)
 
 
 class TestEventPersistency:
