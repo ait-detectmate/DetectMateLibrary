@@ -1,5 +1,7 @@
 # conftest.py
 import pytest
+
+from pathlib import Path
 import os
 
 
@@ -25,5 +27,7 @@ def pytest_collection_modifyitems(config, items):
 
 
 def pytest_sessionfinish(session, exitstatus):
-    if os.path.exists(path := ".slow_persistency.csv"):
-        os.remove(path)
+    directory = Path(".")
+    csv_files = list(directory.glob(".*.csv"))
+    for file in csv_files:
+        os.remove(file)

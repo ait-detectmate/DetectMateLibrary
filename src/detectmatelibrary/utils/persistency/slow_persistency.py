@@ -1,8 +1,15 @@
 from typing import Self, Any
+import secrets
+import string
 
 import polars as pl
 import csv
 import os
+
+
+def generate_path() -> str:
+    random_string = "".join(secrets.choice(string.digits) for _ in range(20))
+    return f".{random_string}.csv"
 
 
 class Manager:
@@ -45,31 +52,21 @@ class CsvManager(Manager):
         self.file.close()
 
 
-class Table:
-    def __init__(self, path: str) -> None:
-        self.path = path
-
-    def file2DataFrame(self) -> pl.DataFrame:
-        return pl.read_csv(self.path)
-
-
 class SlowPersistency:
     def __init__(
         self,
         columns: list[str],
-        path: str = ".slow_persistency.csv",
         file_manager: type[CsvManager] = CsvManager,
-        buffer_size: int = 10
+        buffer_size: int = 200
     ) -> None:
 
-        self.path = path
+        self.path = generate_path()
         self.buffer_max_size = buffer_size
         self.buffer_current_size = 0
         self.buffer: list[list[Any]] = []
 
         self.reset()
-        self.file_manager = file_manager(path=path)
-        self.table = Table(self.path)
+        self.file_manager = file_manager(path=self.path)
         self._insertion([columns])
 
     def _insertion(self, rows: list[list[str]]) -> None:
@@ -94,3 +91,6 @@ class SlowPersistency:
 
     def close(self) -> None:
         self.file_manager.close()
+
+    def load(self) -> pl.DataFrame:
+        return pl.read_csv(self.path)

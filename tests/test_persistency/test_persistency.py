@@ -74,7 +74,7 @@ class TestSlowPersisntecy:
 
         assert os.path.exists(persistency.path)
 
-        df = persistency.table.file2DataFrame()
+        df = persistency.load()
         expected = pl.DataFrame({"char": ["a", "b"], "int": [2, 2]})
         assert df.equals(expected)
 
@@ -94,9 +94,8 @@ class TestPersistencyStruct:
         pers_struct.update_data_structure(
             event_id="E01", variables=vars, template="as", timestamp=None
         )
-        pers_struct.slow_persistency.push_buffer()
 
-        df = pers_struct.slow_persistency.table.file2DataFrame()
+        df = pers_struct.get_data()
 
         assert df["EventIDs"][0] == "E01"
         assert len(df) == 1
