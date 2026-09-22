@@ -27,7 +27,7 @@ import yaml
 
 
 # %% Methods
-def append_docs(docs: str, start_cmd: str, end_cmd: str, add: str) -> None:
+def append_docs(docs: list[str], start_cmd: str, end_cmd: str, add: str) -> list[str]:
     start_idx = docs.index(start_cmd)
     end_idx = docs.index(end_cmd)
     if start_idx > end_idx:
@@ -66,10 +66,6 @@ def update_docs(
         with open(doc_path, "r") as f:
             docs = f.readlines()
 
-        # The "Configuration arguments" table only shows what this detector
-        # adds itself -- parameters shared with other detectors are
-        # documented once in docs/detectors.md (see update_shared_docs below)
-        # rather than repeated on every detector page.
         docs = append_docs(
             docs=docs,
             start_cmd="<!-- Start arguments -->\n",

@@ -1,7 +1,11 @@
 from detectmatelibrary.common._core_op._fit_logic import FitLogicState, StatesL
 from detectmatelibrary.common._core_op._schema_pipeline import SchemaPipeline
 from detectmatelibrary.common._core_op._fed_component import FedOperations
-from detectmatelibrary.common._core_op._basic_component import Component, TInput, TOutput
+from detectmatelibrary.common._core_op._basic_component import (
+    Component,
+    TInput,
+    TOutput,
+)
 from detectmatelibrary.common._core_op._fit_logic import FitLogic
 
 from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
@@ -50,19 +54,19 @@ class TrainBuffer:
 
 class CoreConfig(BasicConfig):
     start_id: int = Field(
-        default=10, description="Number use to start the unique ID generator."
+        default=10, description="Number used to start the unique ID generator."
     )
     data_use_training: int | None = Field(
         default=None,
-        description="Data use for training, if None, training is not done.",
+        description="Data used for training, if None, training is not done.",
     )
     data_use_configure: int | None = Field(
         default=None,
-        description="Data use for configuration, if None, configuration is not done.",
+        description="Data used for configuration, if None, configuration is not done.",
     )
     use_config_data_as_training: bool = Field(
         default=True,
-        description="Combine the configure data in the training process if True.",
+        description="Combine the configured data in the training process if True.",
     )
 
 

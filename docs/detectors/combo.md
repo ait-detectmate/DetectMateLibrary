@@ -1,4 +1,4 @@
-# Combo Detector
+# New Value Combo Detector
 
 The New Combo Value Detector raises alerts when previously unseen combinations of values appear in configured fields (for example new user names, IP addresses, or process names). It is useful to detect novelty, configuration drift, or the appearance of new actors in the environment.
 
@@ -58,7 +58,7 @@ detectors:
 To use it as a python script, you can follow the example below.
 
 ```python
---8<-- "docs/examples/detectors/combo.py:example"
+--8 < --"docs/examples/detectors/combo.py:example"
 ```
 
 Go back [Index](../index.md)
