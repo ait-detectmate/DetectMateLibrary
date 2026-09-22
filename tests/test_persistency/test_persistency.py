@@ -81,6 +81,16 @@ class TestSlowPersisntecy:
         persistency.reset()
         assert not os.path.exists(persistency.path)
 
+    def test_transfer(self) -> None:
+        persistency = SlowPersistency(columns=["char", "int"], buffer_size=2)
+        persistency.add(["a", 2])
+        persistency.add(["b", 2])
+
+        df = persistency.load()
+
+        assert len(df) == 2
+        assert persistency == SlowPersistency.from_dataframe(df)
+
 
 class TestPersistencyStruct:
     def test_add_slow(self) -> None:

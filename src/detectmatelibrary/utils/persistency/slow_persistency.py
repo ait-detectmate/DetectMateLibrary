@@ -73,6 +73,15 @@ class SlowPersistency:
         self.file_manager.add_rows(rows)
         self.file_manager.flush()
 
+    @classmethod
+    def from_dataframe(cls, df: pl.DataFrame) -> "SlowPersistency":
+        inst = cls(columns=df.columns)
+        for i in range(df.shape[0]):
+            inst.add(list(df.row(i)))
+
+        inst.push_buffer()
+        return inst
+
     def push_buffer(self) -> None:
         self.buffer_current_size = 0
         self._insertion(self.buffer)
@@ -94,3 +103,9 @@ class SlowPersistency:
 
     def load(self) -> pl.DataFrame:
         return pl.read_csv(self.path)
+
+    def __eq__(self, value: object) -> bool:
+        if not isinstance(value, SlowPersistency):
+            return False
+
+        return bool(self.load().equals(value.load()))
