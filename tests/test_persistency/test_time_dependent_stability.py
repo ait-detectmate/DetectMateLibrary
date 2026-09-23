@@ -310,7 +310,6 @@ class TestSegmentationPlumbing:
 
     def test_ingest_event_forwards_timestamp(self):
         storage = EventPersistency(
-            EventStabilityTracker,
             event_data_kwargs={"classification": {"index": False, "time": True}},
         )
         storage.ingest_event(1, "tpl <*>", variables=["a"], timestamp=10.0)
@@ -319,7 +318,7 @@ class TestSegmentationPlumbing:
         assert single.timestamps == [10.0, 20.0]
 
     def test_ingest_event_without_timestamp_still_works(self):
-        storage = EventPersistency(EventStabilityTracker)
+        storage = EventPersistency()
         storage.ingest_event(1, "tpl <*>", variables=["a"])
         single = storage.get_events_data()[1].get_data()["var_0"]
         assert list(single.change_series) == [True]

@@ -56,7 +56,7 @@ class TestSaveTimer:
 
 
 def _make_persistency_with_data() -> EventPersistency:
-    p = EventPersistency(event_data_class=EventStabilityTracker)
+    p = EventPersistency()
     p.ingest_event(event_id="E1", event_template="User <*>", variables=["alice"], named_variables={})
     p.ingest_event(event_id="E1", event_template="User <*>", variables=["bob"], named_variables={})
     p.ingest_event(event_id="E2", event_template="Error <*>", variables=["timeout"], named_variables={})
@@ -95,7 +95,7 @@ class TestPersistencySaverSaveLoad:
         saver, _ = _memory_saver()
         saver.save()
 
-        p2 = EventPersistency(event_data_class=EventStabilityTracker)
+        p2 = EventPersistency()
         cfg = PersistencySaverConfig(path="memory://test/state")
         saver2 = PersistencySaver(p2, cfg)
         saver2.load()
@@ -106,7 +106,7 @@ class TestPersistencySaverSaveLoad:
         saver, _ = _memory_saver()
         saver.save()
 
-        p2 = EventPersistency(event_data_class=EventStabilityTracker)
+        p2 = EventPersistency()
         cfg = PersistencySaverConfig(path="memory://test/state")
         PersistencySaver(p2, cfg).load()
         assert len(p2.get_event_data("E1")) == 1
@@ -115,38 +115,22 @@ class TestPersistencySaverSaveLoad:
         saver, _ = _memory_saver()
         saver.save()
 
-        p2 = EventPersistency(event_data_class=EventStabilityTracker)
+        p2 = EventPersistency()
         PersistencySaver(p2, PersistencySaverConfig(path="memory://test/state")).load()
         assert p2.get_event_template("E1") == "User <*>"
 
     def test_load_raises_on_missing_path(self):
-        p = EventPersistency(event_data_class=EventStabilityTracker)
+        p = EventPersistency()
         saver = PersistencySaver(p, PersistencySaverConfig(path="memory://nonexistent/path"))
         with pytest.raises(PersistencyLoadError):
             saver.load()
-
-    def test_save_includes_event_data_class_in_metadata(self):
-        saver, _ = _memory_saver()
-        saver.save()
-        fs = fsspec.filesystem("memory")
-        with fs.open("test/state/metadata.json", "r") as f:
-            meta = json.load(f)
-        assert meta["event_data_class"] == "EventStabilityTracker"
-
-    def test_load_restores_event_data_class(self):
-        saver, _ = _memory_saver()
-        saver.save()
-        # Start with a different class to verify it gets overwritten
-        p2 = EventPersistency(event_data_class=EventStabilityTracker)
-        PersistencySaver(p2, PersistencySaverConfig(path="memory://test/state")).load()
-        assert p2.event_struct.data_class is EventStabilityTracker
 
     def test_load_clears_stale_events_data(self):
         """Loading into a non-empty EP must replace, not merge, events_data."""
         saver, _ = _memory_saver()
         saver.save()  # saves E1 and E2
 
-        p2 = EventPersistency(event_data_class=EventStabilityTracker)
+        p2 = EventPersistency()
         # Pre-populate with a key NOT in the saved snapshot
         p2.ingest_event(event_id="STALE", event_template="stale", variables=["x"], named_variables={})
         PersistencySaver(p2, PersistencySaverConfig(path="memory://test/state")).load()
@@ -157,14 +141,13 @@ class TestPersistencySaverSaveLoad:
     def test_load_restores_event_data_kwargs(self):
         """event_data_kwargs must be written back to ep after load."""
         p = EventPersistency(
-            event_data_class=EventStabilityTracker,
             event_data_kwargs={},
         )
         p.ingest_event(event_id="E1", event_template="t", variables=["v"], named_variables={})
         saver = PersistencySaver(p, PersistencySaverConfig(path="memory://kwargs_test/state"))
         saver.save()
 
-        p2 = EventPersistency(event_data_class=EventStabilityTracker)  # no kwargs
+        p2 = EventPersistency()  # no kwargs
         PersistencySaver(p2, PersistencySaverConfig(path="memory://kwargs_test/state")).load()
         assert p2.event_struct.data_kwargs == {}
 
@@ -184,7 +167,7 @@ class TestPersistencySaverTriggers:
         assert fs.exists("trigger_test/state/metadata.json")
 
     def test_timed_save_resets_events_since_save(self):
-        p = EventPersistency(event_data_class=EventStabilityTracker)
+        p = EventPersistency()
         cfg = PersistencySaverConfig(
             path="memory://dirty_test2/state",
             save_interval_seconds=0,
@@ -212,7 +195,7 @@ class TestPersistencySaverTriggers:
         assert fs.exists("stop_test/state/metadata.json")
 
     def test_events_until_save_triggers_save(self):
-        p = EventPersistency(event_data_class=EventStabilityTracker)
+        p = EventPersistency()
         cfg = PersistencySaverConfig(
             path="memory://events_count_test/state",
             save_interval_seconds=9999,
@@ -225,7 +208,7 @@ class TestPersistencySaverTriggers:
         assert fs.exists("events_count_test/state/metadata.json")
 
     def test_events_until_save_no_save_before_threshold(self):
-        p = EventPersistency(event_data_class=EventStabilityTracker)
+        p = EventPersistency()
         cfg = PersistencySaverConfig(
             path="memory://events_count_test2/state",
             save_interval_seconds=9999,
@@ -238,7 +221,7 @@ class TestPersistencySaverTriggers:
         assert not fs.exists("events_count_test2/state/metadata.json")
 
     def test_events_until_save_resets_counter_and_retrigggers(self):
-        p = EventPersistency(event_data_class=EventStabilityTracker)
+        p = EventPersistency()
         cfg = PersistencySaverConfig(
             path="memory://events_count_test3/state",
             save_interval_seconds=9999,
@@ -256,13 +239,13 @@ class TestPersistencySaverTriggers:
         PersistencySaver(p1, PersistencySaverConfig(path="memory://autoload/state")).save()
 
         # Then: create new persistency with auto_load=True
-        p2 = EventPersistency(event_data_class=EventStabilityTracker)
+        p2 = EventPersistency()
         PersistencySaver(p2, PersistencySaverConfig(path="memory://autoload/state", auto_load=True))
         assert "E1" in p2.get_events_seen()
 
     def test_auto_load_on_init_no_state_starts_fresh(self):
         # auto_load=True with no prior save must not crash but starts with empty state
-        p = EventPersistency(event_data_class=EventStabilityTracker)
+        p = EventPersistency()
         cfg = PersistencySaverConfig(path="memory://autoload_no_prior_state/state", auto_load=True)
         saver = PersistencySaver(p, cfg)
         assert len(p.get_events_seen()) == 0
@@ -272,7 +255,7 @@ class TestPersistencySaverTriggers:
 
 class TestPersistencySaverGetStatus:
     def test_config_fields(self):
-        p = EventPersistency(event_data_class=EventStabilityTracker)
+        p = EventPersistency()
         cfg = PersistencySaverConfig(
             path="memory://status_test3/state",
             save_interval_seconds=120,
@@ -290,7 +273,7 @@ class TestPersistencySaverGetStatus:
 class TestPersistencySaverIntegration:
     def test_full_cycle_dataframe_backend(self):
         """Train → save → restore → verify data identical."""
-        p1 = EventPersistency(event_data_class=EventStabilityTracker)
+        p1 = EventPersistency()
         for i in range(20):
             p1.ingest_event(
                 event_id=f"E{i % 3}",
@@ -302,7 +285,7 @@ class TestPersistencySaverIntegration:
         saver1 = PersistencySaver(p1, PersistencySaverConfig(path="memory://integration/df"))
         saver1.save()
 
-        p2 = EventPersistency(event_data_class=EventStabilityTracker)
+        p2 = EventPersistency()
         PersistencySaver(p2, PersistencySaverConfig(path="memory://integration/df")).load()
 
         assert p2.get_events_seen() == p1.get_events_seen()
@@ -314,7 +297,7 @@ class TestPersistencySaverIntegration:
 
     def test_full_cycle_tracker_backend(self):
         """Train → save → restore → verify tracker state identical."""
-        p1 = EventPersistency(event_data_class=EventStabilityTracker)
+        p1 = EventPersistency()
         for i in range(30):
             p1.ingest_event(
                 event_id="E1",
@@ -326,7 +309,7 @@ class TestPersistencySaverIntegration:
         saver1 = PersistencySaver(p1, PersistencySaverConfig(path="memory://integration/tracker"))
         saver1.save()
 
-        p2 = EventPersistency(event_data_class=EventStabilityTracker)
+        p2 = EventPersistency()
         PersistencySaver(p2, PersistencySaverConfig(path="memory://integration/tracker")).load()
 
         original_tracker = p1.get_events_data()["E1"]
@@ -343,7 +326,7 @@ class TestPersistencySaverConcurrency:
     def test_ingest_blocks_while_saver_lock_held(self):
         """ingest_event must serialize on the saver's lock so save/load can't
         race with a concurrent ingest."""
-        p = EventPersistency(event_data_class=EventStabilityTracker)
+        p = EventPersistency()
         saver = PersistencySaver(p, PersistencySaverConfig(path="memory://concurrency/state"))
         done = threading.Event()
 
@@ -366,7 +349,7 @@ class TestPersistencySaverConcurrency:
         not block a concurrent ingest_event (only serialization is guarded)."""
         import detectmatelibrary.utils.persistency.persistency_saver as ps
 
-        p = EventPersistency(event_data_class=EventStabilityTracker)
+        p = EventPersistency()
         saver = PersistencySaver(p, PersistencySaverConfig(path="memory://write_block/state"))
 
         write_started = threading.Event()
@@ -419,20 +402,13 @@ class TestStandaloneSaveLoad:
     def test_load_restores_events_seen(self):
         p = _make_persistency_with_data()
         standalone_save(p, "memory://standalone_load1/state")
-        p2 = EventPersistency(event_data_class=EventStabilityTracker)
+        p2 = EventPersistency()
         standalone_load(p2, "memory://standalone_load1/state")
         assert "E1" in p2.get_events_seen()
         assert "E2" in p2.get_events_seen()
 
-    def test_load_restores_event_data_class(self):
-        p = _make_persistency_with_data()
-        standalone_save(p, "memory://standalone_load3/state")
-        p2 = EventPersistency(event_data_class=EventStabilityTracker)
-        standalone_load(p2, "memory://standalone_load3/state")
-        assert p2.event_struct.data_class is EventStabilityTracker
-
     def test_load_raises_when_missing(self):
-        p = EventPersistency(event_data_class=EventStabilityTracker)
+        p = EventPersistency()
         with pytest.raises(PersistencyLoadError):
             standalone_load(p, "memory://nonexistent_standalone/state")
 
@@ -462,7 +438,7 @@ class TestStandaloneSaveLoad:
     def test_load_from_bytes_restores_events_seen(self):
         p = _make_persistency_with_data()
         data = standalone_save(p)
-        p2 = EventPersistency(event_data_class=EventStabilityTracker)
+        p2 = EventPersistency()
         standalone_load(p2, data)
         assert "E1" in p2.get_events_seen()
         assert "E2" in p2.get_events_seen()
@@ -470,16 +446,9 @@ class TestStandaloneSaveLoad:
     def test_load_from_bytes_restores_event_data(self):
         p = _make_persistency_with_data()
         data = standalone_save(p)
-        p2 = EventPersistency(event_data_class=EventStabilityTracker)
+        p2 = EventPersistency()
         standalone_load(p2, data)
         assert len(p2.get_event_data("E1")) == 1
-
-    def test_bytes_roundtrip_restores_event_data_class(self):
-        p = _make_persistency_with_data()
-        data = standalone_save(p)
-        p2 = EventPersistency(event_data_class=EventStabilityTracker)
-        standalone_load(p2, data)
-        assert p2.event_struct.data_class is EventStabilityTracker
 
 
 class TestPersistencySaverThreadSafety:

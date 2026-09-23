@@ -82,9 +82,6 @@ class VaribaleHooks:
             return kwargs
         return {**(kwargs or {}), "classification": self.config_vars.classification.model_dump()}
 
-    def _event_data_class(self) -> type:
-        return EventStabilityTracker
-
     def _event_data_kwargs(self) -> Optional[Dict[str, Any]]:
         return None
 
@@ -127,11 +124,9 @@ class VariablesLogic(VaribaleHooks):
         super().__init__(name=name, config_vars=config_vars)
         self._time_handler = _time_handler
         self.persistency = EventPersistency(
-            event_data_class=self._event_data_class(),
             event_data_kwargs=self._event_data_kwargs(),
         )
         self.auto_conf_persistency = EventPersistency(
-            event_data_class=self._event_data_class(),
             event_data_kwargs=self._with_classification_kwargs(self._auto_conf_kwargs()),
         )
 

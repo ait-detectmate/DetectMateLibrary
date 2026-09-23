@@ -1,7 +1,7 @@
-from .data_structures.base import EventDataset
+from .data_structures.trackers import EventStabilityTracker
 from .slow_persistency import SlowPersistency
 
-from typing import Any, Dict, List, Type, Optional
+from typing import Any, Dict, List, Optional
 import polars as pl
 import json
 
@@ -32,11 +32,9 @@ class PersistencyStruct:
     """Event structure of the Event Persistency."""
     def __init__(
         self,
-        event_data_class: Type[EventDataset],
         event_data_kwargs: Optional[dict[str, Any]] = None,
     ) -> None:
-        self.fast_persistency: Dict[int | str, EventDataset] = {}
-        self.data_class = event_data_class
+        self.fast_persistency: Dict[int | str, EventStabilityTracker] = {}
         self.data_kwargs = event_data_kwargs or {}
         self.templates: Dict[int | str, str] = {}
 
@@ -46,7 +44,7 @@ class PersistencyStruct:
     def __contains__(self, event_id: int | str) -> bool:
         return event_id in self.fast_persistency
 
-    def __getitem__(self, event_id: int | str) -> EventDataset | None:
+    def __getitem__(self, event_id: int | str) -> EventStabilityTracker | None:
         return self.fast_persistency.get(event_id, None)
 
     def get_events(self) -> list[int | str]:
@@ -63,7 +61,7 @@ class PersistencyStruct:
         if len(variables) > 0:
             self.templates[event_id] = template
             if event_id not in self:
-                self.fast_persistency[event_id] = self.data_class(**self.data_kwargs)
+                self.fast_persistency[event_id] = EventStabilityTracker(**self.data_kwargs)
             self[event_id].add_data(variables, timestamp=timestamp, do_preprocess=True)  # type: ignore
 
         self.slow_persistency.add(
@@ -97,14 +95,11 @@ class EventPersistencyBase:
     """Event Persistency without lock protection."""
     def __init__(
         self,
-        event_data_class: Type[EventDataset],
         variable_blacklist: Optional[List[str | int]] = ["Content"],
         *,
         event_data_kwargs: Optional[dict[str, Any]] = None,
     ):
-        self.event_struct = PersistencyStruct(
-            event_data_class, event_data_kwargs=event_data_kwargs
-        )
+        self.event_struct = PersistencyStruct(event_data_kwargs=event_data_kwargs)
 
         self.events_seen: set[int | str] = set()
         self.variable_blacklist = variable_blacklist or []
@@ -154,7 +149,7 @@ class EventPersistencyBase:
         """Retrieve the data for a specific event ID."""
         return d_struct.get_data() if (d_struct := self.event_struct[event_id]) is not None else None
 
-    def get_events_data(self) -> Dict[int | str, EventDataset]:
+    def get_events_data(self) -> Dict[int | str, EventStabilityTracker]:
         """Retrieve the events data that is currently stored."""
         return self.event_struct.fast_persistency
 
@@ -166,10 +161,10 @@ class EventPersistencyBase:
         """Retrieve all event templates."""
         return self.event_struct.templates
 
-    def get_class(self) -> Type[EventDataset]:
-        return self.event_struct.data_class
+    def get_class(self) -> type[EventStabilityTracker]:
+        return EventStabilityTracker
 
-    def __getitem__(self, event_id: int | str) -> EventDataset | None:
+    def __getitem__(self, event_id: int | str) -> EventStabilityTracker | None:
         return self.event_struct[event_id]
 
     def __repr__(self) -> str:

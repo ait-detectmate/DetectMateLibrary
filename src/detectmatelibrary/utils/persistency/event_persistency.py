@@ -1,7 +1,6 @@
-from .data_structures.base import EventDataset
 from .basic_persistency import EventPersistencyBase
 
-from typing import Any, Callable, Dict, List, Optional, Type, Self
+from typing import Any, Callable, Dict, List, Optional, Self
 import threading
 import json
 import ast
@@ -22,13 +21,11 @@ class EventPersistency(EventPersistencyBase):
 
     def __init__(
         self,
-        event_data_class: Type[EventDataset],
         variable_blacklist: Optional[List[str | int]] = ["Content"],
         *,
         event_data_kwargs: Optional[dict[str, Any]] = None,
     ):
         super().__init__(
-            event_data_class=event_data_class,
             variable_blacklist=variable_blacklist,
             event_data_kwargs=event_data_kwargs
         )

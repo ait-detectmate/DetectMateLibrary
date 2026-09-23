@@ -26,7 +26,7 @@ from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.tools.logging import logger
 
 from typing_extensions import override
-from typing import Any, Dict, cast
+from typing import Any, Dict
 
 
 class VariableDetectorConfig(CoreDetectorConfig):
@@ -96,7 +96,7 @@ class VariableDetector(CoreDetector, VariablesLogic):
             variables = self._prepare_variables(
                 get_configured_variables(input_, self.config.events), "detection"
             )
-            event_tracker = cast(EventStabilityTracker, known_events[current_event_id])
+            event_tracker = known_events[current_event_id]
             overall_score += self._check_event(
                 alerts, current_event_id, event_tracker, variables, is_global=False
             )
@@ -104,7 +104,7 @@ class VariableDetector(CoreDetector, VariablesLogic):
             global_vars = self._prepare_variables(
                 get_global_variables(input_, self.config.global_instances), "detection"
             )
-            global_tracker = cast(EventStabilityTracker, known_events[GLOBAL_EVENT_ID])
+            global_tracker = known_events[GLOBAL_EVENT_ID]
             overall_score += self._check_event(
                 alerts, GLOBAL_EVENT_ID, global_tracker, global_vars, is_global=True
             )
@@ -133,7 +133,7 @@ class VariableDetector(CoreDetector, VariablesLogic):
     def set_configuration(self) -> None:
         variables: Dict[Any, Any] = {}
         for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
-            stability_tracker = cast(EventStabilityTracker, tracker)
+            stability_tracker = tracker
             auto = self.config.auto_config_params
             add_variables(variables, tracker=stability_tracker, auto=auto, e_id=event_id)
 

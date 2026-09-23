@@ -617,7 +617,7 @@ def test_slope_threshold_reaches_the_classifier():
         ),
     )
     persistency = detector.auto_conf_persistency
-    tracker = persistency.event_struct.data_class(**persistency.event_struct.data_kwargs)
+    tracker = EventStabilityTracker(**persistency.event_struct.data_kwargs)
     single = tracker.single_tracker_type()
     assert single.classification.enabled == ("index", "slope_index")
     assert single.stability_classifier.classification.slope_threshold == -0.25

@@ -206,7 +206,7 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
         stable = []
         for length, event_tracker in self.auto_conf_persistency.get_events_data().items():
             tracker = event_tracker.get_data()["seq"]
-            if len(tracker.change_series) < tracker.min_samples:
+            if len(tracker.change_series) < tracker.min_samples:  # type: ignore
                 continue
             if tracker.classify().type in ("STABLE", "STATIC"):
                 stable.append(int(length))
@@ -238,9 +238,7 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
         """Drop configure-phase state — nothing reads it after
         configuration."""
         self._configure_windows.clear()
-        self.auto_conf_persistency = persistency.EventPersistency(
-            event_data_class=persistency.EventStabilityTracker
-        )
+        self.auto_conf_persistency = persistency.EventPersistency()
 
     def reset_window(self) -> None:
         """Clear the training and detection windows."""

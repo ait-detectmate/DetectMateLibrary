@@ -90,7 +90,7 @@ class TestSlowPersisntecy:
 
 class TestPersistencyStruct:
     def test_add_slow(self) -> None:
-        pers_struct = PersistencyStruct(EventStabilityTracker)
+        pers_struct = PersistencyStruct()
         vars = get_all_variables(
             variables=["a", "b"],
             log_format_variables={"hi": 2},
@@ -113,15 +113,13 @@ class TestEventPersistency:
     def test_initialization_with_tracker_backend(self):
         """Test initialization with EventVariableTrackerData backend."""
         persistency = EventPersistency(
-            event_data_class=EventTracker,
             event_data_kwargs={"tracker_type": SingleStabilityTracker},
         )
         assert persistency is not None
-        assert persistency.get_class() == EventTracker
 
     def test_ingest_multiple_events_same_id(self):
         """Test ingesting multiple events with the same ID."""
-        persistency = EventPersistency(event_data_class=EventStabilityTracker)
+        persistency = EventPersistency()
         persistency.ingest_event(**SAMPLE_EVENT_1)
         persistency.ingest_event(**SAMPLE_EVENT_3)
 
@@ -130,7 +128,7 @@ class TestEventPersistency:
 
     def test_ingest_multiple_events_different_ids(self):
         """Test ingesting events with different IDs."""
-        persistency = EventPersistency(event_data_class=EventStabilityTracker)
+        persistency = EventPersistency()
         persistency.ingest_event(**SAMPLE_EVENT_1)
         persistency.ingest_event(**SAMPLE_EVENT_2)
 
@@ -142,7 +140,7 @@ class TestEventPersistency:
 
     def test_get_all_events_data(self):
         """Test retrieving data for all events."""
-        persistency = EventPersistency(event_data_class=EventStabilityTracker)
+        persistency = EventPersistency()
         persistency.ingest_event(**SAMPLE_EVENT_1)
         persistency.ingest_event(**SAMPLE_EVENT_2)
 
@@ -154,7 +152,7 @@ class TestEventPersistency:
 
     def test_template_storage_and_retrieval(self):
         """Test template storage and retrieval."""
-        persistency = EventPersistency(event_data_class=EventStabilityTracker)
+        persistency = EventPersistency()
         persistency.ingest_event(**SAMPLE_EVENT_1)
         persistency.ingest_event(**SAMPLE_EVENT_2)
 
@@ -166,7 +164,7 @@ class TestEventPersistency:
 
     def test_get_all_templates(self):
         """Test retrieving all templates."""
-        persistency = EventPersistency(event_data_class=EventStabilityTracker)
+        persistency = EventPersistency()
         persistency.ingest_event(**SAMPLE_EVENT_1)
         persistency.ingest_event(**SAMPLE_EVENT_2)
 
@@ -178,7 +176,6 @@ class TestEventPersistency:
     def test_variable_blacklist(self):
         """Test variable blacklisting functionality."""
         persistency = EventPersistency(
-            event_data_class=EventStabilityTracker,
             variable_blacklist=[1],  # Blacklist index 1 (second variable)
         )
         persistency.ingest_event(**SAMPLE_EVENT_1)
@@ -195,7 +192,6 @@ class TestEventPersistency:
         blacklist = [1]  # Blacklist index 1
 
         persistency = EventPersistency(
-            event_data_class=EventStabilityTracker,
             variable_blacklist=blacklist,
         )
         combined = persistency.get_all_variables(variables, named_variables)
@@ -208,7 +204,7 @@ class TestEventPersistency:
 
     def test_dict_like_access(self):
         """Test dictionary-like access via __getitem__."""
-        persistency = EventPersistency(event_data_class=EventStabilityTracker)
+        persistency = EventPersistency()
         persistency.ingest_event(**SAMPLE_EVENT_1)
 
         data_structure = persistency["E001"]
@@ -220,9 +216,7 @@ class TestEventPersistencyIntegration:
     """Integration tests for EventPersistency with different backends."""
     def test_tracker_backend_full_workflow(self):
         """Test complete workflow with Tracker backend."""
-        persistency = EventPersistency(
-            event_data_class=EventStabilityTracker,
-        )
+        persistency = EventPersistency()
 
         # Ingest events with patterns
         for i in range(20):
@@ -239,7 +233,7 @@ class TestEventPersistencyIntegration:
 
     def test_mixed_event_ids_and_templates(self):
         """Test handling mixed event IDs and templates."""
-        persistency = EventPersistency(event_data_class=EventStabilityTracker)
+        persistency = EventPersistency()
 
         events = [
             ("E001", "Login from <*>", ["192.168.1.1"]),
@@ -272,7 +266,7 @@ class TestEventPersistencyIntegration:
 
     def test_large_scale_ingestion(self):
         """Test ingesting a large number of events."""
-        persistency = EventPersistency(event_data_class=EventStabilityTracker)
+        persistency = EventPersistency()
 
         num_events = 1000
         for i in range(num_events):
@@ -294,21 +288,21 @@ class TestEventPersistencyIntegration:
 
 class TestEventPersistencyEventsSinceSave:
     def test_events_since_save_starts_at_zero(self):
-        p = EventPersistency(event_data_class=EventStabilityTracker)
+        p = EventPersistency()
         assert p._events_since_save == 0
 
     def test_events_since_save_increments_on_ingest(self):
-        p = EventPersistency(event_data_class=EventStabilityTracker)
+        p = EventPersistency()
         p.ingest_event(**SAMPLE_EVENT_1)
         assert p._events_since_save == 1
 
     def test_events_since_save_increments_for_no_variable_event(self):
-        p = EventPersistency(event_data_class=EventStabilityTracker)
+        p = EventPersistency()
         p.ingest_event(event_id="E999", event_template="no vars")
         assert p._events_since_save == 1
 
     def test_reset_events_since_save(self):
-        p = EventPersistency(event_data_class=EventStabilityTracker)
+        p = EventPersistency()
         p.ingest_event(**SAMPLE_EVENT_1)
         p.ingest_event(**SAMPLE_EVENT_2)
         p.reset_events_since_save()
@@ -317,15 +311,15 @@ class TestEventPersistencyEventsSinceSave:
 
 class TestAggregationUsage:
     def test_equals(self) -> None:
-        persistency = EventPersistency(event_data_class=EventStabilityTracker)
+        persistency = EventPersistency()
         persistency.ingest_event(**SAMPLE_EVENT_1)
         persistency.ingest_event(**SAMPLE_EVENT_2)
 
-        persistency2 = EventPersistency(event_data_class=EventStabilityTracker)
+        persistency2 = EventPersistency()
         persistency2.ingest_event(**SAMPLE_EVENT_1)
         persistency2.ingest_event(**SAMPLE_EVENT_2)
 
-        persistency3 = EventPersistency(event_data_class=EventStabilityTracker)
+        persistency3 = EventPersistency()
         persistency3.ingest_event(**SAMPLE_EVENT_2)
 
         assert persistency == persistency2
