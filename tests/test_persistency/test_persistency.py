@@ -45,23 +45,21 @@ SAMPLE_EVENT_3 = {
 class TestSlowPersisntecy:
     def test_buffer(self) -> None:
         persistency = SlowPersistency(columns=[], file_manager=Manager, buffer_size=2)
-        persistency.file_manager.test_buffer = []  # Remove columns name insertion
 
         persistency.add(["a", 2])
         assert len(persistency.buffer) == 1
-        assert len(persistency.file_manager.test_buffer) == 0
 
         persistency.add(["b", 1])
         assert len(persistency.buffer) == 0
-        assert len(persistency.file_manager.test_buffer) == 2
+        assert len(persistency.file_manager.test_buffer) == 3
 
         persistency.add(["c", 1])
         assert len(persistency.buffer) == 1
-        assert len(persistency.file_manager.test_buffer) == 2
+        assert len(persistency.file_manager.test_buffer) == 3
 
         persistency.push_buffer()
         assert len(persistency.buffer) == 0
-        assert len(persistency.file_manager.test_buffer) == 3
+        assert len(persistency.file_manager.test_buffer) == 4
 
     def test_csv_frame_file(self) -> None:
         persistency = SlowPersistency(columns=["char", "int"], buffer_size=2)

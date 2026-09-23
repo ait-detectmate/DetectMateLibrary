@@ -3,6 +3,7 @@ import secrets
 import string
 
 import polars as pl
+import warnings
 import csv
 import os
 
@@ -56,7 +57,7 @@ class SlowPersistency:
     def __init__(
         self,
         columns: list[str],
-        file_manager: type[CsvManager] = CsvManager,
+        file_manager: type[Manager] = CsvManager,
         buffer_size: int = 200
     ) -> None:
 
@@ -64,12 +65,17 @@ class SlowPersistency:
         self.buffer_max_size = buffer_size
         self.buffer_current_size = 0
         self.buffer: list[list[Any]] = []
+        self.cls = file_manager
 
-        self.reset()
-        self.file_manager = file_manager(path=self.path)
-        self._insertion([columns])
+        self.columns = [columns]
+        self.was_created = False
 
     def _insertion(self, rows: list[list[str]]) -> None:
+        if not self.was_created:
+            self.file_manager = self.cls(path=self.path)
+            self.file_manager.add_rows(self.columns)
+        self.was_created = True
+
         self.file_manager.add_rows(rows)
         self.file_manager.flush()
 
@@ -102,7 +108,10 @@ class SlowPersistency:
         self.file_manager.close()
 
     def load(self) -> pl.DataFrame:
-        return pl.read_csv(self.path)
+        if os.path.exists(self.path):
+            return pl.read_csv(self.path)
+        warnings.warn("CSV file not found")
+        return pl.DataFrame([])
 
     def __eq__(self, value: object) -> bool:
         if not isinstance(value, SlowPersistency):
