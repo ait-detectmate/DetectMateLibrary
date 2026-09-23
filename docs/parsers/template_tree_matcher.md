@@ -33,10 +33,7 @@ Only parameters specific to this parser are listed below -- see [Common paramete
 <!-- Start arguments -->
 | Field  | Type  | Default Value| Description|
 |-------|------|-----|---|
-|method_type|string|matcher_parser|No description provided.|
-|remove_spaces|boolean|True|No description provided.|
-|remove_punctuation|boolean|True|No description provided.|
-|lowercase|boolean|True|No description provided.|
+|method_type|string|tree_matcher|No description provided.|
 |path_templates|string, null|None|No description provided.|
 <!-- End arguments -->
 
@@ -51,7 +48,7 @@ To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateSer
 ```yaml
 parsers:
     <COMPONENT_NAME>:
-        method_type: matcher_parser
+        method_type: tree_matcher
         auto_config: false
         params:
             start_id: 10
@@ -60,9 +57,6 @@ parsers:
             use_config_data_as_training: true
             log_format: null
             time_format: null
-            remove_spaces: true
-            remove_punctuation: true
-            lowercase: true
             path_templates: null
 ```
 <!-- End config -->
@@ -71,7 +65,7 @@ parsers:
 To use it as a python script, you can follow the example below.
 
 ```python
---8 < --"docs/examples/parsers/template_tree_matcher.py"
+--8<-- "docs/examples/parsers/template_tree_matcher.py"
 ```
 
 Go back to [Index](../index.md)
