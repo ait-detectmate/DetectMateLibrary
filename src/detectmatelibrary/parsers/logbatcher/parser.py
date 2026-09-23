@@ -6,15 +6,19 @@ from detectmatelibrary.parsers.logbatcher.engine.matching import extract_variabl
 from detectmatelibrary import schemas
 
 from typing import Any
+from pydantic import Field
 
 
 class LogBatcherParserConfig(CoreParserConfig):
     """Configuration for LogBatcherParser."""
-    method_type: str = "logbatcher_parser"
-    model: str = "gpt-4o-mini"
-    api_key: str = ""
-    base_url: str = ""
-    batch_size: int = 10
+
+    method_type: str = Field(default="logbatcher_parser", description="<$IGNORE$>")
+    model: str = Field(
+        default="gpt-4o-mini", description="fitting description yet to find"
+    )
+    api_key: str = Field(default="", description="fitting description yet to find")
+    base_url: str = Field(default="", description="fitting description yet to find")
+    batch_size: int = Field(default=10, description="fitting description yet to find")
 
 
 class LogBatcherParser(CoreParser):
@@ -34,7 +38,9 @@ class LogBatcherParser(CoreParser):
             "api_key": config.api_key,
             "base_url": config.base_url,
         }
-        self._llm_parser = LLMParser(model=config.model, theme="default", config=llm_config)
+        self._llm_parser = LLMParser(
+            model=config.model, theme="default", config=llm_config
+        )
         self._cache = ParsingCache()
         self._batch_size = config.batch_size
 
@@ -52,10 +58,14 @@ class LogBatcherParser(CoreParser):
             cluster.append_log(log_content, 0)
             cluster.batching(self._batch_size)
 
-            template, cluster, _ = self._llm_parser.get_responce(cluster, cache_base=self._cache)
+            template, cluster, _ = self._llm_parser.get_responce(
+                cluster, cache_base=self._cache
+            )
 
             if template not in self._cache.template_list:
-                event_id, _, _ = self._cache.add_templates(template, refer_log=log_content)
+                event_id, _, _ = self._cache.add_templates(
+                    template, refer_log=log_content
+                )
             else:
                 event_id = self._cache.template_list.index(template)
 

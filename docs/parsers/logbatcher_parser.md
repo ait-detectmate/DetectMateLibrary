@@ -2,6 +2,10 @@
 
 LLM-based log parser that infers event templates from raw log messages using any OpenAI-compatible model. No training data or labeled examples are required.
 
+## In/out
+
+Input and output schemas in the pipeline
+
 |            | Schema                        | Description                              |
 |------------|-------------------------------|------------------------------------------|
 | **Input**  | [LogSchema](../schemas.md)    | Raw log string                           |
@@ -26,43 +30,47 @@ uv sync --extra llm
 
 Variable slots in templates use the `<*>` wildcard notation (e.g. `User <*> logged in from <*>`). Extracted variables are written to `output_["variables"]` in order of appearance.
 
-## Configuration
+## Configuration arguments
 
-| Field | Type | Default | Description |
-|---|---|---|---|
-| `method_type` | string | `"logbatcher_parser"` | Parser type identifier |
-| `model` | string | `"gpt-4o-mini"` | Model name passed to the OpenAI-compatible endpoint |
-| `api_key` | string | `""` | API key for the chosen provider |
-| `base_url` | string | `""` | Base URL of the OpenAI-compatible endpoint. Leave empty to use the default OpenAI endpoint |
-| `batch_size` | int | `10` | Maximum number of logs submitted per LLM call |
+Only parameters specific to this parser are listed below -- see [Common parameters](../parsers.md#common-parameters-all-parsers) in the Parsers overview for the rest.
 
-Example YAML fragment (OpenAI):
+<!-- Start arguments -->
+| Field  | Type  | Default Value| Description|
+|-------|------|-----|---|
+|model|string|gpt-4o-mini|fitting description yet to find|
+|api_key|string||fitting description yet to find|
+|base_url|string||fitting description yet to find|
+|batch_size|integer|10|fitting description yet to find|
+<!-- End arguments -->
 
+## Examples
+### Service usage
+
+To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example below.
+
+<!-- Start config -->
 ```yaml
 parsers:
-  LogBatcherParser:
-    method_type: logbatcher_parser
-    params:
-      model: "gpt-4o-mini"
-      api_key: "<YOUR_API_KEY>"
-      batch_size: 10
+    <COMPONENT_NAME>:
+        method_type: logbatcher_parser
+        auto_config: false
+        params:
+            start_id: 10
+            data_use_training: null
+            data_use_configure: null
+            use_config_data_as_training: true
+            log_format: null
+            time_format: null
+            model: gpt-4o-mini
+            api_key: ''
+            base_url: ''
+            batch_size: 10
 ```
+<!-- End config -->
 
-Example YAML fragment (local Ollama):
 
-```yaml
-parsers:
-  LogBatcherParser:
-    method_type: logbatcher_parser
-    params:
-      model: "llama3"
-      api_key: "ollama"
-      base_url: "http://localhost:11434/v1"
-      batch_size: 10
-```
-
-## Usage examples
-
+### Library usage
+To use it as a python script, you can follow the example below.
 Basic usage  --  set up the parser (parsing requires a valid API key):
 
 ```python
