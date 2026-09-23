@@ -6,22 +6,52 @@ Compared with Template Matcher approaches, its key benefit is that you don’t n
 
 The built-in dataset of log types cannot be modified by users and currently supports: HDFS, BGL, Audit, Syslog, OpenVPN, DNSmasq, and Apache.
 
-It wraps functionality from the DetectMatePerformance project: https://github.com/ait-detectmate/DetectMatePerformance.
+It wraps functionality from the [DetectMatePerformance project](https://github.com/ait-detectmate/DetectMatePerformance).
+
+## In/out
+
+Input and output schemas in the pipeline
 
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
 | **Input**  | [LogSchema](../schemas.md) | Unstructured log   |
 | **Output** | [ParserSchema](../schemas.md) | Structured log   |
 
-## Configuration
+## Configuration arguments
 
-Auto parser parameters:
+Only parameters specific to this parser are listed below -- see [Common parameters](../parsers.md#common-parameters-all-parsers) in the Parsers overview for the rest.
 
-- `method_type` (string): identifier for the parser type (e.g., `"auto_parser"`).
-- `fix_type` (str): fix type of logs to process.
+<!-- Start arguments -->
+| Field  | Type  | Default Value| Description|
+|-------|------|-----|---|
+|method_type|string|auto_parser|fitting description yet to find|
+|fix_type|string||fitting description yet to find|
+<!-- End arguments -->
 
+## Examples
+### Service usage
 
-## Usage example
+To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example below.
+
+<!-- Start config -->
+```yaml
+parsers:
+    <COMPONENT_NAME>:
+        method_type: auto_parser
+        auto_config: false
+        params:
+            start_id: 10
+            data_use_training: null
+            data_use_configure: null
+            use_config_data_as_training: true
+            log_format: null
+            time_format: null
+            fix_type: ''
+```
+<!-- End config -->
+
+### Library usage
+To use it as a python script, you can follow the example below.
 
 Without fixing log type:
 
