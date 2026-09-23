@@ -17,8 +17,8 @@ from pydantic import ValidationError
 
 from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig
 from detectmatelibrary.common._other_op._variable_hooks import VariableAutoConfigParams
-from detectmatelibrary.utils.persistency.rle_list import RLEList
-from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
+from detectmatelibrary.utils.persistency.data_structures.trackers.rle_list import RLEList
+from detectmatelibrary.utils.persistency.data_structures.trackers import (
     StabilityClassifier,
     SingleStabilityTracker,
     EventStabilityTracker,
@@ -617,7 +617,7 @@ def test_slope_threshold_reaches_the_classifier():
         ),
     )
     persistency = detector.auto_conf_persistency
-    tracker = persistency.event_struct.data_class(**persistency.event_struct.data_kwargs)
+    tracker = EventStabilityTracker(**persistency.event_struct.data_kwargs)
     single = tracker.single_tracker_type()
     assert single.classification.enabled == ("index", "slope_index")
     assert single.stability_classifier.classification.slope_threshold == -0.25

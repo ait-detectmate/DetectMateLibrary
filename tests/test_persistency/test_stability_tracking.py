@@ -5,7 +5,7 @@ MultiVariableTracker, and EventVariableTrackerData for variable
 convergence and stability analysis.
 """
 
-from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
+from detectmatelibrary.utils.persistency.data_structures.trackers import (
     StabilityClassifier,
     SingleStabilityTracker,
     MultiStabilityTracker,
@@ -13,7 +13,7 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
     Classification,
     ClassificationMethods,
 )
-from detectmatelibrary.utils.persistency.rle_list import RLEList
+from detectmatelibrary.utils.persistency.data_structures.trackers.rle_list import RLEList
 
 
 class TestStabilityClassifier:

@@ -1,6 +1,9 @@
 # conftest.py
 import pytest
 
+from pathlib import Path
+import os
+
 
 def pytest_addoption(parser):
     # This creates the command line flag
@@ -21,3 +24,10 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if "ignored" in item.keywords:
             item.add_marker(skip_marker)
+
+
+def pytest_sessionfinish(session, exitstatus):
+    directory = Path(".")
+    csv_files = list(directory.glob(".*.csv"))
+    for file in csv_files:
+        os.remove(file)

@@ -1,14 +1,13 @@
 """Tests for EventPersistency.events_seen tracking."""
 
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
-from detectmatelibrary.utils.persistency.event_data_structures.trackers import EventStabilityTracker
 
 
 class TestEventsSeen:
     """Test that events_seen tracks all event IDs passed to ingest_event()."""
 
     def setup_method(self) -> None:
-        self.persistency = EventPersistency(event_data_class=EventStabilityTracker)
+        self.persistency = EventPersistency()
 
     def test_events_seen_recorded_on_early_return(self) -> None:
         """Event ID is tracked even when variables are empty (early-return

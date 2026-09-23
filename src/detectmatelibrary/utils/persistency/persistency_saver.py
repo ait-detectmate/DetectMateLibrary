@@ -11,8 +11,8 @@ from typing import Any, Callable
 
 import fsspec
 
-from detectmatelibrary.utils.persistency.event_data_structures.base import EventDataset
-from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
+from detectmatelibrary.utils.persistency.data_structures.base import EventDataset
+from detectmatelibrary.utils.persistency.data_structures.trackers import (
     EventTracker,
     EventStabilityTracker,
 )
@@ -30,22 +30,6 @@ _DATAFRAME_BACKENDS = {"EventDataFrame", "ChunkedEventDataFrame"}
 def _get_backend_cls(name: str) -> type[EventDataset]:
     if name in _BACKEND_REGISTRY:
         return _BACKEND_REGISTRY[name]
-    if name in _DATAFRAME_BACKENDS:
-        try:
-            from detectmatelibrary.utils.persistency.event_data_structures.dataframes import (
-                ChunkedEventDataFrame,
-                EventDataFrame,
-            )
-        except ImportError as e:
-            raise PersistencyLoadError(
-                f"Backend '{name}' requires the 'dataframes' extra: "
-                "pip install 'detectmatelibrary[dataframes]'"
-            ) from e
-        df_registry: dict[str, type[EventDataset]] = {
-            "EventDataFrame": EventDataFrame,
-            "ChunkedEventDataFrame": ChunkedEventDataFrame,
-        }
-        return df_registry[name]
     raise PersistencyLoadError(f"Unknown backend '{name}' — cannot restore event")
 
 
@@ -86,7 +70,7 @@ def _serialize(ep: EventPersistency) -> dict[str, bytes]:
     event_backends: dict[str, str] = {}
     event_extensions: dict[str, str] = {}
 
-    for event_id, data_structure in ep.event_struct.data.items():
+    for event_id, data_structure in ep.event_struct.fast_persistency.items():
         backend_name = type(data_structure).__name__
         ext = _EXTENSION_MAP.get(backend_name, "bin")
         event_backends[str(event_id)] = backend_name
@@ -101,7 +85,6 @@ def _serialize(ep: EventPersistency) -> dict[str, bytes]:
         "event_backends": event_backends,
         "event_extensions": event_extensions,
         "event_data_kwargs": _safe_event_data_kwargs(ep),
-        "event_data_class": ep.event_struct.data_class.__name__,  # read back by _load
     }
     files["metadata.json"] = json.dumps(metadata, indent=2).encode()
     return files
@@ -136,7 +119,7 @@ def _load(ep: EventPersistency, fs: Any, root: str) -> None:
         with fs.open(meta_path, "r") as f:
             metadata = json.load(f)
 
-        ep.event_struct.data = {}
+        ep.event_struct.fast_persistency = {}
         ep.event_struct.templates = {}
 
         ep.events_seen = set(metadata["events_seen"])
@@ -153,11 +136,10 @@ def _load(ep: EventPersistency, fs: Any, root: str) -> None:
             with fs.open(file_path, "rb") as f:
                 data = f.read()
             backend_cls = _get_backend_cls(backend_name)
-            ep.event_struct.data[event_id] = backend_cls.load(data, **global_kwargs)
+            ep.event_struct.fast_persistency[event_id] = backend_cls.load(
+                data, **global_kwargs
+            )  # type: ignore
 
-        class_name = metadata.get("event_data_class")
-        if class_name and (class_name in _BACKEND_REGISTRY or class_name in _DATAFRAME_BACKENDS):
-            ep.event_struct.data_class = _get_backend_cls(class_name)
     except PersistencyLoadError:
         raise
     except Exception as e:

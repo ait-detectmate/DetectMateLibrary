@@ -13,7 +13,7 @@ A count vector is formed by counting the number of appearance of each event ID i
 
 Count vectors learned during training are stored via [persistency](../auxiliar/persistency.md), so a trained model can be saved and restored with a `persist:` block. A count vector is only comparable within the window it was counted over, so restoring state at a different `window_size` logs a warning — the restored vectors cannot match and every window would alert.
 
-✅ Federation compatible (Binary not available).
+✅ Federation compatible.
 
 ## Configuration example
 

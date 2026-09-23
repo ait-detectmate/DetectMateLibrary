@@ -7,7 +7,7 @@ The Event Sequence Detector raises alerts when a run of consecutive event IDs ap
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Alert / finding |
 
-✅ Federation compatible (Binary not available).
+✅ Federation compatible.
 
 ## Description
 

@@ -62,9 +62,7 @@ a `persist:` block in its config and `CoreDetector` wires the saver up via
 ```python
 from detectmatelibrary.utils import persistency
 
-ep = persistency.EventPersistency(
-    event_data_class=persistency.EventStabilityTracker,
-)
+ep = persistency.EventPersistency()
 
 ep.ingest_event(
     event_id="4624",
@@ -86,7 +84,6 @@ events, query state.
 
 | Parameter | Description |
 |---|---|
-| `event_data_class` | An `EventDataStructure` subclass; one instance is created per event ID. |
 | `variable_blacklist` | Variable names to skip when ingesting. Defaults to `["Content"]`. |
 | `event_data_kwargs` | Extra kwargs forwarded to each backend instance. |
 
@@ -107,8 +104,6 @@ ep[event_id]                       # alias for get_event_data
 
 | Class | Use when |
 |---|---|
-| `persistency.EventDataFrame` | You need history and a Pandas DataFrame is the natural shape. |
-| `persistency.ChunkedEventDataFrame` | High-volume / streaming workloads — Polars-backed with row-retention and automatic compaction. |
 | `persistency.EventStabilityTracker` | You only care about how variables behave over time (`STATIC` / `STABLE` / `UNSTABLE` / `RANDOM`). Cheapest memory footprint. |
 
 All three are re-exported from the top of the package — `persistency.X` is the
@@ -230,9 +225,7 @@ from detectmatelibrary.utils import persistency
 class MyDetector(CoreDetector):
     def __init__(self, name="MyDetector", config=MyDetectorConfig()):
         super().__init__(name=name, config=config)
-        self.persistency = persistency.EventPersistency(
-            event_data_class=persistency.EventStabilityTracker,
-        )
+        self.persistency = persistency.EventPersistency()
         self._register_persistency(self.persistency)
 
     def train(self, input_):

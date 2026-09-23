@@ -129,6 +129,15 @@ PIPELINE_CONFIG = {
             "validation_per": 0.,
             "threshold_method": "mean",
             "data_use_training": TRAIN_UNTIL,
+        },
+        "ECVCDetector_fed": {
+            "method_type": "ecvc_detector_detector",
+            "window_size": 10,
+            "allow_fed": True,
+            "seed": 0,
+            "validation_per": 0.,
+            "threshold_method": "mean",
+            "data_use_training": TRAIN_UNTIL,
         }
     }
 }
@@ -152,10 +161,28 @@ class TestECVCDetectorEndToEnd:
             assert log_id in detected_ids
 
     @pytest.mark.ignored
+    def test_audit_log_anomalies_to_binary(self):
+        parser = MatcherParser(config=PIPELINE_CONFIG)
+        detector1 = ECVCDetector(name="ECVCDetector_fed", config=PIPELINE_CONFIG)
+        detector2 = ECVCDetector(name="ECVCDetector_fed", config=PIPELINE_CONFIG)
+
+        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
+        for log in logs:
+            detector1.process(log)
+
+        thress = detector1.threshold
+        binary = detector1.to_binary()
+        detector2 = detector2.from_binary(binary)
+
+        assert detector2.persistency == detector1.persistency
+        assert (detector2.count_vecs == detector1.count_vecs).all()
+        assert detector2.threshold == thress
+
+    @pytest.mark.ignored
     def test_audit_log_anomalie_fed(self):
         parser = MatcherParser(config=PIPELINE_CONFIG)
-        detector1 = ECVCDetector(config=PIPELINE_CONFIG)
-        detector2 = ECVCDetector(config=PIPELINE_CONFIG)
+        detector1 = ECVCDetector(name="ECVCDetector_fed", config=PIPELINE_CONFIG)
+        detector2 = ECVCDetector(name="ECVCDetector_fed", config=PIPELINE_CONFIG)
 
         logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
         for log in logs:

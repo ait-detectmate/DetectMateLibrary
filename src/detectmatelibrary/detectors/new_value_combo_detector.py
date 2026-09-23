@@ -7,7 +7,7 @@ from detectmatelibrary.common.variable_detector import (
 from detectmatelibrary.common._config._compile import get_configured_variables
 
 from detectmatelibrary.utils import persistency
-from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
+from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
     SingleStabilityTracker,
 )
 
@@ -69,7 +69,6 @@ class NewValueComboDetector(VariableDetector):
         self.config: NewValueComboDetectorConfig  # type narrowing for IDE
         # second-pass persistency to learn stability of variable combinations
         self.auto_conf_persistency_combos = persistency.EventPersistency(
-            event_data_class=persistency.EventStabilityTracker,
             event_data_kwargs=self._with_classification_kwargs(
                 {"converter_function": get_all_possible_combos}
             ),
@@ -119,10 +118,10 @@ class NewValueComboDetector(VariableDetector):
         # pass 1: stable individual variables -> combos
         variable_combos = {}
         for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
-            stable_vars = tracker.get_features_by_classification("STABLE")  # type: ignore
+            stable_vars = tracker.get_features_by_classification("STABLE")
             if len(stable_vars) > 1:
                 variable_combos[event_id] = stable_vars
-        self.config.events = generate_events_config(variable_combos, self.name)
+        self.config.events = generate_events_config(variable_combos, self.name)  # type: ignore
 
         # re-ingest all inputs to learn combos under the new configuration
         for input_ in self.inputs:
@@ -139,19 +138,19 @@ class NewValueComboDetector(VariableDetector):
         auto = self.config.auto_config_params
         for event_id, tracker in self.auto_conf_persistency_combos.get_events_data().items():
             stable_combos = (
-                tracker.get_features_by_classification("STABLE")  # type: ignore
+                tracker.get_features_by_classification("STABLE")
                 if auto.use_stable_vars
                 else []
             )
             static_combos = (
-                tracker.get_features_by_classification("STATIC")  # type: ignore
+                tracker.get_features_by_classification("STATIC")
                 if auto.use_static_vars
                 else []
             )
             combos = stable_combos + static_combos
             if combos:
                 combo_selection[event_id] = combos
-        self.config.events = generate_events_config(combo_selection, self.name)
+        self.config.events = generate_events_config(combo_selection, self.name)  # type: ignore
         self.config.auto_config = False
         if not self.config.events.events:
             logger.warning(

@@ -1,7 +1,7 @@
-from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
+from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
     EventStabilityTracker,
 )
-from detectmatelibrary.utils.persistency.component_interfaces import (
+from detectmatelibrary.common._other_op._persistency_components import (
     validate_config_coverage
 )
 from detectmatelibrary.utils.data_buffer import BufferMode
@@ -26,11 +26,13 @@ from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.tools.logging import logger
 
 from typing_extensions import override
-from typing import Any, Dict, cast
+from typing import Any, Dict
 
 
 class VariableDetectorConfig(CoreDetectorConfig):
     auto_config_params: VariableAutoConfigParams = VariableAutoConfigParams()
+    method_type: str = "variable_detector"
+    allow_fed: bool = False
 
 
 def add_variables(
@@ -57,11 +59,20 @@ class VariableDetector(CoreDetector, VariablesLogic):
     The five lifecycle methods (train/detect/configure/post_train/
     set_configuration) live here and are shared by all subclasses.
     """
-    def __init__(self, name: str, config: VariableDetectorConfig) -> None:
+    def __init__(
+        self, name: str, config: VariableDetectorConfig = VariableDetectorConfig()
+    ) -> None:
+        if isinstance(config, dict):
+            config = VariableDetectorConfig.from_dict(config, name)
+
         CoreDetector.__init__(self, name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: VariableDetectorConfig
         VariablesLogic.__init__(
-            self, name=self.name, _time_handler=_time_handler, config_vars=self.config.auto_config_params
+            self,
+            name=self.name,
+            allow_fed=self.config.allow_fed,
+            _time_handler=_time_handler,
+            config_vars=self.config.auto_config_params
         )
         self._register_persistency(self.persistency)
 
@@ -90,7 +101,7 @@ class VariableDetector(CoreDetector, VariablesLogic):
             variables = self._prepare_variables(
                 get_configured_variables(input_, self.config.events), "detection"
             )
-            event_tracker = cast(EventStabilityTracker, known_events[current_event_id])
+            event_tracker = known_events[current_event_id]
             overall_score += self._check_event(
                 alerts, current_event_id, event_tracker, variables, is_global=False
             )
@@ -98,7 +109,7 @@ class VariableDetector(CoreDetector, VariablesLogic):
             global_vars = self._prepare_variables(
                 get_global_variables(input_, self.config.global_instances), "detection"
             )
-            global_tracker = cast(EventStabilityTracker, known_events[GLOBAL_EVENT_ID])
+            global_tracker = known_events[GLOBAL_EVENT_ID]
             overall_score += self._check_event(
                 alerts, GLOBAL_EVENT_ID, global_tracker, global_vars, is_global=True
             )
@@ -127,7 +138,7 @@ class VariableDetector(CoreDetector, VariablesLogic):
     def set_configuration(self) -> None:
         variables: Dict[Any, Any] = {}
         for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
-            stability_tracker = cast(EventStabilityTracker, tracker)
+            stability_tracker = tracker
             auto = self.config.auto_config_params
             add_variables(variables, tracker=stability_tracker, auto=auto, e_id=event_id)
 
@@ -146,5 +157,9 @@ class VariableDetector(CoreDetector, VariablesLogic):
     def to_binary(self) -> bytes:
         return self.persistency2binary()
 
-    def from_binary(self, binary: bytes) -> None:
-        self.binary2persistency(binary)
+    def from_binary(self, binary: bytes) -> "VariableDetector":
+
+        var_detect = type(self)(name=self.name, config=self.config)
+        var_detect.binary2persistency(binary)
+
+        return var_detect

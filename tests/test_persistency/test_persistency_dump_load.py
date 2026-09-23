@@ -1,23 +1,15 @@
 import pytest
-import pandas as pd
-import polars as pl
 from dataclasses import dataclass
 
 from detectmatelibrary.utils.persistency.persistency_saver import PersistencyLoadError
-from detectmatelibrary.utils.persistency.event_data_structures.base import (
+from detectmatelibrary.utils.persistency.data_structures.base import (
     EventDataset,
 )
-from detectmatelibrary.utils.persistency.event_data_structures.dataframes.event_dataframe import (
-    EventDataFrame,
-)
-from detectmatelibrary.utils.persistency.event_data_structures.dataframes.chunked_event_dataframe import (
-    ChunkedEventDataFrame,
-)
-from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
+from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
     SingleStabilityTracker,
     EventStabilityTracker,
 )
-from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
+from detectmatelibrary.utils.persistency.data_structures.trackers import (
     ClassificationMethods,
 )
 
@@ -139,69 +131,3 @@ class TestEventTrackerDumpLoad:
         t = EventStabilityTracker()
         t2 = EventStabilityTracker.load(t.dump())
         assert t2.get_data() == {}
-
-
-class TestEventDataFrameDumpLoad:
-    def _make_edf(self) -> EventDataFrame:
-        edf = EventDataFrame()
-        edf.add_data(edf.to_data({"user": "alice", "ip": "192.168.1.1"}))
-        edf.add_data(edf.to_data({"user": "bob",   "ip": "192.168.1.2"}))
-        return edf
-
-    def test_dump_returns_bytes(self):
-        assert isinstance(self._make_edf().dump(), bytes)
-
-    def test_round_trip_preserves_rows(self):
-        edf = self._make_edf()
-        edf2 = EventDataFrame.load(edf.dump())
-        assert len(edf2.get_data()) == 2
-
-    def test_round_trip_preserves_columns(self):
-        edf = self._make_edf()
-        edf2 = EventDataFrame.load(edf.dump())
-        assert list(edf2.get_data().columns) == ["user", "ip"]
-
-    def test_round_trip_preserves_values(self):
-        edf = self._make_edf()
-        edf2 = EventDataFrame.load(edf.dump())
-        assert edf2.get_data()["user"].tolist() == ["alice", "bob"]
-
-    def test_empty_dataframe_round_trip(self):
-        edf = EventDataFrame()
-        edf2 = EventDataFrame.load(edf.dump())
-        assert isinstance(edf2.get_data(), pd.DataFrame)
-        assert len(edf2.get_data()) == 0
-
-
-class TestChunkedEventDataFrameDumpLoad:
-    def _make_cedf(self) -> ChunkedEventDataFrame:
-        cedf = ChunkedEventDataFrame(max_rows=100, compact_every=1000)
-        for i in range(5):
-            cedf.add_data(cedf.to_data({"user": [f"user_{i}"], "val": [i]}))
-        return cedf
-
-    def test_dump_returns_bytes(self):
-        assert isinstance(self._make_cedf().dump(), bytes)
-
-    def test_round_trip_preserves_rows(self):
-        cedf = self._make_cedf()
-        cedf2 = ChunkedEventDataFrame.load(cedf.dump())
-        assert len(cedf2.get_data()) == 5
-
-    def test_round_trip_preserves_columns(self):
-        cedf = self._make_cedf()
-        cedf2 = ChunkedEventDataFrame.load(cedf.dump())
-        assert set(cedf2.get_data().columns) == {"user", "val"}
-
-    def test_round_trip_restores_config(self):
-        cedf = ChunkedEventDataFrame(max_rows=42, compact_every=7)
-        cedf.add_data(cedf.to_data({"x": [1]}))
-        cedf2 = ChunkedEventDataFrame.load(cedf.dump())
-        assert cedf2.max_rows == 42
-        assert cedf2.compact_every == 7
-
-    def test_empty_round_trip(self):
-        cedf = ChunkedEventDataFrame()
-        cedf2 = ChunkedEventDataFrame.load(cedf.dump())
-        assert isinstance(cedf2.get_data(), pl.DataFrame)
-        assert len(cedf2.get_data()) == 0

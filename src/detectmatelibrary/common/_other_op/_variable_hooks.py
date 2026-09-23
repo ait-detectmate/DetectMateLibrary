@@ -1,9 +1,8 @@
-from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability import ClassificationMethods
-from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
+from detectmatelibrary.utils.persistency.data_structures.trackers.stability import ClassificationMethods
+from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
      EventStabilityTracker, SingleStabilityTracker
 )
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
-from detectmatelibrary.utils.persistency.persistency_saver import load, save
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 
 from detectmatelibrary.common._config._formats import _EventInstance
@@ -13,6 +12,8 @@ from detectmatelibrary.tools.logging import logger
 from detectmatelibrary.schemas import ParserSchema
 
 from typing import Any, Dict, Optional, cast
+import polars as pl
+import io
 
 
 def get_global_variables(
@@ -81,9 +82,6 @@ class VaribaleHooks:
             return kwargs
         return {**(kwargs or {}), "classification": self.config_vars.classification.model_dump()}
 
-    def _event_data_class(self) -> type:
-        return EventStabilityTracker
-
     def _event_data_kwargs(self) -> Optional[Dict[str, Any]]:
         return None
 
@@ -119,6 +117,7 @@ class VariablesLogic(VaribaleHooks):
     def __init__(
         self,
         name: str,
+        allow_fed: bool = False,
         _time_handler: TimeFormatHandler = TimeFormatHandler(),
         config_vars: VariableAutoConfigParams = VariableAutoConfigParams(),
     ) -> None:
@@ -126,12 +125,11 @@ class VariablesLogic(VaribaleHooks):
         super().__init__(name=name, config_vars=config_vars)
         self._time_handler = _time_handler
         self.persistency = EventPersistency(
-            event_data_class=self._event_data_class(),
-            event_data_kwargs=self._event_data_kwargs(),
+            event_data_kwargs=self._event_data_kwargs(), do_slow_per=allow_fed
         )
         self.auto_conf_persistency = EventPersistency(
-            event_data_class=self._event_data_class(),
             event_data_kwargs=self._with_classification_kwargs(self._auto_conf_kwargs()),
+            do_slow_per=False,
         )
 
     def _warn_time_fallback_once(self, reason: str) -> None:
@@ -206,13 +204,17 @@ class VariablesLogic(VaribaleHooks):
 
     def combine(self, components: set["VariablesLogic"]) -> None:
         for component in components:
-            self.persistency.combine(component.persistency)
+            if self != component:
+                self.persistency.combine(component.persistency)
 
         for component in components:
             component.persistency = self.persistency
 
     def persistency2binary(self) -> bytes:
-        return save(self.persistency)  # type: ignore
+        return self.persistency.event_struct.get_data().serialize()  # type: ignore
 
     def binary2persistency(self, binary: bytes) -> None:
-        load(self.persistency, path=binary)
+        self.persistency.event_struct.overwrite_slow(
+            pl.DataFrame.deserialize(io.BytesIO(binary))
+        )
+        self.persistency.combine(self.persistency)  # Fill fast persistency with slow

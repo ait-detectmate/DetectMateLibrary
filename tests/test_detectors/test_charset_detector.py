@@ -8,7 +8,7 @@ This module tests the CharsetDetector implementation including:
 - Input/output schema validation
 """
 
-from detectmatelibrary.utils.persistency.component_interfaces import PersistConfig
+from detectmatelibrary.common._other_op._persistency_components import PersistConfig
 from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.common._core_op._fit_logic import EnumState
@@ -84,7 +84,7 @@ class TestCharsetDetectorInitialization:
 
         assert detector.name == "CustomInit"
         assert hasattr(detector, 'persistency')
-        assert isinstance(detector.persistency.event_struct.data, dict)
+        assert isinstance(detector.persistency.event_struct.fast_persistency, dict)
 
     def test_persistency_uses_custom_add_value(self):
         """Main persistency must accumulate characters; auto_conf must not."""
@@ -316,19 +316,22 @@ class TestCharsetDetectorEndToEnd:
     @pytest.mark.ignored
     def test_audit_log_anomalies_to_binary(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
-        detector = CharsetDetector()
+        detector = CharsetDetector(config=CharsetDetectorConfig(allow_fed=True))
+        detector2 = CharsetDetector(config=CharsetDetectorConfig(allow_fed=True))
 
         logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
 
         for log in logs[:TRAIN_UNTIL]:
             detector.configure(log)
+            detector2.configure(log)
         detector.set_configuration()
+        detector2.set_configuration()
 
         for log in logs[:TRAIN_UNTIL]:
             detector.train(log)
 
-        detector2 = CharsetDetector()
-        detector2.from_binary(detector.to_binary())
+        detector2 = detector2.from_binary(detector.to_binary())
+        assert detector2.persistency == detector.persistency
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
@@ -341,8 +344,8 @@ class TestCharsetDetectorEndToEnd:
     @pytest.mark.ignored
     def test_audit_log_anomalie_fed(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
-        detector1 = CharsetDetector()
-        detector2 = CharsetDetector()
+        detector1 = CharsetDetector(config=CharsetDetectorConfig(allow_fed=True))
+        detector2 = CharsetDetector(config=CharsetDetectorConfig(allow_fed=True))
 
         logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
         for log in logs[:TRAIN_UNTIL]:
@@ -352,10 +355,13 @@ class TestCharsetDetectorEndToEnd:
         detector1.set_configuration()
         detector2.set_configuration()
 
-        for log in logs[:TRAIN_UNTIL]:
-            detector1.train(log)
+        for i, log in enumerate(logs[:TRAIN_UNTIL]):
+            if i < 10:
+                detector1.train(log)
+            else:
+                detector2.train(log)
 
-        assert len(detector2.persistency) == 0
+        assert detector2.persistency != detector1.persistency
 
         (detector1 + detector2).aggregate()
         assert detector2.persistency == detector1.persistency
@@ -363,7 +369,7 @@ class TestCharsetDetectorEndToEnd:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            if detector2.process(log) is not None:
+            if detector1.process(log) is not None:
                 detected_ids.add(log["logID"])
 
         assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
