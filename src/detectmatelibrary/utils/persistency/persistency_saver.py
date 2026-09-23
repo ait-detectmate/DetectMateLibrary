@@ -30,22 +30,6 @@ _DATAFRAME_BACKENDS = {"EventDataFrame", "ChunkedEventDataFrame"}
 def _get_backend_cls(name: str) -> type[EventDataset]:
     if name in _BACKEND_REGISTRY:
         return _BACKEND_REGISTRY[name]
-    if name in _DATAFRAME_BACKENDS:
-        try:
-            from detectmatelibrary.utils.persistency.event_data_structures.dataframes import (
-                ChunkedEventDataFrame,
-                EventDataFrame,
-            )
-        except ImportError as e:
-            raise PersistencyLoadError(
-                f"Backend '{name}' requires the 'dataframes' extra: "
-                "pip install 'detectmatelibrary[dataframes]'"
-            ) from e
-        df_registry: dict[str, type[EventDataset]] = {
-            "EventDataFrame": EventDataFrame,
-            "ChunkedEventDataFrame": ChunkedEventDataFrame,
-        }
-        return df_registry[name]
     raise PersistencyLoadError(f"Unknown backend '{name}' — cannot restore event")
 
 
