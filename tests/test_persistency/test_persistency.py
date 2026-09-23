@@ -6,9 +6,6 @@ EventDataFrame (Pandas) and ChunkedEventDataFrame (Polars).
 
 
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
-from detectmatelibrary.utils.persistency.event_data_structures.dataframes import (
-    ChunkedEventDataFrame,
-)
 from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
     EventTracker,
     SingleStabilityTracker,
@@ -112,15 +109,6 @@ class TestPersistencyStruct:
 
 class TestEventPersistency:
     """Test suite for EventPersistency orchestrator class."""
-
-    def test_initialization_with_polars_backend(self):
-        """Test initialization with ChunkedEventDataFrame backend."""
-        persistency = EventPersistency(
-            event_data_class=ChunkedEventDataFrame,
-            event_data_kwargs={"max_rows": 100},
-        )
-        assert persistency is not None
-        assert persistency.get_class() == ChunkedEventDataFrame
 
     def test_initialization_with_tracker_backend(self):
         """Test initialization with EventVariableTrackerData backend."""
@@ -228,105 +216,8 @@ class TestEventPersistency:
         assert isinstance(data_structure, EventStabilityTracker)
 
 
-class TestChunkedEventDataFrame:
-    """Test suite for ChunkedEventDataFrame (Polars backend)."""
-
-    def test_initialization_default(self):
-        """Test ChunkedEventDataFrame initialization with defaults."""
-        cedf = ChunkedEventDataFrame()
-        assert cedf is not None
-        assert cedf.max_rows == 10_000_000
-        assert cedf.compact_every == 1000
-
-    def test_initialization_custom_params(self):
-        """Test initialization with custom parameters."""
-        cedf = ChunkedEventDataFrame(max_rows=500, compact_every=100)
-        assert cedf.max_rows == 500
-        assert cedf.compact_every == 100
-
-    def test_add_single_data(self):
-        """Test adding single data entry."""
-        cedf = ChunkedEventDataFrame(max_rows=10)
-        data_dict = {"user": ["alice"], "ip": ["192.168.1.1"]}
-        data_df = cedf.to_data(data_dict)
-        cedf.add_data(data_df)
-
-        data = cedf.get_data()
-        assert data is not None
-        assert len(data) == 1
-
-    def test_add_data_triggers_compaction(self):
-        """Test that adding data beyond compact_every triggers compaction."""
-        cedf = ChunkedEventDataFrame(max_rows=10000, compact_every=5)
-
-        # Add 6 entries (should trigger compaction at 5)
-        for i in range(6):
-            cedf.add_data(cedf.to_data({"user": [f"user{i}"], "value": [i]}))
-
-        # After compaction, should have 1 chunk
-        data = cedf.get_data()
-        assert len(data) == 6
-
-    def test_chunked_storage(self):
-        """Test that data is stored in chunks."""
-        cedf = ChunkedEventDataFrame(max_rows=5, compact_every=1000)
-
-        # Add more than max_rows
-        for i in range(8):
-            cedf.add_data(cedf.to_data({"user": [f"user{i}"], "value": [i]}))
-
-        # Should have evicted oldest to stay within max_rows
-        data = cedf.get_data()
-        assert data is not None
-        assert len(data) <= 5
-
-    def test_get_variable_names(self):
-        """Test retrieving variable names from chunks."""
-        cedf = ChunkedEventDataFrame()
-        cedf.add_data(
-            cedf.to_data({"user": ["alice"], "ip": ["192.168.1.1"], "port": ["22"]})
-        )
-
-        var_names = cedf.get_variables()
-        assert "user" in var_names
-        assert "ip" in var_names
-        assert "port" in var_names
-
-    def test_dict_to_dataframe_conversion(self):
-        """Test to_data method."""
-        cedf = ChunkedEventDataFrame()
-        data_dict = {"user": ["alice"], "ip": ["192.168.1.1"]}
-        df = cedf.to_data(data_dict)
-
-        assert isinstance(df, pl.DataFrame)
-        assert len(df) == 1
-        assert "user" in df.columns
-
-
 class TestEventPersistencyIntegration:
     """Integration tests for EventPersistency with different backends."""
-
-    def test_polars_backend_full_workflow(self):
-        """Test complete workflow with Polars backend."""
-        persistency = EventPersistency(
-            event_data_class=ChunkedEventDataFrame,
-            event_data_kwargs={"max_rows": 5, "compact_every": 10},
-        )
-
-        # Ingest events
-        for i in range(10):
-            persistency.ingest_event(
-                event_id="E001",
-                event_template="Test template",
-                variables=[str(i)],
-                named_variables={},
-            )
-
-        # Verify data retrieval works
-        data = persistency.get_event_data("E001")
-        assert data is not None
-        assert len(data) <= 5  # Should be trimmed to max_rows
-
     def test_tracker_backend_full_workflow(self):
         """Test complete workflow with Tracker backend."""
         persistency = EventPersistency(
