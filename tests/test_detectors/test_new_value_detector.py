@@ -254,7 +254,7 @@ class TestNewValueDetectorEndToEnd:
             detector.train(log)
 
         detector2 = NewValueDetector()
-        detector2.from_binary(detector.to_binary())
+        detector2 = detector2.from_binary(detector.to_binary())
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
