@@ -28,6 +28,8 @@ extras --> you install only what you need.
 | `polars-rtcompat` | `polars[rtcompat]` | Running on older CPUs without AVX2 support (e.g. some VMs or embedded hardware); not needed for standard deployments |
 | `full` | `llm` + `dataframes` + `polars-rtcompat` | Installing every optional extra at once |
 
+To have a closer look at all the dependencies, see [Optional dependencies](https://pydevtools.com/handbook/explanation/what-are-optional-dependencies-and-dependency-groups/).
+
 Install an extra with `uv sync`:
 
 ```bash

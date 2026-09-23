@@ -1,6 +1,6 @@
 # Basic knowledge
 
-Before you continue we have to give some insights on the rudimenetal topics of log anomalie detection.
+Before you continue we have to give some insights on the rudimental topics of log anomaly detection.
 
 ## What is a log?
 
@@ -74,6 +74,14 @@ The log level sits at the very front because it acts as a filter: in real system
 A parsed log is a raw log that has been decomposed into structured fields: the
 log is split at the right points and each part is labelled with what it is
 (template, variables, timestamp, and so on).
+
+The pattern that tells the parser how to split a line is called the
+**`log_format`**. It names the fields in the order they appear in the raw line,
+so the parser knows which chunk is the log level, which is the timestamp, and
+which is the actual message content.
+
+The term `log_format`is regularly used in the literature. Such as in the
+**Drain-Parser**, **LogParser**, and many more use it frequently.
 
 Based on the example above:
 

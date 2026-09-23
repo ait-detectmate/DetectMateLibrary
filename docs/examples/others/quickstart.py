@@ -21,9 +21,6 @@ config_dict = {
 }
 parser = MatcherParser(name="MatcherParser", config=config_dict)
 
-# Collect first, write once: To.json re-reads and rewrites the whole output file
-# on every call, so calling it inside the loop is O(n^2) and gets unusably slow
-# (and fragile) on a real log file.
 raw_logs = list(From.log(parser, log_path, do_process=False))
 parsed_logs = [parser.process(log) for log in raw_logs]
 

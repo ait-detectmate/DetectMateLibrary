@@ -22,10 +22,10 @@ Here you can get the full scope.
 
 * [Overall architecture](advanced/overall_architecture.md)
 * [Schemas](schemas.md)
-* [Federation](federation.md)
 * [Parsers](parsers.md)
 * [Detectors](detectors.md)
 * [Alert Aggregation](alert_aggregator.md)
+* [Federation](federation.md)
 
 ## How to contribute
 

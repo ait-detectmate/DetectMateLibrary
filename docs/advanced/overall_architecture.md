@@ -4,7 +4,7 @@
 
 This document describes the high-level design of the DetectMateLibrary, how components interact, the data contracts they use, and guidance for deploying and extending the system. The library is built around small, composable components that operate on streaming log data and exchange strongly-typed Schema objects.
 
-Key goals
+Key goals:
 
 - Clear separation of concerns (reading, parsing, detection, output).
 - Stream-friendly processing with minimal buffering.
