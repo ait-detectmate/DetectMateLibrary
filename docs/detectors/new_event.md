@@ -7,7 +7,7 @@ The New Event Detector raises alerts when previously unseen log templates, disti
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Alert / finding |
 
-✅ Federation compatible (Binary not available).
+✅ Federation compatible.
 
 
 ## Description
