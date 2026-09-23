@@ -13,7 +13,7 @@ from detectmatelibrary.utils.persistency.data_structures.trackers import (
     Classification,
     ClassificationMethods,
 )
-from detectmatelibrary.utils.persistency.rle_list import RLEList
+from detectmatelibrary.utils.persistency.data_structures.trackers.rle_list import RLEList
 
 
 class TestStabilityClassifier:

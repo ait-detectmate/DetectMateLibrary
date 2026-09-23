@@ -4,7 +4,7 @@ import importlib
 from functools import partial
 from typing import Any, Callable, Dict, List, Literal, Set, TYPE_CHECKING
 from detectmatelibrary.utils.preview_helpers import list_preview_str
-from detectmatelibrary.utils.persistency.rle_list import RLEList
+from detectmatelibrary.utils.persistency.data_structures.trackers.rle_list import RLEList
 from ..base import SingleTracker, MultiTracker, EventTracker, Classification
 from .stability_classifier import StabilityClassifier
 from .classification_methods import ClassificationMethods
