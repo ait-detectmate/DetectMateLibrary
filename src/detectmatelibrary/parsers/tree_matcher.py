@@ -5,19 +5,23 @@ from detectmateperformance.match_tree import TreeMatcher
 from detectmateperformance.types_ import LogTemplates
 
 from typing import Any
+from pydantic import Field
 
 
 class TemplateCppTreeMatcherConfig(CoreParserConfig):
-    method_type: str = "tree_matcher"
+    method_type: str = Field(default="tree_matcher", description="<$IGNORE$>")
 
-    path_templates: str | None = None
+    path_templates: str | None = Field(
+        default=None, description="fitting description yet to find"
+    )
 
 
 class TemplateCppTreeMatcher(CoreParser):
     def __init__(
         self,
         name: str = "TreeMatcher",
-        config: TemplateCppTreeMatcherConfig | dict[str, Any] = TemplateCppTreeMatcherConfig()
+        config: TemplateCppTreeMatcherConfig
+        | dict[str, Any] = TemplateCppTreeMatcherConfig(),
     ) -> None:
 
         if isinstance(config, dict):
@@ -30,11 +34,7 @@ class TemplateCppTreeMatcher(CoreParser):
         else:
             self.tree = TreeMatcher.from_file(self.config.path_templates)
 
-    def parse(
-        self,
-        input_: schemas.LogSchema,
-        output_: schemas.ParserSchema
-    ) -> None:
+    def parse(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> None:
 
         parsed = self.tree.match_log(input_["log"], get_var=True)[0]
 
