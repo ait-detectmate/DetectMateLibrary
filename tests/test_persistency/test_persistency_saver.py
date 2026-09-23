@@ -15,6 +15,11 @@ from detectmatelibrary.utils.persistency.persistency_saver import (
     save as standalone_save,
     load as standalone_load,
 )
+import detectmatelibrary.utils.persistency.persistency_saver as ps
+from detectmatelibrary.utils import persistency
+
+import zipfile
+import io
 
 
 class TestPersistencySaverConfig:
@@ -347,7 +352,6 @@ class TestPersistencySaverConcurrency:
     def test_ingest_not_blocked_by_save_write(self, monkeypatch):
         """The file write must run OUTSIDE the lock: a blocked save write must
         not block a concurrent ingest_event (only serialization is guarded)."""
-        import detectmatelibrary.utils.persistency.persistency_saver as ps
 
         p = EventPersistency()
         saver = PersistencySaver(p, PersistencySaverConfig(path="memory://write_block/state"))
@@ -413,7 +417,6 @@ class TestStandaloneSaveLoad:
             standalone_load(p, "memory://nonexistent_standalone/state")
 
     def test_exported_from_package(self):
-        from detectmatelibrary.utils import persistency
         assert callable(persistency.save)
         assert callable(persistency.load)
 
@@ -424,8 +427,6 @@ class TestStandaloneSaveLoad:
         assert len(result) > 0
 
     def test_save_bytes_is_zip(self):
-        import zipfile
-        import io
         p = _make_persistency_with_data()
         data = standalone_save(p)
         assert zipfile.is_zipfile(io.BytesIO(data))
