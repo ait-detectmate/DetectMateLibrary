@@ -161,9 +161,6 @@ class EventPersistencyBase:
         """Retrieve all event templates."""
         return self.event_struct.templates
 
-    def get_class(self) -> type[EventStabilityTracker]:
-        return EventStabilityTracker
-
     def __getitem__(self, event_id: int | str) -> EventStabilityTracker | None:
         return self.event_struct[event_id]
 
