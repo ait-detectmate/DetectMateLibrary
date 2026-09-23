@@ -151,3 +151,12 @@ class ECVCDetector(CoreDetector, VariablesLogic):
         self.build_count_vec()
         for component in components:
             component.build_count_vec()
+
+    def to_binary(self) -> bytes:
+        return self.persistency2binary()
+
+    def from_binary(self, binary: bytes) -> "ECVCDetector":
+        var_detect = type(self)(name=self.name, config=self.config)
+        var_detect.binary2persistency(binary)
+
+        return var_detect

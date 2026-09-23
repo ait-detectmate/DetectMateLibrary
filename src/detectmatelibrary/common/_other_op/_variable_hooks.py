@@ -117,6 +117,7 @@ class VariablesLogic(VaribaleHooks):
     def __init__(
         self,
         name: str,
+        allow_fed: bool = False,
         _time_handler: TimeFormatHandler = TimeFormatHandler(),
         config_vars: VariableAutoConfigParams = VariableAutoConfigParams(),
     ) -> None:
@@ -124,10 +125,11 @@ class VariablesLogic(VaribaleHooks):
         super().__init__(name=name, config_vars=config_vars)
         self._time_handler = _time_handler
         self.persistency = EventPersistency(
-            event_data_kwargs=self._event_data_kwargs(),
+            event_data_kwargs=self._event_data_kwargs(), do_slow_per=allow_fed
         )
         self.auto_conf_persistency = EventPersistency(
             event_data_kwargs=self._with_classification_kwargs(self._auto_conf_kwargs()),
+            do_slow_per=False,
         )
 
     def _warn_time_fallback_once(self, reason: str) -> None:

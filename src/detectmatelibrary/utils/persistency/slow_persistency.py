@@ -72,6 +72,7 @@ class SlowPersistency:
     def _insertion(self, rows: list[list[str]]) -> None:
         self.file_manager.add_rows(rows)
         self.file_manager.flush()
+        print(self.path, os.path.exists(self.path))
 
     @classmethod
     def from_dataframe(cls, df: pl.DataFrame) -> "SlowPersistency":
@@ -102,6 +103,7 @@ class SlowPersistency:
         self.file_manager.close()
 
     def load(self) -> pl.DataFrame:
+        print(self.path, os.path.exists(self.path))
         return pl.read_csv(self.path)
 
     def __eq__(self, value: object) -> bool:

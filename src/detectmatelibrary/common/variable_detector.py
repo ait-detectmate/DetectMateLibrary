@@ -32,6 +32,7 @@ from typing import Any, Dict
 class VariableDetectorConfig(CoreDetectorConfig):
     auto_config_params: VariableAutoConfigParams = VariableAutoConfigParams()
     method_type: str = "variable_detector"
+    allow_fed: bool = False
 
 
 def add_variables(
@@ -67,7 +68,11 @@ class VariableDetector(CoreDetector, VariablesLogic):
         CoreDetector.__init__(self, name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: VariableDetectorConfig
         VariablesLogic.__init__(
-            self, name=self.name, _time_handler=_time_handler, config_vars=self.config.auto_config_params
+            self,
+            name=self.name,
+            allow_fed=self.config.allow_fed,
+            _time_handler=_time_handler,
+            config_vars=self.config.auto_config_params
         )
         self._register_persistency(self.persistency)
 

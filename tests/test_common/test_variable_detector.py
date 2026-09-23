@@ -8,7 +8,9 @@ CONFIG = {
         "detector": {
             "method_type": "variable_detector",
             "auto_config": False,
-            "params": {},
+            "params": {
+                "allow_fed": True,
+            },
             "events": {
                 1: {
                     "i": {

@@ -2,6 +2,7 @@ from .data_structures.trackers import EventStabilityTracker
 from .slow_persistency import SlowPersistency
 
 from typing import Any, Dict, List, Optional
+import warnings
 import polars as pl
 import json
 
@@ -32,14 +33,17 @@ class PersistencyStruct:
     """Event structure of the Event Persistency."""
     def __init__(
         self,
+        do_slow_pers: bool = False,
         event_data_kwargs: Optional[dict[str, Any]] = None,
     ) -> None:
         self.fast_persistency: Dict[int | str, EventStabilityTracker] = {}
         self.data_kwargs = event_data_kwargs or {}
         self.templates: Dict[int | str, str] = {}
+        self.do_slow = do_slow_pers
 
         self.columns: list[str] = ["EventIDs", "Templates", "Timestamps", "Vars"]
-        self.slow_persistency = SlowPersistency(self.columns)
+        if self.do_slow:
+            self.slow_persistency = SlowPersistency(self.columns)
 
     def __contains__(self, event_id: int | str) -> bool:
         return event_id in self.fast_persistency
@@ -64,9 +68,10 @@ class PersistencyStruct:
                 self.fast_persistency[event_id] = EventStabilityTracker(**self.data_kwargs)
             self[event_id].add_data(variables, timestamp=timestamp, do_preprocess=True)  # type: ignore
 
-        self.slow_persistency.add(
-            [event_id, template, timestamp, json.dumps(variables).encode("utf-8")]
-        )
+        if self.do_slow:
+            self.slow_persistency.add(
+                [event_id, template, timestamp, json.dumps(variables).encode("utf-8")]
+            )
 
     def get_template(self, event_id: int | str) -> str | None:
         return self.templates.get(event_id, None)
@@ -84,22 +89,29 @@ class PersistencyStruct:
         return True
 
     def get_data(self) -> pl.DataFrame:
-        self.slow_persistency.push_buffer()
-        return self.slow_persistency.load()
+        if self.do_slow:
+            self.slow_persistency.push_buffer()
+            return self.slow_persistency.load()
+        return pl.DataFrame([])
 
     def overwrite_slow(self, df: pl.DataFrame) -> None:
-        self.slow_persistency = SlowPersistency.from_dataframe(df)
+        if self.do_slow:
+            self.slow_persistency = SlowPersistency.from_dataframe(df)
+        warnings.warn("Slow persistency was disable")
 
 
 class EventPersistencyBase:
     """Event Persistency without lock protection."""
     def __init__(
         self,
+        do_slow_per: bool = True,
         variable_blacklist: Optional[List[str | int]] = ["Content"],
         *,
         event_data_kwargs: Optional[dict[str, Any]] = None,
     ):
-        self.event_struct = PersistencyStruct(event_data_kwargs=event_data_kwargs)
+        self.event_struct = PersistencyStruct(
+            event_data_kwargs=event_data_kwargs, do_slow_pers=do_slow_per
+        )
 
         self.events_seen: set[int | str] = set()
         self.variable_blacklist = variable_blacklist or []

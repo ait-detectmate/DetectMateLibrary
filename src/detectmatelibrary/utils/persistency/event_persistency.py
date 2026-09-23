@@ -21,11 +21,13 @@ class EventPersistency(EventPersistencyBase):
 
     def __init__(
         self,
+        do_slow_per: bool = True,
         variable_blacklist: Optional[List[str | int]] = ["Content"],
         *,
         event_data_kwargs: Optional[dict[str, Any]] = None,
     ):
         super().__init__(
+            do_slow_per=do_slow_per,
             variable_blacklist=variable_blacklist,
             event_data_kwargs=event_data_kwargs
         )
