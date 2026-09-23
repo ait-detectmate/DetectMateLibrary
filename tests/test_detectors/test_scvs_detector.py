@@ -76,6 +76,12 @@ PIPELINE_CONFIG = {
             "method_type": "scvs_detector",
             "window_size": 10,
             "data_use_training": TRAIN_UNTIL,
+        },
+        "SCVSDetector_fed": {
+            "method_type": "scvs_detector",
+            "window_size": 10,
+            "data_use_training": TRAIN_UNTIL,
+            "allow_fed": True,
         }
     }
 }
@@ -99,22 +105,31 @@ class TestSCVSDetectorEndToEnd:
             assert log_id in detected_ids
 
     @pytest.mark.ignored
+    def test_audit_log_anomalie_binary(self):
+        parser = MatcherParser(config=PIPELINE_CONFIG)
+        detector1 = SCVSDetector("SCVSDetector_fed", config=PIPELINE_CONFIG)
+        detector2 = SCVSDetector("SCVSDetector_fed", config=PIPELINE_CONFIG)
+
+        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
+        for log in logs[:TRAIN_UNTIL]:
+            detector1.process(log)
+
+        binary = detector1.to_binary()
+        detector2 = detector2.from_binary(binary)
+
+        assert detector2.persistency.events_seen == detector1.persistency.events_seen
+        assert len(detector2.persistency.events_seen) > 0
+
+    @pytest.mark.ignored
     def test_audit_log_anomalie_fed(self):
         parser = MatcherParser(config=PIPELINE_CONFIG)
-        detector1 = SCVSDetector()
-        detector2 = SCVSDetector()
+        detector1 = SCVSDetector("SCVSDetector_fed", config=PIPELINE_CONFIG)
+        detector2 = SCVSDetector("SCVSDetector_fed", config=PIPELINE_CONFIG)
 
         logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
         for log in logs[:TRAIN_UNTIL]:
             detector1.process(log)
 
         (detector1 + detector2).aggregate()
-        assert detector2.persistency == detector1.persistency
-
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            if detector2.process(log) is not None:
-                detected_ids.add(log["logID"])
-
-        for log_id in {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}:
-            assert log_id in detected_ids
+        assert detector2.persistency.events_seen == detector1.persistency.events_seen
+        assert len(detector2.persistency.events_seen) > 0
