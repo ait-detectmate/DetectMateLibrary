@@ -1,5 +1,5 @@
-from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability import ClassificationMethods
-from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
+from detectmatelibrary.utils.persistency.data_structures.trackers.stability import ClassificationMethods
+from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
      EventStabilityTracker, SingleStabilityTracker
 )
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency

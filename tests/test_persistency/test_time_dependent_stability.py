@@ -8,7 +8,7 @@ from detectmatelibrary.detectors.charset_detector import CharsetDetector, Charse
 from detectmatelibrary.common._other_op._variable_hooks import VariableAutoConfigParams
 from detectmatelibrary.utils.persistency.rle_list import RLEList
 from detectmatelibrary.utils.persistency import EventPersistency
-from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
+from detectmatelibrary.utils.persistency.data_structures.trackers import (
     StabilityClassifier,
     SingleStabilityTracker,
     EventStabilityTracker,

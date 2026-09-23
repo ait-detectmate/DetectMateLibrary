@@ -11,8 +11,8 @@ from typing import Any, Callable
 
 import fsspec
 
-from detectmatelibrary.utils.persistency.event_data_structures.base import EventDataset
-from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
+from detectmatelibrary.utils.persistency.data_structures.base import EventDataset
+from detectmatelibrary.utils.persistency.data_structures.trackers import (
     EventTracker,
     EventStabilityTracker,
 )

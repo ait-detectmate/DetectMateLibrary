@@ -5,7 +5,7 @@ import threading
 import fsspec
 import pytest
 
-from detectmatelibrary.utils.persistency.event_data_structures.trackers import EventStabilityTracker
+from detectmatelibrary.utils.persistency.data_structures.trackers import EventStabilityTracker
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from detectmatelibrary.utils.persistency.persistency_saver import (
     PersistencySaverConfig,

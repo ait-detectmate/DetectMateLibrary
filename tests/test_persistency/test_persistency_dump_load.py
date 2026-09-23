@@ -2,14 +2,14 @@ import pytest
 from dataclasses import dataclass
 
 from detectmatelibrary.utils.persistency.persistency_saver import PersistencyLoadError
-from detectmatelibrary.utils.persistency.event_data_structures.base import (
+from detectmatelibrary.utils.persistency.data_structures.base import (
     EventDataset,
 )
-from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
+from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
     SingleStabilityTracker,
     EventStabilityTracker,
 )
-from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
+from detectmatelibrary.utils.persistency.data_structures.trackers import (
     ClassificationMethods,
 )
 

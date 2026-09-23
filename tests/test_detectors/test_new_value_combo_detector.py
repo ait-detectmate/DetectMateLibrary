@@ -4,7 +4,7 @@ from detectmatelibrary.detectors.new_value_combo_detector import (
     NewValueComboDetectorConfig,
     ComboAutoConfigParams,
 )
-from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
+from detectmatelibrary.utils.persistency.data_structures.trackers import (
     ClassificationMethods,
 )
 from detectmatelibrary.utils.data_buffer import BufferMode

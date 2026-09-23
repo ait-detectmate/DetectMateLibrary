@@ -7,7 +7,7 @@ from detectmatelibrary.common.variable_detector import (
 from detectmatelibrary.common._config._compile import get_configured_variables
 
 from detectmatelibrary.utils import persistency
-from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
+from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
     SingleStabilityTracker,
 )
 

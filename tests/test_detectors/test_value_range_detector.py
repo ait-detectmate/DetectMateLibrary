@@ -13,7 +13,7 @@ import pytest
 from detectmatelibrary.utils.persistency.component_interfaces import PersistConfig
 from detectmatelibrary.detectors.value_range_detector import ValueRangeDetector, ValueRangeDetectorConfig
 from detectmatelibrary.utils.persistency import PersistencySaver
-from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
+from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
     SingleStabilityTracker,
 )
 from detectmatelibrary.utils.data_buffer import BufferMode

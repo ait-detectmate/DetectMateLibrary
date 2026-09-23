@@ -1,4 +1,4 @@
-from .event_data_structures.base import EventDataset
+from .data_structures.base import EventDataset
 from .basic_persistency import EventPersistencyBase
 
 from typing import Any, Callable, Dict, List, Optional, Type, Self

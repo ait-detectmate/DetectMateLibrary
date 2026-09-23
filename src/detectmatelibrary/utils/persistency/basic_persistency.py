@@ -1,4 +1,4 @@
-from .event_data_structures.base import EventDataset
+from .data_structures.base import EventDataset
 from .slow_persistency import SlowPersistency
 
 from typing import Any, Dict, List, Type, Optional

@@ -8,7 +8,7 @@ from detectmatelibrary.common._config._compile import MissingParamsWarning
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 from detectmatelibrary.detectors.new_value_detector import NewValueDetectorConfig
 from detectmatelibrary.utils.persistency.component_interfaces import PersistConfig
-from detectmatelibrary.utils.persistency.event_data_structures.trackers import EventStabilityTracker
+from detectmatelibrary.utils.persistency.data_structures.trackers import EventStabilityTracker
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 
 
