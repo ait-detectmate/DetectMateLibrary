@@ -5,7 +5,6 @@ import threading
 import fsspec
 import pytest
 
-from detectmatelibrary.utils.persistency.data_structures.trackers import EventStabilityTracker
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from detectmatelibrary.utils.persistency.persistency_saver import (
     PersistencySaverConfig,
@@ -464,7 +463,7 @@ class TestPersistencySaverThreadSafety:
         saver.start()
         time.sleep(0.05)
         # Load into a second persistency while first saver's timer is firing
-        p2 = EventPersistency(event_data_class=EventStabilityTracker)
+        p2 = EventPersistency()
         PersistencySaver(p2, PersistencySaverConfig(path=path)).load()
         saver.stop()
         assert "E1" in p2.get_events_seen()
