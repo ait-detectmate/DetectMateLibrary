@@ -12,6 +12,9 @@ from pydantic import ValidationError
 
 from detectmatelibrary.detectors.event_sequence_detector import EventSequenceDetector, \
     EventSequenceDetectorConfig, SequenceAutoConfigParams, BufferMode
+from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
+    ClassificationMethods,
+)
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
@@ -44,7 +47,7 @@ config = {
 }
 
 
-def _make_schema(event_id, template="test template", log_id="1"):
+def _make_schema(event_id, template="test template", log_id="1", log_format_variables=None):
     return schemas.ParserSchema({
         "parserType": "test",
         "EventID": event_id,
@@ -54,7 +57,7 @@ def _make_schema(event_id, template="test template", log_id="1"):
         "parsedLogID": log_id,
         "parserID": "test_parser",
         "log": "test log message",
-        "logFormatVariables": {"level": "INFO"}
+        "logFormatVariables": log_format_variables or {"level": "INFO"}
     })
 
 
@@ -669,3 +672,110 @@ class TestEventSequenceDetectorConfigValidation:
         assert block.items() <= entry["auto_config_params"].items()
         assert not set(block) & set(entry.get("params", {}))
         assert EventSequenceDetectorConfig.from_dict(dumped, "EventSequenceDetector") == config
+
+
+# A cycle of four events: at every window length new sequences appear only
+# while the first cycle runs and the windows repeat from then on. That is
+# stable under the default segment thresholds and unstable under tight ones,
+# which is what makes the configured classification visible in the outcome.
+_CYCLIC_STREAM = [1, 2, 3, 4] * 5
+
+
+class TestEventSequenceDetectorClassification:
+    """The configure phase runs under the classification the operator asked
+    for, and on the time axis when a time method is enabled.
+
+    Window selection is the sequence detector's whole auto-
+    configuration, so it has to be decided by the same rule as every
+    other detector's -- a stability configuration that reaches the
+    variable detectors but not this one would grade one detector in a
+    run by a rule of its own.
+    """
+
+    @staticmethod
+    def _select_window(classification=None):
+        params = {"min_window_size": 2, "max_window_size": 5}
+        if classification is not None:
+            params["classification"] = classification
+        detector = EventSequenceDetector(
+            name="Classified",
+            config=EventSequenceDetectorConfig(
+                data_use_configure=len(_CYCLIC_STREAM) - 1,
+                data_use_training=1,
+                auto_config_params=SequenceAutoConfigParams(**params),
+            ),
+        )
+        for i, event_id in enumerate(_CYCLIC_STREAM):
+            detector.process(_make_schema(event_id, log_id=str(i)))
+        return detector.config.fixed_window_size
+
+    def test_classification_decides_the_selected_window(self):
+        """One stream, two rules: the default thresholds leave every candidate
+        stable and take the longest, tight ones leave nothing stable at all."""
+        assert self._select_window() == 5
+        assert self._select_window(
+            ClassificationMethods(segment_thresholds=[0.01, 0.01, 0.01, 0.01])
+        ) is None
+
+    def test_configure_records_timestamps_for_a_time_method(self):
+        """A time-axis method needs per-record timestamps; without them the
+        classifier silently falls back to the index axis."""
+        detector = EventSequenceDetector(
+            name="Timed",
+            config=EventSequenceDetectorConfig(
+                auto_config_params=SequenceAutoConfigParams(
+                    min_window_size=2,
+                    max_window_size=2,
+                    classification=ClassificationMethods(index=False, time=True),
+                    timestamp_variable="ts",
+                ),
+            ),
+        )
+
+        for i, event_id in enumerate(_CYCLIC_STREAM):
+            detector.configure(_make_schema(
+                event_id,
+                log_id=str(i),
+                log_format_variables={"ts": str(1700000000 + i * 60)},
+            ))
+
+        tracker = detector.auto_conf_persistency.get_events_data()[2].get_data()["seq"]
+        assert tracker.classification.enabled == ("time",)
+        assert len(tracker.timestamps) == len(tracker.change_series)
+        assert tracker.timestamps[1] - tracker.timestamps[0] == 60.0
+
+    def test_classification_block_reaches_trackers_from_a_config_dict(self):
+        """The benchmark harness configures from YAML, so the block has to
+        arrive through from_dict, not only through the constructor."""
+        source = {
+            "detectors": {
+                "EventSequenceDetector": {
+                    "method_type": "event_sequence_detector",
+                    "auto_config": True,
+                    "auto_config_params": {
+                        "min_window_size": 2,
+                        "max_window_size": 2,
+                        "classification": {
+                            "index": True,
+                            "time": True,
+                            "slope_index": True,
+                            "decision": "majority",
+                        },
+                        "timestamp_variable": "ts",
+                    },
+                }
+            }
+        }
+        detector = EventSequenceDetector(config=source)
+
+        for i, event_id in enumerate(_CYCLIC_STREAM):
+            detector.configure(_make_schema(
+                event_id,
+                log_id=str(i),
+                log_format_variables={"ts": str(1700000000 + i * 60)},
+            ))
+
+        tracker = detector.auto_conf_persistency.get_events_data()[2].get_data()["seq"]
+        assert tracker.classification.enabled == ("index", "time", "slope_index")
+        assert tracker.classification.decision == "majority"
+        assert len(tracker.timestamps) == len(tracker.change_series)
