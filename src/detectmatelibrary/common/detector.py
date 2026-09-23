@@ -11,7 +11,7 @@ from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 from typing_extensions import override
 from typing import Dict, List, Optional, Any, cast
 
-from detectmatelibrary.utils.persistency.component_interfaces import PersistConfig
+from detectmatelibrary.common._other_op._persistency_components import PersistConfig
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 
 

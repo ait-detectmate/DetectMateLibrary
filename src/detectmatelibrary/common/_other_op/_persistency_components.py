@@ -5,8 +5,8 @@ import os
 from detectmatelibrary.common._config._formats import EventsConfig
 from detectmatelibrary.tools.logging import logger
 
-from .event_persistency import EventPersistency
-from .persistency_saver import load, save
+from ...utils.persistency.event_persistency import EventPersistency
+from ...utils.persistency.persistency_saver import load, save
 
 from typing import Any, Callable, Protocol
 

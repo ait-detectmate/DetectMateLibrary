@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from detectmatelibrary.common._config._compile import MissingParamsWarning
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 from detectmatelibrary.detectors.new_value_detector import NewValueDetectorConfig
-from detectmatelibrary.utils.persistency.component_interfaces import PersistConfig
+from detectmatelibrary.common._other_op._persistency_components import PersistConfig
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 
 

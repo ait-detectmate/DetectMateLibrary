@@ -1,7 +1,7 @@
 from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
     EventStabilityTracker,
 )
-from detectmatelibrary.utils.persistency.component_interfaces import (
+from detectmatelibrary.common._other_op._persistency_components import (
     validate_config_coverage
 )
 from detectmatelibrary.utils.data_buffer import BufferMode

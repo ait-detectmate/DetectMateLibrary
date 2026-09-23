@@ -1,4 +1,4 @@
-from detectmatelibrary.utils.persistency.component_interfaces import Stoppable
+from detectmatelibrary.common._other_op._persistency_components import Stoppable
 from detectmatelibrary.schemas import BaseSchema
 
 from detectmatelibrary.common._config import BasicConfig

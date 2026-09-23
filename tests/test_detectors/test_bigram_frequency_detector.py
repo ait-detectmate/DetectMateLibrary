@@ -9,7 +9,7 @@ This module tests the BigramFrequencyDetector implementation including:
 """
 
 from unittest.mock import patch
-from detectmatelibrary.utils.persistency.component_interfaces import PersistConfig
+from detectmatelibrary.common._other_op._persistency_components import PersistConfig
 from detectmatelibrary.detectors.bigram_frequency_detector import (
     BigramFrequencyDetector, BigramFrequencyDetectorConfig
 )

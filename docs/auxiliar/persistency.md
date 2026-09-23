@@ -225,9 +225,7 @@ from detectmatelibrary.utils import persistency
 class MyDetector(CoreDetector):
     def __init__(self, name="MyDetector", config=MyDetectorConfig()):
         super().__init__(name=name, config=config)
-        self.persistency = persistency.EventPersistency(
-            event_data_class=persistency.EventStabilityTracker,
-        )
+        self.persistency = persistency.EventPersistency()
         self._register_persistency(self.persistency)
 
     def train(self, input_):
