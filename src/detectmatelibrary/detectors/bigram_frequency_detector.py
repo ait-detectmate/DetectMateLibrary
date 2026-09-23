@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional, cast
 from pydantic import Field
 
 from detectmatelibrary.common.variable_detector import VariableDetector, VariableDetectorConfig
-from detectmatelibrary.common.variable_detector import get_global_variables
+from detectmatelibrary.common._other_op._variable_hooks import get_global_variables
 from detectmatelibrary.common._config._compile import get_configured_variables
 from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
     EventStabilityTracker,
@@ -11,7 +11,7 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers.stabilit
 )
 from detectmatelibrary.schemas import ParserSchema
 from detectmatelibrary.constants import GLOBAL_EVENT_ID, DEFAULT_FREQUENCIES
-
+import warnings
 
 _DEFAULT_FREQ: dict[str, dict[str, int]] | None = None
 _DEFAULT_TOTAL_FREQ: dict[str, int] | None = None
@@ -245,3 +245,10 @@ class BigramFrequencyDetector(VariableDetector):
                 )
                 anomaly = True
         return 1.0 if anomaly else 0.0
+
+    def to_binary(self) -> bytes:
+        warnings.warn("Diasbale for now")
+        return bytes()
+
+    def from_binary(self, binary: bytes) -> None:
+        warnings.warn("Diasbale for now")

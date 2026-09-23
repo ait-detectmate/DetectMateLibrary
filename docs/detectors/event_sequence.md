@@ -11,6 +11,8 @@ Input and output schemas in the pipeline
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Alert / finding |
 
+✅ Federation compatible (Binary not available).
+
 ## Description
 
 The detector slides a window of `fixed_window_size` event IDs over the log stream. During training every full window is stored as a known sequence; during detection a window whose exact sequence is not in that set is reported as an anomaly.
@@ -33,41 +35,52 @@ Longer windows are more specific and therefore alert more readily; if the auto-c
 
 Only parameters specific to this detector are listed below -- see [Common parameters](../detectors.md#common-parameters-all-detectors) in the Detectors overview for the rest.
 
-<!-- Start arguments -->
 | Field  | Type  | Default Value| Description|
 |-------|------|-----|---|
 |method_type|string|event_sequence_detector|Indicates what type of method it is.|
-|min_window_size|integer|2|Shortest window length tried during the auto-configuration phase. Only used while fixed_window_size is None.|
-|max_window_size|integer|10|Longest window length tried during the auto-configuration phase. The longest length whose sequences are classified STABLE or STATIC wins.|
-|fixed_window_size|integer, null|None|Length of the sliding EventID window. A window whose exact EventID sequence was not seen during training is reported as an anomaly. When set it overrides min_window_size/max_window_size and skips auto-configuration; auto-configuration writes its own choice here. While it is None the detector is unconfigured and neither trains nor alerts.|
-<!-- End arguments -->
+|fixed_window_size|integer, null|None|Length of the sliding EventID window. A window whose exact EventID sequence was not seen during training is reported as an anomaly. When set it overrides the `auto_config_params` window range and skips auto-configuration; auto-configuration writes its own choice here. While it is None the detector is unconfigured and neither trains nor alerts.|
 
 ## Examples
 ### Service usage
 
 To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example below.
 
-<!-- Start config -->
 ```yaml
 detectors:
     <COMPONENT_NAME>:
         method_type: event_sequence_detector
-        auto_config: true
+        auto_config: False
         params:
-            start_id: 10
-            data_use_training: null
-            data_use_configure: null
-            use_config_data_as_training: true
-            parser: PARSER
-            global_instances: {}
+            fixed_window_size: 3
+```
+
+With auto configuration:
+
+```yaml
+detectors:
+    EventSequenceDetector:
+        method_type: event_sequence_detector
+        auto_config: True
+        data_use_configure: 500
+        auto_config_params:
             min_window_size: 2
             max_window_size: 10
             fixed_window_size: null
         events: {}
 ```
-<!-- End config -->
-### Library usage
-To use it as a python script, you can follow the example below.
+
+| Parameter | Default | Description |
+|---|---|---|
+| `fixed_window_size` | `None` | Length of the sliding event-ID window. Overrides the `auto_config_params` window range and skips auto configuration. Auto configuration writes its own choice here. While it is `None` the detector neither trains nor alerts. Must be `>= 1`. |
+
+#### `auto_config_params`
+
+| Field | Default | Description |
+|---|---|---|
+| `min_window_size` | `2` | Shortest window length tried during auto configuration. Must be `>= 1`. |
+| `max_window_size` | `10` | Longest window length tried during auto configuration. Must be `>= min_window_size`. |
+
+## Example usage
 
 ```python
 --8<-- "docs/examples/detectors/event_sequence.py:example"

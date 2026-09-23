@@ -1,7 +1,9 @@
 from typing import Any, List
 
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
-from detectmatelibrary.utils import persistency
+
+from detectmatelibrary.common._other_op._variable_hooks import VariablesLogic
+
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.utils.sequence_encoding import (
     build_count_vec,
@@ -24,7 +26,7 @@ class SCVSDetectorConfig(CoreDetectorConfig):
     )
 
 
-class SCVSDetector(CoreDetector):
+class SCVSDetector(CoreDetector, VariablesLogic):
     def __init__(
         self,
         name: str = "SCVSDetector",
@@ -35,35 +37,24 @@ class SCVSDetector(CoreDetector):
             config = SCVSDetectorConfig.from_dict(config, name)
         self.config: SCVSDetectorConfig
 
-        super().__init__(
-            name=name,
-            buffer_mode=BufferMode.WINDOW,
-            config=config,
-            buffer_size=config.window_size
+        CoreDetector.__init__(
+            self, name=name, buffer_mode=BufferMode.WINDOW, config=config, buffer_size=config.window_size
         )
-        # ponytail: only events_seen is used here — count vectors carry no
-        # variables. EventPersistency still requires an event_data_class.
-        self.persistency = persistency.EventPersistency(
-            event_data_class=persistency.EventStabilityTracker,
-        )
-        self._register_persistency(self.persistency)  # restores state when auto_load
+        VariablesLogic.__init__(self, name=self.name)
+        self._register_persistency(self.persistency)
         warn_on_window_size_mismatch(self.name, self.persistency, self.config.window_size)
 
     def import_state(
         self, path: str | bytes, storage_options: dict[str, Any] | None = None
     ) -> None:
-        """Load state, then check it was trained at the configured window size.
-
-        Unlike `auto_load`, this runs after construction, so the check in
-        `__init__` has already passed and has to be redone here.
-        """
-        super().import_state(path, storage_options)
+        CoreDetector.import_state(self, path, storage_options)
         warn_on_window_size_mismatch(self.name, self.persistency, self.config.window_size)
 
     def train(self, input_: List[schemas.ParserSchema]) -> None:  # type: ignore
-        self.persistency.ingest_event(
+        self._ingest(
             event_id=encode_count_vec(self.config.window_size, build_count_vec(input_)),
-            event_template=input_[-1]["template"],
+            input_=input_[-1],
+            variables={}
         )
 
     def detect(
@@ -84,3 +75,6 @@ class SCVSDetector(CoreDetector):
             decode_count_vec(str(encoded))[1]
             for encoded in self.persistency.get_events_seen()
         }
+
+    def aggregate_strategy(self, components: set["SCVSDetector"]) -> None:  # type: ignore
+        self.combine(components)  # type: ignore

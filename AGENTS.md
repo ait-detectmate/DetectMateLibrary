@@ -168,19 +168,20 @@ def __init__(self, name="MyDetector", config=MyDetectorConfig()):
     self._register_persistency(self.persistency)  # must be last
 ```
 
-**2. Preserve `config.persist` across `set_configuration()` rebuilds:**
+**2. Write only your outputs in `set_configuration()` — never rebuild `self.config`:**
 
-`set_configuration()` replaces `self.config` via `from_dict()`, which produces a config with no `persist` key — silently dropping the user's persist settings. Save and restore it:
+`set_configuration()` must not reassign `self.config` (e.g. via `from_dict()`). Write only what the configure phase produced, then flip `auto_config` off:
 
 ```python
 def set_configuration(self) -> None:
-    old_persist = self.config.persist
-    # ... build config_dict, call from_dict() ...
-    self.config = MyDetectorConfig.from_dict(config_dict, self.name)
-    self.config.persist = old_persist
+    variables = {...}  # whatever the configure phase decided
+    self.config.events = generate_events_config(variables, self.name)
+    self.config.auto_config = False
 ```
 
-Omitting either step means a `persist:` block in the YAML is silently ignored with no error.
+(`EventSequenceDetector` additionally writes `self.config.fixed_window_size`, since its configure phase picks a window length rather than a variable selection.)
+
+Every other field — `persist`, `auto_config_params`, any detector-specific param — is operator input and is left untouched by construction, since nothing here reassigns `self.config`. Rebuilding the config wholesale is what used to drop `persist` (and everything else) silently.
 
 ## Code Quality
 

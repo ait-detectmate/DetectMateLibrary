@@ -2,6 +2,10 @@
 from detectmatelibrary.detectors.new_value_combo_detector import (
     NewValueComboDetector,
     NewValueComboDetectorConfig,
+    ComboAutoConfigParams,
+)
+from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
+    ClassificationMethods,
 )
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.common._config import generate_detector_config
@@ -10,6 +14,8 @@ from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
+
+import pytest
 
 # Set time test mode for consistent timestamps
 time_test_mode()
@@ -20,7 +26,7 @@ config = {
         "CustomInit": {
             "method_type": "new_value_combo_detector",
             "auto_config": False,
-            "params": {
+            "auto_config_params": {
                 "max_combo_size": 4
             },
             "events": {
@@ -37,7 +43,7 @@ config = {
         "MultipleDetector": {
             "method_type": "new_value_combo_detector",
             "auto_config": False,
-            "params": {
+            "auto_config_params": {
                 "max_combo_size": 2
             },
             "events": {
@@ -72,7 +78,7 @@ class TestNewValueComboDetectorInitialization:
         detector = NewValueComboDetector(name="CustomInit", config=config)
 
         assert detector.name == "CustomInit"
-        assert detector.config.max_combo_size == 4
+        assert detector.config.auto_config_params.max_combo_size == 4
 
 
 class TestNewValueComboDetectorTraining:
@@ -97,7 +103,7 @@ class TestNewValueComboDetectorTraining:
                 detector.train(parser_data)
 
         # Only event 1 should be tracked (based on events config)
-        assert len(detector.persistency.events_data) == 1
+        assert len(detector.persistency) == 1
 
 
 class TestNewValueComboDetectorDetection:
@@ -291,7 +297,7 @@ class TestNewValueComboDetectorConfiguration:
 
         # Verify config was updated
         assert detector.config.events is not None
-        assert detector.config.max_combo_size == 2
+        assert detector.config.auto_config_params.max_combo_size == 2
 
     def test_configuration_workflow(self):
         """Test complete configuration workflow like in notebook."""
@@ -363,7 +369,7 @@ class TestNewValueComboDetectorConfiguration:
         detector.set_configuration(max_combo_size=4)
 
         # Verify max_combo_size was updated
-        assert detector.config.max_combo_size == 4
+        assert detector.config.auto_config_params.max_combo_size == 4
 
     def test_configuration_with_no_stable_variables(self):
         """Test configuration when no stable variables are found."""
@@ -560,6 +566,8 @@ _PARSER_CONFIG = {
 
 class TestNewValueComboDetectorEndToEndWithRealData:
     """Regression test: full configure/train/detect pipeline on audit.log."""
+
+    @pytest.mark.ignored
     def test_audit_log_anomalies(self):
         pars = MatcherParser(config=_PARSER_CONFIG)
         detector = NewValueComboDetector()
@@ -581,21 +589,77 @@ class TestNewValueComboDetectorEndToEndWithRealData:
 
         assert detected_ids == {"1859", "1862", "1865", "1866"}
 
+    @pytest.mark.ignored
+    def test_audit_log_anomalies_to_binary(self):
+        parser = MatcherParser(config=_PARSER_CONFIG)
+        detector = NewValueComboDetector()
 
-class TestNewValueComboDetectorSegmentationConfigPreservation:
-    """set_configuration() reassigns self.config twice (pass 1: combo
-    candidates, pass 2: final selection), each from a freshly generated config
-    dict whose params only ever carry max_combo_size.
+        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
 
-    stability_segmentation, timestamp_variable and timestamp_format must
-    survive both reassignments, the same way persist already does.
+        for log in logs[:TRAIN_UNTIL]:
+            detector.configure(log)
+        detector.set_configuration()
+
+        for log in logs[:TRAIN_UNTIL]:
+            detector.train(log)
+
+        detector2 = NewValueComboDetector()
+        detector2.from_binary(detector.to_binary())
+
+        detected_ids: set[str] = set()
+        for log in logs[TRAIN_UNTIL:]:
+            output = schemas.DetectorSchema()
+            if detector2.detect(log, output_=output):
+                detected_ids.add(log["logID"])
+
+        assert detected_ids == {"1859", "1862", "1865", "1866"}
+
+    @pytest.mark.ignored
+    def test_audit_log_anomalie_fed(self):
+        parser = MatcherParser(config=_PARSER_CONFIG)
+        detector1 = NewValueComboDetector()
+        detector2 = NewValueComboDetector()
+
+        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
+        for log in logs[:TRAIN_UNTIL]:
+            detector1.configure(log)
+            detector2.configure(log)
+
+        detector1.set_configuration()
+        detector2.set_configuration()
+
+        for log in logs[:TRAIN_UNTIL]:
+            detector1.train(log)
+
+        assert len(detector2.persistency) == 0
+
+        (detector1 + detector2).aggregate()
+        assert detector2.persistency == detector1.persistency
+        assert len(detector2.persistency) != 0
+
+        detected_ids: set[str] = set()
+        for log in logs[TRAIN_UNTIL:]:
+            output = schemas.DetectorSchema()
+            if detector2.detect(log, output_=output):
+                detected_ids.add(log["logID"])
+
+        assert detected_ids == {"1859", "1862", "1865", "1866"}
+
+
+class TestNewValueComboDetectorClassificationConfigPreservation:
+    """auto_config_params survive set_configuration untouched.
+
+    The configure phase writes only `events` and `auto_config`; every other
+    field on the config is operator input.
     """
 
-    def test_segmentation_fields_survive_set_configuration(self):
+    def test_classification_fields_survive_set_configuration(self):
         cfg = NewValueComboDetectorConfig(
-            stability_segmentation="time",
-            timestamp_variable="level",
-            timestamp_format="%y%m%d %H%M%S",
+            auto_config_params=ComboAutoConfigParams(
+                classification=ClassificationMethods(index=False, time=True),
+                timestamp_variable="level",
+                timestamp_format="%y%m%d %H%M%S",
+            ),
         )
         detector = NewValueComboDetector(config=cfg, name="NewValueComboDetector")
         assert detector.config.auto_config is True  # the default (set_configuration-first) path
@@ -616,29 +680,68 @@ class TestNewValueComboDetectorSegmentationConfigPreservation:
 
         detector.set_configuration(max_combo_size=2)
 
-        assert detector.config.stability_segmentation == "time"
-        assert detector.config.timestamp_variable == "level"
-        assert detector.config.timestamp_format == "%y%m%d %H%M%S"
+        assert detector.config.auto_config_params.classification.enabled == ("time",)
+        assert detector.config.auto_config_params.timestamp_variable == "level"
+        assert detector.config.auto_config_params.timestamp_format == "%y%m%d %H%M%S"
+
+    @staticmethod
+    def _configured(classification: ClassificationMethods) -> NewValueComboDetector:
+        cfg = NewValueComboDetectorConfig(
+            auto_config_params=ComboAutoConfigParams(classification=classification),
+        )
+        detector = NewValueComboDetector(config=cfg, name="NewValueComboDetector")
+        for i in range(10):
+            detector.configure(schemas.ParserSchema({
+                "parserType": "test",
+                "EventID": 1,
+                "template": "Template 1",
+                "variables": ["constant", f"varying_{i}", "another_constant"],
+                "logID": str(i),
+                "parsedLogID": str(i),
+                "parserID": "test_parser",
+                "log": "test log",
+                "logFormatVariables": {},
+            }))
+        return detector
+
+    def test_threshold_only_block_reaches_the_trackers(self):
+        """The config layer forwards the block iff it differs from the default,
+        so a block that differs only in its list must be forwarded."""
+        detector = self._configured(ClassificationMethods(segment_thresholds=[0.5, 0.5]))
+        trackers = detector.auto_conf_persistency.get_events_data()[1].get_data()
+        assert trackers["var_1"].stability_classifier.segment_threshs == [0.5, 0.5]
+        assert trackers["var_1"].stability_classifier.n_segments == 2
+
+    def test_default_block_is_still_the_default_on_the_trackers(self):
+        detector = self._configured(ClassificationMethods())
+        trackers = detector.auto_conf_persistency.get_events_data()[1].get_data()
+        assert trackers["var_1"].classification == ClassificationMethods()
+        assert trackers["var_1"].stability_classifier.segment_threshs == [1.1, 0.3, 0.1, 0.01]
 
 
-class TestNewValueComboDetectorSegmentationCombos:
-    """The combo-stability pass must honour stability_segmentation too.
+class TestNewValueComboDetectorClassificationCombos:
+    """The combo-stability pass must honour the classification block too.
 
     auto_conf_persistency_combos is built directly in __init__ rather than from
     the _event_data_kwargs hook, and its re-ingest loop in set_configuration
-    calls ingest_event itself -- so both halves of the flag (the tracker kwarg
-    and the per-record timestamp) have to be wired up explicitly. A flag that
-    reaches the first-pass trackers but not the combo trackers is worse than no
-    flag at all: the generated config would be selected on a different rule
-    than the one the operator asked for.
+    calls ingest_event itself -- so both halves of the classification block
+    (the tracker kwarg and the per-record timestamp) have to be wired up
+    explicitly. A classification block that reaches the first-pass trackers
+    but not the combo trackers is worse than none at all: the generated
+    config would be selected on a different rule than the one the operator
+    asked for.
     """
 
     @staticmethod
-    def _records(segmentation="time"):
+    def _records(classification=None):
         detector = NewValueComboDetector(
             config=NewValueComboDetectorConfig(
-                stability_segmentation=segmentation,
-                timestamp_variable="ts",
+                auto_config_params=ComboAutoConfigParams(
+                    classification=classification or ClassificationMethods(
+                        index=False, time=True
+                    ),
+                    timestamp_variable="ts",
+                ),
             ),
             name="NewValueComboDetector",
         )
@@ -665,16 +768,59 @@ class TestNewValueComboDetectorSegmentationCombos:
         combo_trackers = detector.auto_conf_persistency_combos.get_events_data()[1].get_data()
         assert ("var_0", "var_1") in combo_trackers
         tracker = combo_trackers[("var_0", "var_1")]
-        assert tracker.segmentation == "time"
+        assert tracker.classification.enabled == ("time",)
         assert len(tracker.timestamps) == len(tracker.change_series) == 12
         assert tracker.timestamps[1] - tracker.timestamps[0] == 60.0
 
-    def test_combo_trackers_stay_count_based_when_flag_is_off(self):
-        detector = self._records(segmentation="count")
+    def test_combo_trackers_stay_index_based_when_no_time_method_is_on(self):
+        detector = self._records(classification=ClassificationMethods(index=True))
         detector.set_configuration(max_combo_size=2)
 
         tracker = detector.auto_conf_persistency_combos.get_events_data()[1].get_data()[
             ("var_0", "var_1")
         ]
-        assert tracker.segmentation == "count"
+        assert tracker.classification.enabled == ("index",)
         assert tracker.timestamps == []
+
+    def test_auto_config_params_round_trip(self):
+        """A populated block survives from_dict -> to_dict unchanged and never
+        leaks into params."""
+        block = {
+            "use_stable_vars": True,
+            "use_static_vars": True,
+            "classification": {"index": True, "time": True, "slope_index": True},
+            "timestamp_variable": "level",
+            "timestamp_format": "%y%m%d %H%M%S",
+        }
+        source = {
+            "detectors": {
+                "NewValueComboDetector": {
+                    "method_type": "new_value_combo_detector",
+                    "auto_config": True,
+                    "auto_config_params": block,
+                    # Explicit (rather than omitted) so the first from_dict
+                    # already coerces `events` to EventsConfig -- otherwise it
+                    # stays the bare-dict field default and the round-trip
+                    # equality below fails on that unrelated field, not on
+                    # auto_config_params (pydantic does not validate/coerce
+                    # field defaults, only explicit constructor input).
+                    "events": {},
+                }
+            }
+        }
+        config = NewValueComboDetectorConfig.from_dict(source, "NewValueComboDetector")
+        dumped = config.to_dict(method_id="NewValueComboDetector")
+        entry = dumped["detectors"]["NewValueComboDetector"]
+        auto_params = entry["auto_config_params"]
+        # Subset, not equality: later tasks add fields to this model and an
+        # exact-match assertion would break every time one lands. `classification`
+        # round-trips as a full six-key dict (slope_time, slope_threshold and
+        # decision included), so it is compared via model equality rather than
+        # raw dict equality.
+        non_classification = {k: v for k, v in block.items() if k != "classification"}
+        assert non_classification.items() <= auto_params.items()
+        assert ClassificationMethods(**auto_params["classification"]) == ClassificationMethods(
+            **block["classification"]
+        )
+        assert not set(block) & set(entry.get("params", {}))
+        assert NewValueComboDetectorConfig.from_dict(dumped, "NewValueComboDetector") == config

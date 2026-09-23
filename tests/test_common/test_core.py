@@ -28,6 +28,7 @@ default_args = {
     "method_type": "default_method_type",
     "component_type": "default_type",
     "auto_config": False,
+    "auto_config_params": {},
     "start_id": 10,
     "data_use_training": None,
     "data_use_configure": None,

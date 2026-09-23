@@ -11,6 +11,8 @@ Input and output schemas in the pipeline
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Combined alert / finding |
 
+✅ Federation compatible.
+
 ## Description
 
 This detector maintains a lightweight set of observed combination of values per monitored fields and emits an alert when a combination is not present in the set seen for the first time (subject to configuration).
@@ -23,8 +25,6 @@ Only parameters specific to this detector are listed below -- see [Common parame
 | Field  | Type  | Default Value| Description|
 |-------|------|-----|---|
 |method_type|string|new_value_combo_detector|Indicates what type of method it is.|
-|use_static_vars|boolean|False|Select variable combinations classified as STATIC when auto-configuring.|
-|max_combo_size|integer|3|Maximum number of variables combined together when generating value combinations.|
 <!-- End arguments -->
 
 ## Examples
@@ -45,12 +45,6 @@ detectors:
             use_config_data_as_training: true
             parser: PARSER
             global_instances: {}
-            use_stable_vars: true
-            use_static_vars: false
-            stability_segmentation: count
-            timestamp_variable: null
-            timestamp_format: null
-            max_combo_size: 3
         events: {}
 ```
 <!-- End config -->
@@ -58,7 +52,7 @@ detectors:
 To use it as a python script, you can follow the example below.
 
 ```python
---8 < --"docs/examples/detectors/combo.py:example"
+--8<-- "docs/examples/detectors/combo.py:example"
 ```
 
 Go back [Index](../index.md)

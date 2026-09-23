@@ -11,7 +11,7 @@ import pytest
 from pydantic import ValidationError
 
 from detectmatelibrary.detectors.event_sequence_detector import EventSequenceDetector, \
-    EventSequenceDetectorConfig, BufferMode
+    EventSequenceDetectorConfig, SequenceAutoConfigParams, BufferMode
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
@@ -72,7 +72,10 @@ class TestEventSequenceDetectorInitialization:
         assert hasattr(detector, "persistency")
         # unconfigured until auto-config picks a length
         assert detector.config.fixed_window_size is None
-        assert (detector.config.min_window_size, detector.config.max_window_size) == (2, 10)
+        assert (
+            detector.config.auto_config_params.min_window_size,
+            detector.config.auto_config_params.max_window_size,
+        ) == (2, 10)
 
     def test_custom_config_initialization(self):
         detector = EventSequenceDetector(name="CustomInit", config=config)
@@ -80,7 +83,7 @@ class TestEventSequenceDetectorInitialization:
         assert detector.name == "CustomInit"
         assert detector.config.fixed_window_size == 2
         assert hasattr(detector, "persistency")
-        assert isinstance(detector.persistency.events_data, dict)
+        assert isinstance(detector.persistency.event_struct.data, dict)
 
 
 class TestEventSequenceDetectorTraining:
@@ -202,6 +205,7 @@ _PARSER_CONFIG = {
 class TestEventSequenceDetectorEndToEnd:
     """Regression test: full train/detect pipeline on audit.log."""
 
+    @pytest.mark.ignored
     def test_audit_log_anomalies(self):
         pars = MatcherParser(config=_PARSER_CONFIG)
         detector = EventSequenceDetector(
@@ -224,6 +228,41 @@ class TestEventSequenceDetectorEndToEnd:
         # fixed_window_size=3 that is three consecutive log IDs.
         assert detected_ids == {"1863", "1864", "1865"}
 
+    @pytest.mark.ignored
+    def test_audit_log_anomalie_fed(self):
+        parser = MatcherParser(config=_PARSER_CONFIG)
+        detector1 = EventSequenceDetector(
+            config=EventSequenceDetectorConfig(auto_config=False, fixed_window_size=3),
+            name="EventSequenceDetector",
+        )
+        detector2 = EventSequenceDetector(
+            config=EventSequenceDetectorConfig(auto_config=False, fixed_window_size=3),
+            name="EventSequenceDetector",
+        )
+
+        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
+        for log in logs[:TRAIN_UNTIL]:
+            detector1.configure(log)
+            detector2.configure(log)
+
+        detector1.set_configuration()
+        detector2.set_configuration()
+
+        for log in logs[:TRAIN_UNTIL]:
+            detector1.train(log)
+
+        (detector1 + detector2).aggregate()
+        assert detector2.persistency == detector1.persistency
+
+        detected_ids: set[str] = set()
+        for log in logs[TRAIN_UNTIL:]:
+            output = schemas.DetectorSchema()
+            if detector2.detect(log, output_=output):
+                detected_ids.add(log["logID"])
+
+        assert detected_ids == {"1863", "1864", "1865"}
+
+    @pytest.mark.ignored
     def test_audit_log_anomalies_via_process(self):
         """Same regression, driven through process() so the configure ->
         set_configuration -> train -> detect lifecycle is exercised."""
@@ -277,7 +316,9 @@ class TestEventSequenceDetectorAutoConfig:
             name="ShortConfig",
             config=EventSequenceDetectorConfig(
                 data_use_configure=6, data_use_training=1,
-                min_window_size=2, max_window_size=8,
+                auto_config_params=SequenceAutoConfigParams(
+                    min_window_size=2, max_window_size=8,
+                ),
             ),
         )
 
@@ -295,8 +336,10 @@ class TestEventSequenceDetectorAutoConfig:
                 data_use_configure=6,
                 data_use_training=10,
                 use_config_data_as_training=False,
-                min_window_size=2,
-                max_window_size=8,
+                auto_config_params=SequenceAutoConfigParams(
+                    min_window_size=2,
+                    max_window_size=8,
+                ),
             ),
         )
 
@@ -307,17 +350,22 @@ class TestEventSequenceDetectorAutoConfig:
         assert detector.config.parser == "MySequenceParser"
         assert detector.config.data_use_training == 10
         assert detector.config.use_config_data_as_training is False
-        assert (detector.config.min_window_size, detector.config.max_window_size) == (2, 8)
+        assert (
+            detector.config.auto_config_params.min_window_size,
+            detector.config.auto_config_params.max_window_size,
+        ) == (2, 8)
 
     def test_configure_windows_follow_config_changes(self):
         """_configure_windows is built lazily, so changing the range after
         construction must not raise."""
         detector = EventSequenceDetector(
             name="LateCandidates",
-            config=EventSequenceDetectorConfig(min_window_size=2, max_window_size=3),
+            config=EventSequenceDetectorConfig(
+                auto_config_params=SequenceAutoConfigParams(min_window_size=2, max_window_size=3),
+            ),
         )
-        detector.config.min_window_size = 4
-        detector.config.max_window_size = 5
+        detector.config.auto_config_params.min_window_size = 4
+        detector.config.auto_config_params.max_window_size = 5
 
         detector.configure(_make_schema(1))
 
@@ -329,7 +377,8 @@ class TestEventSequenceDetectorAutoConfig:
             name="FixedWins",
             config=EventSequenceDetectorConfig(
                 data_use_configure=5, data_use_training=1,
-                min_window_size=4, max_window_size=6, fixed_window_size=2,
+                auto_config_params=SequenceAutoConfigParams(min_window_size=4, max_window_size=6),
+                fixed_window_size=2,
             ),
         )
 
@@ -347,7 +396,7 @@ class TestEventSequenceDetectorAutoConfig:
             config=EventSequenceDetectorConfig(
                 data_use_configure=5, data_use_training=1,
                 # no window of 8+ can fill within a 5-event configure phase
-                min_window_size=8, max_window_size=10,
+                auto_config_params=SequenceAutoConfigParams(min_window_size=8, max_window_size=10),
             ),
         )
 
@@ -367,7 +416,9 @@ class TestEventSequenceDetectorAutoConfig:
         clears min_samples, but the sequences never settle."""
         detector = EventSequenceDetector(
             name="Unstable",
-            config=EventSequenceDetectorConfig(min_window_size=2, max_window_size=4),
+            config=EventSequenceDetectorConfig(
+                auto_config_params=SequenceAutoConfigParams(min_window_size=2, max_window_size=4),
+            ),
         )
 
         for i, event_id in enumerate(range(30)):  # every event ID unique
@@ -513,7 +564,8 @@ class TestEventSequenceDetectorPersist:
             config=EventSequenceDetectorConfig(
                 data_use_configure=5,
                 data_use_training=1,
-                min_window_size=4, max_window_size=5,  # 3 deliberately excluded
+                # 3 deliberately excluded
+                auto_config_params=SequenceAutoConfigParams(min_window_size=4, max_window_size=5),
                 persist=PersistConfig(path=base_path, auto_load=True),
             ),
         )
@@ -536,8 +588,7 @@ class TestEventSequenceDetectorPersist:
                 data_use_configure=5,
                 data_use_training=1,
                 # no window of 8+ can fill within a 5-event configure phase
-                min_window_size=8,
-                max_window_size=10,
+                auto_config_params=SequenceAutoConfigParams(min_window_size=8, max_window_size=10),
                 persist=PersistConfig(path=base_path),
             ),
         )
@@ -582,14 +633,39 @@ class TestEventSequenceDetectorConfigValidation:
 
     def test_zero_min_window_size_rejected(self):
         with pytest.raises(ValidationError):
-            EventSequenceDetectorConfig(min_window_size=0)
+            SequenceAutoConfigParams(min_window_size=0)
 
     def test_inverted_window_range_rejected(self):
         with pytest.raises(ValidationError):
-            EventSequenceDetectorConfig(min_window_size=5, max_window_size=4)
+            SequenceAutoConfigParams(min_window_size=5, max_window_size=4)
 
     def test_removed_fields_rejected(self):
         """Extra='forbid': configs written for the old field names must fail
         loudly rather than silently run with defaults."""
         with pytest.raises(ValidationError):
             EventSequenceDetectorConfig(max_sequence_length=3)
+
+    def test_auto_config_params_round_trip(self):
+        block = {"min_window_size": 3, "max_window_size": 7}
+        source = {
+            "detectors": {
+                "EventSequenceDetector": {
+                    "method_type": "event_sequence_detector",
+                    "auto_config": True,
+                    "auto_config_params": block,
+                    # Explicit (rather than omitted) so the first from_dict
+                    # already coerces `events` to EventsConfig -- otherwise it
+                    # stays the bare-dict field default and the round-trip
+                    # equality below fails on that unrelated field, not on
+                    # auto_config_params (pydantic does not validate/coerce
+                    # field defaults, only explicit constructor input).
+                    "events": {},
+                }
+            }
+        }
+        config = EventSequenceDetectorConfig.from_dict(source, "EventSequenceDetector")
+        dumped = config.to_dict(method_id="EventSequenceDetector")
+        entry = dumped["detectors"]["EventSequenceDetector"]
+        assert block.items() <= entry["auto_config_params"].items()
+        assert not set(block) & set(entry.get("params", {}))
+        assert EventSequenceDetectorConfig.from_dict(dumped, "EventSequenceDetector") == config

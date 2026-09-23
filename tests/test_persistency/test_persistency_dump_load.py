@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from detectmatelibrary.utils.persistency.persistency_saver import PersistencyLoadError
 from detectmatelibrary.utils.persistency.event_data_structures.base import (
-    EventDataStructure,
+    EventDataset,
 )
 from detectmatelibrary.utils.persistency.event_data_structures.dataframes.event_dataframe import (
     EventDataFrame,
@@ -17,6 +17,9 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers.stabilit
     SingleStabilityTracker,
     EventStabilityTracker,
 )
+from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
+    ClassificationMethods,
+)
 
 
 def test_persistency_load_error_is_exception():
@@ -26,13 +29,13 @@ def test_persistency_load_error_is_exception():
 
 
 def test_event_data_structure_has_dump_load():
-    assert hasattr(EventDataStructure, "dump")
-    assert hasattr(EventDataStructure, "load")
+    assert hasattr(EventDataset, "dump")
+    assert hasattr(EventDataset, "load")
 
 
 def test_subclass_without_dump_load_cannot_be_instantiated():
     @dataclass
-    class _Incomplete(EventDataStructure):
+    class _Incomplete(EventDataset):
         def add_data(self, data_object): pass
         def get_data(self): pass
         def get_variables(self): pass
@@ -86,6 +89,20 @@ class TestSingleStabilityTrackerState:
         t2 = SingleStabilityTracker.from_state(state)
         assert len(t2.change_series) == 0
         assert len(t2.unique_set) == 0
+
+    def test_non_default_thresholds_round_trip_inside_the_block(self):
+        tracker = SingleStabilityTracker(
+            min_samples=3,
+            classification=ClassificationMethods(segment_thresholds=[0.5, 0.25, 0.125]),
+        )
+        for v in ["a", "b", "a", "c", "a"]:
+            tracker.add_value(v)
+        state = tracker.to_state()
+        assert "segment_thresholds" not in state
+        restored = SingleStabilityTracker.from_state(state)
+        assert restored.stability_classifier.segment_threshs == [0.5, 0.25, 0.125]
+        assert restored.classification == tracker.classification
+        assert restored.to_state()["classification"] == state["classification"]
 
 
 class TestEventTrackerDumpLoad:

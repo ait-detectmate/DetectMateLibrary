@@ -115,5 +115,6 @@ def test_my_parser_parse():
 - [Template Tree Matcher](parsers/template_tree_matcher.md): matches logs against a predefined set of `<*>` templates using a tree structure.
 - [LogBatcher Parser](parsers/logbatcher_parser.md): LLM-based parser that infers templates from raw logs with no training data.
 - [Drain parser](parsers/drain_parser.md): Parser inspired by [Drain Publication](https://ieeexplore.ieee.org/document/8029742).
+- [Auto parser](parsers/auto_parser.md): The auto parser uses a brute-force strategy: it iterates through every log-type record in the internal dataset and chooses the regex and templates that best matches the provided logs.
 
 Go back to [Index](index.md)

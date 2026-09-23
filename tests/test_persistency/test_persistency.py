@@ -49,7 +49,7 @@ class TestEventPersistency:
         """Test initialization with EventDataFrame backend."""
         persistency = EventPersistency(event_data_class=EventDataFrame)
         assert persistency is not None
-        assert persistency.event_data_class == EventDataFrame
+        assert persistency.get_class() == EventDataFrame
 
     def test_initialization_with_polars_backend(self):
         """Test initialization with ChunkedEventDataFrame backend."""
@@ -58,7 +58,7 @@ class TestEventPersistency:
             event_data_kwargs={"max_rows": 100},
         )
         assert persistency is not None
-        assert persistency.event_data_class == ChunkedEventDataFrame
+        assert persistency.get_class() == ChunkedEventDataFrame
 
     def test_initialization_with_tracker_backend(self):
         """Test initialization with EventVariableTrackerData backend."""
@@ -67,7 +67,7 @@ class TestEventPersistency:
             event_data_kwargs={"tracker_type": SingleStabilityTracker},
         )
         assert persistency is not None
-        assert persistency.event_data_class == EventTracker
+        assert persistency.get_class() == EventTracker
 
     def test_ingest_single_event(self):
         """Test ingesting a single event."""
@@ -366,7 +366,7 @@ class TestEventPersistencyIntegration:
             )
 
         # Verify tracker functionality
-        data_structure = persistency.events_data["E001"]
+        data_structure = persistency.event_struct.data["E001"]
         assert isinstance(data_structure, EventTracker)
 
     def test_mixed_event_ids_and_templates(self):
@@ -484,3 +484,52 @@ class TestEventPersistencyEventsSinceSave:
         p.ingest_event(**SAMPLE_EVENT_2)
         p.reset_events_since_save()
         assert p._events_since_save == 0
+
+
+class TestAggregationUsage:
+    def test_equals(self) -> None:
+        persistency = EventPersistency(event_data_class=EventDataFrame)
+        persistency.ingest_event(**SAMPLE_EVENT_1)
+        persistency.ingest_event(**SAMPLE_EVENT_2)
+
+        persistency2 = EventPersistency(event_data_class=EventDataFrame)
+        persistency2.ingest_event(**SAMPLE_EVENT_1)
+        persistency2.ingest_event(**SAMPLE_EVENT_2)
+
+        persistency3 = EventPersistency(event_data_class=EventDataFrame)
+        persistency3.ingest_event(**SAMPLE_EVENT_2)
+
+        assert persistency == persistency2
+        assert persistency != persistency3
+
+    def test_combine_DataFrame(self) -> None:
+        persistency = EventPersistency(event_data_class=EventDataFrame)
+        persistency.ingest_event(**SAMPLE_EVENT_1)
+
+        persistency2 = EventPersistency(event_data_class=EventDataFrame)
+        persistency2.ingest_event(**SAMPLE_EVENT_3)
+        persistency2.ingest_event(**SAMPLE_EVENT_2)
+
+        persistency3 = EventPersistency(event_data_class=EventDataFrame)
+        persistency3.ingest_event(**SAMPLE_EVENT_1)
+        persistency3.ingest_event(**SAMPLE_EVENT_3)
+        persistency3.ingest_event(**SAMPLE_EVENT_2)
+
+        persistency = persistency.combine(persistency2)
+        assert persistency == persistency3
+
+    def test_combine_mix(self) -> None:
+        persistency = EventPersistency(event_data_class=ChunkedEventDataFrame)
+        persistency.ingest_event(**SAMPLE_EVENT_1)
+
+        persistency2 = EventPersistency(event_data_class=EventDataFrame)
+        persistency2.ingest_event(**SAMPLE_EVENT_3)
+        persistency2.ingest_event(**SAMPLE_EVENT_2)
+
+        persistency3 = EventPersistency(event_data_class=EventDataFrame)
+        persistency3.ingest_event(**SAMPLE_EVENT_1)
+        persistency3.ingest_event(**SAMPLE_EVENT_3)
+        persistency3.ingest_event(**SAMPLE_EVENT_2)
+
+        persistency = persistency.combine(persistency2)
+        assert persistency == persistency3

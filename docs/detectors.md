@@ -151,11 +151,6 @@ The detectors that learn a per-variable model ([Bigram Frequency](detectors/bigr
 <!-- Start variable_arguments -->
 | Field  | Type  | Default Value| Description|
 |-------|------|-----|---|
-|use_stable_vars|boolean|True|Select variables classified as STABLE when auto-configuring.|
-|use_static_vars|boolean|True|Select variables classified as STATIC when auto-configuring.|
-|stability_segmentation|string|count|How to segment values for stability classification. 'count' cuts segments at equal sample counts (the historical behaviour), 'time' cuts them at equal durations instead, and 'both' requires the variable to pass under both segmentations. The time-aware modes need timestamp_variable to be set.|
-|timestamp_variable|string, null|None|Name of the log field holding the event timestamp, read from the record's logFormatVariables. Required by the 'time'/'both' stability segmentation modes.|
-|timestamp_format|string, null|None|Expected format of timestamp_variable. If None, the format is auto-detected.|
 <!-- End variable_arguments -->
 
 ### Deep learning detectors

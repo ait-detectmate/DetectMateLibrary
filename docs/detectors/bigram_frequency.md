@@ -11,6 +11,8 @@ Input and output schemas in the pipeline
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Alert / finding |
 
+✅ Federation compatible (Binary not available).
+
 ## Description
 
 For each configured variable, the detector walks every observed value character-by-character (with virtual boundary characters before the first and after the last) and updates a per-(event, variable) bigram frequency table. At detect time, the average per-bigram conditional probability of a new value is computed against this table. Values scoring below `prob_thresh` are flagged. When `default_freqs` is enabled, a built-in English bigram table acts as a fallback for bigrams unseen during training.
@@ -46,11 +48,6 @@ detectors:
             use_config_data_as_training: true
             parser: PARSER
             global_instances: {}
-            use_stable_vars: true
-            use_static_vars: true
-            stability_segmentation: count
-            timestamp_variable: null
-            timestamp_format: null
             prob_thresh: 0.05
             default_freqs: false
             skip_repetitions: true

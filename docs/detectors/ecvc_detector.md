@@ -11,6 +11,9 @@ Input and output schemas in the pipeline
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Alert / finding |
 
+✅ Federation compatible (Binary not available).
+
+
 ## Description
 
 A count vector is formed by counting the number of appearances of each event ID in a sequence of a specific window size.

@@ -1,6 +1,9 @@
-from detectmatelibrary.common._config import generate_detector_config
-from detectmatelibrary.common._config._formats import EventsConfig
-from detectmatelibrary.common.variable_detector import VariableDetector, VariableDetectorConfig
+from detectmatelibrary.common._config import generate_events_config
+from detectmatelibrary.common._other_op._variable_hooks import VariableAutoConfigParams
+from detectmatelibrary.common.variable_detector import (
+    VariableDetector,
+    VariableDetectorConfig,
+)
 from detectmatelibrary.common._config._compile import get_configured_variables
 
 from detectmatelibrary.utils import persistency
@@ -23,7 +26,9 @@ def get_combo(variables: Dict[str, Any]) -> Dict[Tuple[str, ...], Tuple[Any, ...
     return {tuple(variables.keys()): tuple(variables.values())}
 
 
-def _combine(iterable: Sequence[str], max_combo_length: int = 2) -> list[Tuple[str, ...]]:
+def _combine(
+    iterable: Sequence[str], max_combo_length: int = 2
+) -> list[Tuple[str, ...]]:
     """Get all possible combinations of an iterable."""
     combos: list[Tuple[str, ...]] = []
     for i in range(2, min(len(iterable), max_combo_length, 5) + 1):
@@ -41,19 +46,22 @@ def get_all_possible_combos(
     return combo_dict
 
 
+class ComboAutoConfigParams(VariableAutoConfigParams):
+    # Combo-detector default, unchanged from the flat field it replaces.
+    use_static_vars: bool = False
+    # Longest variable combination the configure phase will consider. Read only
+    # while auto_config is True: detection reads the combos the phase wrote into
+    # `events`, never this.
+    max_combo_size: int = 3
+
+
 class NewValueComboDetectorConfig(VariableDetectorConfig):
     method_type: str = Field(
-        default="new_value_combo_detector", description="Indicates what type of method it is."
+        default="new_value_combo_detector",
+        description="Indicates what type of method it is.",
     )
 
-    max_combo_size: int = Field(
-        default=3,
-        description="Maximum number of variables combined together when generating value combinations.",
-    )
-    use_static_vars: bool = Field(
-        default=False,
-        description="Select variable combinations classified as STATIC when auto-configuring.",
-    )
+    auto_config_params: ComboAutoConfigParams = ComboAutoConfigParams()
 
 
 class NewValueComboDetector(VariableDetector):
@@ -69,7 +77,7 @@ class NewValueComboDetector(VariableDetector):
         # second-pass persistency to learn stability of variable combinations
         self.auto_conf_persistency_combos = persistency.EventPersistency(
             event_data_class=persistency.EventStabilityTracker,
-            event_data_kwargs=self._with_segmentation(
+            event_data_kwargs=self._with_classification_kwargs(
                 {"converter_function": get_all_possible_combos}
             ),
         )
@@ -81,7 +89,9 @@ class NewValueComboDetector(VariableDetector):
     def _auto_conf_kwargs(self) -> Optional[Dict[str, Any]]:
         return None  # first-pass auto-config tracks individual variables
 
-    def _prepare_variables(self, variables: Dict[str, Any], stage: str) -> Dict[str, Any]:
+    def _prepare_variables(
+        self, variables: Dict[str, Any], stage: str
+    ) -> Dict[str, Any]:
         if stage == "detection":
             return cast(Dict[str, Any], get_combo(variables))
         return variables
@@ -112,24 +122,8 @@ class NewValueComboDetector(VariableDetector):
         3. Re-ingest all events to learn the stability of those combos (testing
            every possible combo up front would explode combinatorially).
         """
-        old_persist = self.config.persist
-        segmentation_fields = {
-            "stability_segmentation": self.config.stability_segmentation,
-            "timestamp_variable": self.config.timestamp_variable,
-            "timestamp_format": self.config.timestamp_format,
-        }
-
-        def restore_segmentation_fields() -> None:
-            """Carry the segmentation settings across a config reassignment.
-
-            generate_detector_config only emits method_type / auto_config /
-            params / events, so every ``from_dict`` below resets these to their
-            defaults. The re-ingest loop calls ``_timestamp()`` under the pass-1
-            config, so restoring only at the end would leave the combo trackers
-            timestamp-less.
-            """
-            for field, value in segmentation_fields.items():
-                setattr(self.config, field, value)
+        if max_combo_size is not None:
+            self.config.auto_config_params.max_combo_size = max_combo_size
 
         # pass 1: stable individual variables -> combos
         variable_combos = {}
@@ -137,14 +131,7 @@ class NewValueComboDetector(VariableDetector):
             stable_vars = tracker.get_features_by_classification("STABLE")  # type: ignore
             if len(stable_vars) > 1:
                 variable_combos[event_id] = stable_vars
-        config_dict = generate_detector_config(
-            variable_selection=variable_combos,
-            detector_name=self.name,
-            method_type=self.config.method_type,
-            max_combo_size=max_combo_size or self.config.max_combo_size,
-        )
-        self.config = NewValueComboDetectorConfig.from_dict(config_dict, self.name)
-        restore_segmentation_fields()
+        self.config.events = generate_events_config(variable_combos, self.name)
 
         # re-ingest all inputs to learn combos under the new configuration
         for input_ in self.inputs:
@@ -158,31 +145,27 @@ class NewValueComboDetector(VariableDetector):
 
         # pass 2: stable/static combos -> final config
         combo_selection = {}
-        for event_id, tracker in self.auto_conf_persistency_combos.get_events_data().items():
+        auto = self.config.auto_config_params
+        for (
+            event_id,
+            tracker,
+        ) in self.auto_conf_persistency_combos.get_events_data().items():
             stable_combos = (
                 tracker.get_features_by_classification("STABLE")  # type: ignore
-                if self.config.use_stable_vars
+                if auto.use_stable_vars
                 else []
             )
             static_combos = (
                 tracker.get_features_by_classification("STATIC")  # type: ignore
-                if self.config.use_static_vars
+                if auto.use_static_vars
                 else []
             )
             combos = stable_combos + static_combos
             if combos:
                 combo_selection[event_id] = combos
-        config_dict = generate_detector_config(
-            variable_selection=combo_selection,
-            detector_name=self.name,
-            method_type=self.config.method_type,
-            max_combo_size=max_combo_size or self.config.max_combo_size,
-        )
-        self.config = NewValueComboDetectorConfig.from_dict(config_dict, self.name)
-        self.config.persist = old_persist
-        restore_segmentation_fields()
-        events = self.config.events
-        if isinstance(events, EventsConfig) and not events.events:
+        self.config.events = generate_events_config(combo_selection, self.name)
+        self.config.auto_config = False
+        if not self.config.events.events:
             logger.warning(
                 f"[{self.name}] auto_config=True generated an empty configuration. "
                 "No stable variable combinations were found in configure-phase data. "

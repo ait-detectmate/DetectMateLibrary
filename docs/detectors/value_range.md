@@ -11,6 +11,9 @@ Input and output schemas in the pipeline
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Alert / finding |
 
+
+✅ Federation compatible.
+
 ## Description
 
 This detector maintains a lightweight set of observed values per monitored field and emits an alert when a value outside the learned range is seen (subject to configuration).
@@ -44,11 +47,6 @@ detectors:
             use_config_data_as_training: true
             parser: PARSER
             global_instances: {}
-            use_stable_vars: true
-            use_static_vars: true
-            stability_segmentation: count
-            timestamp_variable: null
-            timestamp_format: null
             ignore_non_numerical_val: true
         events: {}
 ```

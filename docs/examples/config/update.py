@@ -8,9 +8,6 @@ from detectmatelibrary.detectors.new_value_combo_detector import (
 )
 from detectmatelibrary.detectors.deeplog_detector import DeeplogDetectorConfig
 from detectmatelibrary.detectors.ecvc_detector import ECVCDetectorConfig
-from detectmatelibrary.detectors.event_sequence_detector import (
-    EventSequenceDetectorConfig,
-)
 from detectmatelibrary.detectors.logbert_detector import LogBertDetectorConfig
 from detectmatelibrary.detectors.new_event_detector import NewEventDetectorConfig
 from detectmatelibrary.detectors.new_value_detector import NewValueDetectorConfig
@@ -157,11 +154,9 @@ DETECTOR_DOCS: list[tuple[CoreConfig, type[CoreConfig], str]] = [
     ),
     (DeeplogDetectorConfig(), DeepLearningDetectorConfig, "docs/detectors/deeplog.md"),
     (ECVCDetectorConfig(), CoreDetectorConfig, "docs/detectors/ecvc_detector.md"),
-    (
-        EventSequenceDetectorConfig(),
-        CoreDetectorConfig,
-        "docs/detectors/event_sequence.md",
-    ),
+    # event_sequence.md is fully hand-authored (two worked examples plus an
+    # `auto_config_params` sub-table) -- no Start/End markers, so it is not
+    # regenerated here.
     (LogBertDetectorConfig(), DeepLearningDetectorConfig, "docs/detectors/logbert.md"),
     (NewEventDetectorConfig(), CoreDetectorConfig, "docs/detectors/new_event.md"),
     (NewValueDetectorConfig(), VariableDetectorConfig, "docs/detectors/new_value.md"),
