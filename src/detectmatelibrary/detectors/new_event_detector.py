@@ -14,6 +14,7 @@ from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
 class NewEventDetectorConfig(CoreDetectorConfig):
     method_type: str = "new_event_detector"
+    allow_fed: bool = False
 
 
 class NewEventDetector(CoreDetector, VariablesLogic):
@@ -31,7 +32,7 @@ class NewEventDetector(CoreDetector, VariablesLogic):
         CoreDetector.__init__(self, name=name, buffer_mode=BufferMode.NO_BUF, config=config)
         self.config: NewEventDetectorConfig
 
-        VariablesLogic.__init__(self, name=self.name)
+        VariablesLogic.__init__(self, name=self.name, allow_fed=self.config.allow_fed)
         self._register_persistency(self.persistency)
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
@@ -86,3 +87,13 @@ class NewEventDetector(CoreDetector, VariablesLogic):
 
     def aggregate_strategy(self, components: set["NewEventDetector"]) -> None:  # type: ignore
         self.combine(components)  # type: ignore
+
+    def to_binary(self) -> bytes:
+        return self.persistency2binary()
+
+    def from_binary(self, binary: bytes) -> "NewEventDetector":
+
+        var_detect = type(self)(name=self.name, config=self.config)
+        var_detect.binary2persistency(binary)
+
+        return var_detect

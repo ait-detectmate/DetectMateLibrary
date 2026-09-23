@@ -97,7 +97,8 @@ class PersistencyStruct:
     def overwrite_slow(self, df: pl.DataFrame) -> None:
         if self.do_slow:
             self.slow_persistency = SlowPersistency.from_dataframe(df)
-        warnings.warn("Slow persistency was disable")
+        else:
+            warnings.warn("Slow persistency was disable")
 
 
 class EventPersistencyBase:

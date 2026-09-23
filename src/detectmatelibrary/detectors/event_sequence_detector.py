@@ -48,6 +48,7 @@ class EventSequenceDetectorConfig(CoreDetectorConfig):
     method_type: str = "event_sequence_detector"
     fixed_window_size: int | None = Field(default=None, ge=1)
     auto_config_params: SequenceAutoConfigParams = SequenceAutoConfigParams()
+    fed_allow: bool = False
 
 
 class EventSequenceDetector(CoreDetector, VariablesLogic):
@@ -67,7 +68,7 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
         self._detect_window: deque[int] = deque(maxlen=self.config.fixed_window_size)
         self._configure_windows: dict[int, deque[int]] = {}
 
-        VariablesLogic.__init__(self, name=self.name)
+        VariablesLogic.__init__(self, name=self.name, allow_fed=self.config.fed_allow)
         self._register_persistency(self.persistency)
         self._adopt_restored_length()
 
@@ -258,3 +259,13 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
         self._adopt_restored_length()
         for component in components:
             component._adopt_restored_length()
+
+    def to_binary(self) -> bytes:
+        return self.persistency2binary()
+
+    def from_binary(self, binary: bytes) -> "EventSequenceDetector":
+        var_detect = type(self)(name=self.name, config=self.config)
+        var_detect.binary2persistency(binary)
+        var_detect._adopt_restored_length()
+
+        return var_detect
