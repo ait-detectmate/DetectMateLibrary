@@ -73,3 +73,13 @@ repos:
   hooks:
     - id: python-check-blanket-noqa
     - id: python-no-log-warn
+
+# Repair mangled MkDocs snippet includes (`--8 < --"docs` -> `--8<-- "docs`)
+- repo: local
+  hooks:
+    - id: fix-snippet-markers
+      name: fix mkdocs snippet markers
+      language: system
+      entry: sed -i -E
+      args: ['s/--8 *< *-- *"docs/--8<-- "docs/g']
+      files: ^docs/.*\.md$
