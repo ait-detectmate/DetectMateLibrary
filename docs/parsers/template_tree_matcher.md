@@ -33,8 +33,7 @@ Only parameters specific to this parser are listed below -- see [Common paramete
 <!-- Start arguments -->
 | Field  | Type  | Default Value| Description|
 |-------|------|-----|---|
-|method_type|string|tree_matcher|No description provided.|
-|path_templates|string, null|None|No description provided.|
+|path_templates|string, null|None|fitting description yet to find|
 <!-- End arguments -->
 
 Note: this matcher removes non-alphanumeric characters from logs and templates before matching, except for the `<*>` token. Ensure your templates are compatible with that normalization.

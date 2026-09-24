@@ -72,13 +72,13 @@ To use it as a python script, you can follow the example below.
 Without fixing log type:
 
 ```python
---8 < --"docs/examples/parsers/drain_parser.py:example_1"
+--8<-- "docs/examples/parsers/drain_parser.py:example_1"
 ```
 
 Simple usage (Reset = True):
 
 ```python
---8 < --"docs/examples/parsers/drain_parser.py:example_2"
+--8<-- "docs/examples/parsers/drain_parser.py:example_2"
 ```
 
 Go back to [Index](../index.md)

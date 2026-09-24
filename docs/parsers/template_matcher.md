@@ -53,11 +53,10 @@ Only parameters specific to this parser are listed below -- see [Common paramete
 <!-- Start arguments -->
 | Field  | Type  | Default Value| Description|
 |-------|------|-----|---|
-|method_type|string|matcher_parser|No description provided.|
-|remove_spaces|boolean|True|No description provided.|
-|remove_punctuation|boolean|True|No description provided.|
-|lowercase|boolean|True|No description provided.|
-|path_templates|string, null|None|No description provided.|
+|remove_spaces|boolean|True|fitting description yet to find|
+|remove_punctuation|boolean|True|fitting description yet to find|
+|lowercase|boolean|True|fitting description yet to find|
+|path_templates|string, null|None|fitting description yet to find|
 <!-- End arguments -->
 
 ## Examples
