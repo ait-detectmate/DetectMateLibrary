@@ -1,39 +1,34 @@
 # DetectMate Library
 
-Welcome to the documentation for the DetectMate Library . DetectMate is a flexible, component-based library for parsing and log anomaly detection. It can be used flexibly in research applications, and when used with the [DetectMate Service](https://github.com/ait-detectmate/DetectMateService/tree/main), it can be easily deployed in microservice architectures.
+Welcome to the documentation for the DetectMate Library. DetectMate is a flexible,
+component-based library for parsing and log anomaly detection. It can be used in research and production,
+and together with the
+[DetectMate Service](https://github.com/ait-detectmate/DetectMateService/tree/main)
+it deploys into microservice architectures.
 
+## User Guide
 
+Start here if you are new to the library and want a quick overview of what it can do and where it fits.
 
-## Getting started
+* [What is DetectMate?](user_guide/what_is_detectmate.md)
+* [Installation](user_guide/installation.md)
+* [Basic knowledge](user_guide/basic_knowledge.md)
+* [Quickstart](user_guide/quickstart.md)
+* [Tutorial (end-to-end)](user_guide/tutorial.md)
 
-List of steps to follow for new users of the library:
+## Advanced Guide
 
-* [Installation](installation.md): steps to install all the components need it.
-* [Basic usage](basic_usage.md): create a basic script with the different components.
-* [Create new component](create_components.md): guide to use the mate commands.
+Here you can get the full scope.
 
-## Components
+* [Overall architecture](advanced/overall_architecture.md)
+* [Schemas](schemas.md)
+* [Parsers](parsers.md)
+* [Detectors](detectors.md)
+* [Alert Aggregation](alert_aggregator.md)
+* [Federation](federation.md)
 
-Documentation of the different components:
+## How to contribute
 
-* [Basic concepts](basic_idea.md): basic concepts need it to understand log anomaly detection.
-* [Overall architecture](overall_architecture.md): overall architecture of the library.
-* [Schemas](schemas.md): documentation of the different schemas in the library.
-* [Parsers](parsers.md): documentation of the different parsers.
-* [Detectors](detectors.md): documentation of the different detectors.
-
-## Utils
-
-Tools that are used in the different components:
-
-* [Data Buffer](auxiliar/input_buffer.md): it takes the stream data and formated to the specifications given.
-* [Persistency](auxiliar/persistency.md): provides event-based state management for detectors.
-
-## Helper
-Tools that their main objective is to help the developer:
-
-* [From_to](helper/from_to.md): set of methods to save and load inputs and outputs from files.
-
-## Other
-
-* [Log Formats](other/log_formats.md): reference catalog of 18 common log formats with parser configuration.
+* [Contributing](contribution.md)
+* [Development](development.md)
+* [Release Process](release.md).

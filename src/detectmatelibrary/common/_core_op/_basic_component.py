@@ -3,10 +3,14 @@ from detectmatelibrary.schemas import BaseSchema
 
 from detectmatelibrary.common._config import BasicConfig
 
-from typing import Any, Dict, List
+from typing import Any, Dict, Generic, List
+from typing_extensions import TypeVar
+
+TInput = TypeVar("TInput", bound=BaseSchema, default=BaseSchema)
+TOutput = TypeVar("TOutput", bound=BaseSchema, default=BaseSchema)
 
 
-class Component:
+class Component(Generic[TInput, TOutput]):
     """Empty methods."""
     def __init__(
         self,
@@ -21,17 +25,17 @@ class Component:
         return f"<{self.type_}> {self.name}: {self.config}"
 
     def run(
-        self, input_: List[BaseSchema] | BaseSchema, output_: BaseSchema
+        self, input_: List[TInput] | TInput, output_: TOutput
     ) -> bool:
         return False
 
     def train(
-        self, input_: List[BaseSchema] | BaseSchema,
+        self, input_: List[TInput] | TInput,
     ) -> None:
         pass
 
     def configure(
-        self, input_: List[BaseSchema] | BaseSchema,
+        self, input_: List[TInput] | TInput,
     ) -> None:
         pass
 
@@ -47,7 +51,7 @@ class Component:
     def update_config(self, new_config: Dict[str, Any]) -> None:
         self.config.update_config(new_config)
 
-    def __enter__(self) -> "Component":
+    def __enter__(self) -> "Component[TInput, TOutput]":
         return self
 
     def __exit__(self, *_: Any) -> None:

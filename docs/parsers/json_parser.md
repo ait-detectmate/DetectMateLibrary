@@ -2,48 +2,62 @@
 
 Extracts structured information from JSON-formatted logs. Optionally delegates parsing of a specific JSON field (the "content") to a sibling Template Matcher parser. Nested JSON objects are always flattened to dot-separated keys in `logFormatVariables`.
 
+## In/out
+
+Input and output schemas in the pipeline
+
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
 | **Input**  | [LogSchema](../schemas.md) | Raw log (JSON string) |
 | **Output** | [ParserSchema](../schemas.md) | Structured log with extracted fields |
 
-## Configuration
+## Configuration arguments
 
-Relevant config options:
+Only parameters specific to this parser are listed below -- see [Common parameters](../parsers.md#common-parameters-all-parsers) in the Parsers overview for the rest.
 
-- `method_type` (string): parser type identifier — must be `json_parser`.
-- `params.timestamp_name` (string): JSON key to use as the timestamp (default `"time"`).
-- `params.content_name` (string): JSON key whose value is forwarded to the content parser (default `"message"`).
-- `params.content_parser` (string): name of a **sibling** parser entry in the `parsers` section that handles the content field (default `"JsonMatcherParser"`).
+<!-- Start arguments -->
+| Field  | Type  | Default Value| Description|
+|-------|------|-----|---|
+|timestamp_name|string|time|fitting description yet to find|
+|content_name|string|message|fitting description yet to find|
+|content_parser|string|JsonMatcherParser|fitting description yet to find|
+<!-- End arguments -->
 
 The `content_parser` value is a **name**, not an inline config. The referenced parser must be defined as a separate sibling entry at the same level as `JsonParser`.
 
-Example YAML fragment:
+## Examples
+### Service usage
 
+To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example below.
+
+<!-- Start config -->
 ```yaml
 parsers:
-  JsonParser:
-    method_type: json_parser
-    params:
-      timestamp_name: "time"
-      content_name: "message"
-      content_parser: JsonMatcherParser   # optional — defaults to "JsonMatcherParser"
-  JsonMatcherParser:
-    method_type: matcher_parser
-    params:
-      path_templates: tests/test_data/test_templates.txt
+    <COMPONENT_NAME>:
+        method_type: json_parser
+        auto_config: false
+        params:
+            start_id: 10
+            data_use_training: null
+            data_use_configure: null
+            use_config_data_as_training: true
+            log_format: null
+            time_format: null
+            timestamp_name: time
+            content_name: message
+            content_parser: JsonMatcherParser
 ```
+<!-- End config -->
 
 
-## Usage examples
-
-Basic usage — parse JSON and extract fields (no template matching):
+### Library usage
+To use it as a python script, you can follow the example below.
 
 ```python
 --8<-- "docs/examples/parsers/json_parser.py:basic"
 ```
 
-Dict-based config (from YAML) — with template matching on the `message` field:
+Dict-based config (from YAML)  --  with template matching on the `message` field:
 
 ```python
 --8<-- "docs/examples/parsers/json_parser.py:dict-based"

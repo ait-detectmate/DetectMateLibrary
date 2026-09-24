@@ -16,6 +16,8 @@ from detectmatelibrary.schemas import ParserSchema
 from typing import Any, Dict, Optional, Sequence, Tuple, cast
 from itertools import combinations
 
+from pydantic import Field
+
 from detectmatelibrary.tools.logging import logger
 
 
@@ -24,7 +26,9 @@ def get_combo(variables: Dict[str, Any]) -> Dict[Tuple[str, ...], Tuple[Any, ...
     return {tuple(variables.keys()): tuple(variables.values())}
 
 
-def _combine(iterable: Sequence[str], max_combo_length: int = 2) -> list[Tuple[str, ...]]:
+def _combine(
+    iterable: Sequence[str], max_combo_length: int = 2
+) -> list[Tuple[str, ...]]:
     """Get all possible combinations of an iterable."""
     combos: list[Tuple[str, ...]] = []
     for i in range(2, min(len(iterable), max_combo_length, 5) + 1):
@@ -52,7 +56,10 @@ class ComboAutoConfigParams(VariableAutoConfigParams):
 
 
 class NewValueComboDetectorConfig(VariableDetectorConfig):
-    method_type: str = "new_value_combo_detector"
+    method_type: str = Field(
+        default="new_value_combo_detector",
+        description="Indicates what type of method it is.",
+    )
 
     auto_config_params: ComboAutoConfigParams = ComboAutoConfigParams()
 
@@ -82,7 +89,9 @@ class NewValueComboDetector(VariableDetector):
     def _auto_conf_kwargs(self) -> Optional[Dict[str, Any]]:
         return None  # first-pass auto-config tracks individual variables
 
-    def _prepare_variables(self, variables: Dict[str, Any], stage: str) -> Dict[str, Any]:
+    def _prepare_variables(
+        self, variables: Dict[str, Any], stage: str
+    ) -> Dict[str, Any]:
         if stage == "detection":
             return cast(Dict[str, Any], get_combo(variables))
         return variables
@@ -137,7 +146,10 @@ class NewValueComboDetector(VariableDetector):
         # pass 2: stable/static combos -> final config
         combo_selection = {}
         auto = self.config.auto_config_params
-        for event_id, tracker in self.auto_conf_persistency_combos.get_events_data().items():
+        for (
+            event_id,
+            tracker,
+        ) in self.auto_conf_persistency_combos.get_events_data().items():
             stable_combos = (
                 tracker.get_features_by_classification("STABLE")  # type: ignore
                 if auto.use_stable_vars

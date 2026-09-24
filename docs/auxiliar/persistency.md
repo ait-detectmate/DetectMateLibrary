@@ -31,12 +31,12 @@ Two families ship today:
   raw rows. Very storage heavy and *not recommended* for production-ready detectors.
 - **Tracker backends** (`EventStabilityTracker`) keep only derived features
   (e.g. "this variable has been constant for the last 10k events") that are relevant for the detector. Use these
-  when you only need a summary or a subset of the log's information, not the raw history — they cost a fraction of
+  when you only need a summary or a subset of the log's information, not the raw history  --  they cost a fraction of
   the memory.
 
 All backends implement the same four-method contract: `add_data`, `get_data`,
 `dump`, `load`. That contract is what `EventPersistency` and
-`PersistencySaver` rely on — anything you add later only has to follow it.
+`PersistencySaver` rely on  --  anything you add later only has to follow it.
 
 ### 3. Saver lifecycle (`PersistencySaver`)
 
@@ -44,7 +44,7 @@ All backends implement the same four-method contract: `add_data`, `get_data`,
 state has to be written somewhere. `PersistencySaver` wraps an
 `EventPersistency` and:
 
-- writes to disk (or any `fsspec` URI) on two triggers — a wall-clock interval
+- writes to disk (or any `fsspec` URI) on two triggers  --  a wall-clock interval
   and an event-count threshold;
 - optionally `auto_load`s previously saved state during construction;
 - exposes `start()` / `stop()` so the background timer can be torn down
@@ -108,10 +108,10 @@ ep[event_id]                       # alias for get_event_data
 | Class | Use when |
 |---|---|
 | `persistency.EventDataFrame` | You need history and a Pandas DataFrame is the natural shape. |
-| `persistency.ChunkedEventDataFrame` | High-volume / streaming workloads — Polars-backed with row-retention and automatic compaction. |
+| `persistency.ChunkedEventDataFrame` | High-volume / streaming workloads  --  Polars-backed with row-retention and automatic compaction. |
 | `persistency.EventStabilityTracker` | You only care about how variables behave over time (`STATIC` / `STABLE` / `UNSTABLE` / `RANDOM`). Cheapest memory footprint. |
 
-All three are re-exported from the top of the package — `persistency.X` is the
+All three are re-exported from the top of the package  --  `persistency.X` is the
 canonical import; the deeply nested submodules are an implementation detail.
 
 ### Persisting to disk
@@ -134,7 +134,7 @@ saver.stop()    # final flush, stops the background timer
 
 `PersistencySaver.save()` is thread-safe, and `stop()` is idempotent. The two
 save triggers (`save_interval_seconds` and `events_until_save`) are
-independent — whichever fires first wins.
+independent  --  whichever fires first wins.
 
 #### Restoring state
 
@@ -147,13 +147,13 @@ saver = persistency.PersistencySaver(
 ```
 
 If `auto_load=True` and no saved state exists, the constructor raises
-`persistency.PersistencyLoadError` immediately — fail-fast rather than
+`persistency.PersistencyLoadError` immediately  --  fail-fast rather than
 silently starting empty.
 
 #### Exporting and importing state on demand
 
-For one-shot transfers — e.g. moving trained state to a new environment, or
-taking a manual snapshot — use the standalone functions directly:
+For one-shot transfers  --  e.g. moving trained state to a new environment, or
+taking a manual snapshot  --  use the standalone functions directly:
 
 ```python
 from detectmatelibrary.utils import persistency
@@ -161,7 +161,7 @@ from detectmatelibrary.utils import persistency
 # Export to a file URI
 persistency.save(ep, "./snapshots/trained-state")
 
-# Export to bytes (no disk I/O — useful when sending state over a network API)
+# Export to bytes (no disk I/O  --  useful when sending state over a network API)
 data: bytes = persistency.save(ep)
 
 # Import from a file URI
@@ -185,7 +185,7 @@ when a saver is active.
 #### Detector-level export and import
 
 When working through a detector (the typical path for DetectMateService), use
-the methods on the detector object directly — no need to access
+the methods on the detector object directly  --  no need to access
 `EventPersistency` internals:
 
 ```python

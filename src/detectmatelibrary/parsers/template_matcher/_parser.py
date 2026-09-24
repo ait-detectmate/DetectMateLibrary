@@ -1,4 +1,7 @@
-from detectmatelibrary.parsers.template_matcher._matcher_op import TemplateMatcher, TemplateMetadata
+from detectmatelibrary.parsers.template_matcher._matcher_op import (
+    TemplateMatcher,
+    TemplateMetadata,
+)
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
 from detectmatelibrary import schemas
 
@@ -7,7 +10,9 @@ import csv
 import os
 import re
 
-_NAMED_WC_RE = re.compile(r'<([A-Za-z_]\w*)>')
+from pydantic import Field
+
+_NAMED_WC_RE = re.compile(r"<([A-Za-z_]\w*)>")
 
 
 class TemplatesNotFoundError(Exception):
@@ -108,13 +113,19 @@ def load_templates(path: str) -> tuple[list[str], list[str | None]]:
 
 
 class MatcherParserConfig(CoreParserConfig):
-    method_type: str = "matcher_parser"
+    method_type: str = Field(default="matcher_parser", description="<$IGNORE$>")
 
-    remove_spaces: bool = True
-    remove_punctuation: bool = True
-    lowercase: bool = True
+    remove_spaces: bool = Field(
+        default=True, description="fitting description yet to find"
+    )
+    remove_punctuation: bool = Field(
+        default=True, description="fitting description yet to find"
+    )
+    lowercase: bool = Field(default=True, description="fitting description yet to find")
 
-    path_templates: str | None = None
+    path_templates: str | None = Field(
+        default=None, description="fitting description yet to find"
+    )
 
 
 class MatcherParser(CoreParser):
@@ -142,11 +153,7 @@ class MatcherParser(CoreParser):
             lowercase=self.config.lowercase,
         )
 
-    def parse(
-        self,
-        input_: schemas.LogSchema,
-        output_: schemas.ParserSchema
-    ) -> None:
+    def parse(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> None:
 
         parsed = self.template_matcher(input_["log"])
 

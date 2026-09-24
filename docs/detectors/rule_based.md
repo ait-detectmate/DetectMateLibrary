@@ -2,6 +2,10 @@
 
 The Rule-based Detector raises alerts based on a configurable set of rules.
 
+## In/out
+
+Input and output schemas in the pipeline
+
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
@@ -27,23 +31,44 @@ Notes on table columns:
 - **Requires arguments**: Whether the rule needs additional arguments.
 - **Enabled by default**: Whether the rule is active when not explicitly overridden.
 
-## Configuration example
+## Configuration arguments
 
+Only parameters specific to this detector are listed below -- see [Common parameters](../detectors.md#common-parameters-all-detectors) in the Detectors overview for the rest.
+
+<!-- Start arguments -->
+| Field  | Type  | Default Value| Description|
+|-------|------|-----|---|
+|method_type|string|rule_detector|Indicates what type of method it is.|
+|rules|array|[{'rule': 'R001 - TemplateNotFound'}, {'rule': 'R003 - CheckForExceptions'}, {'rule': 'R004 - ErrorLevelFound'}]|List of rules to evaluate, each a dict with a 'rule' name and an optional 'args' list.|
+<!-- End arguments -->
+
+## Examples
+### Service usage
+
+To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example below.
+
+<!-- Start config -->
 ```yaml
 detectors:
-  RuleDetector:
-    method_type: rule_detector
-    auto_config: False
-    params:
-      rules:
-        - rule: "R001 - TemplateNotFound"
-        - rule: "R002 - SpecificKeyword"
-          args:
-            - "critical"
-            - "anomaly"
+    <COMPONENT_NAME>:
+        method_type: rule_detector
+        auto_config: true
+        params:
+            start_id: 10
+            data_use_training: null
+            data_use_configure: null
+            use_config_data_as_training: true
+            parser: PARSER
+            global_instances: {}
+            rules:
+            -   rule: R001 - TemplateNotFound
+            -   rule: R003 - CheckForExceptions
+            -   rule: R004 - ErrorLevelFound
+        events: {}
 ```
-
-## Example usage
+<!-- End config -->
+### Library usage
+To use it as a python script, you can follow the example below.
 
 ```python
 --8<-- "docs/examples/detectors/rule_based.py:example"

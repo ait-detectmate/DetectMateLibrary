@@ -10,7 +10,7 @@ __all__ = [
     "AutoConfigParams",
 ]
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from typing_extensions import Self
 from typing import Any, Dict
@@ -49,11 +49,76 @@ class BasicConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    method_type: str = "default_method_type"
-    component_type: str = "default_type"
+    method_type: str = Field(
+        default="default_method_type", description="Indicates what type of method is."
+    )
+    component_type: str = Field(
+        default="default_type",
+        description="Component type that the class inherent from.",
+    )
 
-    auto_config: bool = False
-    auto_config_params: AutoConfigParams = AutoConfigParams()
+    auto_config: bool = Field(
+        default=False,
+        description="Runs the configuration step before the training process.",
+    )
+
+    auto_config_params: AutoConfigParams = Field(
+        default=AutoConfigParams(), description="<$IGNORE$>"
+    )
+
+    def get_docs(
+        self, exclude_inherited_from: "type[BasicConfig] | None" = None
+    ) -> list[dict[str, str]]:
+        """List this config's fields as doc rows.
+
+        Args:
+            exclude_inherited_from: if given, fields also declared on this
+                base class are left out *unless this subclass overrides
+                their default* -- so a subclass's doc table can show only
+                what it adds or changes itself, while still surfacing a
+                changed default (e.g. ``method_type``, or a subclass that
+                narrows an inherited field like ``use_static_vars``).
+        """
+        exclude: set[str] = set()
+        if exclude_inherited_from is not None:
+            base_fields = exclude_inherited_from.model_fields
+            own_fields = type(self).model_fields
+            exclude = {
+                name
+                for name, base_field in base_fields.items()
+                if name in own_fields and own_fields[name].default == base_field.default
+            }
+        docs = []
+        for field_na, field_info in (
+            self.model_json_schema().get("properties", {}).items()
+        ):
+            if field_na in exclude:
+                continue
+            # Documented in its own dedicated section wherever a component
+            # declares it (see docs/detectors.md) -- a subclass narrowing its
+            # type (e.g. VariableDetectorConfig -> VariableAutoConfigParams)
+            # redeclares the field without carrying over the base class's
+            # <$IGNORE$> marker, so the description-based skip below would
+            # miss it.
+            if field_na == "auto_config_params":
+                continue
+            desc = field_info.get("description", "No description provided.")
+            if "<$IGNORE$>" in desc:
+                continue
+            type_ = field_info.get("type", "unknown")
+            if "anyOf" in field_info:
+                types = [item["type"] for item in field_info["anyOf"] if "type" in item]
+                type_ = ", ".join(types)
+
+            docs.append(
+                {
+                    "Name": field_na,
+                    "Type": type_,
+                    "Default value": getattr(self, field_na),
+                    "Description": desc,
+                }
+            )
+        return docs
 
     def get_config(self) -> Dict[str, Any]:
         """Return the configuration as a dictionary."""
@@ -120,8 +185,7 @@ class BasicConfig(BaseModel):
             # Serialized as "global" in YAML (Python field is "global_instances")
             elif field_name == "global_instances" and field_value:
                 instances_data = {
-                    name: inst.to_dict()
-                    for name, inst in field_value.items()
+                    name: inst.to_dict() for name, inst in field_value.items()
                 }
             elif field_name == "persist":
                 if field_value is not None:
@@ -149,8 +213,4 @@ class BasicConfig(BaseModel):
             result["persist"] = persist_data
 
         # Wrap in the component_type and method_id structure
-        return {
-            self.component_type: {
-                method_id: result
-            }
-        }
+        return {self.component_type: {method_id: result}}

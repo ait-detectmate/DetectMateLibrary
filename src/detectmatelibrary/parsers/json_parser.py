@@ -1,4 +1,7 @@
-from detectmatelibrary.parsers.template_matcher import MatcherParser, MatcherParserConfig
+from detectmatelibrary.parsers.template_matcher import (
+    MatcherParser,
+    MatcherParserConfig,
+)
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
 from detectmatelibrary.utils.key_extractor import KeyExtractor
 from detectmatelibrary import schemas
@@ -6,9 +9,10 @@ from detectmatelibrary import schemas
 from collections.abc import Mapping
 from typing import Any, Iterable
 import json
+from pydantic import Field
 
 
-def iter_flatten(obj: dict[str, Any], sep: str = '.') -> Iterable[tuple[str, Any]]:
+def iter_flatten(obj: dict[str, Any], sep: str = ".") -> Iterable[tuple[str, Any]]:
     """Iteratively flattens a nested dict/list JSON-like object. Yields
     (flat_key, value) pairs.
 
@@ -37,17 +41,23 @@ def iter_flatten(obj: dict[str, Any], sep: str = '.') -> Iterable[tuple[str, Any
             yield prefix, current
 
 
-def flatten_dict(obj: dict[str, Any], sep: str = '.') -> dict[str, Any]:
+def flatten_dict(obj: dict[str, Any], sep: str = ".") -> dict[str, Any]:
     """Materialize a dict from iter_flatten, if you need a full flat
     mapping."""
     return dict(iter_flatten(obj, sep=sep))
 
 
 class JsonParserConfig(CoreParserConfig):
-    method_type: str = "json_parser"
-    timestamp_name: str = "time"
-    content_name: str = "message"
-    content_parser: str = "JsonMatcherParser"
+    method_type: str = Field(default="json_parser", description="<$IGNORE$>")
+    timestamp_name: str = Field(
+        default="time", description="fitting description yet to find"
+    )
+    content_name: str = Field(
+        default="message", description="fitting description yet to find"
+    )
+    content_parser: str = Field(
+        default="JsonMatcherParser", description="fitting description yet to find"
+    )
 
 
 class JsonParser(CoreParser):
@@ -59,10 +69,13 @@ class JsonParser(CoreParser):
 
         if isinstance(config, dict):
             cfg_dict = JsonParserConfig.from_dict(config, name)
-            content_parser_config = MatcherParserConfig.from_dict(config, cfg_dict.content_parser)
+            content_parser_config = MatcherParserConfig.from_dict(
+                config, cfg_dict.content_parser
+            )
             self.content_parser = MatcherParser(config=content_parser_config)
             config = cfg_dict
         super().__init__(name=name, config=config)
+        self.config: JsonParserConfig
 
         self.time_extractor = KeyExtractor(key_substr=config.timestamp_name)
         self.content_extractor = KeyExtractor(key_substr=config.content_name)
@@ -85,7 +98,9 @@ class JsonParser(CoreParser):
         log_flat = flatten_dict(log)
         output_["logFormatVariables"].clear()  # ensure it's empty before updating
         output_["logFormatVariables"].update({k: str(v) for k, v in log_flat.items()})
-        time = self.time_format_handler.parse_timestamp(timestamp, self.config.time_format)  # type: ignore
+        time = self.time_format_handler.parse_timestamp(
+            str(timestamp), self.config.time_format
+        )
         output_["logFormatVariables"].update({"Time": time})
         output_["template"] = parsed["EventTemplate"]
         output_["variables"].extend(parsed["Params"])

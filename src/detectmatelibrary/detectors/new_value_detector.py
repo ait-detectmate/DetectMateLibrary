@@ -5,9 +5,13 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers.stabilit
 
 from typing import Any, Optional
 
+from pydantic import Field
+
 
 class NewValueDetectorConfig(VariableDetectorConfig):
-    method_type: str = "new_value_detector"
+    method_type: str = Field(
+        default="new_value_detector", description="Indicates what type of method it is."
+    )
 
 
 class NewValueDetector(VariableDetector):

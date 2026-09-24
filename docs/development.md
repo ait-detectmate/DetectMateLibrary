@@ -75,7 +75,7 @@ from detectmatelibrary.parsers.logbatcher import LogBatcherParser, LogBatcherPar
 You can also include the whole file by dropping the `:section` suffix
 (`--8<-- "docs/examples/parsers/template_tree_matcher.py"`), but section markers
 are the norm. Because `check_paths: true` is set, the build aborts if the file or
-marker doesn't exist — a missing snippet is caught at build time.
+marker doesn't exist  --  a missing snippet is caught at build time.
 
 **3. Make sure it's testable.** The test (`tests/test_docs/test_doc_examples.py`)
 globs every `.py` under `docs/examples/` and runs each one as a script via

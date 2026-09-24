@@ -8,26 +8,35 @@ from detectmatelibrary.utils.finetune import Combinations
 
 from typing import Any
 
+from pydantic import Field
+
 
 class DrainConfig(CoreParserConfig):
-    method_type: str = "drain_parser"
+    method_type: str = Field(default="drain_parser", description="<$IGNORE$>")
 
-    depth: int = 2
-    max_childs: int = 10
-    sim_thres: float = 0.2
+    depth: int = Field(default=2, description="fitting description yet to find")
+    max_childs: int = Field(default=10, description="fitting description yet to find")
+    sim_thres: float = Field(default=0.2, description="fitting description yet to find")
 
-    reset_in_post_train: bool = False
+    reset_in_post_train: bool = Field(
+        default=False, description="fitting description yet to find"
+    )
 
-    Finetune: list[list[str | list[Any]]] = [
-        ["depth", [1, 2, 3, 4]],
-        ["max_childs", [10, 40]],
-        ["sim_thres", [0.2, 0.4, 0.6, 0.8]]
-    ]
+    Finetune: list[list[str | list[Any]]] = Field(
+        default=[
+            ["depth", [1, 2, 3, 4]],
+            ["max_childs", [10, 40]],
+            ["sim_thres", [0.2, 0.4, 0.6, 0.8]],
+        ],
+        description="fitting description yet to find",
+    )
 
 
 def _init_drain(config: DrainConfig) -> Drain:
     return Drain(
-        depth=config.depth, max_child=config.max_childs, sim=config.sim_thres,
+        depth=config.depth,
+        max_child=config.max_childs,
+        sim=config.sim_thres,
     )
 
 
@@ -37,7 +46,7 @@ def _found_ratio(logs: list[str], tree_matcher: TreeMatcher) -> float:
     score = 0.0
     for template in results:
         if "template not found" == template:
-            score += 1.
+            score += 1.0
 
     return score / len(results)
 
@@ -68,7 +77,7 @@ class DrainParser(CoreParser):
     def __init__(
         self,
         name: str = "DrainParser",
-        config: DrainConfig | dict[str, Any] = DrainConfig()
+        config: DrainConfig | dict[str, Any] = DrainConfig(),
     ) -> None:
 
         if isinstance(config, dict):
@@ -96,11 +105,7 @@ class DrainParser(CoreParser):
         if self.config.reset_in_post_train:
             self.drain_gen.reset()
 
-    def parse(
-        self,
-        input_: schemas.LogSchema,
-        output_: schemas.ParserSchema
-    ) -> None:
+    def parse(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> None:
 
         if self.tree_match is None:
             output_["EventID"] = -1

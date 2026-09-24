@@ -2,6 +2,10 @@
 
 The template matcher is a parser that takes a set of templates and matches them to incoming logs. It extracts parameters from positions marked with the <*> wildcard and returns a ParserSchema with the matched template and the extracted variables.
 
+## In/out
+
+Input and output schemas in the pipeline
+
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
 | **Input**  | [LogSchema](../schemas.md) | Unstructured log   |
@@ -42,33 +46,48 @@ pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>
 login success: user=<*> source=<*>
 ```
 
-## Configuration
+## Configuration arguments
 
-Typical MatcherParser config options (fields in config class):
+Only parameters specific to this parser are listed below -- see [Common parameters](../parsers.md#common-parameters-all-parsers) in the Parsers overview for the rest.
 
-- `method_type`: must match the parser type ("matcher_parser" or configured name).
-- `path_templates`: path to the newline-delimited template file. If `null`, the matcher runs without templates.
-- `remove_spaces` (bool, default True): remove all spaces during matching.
-- `remove_punctuation` (bool, default True): strip punctuation except the `<*>` token.
-- `lowercase` (bool, default True): lowercase logs and templates before matching.
-- `auto_config` (bool): whether to attempt any auto-configuration phase (not required).
+<!-- Start arguments -->
+| Field  | Type  | Default Value| Description|
+|-------|------|-----|---|
+|remove_spaces|boolean|True|fitting description yet to find|
+|remove_punctuation|boolean|True|fitting description yet to find|
+|lowercase|boolean|True|fitting description yet to find|
+|path_templates|string, null|None|fitting description yet to find|
+<!-- End arguments -->
 
-Example YAML entry:
+## Examples
+### Service usage
+
+To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example below.
+
+<!-- Start config -->
 ```yaml
 parsers:
-  MatcherParser:
-    method_type: matcher_parser
-    auto_config: False
-    params:
-      remove_spaces: True
-      remove_punctuation: True
-      lowercase: True
-      path_templates: path/to/templates.txt
+    <COMPONENT_NAME>:
+        method_type: matcher_parser
+        auto_config: false
+        params:
+            start_id: 10
+            data_use_training: null
+            data_use_configure: null
+            use_config_data_as_training: true
+            log_format: null
+            time_format: null
+            remove_spaces: true
+            remove_punctuation: true
+            lowercase: true
+            path_templates: null
 ```
+<!-- End config -->
 
-## Usage examples
+### Library usage
+To use it as a python script, you can follow the example below.
 
-Simple usage — load templates and match a log:
+Simple usage  --  load templates and match a log:
 
 ```python
 --8<-- "docs/examples/parsers/template_matcher.py:example"

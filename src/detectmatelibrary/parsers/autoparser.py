@@ -9,17 +9,21 @@ from typing import Any
 import warnings
 import re
 
+from pydantic import Field
+
 
 class AutoParserConfig(CoreParserConfig):
-    method_type: str = "auto_parser"
-    fix_type: str = ""
+    method_type: str = Field(
+        default="auto_parser", description="fitting description yet to find"
+    )
+    fix_type: str = Field(default="", description="fitting description yet to find")
 
 
 class AutoParser(CoreParser):
     def __init__(
         self,
         name: str = "AutoParser",
-        config: AutoParserConfig | dict[str, Any] = AutoParserConfig()
+        config: AutoParserConfig | dict[str, Any] = AutoParserConfig(),
     ) -> None:
 
         if isinstance(config, dict):
@@ -42,11 +46,7 @@ class AutoParser(CoreParser):
         except RuntimeError as e:
             warnings.warn(str(e))
 
-    def parse(
-        self,
-        input_: schemas.LogSchema,
-        output_: schemas.ParserSchema
-    ) -> None:
+    def parse(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> None:
 
         if self.tree_match is None:
             output_["EventID"] = -1

@@ -4,6 +4,10 @@ The Template Tree Matcher is a parser that matches incoming logs against a set o
 
 This parser wraps functionality from the DetectMatePerformance project: https://github.com/ait-detectmate/DetectMatePerformance. Prefer  use the performance implementation when parsing many log lines in non-stream (batch) mode.
 
+## In/out
+
+Input and output schemas in the pipeline
+
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
 | **Input**  | [LogSchema](../schemas.md) | Unstructured log   |
@@ -22,29 +26,42 @@ pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>
 login success: user=<*> source=<*>
 ```
 
-## Configuration
+## Configuration arguments
 
-Typical TemplateTreeMatcher config options:
+Only parameters specific to this parser are listed below -- see [Common parameters](../parsers.md#common-parameters-all-parsers) in the Parsers overview for the rest.
 
-- `method_type` (string): parser type identifier (for example `"tree_matcher"`).
-- `path_templates` (string or null): path to the newline-delimited template file. If `null`, the matcher runs without templates.
-- `auto_config` (bool): whether to attempt an optional auto-configuration phase (not required).
+<!-- Start arguments -->
+| Field  | Type  | Default Value| Description|
+|-------|------|-----|---|
+|path_templates|string, null|None|fitting description yet to find|
+<!-- End arguments -->
 
 Note: this matcher removes non-alphanumeric characters from logs and templates before matching, except for the `<*>` token. Ensure your templates are compatible with that normalization.
 
-Example YAML fragment:
+## Examples
+### Service usage
+
+To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example below.
+
+<!-- Start config -->
 ```yaml
 parsers:
-  TemplateTreeMatcher:
-    method_type: tree_matcher
-    auto_config: False
-    params:
-      path_templates: path/to/templates.txt
+    <COMPONENT_NAME>:
+        method_type: tree_matcher
+        auto_config: false
+        params:
+            start_id: 10
+            data_use_training: null
+            data_use_configure: null
+            use_config_data_as_training: true
+            log_format: null
+            time_format: null
+            path_templates: null
 ```
+<!-- End config -->
 
-## Usage example
-
-Simple usage — load templates and match a log:
+### Library usage
+To use it as a python script, you can follow the example below.
 
 ```python
 --8<-- "docs/examples/parsers/template_tree_matcher.py"

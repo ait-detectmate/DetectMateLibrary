@@ -1,6 +1,10 @@
-# Combo Detector
+# New Value Combo Detector
 
 The New Combo Value Detector raises alerts when previously unseen combinations of values appear in configured fields (for example new user names, IP addresses, or process names). It is useful to detect novelty, configuration drift, or the appearance of new actors in the environment.
+
+## In/out
+
+Input and output schemas in the pipeline
 
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
@@ -10,29 +14,42 @@ The New Combo Value Detector raises alerts when previously unseen combinations o
 ✅ Federation compatible.
 
 ## Description
+
 This detector maintains a lightweight set of observed combination of values per monitored fields and emits an alert when a combination is not present in the set seen for the first time (subject to configuration).
 
-## Configuration
+## Configuration arguments
 
+Only parameters specific to this detector are listed below -- see [Common parameters](../detectors.md#common-parameters-all-detectors) and [Variable detector parameters](../detectors.md#variable-detector-parameters) in the Detectors overview for the rest.
+
+<!-- Start arguments -->
+| Field  | Type  | Default Value| Description|
+|-------|------|-----|---|
+|method_type|string|new_value_combo_detector|Indicates what type of method it is.|
+<!-- End arguments -->
+
+## Examples
+### Service usage
+
+To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example below.
+
+<!-- Start config -->
 ```yaml
 detectors:
-    NewValueComboDetector:
+    <COMPONENT_NAME>:
         method_type: new_value_combo_detector
-        auto_config: False
-        auto_config_params:
-            max_combo_size: 3
-        events:
-            1:
-                test:
-                    params: {}
-                    variables:
-                        - pos: 0
-                          name: var1
-                    header_variables:
-                        - pos: level
+        auto_config: true
+        params:
+            start_id: 10
+            data_use_training: null
+            data_use_configure: null
+            use_config_data_as_training: true
+            parser: PARSER
+            global_instances: {}
+        events: {}
 ```
-
-## Example usage
+<!-- End config -->
+### Library usage
+To use it as a python script, you can follow the example below.
 
 ```python
 --8<-- "docs/examples/detectors/combo.py:example"

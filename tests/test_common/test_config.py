@@ -7,7 +7,7 @@ from detectmatelibrary.common._config._compile import (
 )
 from detectmatelibrary.common._config._formats import EventsConfig, _EventConfig
 from detectmatelibrary.common._config import BasicConfig
-from pydantic import ValidationError
+from pydantic import ValidationError, Field
 from tests.test_data import TEST_CONFIG
 import pytest
 import warnings
@@ -15,11 +15,62 @@ import yaml
 
 
 def load_test_config() -> dict:
-    with open(TEST_CONFIG, 'r') as file:
+    with open(TEST_CONFIG, "r") as file:
         return yaml.safe_load(file)
 
 
 config_test = load_test_config()
+
+
+class DummyConfigDoc(BasicConfig):
+    hello: str | None = Field(default="Hello", description="a way to salute people")
+    dont_show: str = Field(default="a", description="<$IGNORE$> dont show stuff")
+    auto_config: bool = Field(
+        default=True,
+        description="Runs the configuration step before the training process.",
+    )
+
+
+class TestConfigDocs:
+    def test_get_configs(self):
+        docs = BasicConfig().get_docs()
+
+        assert len(docs) == 3
+        assert {
+            "Name": "method_type",
+            "Type": "string",
+            "Default value": "default_method_type",
+            "Description": "Indicates what type of method is.",
+        } in docs
+        assert {
+            "Name": "component_type",
+            "Type": "string",
+            "Default value": "default_type",
+            "Description": "Component type that the class inherent from.",
+        } in docs
+        assert {
+            "Name": "auto_config",
+            "Type": "boolean",
+            "Default value": False,
+            "Description": "Runs the configuration step before the training process.",
+        } in docs
+
+    def test_inherent_class_docs(self):
+        docs = DummyConfigDoc().get_docs()
+
+        assert len(docs) == 4
+        assert {
+            "Name": "auto_config",
+            "Type": "boolean",
+            "Default value": True,
+            "Description": "Runs the configuration step before the training process.",
+        } in docs
+        assert {
+            "Name": "hello",
+            "Type": "string, null",
+            "Default value": "Hello",
+            "Description": "a way to salute people",
+        } in docs
 
 
 class TestConfigMethods:
@@ -30,7 +81,8 @@ class TestConfigMethods:
         assert config["method_type"] == "ExampleParser"
         assert not config["auto_config"]
         assert config["params"] == {
-            "log_format": "[<Time>] [<Level>] <Content>", "depth": 4
+            "log_format": "[<Time>] [<Level>] <Content>",
+            "depth": 4,
         }
 
     def test_method_not_found(self):
@@ -42,7 +94,9 @@ class TestConfigMethods:
     def test_type_not_found(self):
         with pytest.raises(TypeNotFoundError):
             ConfigMethods.get_method(
-                config_test, method_id="example_parser", component_type="non_existent_type"
+                config_test,
+                method_id="example_parser",
+                component_type="non_existent_type",
             )
 
     def test_check_type(self):
@@ -55,9 +109,11 @@ class TestConfigMethods:
             ConfigMethods.check_type(config, method_type="IncorrectOne")
 
     def test_process_simple(self):
-        config = ConfigMethods.process(ConfigMethods.get_method(
-            config_test, method_id="example_parser", component_type="parsers"
-        ))
+        config = ConfigMethods.process(
+            ConfigMethods.get_method(
+                config_test, method_id="example_parser", component_type="parsers"
+            )
+        )
 
         assert config["method_type"] == "ExampleParser"
         assert not config["auto_config"]
@@ -66,9 +122,11 @@ class TestConfigMethods:
         assert "params" not in config
 
     def test_process_auto_config(self):
-        config = ConfigMethods.process(ConfigMethods.get_method(
-            config_test, method_id="detector_auto", component_type="detectors"
-        ))
+        config = ConfigMethods.process(
+            ConfigMethods.get_method(
+                config_test, method_id="detector_auto", component_type="detectors"
+            )
+        )
 
         assert config["method_type"] == "ExampleDetector"
         assert config["auto_config"]
@@ -77,18 +135,22 @@ class TestConfigMethods:
 
     def test_process_auto_config_false(self):
         with pytest.warns(MissingParamsWarning):
-            ConfigMethods.process(ConfigMethods.get_method(
-                config_test, method_id="detector_wrong", component_type="detectors"
-            ))
+            ConfigMethods.process(
+                ConfigMethods.get_method(
+                    config_test, method_id="detector_wrong", component_type="detectors"
+                )
+            )
 
     def test_process_keeps_params_under_auto_config(self):
         """params are operational and survive the configure phase, so
         auto_config: True alongside params is no longer suspicious."""
         with warnings.catch_warnings():
             warnings.simplefilter("error")
-            config = ConfigMethods.process(ConfigMethods.get_method(
-                config_test, method_id="detector_weird", component_type="detectors"
-            ))
+            config = ConfigMethods.process(
+                ConfigMethods.get_method(
+                    config_test, method_id="detector_weird", component_type="detectors"
+                )
+            )
         assert config["auto_config"] is True
         assert config["hello"] == "a"
 
@@ -96,9 +158,11 @@ class TestConfigMethods:
 class TestParamsFormat:
     def test_correct_format(self):
         config_test = load_test_config()
-        config = ConfigMethods.process(ConfigMethods.get_method(
-            config_test, method_id="detector_variables", component_type="detectors"
-        ))
+        config = ConfigMethods.process(
+            ConfigMethods.get_method(
+                config_test, method_id="detector_variables", component_type="detectors"
+            )
+        )
 
         assert config["method_type"] == "ExampleDetector"
         assert config["parser"] == "example_parser_1"
@@ -118,9 +182,11 @@ class TestParamsFormat:
         assert event_config.header_variables["Level"].params == {"threshold": 0.2}
 
     def test_correct_format2(self):
-        config = ConfigMethods.process(ConfigMethods.get_method(
-            config_test, method_id="detector_variables2", component_type="detectors"
-        ))
+        config = ConfigMethods.process(
+            ConfigMethods.get_method(
+                config_test, method_id="detector_variables2", component_type="detectors"
+            )
+        )
 
         assert config["method_type"] == "ExampleDetector"
         assert config["parser"] == "example_parser_1"
@@ -138,27 +204,35 @@ class TestParamsFormat:
 
     def test_return_none_if_not_found(self):
         config_test = load_test_config()
-        config = ConfigMethods.process(ConfigMethods.get_method(
-            config_test, method_id="detector_variables", component_type="detectors"
-        ))
+        config = ConfigMethods.process(
+            ConfigMethods.get_method(
+                config_test, method_id="detector_variables", component_type="detectors"
+            )
+        )
 
         assert isinstance(config["events"][1], _EventConfig)
         assert config["events"]["NotExisting"] is None
 
     def test_get_dict(self):
         config_test = load_test_config()
-        config = ConfigMethods.process(ConfigMethods.get_method(
-            config_test, method_id="detector_variables", component_type="detectors"
-        ))
+        config = ConfigMethods.process(
+            ConfigMethods.get_method(
+                config_test, method_id="detector_variables", component_type="detectors"
+            )
+        )
         variables = config["events"][1].get_all()
 
         assert len(variables) == 4
 
     def test_incorrect_format(self):
         with pytest.raises(ValidationError):
-            ConfigMethods.process(ConfigMethods.get_method(
-                config_test, method_id="detector_incorrect_format1", component_type="detectors"
-            ))
+            ConfigMethods.process(
+                ConfigMethods.get_method(
+                    config_test,
+                    method_id="detector_incorrect_format1",
+                    component_type="detectors",
+                )
+            )
 
 
 class MockupParserConfig(BasicConfig):

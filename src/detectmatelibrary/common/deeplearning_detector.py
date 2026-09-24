@@ -7,23 +7,39 @@ from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary import schemas
 
 from typing import Any
+from pydantic import Field
 import logging
 
 
 class DeepLearningDetectorConfig(CoreDetectorConfig):
-    window_size: int = 10
-    validation_per: float = 0.2
-    finetune_epochs: int = 2
+    window_size: int = Field(
+        default=10,
+        description="Number of consecutive events used as one training/detection sequence.",
+    )
+    validation_per: float = Field(
+        default=0.2,
+        description="Fraction of data held out for validation during (fine)training.",
+    )
+    finetune_epochs: int = Field(
+        default=2,
+        description="Number of epochs used when finetuning during the configuration phase.",
+    )
 
-    hyperparameters: dict[str, Any] = {
-        "Model": {
+    hyperparameters: dict[str, Any] = Field(
+        default={
+            "Model": {
 
+            },
+            "Train": {
+
+            },
+            "Finetune": [],
         },
-        "Train": {
-
-        },
-        "Finetune": [],
-    }
+        description=(
+            "Model, training and hyperparameter-search settings passed to "
+            "the underlying deep learning model."
+        ),
+    )
 
 
 def build_seq(input_: list[schemas.ParserSchema]) -> tuple[int]:
