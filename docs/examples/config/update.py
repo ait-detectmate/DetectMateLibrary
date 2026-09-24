@@ -15,6 +15,13 @@ from detectmatelibrary.detectors.rule_detector import RuleDetectorConfig
 from detectmatelibrary.detectors.scvs_detector import SCVSDetectorConfig
 from detectmatelibrary.detectors.value_range_detector import ValueRangeDetectorConfig
 
+from detectmatelibrary.parsers.autoparser import AutoParserConfig
+from detectmatelibrary.parsers.drain import DrainConfig
+from detectmatelibrary.parsers.json_parser import JsonParserConfig
+from detectmatelibrary.parsers.logbatcher import LogBatcherParserConfig
+from detectmatelibrary.parsers.template_matcher import MatcherParserConfig
+from detectmatelibrary.parsers.tree_matcher import TemplateCppTreeMatcherConfig
+
 from detectmatelibrary.common.core import CoreConfig
 from detectmatelibrary.common.detector import CoreDetectorConfig
 from detectmatelibrary.common.parser import CoreParserConfig
@@ -189,8 +196,24 @@ DETECTOR_DOCS: list[tuple[CoreConfig, type[CoreConfig], str]] = [
     ),
 ]
 
+PARSER_DOCS: list[tuple[CoreConfig, type[CoreConfig], str]] = [
+    (AutoParserConfig(), CoreParserConfig, "docs/parsers/auto_parser.md"),
+    (DrainConfig(), CoreParserConfig, "docs/parsers/drain_parser.md"),
+    (JsonParserConfig(), CoreParserConfig, "docs/parsers/json_parser.md"),
+    (LogBatcherParserConfig(), CoreParserConfig, "docs/parsers/logbatcher_parser.md"),
+    (MatcherParserConfig(), CoreParserConfig, "docs/parsers/template_matcher.md"),
+    (
+        TemplateCppTreeMatcherConfig(),
+        CoreParserConfig,
+        "docs/parsers/template_tree_matcher.md",
+    ),
+]
+
 update_shared_args_detectors("docs/detectors.md")
 update_shared_args_parsers("docs/parsers.md")
 
 for detector_config, exclude_base, doc_path in DETECTOR_DOCS:
     update_docs(detector_config, doc_path=doc_path, exclude_inherited_from=exclude_base)
+
+for parser_config, exclude_base, doc_path in PARSER_DOCS:
+    update_docs(parser_config, doc_path=doc_path, exclude_inherited_from=exclude_base)
