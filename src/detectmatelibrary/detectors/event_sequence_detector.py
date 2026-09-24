@@ -1,6 +1,7 @@
-from detectmatelibrary.common._other_op._variable_hooks import VariablesLogic
+from detectmatelibrary.common._other_op._variable_hooks import (
+    VariablesLogic, StabilityAutoConfigParams
+)
 from detectmatelibrary.common._config._compile import generate_events_config
-from detectmatelibrary.common._config import AutoConfigParams
 
 from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector
 
@@ -17,7 +18,7 @@ from typing import Any
 from pydantic import Field, model_validator
 
 
-class SequenceAutoConfigParams(AutoConfigParams):
+class SequenceAutoConfigParams(StabilityAutoConfigParams):
     """Configure-phase inputs: the candidate window lengths to try.
 
     @param min_window_size shortest window length tried during the
@@ -67,7 +68,7 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
         self._detect_window: deque[int] = deque(maxlen=self.config.fixed_window_size)
         self._configure_windows: dict[int, deque[int]] = {}
 
-        VariablesLogic.__init__(self, name=self.name)
+        VariablesLogic.__init__(self, name=self.name, config_vars=self.config.auto_config_params)
         self._register_persistency(self.persistency)
         self._adopt_restored_length()
 
@@ -178,6 +179,7 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
                     event_id=length,
                     event_template=input_["template"],
                     named_variables={"seq": tuple(window)},
+                    timestamp=self._timestamp(input_),
                 )
 
     def set_configuration(self) -> None:

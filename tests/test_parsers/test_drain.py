@@ -138,3 +138,27 @@ class TestDrainParser:
         assert parser.config.depth == 1
         assert parser.config.max_childs == 10
         assert parser.config.sim_thres == 0.2
+
+    def test_auto_config_off_keeps_hyperparameters_through_configure_phase(self):
+        """Same data as above, but auto_config off: the hyperparameter search
+        must not run, so the configured depth survives."""
+        config_dict = {
+            "parsers": {
+                "DrainParser": {
+                    "method_type": "drain_parser",
+                    "depth": 2,
+                    "max_childs": 10,
+                    "sim_thres": 0.2,
+                    "auto_config": False,
+                    "data_use_configure": 2,
+                    "data_use_training": 2,
+                }
+            }
+        }
+        parser = DrainParser(config=config_dict)
+        parser.process(schemas.LogSchema({"log": "hello there, general kenobi!"}))
+        parser.process(schemas.LogSchema({"log": "hello there, captain kenobi!"}))
+        parser.process(schemas.LogSchema({"log": "hello there, captain kenobi!"}))
+
+        assert parser.config.depth == 2
+        assert parser.config_buffer == []

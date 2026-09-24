@@ -18,6 +18,8 @@ import detectmatelibrary.schemas as schemas
 from detectmatelibrary.utils.aux import time_test_mode
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
 
+from copy import deepcopy
+
 import pytest
 
 # Set time test mode for consistent timestamps
@@ -328,6 +330,33 @@ class TestNewValueDetectorAutoConfig:
                 detected_ids.add(log["logID"])
 
         assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
+
+    def test_auto_config_off_keeps_explicit_events_through_configure_phase(self):
+        """A configure window must not overwrite a hand-written `events` block
+        when auto_config is False — the config has to reproduce the same
+        detector on every rerun."""
+        windowed = deepcopy(config)
+        windowed["detectors"]["CustomInit"].update(data_use_configure=5, data_use_training=5)
+        detector = NewValueDetector(config=windowed, name="CustomInit")
+        explicit_events = detector.config.events.model_dump()
+
+        for i in range(20):
+            detector.process(schemas.ParserSchema({
+                "parserType": "test",
+                "EventID": [1, 2, 3][i % 3],
+                "template": "test template",
+                "variables": ["same", str(i)],
+                "logID": str(i),
+                "parsedLogID": str(i),
+                "parserID": "test_parser",
+                "log": "test log message",
+                "logFormatVariables": {"level": "INFO", "Time": str(1_700_000_000 + i)},
+            }))
+
+        assert detector.config.events.model_dump() == explicit_events
+        assert detector.config.auto_config is False
+        # the configure window still reached training under the explicit config
+        assert "same" in detector.persistency.get_events_data()[1].get_data()["sad"].unique_set
 
 
 class TestNewValueDetectorGlobalInstances:

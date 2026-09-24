@@ -107,15 +107,20 @@ class CoreComponent(Component, FedOperations):
         if (data_buffered := self.data_buffer.add(data)) is None:  # type: ignore
             return None
 
+        # auto_config decides whether the configure window configures anything;
+        # the window itself still consumes its records and hands them to training,
+        # so a rerun with auto_config=False trains on the same data.
         if (fit_state := self.fitlogic.run()) == FitLogicState.DO_CONFIG:
-            logger.debug(f"<<{self.name}>> use data for configuration")
-            self.configure(input_=data_buffered)
+            if self.config.auto_config:
+                logger.debug(f"<<{self.name}>> use data for configuration")
+                self.configure(input_=data_buffered)
             if self.config.use_config_data_as_training:
                 self.buffer_train + data_buffered
             return None
         elif self.fitlogic.finish_config():
-            logger.debug(f"<<{self.name}>> finalizing configuration")
-            self.set_configuration()
+            if self.config.auto_config:
+                logger.debug(f"<<{self.name}>> finalizing configuration")
+                self.set_configuration()
             if self.config.use_config_data_as_training:
                 logger.debug(f"<<{self.name}>> Adding data from config to training")
                 [self.train(input_) for input_ in self.buffer_train]
