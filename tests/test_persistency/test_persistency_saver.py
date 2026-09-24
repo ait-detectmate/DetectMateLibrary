@@ -14,6 +14,7 @@ from detectmatelibrary.utils.persistency.event_persistency import EventPersisten
 from detectmatelibrary.utils.persistency.persistency_saver import (
     PersistencySaverConfig,
     PersistencyLoadError,
+    PersistencySaveError,
     PersistencySaver,
     _SaveTimer,
     save as standalone_save,
@@ -412,6 +413,124 @@ class TestPersistencySaverConcurrency:
         saver_thread.join(timeout=2.0)
         t.join(timeout=1.0)
         assert "E2" in p.get_events_seen()
+
+
+def _failing_write(attempts: list[int] | None = None):
+    def write(fs, root, files):
+        if attempts is not None:
+            attempts.append(1)
+        raise OSError("Permission denied")
+    return write
+
+
+class TestPersistencySaverSaveFailure:
+    def test_save_raises_on_write_failure(self, monkeypatch):
+        import detectmatelibrary.utils.persistency.persistency_saver as ps
+        saver, _ = _memory_saver("memory://save_fail1/state")
+        monkeypatch.setattr(ps, "_write", _failing_write())
+        with pytest.raises(PersistencySaveError) as exc_info:
+            saver.save()
+        assert isinstance(exc_info.value.__cause__, OSError)
+
+    def test_failed_save_keeps_events_since_save(self, monkeypatch):
+        import detectmatelibrary.utils.persistency.persistency_saver as ps
+        saver, p = _memory_saver("memory://save_fail2/state")
+        monkeypatch.setattr(ps, "_write", _failing_write())
+        with pytest.raises(PersistencySaveError):
+            saver.save()
+        assert p.events_since_save == 3
+        assert saver.get_status()["events_since_save"] == 3
+
+    def test_events_ingested_during_write_stay_counted(self, monkeypatch):
+        """Only the events captured in the snapshot are cleared by a successful
+        save; events ingested while the write is in flight stay unsaved."""
+        import detectmatelibrary.utils.persistency.persistency_saver as ps
+        saver, p = _memory_saver("memory://save_fail3/state")
+        write_started = threading.Event()
+        release_write = threading.Event()
+        real_write = ps._write
+
+        def blocking_write(fs, root, files):
+            write_started.set()
+            release_write.wait(timeout=2.0)
+            real_write(fs, root, files)
+
+        monkeypatch.setattr(ps, "_write", blocking_write)
+        saver_thread = threading.Thread(target=saver.save)
+        saver_thread.start()
+        assert write_started.wait(timeout=1.0)
+        p.ingest_event(event_id="E3", event_template="T", variables=["x"], named_variables={})
+        p.ingest_event(event_id="E3", event_template="T", variables=["y"], named_variables={})
+        release_write.set()
+        saver_thread.join(timeout=2.0)
+        assert p.events_since_save == 2
+
+    def test_stop_raises_when_final_save_fails(self, monkeypatch):
+        import detectmatelibrary.utils.persistency.persistency_saver as ps
+        p = _make_persistency_with_data()
+        saver = PersistencySaver(
+            p, PersistencySaverConfig(path="memory://save_fail4/state", save_interval_seconds=9999)
+        )
+        saver.start()
+        monkeypatch.setattr(ps, "_write", _failing_write())
+        with pytest.raises(PersistencySaveError):
+            saver.stop()
+
+    def test_timer_keeps_running_after_failed_save(self, monkeypatch):
+        import detectmatelibrary.utils.persistency.persistency_saver as ps
+        attempts: list[int] = []
+        monkeypatch.setattr(ps, "_write", _failing_write(attempts))
+        p = _make_persistency_with_data()
+        saver = PersistencySaver(
+            p, PersistencySaverConfig(path="memory://save_fail5/state", save_interval_seconds=0)
+        )
+        saver.start()
+        time.sleep(0.15)
+        assert saver._timer is not None and saver._timer.is_alive()
+        assert len(attempts) > 1
+        with pytest.raises(PersistencySaveError):
+            saver.stop()
+
+    def test_count_triggered_failure_does_not_raise_from_ingest(self, monkeypatch):
+        import detectmatelibrary.utils.persistency.persistency_saver as ps
+        monkeypatch.setattr(ps, "_write", _failing_write())
+        p = EventPersistency(event_data_class=EventDataFrame)
+        PersistencySaver(
+            p, PersistencySaverConfig(path="memory://save_fail6/state", events_until_save=2)
+        )
+        for i in range(3):
+            p.ingest_event(event_id="E1", event_template="T", variables=[str(i)], named_variables={})
+        assert p.events_since_save == 3
+
+    def test_count_triggered_failure_retries_every_threshold_not_every_event(self, monkeypatch):
+        import detectmatelibrary.utils.persistency.persistency_saver as ps
+        attempts: list[int] = []
+        monkeypatch.setattr(ps, "_write", _failing_write(attempts))
+        p = EventPersistency(event_data_class=EventDataFrame)
+        PersistencySaver(
+            p, PersistencySaverConfig(path="memory://save_fail7/state", events_until_save=2)
+        )
+        for i in range(6):
+            p.ingest_event(event_id="E1", event_template="T", variables=[str(i)], named_variables={})
+        assert len(attempts) == 3  # at events 2, 4 and 6
+
+    def test_background_save_failure_logged_as_error(self, monkeypatch, caplog):
+        import logging
+        import detectmatelibrary.utils.persistency.persistency_saver as ps
+        monkeypatch.setattr(ps, "_write", _failing_write())
+        p = EventPersistency(event_data_class=EventDataFrame)
+        PersistencySaver(
+            p, PersistencySaverConfig(path="memory://save_fail8/state", events_until_save=1)
+        )
+        with caplog.at_level(logging.ERROR):
+            p.ingest_event(event_id="E1", event_template="T", variables=["x"], named_variables={})
+        assert any(
+            r.levelno == logging.ERROR and "Permission denied" in r.getMessage() for r in caplog.records
+        )
+
+    def test_save_error_exported_from_package(self):
+        from detectmatelibrary.utils import persistency
+        assert persistency.PersistencySaveError is PersistencySaveError
 
 
 class TestStandaloneSaveLoad:
