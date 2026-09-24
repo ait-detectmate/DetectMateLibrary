@@ -17,6 +17,7 @@ from detectmatelibrary.detectors.value_range_detector import ValueRangeDetectorC
 
 from detectmatelibrary.common.core import CoreConfig
 from detectmatelibrary.common.detector import CoreDetectorConfig
+from detectmatelibrary.common.parser import CoreParserConfig
 from detectmatelibrary.common.variable_detector import VariableDetectorConfig
 from detectmatelibrary.common.deeplearning_detector import DeepLearningDetectorConfig
 
@@ -87,7 +88,7 @@ def update_docs(
         raise Exception(f"While updating {doc_path} -> {str(e)}")
 
 
-def update_shared_docs(doc_path: str) -> None:
+def update_shared_args_detectors(doc_path: str) -> None:
     """Fill docs/detectors.md's tables of parameters shared across several
     detectors: fields every detector has (CoreDetectorConfig), plus the two
     families that add their own shared block on top (VariableDetectorConfig,
@@ -125,6 +126,25 @@ def update_shared_docs(doc_path: str) -> None:
         raise Exception(f"While updating {doc_path} -> {str(e)}")
 
 
+def update_shared_args_parsers(doc_path: str) -> None:
+    """Fill docs/parsers.md's tables of parameters shared across several
+    parsers: fields every parser has (CoreParserConfig)."""
+    try:
+        with open(doc_path, "r") as f:
+            docs = f.readlines()
+
+        docs = append_docs(
+            docs=docs,
+            start_cmd="<!-- Start common_arguments -->\n",
+            end_cmd="<!-- End common_arguments -->\n",
+            add=get_arguments(CoreParserConfig()),
+        )
+        with open(doc_path, "w") as f:
+            f.writelines(docs)
+    except Exception as e:
+        raise Exception(f"While updating {doc_path} -> {str(e)}")
+
+
 # %% Documentation update
 #
 # Every detector config below drives its own doc page: whenever a Field is
@@ -138,7 +158,7 @@ def update_shared_docs(doc_path: str) -> None:
 # no family in between, or VariableDetectorConfig/DeepLearningDetectorConfig
 # for the two families that add their own shared block on top. Either way,
 # the excluded fields are already documented once in docs/detectors.md by
-# update_shared_docs.
+# update_shared_args_detectors.
 DETECTOR_DOCS: list[tuple[CoreConfig, type[CoreConfig], str]] = [
     (RandomDetectorConfig(), CoreDetectorConfig, "docs/detectors/random_detector.md"),
     (
@@ -169,7 +189,8 @@ DETECTOR_DOCS: list[tuple[CoreConfig, type[CoreConfig], str]] = [
     ),
 ]
 
-update_shared_docs("docs/detectors.md")
+update_shared_args_detectors("docs/detectors.md")
+update_shared_args_parsers("docs/parsers.md")
 
 for detector_config, exclude_base, doc_path in DETECTOR_DOCS:
     update_docs(detector_config, doc_path=doc_path, exclude_inherited_from=exclude_base)

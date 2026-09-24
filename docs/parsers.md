@@ -46,7 +46,6 @@ Minimum fields commonly expected by downstream components:
 - `parsedLogID` / `logID`  --  identifiers linking raw and parsed records
 - `parsedTimestamp` / `receivedTimestamp`  --  timestamps
 
-
 ## Creating a new parser  --  step by step
 
 1. Create a Config class inheriting `CoreParserConfig`.
@@ -116,5 +115,22 @@ def test_my_parser_parse():
 - [LogBatcher Parser](parsers/logbatcher_parser.md): LLM-based parser that infers templates from raw logs with no training data.
 - [Drain parser](parsers/drain_parser.md): Parser inspired by [Drain Publication](https://ieeexplore.ieee.org/document/8029742).
 - [Auto parser](parsers/auto_parser.md): The auto parser uses a brute-force strategy: it iterates through every log-type record in the internal dataset and chooses the regex and templates that best matches the provided logs.
+
+### Common parameters (all parsers)
+
+There are some parameters, that **every** parser inhertis from `CoreParserrConfig`/`CoreConfig`/`BasicConfig`, regardless of what it does. The other parameters, that are **specific** for the respective parser, are explained right at the parsers documentation page, later on.
+
+<!-- Start common_arguments -->
+| Field  | Type  | Default Value| Description|
+|-------|------|-----|---|
+|auto_config|boolean|False|Runs the configuration step before the training process.|
+|start_id|integer|10|Number used to start the unique ID generator.|
+|data_use_training|integer, null|None|Data used for training, if None, training is not done.|
+|data_use_configure|integer, null|None|Data used for configuration, if None, configuration is not done.|
+|use_config_data_as_training|boolean|True|Combine the configured data in the training process if True.|
+|log_format|string, null|None|fitting description yet to find|
+|time_format|string, null|None|fitting description yet to find|
+<!-- End common_arguments -->
+
 
 Go back to [Index](index.md)
