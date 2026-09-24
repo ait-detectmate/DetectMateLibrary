@@ -3,11 +3,12 @@ from pathlib import Path
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From, To
 
-ROOT = Path.cwd().resolve().parents[0]  # adjust if needed
+ROOT = Path(__file__).resolve().parents[3]  # repository root; adjust if needed
 templates_path = str(ROOT / "tests" / "test_data" / "audit_templates.txt")
 log_path = str(ROOT / "tests" / "test_data" / "audit.log")
 log_json = str(ROOT / "local" / "audit_raw.json")
 parsed_path = str(ROOT / "local" / "audit_parsed.json")
+(ROOT / "local").mkdir(exist_ok=True)
 
 config_dict = {
     "parsers": {
