@@ -1,7 +1,7 @@
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary import schemas
-from typing import List, Any
+from typing import List, Any, Optional
 
 
 class DummyDetectorConfig(CoreDetectorConfig):
@@ -15,12 +15,14 @@ class DummyDetector(CoreDetector):
     def __init__(
         self,
         name: str = "DummyDetector",
+        buffer_mode: BufferMode = BufferMode.NO_BUF,
+        buffer_size: Optional[int] = None,
         config: DummyDetectorConfig | dict[str, Any] = DummyDetectorConfig()
     ) -> None:
 
         if isinstance(config, dict):
             config = DummyDetectorConfig.from_dict(config, name)
-        super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
+        super().__init__(name=name, buffer_mode=buffer_mode, buffer_size=buffer_size, config=config)
         self._call_count = 0
 
     def detect(
@@ -34,6 +36,7 @@ class DummyDetector(CoreDetector):
         self._call_count += 1
         pattern = [True, False]
         result = pattern[self._call_count % len(pattern)]
+        print(self._call_count, result)
         if result:
             output_["score"] = 1.0
             output_["alertsObtain"]["type"] = "Anomaly detected by DummyDetector"

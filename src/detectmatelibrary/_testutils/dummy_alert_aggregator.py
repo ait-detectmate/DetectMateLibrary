@@ -3,24 +3,25 @@ from detectmatelibrary.schemas import DetectorSchema, AggregateSchema
 from typing import Any, Optional
 
 
-class BasicConcatAggregationConfig(CoreAlertAggregatorConfig):
-    method_type: str = "basic_concat_aggregator"
+class DummyAlertAggregatorConfig(CoreAlertAggregatorConfig):
+    method_type: str = "dummy_alert_aggregator"
     buffer_size: int = 3
 
 
-class BasicConcatAggregation(CoreAlertAggregator):
+class DummyAlertAggregator(CoreAlertAggregator):
     def __init__(
         self,
-        name: str = "BasicConcatAggregator",
-        config: Optional[BasicConcatAggregationConfig | dict[str, Any]] = BasicConcatAggregationConfig(),
+        name: str = "DummyAlertAggregator",
+        config: Optional[DummyAlertAggregatorConfig | dict[str, Any]] = DummyAlertAggregatorConfig(),
     ) -> None:
         if isinstance(config, dict):
-            config = BasicConcatAggregationConfig.from_dict(config, name)
+            config = DummyAlertAggregatorConfig.from_dict(config, name)
         buffer_size: int = config.buffer_size  # type: ignore
         super().__init__(name=name, buffer_size=buffer_size, config=config)
 
     def aggregate_alerts(
         self, input_: list[DetectorSchema] | DetectorSchema, output_: AggregateSchema  # type: ignore
     ) -> bool:
-        output_["description"] = "Basic aggregation by alert concatenation"
+        output_["description"] = "Dummy alert aggregation"
+        output_["alertsObtain"]["type"] = "Anomalies aggregated by DummyAlertAggregator"
         return True

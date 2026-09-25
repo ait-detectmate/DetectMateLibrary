@@ -105,6 +105,7 @@ class CoreComponent(Component, FedOperations):
         logger.debug(f"<<{self.name}>> received:\n{data}")
 
         if (data_buffered := self.data_buffer.add(data)) is None:  # type: ignore
+            print("BBBBBBBBBBBB", data, data_buffered)
             return None
 
         if (fit_state := self.fitlogic.run()) == FitLogicState.DO_CONFIG:
