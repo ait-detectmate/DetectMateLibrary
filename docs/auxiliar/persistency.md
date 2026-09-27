@@ -136,6 +136,13 @@ saver.stop()    # final flush, stops the background timer
 save triggers (`save_interval_seconds` and `events_until_save`) are
 independent — whichever fires first wins.
 
+If writing to storage fails (unwritable path, full disk, lost credentials),
+`save()` and `stop()` raise `persistency.PersistencySaveError`, and
+`events_since_save` keeps counting the unsaved events. Saves fired by the two
+triggers cannot raise to a caller, so they log the failure at `ERROR` instead;
+the timer keeps running, and after a failed save the event-count trigger waits
+another `events_until_save` events before retrying.
+
 #### Restoring state
 
 ```python
