@@ -346,6 +346,12 @@ canonical import; the deeply nested submodules are an implementation detail.</p>
 <p><code>PersistencySaver.save()</code> is thread-safe, and <code>stop()</code> is idempotent. The two
 save triggers (<code>save_interval_seconds</code> and <code>events_until_save</code>) are
 independent — whichever fires first wins.</p>
+<p>If writing to storage fails (unwritable path, full disk, lost credentials),
+<code>save()</code> and <code>stop()</code> raise <code>persistency.PersistencySaveError</code>, and
+<code>events_since_save</code> keeps counting the unsaved events. Saves fired by the two
+triggers cannot raise to a caller, so they log the failure at <code>ERROR</code> instead;
+the timer keeps running, and after a failed save the event-count trigger waits
+another <code>events_until_save</code> events before retrying.</p>
 <h4 id="restoring-state">Restoring state</h4>
 <div class="highlight"><pre><span></span><code><span class="n">saver</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">PersistencySaver</span><span class="p">(</span>
     <span class="n">ep</span><span class="p">,</span>
