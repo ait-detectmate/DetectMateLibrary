@@ -9,8 +9,11 @@ import os
 
 
 def generate_path() -> str:
+    if not os.path.exists(".temp"):
+        os.mkdir(".temp")
+
     random_string = "".join(secrets.choice(string.digits) for _ in range(20))
-    return f".{random_string}.csv"
+    return f".temp/.{random_string}.csv"
 
 
 class Manager:

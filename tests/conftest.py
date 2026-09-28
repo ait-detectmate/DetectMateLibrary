@@ -28,6 +28,9 @@ def pytest_collection_modifyitems(config, items):
 
 def pytest_sessionfinish(session, exitstatus):
     directory = Path(".")
-    csv_files = list(directory.glob(".*.csv"))
+    csv_files = list(directory.glob(".temp/.*.csv"))
     for file in csv_files:
         os.remove(file)
+
+    if os.path.exists(".temp"):
+        os.removedirs(".temp")
