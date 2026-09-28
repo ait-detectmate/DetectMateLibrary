@@ -11,7 +11,6 @@ from tests.test_data import LOG_PATH, TEST_CONFIG
 import yaml
 
 
-
 config = {
     "parsers": {
         "dummy_parser": {
@@ -54,7 +53,7 @@ class TestCaseBasicPipelines:
             parsed_log = next(gen)
             assert parsed_log is not None
             processed_data = detector.process(parsed_log)
-            assert (processed_data is None, processed_data is not None)[i%2]
+            assert (processed_data is None, processed_data is not None)[i % 2]
             if processed_data:
                 assert aggregator.process(processed_data) is None
         parsed_log = next(gen)
@@ -76,7 +75,7 @@ class TestCaseBasicPipelines:
         for i in range(7):
             parsed_log = next(gen)
             processed_data = detector.process(parsed_log)
-            index = i%2
+            index = i % 2
             if i < 3:
                 index = 0
             assert (processed_data is None, processed_data is not None)[index]
@@ -101,7 +100,7 @@ class TestCaseBasicPipelines:
         for i in range(17):
             parsed_log = next(gen)
             processed_data = detector.process(parsed_log)
-            index = i%2
+            index = i % 2
             if i < 3 or (i + 1) % 3 != 0:
                 index = 0
             assert (processed_data is None, processed_data is not None)[index]

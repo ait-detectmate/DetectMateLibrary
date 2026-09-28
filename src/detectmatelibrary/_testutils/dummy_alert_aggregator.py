@@ -20,7 +20,7 @@ class DummyAlertAggregator(CoreAlertAggregator):
         super().__init__(name=name, buffer_size=buffer_size, config=config)
 
     def aggregate_alerts(
-        self, input_: list[DetectorSchema] | DetectorSchema, output_: AggregateSchema  # type: ignore
+        self, input_: list[DetectorSchema] | DetectorSchema, output_: AggregateSchema
     ) -> bool:
         output_["description"] = "Dummy alert aggregation"
         output_["alertsObtain"]["type"] = "Anomalies aggregated by DummyAlertAggregator"
