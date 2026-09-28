@@ -121,6 +121,9 @@ class SlowPersistency:
     def close(self) -> None:
         self.file_manager.close()
 
+    def clean(self) -> None:
+        clean_generated_path()
+
     def load(self) -> pl.DataFrame:
         if os.path.exists(self.path):
             return pl.read_csv(self.path)

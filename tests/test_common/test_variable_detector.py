@@ -2,6 +2,8 @@
 from detectmatelibrary.common.variable_detector import VariableDetector
 import detectmatelibrary.schemas as schemas
 
+import os
+
 
 CONFIG = {
     "detectors": {
@@ -91,3 +93,15 @@ class TestFederation:
 
         users = detector3.persistency.get_event_data(1)["user"].unique_set
         assert {"A", "B", "C", "D"} == users
+
+    def test_finalize_federation(self):
+        detector1 = VariableDetector(name="detector", config=CONFIG)
+        detector2 = VariableDetector(name="detector", config=CONFIG)
+
+        train(detector1, "A", "B", "C")
+        train(detector2, "B", "D")
+
+        assert os.path.exists(".temp")
+
+        detector1.finalize_federation()
+        assert not os.path.exists(".temp")

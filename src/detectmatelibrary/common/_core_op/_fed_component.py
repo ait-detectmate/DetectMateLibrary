@@ -106,3 +106,6 @@ class FedOperations:
     def aggregate_strategy(self, components: set["FedOperations"]) -> None:
         """Aggregation strategy use by the component."""
         warnings.warn(f"No strategy found, aggregations does nothing for {components}")
+
+    def finalize_federation(self) -> None:
+        pass

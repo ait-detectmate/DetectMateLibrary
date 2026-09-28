@@ -218,3 +218,6 @@ class VariablesLogic(VaribaleHooks):
             pl.DataFrame.deserialize(io.BytesIO(binary))
         )
         self.persistency.combine(self.persistency)  # Fill fast persistency with slow
+
+    def clean_persistency(self) -> None:
+        self.persistency.event_struct.slow_persistency.clean()

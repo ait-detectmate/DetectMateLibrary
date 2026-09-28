@@ -163,3 +163,6 @@ class VariableDetector(CoreDetector, VariablesLogic):
         var_detect.binary2persistency(binary)
 
         return var_detect
+
+    def finalize_federation(self) -> None:
+        self.clean_persistency()
