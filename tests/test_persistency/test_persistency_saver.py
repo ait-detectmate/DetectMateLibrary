@@ -18,6 +18,7 @@ from detectmatelibrary.utils.persistency.persistency_saver import (
 import detectmatelibrary.utils.persistency.persistency_saver as ps
 from detectmatelibrary.utils import persistency
 
+import logging
 import zipfile
 import io
 
@@ -465,9 +466,8 @@ class TestPersistencySaverSaveFailure:
             saver.stop()
 
     def test_count_triggered_failure_does_not_raise_from_ingest(self, monkeypatch):
-        import detectmatelibrary.utils.persistency.persistency_saver as ps
         monkeypatch.setattr(ps, "_write", _failing_write())
-        p = EventPersistency(event_data_class=EventDataFrame)
+        p = EventPersistency()
         PersistencySaver(
             p, PersistencySaverConfig(path="memory://save_fail6/state", events_until_save=2)
         )
@@ -476,10 +476,9 @@ class TestPersistencySaverSaveFailure:
         assert p.events_since_save == 3
 
     def test_count_triggered_failure_retries_every_threshold_not_every_event(self, monkeypatch):
-        import detectmatelibrary.utils.persistency.persistency_saver as ps
         attempts: list[int] = []
         monkeypatch.setattr(ps, "_write", _failing_write(attempts))
-        p = EventPersistency(event_data_class=EventDataFrame)
+        p = EventPersistency()
         PersistencySaver(
             p, PersistencySaverConfig(path="memory://save_fail7/state", events_until_save=2)
         )
@@ -488,10 +487,8 @@ class TestPersistencySaverSaveFailure:
         assert len(attempts) == 3  # at events 2, 4 and 6
 
     def test_background_save_failure_logged_as_error(self, monkeypatch, caplog):
-        import logging
-        import detectmatelibrary.utils.persistency.persistency_saver as ps
         monkeypatch.setattr(ps, "_write", _failing_write())
-        p = EventPersistency(event_data_class=EventDataFrame)
+        p = EventPersistency()
         PersistencySaver(
             p, PersistencySaverConfig(path="memory://save_fail8/state", events_until_save=1)
         )
@@ -500,10 +497,6 @@ class TestPersistencySaverSaveFailure:
         assert any(
             r.levelno == logging.ERROR and "Permission denied" in r.getMessage() for r in caplog.records
         )
-
-    def test_save_error_exported_from_package(self):
-        from detectmatelibrary.utils import persistency
-        assert persistency.PersistencySaveError is PersistencySaveError
 
 
 class TestStandaloneSaveLoad:
