@@ -1,8 +1,6 @@
 # conftest.py
+from detectmatelibrary.utils.persistency.slow_persistency import clean_generated_path
 import pytest
-
-from pathlib import Path
-import os
 
 
 def pytest_addoption(parser):
@@ -27,10 +25,4 @@ def pytest_collection_modifyitems(config, items):
 
 
 def pytest_sessionfinish(session, exitstatus):
-    directory = Path(".")
-    csv_files = list(directory.glob(".temp/.*.csv"))
-    for file in csv_files:
-        os.remove(file)
-
-    if os.path.exists(".temp"):
-        os.removedirs(".temp")
+    clean_generated_path()

@@ -2,6 +2,7 @@ from typing import Self, Any
 import secrets
 import string
 
+from pathlib import Path
 import polars as pl
 import warnings
 import csv
@@ -14,6 +15,16 @@ def generate_path() -> str:
 
     random_string = "".join(secrets.choice(string.digits) for _ in range(20))
     return f".temp/.{random_string}.csv"
+
+
+def clean_generated_path() -> None:
+    directory = Path(".")
+    csv_files = list(directory.glob(".temp/.*.csv"))
+    for file in csv_files:
+        os.remove(file)
+
+    if os.path.exists(".temp"):
+        os.removedirs(".temp")
 
 
 class Manager:
