@@ -48,7 +48,7 @@ class EventSequenceDetectorConfig(CoreDetectorConfig):
     method_type: str = "event_sequence_detector"
     fixed_window_size: int | None = Field(default=None, ge=1)
     auto_config_params: SequenceAutoConfigParams = SequenceAutoConfigParams()
-    fed_allow: bool = False
+    allow_fed: bool = False
 
 
 class EventSequenceDetector(CoreDetector, VariablesLogic):
@@ -68,7 +68,7 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
         self._detect_window: deque[int] = deque(maxlen=self.config.fixed_window_size)
         self._configure_windows: dict[int, deque[int]] = {}
 
-        VariablesLogic.__init__(self, name=self.name, allow_fed=self.config.fed_allow)
+        VariablesLogic.__init__(self, name=self.name, allow_fed=self.config.allow_fed)
         self._register_persistency(self.persistency)
         self._adopt_restored_length()
 

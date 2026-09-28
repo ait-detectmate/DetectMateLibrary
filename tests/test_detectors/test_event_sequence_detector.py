@@ -233,13 +233,13 @@ class TestEventSequenceDetectorEndToEnd:
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector1 = EventSequenceDetector(
             config=EventSequenceDetectorConfig(
-                auto_config=False, fixed_window_size=3, fed_allow=True
+                auto_config=False, fixed_window_size=3, allow_fed=True
             ),
             name="EventSequenceDetector",
         )
         detector2 = EventSequenceDetector(
             config=EventSequenceDetectorConfig(
-                auto_config=False, fixed_window_size=3, fed_allow=True
+                auto_config=False, fixed_window_size=3, allow_fed=True
             ),
             name="EventSequenceDetector",
         )
@@ -274,13 +274,13 @@ class TestEventSequenceDetectorEndToEnd:
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector1 = EventSequenceDetector(
             config=EventSequenceDetectorConfig(
-                auto_config=False, fixed_window_size=3, fed_allow=True
+                auto_config=False, fixed_window_size=3, allow_fed=True
             ),
             name="EventSequenceDetector",
         )
         detector2 = EventSequenceDetector(
             config=EventSequenceDetectorConfig(
-                auto_config=False, fixed_window_size=3, fed_allow=True
+                auto_config=False, fixed_window_size=3, allow_fed=True
             ),
             name="EventSequenceDetector",
         )
