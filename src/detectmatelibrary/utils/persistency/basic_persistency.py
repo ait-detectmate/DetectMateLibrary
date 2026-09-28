@@ -98,7 +98,7 @@ class PersistencyStruct:
         if self.do_slow:
             self.slow_persistency = SlowPersistency.from_dataframe(df)
         else:
-            warnings.warn("Slow persistency was disable")
+            warnings.warn("Slow persistency was disabled.")
 
 
 class EventPersistencyBase:
