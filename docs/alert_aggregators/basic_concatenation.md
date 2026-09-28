@@ -15,6 +15,7 @@ alert_aggregators:
     BasicConcatAggregator:
         method_type: "basic_concat_aggregator"
         buffer_size: 3
+        deduplicate_values: False
         auto_config: False
 ```
 
