@@ -5,8 +5,8 @@ import os
 from detectmatelibrary.common._config._formats import EventsConfig
 from detectmatelibrary.tools.logging import logger
 
+from ...utils.persistency.persistency_saver import load, save, PersistencySaver, PersistencySaverConfig
 from ...utils.persistency.event_persistency import EventPersistency
-from ...utils.persistency.persistency_saver import load, save
 
 from typing import Any, Callable, Protocol
 
@@ -146,3 +146,27 @@ def validate_config_coverage(
                 "data but no configured variables were extracted. Verify that "
                 "variable names/positions in your config match those in the data."
             )
+
+
+def init_persistency(
+    name: str,
+    config: object,
+    event_persistency: EventPersistency,
+) -> PersistencySaver | None:
+    """Build and start a PersistencySaver for `event_persistency`, or None if
+    disabled."""
+    if config.persist is None:  # type: ignore
+        return None
+    p = config.persist  # type: ignore
+    saver = PersistencySaver(
+        event_persistency,
+        PersistencySaverConfig(
+            path=f"{p.path}/{name}",
+            save_interval_seconds=p.interval_seconds,
+            events_until_save=p.events_until_save,
+            auto_load=p.auto_load,
+            storage_options=p.storage_options,
+        ),
+    )
+    saver.start()
+    return saver
