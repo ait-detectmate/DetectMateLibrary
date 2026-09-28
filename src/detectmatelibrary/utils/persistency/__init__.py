@@ -8,6 +8,7 @@ __all__ = [
     "PersistencySaver",
     "PersistencySaverConfig",
     "PersistencyLoadError",
+    "PersistencySaveError",
     "EventDataset",
     "EventStabilityTracker",
     "save",
