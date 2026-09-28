@@ -14,7 +14,8 @@ TEMPLATE_DIR = BASE_DIR / "workspace" / "templates"
 META_FILES = ["LICENSE.md", ".gitignore", ".pre-commit-config.yaml"]
 DATA_FILES = {
     "parser": TEMPLATE_DIR / "data/logs.json",
-    "detector": TEMPLATE_DIR / "data/parsed_log.json"
+    "detector": TEMPLATE_DIR / "data/parsed_log.json",
+    "alert_aggregator": TEMPLATE_DIR / "data/anomalies.json"
 }
 
 
@@ -38,12 +39,14 @@ def create_tests(type_: str, name: str, workspace_root: Path, pkg_name: str) -> 
 
     - Reads template tests from src/tools/workspace/templates/test_templates/
     - Rewrites the import to point to <pkg_name>.<name>
-    - Renames CustomParser/CustomDetector to the camelized class name
+    - Renames CustomParser/CustomDetector/CustomAlertAggregator to the camelized class name
     """
 
     tests_dir = workspace_root / "tests"
     tests_dir.mkdir(parents=True, exist_ok=True)
-    template_file = TEMPLATE_DIR / "test_templates" / f"test_Custom{type_.capitalize()}.py"
+    # base names in the template (CustomParser/CustomDetector/CustomAlertAggregator)
+    base_class = f"Custom{"".join(part.capitalize() for part in type_.split("_"))}"
+    template_file = TEMPLATE_DIR / "test_templates" / f"test_{base_class}.py"
     test_file = tests_dir / f"test_{name}.py"
 
     if not template_file.exists():
@@ -52,7 +55,6 @@ def create_tests(type_: str, name: str, workspace_root: Path, pkg_name: str) -> 
         return
 
     template_content = template_file.read_text()
-    base_class = f"Custom{type_.capitalize()}"  # base names in the template (CustomParser/CustomDetector)
     # The exact import line in the template, e.g:
     # from ..CustomParser import CustomParser, CustomParserConfig
     # from ..CustomDetector import CustomDetector, CustomDetectorConfig
@@ -98,7 +100,7 @@ def create_workspace(type_: str, name: str, target_dir: Path) -> None:
     pkg_dir.mkdir(parents=True, exist_ok=False)
 
     # Template selection
-    template_file = TEMPLATE_DIR / f"Custom{type_.capitalize()}.py"
+    template_file = TEMPLATE_DIR / f"Custom{"".join(part.capitalize() for part in type_.split("_"))}.py"
     module_name = normalize_package_name(name)
     target_code_file = pkg_dir / f"{module_name}.py"
 
@@ -109,7 +111,7 @@ def create_workspace(type_: str, name: str, target_dir: Path) -> None:
         template_content = template_file.read_text()
 
         # Replace default class name inside template
-        original_class = f"Custom{type_.capitalize()}"
+        original_class = f"Custom{"".join(part.capitalize() for part in type_.split("_"))}"
         new_class = camelize(name)
         template_content = template_content.replace(original_class, new_class)
         template_content = template_content.replace(f"custom_{type_}", f"{name}_{type_}")
@@ -164,7 +166,7 @@ def main() -> None:
     create_cmd.add_argument(
         "--type",
         required=True,
-        choices=["parser", "detector"],
+        choices=["parser", "detector", "alert_aggregator"],
         help="Type of component to generate",
     )
 

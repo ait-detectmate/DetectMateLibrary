@@ -51,7 +51,7 @@ data_global += [schemas.DetectorSchema({
     "description": "hello there",
     "receivedTimestamp": 1,
     "alertsObtain": {"99 problems": "but logs aint one"}
-}) for i in range(1,4)]
+}) for i in range(1, 4)]
 
 
 class TestBasicAggregation:

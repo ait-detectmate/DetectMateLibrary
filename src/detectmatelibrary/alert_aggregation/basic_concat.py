@@ -18,7 +18,7 @@ class BasicConcatAggregation(CoreAlertAggregator):
         if isinstance(config, dict):
             config = BasicConcatAggregationConfig.from_dict(config, name)
         buffer_size: int = config.buffer_size  # type: ignore
-        self.deduplicate_values: bool = config.deduplicate_values # type: ignore
+        self.deduplicate_values: bool = config.deduplicate_values  # type: ignore
         super().__init__(name=name, buffer_size=buffer_size, config=config)
 
     def aggregate_alerts(
