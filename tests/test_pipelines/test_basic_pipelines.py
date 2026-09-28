@@ -50,12 +50,16 @@ class TestCaseBasicPipelines:
         aggregator = DummyAlertAggregator(name="dummy_alert_aggregator", config=config)
 
         gen = From.log(parser, LOG_PATH)
-        for i in range(2):
-            assert (parsed_log := next(gen)) is not None
-            assert (processed_data:= detector.process(parsed_log)) is [None, None][i]
-            assert aggregator.process(processed_data) is None
+        for i in range(5):
+            parsed_log = next(gen)
+            assert parsed_log is not None
+            processed_data = detector.process(parsed_log)
+            assert (processed_data is None, processed_data is not None)[i%2]
+            if processed_data:
+                assert aggregator.process(processed_data) is None
         parsed_log = next(gen)
-        assert (processed_data := detector.process(parsed_log)) is not None
+        processed_data = detector.process(parsed_log)
+        assert processed_data is not None
         assert aggregator.process(processed_data) is not None
 
     def test_window_pipeline(self) -> None:
@@ -69,12 +73,18 @@ class TestCaseBasicPipelines:
         )
         aggregator = DummyAlertAggregator(name="dummy_alert_aggregator", config=config)
         gen = From.log(parser, LOG_PATH)
-        for _ in range(2):
+        for i in range(7):
             parsed_log = next(gen)
-            assert detector.process(parsed_log) is None
-
+            processed_data = detector.process(parsed_log)
+            index = i%2
+            if i < 3:
+                index = 0
+            assert (processed_data is None, processed_data is not None)[index]
+            if processed_data:
+                assert aggregator.process(processed_data) is None
         parsed_log = next(gen)
-        assert (processed_data:= detector.process(parsed_log)) is not None
+        processed_data = detector.process(parsed_log)
+        assert processed_data is not None
         assert aggregator.process(processed_data) is not None
 
     def test_batch_pipeline(self) -> None:
@@ -88,12 +98,19 @@ class TestCaseBasicPipelines:
         aggregator = DummyAlertAggregator(name="dummy_alert_aggregator", config=config)
 
         gen = From.log(parser, LOG_PATH)
-        for _ in range(2):
+        for i in range(17):
             parsed_log = next(gen)
-            assert detector.process(parsed_log) is None
+            processed_data = detector.process(parsed_log)
+            index = i%2
+            if i < 3 or (i + 1) % 3 != 0:
+                index = 0
+            assert (processed_data is None, processed_data is not None)[index]
+            if processed_data:
+                assert aggregator.process(processed_data) is None
 
         parsed_log = next(gen)
-        assert (processed_data := detector.process(parsed_log)) is not None
+        processed_data = detector.process(parsed_log)
+        assert processed_data is not None
         assert aggregator.process(processed_data) is not None
 
 

@@ -36,7 +36,6 @@ class DummyDetector(CoreDetector):
         self._call_count += 1
         pattern = [True, False]
         result = pattern[self._call_count % len(pattern)]
-        print(self._call_count, result)
         if result:
             output_["score"] = 1.0
             output_["alertsObtain"]["type"] = "Anomaly detected by DummyDetector"
