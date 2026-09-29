@@ -25,24 +25,24 @@ nav:
     - Parser types:
       - Auto Parser: parsers/auto_parser.md
       - Drain Parser: parsers/drain_parser.md
-      - Json Parser: parsers/json_parser.md
+      - JSON Parser: parsers/json_parser.md
       - LogBatcher Parser: parsers/logbatcher_parser.md
       - Template Matcher: parsers/template_matcher.md
       - Template Tree Matcher: parsers/template_tree_matcher.md
     - Detector types:
-      - BiGram Frequency: detectors/bigram_frequency.md
-      - CharSet: detectors/charset.md
-      - Deeplog Detector: detectors/deeplog.md
-      - ECVC Detector: detectors/ecvc_detector.md
-      - Event Sequence: detectors/event_sequence.md
-      - LogBert Detector: detectors/logbert.md
-      - New Event: detectors/new_event.md
-      - New Value: detectors/new_value.md
-      - New Value Combo Detector: detectors/combo.md
-      - Random Detector: detectors/random_detector.md
-      - Rule Based: detectors/rule_based.md
-      - SCVS Detector: detectors/scvs_detector.md
-      - Value Range: detectors/value_range.md
+      - 00 Random Detector: detectors/random_detector.md
+      - 01 Rule Detector: detectors/rule_based.md
+      - 02 New Event Detector: detectors/new_event.md
+      - 03 New Value Detector: detectors/new_value.md
+      - 04 New Value Combo Detector: detectors/combo.md
+      - 05 Value Range Detector: detectors/value_range.md
+      - 06 Charset Detector: detectors/charset.md
+      - 07 Event Sequence Detector: detectors/event_sequence.md
+      - 08 Bigram Frequency Detector: detectors/bigram_frequency.md
+      - 09 SCVS Detector: detectors/scvs_detector.md
+      - 10 ECVC Detector: detectors/ecvc_detector.md
+      - 11 DeepLog Detector: detectors/deeplog.md
+      - 12 LogBERT Detector: detectors/logbert.md
     - Alert Aggregation methods:
       - Basic Concat: alert_aggregators/basic_concatenation.md
     - Helpers:

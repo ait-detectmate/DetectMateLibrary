@@ -1,11 +1,11 @@
 # --8<-- [start:example]
 import yaml
 from detectmatelibrary import schemas
-from detectmatelibrary.detectors.deeplog_detector import DeeplogDetector
+from detectmatelibrary.detectors.logbert_detector import LogBertDetector
 
-with open("docs/examples/detectors/deeplog_detector.yaml") as f:
+with open("docs/examples/detectors/logbert.yaml") as f:
     config = yaml.safe_load(f)
-detector = DeeplogDetector(name="DeeplogDetector", config=config)
+detector = LogBertDetector(name="LogBertDetector", config=config)
 
 
 def event(event_id: int) -> schemas.ParserSchema:
@@ -20,5 +20,7 @@ for log in [event(i) for i in [0, 1, 2, 3] * 15]:
 # the same workflow, but with events 2 and 3 swapped in the middle
 stream = [0, 1, 2, 3, 0, 1, 3, 2, 0, 1, 2, 3]
 flagged = [i for i, e in enumerate(stream) if detector.process(event(e))]
-print(flagged)  # [6, 7]: the windows ending on the swapped events
+# Positions of the flagged windows. On a stream this small LogBERT also flags
+# some normal windows; in practice, train it on thousands of logs.
+print(flagged)
 # --8<-- [end:example]

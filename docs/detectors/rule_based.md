@@ -1,6 +1,6 @@
-# Rule-based Detector
+# Rule Detector
 
-The Rule-based Detector raises alerts based on a configurable set of rules.
+The Rule Detector raises alerts based on a configurable set of rules.
 
 ## In/out
 

@@ -1,4 +1,6 @@
 from typing import Any, Collection, List
+from typing_extensions import Self
+import warnings
 
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 from detectmatelibrary.common._other_op._variable_hooks import VariablesLogic
@@ -64,9 +66,13 @@ class ECVCOp:
         raise Exception("Method not supported")
 
 
+# method_type this detector used before it was corrected; still accepted.
+_LEGACY_METHOD_TYPE = "ecvc_detector_detector"
+
+
 class ECVCDetectorConfig(CoreDetectorConfig):
     method_type: str = Field(
-        default="ecvc_detector_detector", description="Indicates what type of method it is."
+        default="ecvc_detector", description="Indicates what type of method it is."
     )
     window_size: int = Field(
         default=10,
@@ -91,6 +97,21 @@ class ECVCDetectorConfig(CoreDetectorConfig):
             "fixed threshold of 0."
         ),
     )
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any], method_id: str) -> Self:
+        method = data.get(cls().component_type, {}).get(method_id, {})
+        if method.get("method_type") == _LEGACY_METHOD_TYPE:
+            warnings.warn(
+                f"method_type '{_LEGACY_METHOD_TYPE}' is deprecated, use 'ecvc_detector'.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            data = {**data, cls().component_type: {
+                **data[cls().component_type],
+                method_id: {**method, "method_type": "ecvc_detector"},
+            }}
+        return super().from_dict(data, method_id)
 
 
 class ECVCDetector(CoreDetector, VariablesLogic):

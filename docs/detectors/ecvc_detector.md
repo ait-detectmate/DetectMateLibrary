@@ -51,7 +51,7 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
 
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
-    | `method_type` | string | ecvc_detector_detector | shared | Indicates what type of method it is. |
+    | `method_type` | string | ecvc_detector | shared | Indicates what type of method it is. |
     | `auto_config` | boolean | True | shared | Runs the configuration step before the training process. |
     | `events` | object | {} | shared | Events configuration dict keyed by event_id. |
     | `global` | object | {} | shared | Instances monitoring event-independent header variables (e.g. hostname, level), keyed by instance name. Written as `global` in YAML. |

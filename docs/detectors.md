@@ -81,21 +81,23 @@ To configure the number of logs receive as input, you need to configure the [buf
 
 ## Detectors methods
 
-List of detectors:
+The detectors are numbered from simplest to most complex, and the sidebar lists them in the same order. The simplest ones need no training or learn a plain set of values; the most complex are neural networks that need a lot of training data. If you are new to DetectMate, start at the top.
 
-* [Random detector](detectors/random_detector.md): Generates random alerts.
-* [New Value](detectors/new_value.md): Detect new values in the variables in the logs.
-* [Combo Detector](detectors/combo.md): Detect new combination of variables in the logs.
-* [New Event](detectors/new_event.md): Detect new events in the variables in the logs.
-* [Event Sequence](detectors/event_sequence.md): Detect unseen sequences of consecutive events in the logs.
-* [Value Range](detectors/value_range.md) Detect numeric value ranges in variables in the logs.
-* [Rule Based](detectors/rule_based.md): Detect anomalies based in a set of rules.
-* [Bigram Frequency](detectors/bigram_frequency.md): Detect bigram-frequency-based anomalies in the logs.
-* [Charset](detectors/charset.md): Detect new characters in the variables in the logs.
-* [Deeplog](detectors/deeplog.md): Detect anomalies of a sequence of evend IDs with a LSTM.
-* [LogBert](detectors/logbert.md): Detect anomalies of a sequence of evend IDs with a Transformer.
-* [SCVS Detector](detectors/scvs_detector.md): Detect anomalies by looking at different sequence count vectors.
-* [ECVC Detector](detectors/ecvc_detector.md): Detect anomalies by calculating the distance between different sequence count vectors.
+| # | Detector | What it detects |
+|---|---|---|
+| 00 | [Random Detector](detectors/random_detector.md) | Raises random alerts, for testing a pipeline. No training. |
+| 01 | [Rule Detector](detectors/rule_based.md) | Logs that match fixed rules (unknown template, keyword, exception, error level). No training. |
+| 02 | [New Event Detector](detectors/new_event.md) | Event IDs (log templates) never seen in training. |
+| 03 | [New Value Detector](detectors/new_value.md) | Values of a variable never seen in training. |
+| 04 | [New Value Combo Detector](detectors/combo.md) | Combinations of values never seen together in training. |
+| 05 | [Value Range Detector](detectors/value_range.md) | Numeric values outside the range seen in training. |
+| 06 | [Charset Detector](detectors/charset.md) | Characters in a variable never seen in training. |
+| 07 | [Event Sequence Detector](detectors/event_sequence.md) | Orders of consecutive event IDs never seen in training. |
+| 08 | [Bigram Frequency Detector](detectors/bigram_frequency.md) | Values whose character pairs are improbable under a learned frequency model. |
+| 09 | [SCVS Detector](detectors/scvs_detector.md) | Sequence Count Vector Set: windows whose event counts never occurred in training. |
+| 10 | [ECVC Detector](detectors/ecvc_detector.md) | Event Count Vector Clustering: windows whose event counts are far from those seen in training. |
+| 11 | [DeepLog Detector](detectors/deeplog.md) | Unexpected next events in a sequence, predicted by an LSTM. |
+| 12 | [LogBERT Detector](detectors/logbert.md) | Unexpected events in a sequence, predicted by a Transformer. |
 
 ## Configuration
 
@@ -163,7 +165,7 @@ Beyond the common parameters, two groups of detectors inherit group-specific con
 
 ### Per-variable model detectors
 
-The detectors that learn a per-variable model ([Bigram Frequency](detectors/bigram_frequency.md), [Charset](detectors/charset.md), [Combo Detector](detectors/combo.md), [New Value](detectors/new_value.md), [Value Range](detectors/value_range.md)) share the following parameters, inherited from `VariableDetectorConfig`.
+The detectors that learn a per-variable model ([Bigram Frequency](detectors/bigram_frequency.md), [Charset](detectors/charset.md), [New Value Combo](detectors/combo.md), [New Value](detectors/new_value.md), [Value Range](detectors/value_range.md)) share the following parameters, inherited from `VariableDetectorConfig`.
 
 <!-- Start variable_arguments -->
 ??? note "auto_config_params (read only while auto_config is true)"
@@ -185,7 +187,7 @@ The detectors that learn a per-variable model ([Bigram Frequency](detectors/bigr
 
 ### Deep learning detectors
 
-The two neural detectors ([Deeplog](detectors/deeplog.md), [LogBert](detectors/logbert.md)) share the following parameters, inherited from `DeepLearningDetectorConfig`.
+The two neural detectors ([DeepLog](detectors/deeplog.md), [LogBERT](detectors/logbert.md)) share the following parameters, inherited from `DeepLearningDetectorConfig`.
 
 <!-- Start deeplearning_arguments -->
 ???+ note "params"

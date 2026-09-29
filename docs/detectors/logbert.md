@@ -1,6 +1,6 @@
-# LogBert Detector
+# LogBERT Detector
 
-The LogBert Detector is inspired from [LogBert paper](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=9534113).
+The LogBERT Detector is inspired by the [LogBERT paper](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=9534113).
 
 ## In/out
 
@@ -24,7 +24,7 @@ Deep learning method that looks at the event ID sequence.
 ## Example
 
 ```python
---8<-- "docs/examples/detectors/logbert_detector.py:example"
+--8<-- "docs/examples/detectors/logbert.py:example"
 ```
 
 ## Configuration file
@@ -32,7 +32,7 @@ Deep learning method that looks at the event ID sequence.
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
 ```yaml
---8<-- "docs/examples/detectors/logbert_detector.yaml"
+--8<-- "docs/examples/detectors/logbert.yaml"
 ```
 
 The same file works unchanged in both places a detector runs:

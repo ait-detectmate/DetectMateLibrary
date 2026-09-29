@@ -1,4 +1,4 @@
-# Drain parser
+# Drain Parser
 
 The parser is derived from the official [Drain publication](https://ieeexplore.ieee.org/document/8029742).
 

@@ -1,6 +1,6 @@
-# Deeplog Detector
+# DeepLog Detector
 
-The Deeplog Detector is inspired from [Deeplog paper](https://dl.acm.org/doi/10.1145/3133956.3134015).
+The DeepLog Detector is inspired by the [DeepLog paper](https://dl.acm.org/doi/10.1145/3133956.3134015).
 
 ## In/out
 
@@ -24,7 +24,7 @@ Deep learning method that looks at the event ID sequence.
 ## Example
 
 ```python
---8<-- "docs/examples/detectors/deeplog_detector.py:example"
+--8<-- "docs/examples/detectors/deeplog.py:example"
 ```
 
 ## Configuration file
@@ -32,7 +32,7 @@ Deep learning method that looks at the event ID sequence.
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
 ```yaml
---8<-- "docs/examples/detectors/deeplog_detector.yaml"
+--8<-- "docs/examples/detectors/deeplog.yaml"
 ```
 
 The same file works unchanged in both places a detector runs:

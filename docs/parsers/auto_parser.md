@@ -1,6 +1,6 @@
 # Auto Parser
 
-The auto parser uses a brute-force strategy: it iterates through every log-type record in the internal dataset and chooses the regex and templates that best matches the provided logs.
+The Auto Parser uses a brute-force strategy: it iterates through every log-type record in the internal dataset and chooses the regex and templates that best matches the provided logs.
 
 Compared with Template Matcher approaches, its key benefit is that you don’t need to supply templates or regex formatting during initialization, which makes it more convenient for rapid deployments. Its main drawback is that it only performs well for log types that are already included in the internal dataset.
 
