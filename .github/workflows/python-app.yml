@@ -23,6 +23,10 @@ jobs:
           activate-environment: true
           enable-cache: true
 
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
       - name: Set timezone
         run: sudo timedatectl set-timezone Europe/Vienna
 
@@ -40,7 +44,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add .
           git commit -m "Automated update"
-          git push
+          git push origin "HEAD:$PR_BRANCH"
 
       # integration tests for DetectMateService
       - name: Checkout DetectMateService
