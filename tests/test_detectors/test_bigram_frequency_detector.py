@@ -47,6 +47,17 @@ _SKIP_REPETITIONS_CONFIG = {
     }
 }
 
+# Same parameters, but the configure phase picks the variables.
+_AUTO_SKIP_REPETITIONS_CONFIG = {
+    "detectors": {
+        "MultipleDetector": {
+            "method_type": "bigram_frequency_detector",
+            "auto_config": True,
+            "params": {"skip_repetitions": True},
+        }
+    }
+}
+
 
 config = {
     "detectors": {
@@ -314,7 +325,7 @@ class TestBigramFrequencyDetectorAutoConfig:
     @pytest.mark.ignored
     def test_audit_log_anomalies_via_process(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
-        detector = BigramFrequencyDetector(config=_SKIP_REPETITIONS_CONFIG, name="MultipleDetector")
+        detector = BigramFrequencyDetector(config=_AUTO_SKIP_REPETITIONS_CONFIG, name="MultipleDetector")
 
         logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
 

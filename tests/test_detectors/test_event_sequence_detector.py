@@ -456,6 +456,24 @@ class TestEventSequenceDetectorAutoConfig:
         assert detector.get_known_sequences() == set()
         assert not detector.detect(_make_schema(9), schemas.DetectorSchema())
 
+    def test_auto_config_off_stays_inert_through_a_configure_phase(self):
+        """A configure window alone must not pick a length: auto_config=False
+        means the configure phase configures nothing."""
+        detector = EventSequenceDetector(
+            name="NoWindowConfigPhase",
+            config=EventSequenceDetectorConfig(
+                auto_config=False, data_use_configure=6, data_use_training=1,
+                auto_config_params=SequenceAutoConfigParams(min_window_size=2, max_window_size=8),
+            ),
+        )
+
+        for i, event_id in enumerate(_STABLE_STREAM):
+            detector.process(_make_schema(event_id, log_id=str(i)))
+
+        assert detector.config.fixed_window_size is None
+        assert detector._configure_windows == {}
+        assert detector.get_known_sequences() == set()
+
 
 _CYCLE_3_GRAMS = {(1, 2, 3), (2, 3, 1), (3, 1, 2)}
 

@@ -225,7 +225,11 @@ def set_configuration(self):
 4. detect(input_, output_)   # call for each event to detect anomalies
 ```
 
-When `auto_config` is `False`, steps 1 and 2 are skipped entirely.
+When `auto_config` is `False`, steps 1 and 2 are skipped entirely. `data_use_configure`
+still reserves its records, and with `use_config_data_as_training` they still go to
+training, so a config rerun with `auto_config: False` trains on exactly the data the
+configuring run saw. This holds for every component with a configure phase, including
+the hyperparameter searches of `DrainParser` and the deep-learning detectors.
 
 That distinction is visible in the config. A detector's settings live in two
 blocks:
