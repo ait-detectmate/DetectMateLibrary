@@ -172,8 +172,6 @@ The detectors that learn a per-variable model ([Bigram Frequency](detectors/bigr
 
     | Field | Type | Default | Description |
     |---|---|---|---|
-    | `use_stable_vars` | boolean | True | Monitor the variables the configure phase classifies as STABLE. |
-    | `use_static_vars` | boolean | True | Monitor the variables the configure phase classifies as STATIC (a single value). |
     | `classification.index` | boolean | True | Segment-mean test over equal-count segments. |
     | `classification.time` | boolean | False | Segment-mean test over equal-duration segments. Needs timestamp_variable. |
     | `classification.segment_thresholds` | array | [1.1, 0.3, 0.1, 0.01] | Upper bound on the mean change rate, one per segment; the list length is the segment count. Used by index and time. |
@@ -183,6 +181,8 @@ The detectors that learn a per-variable model ([Bigram Frequency](detectors/bigr
     | `classification.decision` | string | consensus | How the enabled methods' verdicts combine: consensus needs all of them, majority needs more than half. |
     | `timestamp_variable` | string, null | None | Header variable (from the parser's log_format) holding each event's time. Required by the time and slope_time classification methods. |
     | `timestamp_format` | string, null | None | Format of timestamp_variable. None detects it automatically. |
+    | `use_stable_vars` | boolean | True | Monitor the variables the configure phase classifies as STABLE. |
+    | `use_static_vars` | boolean | True | Monitor the variables the configure phase classifies as STATIC (a single value). |
 <!-- End variable_arguments -->
 
 ### Deep learning detectors
@@ -256,7 +256,11 @@ To support auto-configuration in your own detector, see [Development](developmen
 4. detect(input_, output_)   # call for each event to detect anomalies
 ```
 
-When `auto_config` is `False`, steps 1 and 2 are skipped entirely.
+When `auto_config` is `False`, steps 1 and 2 are skipped entirely. `data_use_configure`
+still reserves its records, and with `use_config_data_as_training` they still go to
+training, so a config rerun with `auto_config: False` trains on exactly the data the
+configuring run saw. This holds for every component with a configure phase, including
+the hyperparameter searches of `DrainParser` and the deep-learning detectors.
 
 That distinction is visible in the config. A detector's settings live in two
 blocks:

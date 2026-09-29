@@ -60,14 +60,7 @@ def strip_auto_config_params(detector_config: Dict[str, Any], method_id: str) ->
     }
 
 
-class VariableAutoConfigParams(AutoConfigParams):
-    use_stable_vars: bool = Field(
-        default=True, description="Monitor the variables the configure phase classifies as STABLE."
-    )
-    use_static_vars: bool = Field(
-        default=True,
-        description="Monitor the variables the configure phase classifies as STATIC (a single value).",
-    )
+class StabilityAutoConfigParams(AutoConfigParams):
     classification: ClassificationMethods = ClassificationMethods()
     timestamp_variable: str | None = Field(
         default=None,
@@ -82,9 +75,19 @@ class VariableAutoConfigParams(AutoConfigParams):
     )
 
 
+class VariableAutoConfigParams(StabilityAutoConfigParams):
+    use_stable_vars: bool = Field(
+        default=True, description="Monitor the variables the configure phase classifies as STABLE."
+    )
+    use_static_vars: bool = Field(
+        default=True,
+        description="Monitor the variables the configure phase classifies as STATIC (a single value).",
+    )
+
+
 class VaribaleHooks:
     """Hooks use to define the dfferent behaviours in th next subclasses."""
-    def __init__(self, name: str, config_vars: VariableAutoConfigParams) -> None:
+    def __init__(self, name: str, config_vars: StabilityAutoConfigParams) -> None:
         self.name = name
         self._warned_bad_timestamp: bool = False
         self.config_vars = config_vars
@@ -136,7 +139,7 @@ class VariablesLogic(VaribaleHooks):
         self,
         name: str,
         _time_handler: TimeFormatHandler = TimeFormatHandler(),
-        config_vars: VariableAutoConfigParams = VariableAutoConfigParams(),
+        config_vars: StabilityAutoConfigParams = VariableAutoConfigParams(),
     ) -> None:
 
         super().__init__(name=name, config_vars=config_vars)

@@ -69,8 +69,6 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
 
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
-    | `use_stable_vars` | boolean | True | shared | Monitor the variables the configure phase classifies as STABLE. |
-    | `use_static_vars` | boolean | True | shared | Monitor the variables the configure phase classifies as STATIC (a single value). |
     | `classification.index` | boolean | True | shared | Segment-mean test over equal-count segments. |
     | `classification.time` | boolean | False | shared | Segment-mean test over equal-duration segments. Needs timestamp_variable. |
     | `classification.segment_thresholds` | array | [1.1, 0.3, 0.1, 0.01] | shared | Upper bound on the mean change rate, one per segment; the list length is the segment count. Used by index and time. |
@@ -80,4 +78,6 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `classification.decision` | string | consensus | shared | How the enabled methods' verdicts combine: consensus needs all of them, majority needs more than half. |
     | `timestamp_variable` | string, null | None | shared | Header variable (from the parser's log_format) holding each event's time. Required by the time and slope_time classification methods. |
     | `timestamp_format` | string, null | None | shared | Format of timestamp_variable. None detects it automatically. |
+    | `use_stable_vars` | boolean | True | shared | Monitor the variables the configure phase classifies as STABLE. |
+    | `use_static_vars` | boolean | True | shared | Monitor the variables the configure phase classifies as STATIC (a single value). |
 <!-- End arguments -->

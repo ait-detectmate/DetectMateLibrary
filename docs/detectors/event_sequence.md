@@ -98,6 +98,15 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
 
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
+    | `classification.index` | boolean | True | specific | Segment-mean test over equal-count segments. |
+    | `classification.time` | boolean | False | specific | Segment-mean test over equal-duration segments. Needs timestamp_variable. |
+    | `classification.segment_thresholds` | array | [1.1, 0.3, 0.1, 0.01] | specific | Upper bound on the mean change rate, one per segment; the list length is the segment count. Used by index and time. |
+    | `classification.slope_index` | boolean | False | specific | Change-centroid test on the index axis. |
+    | `classification.slope_time` | boolean | False | specific | Change-centroid test on the time axis. Needs timestamp_variable. |
+    | `classification.slope_threshold` | number | -0.05 | specific | A variable is STABLE when its change centroid (-0.5 to +0.5) is at or below this. Used by slope_index and slope_time. |
+    | `classification.decision` | string | consensus | specific | How the enabled methods' verdicts combine: consensus needs all of them, majority needs more than half. |
+    | `timestamp_variable` | string, null | None | specific | Header variable (from the parser's log_format) holding each event's time. Required by the time and slope_time classification methods. |
+    | `timestamp_format` | string, null | None | specific | Format of timestamp_variable. None detects it automatically. |
     | `min_window_size` | integer | 2 | specific | Shortest window length tried by the configure phase. Must be >= 1. |
     | `max_window_size` | integer | 10 | specific | Longest window length tried by the configure phase; the longest length whose sequences are STABLE or STATIC wins. Must be >= min_window_size. |
 <!-- End arguments -->

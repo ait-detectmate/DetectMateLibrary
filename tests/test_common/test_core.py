@@ -69,6 +69,7 @@ class MockComponentWithTraining(CoreComponent):
 class MockConfigWithConfigure(CoreConfig):
     thresholds: float = 0.7
     max_iter: int = 50
+    auto_config: bool = True
     data_use_configure: int | None = 3
 
 
@@ -356,6 +357,7 @@ class TestCoreComponent:
 
     def test_configuration_before_training(self) -> None:
         config = CoreConfig(
+            auto_config=True,
             data_use_configure=2, data_use_training=3, use_config_data_as_training=False
         )
         component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
@@ -369,6 +371,7 @@ class TestCoreComponent:
 
     def test_configuration_before_training_with_buffer(self) -> None:
         config = CoreConfig(
+            auto_config=True,
             data_use_configure=2, data_use_training=3, use_config_data_as_training=True
         )
         component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
@@ -387,6 +390,79 @@ class TestCoreComponent:
             component.process(_make_log(i))
 
         assert component.set_configuration_called == 1
+
+
+class TestAutoConfigGate:
+    """`auto_config` decides whether the configure phase configures anything;
+    `data_use_configure` only sizes the window.
+
+    With auto_config off the window still consumes its records and still
+    hands them to training, so a detector rerun with auto_config=False
+    sees exactly the data the configuring run saw.
+    """
+
+    def test_auto_config_off_skips_configure_and_set_configuration(self) -> None:
+        component = MockComponentWithConfigure(
+            name="GateOff1", config=MockConfigWithConfigure(auto_config=False)
+        )
+
+        results = [component.process(_make_log(i)) for i in range(10)]
+
+        assert component.configure_data == []
+        assert component.set_configuration_called == 0
+        assert component.fitlogic.config_state.data_used == 3
+        assert all(r is None for r in results[:3])
+
+    def test_auto_config_off_still_trains_on_configure_window(self) -> None:
+        config = CoreConfig(
+            auto_config=False,
+            data_use_configure=2, data_use_training=3, use_config_data_as_training=True
+        )
+        component = MockComponentWithConfigureAndTraining(name="GateOff2", config=config)
+
+        for i in range(10):
+            component.process(_make_log(i))
+
+        assert component.configure_data == []
+        assert component.set_configuration_called == 0
+        assert [log["logID"] for log in component.train_data] == ["0", "1", "2", "3", "4"]
+
+    def test_auto_config_off_without_replay_drops_configure_window(self) -> None:
+        config = CoreConfig(
+            auto_config=False,
+            data_use_configure=2, data_use_training=3, use_config_data_as_training=False
+        )
+        component = MockComponentWithConfigureAndTraining(name="GateOff3", config=config)
+
+        for i in range(10):
+            component.process(_make_log(i))
+
+        assert component.configure_data == []
+        assert [log["logID"] for log in component.train_data] == ["2", "3", "4"]
+
+    def test_auto_config_off_ignores_keep_configuring(self) -> None:
+        component = MockComponentWithConfigure(
+            name="GateOff4", config=MockConfigWithConfigure(auto_config=False)
+        )
+        component.update_state("keep_configuring")
+
+        for i in range(10):
+            component.process(_make_log(i))
+
+        assert component.configure_data == []
+
+    def test_auto_config_on_matches_off_in_training_data(self) -> None:
+        def run(auto_config: bool) -> list[str]:
+            config = CoreConfig(
+                auto_config=auto_config,
+                data_use_configure=2, data_use_training=3, use_config_data_as_training=True
+            )
+            component = MockComponentWithConfigureAndTraining(name="GateEq", config=config)
+            for i in range(10):
+                component.process(_make_log(i))
+            return [log["logID"] for log in component.train_data]
+
+        assert run(auto_config=True) == run(auto_config=False)
 
 
 class MockConfigWithPostTrain(CoreConfig):
