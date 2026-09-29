@@ -58,17 +58,29 @@ def strip_auto_config_params(detector_config: Dict[str, Any], method_id: str) ->
     }
 
 
-class VariableAutoConfigParams(AutoConfigParams):
-    use_stable_vars: bool = True
-    use_static_vars: bool = True
+class StabilityAutoConfigParams(AutoConfigParams):
+    """Configure-phase inputs of every component that decides its configuration
+    from a stability verdict.
+
+    The rule a verdict is taken under belongs here rather than on the
+    variable block alone: a component that classifies something other than
+    variables -- EventSequenceDetector classifies candidate windows -- has
+    to be gradeable by the same rule, or one component in a run would
+    auto-configure itself under a rule nobody asked for.
+    """
     classification: ClassificationMethods = ClassificationMethods()
     timestamp_variable: str | None = None
     timestamp_format: str | None = None  # None -> TimeFormatHandler auto-detect
 
 
+class VariableAutoConfigParams(StabilityAutoConfigParams):
+    use_stable_vars: bool = True
+    use_static_vars: bool = True
+
+
 class VaribaleHooks:
     """Hooks use to define the dfferent behaviours in th next subclasses."""
-    def __init__(self, name: str, config_vars: VariableAutoConfigParams) -> None:
+    def __init__(self, name: str, config_vars: StabilityAutoConfigParams) -> None:
         self.name = name
         self._warned_bad_timestamp: bool = False
         self.config_vars = config_vars
@@ -120,7 +132,7 @@ class VariablesLogic(VaribaleHooks):
         self,
         name: str,
         _time_handler: TimeFormatHandler = TimeFormatHandler(),
-        config_vars: VariableAutoConfigParams = VariableAutoConfigParams(),
+        config_vars: StabilityAutoConfigParams = VariableAutoConfigParams(),
     ) -> None:
 
         super().__init__(name=name, config_vars=config_vars)
