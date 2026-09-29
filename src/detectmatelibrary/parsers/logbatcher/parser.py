@@ -12,7 +12,7 @@ from pydantic import Field
 class LogBatcherParserConfig(CoreParserConfig):
     """Configuration for LogBatcherParser."""
 
-    method_type: str = Field(default="logbatcher_parser", description="<$IGNORE$>")
+    method_type: str = Field(default="logbatcher_parser", description="Indicates what type of method it is.")
     model: str = Field(
         default="gpt-4o-mini", description="fitting description yet to find"
     )

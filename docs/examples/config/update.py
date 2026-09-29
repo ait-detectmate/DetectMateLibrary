@@ -8,6 +8,7 @@ from detectmatelibrary.detectors.new_value_combo_detector import (
 )
 from detectmatelibrary.detectors.deeplog_detector import DeeplogDetectorConfig
 from detectmatelibrary.detectors.ecvc_detector import ECVCDetectorConfig
+from detectmatelibrary.detectors.event_sequence_detector import EventSequenceDetectorConfig
 from detectmatelibrary.detectors.logbert_detector import LogBertDetectorConfig
 from detectmatelibrary.detectors.new_event_detector import NewEventDetectorConfig
 from detectmatelibrary.detectors.new_value_detector import NewValueDetectorConfig
@@ -28,6 +29,8 @@ from detectmatelibrary.common.parser import CoreParserConfig
 from detectmatelibrary.common.variable_detector import VariableDetectorConfig
 from detectmatelibrary.common.deeplearning_detector import DeepLearningDetectorConfig
 
+from typing import Any
+
 import yaml
 
 
@@ -41,20 +44,84 @@ def append_docs(docs: list[str], start_cmd: str, end_cmd: str, add: str) -> list
     return docs[: start_idx + 1] + [add] + docs[end_idx:]
 
 
-def get_arguments(
-    config: CoreConfig, exclude_inherited_from: type[CoreConfig] | None = None
-) -> str:
-    arguments = (
-        "| Field  | Type  | Default Value| Description|\n|-------|------|-----|---|\n"
-    )
-    for arg in config.get_docs(exclude_inherited_from=exclude_inherited_from):
-        arguments += f"|{arg['Name']}|{arg['Type']}|{arg['Default value']}|{arg['Description']}|\n"
-    return arguments
+# One collapsible table per YAML block, in the order the blocks appear in the
+# config (rendered with material's admonition + pymdownx.details).
+BLOCKS = [
+    ("top", "Top level"),
+    ("params", "params"),
+    ("auto_config_params", "auto_config_params (read only while auto_config is true)"),
+]
+
+
+def _cell(value: Any) -> str:
+    return " ".join(str(value).split()).replace("|", "\\|")
+
+
+def get_arguments(rows: list[dict[str, Any]], with_scope: bool = True) -> str:
+    """Render get_docs() rows as one collapsible markdown table per YAML block.
+
+    A block holding any specific field starts open, a block of only
+    shared fields starts collapsed. Within a block, specific fields come
+    first.
+    """
+    header = ["Field", "Type", "Default", "Scope", "Description"]
+    if not with_scope:
+        header.remove("Scope")
+
+    tables = []
+    for block, title in BLOCKS:
+        block_rows = sorted(
+            (r for r in rows if r["Block"] == block), key=lambda r: r["Scope"] != "specific"
+        )
+        if not block_rows:
+            continue
+        is_open = any(r["Scope"] == "specific" for r in block_rows)
+        lines = [
+            f'???{"+" if is_open else ""} note "{title}"',
+            "",
+            "    | " + " | ".join(header) + " |",
+            "    |" + "---|" * len(header),
+        ]
+        for r in block_rows:
+            default = _cell(r["Default value"])
+            if r["Default changed"]:
+                default += f" (shared: {_cell(r['Shared default'])})"
+            cells = [f"`{r['Name']}`", _cell(r["Type"]), default, r["Scope"], _cell(r["Description"])]
+            if not with_scope:
+                cells.remove(r["Scope"])
+            lines.append("    | " + " | ".join(cells) + " |")
+        tables.append("\n".join(lines) + "\n")
+    return "\n".join(tables)
+
+
+def config_dict(config: CoreConfig) -> dict[str, Any]:
+    """Config as the YAML a user writes, always with its auto_config_params.
+
+    to_dict() drops auto_config_params while it is at its default, but
+    the example should show every setting the detector accepts.
+    """
+    as_dict = config.to_dict("<COMPONENT_NAME>")
+    method = as_dict[config.component_type]["<COMPONENT_NAME>"]
+    # to_dict() leaves an empty global_instances under params; the tables
+    # document it as the top-level `global` block, so don't show it there
+    if method.get("params", {}).get("global_instances") == {}:
+        del method["params"]["global_instances"]
+    auto_params = config.auto_config_params.model_dump()
+    if auto_params and "auto_config_params" not in method:
+        blocks = list(method.items())
+        at = next((i + 1 for i, (key, _) in enumerate(blocks) if key == "params"), len(blocks))
+        blocks.insert(at, ("auto_config_params", auto_params))
+        as_dict[config.component_type]["<COMPONENT_NAME>"] = dict(blocks)
+    # the example must load back into the same config
+    reloaded = type(config).from_dict(as_dict, "<COMPONENT_NAME>")
+    if reloaded.to_dict("<COMPONENT_NAME>") != config.to_dict("<COMPONENT_NAME>"):
+        raise ValueError(f"{type(config).__name__}: generated YAML example does not load back")
+    return as_dict
 
 
 def config_yaml(config: CoreConfig) -> str:
     pretty_yaml = yaml.dump(
-        config.to_dict("<COMPONENT_NAME>"),
+        config_dict(config),
         indent=4,
         default_flow_style=False,
         sort_keys=False,
@@ -65,7 +132,7 @@ def config_yaml(config: CoreConfig) -> str:
 def update_docs(
     config: CoreConfig,
     doc_path: str,
-    exclude_inherited_from: type[CoreConfig] | None = None,
+    shared_base: type[CoreConfig],
 ) -> None:
     try:
         with open(doc_path, "r") as f:
@@ -75,13 +142,9 @@ def update_docs(
             docs=docs,
             start_cmd="<!-- Start arguments -->\n",
             end_cmd="<!-- End arguments -->\n",
-            add=get_arguments(config, exclude_inherited_from=exclude_inherited_from),
+            add=get_arguments(config.get_docs(shared_base=shared_base)),
         )
 
-        # The YAML example stays complete (every field, not just this
-        # detector's own ones) -- it's meant to be copy-pasted as a working
-        # config, so it can't skip fields just because they're documented
-        # elsewhere.
         docs = append_docs(
             docs=docs,
             start_cmd="<!-- Start config -->\n",
@@ -93,6 +156,11 @@ def update_docs(
             f.writelines(docs)
     except Exception as e:
         raise Exception(f"While updating {doc_path} -> {str(e)}")
+
+
+def _family_rows(config: CoreConfig) -> list[dict[str, Any]]:
+    """What a detector family adds on top of the fields every detector has."""
+    return [r for r in config.get_docs(shared_base=CoreDetectorConfig) if r["Scope"] == "specific"]
 
 
 def update_shared_args_detectors(doc_path: str) -> None:
@@ -108,23 +176,19 @@ def update_shared_args_detectors(doc_path: str) -> None:
             docs=docs,
             start_cmd="<!-- Start common_arguments -->\n",
             end_cmd="<!-- End common_arguments -->\n",
-            add=get_arguments(CoreDetectorConfig()),
+            add=get_arguments(CoreDetectorConfig().get_docs(), with_scope=False),
         )
         docs = append_docs(
             docs=docs,
             start_cmd="<!-- Start variable_arguments -->\n",
             end_cmd="<!-- End variable_arguments -->\n",
-            add=get_arguments(
-                VariableDetectorConfig(), exclude_inherited_from=CoreDetectorConfig
-            ),
+            add=get_arguments(_family_rows(VariableDetectorConfig()), with_scope=False),
         )
         docs = append_docs(
             docs=docs,
             start_cmd="<!-- Start deeplearning_arguments -->\n",
             end_cmd="<!-- End deeplearning_arguments -->\n",
-            add=get_arguments(
-                DeepLearningDetectorConfig(), exclude_inherited_from=CoreDetectorConfig
-            ),
+            add=get_arguments(_family_rows(DeepLearningDetectorConfig()), with_scope=False),
         )
 
         with open(doc_path, "w") as f:
@@ -144,7 +208,7 @@ def update_shared_args_parsers(doc_path: str) -> None:
             docs=docs,
             start_cmd="<!-- Start common_arguments -->\n",
             end_cmd="<!-- End common_arguments -->\n",
-            add=get_arguments(CoreParserConfig()),
+            add=get_arguments(CoreParserConfig().get_docs(), with_scope=False),
         )
         with open(doc_path, "w") as f:
             f.writelines(docs)
@@ -154,18 +218,16 @@ def update_shared_args_parsers(doc_path: str) -> None:
 
 # %% Documentation update
 #
-# Every detector config below drives its own doc page: whenever a Field is
-# added, removed or its description/default changes, re-running this script
-# (or `pytest`, which executes it as a doc example) regenerates the
-# "Configuration arguments" table and the "Start config"/"End config" YAML
+# Every config below drives its own doc page: whenever a Field is added,
+# removed or its description/default changes, re-running this script (or
+# `pytest`, which executes it as a doc example) regenerates the
+# "Configuration arguments" tables and the "Start config"/"End config" YAML
 # block in the corresponding page, so the docs never drift from the code.
 #
-# Each entry's second element is the immediate base class whose fields that
-# detector's table should leave out -- CoreDetectorConfig for detectors with
-# no family in between, or VariableDetectorConfig/DeepLearningDetectorConfig
-# for the two families that add their own shared block on top. Either way,
-# the excluded fields are already documented once in docs/detectors.md by
-# update_shared_args_detectors.
+# Each entry's second element is the family base the page is documented
+# against: a field that also exists there is marked `shared`, everything else
+# `specific`. CoreDetectorConfig for detectors with no family in between,
+# VariableDetectorConfig/DeepLearningDetectorConfig for the two families.
 DETECTOR_DOCS: list[tuple[CoreConfig, type[CoreConfig], str]] = [
     (RandomDetectorConfig(), CoreDetectorConfig, "docs/detectors/random_detector.md"),
     (
@@ -181,9 +243,11 @@ DETECTOR_DOCS: list[tuple[CoreConfig, type[CoreConfig], str]] = [
     ),
     (DeeplogDetectorConfig(), DeepLearningDetectorConfig, "docs/detectors/deeplog.md"),
     (ECVCDetectorConfig(), CoreDetectorConfig, "docs/detectors/ecvc_detector.md"),
-    # event_sequence.md is fully hand-authored (two worked examples plus an
-    # `auto_config_params` sub-table) -- no Start/End markers, so it is not
-    # regenerated here.
+    (
+        EventSequenceDetectorConfig(),
+        CoreDetectorConfig,
+        "docs/detectors/event_sequence.md",
+    ),
     (LogBertDetectorConfig(), DeepLearningDetectorConfig, "docs/detectors/logbert.md"),
     (NewEventDetectorConfig(), CoreDetectorConfig, "docs/detectors/new_event.md"),
     (NewValueDetectorConfig(), VariableDetectorConfig, "docs/detectors/new_value.md"),
@@ -212,8 +276,8 @@ PARSER_DOCS: list[tuple[CoreConfig, type[CoreConfig], str]] = [
 update_shared_args_detectors("docs/detectors.md")
 update_shared_args_parsers("docs/parsers.md")
 
-for detector_config, exclude_base, doc_path in DETECTOR_DOCS:
-    update_docs(detector_config, doc_path=doc_path, exclude_inherited_from=exclude_base)
+for detector_config, shared_base, doc_path in DETECTOR_DOCS:
+    update_docs(detector_config, doc_path=doc_path, shared_base=shared_base)
 
-for parser_config, exclude_base, doc_path in PARSER_DOCS:
-    update_docs(parser_config, doc_path=doc_path, exclude_inherited_from=exclude_base)
+for parser_config, shared_base, doc_path in PARSER_DOCS:
+    update_docs(parser_config, doc_path=doc_path, shared_base=shared_base)

@@ -27,8 +27,19 @@ class SequenceAutoConfigParams(AutoConfigParams):
            classified STABLE or STATIC wins.
     """
 
-    min_window_size: int = Field(default=2, ge=1)
-    max_window_size: int = Field(default=10, ge=1)
+    min_window_size: int = Field(
+        default=2,
+        ge=1,
+        description="Shortest window length tried by the configure phase. Must be >= 1.",
+    )
+    max_window_size: int = Field(
+        default=10,
+        ge=1,
+        description=(
+            "Longest window length tried by the configure phase; the longest length whose "
+            "sequences are STABLE or STATIC wins. Must be >= min_window_size."
+        ),
+    )
 
     @model_validator(mode="after")
     def _validate_window_range(self) -> "SequenceAutoConfigParams":

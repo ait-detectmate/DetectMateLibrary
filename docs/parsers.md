@@ -121,15 +121,22 @@ def test_my_parser_parse():
 There are some parameters, that **every** parser inhertis from `CoreParserrConfig`/`CoreConfig`/`BasicConfig`, regardless of what it does. The other parameters, that are **specific** for the respective parser, are explained right at the parsers documentation page, later on.
 
 <!-- Start common_arguments -->
-| Field  | Type  | Default Value| Description|
-|-------|------|-----|---|
-|auto_config|boolean|False|Runs the configuration step before the training process.|
-|start_id|integer|10|Number used to start the unique ID generator.|
-|data_use_training|integer, null|None|Data used for training, if None, training is not done.|
-|data_use_configure|integer, null|None|Data used for configuration, if None, configuration is not done.|
-|use_config_data_as_training|boolean|True|Combine the configured data in the training process if True.|
-|log_format|string, null|None|fitting description yet to find|
-|time_format|string, null|None|fitting description yet to find|
+???+ note "Top level"
+
+    | Field | Type | Default | Description |
+    |---|---|---|---|
+    | `auto_config` | boolean | False | Runs the configuration step before the training process. |
+
+???+ note "params"
+
+    | Field | Type | Default | Description |
+    |---|---|---|---|
+    | `start_id` | integer | 10 | Number used to start the unique ID generator. |
+    | `data_use_training` | integer, null | None | Data used for training, if None, training is not done. |
+    | `data_use_configure` | integer, null | None | Data used for configuration, if None, configuration is not done. |
+    | `use_config_data_as_training` | boolean | True | Combine the configured data in the training process if True. |
+    | `log_format` | string, null | None | fitting description yet to find |
+    | `time_format` | string, null | None | fitting description yet to find |
 <!-- End common_arguments -->
 
 

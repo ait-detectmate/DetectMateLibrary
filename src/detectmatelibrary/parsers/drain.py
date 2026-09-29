@@ -12,7 +12,7 @@ from pydantic import Field
 
 
 class DrainConfig(CoreParserConfig):
-    method_type: str = Field(default="drain_parser", description="<$IGNORE$>")
+    method_type: str = Field(default="drain_parser", description="Indicates what type of method it is.")
 
     depth: int = Field(default=2, description="fitting description yet to find")
     max_childs: int = Field(default=10, description="fitting description yet to find")

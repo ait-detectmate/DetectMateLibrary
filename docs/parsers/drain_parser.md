@@ -15,16 +15,31 @@ Input and output schemas in the pipeline
 
 ## Configuration arguments
 
-Only parameters specific to this parser are listed below -- see [Common parameters](../parsers.md#common-parameters-all-parsers) in the Parsers overview for the rest.
+All parameters this parser accepts, grouped by the YAML block they go in. **Scope** tells whether a parameter is `specific` to this parser or `shared` with other parsers (see the [Parsers overview](../parsers.md#common-parameters-all-parsers)).
 
 <!-- Start arguments -->
-| Field  | Type  | Default Value| Description|
-|-------|------|-----|---|
-|depth|integer|2|fitting description yet to find|
-|max_childs|integer|10|fitting description yet to find|
-|sim_thres|number|0.2|fitting description yet to find|
-|reset_in_post_train|boolean|False|fitting description yet to find|
-|Finetune|array|[['depth', [1, 2, 3, 4]], ['max_childs', [10, 40]], ['sim_thres', [0.2, 0.4, 0.6, 0.8]]]|fitting description yet to find|
+??? note "Top level"
+
+    | Field | Type | Default | Scope | Description |
+    |---|---|---|---|---|
+    | `method_type` | string | drain_parser | shared | Indicates what type of method it is. |
+    | `auto_config` | boolean | False | shared | Runs the configuration step before the training process. |
+
+???+ note "params"
+
+    | Field | Type | Default | Scope | Description |
+    |---|---|---|---|---|
+    | `depth` | integer | 2 | specific | fitting description yet to find |
+    | `max_childs` | integer | 10 | specific | fitting description yet to find |
+    | `sim_thres` | number | 0.2 | specific | fitting description yet to find |
+    | `reset_in_post_train` | boolean | False | specific | fitting description yet to find |
+    | `Finetune` | array | [['depth', [1, 2, 3, 4]], ['max_childs', [10, 40]], ['sim_thres', [0.2, 0.4, 0.6, 0.8]]] | specific | fitting description yet to find |
+    | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
+    | `data_use_training` | integer, null | None | shared | Data used for training, if None, training is not done. |
+    | `data_use_configure` | integer, null | None | shared | Data used for configuration, if None, configuration is not done. |
+    | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
+    | `log_format` | string, null | None | shared | fitting description yet to find |
+    | `time_format` | string, null | None | shared | fitting description yet to find |
 <!-- End arguments -->
 
 ## Examples

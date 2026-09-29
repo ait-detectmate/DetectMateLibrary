@@ -33,52 +33,73 @@ Longer windows are more specific and therefore alert more readily; if the auto-c
 
 ## Configuration arguments
 
-Only parameters specific to this detector are listed below -- see [Common parameters](../detectors.md#common-parameters-all-detectors) in the Detectors overview for the rest.
+All parameters this detector accepts, grouped by the YAML block they go in. **Scope** tells whether a parameter is `specific` to this detector or `shared` with other detectors (see the [Detectors overview](../detectors.md#common-parameters-all-detectors)). Where this detector changes a shared default, the shared value is shown in brackets.
 
-| Field  | Type  | Default Value| Description|
-|-------|------|-----|---|
-|method_type|string|event_sequence_detector|Indicates what type of method it is.|
-|fixed_window_size|integer, null|None|Length of the sliding EventID window. A window whose exact EventID sequence was not seen during training is reported as an anomaly. When set it overrides the `auto_config_params` window range and skips auto-configuration; auto-configuration writes its own choice here. While it is None the detector is unconfigured and neither trains nor alerts.|
+<!-- Start arguments -->
+??? note "Top level"
+
+    | Field | Type | Default | Scope | Description |
+    |---|---|---|---|---|
+    | `method_type` | string | event_sequence_detector | shared | Indicates what type of method it is. |
+    | `auto_config` | boolean | True | shared | Runs the configuration step before the training process. |
+    | `events` | object | {} | shared | Events configuration dict keyed by event_id. |
+    | `global` | object | {} | shared | Instances monitoring event-independent header variables (e.g. hostname, level), keyed by instance name. Written as `global` in YAML. |
+    | `persist` | object, null | None | shared | Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See the Persistency page. |
+
+???+ note "params"
+
+    | Field | Type | Default | Scope | Description |
+    |---|---|---|---|---|
+    | `fixed_window_size` | integer, null | None | specific | Length of the sliding EventID window. A window whose exact EventID sequence was not seen during training is reported as an anomaly. When set it overrides the `auto_config_params` window range and skips auto-configuration; auto-configuration writes its own choice here. While it is None the detector is unconfigured and neither trains nor alerts. |
+    | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
+    | `data_use_training` | integer, null | None | shared | Data used for training, if None, training is not done. |
+    | `data_use_configure` | integer, null | None | shared | Data used for configuration, if None, configuration is not done. |
+    | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
+    | `parser` | string | PARSER | shared | Name of the parser used. |
+
+???+ note "auto_config_params (read only while auto_config is true)"
+
+    | Field | Type | Default | Scope | Description |
+    |---|---|---|---|---|
+    | `min_window_size` | integer | 2 | specific | Shortest window length tried by the configure phase. Must be >= 1. |
+    | `max_window_size` | integer | 10 | specific | Longest window length tried by the configure phase; the longest length whose sequences are STABLE or STATIC wins. Must be >= min_window_size. |
+<!-- End arguments -->
 
 ## Examples
 ### Service usage
 
-To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example below.
+To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example below. It lets auto configuration pick the window length.
+
+<!-- Start config -->
+```yaml
+detectors:
+    <COMPONENT_NAME>:
+        method_type: event_sequence_detector
+        auto_config: true
+        params:
+            start_id: 10
+            data_use_training: null
+            data_use_configure: null
+            use_config_data_as_training: true
+            parser: PARSER
+            fixed_window_size: null
+        auto_config_params:
+            min_window_size: 2
+            max_window_size: 10
+        events: {}
+```
+<!-- End config -->
+
+With a fixed window length (no auto configuration):
 
 ```yaml
 detectors:
     <COMPONENT_NAME>:
         method_type: event_sequence_detector
-        auto_config: False
+        auto_config: false
         params:
             fixed_window_size: 3
 ```
-
-With auto configuration:
-
-```yaml
-detectors:
-    EventSequenceDetector:
-        method_type: event_sequence_detector
-        auto_config: True
-        data_use_configure: 500
-        auto_config_params:
-            min_window_size: 2
-            max_window_size: 10
-            fixed_window_size: null
-        events: {}
-```
-
-| Parameter | Default | Description |
-|---|---|---|
-| `fixed_window_size` | `None` | Length of the sliding event-ID window. Overrides the `auto_config_params` window range and skips auto configuration. Auto configuration writes its own choice here. While it is `None` the detector neither trains nor alerts. Must be `>= 1`. |
-
-#### `auto_config_params`
-
-| Field | Default | Description |
-|---|---|---|
-| `min_window_size` | `2` | Shortest window length tried during auto configuration. Must be `>= 1`. |
-| `max_window_size` | `10` | Longest window length tried during auto configuration. Must be `>= min_window_size`. |
 
 ## Example usage
 

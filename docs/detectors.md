@@ -130,16 +130,24 @@ detectors:
 There are some parameters, that **every** detector inhertis from `CoreDetectorConfig`/`CoreConfig`/`BasicConfig`, regardless of what it does. The other parameters, that are **specific** for the respective detector, are explained right at the detectors documentation page, later on.
 
 <!-- Start common_arguments -->
-| Field  | Type  | Default Value| Description|
-|-------|------|-----|---|
-|auto_config|boolean|True|Runs the configuration step before the training process.|
-|start_id|integer|10|Number used to start the unique ID generator.|
-|data_use_training|integer, null|None|Data used for training, if None, training is not done.|
-|data_use_configure|integer, null|None|Data used for configuration, if None, configuration is not done.|
-|use_config_data_as_training|boolean|True|Combine the configured data in the training process if True.|
-|parser|string|PARSER|Name of the parser used.|
-|events|object|{}|Events configuration dict keyed by event_id.|
-|global_instances|object|{}|Configuration for a specific instance within an event.|
+???+ note "Top level"
+
+    | Field | Type | Default | Description |
+    |---|---|---|---|
+    | `auto_config` | boolean | True | Runs the configuration step before the training process. |
+    | `events` | object | {} | Events configuration dict keyed by event_id. |
+    | `global` | object | {} | Instances monitoring event-independent header variables (e.g. hostname, level), keyed by instance name. Written as `global` in YAML. |
+    | `persist` | object, null | None | Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See the Persistency page. |
+
+???+ note "params"
+
+    | Field | Type | Default | Description |
+    |---|---|---|---|
+    | `start_id` | integer | 10 | Number used to start the unique ID generator. |
+    | `data_use_training` | integer, null | None | Data used for training, if None, training is not done. |
+    | `data_use_configure` | integer, null | None | Data used for configuration, if None, configuration is not done. |
+    | `use_config_data_as_training` | boolean | True | Combine the configured data in the training process if True. |
+    | `parser` | string | PARSER | Name of the parser used. |
 <!-- End common_arguments -->
 
 Beyond the common parameters, two groups of detectors inherit group-specific configurations.
@@ -149,8 +157,21 @@ Beyond the common parameters, two groups of detectors inherit group-specific con
 The detectors that learn a per-variable model ([Bigram Frequency](detectors/bigram_frequency.md), [Charset](detectors/charset.md), [Combo Detector](detectors/combo.md), [New Value](detectors/new_value.md), [Value Range](detectors/value_range.md)) share the following parameters, inherited from `VariableDetectorConfig`.
 
 <!-- Start variable_arguments -->
-| Field  | Type  | Default Value| Description|
-|-------|------|-----|---|
+???+ note "auto_config_params (read only while auto_config is true)"
+
+    | Field | Type | Default | Description |
+    |---|---|---|---|
+    | `use_stable_vars` | boolean | True | Monitor the variables the configure phase classifies as STABLE. |
+    | `use_static_vars` | boolean | True | Monitor the variables the configure phase classifies as STATIC (a single value). |
+    | `classification.index` | boolean | True | Segment-mean test over equal-count segments. |
+    | `classification.time` | boolean | False | Segment-mean test over equal-duration segments. Needs timestamp_variable. |
+    | `classification.segment_thresholds` | array | [1.1, 0.3, 0.1, 0.01] | Upper bound on the mean change rate, one per segment; the list length is the segment count. Used by index and time. |
+    | `classification.slope_index` | boolean | False | Change-centroid test on the index axis. |
+    | `classification.slope_time` | boolean | False | Change-centroid test on the time axis. Needs timestamp_variable. |
+    | `classification.slope_threshold` | number | -0.05 | A variable is STABLE when its change centroid (-0.5 to +0.5) is at or below this. Used by slope_index and slope_time. |
+    | `classification.decision` | string | consensus | How the enabled methods' verdicts combine: consensus needs all of them, majority needs more than half. |
+    | `timestamp_variable` | string, null | None | Header variable (from the parser's log_format) holding each event's time. Required by the time and slope_time classification methods. |
+    | `timestamp_format` | string, null | None | Format of timestamp_variable. None detects it automatically. |
 <!-- End variable_arguments -->
 
 ### Deep learning detectors
@@ -158,12 +179,14 @@ The detectors that learn a per-variable model ([Bigram Frequency](detectors/bigr
 The two neural detectors ([Deeplog](detectors/deeplog.md), [LogBert](detectors/logbert.md)) share the following parameters, inherited from `DeepLearningDetectorConfig`.
 
 <!-- Start deeplearning_arguments -->
-| Field  | Type  | Default Value| Description|
-|-------|------|-----|---|
-|window_size|integer|10|Number of consecutive events used as one training/detection sequence.|
-|validation_per|number|0.2|Fraction of data held out for validation during (fine)training.|
-|finetune_epochs|integer|2|Number of epochs used when finetuning during the configuration phase.|
-|hyperparameters|object|{'Model': {}, 'Train': {}, 'Finetune': []}|Model, training and hyperparameter-search settings passed to the underlying deep learning model.|
+???+ note "params"
+
+    | Field | Type | Default | Description |
+    |---|---|---|---|
+    | `window_size` | integer | 10 | Number of consecutive events used as one training/detection sequence. |
+    | `validation_per` | number | 0.2 | Fraction of data held out for validation during (fine)training. |
+    | `finetune_epochs` | integer | 2 | Number of epochs used when finetuning during the configuration phase. |
+    | `hyperparameters` | object | {'Model': {}, 'Train': {}, 'Finetune': []} | Model, training and hyperparameter-search settings passed to the underlying deep learning model. |
 <!-- End deeplearning_arguments -->
 
 ### Configuration semantics (preliminary)

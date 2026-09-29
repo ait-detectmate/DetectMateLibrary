@@ -59,6 +59,8 @@ nav:
     - Release Process: release.md
 
 markdown_extensions:
+  - admonition
+  - pymdownx.details
   - pymdownx.snippets:
       base_path: ["."]
       check_paths: true

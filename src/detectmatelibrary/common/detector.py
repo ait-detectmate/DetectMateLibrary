@@ -49,9 +49,19 @@ class CoreDetectorConfig(CoreConfig):
         description=EventsConfig.__doc__,
     )
     global_instances: Dict[str, _EventInstance] = Field(
-        default={}, description=_EventInstance.__doc__
+        default={},
+        description=(
+            "Instances monitoring event-independent header variables (e.g. hostname, level), "
+            "keyed by instance name. Written as `global` in YAML."
+        ),
     )
-    persist: PersistConfig | None = Field(default=None, description="<$IGNORE$>")
+    persist: PersistConfig | None = Field(
+        default=None,
+        description=(
+            "Periodic state saving (path, interval_seconds, events_until_save, auto_load, "
+            "storage_options). None disables it. See the Persistency page."
+        ),
+    )
 
 
 class CoreDetector(CoreComponent[ParserSchema, DetectorSchema]):

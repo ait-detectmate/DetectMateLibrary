@@ -48,11 +48,18 @@ def get_all_possible_combos(
 
 class ComboAutoConfigParams(VariableAutoConfigParams):
     # Combo-detector default, unchanged from the flat field it replaces.
-    use_static_vars: bool = False
-    # Longest variable combination the configure phase will consider. Read only
-    # while auto_config is True: detection reads the combos the phase wrote into
-    # `events`, never this.
-    max_combo_size: int = 3
+    use_static_vars: bool = Field(
+        default=False,
+        description="Monitor the variables the configure phase classifies as STATIC (a single value).",
+    )
+    # Read only while auto_config is True: detection reads the combos the phase
+    # wrote into `events`, never this.
+    max_combo_size: int = Field(
+        default=3,
+        description=(
+            "Largest number of variables the configure phase combines into one monitored combination."
+        ),
+    )
 
 
 class NewValueComboDetectorConfig(VariableDetectorConfig):

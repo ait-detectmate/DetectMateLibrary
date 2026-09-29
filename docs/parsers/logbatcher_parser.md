@@ -32,15 +32,30 @@ Variable slots in templates use the `<*>` wildcard notation (e.g. `User <*> logg
 
 ## Configuration arguments
 
-Only parameters specific to this parser are listed below -- see [Common parameters](../parsers.md#common-parameters-all-parsers) in the Parsers overview for the rest.
+All parameters this parser accepts, grouped by the YAML block they go in. **Scope** tells whether a parameter is `specific` to this parser or `shared` with other parsers (see the [Parsers overview](../parsers.md#common-parameters-all-parsers)).
 
 <!-- Start arguments -->
-| Field  | Type  | Default Value| Description|
-|-------|------|-----|---|
-|model|string|gpt-4o-mini|fitting description yet to find|
-|api_key|string||fitting description yet to find|
-|base_url|string||fitting description yet to find|
-|batch_size|integer|10|fitting description yet to find|
+??? note "Top level"
+
+    | Field | Type | Default | Scope | Description |
+    |---|---|---|---|---|
+    | `method_type` | string | logbatcher_parser | shared | Indicates what type of method it is. |
+    | `auto_config` | boolean | False | shared | Runs the configuration step before the training process. |
+
+???+ note "params"
+
+    | Field | Type | Default | Scope | Description |
+    |---|---|---|---|---|
+    | `model` | string | gpt-4o-mini | specific | fitting description yet to find |
+    | `api_key` | string |  | specific | fitting description yet to find |
+    | `base_url` | string |  | specific | fitting description yet to find |
+    | `batch_size` | integer | 10 | specific | fitting description yet to find |
+    | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
+    | `data_use_training` | integer, null | None | shared | Data used for training, if None, training is not done. |
+    | `data_use_configure` | integer, null | None | shared | Data used for configuration, if None, configuration is not done. |
+    | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
+    | `log_format` | string, null | None | shared | fitting description yet to find |
+    | `time_format` | string, null | None | shared | fitting description yet to find |
 <!-- End arguments -->
 
 ## Examples

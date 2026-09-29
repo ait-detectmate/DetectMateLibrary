@@ -67,58 +67,22 @@ class BasicConfig(BaseModel):
     )
 
     def get_docs(
-        self, exclude_inherited_from: "type[BasicConfig] | None" = None
-    ) -> list[dict[str, str]]:
-        """List this config's fields as doc rows.
+        self, shared_base: "type[BasicConfig] | None" = None
+    ) -> list[dict[str, Any]]:
+        """List this config's fields as doc rows, one per YAML setting.
+
+        ``auto_config_params`` is expanded into one row per field (nested
+        models as dotted names, e.g. ``classification.decision``); fields whose
+        description contains ``<$IGNORE$>`` are left out.
 
         Args:
-            exclude_inherited_from: if given, fields also declared on this
-                base class are left out *unless this subclass overrides
-                their default* -- so a subclass's doc table can show only
-                what it adds or changes itself, while still surfacing a
-                changed default (e.g. ``method_type``, or a subclass that
-                narrows an inherited field like ``use_static_vars``).
+            shared_base: the family base this config is documented against.
+                A field that also exists there is ``shared``, otherwise
+                ``specific``; a shared field whose default this config changes
+                is flagged, with the base's default in ``Shared default``.
+                Without a base, every field is ``specific``.
         """
-        exclude: set[str] = set()
-        if exclude_inherited_from is not None:
-            base_fields = exclude_inherited_from.model_fields
-            own_fields = type(self).model_fields
-            exclude = {
-                name
-                for name, base_field in base_fields.items()
-                if name in own_fields and own_fields[name].default == base_field.default
-            }
-        docs = []
-        for field_na, field_info in (
-            self.model_json_schema().get("properties", {}).items()
-        ):
-            if field_na in exclude:
-                continue
-            # Documented in its own dedicated section wherever a component
-            # declares it (see docs/detectors.md) -- a subclass narrowing its
-            # type (e.g. VariableDetectorConfig -> VariableAutoConfigParams)
-            # redeclares the field without carrying over the base class's
-            # <$IGNORE$> marker, so the description-based skip below would
-            # miss it.
-            if field_na == "auto_config_params":
-                continue
-            desc = field_info.get("description", "No description provided.")
-            if "<$IGNORE$>" in desc:
-                continue
-            type_ = field_info.get("type", "unknown")
-            if "anyOf" in field_info:
-                types = [item["type"] for item in field_info["anyOf"] if "type" in item]
-                type_ = ", ".join(types)
-
-            docs.append(
-                {
-                    "Name": field_na,
-                    "Type": type_,
-                    "Default value": getattr(self, field_na),
-                    "Description": desc,
-                }
-            )
-        return docs
+        return _doc_rows(self, shared_base)
 
     def get_config(self) -> Dict[str, Any]:
         """Return the configuration as a dictionary."""
@@ -214,3 +178,77 @@ class BasicConfig(BaseModel):
 
         # Wrap in the component_type and method_id structure
         return {self.component_type: {method_id: result}}
+
+
+# Where each field lands in the YAML written by BasicConfig.to_dict(): these
+# stay beside method_type, auto_config_params is a block of its own, and every
+# other field goes under params.
+_TOP_LEVEL_FIELDS = ("method_type", "component_type", "auto_config", "events", "global_instances", "persist")
+_YAML_NAMES = {"global_instances": "global"}
+_AUTO_CONFIG_BLOCK = "auto_config_params"
+_NO_DESCRIPTION = "No description provided."
+
+
+def _schema_type(field_schema: Dict[str, Any]) -> str:
+    """JSON-schema type of one field; a nested model reads as ``object``."""
+    if "type" in field_schema:
+        return str(field_schema["type"])
+    if "anyOf" in field_schema:
+        types = [str(item.get("type", "object")) for item in field_schema["anyOf"]]
+        return ", ".join(dict.fromkeys(types))
+    if "$ref" in field_schema or "allOf" in field_schema:
+        return "object"
+    return "unknown"
+
+
+def _doc_rows(
+    model: BaseModel,
+    base_cls: type[BaseModel] | None,
+    block: str | None = None,
+    prefix: str = "",
+) -> list[dict[str, Any]]:
+    """Doc rows for ``model``'s fields, scoped against ``base_cls``.
+
+    ``block`` is None for the config itself (each field is then placed as
+    to_dict() places it) and the block name while recursing into
+    ``auto_config_params``, where nested models become dotted names.
+    """
+    rows: list[dict[str, Any]] = []
+    base_fields = base_cls.model_fields if base_cls is not None else {}
+    properties = type(model).model_json_schema().get("properties", {})
+    for name, field_schema in properties.items():
+        value = getattr(model, name)
+        in_base = name in base_fields
+        base_default = base_fields[name].get_default(call_default_factory=True) if in_base else None
+
+        expand = name == _AUTO_CONFIG_BLOCK if block is None else isinstance(value, BaseModel)
+        if expand:
+            rows += _doc_rows(
+                value,
+                type(base_default) if isinstance(base_default, BaseModel) else None,
+                block=block or _AUTO_CONFIG_BLOCK,
+                prefix="" if block is None else f"{prefix}{name}.",
+            )
+            continue
+
+        desc = field_schema.get("description", _NO_DESCRIPTION)
+        if "<$IGNORE$>" in desc:
+            continue
+        # Not flagged: every component sets its own method_type, and a dict
+        # default (e.g. hyperparameters) is a template the subclass fills in.
+        changed = (
+            in_base and name != "method_type" and not isinstance(value, dict) and value != base_default
+        )
+        rows.append(
+            {
+                "Name": prefix + (_YAML_NAMES.get(name, name) if block is None else name),
+                "Block": block or ("top" if name in _TOP_LEVEL_FIELDS else "params"),
+                "Type": _schema_type(field_schema),
+                "Default value": value,
+                "Scope": "shared" if in_base else "specific",
+                "Default changed": changed,
+                "Shared default": base_default if changed else None,
+                "Description": desc,
+            }
+        )
+    return rows

@@ -48,7 +48,7 @@ def flatten_dict(obj: dict[str, Any], sep: str = ".") -> dict[str, Any]:
 
 
 class JsonParserConfig(CoreParserConfig):
-    method_type: str = Field(default="json_parser", description="<$IGNORE$>")
+    method_type: str = Field(default="json_parser", description="Indicates what type of method it is.")
     timestamp_name: str = Field(
         default="time", description="fitting description yet to find"
     )

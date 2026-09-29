@@ -7,7 +7,28 @@ from detectmatelibrary.common._config._compile import (
 )
 from detectmatelibrary.common._config._formats import EventsConfig, _EventConfig
 from detectmatelibrary.common._config import BasicConfig
-from pydantic import ValidationError, Field
+from detectmatelibrary.common._config import AutoConfigParams
+from detectmatelibrary.common.variable_detector import VariableDetectorConfig
+from detectmatelibrary.detectors.bigram_frequency_detector import BigramFrequencyDetectorConfig
+from detectmatelibrary.detectors.charset_detector import CharsetDetectorConfig
+from detectmatelibrary.detectors.deeplog_detector import DeeplogDetectorConfig
+from detectmatelibrary.detectors.ecvc_detector import ECVCDetectorConfig
+from detectmatelibrary.detectors.event_sequence_detector import EventSequenceDetectorConfig
+from detectmatelibrary.detectors.logbert_detector import LogBertDetectorConfig
+from detectmatelibrary.detectors.new_event_detector import NewEventDetectorConfig
+from detectmatelibrary.detectors.new_value_combo_detector import NewValueComboDetectorConfig
+from detectmatelibrary.detectors.new_value_detector import NewValueDetectorConfig
+from detectmatelibrary.detectors.random_detector import RandomDetectorConfig
+from detectmatelibrary.detectors.rule_detector import RuleDetectorConfig
+from detectmatelibrary.detectors.scvs_detector import SCVSDetectorConfig
+from detectmatelibrary.detectors.value_range_detector import ValueRangeDetectorConfig
+from detectmatelibrary.parsers.autoparser import AutoParserConfig
+from detectmatelibrary.parsers.drain import DrainConfig
+from detectmatelibrary.parsers.json_parser import JsonParserConfig
+from detectmatelibrary.parsers.logbatcher import LogBatcherParserConfig
+from detectmatelibrary.parsers.template_matcher import MatcherParserConfig
+from detectmatelibrary.parsers.tree_matcher import TemplateCppTreeMatcherConfig
+from pydantic import BaseModel, ValidationError, Field
 from tests.test_data import TEST_CONFIG
 import pytest
 import warnings
@@ -21,6 +42,16 @@ def load_test_config() -> dict:
 
 config_test = load_test_config()
 
+# Every config with a generated doc page (see docs/examples/config/update.py).
+DOCUMENTED_CONFIGS = [
+    BigramFrequencyDetectorConfig(), CharsetDetectorConfig(), DeeplogDetectorConfig(),
+    ECVCDetectorConfig(), EventSequenceDetectorConfig(), LogBertDetectorConfig(),
+    NewEventDetectorConfig(), NewValueComboDetectorConfig(), NewValueDetectorConfig(),
+    RandomDetectorConfig(), RuleDetectorConfig(), SCVSDetectorConfig(), ValueRangeDetectorConfig(),
+    AutoParserConfig(), DrainConfig(), JsonParserConfig(), LogBatcherParserConfig(),
+    MatcherParserConfig(), TemplateCppTreeMatcherConfig(),
+]
+
 
 class DummyConfigDoc(BasicConfig):
     hello: str | None = Field(default="Hello", description="a way to salute people")
@@ -31,6 +62,25 @@ class DummyConfigDoc(BasicConfig):
     )
 
 
+class DummyInnerParams(BaseModel):
+    flag: bool = Field(default=True, description="an inner flag")
+
+
+class DummyAutoParams(AutoConfigParams):
+    size: int = Field(default=3, description="how big")
+    inner: DummyInnerParams = DummyInnerParams()
+
+
+class DummyConfigWithAuto(BasicConfig):
+    auto_config_params: DummyAutoParams = DummyAutoParams()
+
+
+def _row(docs: list[dict], name: str, block: str | None = None) -> dict:
+    matches = [r for r in docs if r["Name"] == name and (block is None or r["Block"] == block)]
+    assert len(matches) == 1, f"expected one row for {name!r}, got {matches}"
+    return matches[0]
+
+
 class TestConfigDocs:
     def test_get_configs(self):
         docs = BasicConfig().get_docs()
@@ -38,39 +88,81 @@ class TestConfigDocs:
         assert len(docs) == 3
         assert {
             "Name": "method_type",
+            "Block": "top",
             "Type": "string",
             "Default value": "default_method_type",
+            "Scope": "specific",
+            "Default changed": False,
+            "Shared default": None,
             "Description": "Indicates what type of method is.",
         } in docs
-        assert {
-            "Name": "component_type",
-            "Type": "string",
-            "Default value": "default_type",
-            "Description": "Component type that the class inherent from.",
-        } in docs
-        assert {
-            "Name": "auto_config",
-            "Type": "boolean",
-            "Default value": False,
-            "Description": "Runs the configuration step before the training process.",
-        } in docs
+        assert _row(docs, "component_type")["Block"] == "top"
+        assert _row(docs, "auto_config")["Default value"] is False
 
     def test_inherent_class_docs(self):
-        docs = DummyConfigDoc().get_docs()
+        docs = DummyConfigDoc().get_docs(shared_base=BasicConfig)
 
         assert len(docs) == 4
-        assert {
-            "Name": "auto_config",
-            "Type": "boolean",
-            "Default value": True,
-            "Description": "Runs the configuration step before the training process.",
-        } in docs
-        assert {
-            "Name": "hello",
-            "Type": "string, null",
-            "Default value": "Hello",
-            "Description": "a way to salute people",
-        } in docs
+        hello = _row(docs, "hello")
+        assert hello["Block"] == "params"
+        assert hello["Type"] == "string, null"
+        assert hello["Scope"] == "specific"
+        assert not hello["Default changed"]
+
+        auto_config = _row(docs, "auto_config")
+        assert auto_config["Block"] == "top"
+        assert auto_config["Scope"] == "shared"
+        assert auto_config["Default value"] is True
+        assert auto_config["Default changed"]
+        assert auto_config["Shared default"] is False
+
+        assert _row(docs, "method_type")["Scope"] == "shared"
+
+    def test_ignored_fields_are_hidden(self):
+        names = [r["Name"] for r in DummyConfigDoc().get_docs()]
+        assert "dont_show" not in names
+
+    def test_auto_config_params_flattened(self):
+        docs = DummyConfigWithAuto().get_docs(shared_base=BasicConfig)
+
+        size = _row(docs, "size", block="auto_config_params")
+        assert size["Scope"] == "specific"
+        assert size["Default value"] == 3
+        flag = _row(docs, "inner.flag", block="auto_config_params")
+        assert flag["Type"] == "boolean"
+        assert flag["Description"] == "an inner flag"
+        assert "auto_config_params" not in [r["Name"] for r in docs]
+
+    def test_nested_scope_against_family_base(self):
+        docs = NewValueComboDetectorConfig().get_docs(shared_base=VariableDetectorConfig)
+
+        assert _row(docs, "max_combo_size", "auto_config_params")["Scope"] == "specific"
+        assert _row(docs, "use_stable_vars", "auto_config_params")["Scope"] == "shared"
+        static = _row(docs, "use_static_vars", "auto_config_params")
+        assert static["Scope"] == "shared"
+        assert static["Default value"] is False
+        assert static["Default changed"]
+        assert static["Shared default"] is True
+        decision = _row(docs, "classification.decision", "auto_config_params")
+        assert decision["Scope"] == "shared"
+        assert not decision["Default changed"]
+
+    def test_top_level_detector_fields(self):
+        docs = NewValueComboDetectorConfig().get_docs(shared_base=VariableDetectorConfig)
+
+        assert _row(docs, "global")["Block"] == "top"
+        assert _row(docs, "events")["Block"] == "top"
+        persist = _row(docs, "persist")
+        assert persist["Block"] == "top"
+        assert persist["Type"] == "object, null"
+        assert _row(docs, "start_id")["Block"] == "params"
+        # method_type differs on every detector -- not flagged as a changed default
+        assert not _row(docs, "method_type")["Default changed"]
+
+    @pytest.mark.parametrize("config", DOCUMENTED_CONFIGS, ids=lambda c: type(c).__name__)
+    def test_every_documented_field_has_a_description(self, config):
+        missing = [r["Name"] for r in config.get_docs() if r["Description"] == "No description provided."]
+        assert missing == []
 
 
 class TestConfigMethods:
@@ -158,6 +250,7 @@ class TestConfigMethods:
 class TestParamsFormat:
     def test_correct_format(self):
         config_test = load_test_config()
+
         config = ConfigMethods.process(
             ConfigMethods.get_method(
                 config_test, method_id="detector_variables", component_type="detectors"
@@ -204,6 +297,7 @@ class TestParamsFormat:
 
     def test_return_none_if_not_found(self):
         config_test = load_test_config()
+
         config = ConfigMethods.process(
             ConfigMethods.get_method(
                 config_test, method_id="detector_variables", component_type="detectors"
@@ -215,6 +309,7 @@ class TestParamsFormat:
 
     def test_get_dict(self):
         config_test = load_test_config()
+
         config = ConfigMethods.process(
             ConfigMethods.get_method(
                 config_test, method_id="detector_variables", component_type="detectors"
@@ -253,6 +348,7 @@ class MockuptDetectorConfig(BasicConfig):
 class TestBasicConfig:
     def test_parser_from_dict(self):
         config_test = load_test_config()
+
         config = MockupParserConfig.from_dict(config_test, "example_parser")
 
         assert not config.auto_config
@@ -261,6 +357,7 @@ class TestBasicConfig:
 
     def test_detectir_from_dict(self):
         config_test = load_test_config()
+
         config = MockuptDetectorConfig.from_dict(config_test, "detector_auto")
 
         assert config.auto_config

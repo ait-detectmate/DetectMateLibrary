@@ -113,7 +113,7 @@ def load_templates(path: str) -> tuple[list[str], list[str | None]]:
 
 
 class MatcherParserConfig(CoreParserConfig):
-    method_type: str = Field(default="matcher_parser", description="<$IGNORE$>")
+    method_type: str = Field(default="matcher_parser", description="Indicates what type of method it is.")
 
     remove_spaces: bool = Field(
         default=True, description="fitting description yet to find"

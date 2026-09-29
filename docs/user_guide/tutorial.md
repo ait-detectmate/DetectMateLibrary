@@ -33,7 +33,7 @@ it, you have to look at it.
 ```
 
 `From.log` is the same helper used in the Quickstart (see the
-[From helper](../helper/from.md) docs). Passing `do_process=False`
+[From helper](../helper/from_to.md) docs). Passing `do_process=False`
 turns it into a plain file reader that hands back [`LogSchema`](../schemas.md)
 objects instead of running them through a parser  --  exactly what you want
 before you've decided how to parse the data.
