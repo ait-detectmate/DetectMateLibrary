@@ -1,0 +1,11 @@
+detectors:
+  RandomDetector:
+    method_type: random_detector
+    events:
+      0:                        # EventID: "Accepted password for <*> from <*> port <*>"
+        login:
+          variables:
+            - pos: 0
+              name: user
+              params:
+                threshold: 0.9  # alert when a random number in [0, 1) exceeds this, i.e. ~10% of logs

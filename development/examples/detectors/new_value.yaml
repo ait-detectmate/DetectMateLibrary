@@ -1,0 +1,12 @@
+detectors:
+  NewUserDetector:
+    method_type: new_value_detector
+    auto_config: false          # we pick the variables ourselves (see `events`)
+    params:
+      data_use_training: 3      # learn from the first 3 logs, then detect
+    events:
+      0:                        # EventID: "Accepted password for <*> from <*> port <*>"
+        login:                  # instance name, free to choose
+          variables:
+            - pos: 0            # first <*> in the template
+              name: user

@@ -9,19 +9,7 @@
          <lastmod>2026-09-29</lastmod>
     </url>
     <url>
-         <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/basic_idea/</loc>
-         <lastmod>2026-09-29</lastmod>
-    </url>
-    <url>
-         <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/basic_usage/</loc>
-         <lastmod>2026-09-29</lastmod>
-    </url>
-    <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/contribution/</loc>
-         <lastmod>2026-09-29</lastmod>
-    </url>
-    <url>
-         <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/create_components/</loc>
          <lastmod>2026-09-29</lastmod>
     </url>
     <url>
@@ -37,14 +25,6 @@
          <lastmod>2026-09-29</lastmod>
     </url>
     <url>
-         <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/installation/</loc>
-         <lastmod>2026-09-29</lastmod>
-    </url>
-    <url>
-         <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/overall_architecture/</loc>
-         <lastmod>2026-09-29</lastmod>
-    </url>
-    <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/parsers/</loc>
          <lastmod>2026-09-29</lastmod>
     </url>
@@ -54,6 +34,10 @@
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/schemas/</loc>
+         <lastmod>2026-09-29</lastmod>
+    </url>
+    <url>
+         <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/advanced/overall_architecture/</loc>
          <lastmod>2026-09-29</lastmod>
     </url>
     <url>
@@ -150,6 +134,26 @@
     </url>
     <url>
          <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/parsers/template_tree_matcher/</loc>
+         <lastmod>2026-09-29</lastmod>
+    </url>
+    <url>
+         <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/user_guide/basic_knowledge/</loc>
+         <lastmod>2026-09-29</lastmod>
+    </url>
+    <url>
+         <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/user_guide/installation/</loc>
+         <lastmod>2026-09-29</lastmod>
+    </url>
+    <url>
+         <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/user_guide/quickstart/</loc>
+         <lastmod>2026-09-29</lastmod>
+    </url>
+    <url>
+         <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/user_guide/tutorial/</loc>
+         <lastmod>2026-09-29</lastmod>
+    </url>
+    <url>
+         <loc>https://ait-detectmate.github.io/DetectMateLibrary/development/user_guide/what_is_detectmate/</loc>
          <lastmod>2026-09-29</lastmod>
     </url>
 </urlset>

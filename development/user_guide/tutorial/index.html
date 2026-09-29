@@ -1,0 +1,2409 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/user_guide/tutorial/">
+      
+      
+        <link rel="prev" href="../quickstart/">
+      
+      
+        <link rel="next" href="../../advanced/overall_architecture/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Tutorial (end-to-end) - DetectMate Library</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#tutorial-end-to-end" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DetectMate Library
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Tutorial (end-to-end)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    DetectMate Library
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../what_is_detectmate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What is DetectMate?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../basic_knowledge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Basic knowledge
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial (end-to-end)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial (end-to-end)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-read-a-different-dataset-from-scratch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Read a different dataset from scratch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-build-and-configure-your-own-parser" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Build and configure your own parser
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-run-several-detectors-and-compare-their-alerts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Run several detectors and compare their alerts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-add-an-alert-aggregator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Add an alert aggregator
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-pitfalls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common pitfalls
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/overall_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overall architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Components
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Components
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../schemas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schemas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../federation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Federation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Parsers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detectors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../alert_aggregator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alert Aggregation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Parser types
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Parser types
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsers/auto_parser/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Auto Parser
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsers/drain_parser/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Drain Parser
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsers/json_parser/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JSON Parser
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsers/logbatcher_parser/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LogBatcher Parser
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsers/template_matcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Template Matcher
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsers/template_tree_matcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Template Tree Matcher
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detector types
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Detector types
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/random_detector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    00 Random Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/rule_based/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01 Rule Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/new_event/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02 New Event Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/new_value/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03 New Value Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/combo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    04 New Value Combo Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/value_range/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    05 Value Range Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/charset/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    06 Charset Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/event_sequence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    07 Event Sequence Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/bigram_frequency/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    08 Bigram Frequency Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/scvs_detector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    09 SCVS Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/ecvc_detector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    10 ECVC Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/deeplog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11 DeepLog Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/logbert/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    12 LogBERT Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alert Aggregation methods
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Alert Aggregation methods
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../alert_aggregators/basic_concatenation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Basic Concat
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Helpers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Helpers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../helper/from_to/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FromTo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Auxiliary
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Auxiliary
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../auxiliar/persistency/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Persistency
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../auxiliar/input_buffer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data buffer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Other
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Other
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../other/log_formats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Log Formats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to contribute
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How to contribute
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contribution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-read-a-different-dataset-from-scratch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Read a different dataset from scratch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-build-and-configure-your-own-parser" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Build and configure your own parser
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-run-several-detectors-and-compare-their-alerts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Run several detectors and compare their alerts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-add-an-alert-aggregator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Add an alert aggregator
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-pitfalls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common pitfalls
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="tutorial-end-to-end">Tutorial (end-to-end)</h1>
+<p>A complete walkthrough of using DetectMate  --  more detailed than the
+<a href="../quickstart/">Quickstart</a>. The Quickstart parses a ready-made dataset with a
+ready-made template file and runs one detector. This tutorial goes one level
+deeper:</p>
+<ul>
+<li>you parse a dataset that has no template file yet, so you write the templates
+  yourself</li>
+<li>you run two detectors that look for different kinds of anomalies and compare
+  what each one finds</li>
+<li>you combine their alerts with an alert aggregator</li>
+</ul>
+<p>By the end you should have seen most of what the library can do and, more
+importantly, understand <em>why</em> each piece behaves the way it does.</p>
+<h2 id="1-read-a-different-dataset-from-scratch">1. Read a different dataset from scratch</h2>
+<p>The Quickstart uses the <code>audit.log</code> dataset, which already ships with a
+matching <code>audit_templates.txt</code>. To actually practice building
+something, this tutorial uses a different file instead:
+<code>tests/test_data/logs.log</code>. It is still Linux <code>auditd</code> output  --  same overall
+shape as the Quickstart's dataset  --  but recorded on a different machine, and
+it comes with <strong>no template file</strong>. That is the point: before you can parse
+it, you have to look at it.</p>
+<blockquote>
+<p>Note: you likely have to edit your Path to your project root. In this code snippet we assume, that your
+notebook lives two folders below the project root. If it sits somewhere else, adjust <code>parents[...]</code> (for a
+script) or the <code>Path.cwd()</code> line (for a notebook) accordingly.</p>
+</blockquote>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.helper.from_to</span><span class="w"> </span><span class="kn">import</span> <span class="n">From</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">ROOT</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+<span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>  <span class="c1"># running inside a Jupyter notebook</span>
+    <span class="n">ROOT</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="n">log_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ROOT</span> <span class="o">/</span> <span class="s2">"tests"</span> <span class="o">/</span> <span class="s2">"test_data"</span> <span class="o">/</span> <span class="s2">"logs.log"</span><span class="p">)</span>
+
+<span class="c1"># do_process=False turns From.log into a pure reader: it yields raw</span>
+<span class="c1"># LogSchema objects without running them through a parser yet, so the</span>
+<span class="c1"># `component` argument (normally a parser) is never touched and can be</span>
+<span class="c1"># left as None. That's all we need to look at the data before deciding</span>
+<span class="c1"># how to parse it.</span>
+<span class="n">raw_logs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">From</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_path</span><span class="p">,</span> <span class="n">do_process</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"read </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">raw_logs</span><span class="p">)</span><span class="si">}</span><span class="s2"> raw log lines"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">raw_logs</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"log"</span><span class="p">])</span>
+</code></pre></div>
+<p><code>From.log</code> is the same helper used in the Quickstart (see the
+<a href="../../helper/from_to/">From helper</a> docs). Passing <code>do_process=False</code>
+turns it into a plain file reader that hands back <a href="../../schemas/"><code>LogSchema</code></a>
+objects instead of running them through a parser  --  exactly what you want
+before you've decided how to parse the data.</p>
+<p>The file only has 9 lines, small enough to read in full:</p>
+<div class="highlight"><pre><span></span><code>type=DAEMON_START msg=audit(1757673850.240:4506): op=start ver=3.0.9 format=enriched kernel=6.6.62+rpt-rpi-2712 auid=4294967295 pid=691 uid=0 ses=4294967295 res=success...
+type=CONFIG_CHANGE msg=audit(1757673850.283:3): op=set audit_backlog_limit=8192 old=64 auid=4294967295 ses=4294967295 res=1...
+type=SYSCALL msg=audit(1757673850.283:3): arch=c00000b7 syscall=206 success=yes exit=60 a0=3 a1=7fffc27ad8f0 a2=3c a3=0 items=0 ppid=696 pid=710 auid=4294967295 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=(none) ses=4294967295 comm="auditctl" exe="/usr/sbin/auditctl" key=(null)...
+type=PROCTITLE msg=audit(1757673850.283:3): proctitle=2F7362696E2F617564697463746C002D52002F6574632F61756469742F61756469742E72756C6573
+type=CONFIG_CHANGE msg=audit(1757673850.283:4): op=set audit_failure=1 old=1 auid=4294967295 ses=4294967295 res=1...
+type=SYSCALL msg=audit(1757673850.283:4): arch=c00000b7 syscall=206 success=yes exit=60 a0=3 a1=7fffc27ad8f0 a2=3c a3=0 items=0 ppid=696 pid=710 auid=4294967295 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=(none) ses=4294967295 comm="auditctl" exe="/usr/sbin/auditctl" key=(null)...
+type=PROCTITLE msg=audit(1757673850.283:4): proctitle=2F7362696E2F617564697463746C002D52002F6574632F61756469742F61756469742E72756C6573
+type=CONFIG_CHANGE msg=audit(1757673850.283:5): op=set audit_backlog_wait_time=60000 old=15000 auid=4294967295 ses=4294967295 res=1...
+type=SYSCALL msg=audit(1757673850.283:5): arch=c00000b7 syscall=206 success=yes exit=60 a0=3 a1=7fffc27ad8f0 a2=3c a3=0 items=0 ppid=696 pid=710 auid=4294967295 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=(none) ses=4294967295 comm="auditctl" exe="/usr/sbin/auditctl" key=(null)...
+</code></pre></div>
+<p>Every line starts with the same prefix shape, <code>type=&lt;Type&gt; msg=audit(&lt;Time&gt;:&lt;Serial&gt;):
+&lt;Content&gt;</code>, and there are only four distinct <em>event types</em>  --  <code>DAEMON_START</code>,
+<code>CONFIG_CHANGE</code>, <code>SYSCALL</code>, and <code>PROCTITLE</code>  --  each with its own static
+template hiding behind the variable parts.</p>
+<h2 id="2-build-and-configure-your-own-parser">2. Build and configure your own parser</h2>
+<p>We reuse <code>MatcherParser</code> (the same parser class as the Quickstart, see
+<a href="../../parsers/template_matcher/">Template Matcher</a>), but this time we supply
+our own <code>log_format</code> and write our own template file instead of a ready-made
+one.</p>
+<p><strong>Splitting off the prefix.</strong> The <code>log_format</code> string tells the parser how to
+carve off the <code>type=</code>/<code>msg=audit(...)</code> prefix into
+<code>logFormatVariables</code> and hand the parser only the <code>&lt;Content&gt;</code> part to match
+against templates:</p>
+<div class="highlight"><pre><span></span><code>type=&lt;Type&gt; msg=audit(&lt;Time&gt;:&lt;Serial&gt;): &lt;Content&gt;
+</code></pre></div>
+<p><strong>Writing the templates.</strong> <strong>MatcherParser</strong> needs a template file as an input. For each of the four content shapes above, we
+replace the parts that change between log lines with <code>&lt;*&gt;</code>, following the
+<a href="../../parsers/template_matcher/#template-format">template format</a> rules  --  save the results in
+<code>tests/test_data/logs_templates.txt</code>:</p>
+<div class="highlight"><pre><span></span><code>op=start ver=&lt;*&gt; format=&lt;*&gt; kernel=&lt;*&gt; auid=&lt;*&gt; pid=&lt;*&gt; uid=&lt;*&gt; ses=&lt;*&gt; res=&lt;*&gt;
+op=set &lt;*&gt; old=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; res=&lt;*&gt;
+arch=&lt;*&gt; syscall=&lt;*&gt; success=&lt;*&gt; exit=&lt;*&gt; a0=&lt;*&gt; a1=&lt;*&gt; a2=&lt;*&gt; a3=&lt;*&gt; items=&lt;*&gt; ppid=&lt;*&gt; pid=&lt;*&gt; auid=&lt;*&gt; uid=&lt;*&gt; gid=&lt;*&gt; euid=&lt;*&gt; suid=&lt;*&gt; fsuid=&lt;*&gt; egid=&lt;*&gt; sgid=&lt;*&gt; fsgid=&lt;*&gt; tty=&lt;*&gt; ses=&lt;*&gt; comm=&lt;*&gt; exe=&lt;*&gt; key=&lt;*&gt;
+proctitle=&lt;*&gt;
+</code></pre></div>
+<p>A few things worth noticing while writing templates like these:</p>
+<ul>
+<li>The line number is the <code>EventID</code>  --  line 1 (0-indexed: <code>0</code>) matches
+  <code>DAEMON_START</code>, line 2 (<code>1</code>) matches <code>CONFIG_CHANGE</code>, and so on, exactly as
+  described in <a href="../../parsers/template_matcher/#eventid-assignment-preliminary">EventID assignment</a>.</li>
+<li>The second template's <code>op=set &lt;*&gt; old=&lt;*&gt; ...</code> has only one wildcard where
+  the raw text has an <code>audit_backlog_limit=8192</code>, <code>audit_failure=1</code>, or
+  <code>audit_backlog_wait_time=60000</code> key/value pair. A single <code>&lt;*&gt;</code> is not
+  limited to one word  --  it happily captures the whole <code>key=value</code> chunk, so
+  there's no need for a wildcard per key name even though the key itself
+  varies between log lines.</li>
+<li>None of the templates need to account for the trailing <code>AUID="unset"
+  UID="root"</code> fragment glued onto the end of each line (visible as <code>...</code> in
+  the excerpt above). Because every template's last field is a <code>&lt;*&gt;</code>, that
+  wildcard simply absorbs whatever comes after it.</li>
+</ul>
+<p><strong>Configuring the parser:</strong></p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.template_matcher</span><span class="w"> </span><span class="kn">import</span> <span class="n">MatcherParser</span>  <span class="c1"># noqa: E402</span>
+
+<span class="n">templates_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ROOT</span> <span class="o">/</span> <span class="s2">"tests"</span> <span class="o">/</span> <span class="s2">"test_data"</span> <span class="o">/</span> <span class="s2">"logs_templates.txt"</span><span class="p">)</span>
+
+<span class="n">config_dict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"parsers"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"MatcherParser"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"auto_config"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">"method_type"</span><span class="p">:</span> <span class="s2">"matcher_parser"</span><span class="p">,</span>
+            <span class="s2">"path_templates"</span><span class="p">:</span> <span class="n">templates_path</span><span class="p">,</span>
+            <span class="s2">"log_format"</span><span class="p">:</span> <span class="s2">"type=&lt;Type&gt; msg=audit(&lt;Time&gt;:&lt;Serial&gt;): &lt;Content&gt;"</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="n">parser</span> <span class="o">=</span> <span class="n">MatcherParser</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"MatcherParser"</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config_dict</span><span class="p">)</span>
+
+<span class="n">parsed_logs</span> <span class="o">=</span> <span class="p">[</span><span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span> <span class="k">for</span> <span class="n">raw</span> <span class="ow">in</span> <span class="n">raw_logs</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">plog</span> <span class="ow">in</span> <span class="n">parsed_logs</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">plog</span><span class="p">[</span><span class="s2">"EventID"</span><span class="p">],</span> <span class="n">plog</span><span class="p">[</span><span class="s2">"template"</span><span class="p">])</span>
+</code></pre></div>
+<blockquote>
+<p><strong>Common pitfall: don't escape <code>log_format</code> yourself.</strong> The Quickstart's
+<code>log_format</code> string escapes the parentheses by hand:
+<code>r"...audit\(&lt;Time&gt;:&lt;Serial&gt;\):..."</code>. Don't copy that  --  it's wrong.
+<code>generate_logformat_regex()</code> (used internally by every parser that accepts
+<code>log_format</code>) already escapes every literal character outside the
+<code>&lt;Placeholder&gt;</code> tokens, parentheses included. Escaping them yourself asks it
+to match a <strong>literal backslash</strong> followed by <code>(</code>, which never occurs in
+real log data  --  the regex then silently fails to match anything, and every
+log falls back to <code>&lt;Not Found&gt;</code>. Write <code>log_format</code> as plain text; only the
+<code>&lt;Placeholder&gt;</code> tokens are special.</p>
+</blockquote>
+<p>Running this prints, for each of the 9 logs, the <code>EventID</code> and the matched
+template  --  all four templates get used, and every line matches (nothing
+comes back as <code>&lt;Not Found&gt;</code>).</p>
+<h2 id="3-run-several-detectors-and-compare-their-alerts">3. Run several detectors and compare their alerts</h2>
+<p>Different detectors look for different <em>kinds</em> of anomalies. To make that
+concrete, this tutorial runs two of them side by side on the same parsed
+stream:</p>
+<ul>
+<li><a href="../../detectors/new_value/"><strong>NewValueDetector</strong></a> watches the <em>content</em> of
+  specific fields and alerts when a value it hasn't been trained on shows up.</li>
+<li><a href="../../detectors/event_sequence/"><strong>EventSequenceDetector</strong></a> ignores field
+  content entirely and instead watches the <em>order</em> of <code>EventID</code>s, alerting
+  when a sequence of consecutive events wasn't part of what it was trained
+  on.</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.detectors.new_value_detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">NewValueDetector</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.detectors.event_sequence_detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">EventSequenceDetector</span>  <span class="c1"># noqa: E402</span>
+
+<span class="c1"># NewValueDetector watches two fields we picked while writing the templates</span>
+<span class="c1"># above: the key=value pair inside CONFIG_CHANGE (EventID 1, position 0) and</span>
+<span class="c1"># the process name inside SYSCALL (EventID 2, position 22, see the "comm="</span>
+<span class="c1"># slot in the third template line).</span>
+<span class="n">new_value_detector</span> <span class="o">=</span> <span class="n">NewValueDetector</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">"NewValueDetector"</span><span class="p">,</span>
+    <span class="n">config</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">"detectors"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"NewValueDetector"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"method_type"</span><span class="p">:</span> <span class="s2">"new_value_detector"</span><span class="p">,</span>
+                <span class="s2">"auto_config"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="c1"># Train on the first 3 logs (one DAEMON_START, one</span>
+                <span class="c1"># CONFIG_CHANGE, one SYSCALL), then detect on the rest.</span>
+                <span class="s2">"data_use_training"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                <span class="s2">"params"</span><span class="p">:</span> <span class="p">{},</span>
+                <span class="s2">"events"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="mi">1</span><span class="p">:</span> <span class="p">{</span><span class="s2">"op_change"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"variables"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"pos"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"op_value"</span><span class="p">}]}},</span>
+                    <span class="mi">2</span><span class="p">:</span> <span class="p">{</span><span class="s2">"proc"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"variables"</span><span class="p">:</span> <span class="p">[{</span><span class="s2">"pos"</span><span class="p">:</span> <span class="mi">22</span><span class="p">,</span> <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"comm"</span><span class="p">}]}},</span>
+                <span class="p">},</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
+<span class="p">)</span>
+
+<span class="c1"># EventSequenceDetector instead watches the *order* of EventIDs, independent</span>
+<span class="c1"># of what's inside each log. A window of 2 means it remembers which</span>
+<span class="c1"># consecutive event-ID pairs occurred during training.</span>
+<span class="n">event_sequence_detector</span> <span class="o">=</span> <span class="n">EventSequenceDetector</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">"EventSequenceDetector"</span><span class="p">,</span>
+    <span class="n">config</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">"detectors"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"EventSequenceDetector"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"method_type"</span><span class="p">:</span> <span class="s2">"event_sequence_detector"</span><span class="p">,</span>
+                <span class="s2">"auto_config"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"data_use_training"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                <span class="s2">"params"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"fixed_window_size"</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
+<span class="p">)</span>
+
+<span class="n">alerts</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'#'</span><span class="si">:</span><span class="s2">&gt;2</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">'EventID'</span><span class="si">:</span><span class="s2">&gt;7</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">'NewValue'</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">'EventSequence'</span><span class="si">:</span><span class="s2">&gt;13</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">plog</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">parsed_logs</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="n">nv_alert</span> <span class="o">=</span> <span class="n">new_value_detector</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">plog</span><span class="p">)</span>
+    <span class="n">es_alert</span> <span class="o">=</span> <span class="n">event_sequence_detector</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">plog</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">&gt;2</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">plog</span><span class="p">[</span><span class="s1">'EventID'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;7</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">nv_alert</span><span class="p">))</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">es_alert</span><span class="p">))</span><span class="si">:</span><span class="s2">&gt;13</span><span class="si">}</span><span class="s2">"</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">nv_alert</span><span class="p">:</span>
+        <span class="n">alerts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nv_alert</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">es_alert</span><span class="p">:</span>
+        <span class="n">alerts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">es_alert</span><span class="p">)</span>
+</code></pre></div>
+<p>Both detectors are configured with <code>data_use_training: 3</code>: the first 3 logs
+(<code>DAEMON_START</code>, <code>CONFIG_CHANGE</code>, <code>SYSCALL</code>) are used to train, and detection
+runs on the remaining 6  --  see <a href="../../detectors/#configuration">Configuration</a>
+for how <code>data_use_training</code> and <code>events</code> interact. <code>NewValueDetector</code> is
+pointed at the two fields we identified while writing the templates in step
+2: the <code>key=value</code> pair inside <code>CONFIG_CHANGE</code> (<code>EventID: 1</code>, <code>pos: 0</code>) and
+the process name inside <code>SYSCALL</code> (<code>EventID: 2</code>, <code>pos: 22</code>, the <code>comm=</code> slot
+counting <code>&lt;*&gt;</code> positions left to right in the third template line).</p>
+<p>Running the loop prints one row per log line:</p>
+<div class="highlight"><pre><span></span><code> #  EventID  NewValue  EventSequence
+ 1        0     False          False
+ 2        1     False          False
+ 3        2     False          False
+ 4        3     False           True
+ 5        1      True           True
+ 6        2     False          False
+ 7        3     False           True
+ 8        1      True           True
+ 9        2     False          False
+</code></pre></div>
+<p>In the table above, <strong><code>True</code> means that detector raised an alert</strong> for that log
+(it found something anomalous), and <strong><code>False</code> means no alert</strong>. With that in mind:
+Reading the table alongside the raw data explains why each detector fires
+when it does:</p>
+<ul>
+<li><strong><code>NewValueDetector</code></strong> only fires on logs <code>#5</code> and <code>#8</code>  --  the second and
+  third <code>CONFIG_CHANGE</code> events, whose <code>audit_failure=1</code> and
+  <code>audit_backlog_wait_time=60000</code> values were never seen during training
+  (only <code>audit_backlog_limit=8192</code>, from log <code>#2</code>, was). It stays silent on
+  every <code>SYSCALL</code> after log <code>#3</code>, because <code>comm="auditctl"</code> is identical
+  every time  --  there is nothing <em>new</em> about it once it's been trained once.</li>
+<li><strong><code>EventSequenceDetector</code></strong> fires starting at log <code>#4</code>, and on every log
+  after that except the <code>SYSCALL</code>s. With <code>fixed_window_size: 2</code>, training on
+  the first 3 logs only teaches it the transitions <code>(DAEMON_START →
+  CONFIG_CHANGE)</code> and <code>(CONFIG_CHANGE → SYSCALL)</code>. The transition <code>(SYSCALL →
+  PROCTITLE)</code> at log <code>#4</code> was never trained, so it alerts  --  and keeps
+  alerting every time that same transition recurs (<code>#7</code>), because alerts
+  don't teach the detector anything; only <code>train()</code> does. <code>(PROCTITLE →
+  CONFIG_CHANGE)</code> at log <code>#5</code> is equally untrained and alerts too, while
+  <code>(CONFIG_CHANGE → SYSCALL)</code> at logs <code>#6</code> and <code>#9</code> was trained at log <code>#3</code>
+  and stays quiet.</li>
+</ul>
+<p>Note that both detectors agree on logs <code>#5</code> and <code>#8</code>  --  the same underlying
+event looks anomalous from two independent angles: an unfamiliar value <em>and</em>
+an unfamiliar position in the sequence. That overlap is what an alert
+aggregator is for.</p>
+<h2 id="4-add-an-alert-aggregator">4. Add an alert aggregator</h2>
+<p><a href="../../alert_aggregator/">Alert aggregation</a> takes the stream of alerts coming
+out of one or more detectors and combines them into
+<a href="../../schemas/"><code>AggregateSchema</code></a> records. Here we feed every alert produced
+in step 3  --  from either detector, in the order they were emitted  --  into
+<a href="../../alert_aggregators/basic_concatenation/"><code>BasicConcatAggregation</code></a>, the
+simplest aggregation strategy available:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.alert_aggregation.basic_concat</span><span class="w"> </span><span class="kn">import</span> <span class="n">BasicConcatAggregation</span>  <span class="c1"># noqa: E402</span>
+
+<span class="n">aggregator</span> <span class="o">=</span> <span class="n">BasicConcatAggregation</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">"BasicConcatAggregator"</span><span class="p">,</span>
+    <span class="n">config</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">"alert_aggregators"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"BasicConcatAggregator"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"method_type"</span><span class="p">:</span> <span class="s2">"basic_concat_aggregator"</span><span class="p">,</span>
+                <span class="s2">"buffer_size"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="s2">"auto_config"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">},</span>
+<span class="p">)</span>
+
+<span class="k">for</span> <span class="n">alert</span> <span class="ow">in</span> <span class="n">alerts</span><span class="p">:</span>
+    <span class="n">aggregated</span> <span class="o">=</span> <span class="n">aggregator</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">alert</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">aggregated</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">aggregated</span><span class="p">[</span><span class="s2">"detectorIDs"</span><span class="p">],</span> <span class="n">aggregated</span><span class="p">[</span><span class="s2">"logIDs"</span><span class="p">])</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>['EventSequenceDetector', 'NewValueDetector'] ['3', '4']
+['NewValueDetector', 'EventSequenceDetector'] ['4', '4']
+['EventSequenceDetector', 'EventSequenceDetector'] ['4', '6']
+['EventSequenceDetector', 'NewValueDetector'] ['6', '7']
+['NewValueDetector', 'EventSequenceDetector'] ['7', '7']
+</code></pre></div>
+<p>Two details are easy to miss here, and both matter for production configs:</p>
+<ul>
+<li><strong>The buffer is a sliding window, not a batch.</strong> <code>buffer_size: 2</code> does not
+  mean "group alerts two at a time and clear." Alert aggregators use a
+  <a href="../../auxiliar/input_buffer/"><code>WINDOW</code> buffer</a> internally, so once 2 alerts
+  have arrived, <code>aggregate_alerts()</code> fires again on <em>every</em> new alert,
+  each time over the 2 most recently seen ones. Six alerts in therefore
+  produce five overlapping aggregate outputs, not three separate batches.</li>
+<li><strong><code>BasicConcatAggregation</code> does not correlate by log line.</strong> It concatenates
+  whatever alerts happen to be in the window, regardless of which log they
+  refer to  --  that's why most rows above pair up alerts from <em>different</em>
+  underlying logs. The two rows where both <code>logIDs</code> are identical
+  (<code>['4', '4']</code> and <code>['7', '7']</code>) are the exception, and not a coincidence:
+  those are exactly the log <code>#5</code> and <code>#8</code> cases from step 3, where
+  <code>NewValueDetector</code> and <code>EventSequenceDetector</code> both alerted on the same
+  event back to back, so the window happened to contain only that pair. A
+  real deployment that wants alerts grouped <em>by log</em> rather than by arrival
+  order needs a smarter aggregation strategy than basic concatenation.</li>
+</ul>
+<h2 id="common-pitfalls">Common pitfalls</h2>
+<ul>
+<li>Manually escaping regex characters (like <code>(</code> and <code>)</code>) inside a
+  <code>log_format</code> string breaks matching
+  <code>generate_logformat_regex()</code> already escapes literal text for you.</li>
+<li>A detector's <code>detect()</code> only checks <code>EventID</code>s it has already seen through
+  <code>train()</code> at least once. If you configure a detector for an <code>EventID</code> that
+  never appears in the training window (<code>data_use_training</code>), it will stay
+  silent for that event type  --  not alert on everything, and not error either.</li>
+<li>Calling <code>.process()</code> on a detector or aggregator returns <code>None</code> when
+  nothing fires, and the actual output schema (truthy) when it does  --  check
+  with <code>if result:</code> rather than assuming a boolean.</li>
+</ul>
+<p>Go back <a href="../../">Index</a></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
