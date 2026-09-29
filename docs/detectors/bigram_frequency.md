@@ -11,11 +11,34 @@ Input and output schemas in the pipeline
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Alert / finding |
 
-✅ Federation compatible (Binary not available).
+## At a glance
+
+| Learns from training data | Auto-configuration | Needs `events` | Federation |
+|---|---|---|---|
+| ✅ | ✅ picks the variables to monitor | ✅ unless `auto_config: true` | ✅ (binary not available) |
 
 ## Description
 
 For each configured variable, the detector walks every observed value character-by-character (with virtual boundary characters before the first and after the last) and updates a per-(event, variable) bigram frequency table. At detect time, the average per-bigram conditional probability of a new value is computed against this table. Values scoring below `prob_thresh` are flagged. When `default_freqs` is enabled, a built-in English bigram table acts as a fallback for bigrams unseen during training.
+
+## Example
+
+```python
+--8<-- "docs/examples/detectors/bigram_frequency.py:example"
+```
+
+## Configuration file
+
+The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
+
+```yaml
+--8<-- "docs/examples/detectors/bigram_frequency.yaml"
+```
+
+The same file works unchanged in both places a detector runs:
+
+- **Library**: load it with `yaml.safe_load` and pass the dict as `config=`, as in the example. The key under `detectors:` must match the detector's `name`.
+- **[DetectMateService](https://github.com/ait-detectmate/DetectMateService)**: use it as the service's detector configuration.
 
 ## Configuration arguments
 
@@ -61,52 +84,3 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `timestamp_variable` | string, null | None | shared | Header variable (from the parser's log_format) holding each event's time. Required by the time and slope_time classification methods. |
     | `timestamp_format` | string, null | None | shared | Format of timestamp_variable. None detects it automatically. |
 <!-- End arguments -->
-
-## Examples
-### Service usage
-
-To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example below.
-
-<!-- Start config -->
-```yaml
-detectors:
-    <COMPONENT_NAME>:
-        method_type: bigram_frequency_detector
-        auto_config: true
-        params:
-            start_id: 10
-            data_use_training: null
-            data_use_configure: null
-            use_config_data_as_training: true
-            parser: PARSER
-            prob_thresh: 0.05
-            default_freqs: false
-            skip_repetitions: true
-        auto_config_params:
-            use_stable_vars: true
-            use_static_vars: true
-            classification:
-                index: true
-                time: false
-                segment_thresholds:
-                - 1.1
-                - 0.3
-                - 0.1
-                - 0.01
-                slope_index: false
-                slope_time: false
-                slope_threshold: -0.05
-                decision: consensus
-            timestamp_variable: null
-            timestamp_format: null
-        events: {}
-```
-<!-- End config -->
-### Library usage
-To use it as a python script, you can follow the example below.
-
-```python
---8<-- "docs/examples/detectors/bigram_frequency.py:example"
-```
-
-Go back [Index](../index.md)

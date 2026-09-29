@@ -17,6 +17,33 @@ Input and output schemas in the pipeline
 | **Input**  | [LogSchema](../schemas.md) | Unstructured log   |
 | **Output** | [ParserSchema](../schemas.md) | Structured log   |
 
+## Examples
+
+Without fixing log type:
+
+```python
+--8<-- "docs/examples/parsers/auto_parser.py:example_1"
+```
+
+With fixing log type:
+
+```python
+--8<-- "docs/examples/parsers/auto_parser.py:example_2"
+```
+
+## Configuration file
+
+The configuration used by the examples above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
+
+```yaml
+--8<-- "docs/examples/parsers/auto_parser.yaml"
+```
+
+The same file works unchanged in both places a parser runs:
+
+- **Library**: load it with `yaml.safe_load` and pass the dict as `config=`, as in the example. The key under `parsers:` must match the parser's `name`.
+- **[DetectMateService](https://github.com/ait-detectmate/DetectMateService)**: use it as the service's parser configuration.
+
 ## Configuration arguments
 
 All parameters this parser accepts, grouped by the YAML block they go in. **Scope** tells whether a parameter is `specific` to this parser or `shared` with other parsers (see the [Parsers overview](../parsers.md#common-parameters-all-parsers)).
@@ -41,42 +68,3 @@ All parameters this parser accepts, grouped by the YAML block they go in. **Scop
     | `log_format` | string, null | None | shared | fitting description yet to find |
     | `time_format` | string, null | None | shared | fitting description yet to find |
 <!-- End arguments -->
-
-## Examples
-### Service usage
-
-To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example below.
-
-<!-- Start config -->
-```yaml
-parsers:
-    <COMPONENT_NAME>:
-        method_type: auto_parser
-        auto_config: false
-        params:
-            start_id: 10
-            data_use_training: null
-            data_use_configure: null
-            use_config_data_as_training: true
-            log_format: null
-            time_format: null
-            fix_type: ''
-```
-<!-- End config -->
-
-### Library usage
-To use it as a python script, you can follow the example below.
-
-Without fixing log type:
-
-```python
---8<-- "docs/examples/parsers/auto_parser.py:example_1"
-```
-
-With fixing log type:
-
-```python
---8<-- "docs/examples/parsers/auto_parser.py:example_2"
-```
-
-Go back to [Index](../index.md)

@@ -99,6 +99,16 @@ List of detectors:
 
 ## Configuration
 
+!!! warning "Tell the detector how much data to learn from"
+    `data_use_training` (logs used for training) and `data_use_configure` (logs used for
+    auto-configuration) both default to `null`, which skips that phase. Without
+    `data_use_training` a detector starts detecting with nothing learned; with
+    `auto_config: true` but no `data_use_configure`, it never picks anything to monitor.
+    Write `null`, not `None`, in YAML: `None` is read as a string.
+
+Every detector page shows a minimal, working configuration file next to its example. The
+reference below explains the blocks those files use.
+
 When `auto_config` is set to `False`, the detector expects an explicit `events` or `global` block that specifies exactly which variables to monitor. `events`refers to event-specific variables while `global` refers to variables, that are not bound to events (`header_variables`can but don't have to be event bound):
 
 ```yaml
@@ -106,9 +116,8 @@ detectors:
   NewValueDetector:
     method_type: new_value_detector
     auto_config: False
-    data_use_configure: None  # Data used for configuration
-    data_use_training: 199  # Data used for training
-    params: {}  # global parameters
+    params:  # detector-wide parameters
+      data_use_training: 1000  # the first 1000 logs train the detector
     events:  # event-specific configuration
       1:  # event_id
         instance1:  # name of instance (arbitrary)
@@ -157,7 +166,7 @@ Beyond the common parameters, two groups of detectors inherit group-specific con
 The detectors that learn a per-variable model ([Bigram Frequency](detectors/bigram_frequency.md), [Charset](detectors/charset.md), [Combo Detector](detectors/combo.md), [New Value](detectors/new_value.md), [Value Range](detectors/value_range.md)) share the following parameters, inherited from `VariableDetectorConfig`.
 
 <!-- Start variable_arguments -->
-???+ note "auto_config_params (read only while auto_config is true)"
+??? note "auto_config_params (read only while auto_config is true)"
 
     | Field | Type | Default | Description |
     |---|---|---|---|
@@ -216,8 +225,10 @@ Auto-configuration is controlled by the `auto_config` flag in the pipeline confi
 detectors:
   NewValueDetector:
     method_type: new_value_detector
-    auto_config: True       # enable auto-configuration
-    params: {}
+    auto_config: True           # enable auto-configuration
+    params:
+      data_use_configure: 1000  # logs used to pick the variables
+      data_use_training: 1000   # logs used to train on them afterwards
     # no "events" block needed  --  it will be generated automatically
 ```
 
@@ -232,52 +243,7 @@ When auto-configuration is enabled, the detector goes through two extra phases b
 
 After these two phases, the detector proceeds with the normal `train()` and `detect()` lifecycle using the generated configuration.
 
-### Implementation pattern
-
-A detector that supports auto-configuration typically creates a separate `EventPersistency` instance for this purpose (but doesn't have to):
-
-```python
-class MyDetector(CoreDetector):
-    def __init__(self, ...):
-        super().__init__(...)
-
-        # main persistency for training / detection
-        self.persistency = EventPersistency(
-            event_data_class=EventStabilityTracker,
-        )
-        # separate persistency for auto-configuration
-        self.auto_conf_persistency = EventPersistency(
-            event_data_class=EventStabilityTracker,
-        )
-```
-
-The `configure()` method ingests all available variables (not just configured ones) so the tracker can assess each one:
-
-```python
-def configure(self, input_):
-    self.auto_conf_persistency.ingest_event(
-        event_id=input_["EventID"],
-        event_template=input_["template"],
-        variables=input_["variables"],
-        named_variables=input_["logFormatVariables"],
-    )
-```
-
-The `set_configuration()` method queries the tracker results and writes the
-final `events` block. It touches nothing else on the config  --  everything the
-operator set under `params` or `auto_config_params` must survive untouched, so
-`set_configuration` never rebuilds the config from scratch:
-
-```python
-def set_configuration(self):
-    variables = {}
-    for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
-        stable_vars = tracker.get_features_by_classification("STABLE")
-        variables[event_id] = stable_vars
-
-    self.config.events = generate_events_config(variables, self.name)
-    self.config.auto_config = False
-```
+To support auto-configuration in your own detector, see [Development](development.md#implement-auto-configuration-in-a-detector).
 
 ### Full lifecycle with auto-configuration
 
@@ -302,17 +268,6 @@ The configure phase writes its results into the top-level `events` block (and,
 for `EventSequenceDetector`, into `fixed_window_size`) and then sets
 `auto_config` to `False`. It never modifies either input block, so a config can
 be rerun with `auto_config: False` and reproduce the same detector.
-
-Both `auto_config` and `Component.configure()` are declared on the shared base,
-so `auto_config_params` is declared there too  --  on `BasicConfig`, beside
-`auto_config`  --  rather than on the detector config alone. Detectors are the only
-component type with a real configure phase today, so they are the only ones that
-narrow the block with fields; parsers and alert aggregators inherit it empty, and
-an empty block is omitted from the serialized config, so their YAML is unaffected.
-A component type that grows a configure phase later subclasses `AutoConfigParams`
-and overrides the field, exactly as the variable, combo and sequence detector
-families do.
-
 
 ### Stability classification (optional)
 
@@ -447,19 +402,9 @@ Time-aware classification is best-effort and never fails a run:
   span is zero, or they arrive out of order, `time` silently reuses the equal-index
   cuts, and `slope_time` computes its centroid on the index axis instead  --  it
   degrades to `slope_index`.
-* Under `majority`, a fallen-back method still casts its own vote: if `slope_index`
-  and `slope_time` are both enabled and timestamps are unusable, both entries compute
-  the same index-axis centroid, and that verdict carries two of the votes rather than
-  one. This is deliberate  --  dropping a fallen-back method from the vote would change
-  the enabled count from variable to variable and make `majority` mean something
-  different for each one. The reason string names the axis each slope actually used,
-  so a doubled vote is visible in the note.
-* The same doubling applies to the segment-threshold pair: if `index` and `time` are
-  both enabled and timestamps are unusable, `time` silently reuses the same equal-count
-  cuts as `index`, so an identical verdict again carries two votes under `majority`
-  rather than one. Unlike the slope pair, the reason string does not surface this  --
-  each entry is still labelled by its configured method name (`index` or `time`), not
-  by the axis it actually used, so a doubled segment-pair vote is invisible in the note.
+* Under `majority`, a method that fell back still casts its own vote. If both methods
+  of a pair (`slope_index`/`slope_time` or `index`/`time`) are enabled and timestamps
+  are unusable, they compute the same verdict, which then counts twice.
 
 In every fallback case classification still runs and produces a result  --  only the
 axis behind it changes back to index.
@@ -578,5 +523,3 @@ persist:
 In practice, credentials are usually supplied via environment variables
 (`AWS_ACCESS_KEY_ID`, etc.) or instance roles  --  in which case `storage_options`
 stays empty or is omitted.
-
-Go back [Index](index.md)

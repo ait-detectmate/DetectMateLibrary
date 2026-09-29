@@ -42,6 +42,68 @@ In order to run the tests run the following command. The `dev` group already inc
 uv run --dev pytest
 ```
 
+## Implement auto-configuration in a detector
+
+The user-facing side of auto-configuration is described in the [Detectors overview](detectors.md#auto-configuration-optional). This section covers what a detector has to implement to support it.
+
+A detector that supports auto-configuration typically creates a separate `EventPersistency` instance for this purpose (but doesn't have to):
+
+```python
+class MyDetector(CoreDetector):
+    def __init__(self, ...):
+        super().__init__(...)
+
+        # main persistency for training / detection
+        self.persistency = EventPersistency(
+            event_data_class=EventStabilityTracker,
+        )
+        # separate persistency for auto-configuration
+        self.auto_conf_persistency = EventPersistency(
+            event_data_class=EventStabilityTracker,
+        )
+```
+
+The `configure()` method ingests all available variables (not just configured ones) so the tracker can assess each one:
+
+```python
+def configure(self, input_):
+    self.auto_conf_persistency.ingest_event(
+        event_id=input_["EventID"],
+        event_template=input_["template"],
+        variables=input_["variables"],
+        named_variables=input_["logFormatVariables"],
+    )
+```
+
+The `set_configuration()` method queries the tracker results and writes the
+final `events` block. It touches nothing else on the config  --  everything the
+operator set under `params` or `auto_config_params` must survive untouched, so
+`set_configuration` never rebuilds the config from scratch:
+
+```python
+def set_configuration(self):
+    variables = {}
+    for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
+        stable_vars = tracker.get_features_by_classification("STABLE")
+        variables[event_id] = stable_vars
+
+    self.config.events = generate_events_config(variables, self.name)
+    self.config.auto_config = False
+```
+
+### Why `auto_config_params` lives on `BasicConfig`
+
+Both `auto_config` and `Component.configure()` are declared on the shared base,
+so `auto_config_params` is declared there too  --  on `BasicConfig`, beside
+`auto_config`  --  rather than on the detector config alone. Detectors are the only
+component type with a real configure phase today, so they are the only ones that
+narrow the block with fields; parsers and alert aggregators inherit it empty, and
+an empty block is omitted from the serialized config, so their YAML is unaffected.
+A component type that grows a configure phase later subclasses `AutoConfigParams`
+and overrides the field, exactly as the variable, combo and sequence detector
+families do.
+
+
 ## Write testable code snippets for the documentation
 
 Code examples in the docs are not pasted inline. They live as standalone Python
@@ -87,6 +149,19 @@ the rest of the suite:
 
 ```bash
 uv run --dev pytest
+```
+
+**4. Component pages: a YAML file, and generated argument tables.** Each parser and
+detector page shows a configuration file next to its example
+(`docs/examples/<category>/<name>.yaml`). Keep it minimal: set only what the use
+case needs, since every other parameter has a working default. The Python example
+loads it with `yaml.safe_load`, so the snippet test also checks that the file is a
+valid configuration. The "Configuration arguments" tables are generated from the
+config classes. After adding or changing a config field, regenerate them from the
+repo root:
+
+```bash
+uv run python docs/examples/config/update.py
 ```
 
 

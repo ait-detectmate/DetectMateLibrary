@@ -1,0 +1,13 @@
+detectors:
+  UserBigramDetector:
+    method_type: bigram_frequency_detector
+    auto_config: false          # we pick the variables ourselves (see `events`)
+    params:
+      data_use_training: 4      # learn from the first 4 logs, then detect
+      prob_thresh: 0.05         # alert when a value's average bigram probability drops below this
+    events:
+      1:                        # EventID: "Failed password for <*> from <*> port <*>"
+        failed_login:
+          variables:
+            - pos: 0
+              name: user

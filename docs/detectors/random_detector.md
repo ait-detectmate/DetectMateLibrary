@@ -11,6 +11,35 @@ Input and output schemas in the pipeline
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Generated alerts |
 
+## At a glance
+
+| Learns from training data | Auto-configuration | Needs `events` | Federation |
+|---|---|---|---|
+| ❌ | ❌ | ✅ | ❌ |
+
+## Description
+
+For every variable configured under `events`, the detector draws a random number between 0 and 1 and raises an alert when it is above that variable's `threshold` (set in that variable's `params`). It does not train, so it needs no `data_use_training`.
+
+## Example
+
+```python
+--8<-- "docs/examples/detectors/random_detector.py:example"
+```
+
+## Configuration file
+
+The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
+
+```yaml
+--8<-- "docs/examples/detectors/random_detector.yaml"
+```
+
+The same file works unchanged in both places a detector runs:
+
+- **Library**: load it with `yaml.safe_load` and pass the dict as `config=`, as in the example. The key under `detectors:` must match the detector's `name`.
+- **[DetectMateService](https://github.com/ait-detectmate/DetectMateService)**: use it as the service's detector configuration.
+
 ## Configuration arguments
 
 All parameters this detector accepts, grouped by the YAML block they go in. **Scope** tells whether a parameter is `specific` to this detector or `shared` with other detectors (see the [Detectors overview](../detectors.md#common-parameters-all-detectors)). Where this detector changes a shared default, the shared value is shown in brackets.
@@ -36,32 +65,3 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
     | `parser` | string | PARSER | shared | Name of the parser used. |
 <!-- End arguments -->
-
-## Examples
-### Service usage
-
-To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example below.
-
-<!-- Start config -->
-```yaml
-detectors:
-    <COMPONENT_NAME>:
-        method_type: random_detector
-        auto_config: true
-        params:
-            start_id: 10
-            data_use_training: null
-            data_use_configure: null
-            use_config_data_as_training: true
-            parser: PARSER
-        events: {}
-```
-<!-- End config -->
-### Library usage
-To use it as a python script, you can follow the example below.
-
-```python
---8<-- "docs/examples/detectors/random_detector.py:example"
-```
-
-Go back [Index](../index.md)

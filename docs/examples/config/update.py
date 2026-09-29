@@ -31,8 +31,6 @@ from detectmatelibrary.common.deeplearning_detector import DeepLearningDetectorC
 
 from typing import Any
 
-import yaml
-
 
 # %% Methods
 def append_docs(docs: list[str], start_cmd: str, end_cmd: str, add: str) -> list[str]:
@@ -61,8 +59,9 @@ def get_arguments(rows: list[dict[str, Any]], with_scope: bool = True) -> str:
     """Render get_docs() rows as one collapsible markdown table per YAML block.
 
     A block holding any specific field starts open, a block of only
-    shared fields starts collapsed. Within a block, specific fields come
-    first.
+    shared fields starts collapsed. auto_config_params always starts
+    collapsed: its defaults rarely need changing. Within a block, specific
+    fields come first.
     """
     header = ["Field", "Type", "Default", "Scope", "Description"]
     if not with_scope:
@@ -75,7 +74,7 @@ def get_arguments(rows: list[dict[str, Any]], with_scope: bool = True) -> str:
         )
         if not block_rows:
             continue
-        is_open = any(r["Scope"] == "specific" for r in block_rows)
+        is_open = block != "auto_config_params" and any(r["Scope"] == "specific" for r in block_rows)
         lines = [
             f'???{"+" if is_open else ""} note "{title}"',
             "",
@@ -94,41 +93,6 @@ def get_arguments(rows: list[dict[str, Any]], with_scope: bool = True) -> str:
     return "\n".join(tables)
 
 
-def config_dict(config: CoreConfig) -> dict[str, Any]:
-    """Config as the YAML a user writes, always with its auto_config_params.
-
-    to_dict() drops auto_config_params while it is at its default, but
-    the example should show every setting the detector accepts.
-    """
-    as_dict = config.to_dict("<COMPONENT_NAME>")
-    method = as_dict[config.component_type]["<COMPONENT_NAME>"]
-    # to_dict() leaves an empty global_instances under params; the tables
-    # document it as the top-level `global` block, so don't show it there
-    if method.get("params", {}).get("global_instances") == {}:
-        del method["params"]["global_instances"]
-    auto_params = config.auto_config_params.model_dump()
-    if auto_params and "auto_config_params" not in method:
-        blocks = list(method.items())
-        at = next((i + 1 for i, (key, _) in enumerate(blocks) if key == "params"), len(blocks))
-        blocks.insert(at, ("auto_config_params", auto_params))
-        as_dict[config.component_type]["<COMPONENT_NAME>"] = dict(blocks)
-    # the example must load back into the same config
-    reloaded = type(config).from_dict(as_dict, "<COMPONENT_NAME>")
-    if reloaded.to_dict("<COMPONENT_NAME>") != config.to_dict("<COMPONENT_NAME>"):
-        raise ValueError(f"{type(config).__name__}: generated YAML example does not load back")
-    return as_dict
-
-
-def config_yaml(config: CoreConfig) -> str:
-    pretty_yaml = yaml.dump(
-        config_dict(config),
-        indent=4,
-        default_flow_style=False,
-        sort_keys=False,
-    )
-    return "```yaml\n" + pretty_yaml + "```\n"
-
-
 def update_docs(
     config: CoreConfig,
     doc_path: str,
@@ -143,13 +107,6 @@ def update_docs(
             start_cmd="<!-- Start arguments -->\n",
             end_cmd="<!-- End arguments -->\n",
             add=get_arguments(config.get_docs(shared_base=shared_base)),
-        )
-
-        docs = append_docs(
-            docs=docs,
-            start_cmd="<!-- Start config -->\n",
-            end_cmd="<!-- End config -->\n",
-            add=config_yaml(config),
         )
 
         with open(doc_path, "w") as f:
@@ -221,8 +178,10 @@ def update_shared_args_parsers(doc_path: str) -> None:
 # Every config below drives its own doc page: whenever a Field is added,
 # removed or its description/default changes, re-running this script (or
 # `pytest`, which executes it as a doc example) regenerates the
-# "Configuration arguments" tables and the "Start config"/"End config" YAML
-# block in the corresponding page, so the docs never drift from the code.
+# "Configuration arguments" tables in the corresponding page, so the docs
+# never drift from the code. The YAML example on each page is hand-written
+# (docs/examples/<type>/<name>.yaml) and kept valid by its Python example,
+# which loads it and runs as a test.
 #
 # Each entry's second element is the family base the page is documented
 # against: a field that also exists there is marked `shared`, everything else

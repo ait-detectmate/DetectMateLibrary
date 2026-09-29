@@ -1,20 +1,29 @@
 # --8<-- [start:example]
-import detectmatelibrary.detectors.rule_detector as rd
+import yaml
 from detectmatelibrary import schemas
+from detectmatelibrary.detectors.rule_detector import RuleDetector
 
-rule_detector = rd.RuleDetector()
+with open("docs/examples/detectors/rule_based.yaml") as f:
+    config = yaml.safe_load(f)
+detector = RuleDetector(name="RuleDetector", config=config)
 
-parser_data = schemas.ParserSchema({
-    "parserType": "test",
-    "EventID": 1,
-    "template": "test template",
-    "variables": ["var1"],
-    "logID": "1",
-    "parsedLogID": "1",
-    "parserID": "test_parser",
-    "log": "test log message",
-    "logFormatVariables": {"timestamp": "123456"}
-})
 
-alert = rule_detector.process(parser_data)
+def parsed(event_id: int, log: str, level: str = "INFO") -> schemas.ParserSchema:
+    """A parsed log; EventID -1 means the parser found no matching template."""
+    return schemas.ParserSchema({"EventID": event_id, "log": log, "logFormatVariables": {"Level": level}})
+
+
+logs = [
+    parsed(0, "Accepted password for alice from 10.0.0.1 port 22"),
+    parsed(-1, "kernel: unexpected garbled line"),
+    parsed(3, "alice : TTY=pts/0 ; COMMAND=/usr/bin/sudo su"),
+    parsed(1, "Failed password for root from 10.0.0.9 port 22", level="ERROR"),
+]
+for log in logs:
+    alert = detector.process(log)
+    print(dict(alert["alertsObtain"]) if alert else None)
+# None
+# {'R001 - TemplateNotFound': 'No template found by parser'}
+# {'R002 - SpecificKeyword': "Found word 'sudo' in the logs"}
+# {'R004 - ErrorLevelFound': 'Error found'}
 # --8<-- [end:example]

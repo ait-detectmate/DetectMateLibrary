@@ -1,41 +1,24 @@
 # --8<-- [start:example]
+import yaml
+from detectmatelibrary import schemas
 from detectmatelibrary.detectors.new_event_detector import NewEventDetector
-import detectmatelibrary.schemas as schemas
 
-cfg = {
-    "detectors": {
-        "NewEventTest": {
-            "method_type": "new_event_detector",
-            "auto_config": False,
-            "params": {}
-        },
-        "MultipleDetector": {
-            "method_type": "new_event_detector",
-            "auto_config": False,
-            "params": {}
-        },
-        "NewEventDetector": {
-            "method_type": "new_event_detector",
-            "auto_config": False,
-            "params": {}
-        }
-    }
-}
-
-detector = NewEventDetector(name="NewEventTest", config=cfg)
-
-parser_data = schemas.ParserSchema({
-    "parserType": "test",
-    "EventID": 1,
-    "template": "test template",
-    "variables": ["var1"],
-    "logID": "1",
-    "parsedLogID": "1",
-    "parserID": "test_parser",
-    "log": "test log message",
-    "logFormatVariables": {"timestamp": "123456"}
-})
+with open("docs/examples/detectors/new_event.yaml") as f:
+    config = yaml.safe_load(f)
+detector = NewEventDetector(name="NewEventDetector", config=config)
 
 
-alert = detector.process(parser_data)
+def event(event_id: int) -> schemas.ParserSchema:
+    """A parsed log; only its EventID (the matched template) matters here."""
+    return schemas.ParserSchema({"EventID": event_id})
+
+
+# the first 3 logs train the detector (data_use_training: 3):
+# EventID 0 = "Accepted password ...", EventID 1 = "Failed password ..."
+for log in [event(0), event(1), event(0)]:
+    detector.process(log)
+
+print(detector.process(event(1)))  # None: known event
+alert = detector.process(event(2))  # a template never seen during training
+print(dict(alert["alertsObtain"]))  # {'EventID 2 - {}': "Unknown event ID: '2'"}
 # --8<-- [end:example]

@@ -26,6 +26,25 @@ pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>
 login success: user=<*> source=<*>
 ```
 
+## Example
+
+```python
+--8<-- "docs/examples/parsers/template_tree_matcher.py:example"
+```
+
+## Configuration file
+
+The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
+
+```yaml
+--8<-- "docs/examples/parsers/template_tree_matcher.yaml"
+```
+
+The same file works unchanged in both places a parser runs:
+
+- **Library**: load it with `yaml.safe_load` and pass the dict as `config=`, as in the example. The key under `parsers:` must match the parser's `name`.
+- **[DetectMateService](https://github.com/ait-detectmate/DetectMateService)**: use it as the service's parser configuration.
+
 ## Configuration arguments
 
 All parameters this parser accepts, grouped by the YAML block they go in. **Scope** tells whether a parameter is `specific` to this parser or `shared` with other parsers (see the [Parsers overview](../parsers.md#common-parameters-all-parsers)).
@@ -52,34 +71,3 @@ All parameters this parser accepts, grouped by the YAML block they go in. **Scop
 <!-- End arguments -->
 
 Note: this matcher removes non-alphanumeric characters from logs and templates before matching, except for the `<*>` token. Ensure your templates are compatible with that normalization.
-
-## Examples
-### Service usage
-
-To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example below.
-
-<!-- Start config -->
-```yaml
-parsers:
-    <COMPONENT_NAME>:
-        method_type: tree_matcher
-        auto_config: false
-        params:
-            start_id: 10
-            data_use_training: null
-            data_use_configure: null
-            use_config_data_as_training: true
-            log_format: null
-            time_format: null
-            path_templates: null
-```
-<!-- End config -->
-
-### Library usage
-To use it as a python script, you can follow the example below.
-
-```python
---8<-- "docs/examples/parsers/template_tree_matcher.py"
-```
-
-Go back to [Index](../index.md)

@@ -1,0 +1,12 @@
+detectors:
+  DownloadSizeDetector:
+    method_type: value_range_detector
+    auto_config: false          # we pick the variables ourselves (see `events`)
+    params:
+      data_use_training: 3      # learn the range from the first 3 logs, then detect
+    events:
+      2:                        # EventID: "close <*> bytes read <*> written <*>"
+        download:
+          variables:
+            - pos: 1
+              name: bytes_read

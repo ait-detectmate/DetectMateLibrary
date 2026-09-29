@@ -1,33 +1,17 @@
 # --8<-- [start:example]
+import yaml
 from detectmatelibrary.parsers.tree_matcher import TemplateCppTreeMatcher
 from detectmatelibrary import schemas
-from pathlib import Path
 
+with open("docs/examples/parsers/template_tree_matcher.yaml") as f:
+    config = yaml.safe_load(f)
+parser = TemplateCppTreeMatcher(name="TreeMatcher", config=config)
 
-ROOT = Path(__file__).resolve().parents[3]
-templates = ROOT / "tests" / "test_data" / "test_templates.txt"
-# instantiate parser (config can be a dict or a config object)
-cfg = {
-    "parsers": {
-        "TreeMatcher": {
-            "method_type": "tree_matcher",
-            "params": {
-                "path_templates": str(templates)
-            }
-        }
-    }
-}
-
-parser = TemplateCppTreeMatcher(name="TreeMatcher", config=cfg)
-
-# match a log
-input_log = schemas.LogSchema({
+parsed = parser.process(schemas.LogSchema({
     "logID": "0",
-    "log": "pid=9699 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\"'"
-})
-parsed = parser.process(input_log)  # or call parser.parse / parser.match depending on the API
-
-# parsed is a ParserSchema. Inspect fields:
-print(parsed.template)   # matched template text
-print(parsed.variables)  # list of extracted parameters
+    "log": "pid=9699 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\"'",
+}))
+print(parsed.EventID)    # 0: the first template in the file
+print(parsed.template)   # pid <*> uid <*> auid <*> ses <*> msg op PAM <*> acct <*>
+print(parsed.variables)  # ['9699', '0', '4294967295', '4294967295', 'accounting', 'root']
 # --8<-- [end:example]

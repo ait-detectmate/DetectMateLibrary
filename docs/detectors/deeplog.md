@@ -11,9 +11,34 @@ Input and output schemas in the pipeline
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Combined alert / finding |
 
+## At a glance
+
+| Learns from training data | Auto-configuration | Needs `events` | Federation |
+|---|---|---|---|
+| ✅ | ✅ fine-tunes the model | ❌ | ❌ |
+
 ## Description
 
 Deep learning method that looks at the event ID sequence.
+
+## Example
+
+```python
+--8<-- "docs/examples/detectors/deeplog_detector.py:example"
+```
+
+## Configuration file
+
+The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
+
+```yaml
+--8<-- "docs/examples/detectors/deeplog_detector.yaml"
+```
+
+The same file works unchanged in both places a detector runs:
+
+- **Library**: load it with `yaml.safe_load` and pass the dict as `config=`, as in the example. The key under `detectors:` must match the detector's `name`.
+- **[DetectMateService](https://github.com/ait-detectmate/DetectMateService)**: use it as the service's detector configuration.
 
 ## Configuration arguments
 
@@ -44,61 +69,3 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `finetune_epochs` | integer | 2 | shared | Number of epochs used when finetuning during the configuration phase. |
     | `hyperparameters` | object | {'Model': {'hidden_dim': 64, 'n_layers': 2}, 'Train': {'seed': 0, 'batch_size': 2048, 'learning_rate': 0.01, 'epochs': 10, 'patience': 3}, 'Finetune': [['Model', 'hidden_dim', [128, 256, 512]], ['Model', 'n_layers', [1, 2, 3]], ['Train', 'learning_rate', [0.01, 0.02, 0.03]]]} | shared | Model, training and hyperparameter-search settings for the DeepLog model. |
 <!-- End arguments -->
-
-## Examples
-### Service usage
-
-To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example below.
-
-<!-- Start config -->
-```yaml
-detectors:
-    <COMPONENT_NAME>:
-        method_type: deeplog_detector
-        auto_config: true
-        params:
-            start_id: 10
-            data_use_training: null
-            data_use_configure: null
-            use_config_data_as_training: true
-            parser: PARSER
-            window_size: 10
-            validation_per: 0.2
-            finetune_epochs: 2
-            hyperparameters:
-                Model:
-                    hidden_dim: 64
-                    n_layers: 2
-                Train:
-                    seed: 0
-                    batch_size: 2048
-                    learning_rate: 0.01
-                    epochs: 10
-                    patience: 3
-                Finetune:
-                -   - Model
-                    - hidden_dim
-                    -   - 128
-                        - 256
-                        - 512
-                -   - Model
-                    - n_layers
-                    -   - 1
-                        - 2
-                        - 3
-                -   - Train
-                    - learning_rate
-                    -   - 0.01
-                        - 0.02
-                        - 0.03
-        events: {}
-```
-<!-- End config -->
-### Library usage
-To use it as a python script, you can follow the example below.
-
-```python
---8<-- "docs/examples/detectors/deeplog_detector.py:example"
-```
-
-Go back [Index](../index.md)

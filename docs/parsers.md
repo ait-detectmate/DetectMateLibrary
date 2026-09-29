@@ -138,6 +138,3 @@ There are some parameters, that **every** parser inhertis from `CoreParserrConfi
     | `log_format` | string, null | None | fitting description yet to find |
     | `time_format` | string, null | None | fitting description yet to find |
 <!-- End common_arguments -->
-
-
-Go back to [Index](index.md)

@@ -1,0 +1,9 @@
+detectors:
+  RuleDetector:
+    method_type: rule_detector
+    params:
+      rules:                    # no training: every rule is checked on every log
+        - rule: R001 - TemplateNotFound
+        - rule: R002 - SpecificKeyword
+          args: [sudo, passwd]  # words to look for in the raw log
+        - rule: R004 - ErrorLevelFound

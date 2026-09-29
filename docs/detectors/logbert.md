@@ -11,9 +11,34 @@ Input and output schemas in the pipeline
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Combined alert / finding |
 
+## At a glance
+
+| Learns from training data | Auto-configuration | Needs `events` | Federation |
+|---|---|---|---|
+| ✅ | ✅ fine-tunes the model | ❌ | ❌ |
+
 ## Description
 
 Deep learning method that looks at the event ID sequence.
+
+## Example
+
+```python
+--8<-- "docs/examples/detectors/logbert_detector.py:example"
+```
+
+## Configuration file
+
+The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
+
+```yaml
+--8<-- "docs/examples/detectors/logbert_detector.yaml"
+```
+
+The same file works unchanged in both places a detector runs:
+
+- **Library**: load it with `yaml.safe_load` and pass the dict as `config=`, as in the example. The key under `detectors:` must match the detector's `name`.
+- **[DetectMateService](https://github.com/ait-detectmate/DetectMateService)**: use it as the service's detector configuration.
 
 ## Configuration arguments
 
@@ -44,67 +69,3 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `finetune_epochs` | integer | 2 | shared | Number of epochs used when finetuning during the configuration phase. |
     | `hyperparameters` | object | {'Model': {'n_embed': 10, 'hidden': 32, 'num_heads': 2, 'n_layers': 1, 'dropout': 0.0, 'max_len': 1000}, 'Train': {'seed': 0, 'batch_size': 256, 'learning_rate': 0.01, 'epochs': 10, 'mask_per': 0.4, 'alpha': 0.0, 'patience': 3}, 'Finetune': [['Model', 'hidden', [64, 128, 256]], ['Model', 'n_layers', [1, 2, 3]], ['Train', 'learning_rate', [0.002, 0.001, 0.005]]]} | shared | Model, training and hyperparameter-search settings for the LogBERT model. |
 <!-- End arguments -->
-
-## Examples
-### Service usage
-
-To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example below.
-
-<!-- Start config -->
-```yaml
-detectors:
-    <COMPONENT_NAME>:
-        method_type: logbert_detector
-        auto_config: true
-        params:
-            start_id: 10
-            data_use_training: null
-            data_use_configure: null
-            use_config_data_as_training: true
-            parser: PARSER
-            window_size: 10
-            validation_per: 0.2
-            finetune_epochs: 2
-            hyperparameters:
-                Model:
-                    n_embed: 10
-                    hidden: 32
-                    num_heads: 2
-                    n_layers: 1
-                    dropout: 0.0
-                    max_len: 1000
-                Train:
-                    seed: 0
-                    batch_size: 256
-                    learning_rate: 0.01
-                    epochs: 10
-                    mask_per: 0.4
-                    alpha: 0.0
-                    patience: 3
-                Finetune:
-                -   - Model
-                    - hidden
-                    -   - 64
-                        - 128
-                        - 256
-                -   - Model
-                    - n_layers
-                    -   - 1
-                        - 2
-                        - 3
-                -   - Train
-                    - learning_rate
-                    -   - 0.002
-                        - 0.001
-                        - 0.005
-        events: {}
-```
-<!-- End config -->
-### Library usage
-To use it as a python script, you can follow the example below.
-
-```python
---8<-- "docs/examples/detectors/logbert_detector.py:example"
-```
-
-Go back [Index](../index.md)

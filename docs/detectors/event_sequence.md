@@ -11,7 +11,11 @@ Input and output schemas in the pipeline
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Alert / finding |
 
-✅ Federation compatible (Binary not available).
+## At a glance
+
+| Learns from training data | Auto-configuration | Needs `events` | Federation |
+|---|---|---|---|
+| ✅ | ✅ picks the window length | ❌ | ✅ (binary not available) |
 
 ## Description
 
@@ -30,6 +34,39 @@ Candidates whose window never filled during the configure phase are skipped, so 
 If no candidate is stable, no window length is meaningful for this log stream. Rather than fall back to an arbitrary length and alert on nearly every window, the detector generates an empty configuration: **no instance of the detector is created**, `fixed_window_size` stays `None`, and it neither trains nor alerts for the rest of the run. A warning names the range that was searched. The same applies to `auto_config: False` without a `fixed_window_size`  --  the detector stays inert.
 
 Longer windows are more specific and therefore alert more readily; if the auto-configured length is too sensitive, narrow the range or set `fixed_window_size` explicitly.
+
+To let the detector pick the window length, give it a configure phase instead of a `fixed_window_size`:
+
+```yaml
+detectors:
+  LoginSequenceDetector:
+    method_type: event_sequence_detector
+    auto_config: true
+    params:
+      data_use_configure: 200   # logs used to choose the window length
+      data_use_training: 1000   # logs used to learn the sequences afterwards
+```
+
+## Example
+
+```python
+--8<-- "docs/examples/detectors/event_sequence.py:example"
+```
+
+The sequences learned so far are available via `detector.get_known_sequences()`, which returns a set of event-ID tuples.
+
+## Configuration file
+
+The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
+
+```yaml
+--8<-- "docs/examples/detectors/event_sequence.yaml"
+```
+
+The same file works unchanged in both places a detector runs:
+
+- **Library**: load it with `yaml.safe_load` and pass the dict as `config=`, as in the example. The key under `detectors:` must match the detector's `name`.
+- **[DetectMateService](https://github.com/ait-detectmate/DetectMateService)**: use it as the service's detector configuration.
 
 ## Configuration arguments
 
@@ -57,56 +94,10 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
     | `parser` | string | PARSER | shared | Name of the parser used. |
 
-???+ note "auto_config_params (read only while auto_config is true)"
+??? note "auto_config_params (read only while auto_config is true)"
 
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
     | `min_window_size` | integer | 2 | specific | Shortest window length tried by the configure phase. Must be >= 1. |
     | `max_window_size` | integer | 10 | specific | Longest window length tried by the configure phase; the longest length whose sequences are STABLE or STATIC wins. Must be >= min_window_size. |
 <!-- End arguments -->
-
-## Examples
-### Service usage
-
-To use it in [DetectMateService](https://github.com/ait-detectmate/DetectMateService), you can use the example below. It lets auto configuration pick the window length.
-
-<!-- Start config -->
-```yaml
-detectors:
-    <COMPONENT_NAME>:
-        method_type: event_sequence_detector
-        auto_config: true
-        params:
-            start_id: 10
-            data_use_training: null
-            data_use_configure: null
-            use_config_data_as_training: true
-            parser: PARSER
-            fixed_window_size: null
-        auto_config_params:
-            min_window_size: 2
-            max_window_size: 10
-        events: {}
-```
-<!-- End config -->
-
-With a fixed window length (no auto configuration):
-
-```yaml
-detectors:
-    <COMPONENT_NAME>:
-        method_type: event_sequence_detector
-        auto_config: false
-        params:
-            fixed_window_size: 3
-```
-
-## Example usage
-
-```python
---8<-- "docs/examples/detectors/event_sequence.py:example"
-```
-
-The sequences learned so far are available via `detector.get_known_sequences()`, which returns a set of event-ID tuples.
-
-Go back [Index](../index.md)
