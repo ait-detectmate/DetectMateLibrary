@@ -16,6 +16,8 @@ from detectmatelibrary import schemas
 
 from typing import Any, Callable
 
+from pydantic import Field
+
 
 def template_not_found(input_: schemas.ParserSchema, *args: list[Any]) -> tuple[bool, str]:
     raise_alert = input_["EventID"] == -1
@@ -58,12 +60,17 @@ class RuleNotFound(Exception):
 
 
 class RuleDetectorConfig(CoreDetectorConfig):
-    method_type: str = "rule_detector"
-    rules: list[dict[str, list[str] | str]] = [
-        {"rule": "R001 - TemplateNotFound"},
-        {"rule": "R003 - CheckForExceptions"},
-        {"rule": "R004 - ErrorLevelFound"},
-    ]
+    method_type: str = Field(
+        default="rule_detector", description="Indicates what type of method it is."
+    )
+    rules: list[dict[str, list[str] | str]] = Field(
+        default=[
+            {"rule": "R001 - TemplateNotFound"},
+            {"rule": "R003 - CheckForExceptions"},
+            {"rule": "R004 - ErrorLevelFound"},
+        ],
+        description="List of rules to evaluate, each a dict with a 'rule' name and an optional 'args' list.",
+    )
 
 
 class RuleDetector(CoreDetector):

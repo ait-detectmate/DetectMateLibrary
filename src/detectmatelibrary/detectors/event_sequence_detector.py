@@ -28,8 +28,19 @@ class SequenceAutoConfigParams(StabilityAutoConfigParams):
            classified STABLE or STATIC wins.
     """
 
-    min_window_size: int = Field(default=2, ge=1)
-    max_window_size: int = Field(default=10, ge=1)
+    min_window_size: int = Field(
+        default=2,
+        ge=1,
+        description="Shortest window length tried by the configure phase. Must be >= 1.",
+    )
+    max_window_size: int = Field(
+        default=10,
+        ge=1,
+        description=(
+            "Longest window length tried by the configure phase; the longest length whose "
+            "sequences are STABLE or STATIC wins. Must be >= min_window_size."
+        ),
+    )
 
     @model_validator(mode="after")
     def _validate_window_range(self) -> "SequenceAutoConfigParams":
@@ -39,15 +50,23 @@ class SequenceAutoConfigParams(StabilityAutoConfigParams):
 
 
 class EventSequenceDetectorConfig(CoreDetectorConfig):
-    """
-    @param fixed_window_size length of the sliding EventID window. A window whose exact
-           EventID sequence was not seen during training is reported as an anomaly. When
-           set it overrides the `auto_config_params` window range and skips
-           auto-configuration; auto-configuration writes its own choice here. While it is
-           None the detector is unconfigured and neither trains nor alerts.
-    """
-    method_type: str = "event_sequence_detector"
-    fixed_window_size: int | None = Field(default=None, ge=1)
+    method_type: str = Field(
+        default="event_sequence_detector",
+        description="Indicates what type of method it is.",
+    )
+    fixed_window_size: int | None = Field(
+        default=None,
+        ge=1,
+        description=(
+            "Length of the sliding EventID window. A window whose exact "
+            "EventID sequence was not seen during training is reported as an "
+            "anomaly. When set it overrides the `auto_config_params` window "
+            "range and skips auto-configuration; auto-configuration writes "
+            "its own choice here. While it is None the detector is "
+            "unconfigured and neither trains nor alerts."
+        ),
+    )
+
     auto_config_params: SequenceAutoConfigParams = SequenceAutoConfigParams()
 
 
@@ -55,14 +74,16 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
     """Detect EventID sequences not encountered in training as anomalies."""
 
     def __init__(
-            self,
-            name: str = "EventSequenceDetector",
-            config: EventSequenceDetectorConfig = EventSequenceDetectorConfig()
+        self,
+        name: str = "EventSequenceDetector",
+        config: EventSequenceDetectorConfig = EventSequenceDetectorConfig(),
     ) -> None:
         if isinstance(config, dict):
             config = EventSequenceDetectorConfig.from_dict(config, name)
 
-        CoreDetector.__init__(self, name=name, buffer_mode=BufferMode.NO_BUF, config=config)
+        CoreDetector.__init__(
+            self, name=name, buffer_mode=BufferMode.NO_BUF, config=config
+        )
         self.config: EventSequenceDetectorConfig
         self._train_window: deque[int] = deque(maxlen=self.config.fixed_window_size)
         self._detect_window: deque[int] = deque(maxlen=self.config.fixed_window_size)
@@ -132,7 +153,7 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
             return
         self.persistency.ingest_event(
             event_id=encode_sequence(self._train_window),
-            event_template=input_["template"]
+            event_template=input_["template"],
         )
 
     def detect(self, input_: ParserSchema, output_: DetectorSchema) -> bool:  # type: ignore
@@ -153,13 +174,17 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
 
         sequence = tuple(self._detect_window)
         output_["score"] = 1.0
-        output_["description"] = f"{self.name} detects unknown EventID sequences as anomalies."
-        output_["alertsObtain"].update({
-            f"Sequence {sequence}": (
-                f"EventID sequence of length {len(sequence)} ending at logID "
-                f"{input_['logID']} was not seen during training."
-            )
-        })
+        output_["description"] = (
+            f"{self.name} detects unknown EventID sequences as anomalies."
+        )
+        output_["alertsObtain"].update(
+            {
+                f"Sequence {sequence}": (
+                    f"EventID sequence of length {len(sequence)} ending at logID "
+                    f"{input_['logID']} was not seen during training."
+                )
+            }
+        )
         return True
 
     def configure(self, input_: ParserSchema) -> None:  # type: ignore
@@ -195,7 +220,8 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
         """
         if (fixed := self.config.fixed_window_size) is not None:
             reason = (
-                "persisted state was restored" if self._restored_length is not None
+                "persisted state was restored"
+                if self._restored_length is not None
                 else "fixed_window_size is set"
             )
             logger.warning(
@@ -206,7 +232,10 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
             return
 
         stable = []
-        for length, event_tracker in self.auto_conf_persistency.get_events_data().items():
+        for (
+            length,
+            event_tracker,
+        ) in self.auto_conf_persistency.get_events_data().items():
             tracker = event_tracker.get_data()["seq"]
             if len(tracker.change_series) < tracker.min_samples:
                 continue

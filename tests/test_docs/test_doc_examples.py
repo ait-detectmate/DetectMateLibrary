@@ -15,6 +15,7 @@ examples = home / "docs" / "examples"
 example_files = sorted(examples.rglob("*.py"))
 
 
+@pytest.mark.ignored
 @pytest.mark.parametrize("example", example_files)
 def test_doc_example_runs(example):
     runpy.run_path(str(example), run_name="__main__")

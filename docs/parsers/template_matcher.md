@@ -1,6 +1,10 @@
-# Template matcher
+# Template Matcher
 
-The template matcher is a parser that takes a set of templates and matches them to incoming logs. It extracts parameters from positions marked with the <*> wildcard and returns a ParserSchema with the matched template and the extracted variables.
+The Template Matcher is a parser that takes a set of templates and matches them to incoming logs. It extracts parameters from positions marked with the <*> wildcard and returns a ParserSchema with the matched template and the extracted variables.
+
+## In/out
+
+Input and output schemas in the pipeline
 
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
@@ -42,37 +46,51 @@ pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>
 login success: user=<*> source=<*>
 ```
 
-## Configuration
+## Example
 
-Typical MatcherParser config options (fields in config class):
-
-- `method_type`: must match the parser type ("matcher_parser" or configured name).
-- `path_templates`: path to the newline-delimited template file. If `null`, the matcher runs without templates.
-- `remove_spaces` (bool, default True): remove all spaces during matching.
-- `remove_punctuation` (bool, default True): strip punctuation except the `<*>` token.
-- `lowercase` (bool, default True): lowercase logs and templates before matching.
-- `auto_config` (bool): whether to attempt any auto-configuration phase (not required).
-
-Example YAML entry:
-```yaml
-parsers:
-  MatcherParser:
-    method_type: matcher_parser
-    auto_config: False
-    params:
-      remove_spaces: True
-      remove_punctuation: True
-      lowercase: True
-      path_templates: path/to/templates.txt
-```
-
-## Usage examples
-
-Simple usage — load templates and match a log:
+Load the templates and match a log:
 
 ```python
 --8<-- "docs/examples/parsers/template_matcher.py:example"
 ```
 
+## Configuration file
 
-Go back to [Index](../index.md)
+The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
+
+```yaml
+--8<-- "docs/examples/parsers/template_matcher.yaml"
+```
+
+The same file works unchanged in both places a parser runs:
+
+- **Library**: load it with `yaml.safe_load` and pass the dict as `config=`, as in the example. The key under `parsers:` must match the parser's `name`.
+- **[DetectMateService](https://github.com/ait-detectmate/DetectMateService)**: use it as the service's parser configuration.
+
+## Configuration arguments
+
+All parameters this parser accepts, grouped by the YAML block they go in. **Scope** tells whether a parameter is `specific` to this parser or `shared` with other parsers (see the [Parsers overview](../parsers.md#common-parameters-all-parsers)).
+
+<!-- Start arguments -->
+??? note "Top level"
+
+    | Field | Type | Default | Scope | Description |
+    |---|---|---|---|---|
+    | `method_type` | string | matcher_parser | shared | Indicates what type of method it is. |
+    | `auto_config` | boolean | False | shared | Runs the configuration step before the training process. |
+
+???+ note "params"
+
+    | Field | Type | Default | Scope | Description |
+    |---|---|---|---|---|
+    | `remove_spaces` | boolean | True | specific | fitting description yet to find |
+    | `remove_punctuation` | boolean | True | specific | fitting description yet to find |
+    | `lowercase` | boolean | True | specific | fitting description yet to find |
+    | `path_templates` | string, null | None | specific | fitting description yet to find |
+    | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
+    | `data_use_training` | integer, null | None | shared | Data used for training, if None, training is not done. |
+    | `data_use_configure` | integer, null | None | shared | Data used for configuration, if None, configuration is not done. |
+    | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
+    | `log_format` | string, null | None | shared | fitting description yet to find |
+    | `time_format` | string, null | None | shared | fitting description yet to find |
+<!-- End arguments -->

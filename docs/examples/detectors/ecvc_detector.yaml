@@ -1,0 +1,6 @@
+detectors:
+  ECVCDetector:
+    method_type: ecvc_detector
+    params:
+      data_use_training: 20     # learn count vectors from the first 20 windows, then detect
+      window_size: 3            # count EventIDs over windows of 3 consecutive logs

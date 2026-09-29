@@ -9,14 +9,21 @@ from detectmatelibrary import schemas
 from typing import Any, Optional, cast
 from pydantic import model_validator
 import re
+from pydantic import Field
 
 
 class CoreParserConfig(CoreConfig):
-    component_type: str = "parsers"
-    method_type: str = "core_parser"
+    component_type: str = Field(default="parsers", description="<$IGNORE$>")
+    method_type: str = Field(default="core_parser", description="<$IGNORE$>")
 
-    log_format: str | None = None
-    time_format: str | None = None
+    log_format: str | None = Field(
+        default=None,
+        description=("fitting description yet to find"),
+    )
+    time_format: str | None = Field(
+        default=None,
+        description=("fitting description yet to find"),
+    )
 
     _regex: re.Pattern[str] | None = None
 
@@ -58,7 +65,7 @@ class CoreParser(CoreComponent):
             config._regex,
             log=input_["log"],
             time_format=config.time_format,
-            time_format_handler=self.time_format_handler
+            time_format_handler=self.time_format_handler,
         )
 
         output_["parserID"] = self.name
