@@ -402,7 +402,11 @@ operator set under <code>params</code> or <code>auto_config_params</code> must s
 <span class="mf">3.</span> <span class="n">train</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span>             <span class="c1"># call for each event in the dataset</span>
 <span class="mf">4.</span> <span class="n">detect</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="n">output_</span><span class="p">)</span>   <span class="c1"># call for each event to detect anomalies</span>
 </code></pre></div>
-<p>When <code>auto_config</code> is <code>False</code>, steps 1 and 2 are skipped entirely.</p>
+<p>When <code>auto_config</code> is <code>False</code>, steps 1 and 2 are skipped entirely. <code>data_use_configure</code>
+still reserves its records, and with <code>use_config_data_as_training</code> they still go to
+training, so a config rerun with <code>auto_config: False</code> trains on exactly the data the
+configuring run saw. This holds for every component with a configure phase, including
+the hyperparameter searches of <code>DrainParser</code> and the deep-learning detectors.</p>
 <p>That distinction is visible in the config. A detector's settings live in two
 blocks:</p>
 <ul>
