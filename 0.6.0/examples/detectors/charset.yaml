@@ -1,0 +1,12 @@
+detectors:
+  UserCharsetDetector:
+    method_type: charset_detector
+    auto_config: false          # we pick the variables ourselves (see `events`)
+    params:
+      data_use_training: 3      # learn from the first 3 logs, then detect
+    events:
+      1:                        # EventID: "Failed password for <*> from <*> port <*>"
+        failed_login:
+          variables:
+            - pos: 0
+              name: user

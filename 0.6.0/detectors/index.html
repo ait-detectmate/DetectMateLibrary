@@ -1,0 +1,3270 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/0.6.0/detectors/">
+      
+      
+        <link rel="prev" href="../parsers/">
+      
+      
+        <link rel="next" href="../alert_aggregator/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Detectors - DetectMate Library</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#detectors" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DetectMate Library
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Detectors
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    DetectMate Library
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user_guide/what_is_detectmate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What is DetectMate?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user_guide/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user_guide/basic_knowledge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Basic knowledge
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user_guide/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user_guide/tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial (end-to-end)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advanced/overall_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overall architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Components
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Components
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../schemas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schemas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../federation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Federation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../parsers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Parsers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detectors
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detectors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#coredetector-minimal-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CoreDetector -- minimal API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementing-a-detector-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementing a detector -- example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#detectors-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detectors methods
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-parameters-all-detectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common parameters (all detectors)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#per-variable-model-detectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-variable model detectors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deep-learning-detectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deep learning detectors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration-semantics-preliminary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration semantics (preliminary)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auto-configuration-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auto-configuration (optional)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full-lifecycle-with-auto-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full lifecycle with auto-configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stability-classification-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stability classification (optional)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stability classification (optional)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-decision-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The decision rule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fallback-behaviour" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fallback behaviour
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#saving-state-persist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Saving state (persist)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Saving state (persist)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#running-under-systemd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running under systemd
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fields_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storage-options-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Storage options examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../alert_aggregator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alert Aggregation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Parser types
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Parser types
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../parsers/auto_parser/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Auto Parser
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../parsers/drain_parser/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Drain Parser
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../parsers/json_parser/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JSON Parser
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../parsers/logbatcher_parser/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LogBatcher Parser
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../parsers/template_matcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Template Matcher
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../parsers/template_tree_matcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Template Tree Matcher
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detector types
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Detector types
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="random_detector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    00 Random Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="rule_based/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01 Rule Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="new_event/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02 New Event Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="new_value/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03 New Value Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="combo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    04 New Value Combo Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="value_range/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    05 Value Range Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="charset/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    06 Charset Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="event_sequence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    07 Event Sequence Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="bigram_frequency/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    08 Bigram Frequency Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="scvs_detector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    09 SCVS Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="ecvc_detector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    10 ECVC Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="deeplog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11 DeepLog Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="logbert/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    12 LogBERT Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alert Aggregation methods
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Alert Aggregation methods
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../alert_aggregators/basic_concatenation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Basic Concat
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Helpers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Helpers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../helper/from_to/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FromTo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Auxiliary
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Auxiliary
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../auxiliar/persistency/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Persistency
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../auxiliar/input_buffer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data buffer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Other
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Other
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../other/log_formats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Log Formats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to contribute
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How to contribute
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contribution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#coredetector-minimal-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CoreDetector -- minimal API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementing-a-detector-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementing a detector -- example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#detectors-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detectors methods
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-parameters-all-detectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common parameters (all detectors)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#per-variable-model-detectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-variable model detectors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deep-learning-detectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deep learning detectors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration-semantics-preliminary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration semantics (preliminary)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auto-configuration-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auto-configuration (optional)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full-lifecycle-with-auto-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full lifecycle with auto-configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stability-classification-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stability classification (optional)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stability classification (optional)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-decision-rule" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The decision rule
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fallback-behaviour" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fallback behaviour
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#saving-state-persist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Saving state (persist)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Saving state (persist)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#running-under-systemd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running under systemd
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fields_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storage-options-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Storage options examples
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="detectors">Detectors</h1>
+<p>Detectors process structured logs from Parsers and emit alerts when anomalies are detected.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Schema</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Input</strong></td>
+<td><a href="../schemas/">ParserSchema</a></td>
+<td>Structured log</td>
+</tr>
+<tr>
+<td><strong>Output</strong></td>
+<td><a href="../schemas/">DetectorSchema</a></td>
+<td>Alert / finding</td>
+</tr>
+</tbody>
+</table>
+<p>This document describes the minimal API, implementation guidance, a short example detector and a unit test pattern.</p>
+<h2 id="coredetector-minimal-api">CoreDetector  --  minimal API</h2>
+<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">CoreDetectorConfig</span><span class="p">(</span><span class="n">CoreConfig</span><span class="p">):</span>
+    <span class="n">component_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"detectors"</span>
+    <span class="n">method_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"core_detector"</span>
+    <span class="n">parser</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"&lt;PLACEHOLDER&gt;"</span>
+
+    <span class="n">auto_config</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">CoreDetector</span><span class="p">(</span><span class="n">CoreComponent</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ParserSchema</span><span class="p">]</span> <span class="o">|</span> <span class="n">ParserSchema</span><span class="p">,</span> <span class="n">output_</span><span class="p">:</span> <span class="n">DetectorSchema</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Define in the Core detector"""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">detect</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ParserSchema</span><span class="p">]</span> <span class="o">|</span> <span class="n">ParserSchema</span><span class="p">,</span>
+        <span class="n">output_</span><span class="p">:</span> <span class="n">DetectorSchema</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Empty, must be define in the specific detector"""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">:</span> <span class="n">ParserSchema</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">ParserSchema</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Empty, can be define in the detector. It trains the detector"""</span>
+</code></pre></div>
+<h2 id="implementing-a-detector-example">Implementing a detector  --  example</h2>
+<p>Simple detector that raises an alert when a numeric variable exceeds a threshold.</p>
+<p><div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">SimpleThresholdConfig</span><span class="p">(</span><span class="n">CoreDetectorConfig</span><span class="p">):</span>
+    <span class="n">method_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"simple_threshold"</span>
+    <span class="n">threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">SimpleThresholdDetector</span><span class="p">(</span><span class="n">CoreDetector</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"SimpleThreshold"</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">SimpleThresholdConfig</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">SimpleThresholdConfig</span><span class="p">(),</span>
+    <span class="p">):</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">SimpleThresholdConfig</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">buffer_mode</span><span class="o">=</span><span class="n">BufferMode</span><span class="o">.</span><span class="n">NO_BUF</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">detect</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">:</span> <span class="n">schemas</span><span class="o">.</span><span class="n">ParserSchema</span><span class="p">,</span> <span class="n">output_</span><span class="p">:</span> <span class="n">schemas</span><span class="o">.</span><span class="n">DetectorSchema</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+
+        <span class="c1"># calculate is a dummy method</span>
+        <span class="k">if</span> <span class="n">calculate</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">threshold</span><span class="p">:</span>
+            <span class="n">output_</span><span class="p">[</span><span class="s2">"alertID"</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())</span><span class="si">}</span><span class="s2">"</span>
+            <span class="n">output_</span><span class="p">[</span><span class="s2">"logIDs"</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">ev</span><span class="o">.</span><span class="n">logID</span><span class="p">]</span> <span class="k">if</span> <span class="n">ev</span><span class="o">.</span><span class="n">logID</span> <span class="k">else</span> <span class="p">[])</span>
+            <span class="n">output_</span><span class="p">[</span><span class="s2">"score"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="n">output_</span><span class="p">[</span><span class="s2">"description"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Value </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2"> &gt; threshold </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">threshold</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="k">return</span> <span class="kc">False</span>
+</code></pre></div>
+To configure the number of logs receive as input, you need to configure the <a href="../auxiliar/input_buffer/">buffer</a> in the initialization of the Detector.</p>
+<h2 id="detectors-methods">Detectors methods</h2>
+<p>The detectors are numbered from simplest to most complex, and the sidebar lists them in the same order. The simplest ones need no training or learn a plain set of values; the most complex are neural networks that need a lot of training data. If you are new to DetectMate, start at the top.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Detector</th>
+<th>What it detects</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>00</td>
+<td><a href="random_detector/">Random Detector</a></td>
+<td>Raises random alerts, for testing a pipeline. No training.</td>
+</tr>
+<tr>
+<td>01</td>
+<td><a href="rule_based/">Rule Detector</a></td>
+<td>Logs that match fixed rules (unknown template, keyword, exception, error level). No training.</td>
+</tr>
+<tr>
+<td>02</td>
+<td><a href="new_event/">New Event Detector</a></td>
+<td>Event IDs (log templates) never seen in training.</td>
+</tr>
+<tr>
+<td>03</td>
+<td><a href="new_value/">New Value Detector</a></td>
+<td>Values of a variable never seen in training.</td>
+</tr>
+<tr>
+<td>04</td>
+<td><a href="combo/">New Value Combo Detector</a></td>
+<td>Combinations of values never seen together in training.</td>
+</tr>
+<tr>
+<td>05</td>
+<td><a href="value_range/">Value Range Detector</a></td>
+<td>Numeric values outside the range seen in training.</td>
+</tr>
+<tr>
+<td>06</td>
+<td><a href="charset/">Charset Detector</a></td>
+<td>Characters in a variable never seen in training.</td>
+</tr>
+<tr>
+<td>07</td>
+<td><a href="event_sequence/">Event Sequence Detector</a></td>
+<td>Orders of consecutive event IDs never seen in training.</td>
+</tr>
+<tr>
+<td>08</td>
+<td><a href="bigram_frequency/">Bigram Frequency Detector</a></td>
+<td>Values whose character pairs are improbable under a learned frequency model.</td>
+</tr>
+<tr>
+<td>09</td>
+<td><a href="scvs_detector/">SCVS Detector</a></td>
+<td>Sequence Count Vector Set: windows whose event counts never occurred in training.</td>
+</tr>
+<tr>
+<td>10</td>
+<td><a href="ecvc_detector/">ECVC Detector</a></td>
+<td>Event Count Vector Clustering: windows whose event counts are far from those seen in training.</td>
+</tr>
+<tr>
+<td>11</td>
+<td><a href="deeplog/">DeepLog Detector</a></td>
+<td>Unexpected next events in a sequence, predicted by an LSTM.</td>
+</tr>
+<tr>
+<td>12</td>
+<td><a href="logbert/">LogBERT Detector</a></td>
+<td>Unexpected events in a sequence, predicted by a Transformer.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="configuration">Configuration</h2>
+<div class="admonition warning">
+<p class="admonition-title">Tell the detector how much data to learn from</p>
+<p><code>data_use_training</code> (logs used for training) and <code>data_use_configure</code> (logs used for
+auto-configuration) both default to <code>null</code>, which skips that phase. Without
+<code>data_use_training</code> a detector starts detecting with nothing learned; with
+<code>auto_config: true</code> but no <code>data_use_configure</code>, it never picks anything to monitor.
+Write <code>null</code>, not <code>None</code>, in YAML: <code>None</code> is read as a string.</p>
+</div>
+<p>Every detector page shows a minimal, working configuration file next to its example. The
+reference below explains the blocks those files use.</p>
+<p>When <code>auto_config</code> is set to <code>False</code>, the detector expects an explicit <code>events</code> or <code>global</code> block that specifies exactly which variables to monitor. <code>events</code>refers to event-specific variables while <code>global</code> refers to variables, that are not bound to events (<code>header_variables</code>can but don't have to be event bound):</p>
+<div class="highlight"><pre><span></span><code><span class="nt">detectors</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">NewValueDetector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">new_value_detector</span>
+<span class="w">    </span><span class="nt">auto_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span>
+<span class="w">    </span><span class="nt">params</span><span class="p">:</span><span class="w">  </span><span class="c1"># detector-wide parameters</span>
+<span class="w">      </span><span class="nt">data_use_training</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span><span class="w">  </span><span class="c1"># the first 1000 logs train the detector</span>
+<span class="w">    </span><span class="nt">events</span><span class="p">:</span><span class="w">  </span><span class="c1"># event-specific configuration</span>
+<span class="w">      </span><span class="nt">1</span><span class="p">:</span><span class="w">  </span><span class="c1"># event_id</span>
+<span class="w">        </span><span class="nt">instance1</span><span class="p">:</span><span class="w">  </span><span class="c1"># name of instance (arbitrary)</span>
+<span class="w">          </span><span class="nt">params</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span><span class="w">  </span><span class="c1"># additional params</span>
+<span class="w">          </span><span class="nt">variables</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pos</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span><span class="w">  </span><span class="c1"># location of an unnamed variable from the log message</span>
+<span class="w">              </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">var1</span><span class="w">  </span><span class="c1"># name of variable (arbitrary)</span>
+<span class="w">          </span><span class="nt">header_variables</span><span class="p">:</span>
+<span class="w">            </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pos</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">level</span><span class="w">  </span><span class="c1"># location of a named variable (defined in log_format of parser)</span>
+<span class="w">    </span><span class="nt">global</span><span class="p">:</span><span class="w">  </span><span class="c1"># define global instance for new_value_detector similar to "events"</span>
+<span class="w">      </span><span class="nt">global_instance1</span><span class="p">:</span><span class="w">  </span><span class="c1"># define instance name</span>
+<span class="w">        </span><span class="nt">header_variables</span><span class="p">:</span><span class="w">  </span><span class="c1"># same logic as header_variables in "events"</span>
+<span class="w">          </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">pos</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Status</span>
+</code></pre></div>
+<h3 id="common-parameters-all-detectors">Common parameters (all detectors)</h3>
+<p>There are some parameters, that <strong>every</strong> detector inhertis from <code>CoreDetectorConfig</code>/<code>CoreConfig</code>/<code>BasicConfig</code>, regardless of what it does. The other parameters, that are <strong>specific</strong> for the respective detector, are explained right at the detectors documentation page, later on.</p>
+<!-- Start common_arguments -->
+<details class="note" open="open">
+<summary>Top level</summary>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>auto_config</code></td>
+<td>boolean</td>
+<td>True</td>
+<td>Runs the configuration step before the training process.</td>
+</tr>
+<tr>
+<td><code>events</code></td>
+<td>object</td>
+<td>{}</td>
+<td>Events configuration dict keyed by event_id.</td>
+</tr>
+<tr>
+<td><code>global</code></td>
+<td>object</td>
+<td>{}</td>
+<td>Instances monitoring event-independent header variables (e.g. hostname, level), keyed by instance name. Written as <code>global</code> in YAML.</td>
+</tr>
+<tr>
+<td><code>persist</code></td>
+<td>object, null</td>
+<td>None</td>
+<td>Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See the Persistency page.</td>
+</tr>
+</tbody>
+</table>
+</details>
+<details class="note" open="open">
+<summary>params</summary>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>start_id</code></td>
+<td>integer</td>
+<td>10</td>
+<td>Number used to start the unique ID generator.</td>
+</tr>
+<tr>
+<td><code>data_use_training</code></td>
+<td>integer, null</td>
+<td>None</td>
+<td>Data used for training, if None, training is not done.</td>
+</tr>
+<tr>
+<td><code>data_use_configure</code></td>
+<td>integer, null</td>
+<td>None</td>
+<td>Data used for configuration, if None, configuration is not done.</td>
+</tr>
+<tr>
+<td><code>use_config_data_as_training</code></td>
+<td>boolean</td>
+<td>True</td>
+<td>Combine the configured data in the training process if True.</td>
+</tr>
+<tr>
+<td><code>parser</code></td>
+<td>string</td>
+<td>PARSER</td>
+<td>Name of the parser used.</td>
+</tr>
+</tbody>
+</table>
+</details>
+<!-- End common_arguments -->
+
+<p>Beyond the common parameters, two groups of detectors inherit group-specific configurations.</p>
+<h3 id="per-variable-model-detectors">Per-variable model detectors</h3>
+<p>The detectors that learn a per-variable model (<a href="bigram_frequency/">Bigram Frequency</a>, <a href="charset/">Charset</a>, <a href="combo/">New Value Combo</a>, <a href="new_value/">New Value</a>, <a href="value_range/">Value Range</a>) share the following parameters, inherited from <code>VariableDetectorConfig</code>.</p>
+<!-- Start variable_arguments -->
+<details class="note">
+<summary>auto_config_params (read only while auto_config is true)</summary>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>classification.index</code></td>
+<td>boolean</td>
+<td>True</td>
+<td>Segment-mean test over equal-count segments.</td>
+</tr>
+<tr>
+<td><code>classification.time</code></td>
+<td>boolean</td>
+<td>False</td>
+<td>Segment-mean test over equal-duration segments. Needs timestamp_variable.</td>
+</tr>
+<tr>
+<td><code>classification.segment_thresholds</code></td>
+<td>array</td>
+<td>[1.1, 0.3, 0.1, 0.01]</td>
+<td>Upper bound on the mean change rate, one per segment; the list length is the segment count. Used by index and time.</td>
+</tr>
+<tr>
+<td><code>classification.slope_index</code></td>
+<td>boolean</td>
+<td>False</td>
+<td>Change-centroid test on the index axis.</td>
+</tr>
+<tr>
+<td><code>classification.slope_time</code></td>
+<td>boolean</td>
+<td>False</td>
+<td>Change-centroid test on the time axis. Needs timestamp_variable.</td>
+</tr>
+<tr>
+<td><code>classification.slope_threshold</code></td>
+<td>number</td>
+<td>-0.05</td>
+<td>A variable is STABLE when its change centroid (-0.5 to +0.5) is at or below this. Used by slope_index and slope_time.</td>
+</tr>
+<tr>
+<td><code>classification.decision</code></td>
+<td>string</td>
+<td>consensus</td>
+<td>How the enabled methods' verdicts combine: consensus needs all of them, majority needs more than half.</td>
+</tr>
+<tr>
+<td><code>timestamp_variable</code></td>
+<td>string, null</td>
+<td>None</td>
+<td>Header variable (from the parser's log_format) holding each event's time. Required by the time and slope_time classification methods.</td>
+</tr>
+<tr>
+<td><code>timestamp_format</code></td>
+<td>string, null</td>
+<td>None</td>
+<td>Format of timestamp_variable. None detects it automatically.</td>
+</tr>
+<tr>
+<td><code>use_stable_vars</code></td>
+<td>boolean</td>
+<td>True</td>
+<td>Monitor the variables the configure phase classifies as STABLE.</td>
+</tr>
+<tr>
+<td><code>use_static_vars</code></td>
+<td>boolean</td>
+<td>True</td>
+<td>Monitor the variables the configure phase classifies as STATIC (a single value).</td>
+</tr>
+</tbody>
+</table>
+</details>
+<!-- End variable_arguments -->
+
+<h3 id="deep-learning-detectors">Deep learning detectors</h3>
+<p>The two neural detectors (<a href="deeplog/">DeepLog</a>, <a href="logbert/">LogBERT</a>) share the following parameters, inherited from <code>DeepLearningDetectorConfig</code>.</p>
+<!-- Start deeplearning_arguments -->
+<details class="note" open="open">
+<summary>params</summary>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>window_size</code></td>
+<td>integer</td>
+<td>10</td>
+<td>Number of consecutive events used as one training/detection sequence.</td>
+</tr>
+<tr>
+<td><code>validation_per</code></td>
+<td>number</td>
+<td>0.2</td>
+<td>Fraction of data held out for validation during (fine)training.</td>
+</tr>
+<tr>
+<td><code>finetune_epochs</code></td>
+<td>integer</td>
+<td>2</td>
+<td>Number of epochs used when finetuning during the configuration phase.</td>
+</tr>
+<tr>
+<td><code>hyperparameters</code></td>
+<td>object</td>
+<td>{'Model': {}, 'Train': {}, 'Finetune': []}</td>
+<td>Model, training and hyperparameter-search settings passed to the underlying deep learning model.</td>
+</tr>
+</tbody>
+</table>
+</details>
+<!-- End deeplearning_arguments -->
+
+<h3 id="configuration-semantics-preliminary">Configuration semantics (preliminary)</h3>
+<p><strong><code>events</code> key</strong>  --  The integer key is the <code>EventID</code> (or <code>event_id</code>) to monitor (see the <a href="../parsers/template_matcher/">Template Matcher</a> docs for how the EventID is assigned.</p>
+<p><strong><code>global</code> key</strong> - This one has a similar functionality as the <code>events</code> key but refers to variables, that are not bound to events (thus can only contain <code>header_variables</code>).</p>
+<p><strong><code>variables[].pos</code></strong>  --  The 0-indexed position of the <code>&lt;*&gt;</code> wildcard in the matched template, counting from left to right starting at 0. For example, given:</p>
+<div class="highlight"><pre><span></span><code>pid=&lt;*&gt; uid=&lt;*&gt; auid=&lt;*&gt; ses=&lt;*&gt; msg='op=&lt;*&gt; acct=&lt;*&gt; exe=&lt;*&gt; hostname=&lt;*&gt; addr=&lt;*&gt; terminal=&lt;*&gt; res=&lt;*&gt;'
+</code></pre></div>
+<p><code>pos: 0</code> captures <code>pid=</code>, <code>pos: 6</code> captures <code>exe=</code>, etc.</p>
+<p><strong><code>header_variables[].pos</code></strong>  --  A named field from the log format string (e.g., <code>Type</code>, <code>Time</code>, <code>Content</code>) rather than a wildcard position.</p>
+<h3 id="auto-configuration-optional">Auto-configuration (optional)</h3>
+<p>Detectors can optionally support <strong>auto-configuration</strong>  --  a process where the detector automatically discovers which variables are worth monitoring, instead of requiring the user to specify them manually.</p>
+<p>Auto-configuration is controlled by the <code>auto_config</code> flag in the pipeline config (e.g. <code>config/pipeline_config_default.yaml</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="nt">detectors</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">NewValueDetector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">new_value_detector</span>
+<span class="w">    </span><span class="nt">auto_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span><span class="w">           </span><span class="c1"># enable auto-configuration</span>
+<span class="w">    </span><span class="nt">params</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">data_use_configure</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span><span class="w">  </span><span class="c1"># logs used to pick the variables</span>
+<span class="w">      </span><span class="nt">data_use_training</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1000</span><span class="w">   </span><span class="c1"># logs used to train on them afterwards</span>
+<span class="w">    </span><span class="c1"># no "events" block needed  --  it will be generated automatically</span>
+</code></pre></div>
+<h3 id="how-it-works">How it works</h3>
+<p>When auto-configuration is enabled, the detector goes through two extra phases before training:</p>
+<p><strong>Phase 1  --  <code>configure(input_)</code></strong>: The detector ingests events into an <code>EventPersistency</code> instance that uses a tracker backend to analyze variable behavior  --  for example, whether each variable is stable, random, or still has insufficient data. This instance is typically separate from the one used for training, because the configuration phase needs to observe <em>all</em> variables to decide which ones are worth monitoring, while training only tracks the variables that were selected as a result.</p>
+<p><strong>Phase 2  --  <code>set_configuration()</code></strong>: After enough data has been ingested, the detector queries the tracker to select variables that meet its criteria (e.g. only stable variables). It then generates a full <code>events</code> configuration from those results and updates its own config. At this point <code>auto_config</code> is set to <code>False</code> in the generated config, since the configuration is now explicit.</p>
+<p>After these two phases, the detector proceeds with the normal <code>train()</code> and <code>detect()</code> lifecycle using the generated configuration.</p>
+<p>To support auto-configuration in your own detector, see <a href="../development/#implement-auto-configuration-in-a-detector">Development</a>.</p>
+<h3 id="full-lifecycle-with-auto-configuration">Full lifecycle with auto-configuration</h3>
+<div class="highlight"><pre><span></span><code><span class="mf">1.</span> <span class="n">configure</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span>         <span class="c1"># call for each event in the dataset</span>
+<span class="mf">2.</span> <span class="n">set_configuration</span><span class="p">()</span>       <span class="c1"># finalize which variables to monitor</span>
+<span class="mf">3.</span> <span class="n">train</span><span class="p">(</span><span class="n">input_</span><span class="p">)</span>             <span class="c1"># call for each event in the dataset</span>
+<span class="mf">4.</span> <span class="n">detect</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="n">output_</span><span class="p">)</span>   <span class="c1"># call for each event to detect anomalies</span>
+</code></pre></div>
+<p>When <code>auto_config</code> is <code>False</code>, steps 1 and 2 are skipped entirely. <code>data_use_configure</code>
+still reserves its records, and with <code>use_config_data_as_training</code> they still go to
+training, so a config rerun with <code>auto_config: False</code> trains on exactly the data the
+configuring run saw. This holds for every component with a configure phase, including
+the hyperparameter searches of <code>DrainParser</code> and the deep-learning detectors.</p>
+<p>That distinction is visible in the config. A detector's settings live in two
+blocks:</p>
+<ul>
+<li><strong><code>auto_config_params</code></strong>  --  inputs <em>to</em> the configure phase. They pick which
+  variables the phase selects and are read only while <code>auto_config</code> is <code>True</code>.</li>
+<li><strong><code>params</code></strong>  --  operational settings, read during training and detection on
+  every run.</li>
+</ul>
+<p>The configure phase writes its results into the top-level <code>events</code> block (and,
+for <code>EventSequenceDetector</code>, into <code>fixed_window_size</code>) and then sets
+<code>auto_config</code> to <code>False</code>. It never modifies either input block, so a config can
+be rerun with <code>auto_config: False</code> and reproduce the same detector.</p>
+<h3 id="stability-classification-optional">Stability classification (optional)</h3>
+<p>Stability classification decides whether a variable's change history counts as
+<code>STABLE</code> by running one or more classification methods against it and combining
+their verdicts. There are four independent methods, over two primitives and two
+axes:</p>
+<table>
+<thead>
+<tr>
+<th>method</th>
+<th>what it thresholds</th>
+<th>axis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>index</code></td>
+<td>segment-mean thresholds</td>
+<td>equal-count boundaries</td>
+</tr>
+<tr>
+<td><code>time</code></td>
+<td>segment-mean thresholds</td>
+<td>equal-duration boundaries</td>
+</tr>
+<tr>
+<td><code>slope_index</code></td>
+<td>change centroid vs. <code>slope_threshold</code></td>
+<td>index positions</td>
+</tr>
+<tr>
+<td><code>slope_time</code></td>
+<td>change centroid vs. <code>slope_threshold</code></td>
+<td>normalized timestamps</td>
+</tr>
+</tbody>
+</table>
+<p>Any subset of the four may be enabled, and any single one may stand alone. The
+default  --  <code>index</code> alone  --  is the historical behaviour: each segment's mean rate
+of change is compared against its entry in <code>segment_thresholds</code>  --  four segments
+by default, one threshold per segment  --  and the segments are <strong>equal-count</strong>:
+each holds the same number of observations, regardless of how much time they
+cover. For bursty log sources that is misleading  --  a variable that changed
+constantly during a quiet night and then went silent under a flood of daytime
+traffic looks stable, because the flood supplies enough samples to dominate the
+later segments. Enabling <code>time</code> cuts the same segments at <strong>equal
+durations</strong> instead, so each segment covers the same amount of wall-clock time;
+the detector then needs an event time per record, which it reads from the log's
+named variables (<code>logFormatVariables</code>, i.e. the fields declared in the parser's
+<code>log_format</code>) under the name given by <code>timestamp_variable</code>. <code>slope_index</code> and
+<code>slope_time</code> ask a different question  --  whether the change centroid sits early
+or late in the series  --  on the index axis and the time axis respectively.</p>
+<p>These parameters live on every <code>VariableDetector</code> subclass (<code>NewValueDetector</code>,
+<code>NewValueComboDetector</code>, <code>ValueRangeDetector</code>, <code>CharsetDetector</code>, <code>BigramDetector</code>, …)
+and go in the detector's <code>auto_config_params</code> block  --  they are inputs to the
+auto-configuration phase, read only while <code>auto_config</code> is <code>True</code>, and never
+consulted at detection time.</p>
+<div class="highlight"><pre><span></span><code><span class="nt">detectors</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">NewValueDetector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">new_value_detector</span>
+<span class="w">    </span><span class="nt">auto_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span>
+<span class="w">    </span><span class="nt">auto_config_params</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">use_stable_vars</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span>
+<span class="w">      </span><span class="nt">use_static_vars</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span>
+<span class="w">      </span><span class="nt">classification</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">index</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">True</span><span class="w">            </span><span class="c1"># segment-mean thresholds, equal-count cuts</span>
+<span class="w">        </span><span class="nt">time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w">            </span><span class="c1"># segment-mean thresholds, equal-duration cuts</span>
+<span class="w">        </span><span class="nt">segment_thresholds</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1.1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.3</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.01</span><span class="p p-Indicator">]</span><span class="w">  </span><span class="c1"># one per segment; the length is the segment count</span>
+<span class="w">        </span><span class="nt">slope_index</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w">     </span><span class="c1"># change centroid over index positions</span>
+<span class="w">        </span><span class="nt">slope_time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">False</span><span class="w">      </span><span class="c1"># change centroid over normalized time</span>
+<span class="w">        </span><span class="nt">slope_threshold</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-0.05</span><span class="w"> </span><span class="c1"># shared by both slope methods</span>
+<span class="w">        </span><span class="nt">decision</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">consensus</span><span class="w">    </span><span class="c1"># consensus | majority</span>
+<span class="w">      </span><span class="nt">timestamp_variable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Time</span>
+<span class="w">      </span><span class="nt">timestamp_format</span><span class="p">:</span><span class="w"> </span><span class="s">"%y%m%d</span><span class="nv"> </span><span class="s">%H%M%S"</span>
+</code></pre></div>
+<p>Defaults reproduce the historical behaviour exactly: <code>index: True</code>, the other
+three <code>False</code>, <code>segment_thresholds: [1.1, 0.3, 0.1, 0.01]</code>, <code>decision: consensus</code>,
+<code>slope_threshold: -0.05</code>. A config that sets nothing under <code>classification</code>
+classifies identically to before these changes on every series with at least
+four observations; the one exception is the segment floor described under
+"Fields" below.</p>
+<h4 id="the-decision-rule">The decision rule</h4>
+<p>When more than one method is enabled, <code>decision</code> picks how their verdicts
+combine. <code>consensus</code> requires every enabled method to return stable; <code>majority</code>
+requires strictly more than half of them to.</p>
+<table>
+<thead>
+<tr>
+<th>enabled</th>
+<th><code>consensus</code> needs</th>
+<th><code>majority</code> needs</th>
+<th>differ?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>1/1</td>
+<td>1/1</td>
+<td>no</td>
+</tr>
+<tr>
+<td>2</td>
+<td>2/2</td>
+<td>2/2 (a 1–1 tie is UNSTABLE)</td>
+<td>no</td>
+</tr>
+<tr>
+<td>3</td>
+<td>3/3</td>
+<td>2/3</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>4</td>
+<td>4/4</td>
+<td>3/4 (a 2–2 tie is UNSTABLE)</td>
+<td>yes</td>
+</tr>
+</tbody>
+</table>
+<p>Ties resolve to UNSTABLE. That keeps <code>majority</code> from ever being more lenient
+than a coin-flip, and makes it collapse onto <code>consensus</code> at one and two enabled
+methods  --  turning a third method on is the only place the rule starts to matter.</p>
+<p><strong>All four methods false is a config error</strong>, rejected by a pydantic validator.
+It is not a harmless no-op: classification decides <code>INSUFFICIENT_DATA</code>,
+<code>STATIC</code> and <code>RANDOM</code> before any method is consulted, so a method-less config
+would silently classify every remaining variable <code>STABLE</code>.</p>
+<h4 id="fields">Fields</h4>
+<p>All of these live in the detector's <code>auto_config_params</code> block.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>use_stable_vars</code></td>
+<td><code>bool</code></td>
+<td><code>true</code></td>
+<td>Include variables classified <code>STABLE</code> in the generated configuration.</td>
+</tr>
+<tr>
+<td><code>use_static_vars</code></td>
+<td><code>bool</code></td>
+<td><code>true</code></td>
+<td>Include variables classified <code>STATIC</code>. Defaults to <code>false</code> on <code>NewValueComboDetector</code>.</td>
+</tr>
+<tr>
+<td><code>classification</code></td>
+<td><code>ClassificationMethods</code></td>
+<td>see below</td>
+<td>Which classification methods run and how their verdicts combine.</td>
+</tr>
+<tr>
+<td><code>timestamp_variable</code></td>
+<td><code>str \| null</code></td>
+<td><code>null</code></td>
+<td>Name of the field in <code>logFormatVariables</code> holding the record's event time. Required for <code>time</code> and <code>slope_time</code> to have any effect. Only named log-format fields are consulted  --  never the positional <code>variables</code> list.</td>
+</tr>
+<tr>
+<td><code>timestamp_format</code></td>
+<td><code>str \| null</code></td>
+<td><code>null</code></td>
+<td>Explicit <a href="https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes"><code>strftime</code></a> pattern for parsing that field. When unset, <code>TimeFormatHandler</code> auto-detects the format (ISO 8601, Apache, syslog, numeric epoch seconds/milliseconds, and other common layouts).</td>
+</tr>
+</tbody>
+</table>
+<p>Set <code>timestamp_format</code> when the source uses a layout the auto-detection does not
+know. The HDFS loghub corpus, for example, stamps records as <code>081109 203615</code>, which
+only parses with an explicit <code>"%y%m%d %H%M%S"</code>.</p>
+<p><code>classification</code>'s seven fields:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>index</code></td>
+<td><code>bool</code></td>
+<td><code>true</code></td>
+<td>Segment-mean thresholds, equal-count boundaries.</td>
+</tr>
+<tr>
+<td><code>time</code></td>
+<td><code>bool</code></td>
+<td><code>false</code></td>
+<td>Segment-mean thresholds, equal-duration boundaries. Needs <code>timestamp_variable</code>.</td>
+</tr>
+<tr>
+<td><code>segment_thresholds</code></td>
+<td><code>list[float]</code></td>
+<td><code>[1.1, 0.3, 0.1, 0.01]</code></td>
+<td>Per-segment upper bounds on the mean change rate for <code>index</code> and <code>time</code>. The list's length is the segment count. Entries must be positive and finite and the list must not be empty; an entry above one exempts its segment.</td>
+</tr>
+<tr>
+<td><code>slope_index</code></td>
+<td><code>bool</code></td>
+<td><code>false</code></td>
+<td>Change centroid vs. <code>slope_threshold</code>, measured on index positions.</td>
+</tr>
+<tr>
+<td><code>slope_time</code></td>
+<td><code>bool</code></td>
+<td><code>false</code></td>
+<td>Change centroid vs. <code>slope_threshold</code>, measured on normalized timestamps. Needs <code>timestamp_variable</code>.</td>
+</tr>
+<tr>
+<td><code>slope_threshold</code></td>
+<td><code>float</code></td>
+<td><code>-0.05</code></td>
+<td>The change-centroid cut-off both slope methods compare against, on a shared <code>[-0.5, +0.5]</code> scale. A variable passes when its centroid is at or below this value.</td>
+</tr>
+<tr>
+<td><code>decision</code></td>
+<td><code>"consensus" \| "majority"</code></td>
+<td><code>"consensus"</code></td>
+<td>How verdicts from more than one enabled method combine; see above.</td>
+</tr>
+</tbody>
+</table>
+<p>The segment methods need at least one observation per segment. A variable with
+fewer observations than segments is classified <code>INSUFFICIENT_DATA</code> (with a reason
+naming the segment count) rather than scored over empty segments. The tracker's
+own <code>min_samples</code> stays the floor for <code>STATIC</code> and <code>RANDOM</code>, which are decided
+before any segment is cut; the effective minimum for a <code>STABLE</code> / <code>UNSTABLE</code>
+verdict is the larger of the two. A block with only slope methods enabled cuts no
+segments and has no such floor.</p>
+<h4 id="fallback-behaviour">Fallback behaviour</h4>
+<p>Time-aware classification is best-effort and never fails a run:</p>
+<ul>
+<li>If <code>time</code> or <code>slope_time</code> is enabled but <code>timestamp_variable</code> is unset, or the named
+  field is absent from a record, or its value cannot be parsed, the detector logs a
+  <strong>single</strong> warning (once per detector, so a bad config cannot flood the log) and
+  falls back to the index axis.</li>
+<li>If timestamps stop lining up with the recorded observations, or the observed time
+  span is zero, or they arrive out of order, <code>time</code> silently reuses the equal-index
+  cuts, and <code>slope_time</code> computes its centroid on the index axis instead  --  it
+  degrades to <code>slope_index</code>.</li>
+<li>Under <code>majority</code>, a method that fell back still casts its own vote. If both methods
+  of a pair (<code>slope_index</code>/<code>slope_time</code> or <code>index</code>/<code>time</code>) are enabled and timestamps
+  are unusable, they compute the same verdict, which then counts twice.</li>
+</ul>
+<p>In every fallback case classification still runs and produces a result  --  only the
+axis behind it changes back to index.</p>
+<p>A segment with no observations in it is <em>not</em> a fallback: it scores a mean of 0.0,
+because nothing observed means nothing changed. Once the segment floor above is
+met, equal-index cuts never leave a segment empty; equal-duration cuts of a bursty
+variable still do, routinely, so <code>time</code> on its own is lenient towards a burst of
+churn followed by silence. Enable <code>index</code> and <code>time</code> together when that leniency
+matters  --  the index pass keeps every segment populated.</p>
+<h3 id="saving-state-persist">Saving state (persist)</h3>
+<p>Detectors can persist their training state to disk (or cloud storage) so it
+can be restored in a later session. Configure this with a top-level <code>persist:</code>
+block in the detector config:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">detectors</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">NewValueDetector</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">new_value_detector</span>
+<span class="w">    </span><span class="nt">persist</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./state</span><span class="w">               </span><span class="c1"># base path; detector name is appended automatically</span>
+<span class="w">      </span><span class="nt">interval_seconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">300</span><span class="w">       </span><span class="c1"># save every N seconds (default: 300)</span>
+<span class="w">      </span><span class="nt">events_until_save</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">null</span><span class="w">     </span><span class="c1"># also save after N ingested events (default: disabled)</span>
+<span class="w">      </span><span class="nt">auto_load</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">            </span><span class="c1"># restore saved state on startup (default: false)</span>
+<span class="w">      </span><span class="nt">storage_options</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span><span class="w">         </span><span class="c1"># backend credentials (see below)</span>
+<span class="w">    </span><span class="nt">events</span><span class="p">:</span>
+<span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+</code></pre></div>
+<p>All fields are optional  --  <code>persist: {}</code> uses all defaults. Omitting <code>persist:</code> entirely
+disables saving (backward compatible).</p>
+<p>The detector name is automatically appended to <code>path</code>, so <code>path: ./state</code> for a detector
+named <code>NewValueDetector</code> writes to <code>./state/NewValueDetector/</code>.</p>
+<h4 id="running-under-systemd">Running under systemd</h4>
+<p>The default <code>path</code> is CWD-relative. systemd services usually run with CWD <code>/</code>,
+so <code>./state</code> would resolve to <code>/state</code> (wrong location, needs root). To avoid
+this, set <code>StateDirectory=</code> in your unit file  --  systemd creates <code>/var/lib/&lt;dir&gt;</code>
+with the right ownership and exports <code>$STATE_DIRECTORY</code>, which the default <code>path</code>
+reads automatically. No explicit <code>path:</code> needed:</p>
+<div class="highlight"><pre><span></span><code><span class="k">[Service]</span>
+<span class="na">User</span><span class="o">=</span><span class="s">detectmate</span>
+<span class="na">StateDirectory</span><span class="o">=</span><span class="s">detectmate</span><span class="w">     </span><span class="c1"># → state at /var/lib/detectmate/&lt;detector&gt;/</span>
+</code></pre></div>
+<p>Setting <code>path:</code> explicitly (e.g. an <code>s3://</code> URL) always overrides <code>$STATE_DIRECTORY</code>.</p>
+<h4 id="fields_1">Fields</h4>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>path</code></td>
+<td><code>str</code></td>
+<td><code>$STATE_DIRECTORY</code> or <code>"./state"</code></td>
+<td>Base directory or cloud URL. Detector name is appended. Defaults to systemd's <code>$STATE_DIRECTORY</code> if set, else <code>./state</code> (see note above).</td>
+</tr>
+<tr>
+<td><code>interval_seconds</code></td>
+<td><code>int</code></td>
+<td><code>300</code></td>
+<td>Background save interval in seconds.</td>
+</tr>
+<tr>
+<td><code>events_until_save</code></td>
+<td><code>int \| null</code></td>
+<td><code>null</code></td>
+<td>Save after this many ingested events. <code>null</code> disables event-count triggering.</td>
+</tr>
+<tr>
+<td><code>auto_load</code></td>
+<td><code>bool</code></td>
+<td><code>false</code></td>
+<td>Load saved state on construction. Raises <code>PersistencyLoadError</code> if no state exists.</td>
+</tr>
+<tr>
+<td><code>storage_options</code></td>
+<td><code>dict</code></td>
+<td><code>{}</code></td>
+<td>Credentials and options forwarded to <a href="https://filesystem-spec.readthedocs.io/">fsspec</a>.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="storage-options-examples">Storage options examples</h4>
+<p><strong>Local filesystem</strong>  --  no <code>storage_options</code> needed:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">persist</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">./state</span>
+</code></pre></div>
+<p><strong>S3</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">persist</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">s3://my-bucket/detector-state</span>
+<span class="w">  </span><span class="nt">storage_options</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">AKIAIOSFODNN7EXAMPLE</span>
+<span class="w">    </span><span class="nt">secret</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY</span>
+<span class="w">    </span><span class="nt">region_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">eu-west-1</span>
+</code></pre></div>
+<p>S3-compatible storage (MinIO, etc.):</p>
+<div class="highlight"><pre><span></span><code><span class="nt">persist</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">s3://my-bucket/detector-state</span>
+<span class="w">  </span><span class="nt">storage_options</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">endpoint_url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://minio:9000</span>
+<span class="w">    </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minioadmin</span>
+<span class="w">    </span><span class="nt">secret</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">minioadmin</span>
+</code></pre></div>
+<p><strong>Azure Blob Storage</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">persist</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">az://my-container/detector-state</span>
+<span class="w">  </span><span class="nt">storage_options</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">account_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mystorageaccount</span>
+<span class="w">    </span><span class="nt">account_key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">base64encodedkey==</span>
+</code></pre></div>
+<p><strong>GCS</strong>:</p>
+<div class="highlight"><pre><span></span><code><span class="nt">persist</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gs://my-bucket/detector-state</span>
+<span class="w">  </span><span class="nt">storage_options</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">project</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">my-gcp-project</span>
+<span class="w">    </span><span class="nt">token</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/path/to/service-account.json</span>
+</code></pre></div>
+<p>In practice, credentials are usually supplied via environment variables
+(<code>AWS_ACCESS_KEY_ID</code>, etc.) or instance roles  --  in which case <code>storage_options</code>
+stays empty or is omitted.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

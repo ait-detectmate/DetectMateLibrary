@@ -1,0 +1,2565 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/0.6.0/auxiliar/persistency/">
+      
+      
+        <link rel="prev" href="../../helper/from_to/">
+      
+      
+        <link rel="next" href="../input_buffer/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Persistency - DetectMate Library</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#persistency" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            DetectMate Library
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Persistency
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    DetectMate Library
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user_guide/what_is_detectmate/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    What is DetectMate?
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user_guide/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user_guide/basic_knowledge/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Basic knowledge
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user_guide/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user_guide/tutorial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorial (end-to-end)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/overall_architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overall architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Components
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Components
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../schemas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schemas
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../federation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Federation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Parsers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detectors
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../alert_aggregator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alert Aggregation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Parser types
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Parser types
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsers/auto_parser/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Auto Parser
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsers/drain_parser/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Drain Parser
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsers/json_parser/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    JSON Parser
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsers/logbatcher_parser/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LogBatcher Parser
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsers/template_matcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Template Matcher
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsers/template_tree_matcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Template Tree Matcher
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Detector types
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Detector types
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/random_detector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    00 Random Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/rule_based/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    01 Rule Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/new_event/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02 New Event Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/new_value/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03 New Value Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/combo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    04 New Value Combo Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/value_range/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    05 Value Range Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/charset/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    06 Charset Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/event_sequence/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    07 Event Sequence Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/bigram_frequency/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    08 Bigram Frequency Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/scvs_detector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    09 SCVS Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/ecvc_detector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    10 ECVC Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/deeplog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11 DeepLog Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../detectors/logbert/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    12 LogBERT Detector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Alert Aggregation methods
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Alert Aggregation methods
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../alert_aggregators/basic_concatenation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Basic Concat
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Helpers
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Helpers
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../helper/from_to/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FromTo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_7" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_7" id="__nav_3_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Auxiliary
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_7_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Auxiliary
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Persistency
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Persistency
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#mental-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mental model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mental model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-backends-eventdatastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Backends (EventDataStructure)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-saver-lifecycle-persistencysaver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Saver lifecycle (PersistencySaver)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#eventpersistency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EventPersistency
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#available-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available backends
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#persisting-to-disk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Persisting to disk
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Persisting to disk">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#restoring-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restoring state
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exporting-and-importing-state-on-demand" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exporting and importing state on demand
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detector-level-export-and-import" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detector-level export and import
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storage-backends-fsspec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Storage backends (fsspec)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-persistency-inside-a-detector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using persistency inside a detector
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../input_buffer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data buffer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_8" id="__nav_3_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Other
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Other
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../other/log_formats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Log Formats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    How to contribute
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    How to contribute
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contribution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#mental-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mental model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Mental model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-backends-eventdatastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Backends (EventDataStructure)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-saver-lifecycle-persistencysaver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Saver lifecycle (PersistencySaver)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#api-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        API reference
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="API reference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#eventpersistency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EventPersistency
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#available-backends" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Available backends
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#persisting-to-disk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Persisting to disk
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Persisting to disk">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#restoring-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restoring state
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exporting-and-importing-state-on-demand" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exporting and importing state on demand
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#detector-level-export-and-import" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detector-level export and import
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storage-backends-fsspec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Storage backends (fsspec)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-persistency-inside-a-detector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using persistency inside a detector
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="persistency">Persistency</h1>
+<p>The persistency module gives a detector a place to remember things about the
+events it sees. State is keyed by <code>EventID</code> and survives across training, the
+detection loop, and (optionally) restarts on disk.</p>
+<p>This page is structured to read top-to-bottom: first the mental model, then a
+quick start, then the API surface.</p>
+<h2 id="mental-model">Mental model</h2>
+<p>Persistency has three moving parts. Understanding what each one does makes the
+rest of the page much easier to follow.</p>
+<h3 id="1-events">1. Events</h3>
+<p>Logs are grouped by <code>EventID</code>. Two events with the same ID share a template
+but have their own variable values. Persistency stores <strong>one independent state
+object per event ID</strong>, so an <code>EventStabilityTracker</code> for <code>EventID=4733</code> does
+not interfere with one for <code>EventID=4624</code>.</p>
+<h3 id="2-backends-eventdatastructure">2. Backends (<code>EventDataStructure</code>)</h3>
+<p>A backend is the thing that actually stores the per-event state. Persistency
+owns the dict <code>{event_id: backend}</code>; the backend itself decides <em>how</em> data is
+kept.</p>
+<p>Two families ship today:</p>
+<ul>
+<li><strong>DataFrame backends</strong> (<code>EventDataFrame</code>, <code>ChunkedEventDataFrame</code>) keeps the
+  raw rows. Very storage heavy and <em>not recommended</em> for production-ready detectors.</li>
+<li><strong>Tracker backends</strong> (<code>EventStabilityTracker</code>) keep only derived features
+  (e.g. "this variable has been constant for the last 10k events") that are relevant for the detector. Use these
+  when you only need a summary or a subset of the log's information, not the raw history  --  they cost a fraction of
+  the memory.</li>
+</ul>
+<p>All backends implement the same four-method contract: <code>add_data</code>, <code>get_data</code>,
+<code>dump</code>, <code>load</code>. That contract is what <code>EventPersistency</code> and
+<code>PersistencySaver</code> rely on  --  anything you add later only has to follow it.</p>
+<h3 id="3-saver-lifecycle-persistencysaver">3. Saver lifecycle (<code>PersistencySaver</code>)</h3>
+<p><code>EventPersistency</code> itself is in-memory. To survive a process restart, the
+state has to be written somewhere. <code>PersistencySaver</code> wraps an
+<code>EventPersistency</code> and:</p>
+<ul>
+<li>writes to disk (or any <code>fsspec</code> URI) on two triggers  --  a wall-clock interval
+  and an event-count threshold;</li>
+<li>optionally <code>auto_load</code>s previously saved state during construction;</li>
+<li>exposes <code>start()</code> / <code>stop()</code> so the background timer can be torn down
+  cleanly. <code>stop()</code> is idempotent and is called automatically when a
+  <code>Component</code> is used as a context manager.</li>
+</ul>
+<p>In practice a detector never instantiates <code>PersistencySaver</code> directly: it sets
+a <code>persist:</code> block in its config and <code>CoreDetector</code> wires the saver up via
+<code>init_persistency</code>.</p>
+<hr />
+<h2 id="quick-start">Quick start</h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">persistency</span>
+
+<span class="n">ep</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">EventPersistency</span><span class="p">(</span>
+    <span class="n">event_data_class</span><span class="o">=</span><span class="n">persistency</span><span class="o">.</span><span class="n">EventStabilityTracker</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">ep</span><span class="o">.</span><span class="n">ingest_event</span><span class="p">(</span>
+    <span class="n">event_id</span><span class="o">=</span><span class="s2">"4624"</span><span class="p">,</span>
+    <span class="n">event_template</span><span class="o">=</span><span class="s2">"An account was successfully logged on."</span><span class="p">,</span>
+    <span class="n">named_variables</span><span class="o">=</span><span class="p">{</span><span class="s2">"AccountName"</span><span class="p">:</span> <span class="s2">"alice"</span><span class="p">,</span> <span class="s2">"LogonType"</span><span class="p">:</span> <span class="s2">"3"</span><span class="p">},</span>
+<span class="p">)</span>
+
+<span class="n">tracker</span> <span class="o">=</span> <span class="n">ep</span><span class="o">.</span><span class="n">get_event_data</span><span class="p">(</span><span class="s2">"4624"</span><span class="p">)</span>  <span class="c1"># or ep["4624"]</span>
+</code></pre></div>
+<p>That snippet covers the whole in-memory API: pick a backend class, ingest
+events, query state.</p>
+<hr />
+<h2 id="api-reference">API reference</h2>
+<h3 id="eventpersistency"><code>EventPersistency</code></h3>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>event_data_class</code></td>
+<td>An <code>EventDataStructure</code> subclass; one instance is created per event ID.</td>
+</tr>
+<tr>
+<td><code>variable_blacklist</code></td>
+<td>Variable names to skip when ingesting. Defaults to <code>["Content"]</code>.</td>
+</tr>
+<tr>
+<td><code>event_data_kwargs</code></td>
+<td>Extra kwargs forwarded to each backend instance.</td>
+</tr>
+</tbody>
+</table>
+<p>Common methods:</p>
+<div class="highlight"><pre><span></span><code><span class="n">ep</span><span class="o">.</span><span class="n">ingest_event</span><span class="p">(</span><span class="n">event_id</span><span class="p">,</span> <span class="n">event_template</span><span class="p">,</span> <span class="n">variables</span><span class="o">=...</span><span class="p">,</span> <span class="n">named_variables</span><span class="o">=...</span><span class="p">)</span>
+
+<span class="n">ep</span><span class="o">.</span><span class="n">get_event_data</span><span class="p">(</span><span class="n">event_id</span><span class="p">)</span>        <span class="c1"># backend for a single event</span>
+<span class="n">ep</span><span class="o">.</span><span class="n">get_events_data</span><span class="p">()</span>               <span class="c1"># dict[event_id -&gt; backend]</span>
+<span class="n">ep</span><span class="o">.</span><span class="n">get_event_template</span><span class="p">(</span><span class="n">event_id</span><span class="p">)</span>
+<span class="n">ep</span><span class="o">.</span><span class="n">get_event_templates</span><span class="p">()</span>
+<span class="n">ep</span><span class="o">.</span><span class="n">get_events_seen</span><span class="p">()</span>               <span class="c1"># all event IDs ever ingested</span>
+<span class="n">ep</span><span class="p">[</span><span class="n">event_id</span><span class="p">]</span>                       <span class="c1"># alias for get_event_data</span>
+</code></pre></div>
+<h3 id="available-backends">Available backends</h3>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Use when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>persistency.EventDataFrame</code></td>
+<td>You need history and a Pandas DataFrame is the natural shape.</td>
+</tr>
+<tr>
+<td><code>persistency.ChunkedEventDataFrame</code></td>
+<td>High-volume / streaming workloads  --  Polars-backed with row-retention and automatic compaction.</td>
+</tr>
+<tr>
+<td><code>persistency.EventStabilityTracker</code></td>
+<td>You only care about how variables behave over time (<code>STATIC</code> / <code>STABLE</code> / <code>UNSTABLE</code> / <code>RANDOM</code>). Cheapest memory footprint.</td>
+</tr>
+</tbody>
+</table>
+<p>All three are re-exported from the top of the package  --  <code>persistency.X</code> is the
+canonical import; the deeply nested submodules are an implementation detail.</p>
+<h3 id="persisting-to-disk">Persisting to disk</h3>
+<div class="highlight"><pre><span></span><code><span class="n">saver</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">PersistencySaver</span><span class="p">(</span>
+    <span class="n">ep</span><span class="p">,</span>
+    <span class="n">persistency</span><span class="o">.</span><span class="n">PersistencySaverConfig</span><span class="p">(</span>
+        <span class="n">path</span><span class="o">=</span><span class="s2">"./state/my-detector"</span><span class="p">,</span>
+        <span class="n">save_interval_seconds</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+        <span class="n">events_until_save</span><span class="o">=</span><span class="mi">10_000</span><span class="p">,</span>     <span class="c1"># save after this many ingests, too</span>
+        <span class="n">auto_load</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">storage_options</span><span class="o">=</span><span class="p">{},</span>           <span class="c1"># forwarded to fsspec</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="n">saver</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="c1"># ... detector runs ...</span>
+<span class="n">saver</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>    <span class="c1"># final flush, stops the background timer</span>
+</code></pre></div>
+<p><code>PersistencySaver.save()</code> is thread-safe, and <code>stop()</code> is idempotent. The two
+save triggers (<code>save_interval_seconds</code> and <code>events_until_save</code>) are
+independent  --  whichever fires first wins.</p>
+<p>If writing to storage fails (unwritable path, full disk, lost credentials),
+<code>save()</code> and <code>stop()</code> raise <code>persistency.PersistencySaveError</code>, and
+<code>events_since_save</code> keeps counting the unsaved events. Saves fired by the two
+triggers cannot raise to a caller, so they log the failure at <code>ERROR</code> instead;
+the timer keeps running, and after a failed save the event-count trigger waits
+another <code>events_until_save</code> events before retrying.</p>
+<h4 id="restoring-state">Restoring state</h4>
+<div class="highlight"><pre><span></span><code><span class="n">saver</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">PersistencySaver</span><span class="p">(</span>
+    <span class="n">ep</span><span class="p">,</span>
+    <span class="n">persistency</span><span class="o">.</span><span class="n">PersistencySaverConfig</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">"./state/my-detector"</span><span class="p">,</span> <span class="n">auto_load</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="c1"># ep is now pre-populated from disk</span>
+</code></pre></div>
+<p>If <code>auto_load=True</code> and no saved state exists, the constructor raises
+<code>persistency.PersistencyLoadError</code> immediately  --  fail-fast rather than
+silently starting empty.</p>
+<h4 id="exporting-and-importing-state-on-demand">Exporting and importing state on demand</h4>
+<p>For one-shot transfers  --  e.g. moving trained state to a new environment, or
+taking a manual snapshot  --  use the standalone functions directly:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">persistency</span>
+
+<span class="c1"># Export to a file URI</span>
+<span class="n">persistency</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">ep</span><span class="p">,</span> <span class="s2">"./snapshots/trained-state"</span><span class="p">)</span>
+
+<span class="c1"># Export to bytes (no disk I/O  --  useful when sending state over a network API)</span>
+<span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">ep</span><span class="p">)</span>
+
+<span class="c1"># Import from a file URI</span>
+<span class="n">persistency</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ep</span><span class="p">,</span> <span class="s2">"./snapshots/trained-state"</span><span class="p">)</span>
+
+<span class="c1"># Import from bytes</span>
+<span class="n">persistency</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">ep</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+</code></pre></div>
+<p><code>save</code> writes the same format as <code>PersistencySaver</code> and resets
+<code>ep._events_since_save</code>. When called without a path it returns the state as a
+zip archive in memory. <code>load</code> accepts either a path string or the bytes
+returned by <code>save</code>; it raises <code>PersistencyLoadError</code> if no state exists at the
+path, restores <code>event_data_class</code> and <code>event_data_kwargs</code> from metadata, and
+clears any existing state in <code>ep</code> before loading.</p>
+<p>Both functions are <strong>not thread-safe</strong> when called concurrently with a running
+<code>PersistencySaver</code> on the same <code>ep</code>. Use the detector-level wrappers below
+when a saver is active.</p>
+<h4 id="detector-level-export-and-import">Detector-level export and import</h4>
+<p>When working through a detector (the typical path for DetectMateService), use
+the methods on the detector object directly  --  no need to access
+<code>EventPersistency</code> internals:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Export to a file URI</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">export_state</span><span class="p">(</span><span class="s2">"./snapshots/my-detector"</span><span class="p">)</span>
+
+<span class="c1"># Export to bytes (e.g. for an API response)</span>
+<span class="n">data</span><span class="p">:</span> <span class="nb">bytes</span> <span class="o">=</span> <span class="n">detector</span><span class="o">.</span><span class="n">export_state</span><span class="p">()</span>
+
+<span class="c1"># Import from a file URI</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">import_state</span><span class="p">(</span><span class="s2">"./snapshots/my-detector"</span><span class="p">)</span>
+
+<span class="c1"># Import from bytes (e.g. from an API request body)</span>
+<span class="n">detector</span><span class="o">.</span><span class="n">import_state</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</code></pre></div>
+<p><code>import_state</code> is thread-safe: it acquires the saver lock before loading when
+a <code>PersistencySaver</code> is running. Both methods raise <code>RuntimeError</code> if the
+detector has no persistency configured.</p>
+<h3 id="storage-backends-fsspec">Storage backends (fsspec)</h3>
+<p><code>PersistencySaverConfig.path</code> accepts any URI fsspec understands: a local path
+(<code>./state</code>), <code>s3://bucket/key</code>, <code>gs://...</code>, <code>az://...</code>, and so on. Provider
+credentials and tuning knobs go in <code>storage_options</code>.</p>
+<hr />
+<h2 id="using-persistency-inside-a-detector">Using persistency inside a detector</h2>
+<p>The recommended path: declare <code>persist:</code> in the detector's config and let
+<code>CoreDetector._register_persistency</code> build the saver for you. See
+<a href="../../detectors/#saving-state-persist">Saving state (persist)</a> for the config
+schema.</p>
+<p>In detector code, the pattern is:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.common.detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreDetector</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">persistency</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyDetector</span><span class="p">(</span><span class="n">CoreDetector</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"MyDetector"</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">MyDetectorConfig</span><span class="p">()):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">persistency</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">EventPersistency</span><span class="p">(</span>
+            <span class="n">event_data_class</span><span class="o">=</span><span class="n">persistency</span><span class="o">.</span><span class="n">EventStabilityTracker</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_register_persistency</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">persistency</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">persistency</span><span class="o">.</span><span class="n">ingest_event</span><span class="p">(</span>
+            <span class="n">event_id</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">"EventID"</span><span class="p">],</span>
+            <span class="n">event_template</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">"template"</span><span class="p">],</span>
+            <span class="n">named_variables</span><span class="o">=</span><span class="p">{</span><span class="o">...</span><span class="p">},</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">detect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">,</span> <span class="n">output_</span><span class="p">):</span>
+        <span class="n">tracker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">persistency</span><span class="o">.</span><span class="n">get_events_data</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">input_</span><span class="p">[</span><span class="s2">"EventID"</span><span class="p">])</span>
+        <span class="c1"># compare against tracker to produce alerts</span>
+</code></pre></div>
+<p><code>_register_persistency</code> is a one-line wrapper around
+<code>init_persistency</code>; the helper
+honours <code>config.persist</code> and returns <code>None</code> (so <code>self.saver</code> stays <code>None</code>)
+when persistence is disabled.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

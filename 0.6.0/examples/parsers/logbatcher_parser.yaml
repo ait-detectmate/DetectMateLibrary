@@ -1,0 +1,6 @@
+parsers:
+  LogBatcherParser:
+    method_type: logbatcher_parser
+    params:
+      api_key: <YOUR_API_KEY>   # key for the LLM endpoint
+      model: gpt-4o-mini
