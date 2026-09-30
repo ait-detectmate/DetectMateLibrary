@@ -89,6 +89,17 @@ class TestSpill:
         assert "data_use_configure" in msgs[0]
         assert "train_buffer_dir" in msgs[0]
 
+    def test_first_spill_warning_gives_the_callers_reason(self, tmp_path, caplog):
+        buf = TrainBuffer(name="c", max_records=2, dir_=str(tmp_path), why="Kept for pass two.")
+        with caplog.at_level(logging.WARNING):
+            for i in range(3):
+                buf.add(_log(i))
+        msgs = [r.message for r in caplog.records if "spilling them to" in r.message]
+        assert len(msgs) == 1
+        assert "Kept for pass two." in msgs[0]
+        assert "use_config_data_as_training" not in msgs[0]
+        assert "train_buffer_dir" in msgs[0]
+
     def test_buffer_is_reusable_after_replay(self, tmp_path):
         buf = TrainBuffer(name="c", max_records=2, dir_=str(tmp_path))
         for i in range(5):

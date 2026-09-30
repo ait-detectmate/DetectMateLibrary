@@ -215,12 +215,23 @@ class TrainBuffer:
     """
 
     def __init__(
-        self, name: str = "component", max_records: int = 100_000, dir_: str | None = None
+        self,
+        name: str = "component",
+        max_records: int = 100_000,
+        dir_: str | None = None,
+        why: str | None = None,
     ) -> None:
         if max_records < 1:
             raise ValueError(f"max_records must be >= 1, got {max_records}")
         self.name = name
         self.max_records = max_records
+        # Why the records are kept and how to avoid it, for the first-spill warning.
+        self._why = why or (
+            "With use_config_data_as_training=True every configure record is kept until training "
+            f"starts, so the buffer now goes to disk in parts of {max_records} records and is read "
+            "back when training starts. To avoid this, lower data_use_configure or set "
+            "use_config_data_as_training=False."
+        )
         self._fs: Any
         self._base: str
         self._default_dir = dir_ is None
@@ -278,13 +289,9 @@ class TrainBuffer:
             if not self._warned:
                 self._warned = True
                 logger.warning(
-                    f"<<{self.name}>> the configure phase has buffered {self.max_records} records "
-                    f"for training; spilling them to {self._run.path}. With "
-                    "use_config_data_as_training=True every configure record is kept until "
-                    f"training starts, so the buffer now goes to disk in parts of {self.max_records} "
-                    "records and is read back when training starts. To avoid this, lower "
-                    "data_use_configure or set use_config_data_as_training=False; set "
-                    "train_buffer_dir to choose where the files go."
+                    f"<<{self.name}>> the configure phase has buffered {self.max_records} records; "
+                    f"spilling them to {self._run.path}. {self._why} Set train_buffer_dir to "
+                    "choose where the files go."
                 )
         is_list = isinstance(self._memory[0], list)
         type_ = pa.list_(pa.large_binary()) if is_list else pa.large_binary()

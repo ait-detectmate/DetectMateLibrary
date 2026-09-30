@@ -121,6 +121,9 @@ The detectors are numbered from simplest to most complex, and the sidebar lists 
     in the container's writable layer: point `train_buffer_dir` at a mounted volume when the
     configure phase is large. Where `/tmp` is a RAM-backed tmpfs (common on Fedora, Arch and
     Debian 13) the default spill uses RAM, so point `train_buffer_dir` at real disk.
+    NewValueComboDetector also keeps its configure logs for a second configuration pass;
+    they spill the same way, under the same two settings, whatever
+    `use_config_data_as_training` is.
 
 Every detector page shows a minimal, working configuration file next to its example. The
 reference below explains the blocks those files use.
