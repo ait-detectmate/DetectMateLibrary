@@ -4,13 +4,15 @@ import os
 import stat
 import subprocess
 import sys
+import uuid
 
 import fsspec
 import pytest
 
-import detectmatelibrary.common._core_op._train_buffer as tb
 import detectmatelibrary.schemas as schemas
-from detectmatelibrary.common._core_op._train_buffer import TrainBuffer
+from detectmatelibrary.common._core_op._train_buffer import DEFAULT_TRAIN_BUFFER_DIR, TrainBuffer
+
+_MOD = "detectmatelibrary.common._core_op._train_buffer"
 
 
 def _log(i: int) -> schemas.BaseSchema:
@@ -121,7 +123,7 @@ class TestSpill:
 
     @pytest.mark.parametrize("window", [False, True])
     def test_sliced_write_replays_in_order(self, tmp_path, monkeypatch, window):
-        monkeypatch.setattr(tb, "_WRITE_SLICE", 3)
+        monkeypatch.setattr(f"{_MOD}._WRITE_SLICE", 3)
         buf = TrainBuffer(name="c", max_records=10, dir_=str(tmp_path))
         records = [[_log(i), _log(i + 1)] if window else _log(i) for i in range(25)]
         for r in records:
@@ -138,7 +140,7 @@ class TestSpill:
 
 class TestPrivateDefaultDir:
     def test_default_dir_has_user_tag(self):
-        assert f"detectmatelibrary-{os.getuid()}" in tb.DEFAULT_TRAIN_BUFFER_DIR
+        assert f"detectmatelibrary-{os.getuid()}" in DEFAULT_TRAIN_BUFFER_DIR
 
     def test_local_run_dir_is_private(self, tmp_path):
         buf = TrainBuffer(name="c", max_records=1, dir_=str(tmp_path))
@@ -151,7 +153,7 @@ class TestPrivateDefaultDir:
         elsewhere = tmp_path / "elsewhere"
         elsewhere.mkdir()
         os.symlink(elsewhere, tmp_path / "top")
-        monkeypatch.setattr(tb, "DEFAULT_TRAIN_BUFFER_DIR", str(tmp_path / "top" / "train_buffer"))
+        monkeypatch.setattr(f"{_MOD}.DEFAULT_TRAIN_BUFFER_DIR", str(tmp_path / "top" / "train_buffer"))
         buf = TrainBuffer(max_records=2)
         buf.add(_log(0))
         with pytest.raises(PermissionError, match="train_buffer_dir"):
@@ -163,12 +165,12 @@ class TestPrivateDefaultDir:
         elsewhere = tmp_path / "elsewhere"
         stale = TestStaleCleanup._stale_run(elsewhere / "train_buffer")
         os.symlink(elsewhere, tmp_path / "top")
-        monkeypatch.setattr(tb, "DEFAULT_TRAIN_BUFFER_DIR", str(tmp_path / "top" / "train_buffer"))
+        monkeypatch.setattr(f"{_MOD}.DEFAULT_TRAIN_BUFFER_DIR", str(tmp_path / "top" / "train_buffer"))
         TrainBuffer()
         assert (stale / "part-00000.parquet").exists()
 
     def test_default_dir_is_created_private(self, tmp_path, monkeypatch):
-        monkeypatch.setattr(tb, "DEFAULT_TRAIN_BUFFER_DIR", str(tmp_path / "top" / "train_buffer"))
+        monkeypatch.setattr(f"{_MOD}.DEFAULT_TRAIN_BUFFER_DIR", str(tmp_path / "top" / "train_buffer"))
         buf = TrainBuffer(max_records=2)
         for i in range(3):
             buf.add(_log(i))
@@ -271,6 +273,30 @@ class TestFailureModes:
         del it, buf
         gc.collect()
         assert _run_dirs(tmp_path) == []
+
+    def test_failed_run_dir_releases_its_lock(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(f"{_MOD}.uuid.uuid4", lambda: uuid.UUID(int=0))
+        stem = f"c-{0:032x}"
+        (tmp_path / stem).write_text("not a directory")  # makedirs of the run dir fails
+        buf = TrainBuffer(name="c", max_records=2, dir_=str(tmp_path))
+        buf.add(_log(0))
+        with pytest.raises(FileExistsError):
+            buf.add(_log(1))
+        assert os.listdir(tmp_path) == [stem]  # no lock file left, the foreign file untouched
+        assert _ids(buf) == ["0", "1"]
+
+    def test_failed_lock_rename_closes_the_file(self, tmp_path, monkeypatch):
+        def boom(*args, **kwargs):
+            raise OSError("rename failed")
+
+        monkeypatch.setattr(f"{_MOD}.os.replace", boom)
+        buf = TrainBuffer(name="c", max_records=2, dir_=str(tmp_path))
+        buf.add(_log(0))
+        with pytest.raises(OSError, match="rename failed"):
+            buf.add(_log(1))
+        monkeypatch.undo()
+        assert os.listdir(tmp_path) == []
+        assert _ids(buf) == ["0", "1"]
 
 
 fcntl = pytest.importorskip("fcntl")

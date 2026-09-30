@@ -100,8 +100,14 @@ def _lock_run(base: str, stem: str) -> IO[str]:
     os.makedirs(base, exist_ok=True)
     tmp = os.path.join(base, f"{stem}.lock.tmp")
     lock_file = open(tmp, "w")
-    fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    os.replace(tmp, os.path.join(base, f"{stem}.lock"))
+    try:
+        fcntl.flock(lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        os.replace(tmp, os.path.join(base, f"{stem}.lock"))
+    except BaseException:
+        lock_file.close()
+        with contextlib.suppress(OSError):
+            os.remove(tmp)
+        raise
     return lock_file
 
 
@@ -110,7 +116,7 @@ def _remove_run(fs: Any, path: str, lock_file: IO[str] | None = None) -> None:
     try:
         fs.rm(path, recursive=True)
     except FileNotFoundError:
-        pass
+        pass  # nothing was spilled, or it is gone already
     except OSError as e:
         removed = False
         logger.warning(f"Could not remove train buffer files {path}: {e}. They can be deleted by hand.")
@@ -130,10 +136,17 @@ class _RunDir:
         self.stem = f"{_safe_name(name)}-{uuid.uuid4().hex}"
         self.path = f"{base}/{self.stem}"
         lock_file = _lock_run(base, self.stem) if _can_lock(fs) else None
-        if isinstance(fs, LocalFileSystem):
-            os.makedirs(self.path, mode=0o700, exist_ok=True)
-        else:
-            fs.makedirs(self.path, exist_ok=True)
+        try:
+            if isinstance(fs, LocalFileSystem):
+                os.makedirs(self.path, mode=0o700, exist_ok=True)
+            else:
+                fs.makedirs(self.path, exist_ok=True)
+        except BaseException:
+            if lock_file is not None:  # the run never existed: drop its lock
+                with contextlib.suppress(OSError):
+                    os.remove(f"{self.path}.lock")
+                lock_file.close()
+            raise
         # Also runs when the buffer is garbage-collected mid-configure, or at interpreter exit.
         self._finalizer = weakref.finalize(self, _remove_run, fs, self.path, lock_file)
 
