@@ -8,6 +8,9 @@ from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 import detectmatelibrary.schemas._op as op_schemas
 import detectmatelibrary.schemas as schemas
 
+import logging
+import os
+
 import pydantic
 import pytest
 
@@ -32,7 +35,9 @@ default_args = {
     "start_id": 10,
     "data_use_training": None,
     "data_use_configure": None,
-    "use_config_data_as_training": True
+    "use_config_data_as_training": True,
+    "train_buffer_max_records": 100_000,
+    "train_buffer_dir": None,
 }
 
 
@@ -606,3 +611,77 @@ class TestCoreComponentContextManager:
         with component:
             pass
         assert stopped["called"]
+
+
+class MockWindowComponent(CoreComponent):
+    def __init__(self, name: str, config: CoreConfig) -> None:
+        super().__init__(
+            name=name, type_="Dummy", config=config, input_schema=schemas.LogSchema,
+            args_buffer=ArgsBuffer(mode=BufferMode.WINDOW, size=2),
+        )
+        self.train_data: list = []
+
+    def train(self, input_) -> None:
+        self.train_data.append(input_)
+
+    def run(self, input_, output_) -> None:
+        return False
+
+
+def _dirs(path) -> list[str]:
+    return [e for e in os.listdir(path) if os.path.isdir(os.path.join(path, e))]
+
+
+class TestTrainBufferSpill:
+    def test_config_defaults(self) -> None:
+        config = CoreConfig()
+        assert config.train_buffer_max_records == 100_000
+        assert config.train_buffer_dir is None
+
+    def test_rejects_non_positive_max_records(self) -> None:
+        with pytest.raises(pydantic.ValidationError):
+            CoreConfig(train_buffer_max_records=0)
+
+    def test_core_still_exports_train_buffer(self) -> None:
+        from detectmatelibrary.common.core import TrainBuffer
+        from detectmatelibrary.common._core_op._train_buffer import TrainBuffer as Moved
+        assert TrainBuffer is Moved
+
+    def test_spilled_configure_data_trains_in_order(self, tmp_path) -> None:
+        config = MockConfigWithTraining(
+            data_use_configure=7, data_use_training=2, use_config_data_as_training=True,
+            train_buffer_max_records=3, train_buffer_dir=str(tmp_path),
+        )
+        component = MockComponentWithTraining(name="Spill1", config=config)
+        for i in range(12):
+            component.process(_make_log(i))
+        # 7 configure records (two parts of 3 plus a tail of 1) replayed, then 2 trained live
+        assert [log["logID"] for log in component.train_data] == [str(i) for i in range(9)]
+        assert _dirs(tmp_path) == []
+
+    def test_spilled_window_records_train_in_order(self, tmp_path) -> None:
+        config = CoreConfig(
+            data_use_configure=5, data_use_training=1,
+            train_buffer_max_records=2, train_buffer_dir=str(tmp_path),
+        )
+        component = MockWindowComponent(name="Spill2", config=config)
+        for i in range(10):
+            component.process(_make_log(i))
+        windows = [[w["logID"] for w in window] for window in component.train_data]
+        assert windows == [["0", "1"], ["1", "2"], ["2", "3"], ["3", "4"], ["4", "5"], ["5", "6"]]
+        assert _dirs(tmp_path) == []
+
+    def test_keep_configuring_warns_when_buffering(self, caplog) -> None:
+        component = MockComponentWithTraining(
+            name="Spill3", config=MockConfigWithTraining(data_use_configure=2)
+        )
+        with caplog.at_level(logging.WARNING):
+            component.update_state("keep_configuring")
+        assert any("keep_configuring" in r.message for r in caplog.records)
+
+    def test_keep_configuring_silent_without_buffering(self, caplog) -> None:
+        config = MockConfigWithTraining(data_use_configure=2, use_config_data_as_training=False)
+        component = MockComponentWithTraining(name="Spill4", config=config)
+        with caplog.at_level(logging.WARNING):
+            component.update_state("keep_configuring")
+        assert not any("keep_configuring" in r.message for r in caplog.records)
