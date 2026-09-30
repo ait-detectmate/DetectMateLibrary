@@ -1,0 +1,7 @@
+detectors:
+  LoginSequenceDetector:
+    method_type: event_sequence_detector
+    auto_config: false          # use the window length below instead of searching for one
+    params:
+      data_use_training: 6      # learn the known sequences from the first 6 logs, then detect
+      fixed_window_size: 2      # compare pairs of consecutive EventIDs

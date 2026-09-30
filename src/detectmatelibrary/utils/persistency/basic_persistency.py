@@ -123,9 +123,18 @@ class EventPersistencyBase:
         """Number of events ingested since the last successful save."""
         return self._events_since_save
 
-    def reset_events_since_save(self) -> None:
-        """Reset the events-since-save counter after a successful save."""
-        self._events_since_save = 0
+    def reset_events_since_save(self, saved: int | None = None) -> None:
+        """Reset the events-since-save counter after a successful save.
+
+        Pass ``saved`` (the counter value captured with the saved snapshot) to
+        clear only those events, so events ingested while the write was in
+        flight stay counted.
+        """
+        if saved is None:
+            self._events_since_save = 0
+        else:
+            # Overlapping saves can clear the same events twice.
+            self._events_since_save = max(0, self._events_since_save - saved)
 
     def get_events_seen(self) -> set[int | str]:
         """Retrieve all event IDs observed via ingest_event(), regardless of

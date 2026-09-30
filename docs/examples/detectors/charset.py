@@ -1,38 +1,25 @@
 # --8<-- [start:example]
+import yaml
+from detectmatelibrary import schemas
 from detectmatelibrary.detectors.charset_detector import CharsetDetector
-import detectmatelibrary.schemas as schemas
 
-cfg = {
-    "detectors": {
-        "CharsetTest": {
-            "method_type": "charset_detector",
-            "auto_config": False,
-            "params": {},
-            "events": {
-                1: {
-                    "test": {
-                        "params": {},
-                        "variables": [{"pos": 0, "name": "var1", "params": {}}],
-                    }
-                }
-            },
-        }
-    }
-}
+with open("docs/examples/detectors/charset.yaml") as f:
+    config = yaml.safe_load(f)
+detector = CharsetDetector(name="UserCharsetDetector", config=config)
 
-detector = CharsetDetector(name="CharsetTest", config=cfg)
 
-parsed_data = schemas.ParserSchema({
-    "parserType": "test",
-    "EventID": 1,
-    "template": "test template",
-    "variables": ["var1"],
-    "logID": "1",
-    "parsedLogID": "1",
-    "parserID": "test_parser",
-    "log": "test log message",
-    "logFormatVariables": {"timestamp": "123456"},
-})
+def failed_login(user: str) -> schemas.ParserSchema:
+    """What a parser emits for 'Failed password for <user> from 10.0.0.1 port
+    22'."""
+    return schemas.ParserSchema({"EventID": 1, "variables": [user, "10.0.0.1", "22"]})
 
-alert = detector.process(parsed_data)
+
+# the first 3 logs train the detector (data_use_training: 3)
+for log in [failed_login("alice"), failed_login("bob"), failed_login("carol")]:
+    detector.process(log)
+
+print(detector.process(failed_login("carla")))  # None: only known characters
+alert = detector.process(failed_login("bob;rm -rf"))
+print(dict(alert["alertsObtain"]))
+# {'EventID 1 - user': "Unknown character(s): ' ', '-', ';', 'f', 'm'"}
 # --8<-- [end:example]

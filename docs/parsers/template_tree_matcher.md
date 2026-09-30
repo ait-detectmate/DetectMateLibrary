@@ -4,6 +4,10 @@ The Template Tree Matcher is a parser that matches incoming logs against a set o
 
 This parser wraps functionality from the DetectMatePerformance project: https://github.com/ait-detectmate/DetectMatePerformance. Prefer  use the performance implementation when parsing many log lines in non-stream (batch) mode.
 
+## In/out
+
+Input and output schemas in the pipeline
+
 |            | Schema                     | Description        |
 |------------|----------------------------|--------------------|
 | **Input**  | [LogSchema](../schemas.md) | Unstructured log   |
@@ -22,32 +26,48 @@ pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>
 login success: user=<*> source=<*>
 ```
 
-## Configuration
-
-Typical TemplateTreeMatcher config options:
-
-- `method_type` (string): parser type identifier (for example `"tree_matcher"`).
-- `path_templates` (string or null): path to the newline-delimited template file. If `null`, the matcher runs without templates.
-- `auto_config` (bool): whether to attempt an optional auto-configuration phase (not required).
-
-Note: this matcher removes non-alphanumeric characters from logs and templates before matching, except for the `<*>` token. Ensure your templates are compatible with that normalization.
-
-Example YAML fragment:
-```yaml
-parsers:
-  TemplateTreeMatcher:
-    method_type: tree_matcher
-    auto_config: False
-    params:
-      path_templates: path/to/templates.txt
-```
-
-## Usage example
-
-Simple usage — load templates and match a log:
+## Example
 
 ```python
---8<-- "docs/examples/parsers/template_tree_matcher.py"
+--8<-- "docs/examples/parsers/template_tree_matcher.py:example"
 ```
 
-Go back to [Index](../index.md)
+## Configuration file
+
+The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
+
+```yaml
+--8<-- "docs/examples/parsers/template_tree_matcher.yaml"
+```
+
+The same file works unchanged in both places a parser runs:
+
+- **Library**: load it with `yaml.safe_load` and pass the dict as `config=`, as in the example. The key under `parsers:` must match the parser's `name`.
+- **[DetectMateService](https://github.com/ait-detectmate/DetectMateService)**: use it as the service's parser configuration.
+
+## Configuration arguments
+
+All parameters this parser accepts, grouped by the YAML block they go in. **Scope** tells whether a parameter is `specific` to this parser or `shared` with other parsers (see the [Parsers overview](../parsers.md#common-parameters-all-parsers)).
+
+<!-- Start arguments -->
+??? note "Top level"
+
+    | Field | Type | Default | Scope | Description |
+    |---|---|---|---|---|
+    | `method_type` | string | tree_matcher | shared | Indicates what type of method it is. |
+    | `auto_config` | boolean | False | shared | Runs the configuration step before the training process. |
+
+???+ note "params"
+
+    | Field | Type | Default | Scope | Description |
+    |---|---|---|---|---|
+    | `path_templates` | string, null | None | specific | fitting description yet to find |
+    | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
+    | `data_use_training` | integer, null | None | shared | Data used for training, if None, training is not done. |
+    | `data_use_configure` | integer, null | None | shared | Data used for configuration, if None, configuration is not done. |
+    | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
+    | `log_format` | string, null | None | shared | fitting description yet to find |
+    | `time_format` | string, null | None | shared | fitting description yet to find |
+<!-- End arguments -->
+
+Note: this matcher removes non-alphanumeric characters from logs and templates before matching, except for the `<*>` token. Ensure your templates are compatible with that normalization.

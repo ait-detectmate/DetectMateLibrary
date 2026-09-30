@@ -1,41 +1,67 @@
 # Random Detector
 
-The Random Detector produces randomized alerts for incoming parsed logs. It is useful for testing pipelines, alert routing, and downstream consumers without needing a real detection model.
+The Random Detector inspects incoming ParserSchema instances and, according to its configuration, emits alerts with synthetic content. It can be configured to sample specific log variables, set thresholds or control alert frequency. Use it for integration testing, load testing, or as a simple example of a detector implementation.
+
+## In/out
+
+Input and output schemas in the pipeline
 
 |            | Schema                 | Description        |
 |------------|------------------------|--------------------|
 | **Input**  | [ParserSchema](../schemas.md) | Structured log  |
 | **Output** | [DetectorSchema](../schemas.md) | Generated alerts |
 
+## At a glance
+
+| Learns from training data | Auto-configuration | Needs `events` | Federation |
+|---|---|---|---|
+| ❌ | ❌ | ✅ | ❌ |
+
 ## Description
 
-The detector inspects incoming ParserSchema instances and, according to its configuration, emits alerts with synthetic content. It can be configured to sample specific log variables, set thresholds or control alert frequency. Use it for integration testing, load testing, or as a simple example of a detector implementation.
+For every variable configured under `events`, the detector draws a random number between 0 and 1 and raises an alert when it is above that variable's `threshold` (set in that variable's `params`). It does not train, so it needs no `data_use_training`.
 
-## Configuration example
-
-```yaml
-    RandomDetector:
-        method_type: random_detector
-        auto_config: False
-        params: {}
-        events:
-            1:
-                test:
-                    params: {}
-                    variables:
-                        - pos: 0
-                          name: var1
-                          params:
-                              threshold: 0.
-                    header_variables:
-                        - pos: level
-                          params: {}
-```
-
-## Example usage
+## Example
 
 ```python
 --8<-- "docs/examples/detectors/random_detector.py:example"
 ```
 
-Go back [Index](../index.md)
+## Configuration file
+
+The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
+
+```yaml
+--8<-- "docs/examples/detectors/random_detector.yaml"
+```
+
+The same file works unchanged in both places a detector runs:
+
+- **Library**: load it with `yaml.safe_load` and pass the dict as `config=`, as in the example. The key under `detectors:` must match the detector's `name`.
+- **[DetectMateService](https://github.com/ait-detectmate/DetectMateService)**: use it as the service's detector configuration.
+
+## Configuration arguments
+
+All parameters this detector accepts, grouped by the YAML block they go in. **Scope** tells whether a parameter is `specific` to this detector or `shared` with other detectors (see the [Detectors overview](../detectors.md#common-parameters-all-detectors)). Where this detector changes a shared default, the shared value is shown in brackets.
+
+<!-- Start arguments -->
+??? note "Top level"
+
+    | Field | Type | Default | Scope | Description |
+    |---|---|---|---|---|
+    | `method_type` | string | random_detector | shared | Indicates what type of method it is. |
+    | `auto_config` | boolean | True | shared | Runs the configuration step before the training process. |
+    | `events` | object | {} | shared | Events configuration dict keyed by event_id. |
+    | `global` | object | {} | shared | Instances monitoring event-independent header variables (e.g. hostname, level), keyed by instance name. Written as `global` in YAML. |
+    | `persist` | object, null | None | shared | Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See the Persistency page. |
+
+??? note "params"
+
+    | Field | Type | Default | Scope | Description |
+    |---|---|---|---|---|
+    | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
+    | `data_use_training` | integer, null | None | shared | Data used for training, if None, training is not done. |
+    | `data_use_configure` | integer, null | None | shared | Data used for configuration, if None, configuration is not done. |
+    | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
+    | `parser` | string | PARSER | shared | Name of the parser used. |
+<!-- End arguments -->

@@ -1,7 +1,14 @@
 from typing import Any
 
 from .event_persistency import EventPersistency
-from .persistency_saver import PersistencySaver, PersistencySaverConfig, PersistencyLoadError, save, load
+from .persistency_saver import (
+    PersistencySaver,
+    PersistencySaverConfig,
+    PersistencyLoadError,
+    PersistencySaveError,
+    save,
+    load,
+)
 from .event_data_structures.base import EventDataset
 from .event_data_structures.trackers.stability.stability_tracker import EventStabilityTracker
 
@@ -10,6 +17,7 @@ __all__ = [
     "PersistencySaver",
     "PersistencySaverConfig",
     "PersistencyLoadError",
+    "PersistencySaveError",
     "EventDataset",
     "EventDataFrame",
     "ChunkedEventDataFrame",

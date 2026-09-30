@@ -34,6 +34,7 @@ dev = [
     "pytest-cov>=6.2.1",
     "pymdown-extensions>=10.0",
     "detectmatelibrary[full]",
+    "mkdocs-material>=9.7.7",
 ]
 
 [project.optional-dependencies]

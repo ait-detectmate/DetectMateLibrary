@@ -14,6 +14,8 @@ from detectmatelibrary.schemas import ParserSchema
 
 from typing import Any, Dict, Optional, cast
 
+from pydantic import Field
+
 
 def get_global_variables(
         input_: ParserSchema,
@@ -58,17 +60,34 @@ def strip_auto_config_params(detector_config: Dict[str, Any], method_id: str) ->
     }
 
 
-class VariableAutoConfigParams(AutoConfigParams):
-    use_stable_vars: bool = True
-    use_static_vars: bool = True
+class StabilityAutoConfigParams(AutoConfigParams):
     classification: ClassificationMethods = ClassificationMethods()
-    timestamp_variable: str | None = None
-    timestamp_format: str | None = None  # None -> TimeFormatHandler auto-detect
+    timestamp_variable: str | None = Field(
+        default=None,
+        description=(
+            "Header variable (from the parser's log_format) holding each event's time. "
+            "Required by the time and slope_time classification methods."
+        ),
+    )
+    timestamp_format: str | None = Field(
+        default=None,  # None -> TimeFormatHandler auto-detect
+        description="Format of timestamp_variable. None detects it automatically.",
+    )
+
+
+class VariableAutoConfigParams(StabilityAutoConfigParams):
+    use_stable_vars: bool = Field(
+        default=True, description="Monitor the variables the configure phase classifies as STABLE."
+    )
+    use_static_vars: bool = Field(
+        default=True,
+        description="Monitor the variables the configure phase classifies as STATIC (a single value).",
+    )
 
 
 class VaribaleHooks:
     """Hooks use to define the dfferent behaviours in th next subclasses."""
-    def __init__(self, name: str, config_vars: VariableAutoConfigParams) -> None:
+    def __init__(self, name: str, config_vars: StabilityAutoConfigParams) -> None:
         self.name = name
         self._warned_bad_timestamp: bool = False
         self.config_vars = config_vars
@@ -120,7 +139,7 @@ class VariablesLogic(VaribaleHooks):
         self,
         name: str,
         _time_handler: TimeFormatHandler = TimeFormatHandler(),
-        config_vars: VariableAutoConfigParams = VariableAutoConfigParams(),
+        config_vars: StabilityAutoConfigParams = VariableAutoConfigParams(),
     ) -> None:
 
         super().__init__(name=name, config_vars=config_vars)

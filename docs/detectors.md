@@ -1,5 +1,5 @@
 
-# Components: Detectors
+# Detectors
 
 Detectors process structured logs from Parsers and emit alerts when anomalies are detected.
 
@@ -10,7 +10,7 @@ Detectors process structured logs from Parsers and emit alerts when anomalies ar
 
 This document describes the minimal API, implementation guidance, a short example detector and a unit test pattern.
 
-## CoreDetector — minimal API
+## CoreDetector  --  minimal API
 
 
 
@@ -20,7 +20,7 @@ class CoreDetectorConfig(CoreConfig):
     method_type: str = "core_detector"
     parser: str = "<PLACEHOLDER>"
 
-    auto_config: bool = False
+    auto_config: bool = True
 
 
 class CoreDetector(CoreComponent):
@@ -36,13 +36,11 @@ class CoreDetector(CoreComponent):
     ) -> bool:
         """Empty, must be define in the specific detector"""
 
-    def train(
-        self, input_: ParserSchema | list[ParserSchema]
-    ) -> None:
+    def train(self, input_: ParserSchema | list[ParserSchema]) -> None:
         """Empty, can be define in the detector. It trains the detector"""
 ```
 
-## Implementing a detector — example
+## Implementing a detector  --  example
 
 Simple detector that raises an alert when a numeric variable exceeds a threshold.
 
@@ -51,10 +49,12 @@ class SimpleThresholdConfig(CoreDetectorConfig):
     method_type: str = "simple_threshold"
     threshold: float = 0.0
 
+
 class SimpleThresholdDetector(CoreDetector):
     def __init__(
-        self, name: str = "SimpleThreshold",
-        config: SimpleThresholdConfig | dict[str, Any] = SimpleThresholdConfig()
+        self,
+        name: str = "SimpleThreshold",
+        config: SimpleThresholdConfig | dict[str, Any] = SimpleThresholdConfig(),
     ):
 
         if isinstance(config, dict):
@@ -62,18 +62,17 @@ class SimpleThresholdDetector(CoreDetector):
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
 
     def detect(
-        self,
-        input_: schemas.ParserSchema,
-        output_: schemas.DetectorSchema
+        self, input_: schemas.ParserSchema, output_: schemas.DetectorSchema
     ) -> bool:
 
         # calculate is a dummy method
         if calculate(input_) > self.config.threshold:
-
             output_["alertID"] = f"{self.name}-{int(time.time())}"
             output_["logIDs"].extend([ev.logID] if ev.logID else [])
             output_["score"] = float(value)
-            output_["description"] = f"Value {value} > threshold {self.config.threshold}"
+            output_["description"] = (
+                f"Value {value} > threshold {self.config.threshold}"
+            )
             return True
 
         return False
@@ -82,23 +81,35 @@ To configure the number of logs receive as input, you need to configure the [buf
 
 ## Detectors methods
 
-List of detectors:
+The detectors are numbered from simplest to most complex, and the sidebar lists them in the same order. The simplest ones need no training or learn a plain set of values; the most complex are neural networks that need a lot of training data. If you are new to DetectMate, start at the top.
 
-* [Random detector](detectors/random_detector.md): Generates random alerts.
-* [New Value](detectors/new_value.md): Detect new values in the variables in the logs.
-* [Combo Detector](detectors/combo.md): Detect new combination of variables in the logs.
-* [New Event](detectors/new_event.md): Detect new events in the variables in the logs.
-* [Event Sequence](detectors/event_sequence.md): Detect unseen sequences of consecutive events in the logs.
-* [Value Range](detectors/value_range.md) Detect numeric value ranges in variables in the logs.
-* [Rule Based](detectors/rule_based.md): Detect anomalies based in a set of rules.
-* [Bigram Frequency](detectors/bigram_frequency.md): Detect bigram-frequency-based anomalies in the logs.
-* [Charset](detectors/charset.md): Detect new characters in the variables in the logs.
-* [Deeplog](detectors/deeplog.md): Detect anomalies of a sequence of evend IDs with a LSTM.
-* [LogBert](detectors/logbert.md): Detect anomalies of a sequence of evend IDs with a Transformer.
-* [SCVS Detector](detectors/scvs_detector.md): Detect anomalies by looking at different sequence count vectors.
-* [ECVC Detector](detectors/ecvc_detector.md): Detect anomalies by calculating the distance between different sequence count vectors.
+| # | Detector | What it detects |
+|---|---|---|
+| 00 | [Random Detector](detectors/random_detector.md) | Raises random alerts, for testing a pipeline. No training. |
+| 01 | [Rule Detector](detectors/rule_based.md) | Logs that match fixed rules (unknown template, keyword, exception, error level). No training. |
+| 02 | [New Event Detector](detectors/new_event.md) | Event IDs (log templates) never seen in training. |
+| 03 | [New Value Detector](detectors/new_value.md) | Values of a variable never seen in training. |
+| 04 | [New Value Combo Detector](detectors/combo.md) | Combinations of values never seen together in training. |
+| 05 | [Value Range Detector](detectors/value_range.md) | Numeric values outside the range seen in training. |
+| 06 | [Charset Detector](detectors/charset.md) | Characters in a variable never seen in training. |
+| 07 | [Event Sequence Detector](detectors/event_sequence.md) | Orders of consecutive event IDs never seen in training. |
+| 08 | [Bigram Frequency Detector](detectors/bigram_frequency.md) | Values whose character pairs are improbable under a learned frequency model. |
+| 09 | [SCVS Detector](detectors/scvs_detector.md) | Sequence Count Vector Set: windows whose event counts never occurred in training. |
+| 10 | [ECVC Detector](detectors/ecvc_detector.md) | Event Count Vector Clustering: windows whose event counts are far from those seen in training. |
+| 11 | [DeepLog Detector](detectors/deeplog.md) | Unexpected next events in a sequence, predicted by an LSTM. |
+| 12 | [LogBERT Detector](detectors/logbert.md) | Unexpected events in a sequence, predicted by a Transformer. |
 
 ## Configuration
+
+!!! warning "Tell the detector how much data to learn from"
+    `data_use_training` (logs used for training) and `data_use_configure` (logs used for
+    auto-configuration) both default to `null`, which skips that phase. Without
+    `data_use_training` a detector starts detecting with nothing learned; with
+    `auto_config: true` but no `data_use_configure`, it never picks anything to monitor.
+    Write `null`, not `None`, in YAML: `None` is read as a string.
+
+Every detector page shows a minimal, working configuration file next to its example. The
+reference below explains the blocks those files use.
 
 When `auto_config` is set to `False`, the detector expects an explicit `events` or `global` block that specifies exactly which variables to monitor. `events`refers to event-specific variables while `global` refers to variables, that are not bound to events (`header_variables`can but don't have to be event bound):
 
@@ -107,9 +118,8 @@ detectors:
   NewValueDetector:
     method_type: new_value_detector
     auto_config: False
-    data_use_configure: None  # Data used for configuration
-    data_use_training: 199  # Data used for training
-    params: {}  # global parameters
+    params:  # detector-wide parameters
+      data_use_training: 1000  # the first 1000 logs train the detector
     events:  # event-specific configuration
       1:  # event_id
         instance1:  # name of instance (arbitrary)
@@ -126,13 +136,77 @@ detectors:
 ```
 
 
+### Common parameters (all detectors)
+
+There are some parameters, that **every** detector inhertis from `CoreDetectorConfig`/`CoreConfig`/`BasicConfig`, regardless of what it does. The other parameters, that are **specific** for the respective detector, are explained right at the detectors documentation page, later on.
+
+<!-- Start common_arguments -->
+???+ note "Top level"
+
+    | Field | Type | Default | Description |
+    |---|---|---|---|
+    | `auto_config` | boolean | True | Runs the configuration step before the training process. |
+    | `events` | object | {} | Events configuration dict keyed by event_id. |
+    | `global` | object | {} | Instances monitoring event-independent header variables (e.g. hostname, level), keyed by instance name. Written as `global` in YAML. |
+    | `persist` | object, null | None | Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See the Persistency page. |
+
+???+ note "params"
+
+    | Field | Type | Default | Description |
+    |---|---|---|---|
+    | `start_id` | integer | 10 | Number used to start the unique ID generator. |
+    | `data_use_training` | integer, null | None | Data used for training, if None, training is not done. |
+    | `data_use_configure` | integer, null | None | Data used for configuration, if None, configuration is not done. |
+    | `use_config_data_as_training` | boolean | True | Combine the configured data in the training process if True. |
+    | `parser` | string | PARSER | Name of the parser used. |
+<!-- End common_arguments -->
+
+Beyond the common parameters, two groups of detectors inherit group-specific configurations.
+
+### Per-variable model detectors
+
+The detectors that learn a per-variable model ([Bigram Frequency](detectors/bigram_frequency.md), [Charset](detectors/charset.md), [New Value Combo](detectors/combo.md), [New Value](detectors/new_value.md), [Value Range](detectors/value_range.md)) share the following parameters, inherited from `VariableDetectorConfig`.
+
+<!-- Start variable_arguments -->
+??? note "auto_config_params (read only while auto_config is true)"
+
+    | Field | Type | Default | Description |
+    |---|---|---|---|
+    | `classification.index` | boolean | True | Segment-mean test over equal-count segments. |
+    | `classification.time` | boolean | False | Segment-mean test over equal-duration segments. Needs timestamp_variable. |
+    | `classification.segment_thresholds` | array | [1.1, 0.3, 0.1, 0.01] | Upper bound on the mean change rate, one per segment; the list length is the segment count. Used by index and time. |
+    | `classification.slope_index` | boolean | False | Change-centroid test on the index axis. |
+    | `classification.slope_time` | boolean | False | Change-centroid test on the time axis. Needs timestamp_variable. |
+    | `classification.slope_threshold` | number | -0.05 | A variable is STABLE when its change centroid (-0.5 to +0.5) is at or below this. Used by slope_index and slope_time. |
+    | `classification.decision` | string | consensus | How the enabled methods' verdicts combine: consensus needs all of them, majority needs more than half. |
+    | `timestamp_variable` | string, null | None | Header variable (from the parser's log_format) holding each event's time. Required by the time and slope_time classification methods. |
+    | `timestamp_format` | string, null | None | Format of timestamp_variable. None detects it automatically. |
+    | `use_stable_vars` | boolean | True | Monitor the variables the configure phase classifies as STABLE. |
+    | `use_static_vars` | boolean | True | Monitor the variables the configure phase classifies as STATIC (a single value). |
+<!-- End variable_arguments -->
+
+### Deep learning detectors
+
+The two neural detectors ([DeepLog](detectors/deeplog.md), [LogBERT](detectors/logbert.md)) share the following parameters, inherited from `DeepLearningDetectorConfig`.
+
+<!-- Start deeplearning_arguments -->
+???+ note "params"
+
+    | Field | Type | Default | Description |
+    |---|---|---|---|
+    | `window_size` | integer | 10 | Number of consecutive events used as one training/detection sequence. |
+    | `validation_per` | number | 0.2 | Fraction of data held out for validation during (fine)training. |
+    | `finetune_epochs` | integer | 2 | Number of epochs used when finetuning during the configuration phase. |
+    | `hyperparameters` | object | {'Model': {}, 'Train': {}, 'Finetune': []} | Model, training and hyperparameter-search settings passed to the underlying deep learning model. |
+<!-- End deeplearning_arguments -->
+
 ### Configuration semantics (preliminary)
 
-**`events` key** — The integer key is the `EventID` (or `event_id`) to monitor (see the [Template Matcher](parsers/template_matcher.md) docs for how the EventID is assigned.
+**`events` key**  --  The integer key is the `EventID` (or `event_id`) to monitor (see the [Template Matcher](parsers/template_matcher.md) docs for how the EventID is assigned.
 
 **`global` key** - This one has a similar functionality as the `events` key but refers to variables, that are not bound to events (thus can only contain `header_variables`).
 
-**`variables[].pos`** — The 0-indexed position of the `<*>` wildcard in the matched template, counting from left to right starting at 0. For example, given:
+**`variables[].pos`**  --  The 0-indexed position of the `<*>` wildcard in the matched template, counting from left to right starting at 0. For example, given:
 
 ```text
 pid=<*> uid=<*> auid=<*> ses=<*> msg='op=<*> acct=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'
@@ -140,12 +214,12 @@ pid=<*> uid=<*> auid=<*> ses=<*> msg='op=<*> acct=<*> exe=<*> hostname=<*> addr=
 
 `pos: 0` captures `pid=`, `pos: 6` captures `exe=`, etc.
 
-**`header_variables[].pos`** — A named field from the log format string (e.g., `Type`, `Time`, `Content`) rather than a wildcard position.
+**`header_variables[].pos`**  --  A named field from the log format string (e.g., `Type`, `Time`, `Content`) rather than a wildcard position.
 
 
 ### Auto-configuration (optional)
 
-Detectors can optionally support **auto-configuration** — a process where the detector automatically discovers which variables are worth monitoring, instead of requiring the user to specify them manually.
+Detectors can optionally support **auto-configuration**  --  a process where the detector automatically discovers which variables are worth monitoring, instead of requiring the user to specify them manually.
 
 Auto-configuration is controlled by the `auto_config` flag in the pipeline config (e.g. `config/pipeline_config_default.yaml`):
 
@@ -153,9 +227,11 @@ Auto-configuration is controlled by the `auto_config` flag in the pipeline confi
 detectors:
   NewValueDetector:
     method_type: new_value_detector
-    auto_config: True       # enable auto-configuration
-    params: {}
-    # no "events" block needed — it will be generated automatically
+    auto_config: True           # enable auto-configuration
+    params:
+      data_use_configure: 1000  # logs used to pick the variables
+      data_use_training: 1000   # logs used to train on them afterwards
+    # no "events" block needed  --  it will be generated automatically
 ```
 
 
@@ -163,58 +239,13 @@ detectors:
 
 When auto-configuration is enabled, the detector goes through two extra phases before training:
 
-**Phase 1 — `configure(input_)`**: The detector ingests events into an `EventPersistency` instance that uses a tracker backend to analyze variable behavior — for example, whether each variable is stable, random, or still has insufficient data. This instance is typically separate from the one used for training, because the configuration phase needs to observe *all* variables to decide which ones are worth monitoring, while training only tracks the variables that were selected as a result.
+**Phase 1  --  `configure(input_)`**: The detector ingests events into an `EventPersistency` instance that uses a tracker backend to analyze variable behavior  --  for example, whether each variable is stable, random, or still has insufficient data. This instance is typically separate from the one used for training, because the configuration phase needs to observe *all* variables to decide which ones are worth monitoring, while training only tracks the variables that were selected as a result.
 
-**Phase 2 — `set_configuration()`**: After enough data has been ingested, the detector queries the tracker to select variables that meet its criteria (e.g. only stable variables). It then generates a full `events` configuration from those results and updates its own config. At this point `auto_config` is set to `False` in the generated config, since the configuration is now explicit.
+**Phase 2  --  `set_configuration()`**: After enough data has been ingested, the detector queries the tracker to select variables that meet its criteria (e.g. only stable variables). It then generates a full `events` configuration from those results and updates its own config. At this point `auto_config` is set to `False` in the generated config, since the configuration is now explicit.
 
 After these two phases, the detector proceeds with the normal `train()` and `detect()` lifecycle using the generated configuration.
 
-### Implementation pattern
-
-A detector that supports auto-configuration typically creates a separate `EventPersistency` instance for this purpose (but doesn't have to):
-
-```python
-class MyDetector(CoreDetector):
-    def __init__(self, ...):
-        super().__init__(...)
-
-        # main persistency for training / detection
-        self.persistency = EventPersistency(
-            event_data_class=EventStabilityTracker,
-        )
-        # separate persistency for auto-configuration
-        self.auto_conf_persistency = EventPersistency(
-            event_data_class=EventStabilityTracker,
-        )
-```
-
-The `configure()` method ingests all available variables (not just configured ones) so the tracker can assess each one:
-
-```python
-def configure(self, input_):
-    self.auto_conf_persistency.ingest_event(
-        event_id=input_["EventID"],
-        event_template=input_["template"],
-        variables=input_["variables"],
-        named_variables=input_["logFormatVariables"],
-    )
-```
-
-The `set_configuration()` method queries the tracker results and writes the
-final `events` block. It touches nothing else on the config — everything the
-operator set under `params` or `auto_config_params` must survive untouched, so
-`set_configuration` never rebuilds the config from scratch:
-
-```python
-def set_configuration(self):
-    variables = {}
-    for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
-        stable_vars = tracker.get_features_by_classification("STABLE")
-        variables[event_id] = stable_vars
-
-    self.config.events = generate_events_config(variables, self.name)
-    self.config.auto_config = False
-```
+To support auto-configuration in your own detector, see [Development](development.md#implement-auto-configuration-in-a-detector).
 
 ### Full lifecycle with auto-configuration
 
@@ -225,31 +256,24 @@ def set_configuration(self):
 4. detect(input_, output_)   # call for each event to detect anomalies
 ```
 
-When `auto_config` is `False`, steps 1 and 2 are skipped entirely.
+When `auto_config` is `False`, steps 1 and 2 are skipped entirely. `data_use_configure`
+still reserves its records, and with `use_config_data_as_training` they still go to
+training, so a config rerun with `auto_config: False` trains on exactly the data the
+configuring run saw. This holds for every component with a configure phase, including
+the hyperparameter searches of `DrainParser` and the deep-learning detectors.
 
 That distinction is visible in the config. A detector's settings live in two
 blocks:
 
-* **`auto_config_params`** — inputs *to* the configure phase. They pick which
+* **`auto_config_params`**  --  inputs *to* the configure phase. They pick which
   variables the phase selects and are read only while `auto_config` is `True`.
-* **`params`** — operational settings, read during training and detection on
+* **`params`**  --  operational settings, read during training and detection on
   every run.
 
 The configure phase writes its results into the top-level `events` block (and,
 for `EventSequenceDetector`, into `fixed_window_size`) and then sets
 `auto_config` to `False`. It never modifies either input block, so a config can
 be rerun with `auto_config: False` and reproduce the same detector.
-
-Both `auto_config` and `Component.configure()` are declared on the shared base,
-so `auto_config_params` is declared there too — on `BasicConfig`, beside
-`auto_config` — rather than on the detector config alone. Detectors are the only
-component type with a real configure phase today, so they are the only ones that
-narrow the block with fields; parsers and alert aggregators inherit it empty, and
-an empty block is omitted from the serialized config, so their YAML is unaffected.
-A component type that grows a configure phase later subclasses `AutoConfigParams`
-and overrides the field, exactly as the variable, combo and sequence detector
-families do.
-
 
 ### Stability classification (optional)
 
@@ -266,11 +290,11 @@ axes:
 | `slope_time` | change centroid vs. `slope_threshold` | normalized timestamps |
 
 Any subset of the four may be enabled, and any single one may stand alone. The
-default — `index` alone — is the historical behaviour: each segment's mean rate
-of change is compared against its entry in `segment_thresholds` — four segments
-by default, one threshold per segment — and the segments are **equal-count**:
+default  --  `index` alone  --  is the historical behaviour: each segment's mean rate
+of change is compared against its entry in `segment_thresholds`  --  four segments
+by default, one threshold per segment  --  and the segments are **equal-count**:
 each holds the same number of observations, regardless of how much time they
-cover. For bursty log sources that is misleading — a variable that changed
+cover. For bursty log sources that is misleading  --  a variable that changed
 constantly during a quiet night and then went silent under a flood of daytime
 traffic looks stable, because the flood supplies enough samples to dominate the
 later segments. Enabling `time` cuts the same segments at **equal
@@ -278,12 +302,12 @@ durations** instead, so each segment covers the same amount of wall-clock time;
 the detector then needs an event time per record, which it reads from the log's
 named variables (`logFormatVariables`, i.e. the fields declared in the parser's
 `log_format`) under the name given by `timestamp_variable`. `slope_index` and
-`slope_time` ask a different question — whether the change centroid sits early
-or late in the series — on the index axis and the time axis respectively.
+`slope_time` ask a different question  --  whether the change centroid sits early
+or late in the series  --  on the index axis and the time axis respectively.
 
 These parameters live on every `VariableDetector` subclass (`NewValueDetector`,
 `NewValueComboDetector`, `ValueRangeDetector`, `CharsetDetector`, `BigramDetector`, …)
-and go in the detector's `auto_config_params` block — they are inputs to the
+and go in the detector's `auto_config_params` block  --  they are inputs to the
 auto-configuration phase, read only while `auto_config` is `True`, and never
 consulted at detection time.
 
@@ -329,7 +353,7 @@ requires strictly more than half of them to.
 
 Ties resolve to UNSTABLE. That keeps `majority` from ever being more lenient
 than a coin-flip, and makes it collapse onto `consensus` at one and two enabled
-methods — turning a third method on is the only place the rule starts to matter.
+methods  --  turning a third method on is the only place the rule starts to matter.
 
 **All four methods false is a config error**, rejected by a pydantic validator.
 It is not a harmless no-op: classification decides `INSUFFICIENT_DATA`,
@@ -345,7 +369,7 @@ All of these live in the detector's `auto_config_params` block.
 | `use_stable_vars` | `bool` | `true` | Include variables classified `STABLE` in the generated configuration. |
 | `use_static_vars` | `bool` | `true` | Include variables classified `STATIC`. Defaults to `false` on `NewValueComboDetector`. |
 | `classification` | `ClassificationMethods` | see below | Which classification methods run and how their verdicts combine. |
-| `timestamp_variable` | `str \| null` | `null` | Name of the field in `logFormatVariables` holding the record's event time. Required for `time` and `slope_time` to have any effect. Only named log-format fields are consulted — never the positional `variables` list. |
+| `timestamp_variable` | `str \| null` | `null` | Name of the field in `logFormatVariables` holding the record's event time. Required for `time` and `slope_time` to have any effect. Only named log-format fields are consulted  --  never the positional `variables` list. |
 | `timestamp_format` | `str \| null` | `null` | Explicit [`strftime`](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes) pattern for parsing that field. When unset, `TimeFormatHandler` auto-detects the format (ISO 8601, Apache, syslog, numeric epoch seconds/milliseconds, and other common layouts). |
 
 Set `timestamp_format` when the source uses a layout the auto-detection does not
@@ -382,23 +406,13 @@ Time-aware classification is best-effort and never fails a run:
   falls back to the index axis.
 * If timestamps stop lining up with the recorded observations, or the observed time
   span is zero, or they arrive out of order, `time` silently reuses the equal-index
-  cuts, and `slope_time` computes its centroid on the index axis instead — it
+  cuts, and `slope_time` computes its centroid on the index axis instead  --  it
   degrades to `slope_index`.
-* Under `majority`, a fallen-back method still casts its own vote: if `slope_index`
-  and `slope_time` are both enabled and timestamps are unusable, both entries compute
-  the same index-axis centroid, and that verdict carries two of the votes rather than
-  one. This is deliberate — dropping a fallen-back method from the vote would change
-  the enabled count from variable to variable and make `majority` mean something
-  different for each one. The reason string names the axis each slope actually used,
-  so a doubled vote is visible in the note.
-* The same doubling applies to the segment-threshold pair: if `index` and `time` are
-  both enabled and timestamps are unusable, `time` silently reuses the same equal-count
-  cuts as `index`, so an identical verdict again carries two votes under `majority`
-  rather than one. Unlike the slope pair, the reason string does not surface this —
-  each entry is still labelled by its configured method name (`index` or `time`), not
-  by the axis it actually used, so a doubled segment-pair vote is invisible in the note.
+* Under `majority`, a method that fell back still casts its own vote. If both methods
+  of a pair (`slope_index`/`slope_time` or `index`/`time`) are enabled and timestamps
+  are unusable, they compute the same verdict, which then counts twice.
 
-In every fallback case classification still runs and produces a result — only the
+In every fallback case classification still runs and produces a result  --  only the
 axis behind it changes back to index.
 
 A segment with no observations in it is *not* a fallback: it scores a mean of 0.0,
@@ -406,7 +420,7 @@ because nothing observed means nothing changed. Once the segment floor above is
 met, equal-index cuts never leave a segment empty; equal-duration cuts of a bursty
 variable still do, routinely, so `time` on its own is lenient towards a burst of
 churn followed by silence. Enable `index` and `time` together when that leniency
-matters — the index pass keeps every segment populated.
+matters  --  the index pass keeps every segment populated.
 
 
 ### Saving state (persist)
@@ -429,7 +443,7 @@ detectors:
       ...
 ```
 
-All fields are optional — `persist: {}` uses all defaults. Omitting `persist:` entirely
+All fields are optional  --  `persist: {}` uses all defaults. Omitting `persist:` entirely
 disables saving (backward compatible).
 
 The detector name is automatically appended to `path`, so `path: ./state` for a detector
@@ -439,7 +453,7 @@ named `NewValueDetector` writes to `./state/NewValueDetector/`.
 
 The default `path` is CWD-relative. systemd services usually run with CWD `/`,
 so `./state` would resolve to `/state` (wrong location, needs root). To avoid
-this, set `StateDirectory=` in your unit file — systemd creates `/var/lib/<dir>`
+this, set `StateDirectory=` in your unit file  --  systemd creates `/var/lib/<dir>`
 with the right ownership and exports `$STATE_DIRECTORY`, which the default `path`
 reads automatically. No explicit `path:` needed:
 
@@ -463,7 +477,7 @@ Setting `path:` explicitly (e.g. an `s3://` URL) always overrides `$STATE_DIRECT
 
 #### Storage options examples
 
-**Local filesystem** — no `storage_options` needed:
+**Local filesystem**  --  no `storage_options` needed:
 
 ```yaml
 persist:
@@ -513,7 +527,5 @@ persist:
 ```
 
 In practice, credentials are usually supplied via environment variables
-(`AWS_ACCESS_KEY_ID`, etc.) or instance roles — in which case `storage_options`
+(`AWS_ACCESS_KEY_ID`, etc.) or instance roles  --  in which case `storage_options`
 stays empty or is omitted.
-
-Go back [Index](index.md)

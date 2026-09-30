@@ -126,6 +126,10 @@ class PersistencyLoadError(Exception):
     """Raised when restoring persisted state fails."""
 
 
+class PersistencySaveError(Exception):
+    """Raised when writing persisted state fails."""
+
+
 def _load(ep: EventPersistency, fs: Any, root: str) -> None:
     meta_path = f"{root}/metadata.json"
     if not fs.exists(meta_path):
@@ -224,6 +228,10 @@ class PersistencySaver:
         # with ingest_event (which holds the same lock).
         self._lock = persistency._lock
         self._timer: _SaveTimer | None = None
+        # events_since_save at the last failed save (0 after a success). The
+        # count trigger measures from here, so failing storage is retried every
+        # events_until_save events rather than on every ingest.
+        self._count_trigger_base = 0
 
         if config.events_until_save is not None:
             persistency.register_on_ingest(self._check_event_count)
@@ -240,16 +248,28 @@ class PersistencySaver:
         Thread-safe. Serialization runs under the shared lock (reads
         live state); the file write runs outside it so ingest_event
         isn't blocked on I/O.
+
+        Raises PersistencySaveError if the write fails; the save counter
+        is then left untouched.
         """
         with self._lock:
             files = _serialize(self._persistency)
-            # Reset here (atomically with the snapshot) not in _serialize:
-            # module-level save()/export must not touch the save counter.
-            self._persistency.reset_events_since_save()
+            # Captured atomically with the snapshot so a successful write
+            # clears exactly the events it contains.
+            snapshot_count = self._persistency.events_since_save
         try:
             _write(self._fs, self._root, files)
         except Exception as e:
-            logger.warning(f"PersistencySaver: save failed — {e}")
+            with self._lock:
+                self._count_trigger_base = snapshot_count
+            raise PersistencySaveError(
+                f"could not write state to '{self._config.path}': {e}"
+            ) from e
+        with self._lock:
+            # Reset here, not in _serialize: module-level save()/export must
+            # not touch the save counter.
+            self._persistency.reset_events_since_save(snapshot_count)
+            self._count_trigger_base = 0
 
     def load(self) -> None:
         """Restore EventPersistency state from storage.
@@ -274,7 +294,10 @@ class PersistencySaver:
         self._timer.start()
 
     def stop(self) -> None:
-        """Stop the timer and do a final save."""
+        """Stop the timer and do a final save.
+
+        Raises PersistencySaveError if the final save fails.
+        """
         if self._timer is None:
             return
         self._timer.stop()
@@ -327,13 +350,23 @@ class PersistencySaver:
         # this: it would put save's I/O back under the ingest lock.
         if (
             self._config.events_until_save is not None
-            and self._persistency._events_since_save >= self._config.events_until_save
+            and self._persistency._events_since_save - self._count_trigger_base
+            >= self._config.events_until_save
         ):
-            self.save()
+            self._background_save("count-triggered")
 
     def _tick(self) -> None:
         """Called by the timer thread each interval."""
-        self.save()
+        self._background_save("periodic")
+
+    def _background_save(self, trigger: str) -> None:
+        """Save from the timer or ingest path, where no caller can handle a
+        failure: raising would kill the timer thread or propagate out of
+        ingest_event."""
+        try:
+            self.save()
+        except PersistencySaveError as e:
+            logger.error(f"PersistencySaver: {trigger} save failed — {e}")
 
 
 def save(

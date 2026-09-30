@@ -1,4 +1,6 @@
 from typing import Any, Collection, List
+from typing_extensions import Self
+import warnings
 
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 from detectmatelibrary.common._other_op._variable_hooks import VariablesLogic
@@ -14,6 +16,7 @@ from detectmatelibrary import schemas
 
 from math import ceil
 import numpy as np
+from pydantic import Field
 
 
 class ECVCOp:
@@ -63,12 +66,52 @@ class ECVCOp:
         raise Exception("Method not supported")
 
 
+# method_type this detector used before it was corrected; still accepted.
+_LEGACY_METHOD_TYPE = "ecvc_detector_detector"
+
+
 class ECVCDetectorConfig(CoreDetectorConfig):
-    method_type: str = "ecvc_detector_detector"
-    window_size: int = 10
-    validation_per: float = 0.2
-    seed: int = 0
-    threshold_method: str = "mean"
+    method_type: str = Field(
+        default="ecvc_detector", description="Indicates what type of method it is."
+    )
+    window_size: int = Field(
+        default=10,
+        description="Length of the event-ID window a count vector is built over.",
+    )
+    validation_per: float = Field(
+        default=0.2,
+        description=(
+            "Fraction of the learned count vectors held out as a validation "
+            "split and used to derive the anomaly threshold."
+        ),
+    )
+    seed: int = Field(
+        default=0,
+        description="Random seed used to shuffle count vectors into train/validation splits.",
+    )
+    threshold_method: str = Field(
+        default="mean",
+        description=(
+            "Method used to derive the anomaly threshold from the validation "
+            "split: 'mean' averages the distance scores, 'default' uses a "
+            "fixed threshold of 0."
+        ),
+    )
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any], method_id: str) -> Self:
+        method = data.get(cls().component_type, {}).get(method_id, {})
+        if method.get("method_type") == _LEGACY_METHOD_TYPE:
+            warnings.warn(
+                f"method_type '{_LEGACY_METHOD_TYPE}' is deprecated, use 'ecvc_detector'.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            data = {**data, cls().component_type: {
+                **data[cls().component_type],
+                method_id: {**method, "method_type": "ecvc_detector"},
+            }}
+        return super().from_dict(data, method_id)
 
 
 class ECVCDetector(CoreDetector, VariablesLogic):
