@@ -3,6 +3,25 @@ site_url: https://ait-detectmate.github.io/DetectMateLibrary/
 
 theme:
   name: material # windmill is auch cool
+  palette:
+    # Light mode configuration
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Dark mode configuration
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
 
 nav:
   - Home: index.md
@@ -23,28 +42,28 @@ nav:
       - Detectors: detectors.md
       - Alert Aggregation: alert_aggregator.md
     - Parser types:
-      - Auto Parser: parsers/auto_parser.md
-      - Drain Parser: parsers/drain_parser.md
-      - JSON Parser: parsers/json_parser.md
-      - LogBatcher Parser: parsers/logbatcher_parser.md
-      - Template Matcher: parsers/template_matcher.md
-      - Template Tree Matcher: parsers/template_tree_matcher.md
+      - 00_JSON Parser: parsers/json_parser.md
+      - 01_Template Matcher: parsers/template_matcher.md
+      - 02_Template Tree Matcher: parsers/template_tree_matcher.md
+      - 03_Auto Parser: parsers/auto_parser.md
+      - 04_Drain Parser: parsers/drain_parser.md
+      - 05_LogBatcher Parser: parsers/logbatcher_parser.md
     - Detector types:
-      - 00 Random Detector: detectors/random_detector.md
-      - 01 Rule Detector: detectors/rule_based.md
-      - 02 New Event Detector: detectors/new_event.md
-      - 03 New Value Detector: detectors/new_value.md
-      - 04 New Value Combo Detector: detectors/combo.md
-      - 05 Value Range Detector: detectors/value_range.md
-      - 06 Charset Detector: detectors/charset.md
-      - 07 Event Sequence Detector: detectors/event_sequence.md
-      - 08 Bigram Frequency Detector: detectors/bigram_frequency.md
-      - 09 SCVS Detector: detectors/scvs_detector.md
-      - 10 ECVC Detector: detectors/ecvc_detector.md
-      - 11 DeepLog Detector: detectors/deeplog.md
-      - 12 LogBERT Detector: detectors/logbert.md
+      - 00_Random Detector: detectors/random_detector.md
+      - 01_Rule Detector: detectors/rule_based.md
+      - 02_New Event Detector: detectors/new_event.md
+      - 03_New Value Detector: detectors/new_value.md
+      - 04_New Value Combo Detector: detectors/combo.md
+      - 05_Value Range Detector: detectors/value_range.md
+      - 06_Charset Detector: detectors/charset.md
+      - 07_Event Sequence Detector: detectors/event_sequence.md
+      - 08_Bigram Frequency Detector: detectors/bigram_frequency.md
+      - 09_SCVS Detector: detectors/scvs_detector.md
+      - 10_ECVC Detector: detectors/ecvc_detector.md
+      - 11_DeepLog Detector: detectors/deeplog.md
+      - 12_LogBERT Detector: detectors/logbert.md
     - Alert Aggregation methods:
-      - Basic Concat: alert_aggregators/basic_concatenation.md
+      - 00_Basic Concat: alert_aggregators/basic_concatenation.md
     - Helpers:
       - FromTo: helper/from_to.md
     - Auxiliary:
