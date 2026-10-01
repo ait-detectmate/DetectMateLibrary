@@ -5,6 +5,7 @@ from detectmatelibrary.common.variable_detector import (
     VariableDetectorConfig,
 )
 from detectmatelibrary.common._config._compile import get_configured_variables
+from detectmatelibrary.common._core_op._train_buffer import TrainBuffer
 
 from detectmatelibrary.utils import persistency
 from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
@@ -88,7 +89,17 @@ class NewValueComboDetector(VariableDetector):
                 {"converter_function": get_all_possible_combos}
             ),
         )
-        self.inputs: list[ParserSchema] = []
+        # configure inputs for the second pass; past train_buffer_max_records they spill to disk
+        self.inputs = TrainBuffer(
+            name=self.name,
+            max_records=self.config.train_buffer_max_records,
+            dir_=self.config.train_buffer_dir,
+            why=(
+                "NewValueComboDetector keeps every configure record until set_configuration "
+                "reads them again to learn which variable combinations are stable. To avoid "
+                "this, lower data_use_configure."
+            ),
+        )
 
     def _event_data_kwargs(self) -> Optional[Dict[str, Any]]:
         return {"converter_function": get_combo}
@@ -118,7 +129,7 @@ class NewValueComboDetector(VariableDetector):
 
     def configure(self, input_: ParserSchema) -> None:  # type: ignore
         # store inputs to re-ingest after the first configuration pass
-        self.inputs.append(input_)
+        self.inputs.add(input_)
         super().configure(input_)
 
     def set_configuration(self, max_combo_size: int | None = None) -> None:
@@ -140,8 +151,10 @@ class NewValueComboDetector(VariableDetector):
                 variable_combos[event_id] = stable_vars
         self.config.events = generate_events_config(variable_combos, self.name)
 
-        # re-ingest all inputs to learn combos under the new configuration
-        for input_ in self.inputs:
+        # re-ingest all inputs to learn combos under the new configuration;
+        # replay empties the buffer and deletes its spill files
+        for record in self.inputs:
+            input_ = cast(ParserSchema, record)
             configured_variables = get_configured_variables(input_, self.config.events)
             self.auto_conf_persistency_combos.ingest_event(
                 event_id=input_["EventID"],

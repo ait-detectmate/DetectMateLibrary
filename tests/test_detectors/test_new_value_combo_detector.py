@@ -824,3 +824,41 @@ class TestNewValueComboDetectorClassificationCombos:
         )
         assert not set(block) & set(entry.get("params", {}))
         assert NewValueComboDetectorConfig.from_dict(dumped, "NewValueComboDetector") == config
+
+
+class TestNewValueComboDetectorConfigureSpill:
+    """The configure records kept for the second pass spill to disk past
+    train_buffer_max_records, like the train buffer, and are released
+    afterwards."""
+
+    @staticmethod
+    def _configured(**config) -> NewValueComboDetector:
+        detector = NewValueComboDetector(
+            config=NewValueComboDetectorConfig(**config), name="NewValueComboDetector"
+        )
+        for i in range(25):
+            detector.configure(schemas.ParserSchema({
+                "parserType": "test",
+                "EventID": 1,
+                "template": "Template 1",
+                "variables": [f"a{min(i, 3)}", f"b{min(i, 4)}", f"c{min(i, 2)}"],
+                "logID": str(i),
+                "parsedLogID": str(i),
+                "parserID": "test_parser",
+                "log": "test log",
+            }))
+        return detector
+
+    def test_configure_inputs_spill_and_are_released(self, tmp_path):
+        detector = self._configured(train_buffer_max_records=10, train_buffer_dir=str(tmp_path))
+        assert len(list(tmp_path.glob("*/part-*.parquet"))) == 2
+        detector.set_configuration(max_combo_size=2)
+        assert list(tmp_path.iterdir()) == []
+
+    def test_spilled_configuration_matches_in_memory(self, tmp_path):
+        spilled = self._configured(train_buffer_max_records=10, train_buffer_dir=str(tmp_path))
+        in_memory = self._configured()
+        spilled.set_configuration(max_combo_size=2)
+        in_memory.set_configuration(max_combo_size=2)
+        assert len(in_memory.config.events[1].instances) == 3
+        assert spilled.config.events == in_memory.config.events

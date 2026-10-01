@@ -7,6 +7,7 @@ from detectmatelibrary.common._core_op._basic_component import (
     TOutput,
 )
 from detectmatelibrary.common._core_op._fit_logic import FitLogic
+from detectmatelibrary.common._core_op._train_buffer import TrainBuffer
 
 from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
 from detectmatelibrary.utils.id_generator import SimpleIDGenerator
@@ -26,29 +27,6 @@ from detectmatelibrary.utils.persistency.component_interfaces import Persistency
 
 setup_logging()
 
-# Train operations ##################################################################
-
-
-class TrainBuffer:
-    def __init__(self) -> None:
-        self.buffer: list[BaseSchema | list[BaseSchema]] = []
-
-    def __len__(self) -> int:
-        return len(self.buffer)
-
-    def __add__(self, elem: BaseSchema | list[BaseSchema]) -> "TrainBuffer":
-        self.buffer.append(elem)
-        return self
-
-    def __next__(self) -> BaseSchema | list[BaseSchema]:
-        if len(self.buffer) == 0:
-            raise StopIteration
-        return self.buffer.pop(0)
-
-    def __iter__(self) -> "TrainBuffer":
-        return self
-
-
 # Core component ################################################
 
 
@@ -67,6 +45,22 @@ class CoreConfig(BasicConfig):
     use_config_data_as_training: bool = Field(
         default=True,
         description="Combine the configured data in the training process if True.",
+    )
+    train_buffer_max_records: int = Field(
+        default=100_000,
+        ge=1,
+        description=(
+            "Configure records kept in memory for training (use_config_data_as_training) "
+            "before the buffer spills to Parquet files on disk, in parts of this many records."
+        ),
+    )
+    train_buffer_dir: str | None = Field(
+        default=None,
+        description=(
+            "fsspec URI for the spilled training buffer. None uses a private per-user directory "
+            "in the system temp directory. Files left by killed processes are removed "
+            "automatically on local disk only."
+        ),
     )
 
 
@@ -93,7 +87,11 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
             data_use_configure=self.config.data_use_configure,
             data_use_training=self.config.data_use_training,
         )
-        self.buffer_train = TrainBuffer()
+        self.buffer_train = TrainBuffer(
+            name=self.name,
+            max_records=self.config.train_buffer_max_records,
+            dir_=self.config.train_buffer_dir,
+        )
 
     def export_state(
         self,
@@ -112,6 +110,12 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
         )
 
     def update_state(self, state: StatesL) -> None:
+        if state == "keep_configuring" and self.config.use_config_data_as_training:
+            logger.warning(
+                f"<<{self.name}>> keep_configuring: the configure phase now has no end, and with "
+                "use_config_data_as_training=True every configure record is kept for training. "
+                "The buffer grows, in memory and then on disk, until stop_configuring."
+            )
         self.fitlogic.update_state(state)
 
     def get_state(self) -> str:
@@ -135,7 +139,7 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
                 logger.debug(f"<<{self.name}>> use data for configuration")
                 self.configure(input_=data_buffered)
             if self.config.use_config_data_as_training:
-                self.buffer_train + data_buffered
+                self.buffer_train.add(data_buffered)
             return None
         elif self.fitlogic.finish_config():
             if self.config.auto_config:
@@ -143,7 +147,8 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
                 self.set_configuration()
             if self.config.use_config_data_as_training:
                 logger.debug(f"<<{self.name}>> Adding data from config to training")
-                [self.train(input_) for input_ in self.buffer_train]
+                for input_ in self.buffer_train:
+                    self.train(input_)
         if fit_state == FitLogicState.DO_TRAIN:
             logger.debug(f"<<{self.name}>> use data for training")
             self.train(input_=data_buffered)
