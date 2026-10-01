@@ -6,35 +6,41 @@ from detectmatelibrary.utils.deep_learning.logbert import LogBert
 
 
 from typing import Any
+from pydantic import Field
 
 
 class LogBertDetectorConfig(DeepLearningDetectorConfig):
-    method_type: str = "logbert_detector"
+    method_type: str = Field(
+        default="logbert_detector", description="Indicates what type of method it is."
+    )
 
-    hyperparameters: dict[str, Any] = {  # type: ignore
-        "Model": {
-            "n_embed": 10,
-            "hidden": 32,
-            "num_heads": 2,
-            "n_layers": 1,
-            "dropout": 0.0,
-            "max_len": 1000,
+    hyperparameters: dict[str, Any] = Field(
+        default={
+            "Model": {
+                "n_embed": 10,
+                "hidden": 32,
+                "num_heads": 2,
+                "n_layers": 1,
+                "dropout": 0.0,
+                "max_len": 1000,
+            },
+            "Train": {
+                "seed": 0,
+                "batch_size": 256,
+                "learning_rate": 0.01,
+                "epochs": 10,
+                "mask_per": 0.4,
+                "alpha": 0.0,
+                "patience": 3,
+            },
+            "Finetune": [
+                ["Model", "hidden", [64, 128, 256]],
+                ["Model", "n_layers", [1, 2, 3]],
+                ["Train", "learning_rate", [0.002, 0.001, 0.005]],
+            ],
         },
-        "Train": {
-            "seed": 0,
-            "batch_size": 256,
-            "learning_rate": 0.01,
-            "epochs": 10,
-            "mask_per": 0.4,
-            "alpha": 0.0,
-            "patience": 3,
-        },
-        "Finetune": [
-            ["Model", "hidden", [64, 128, 256]],
-            ["Model", "n_layers", [1, 2, 3]],
-            ["Train", "learning_rate", [0.002, 0.001, 0.005]],
-        ]
-    }
+        description="Model, training and hyperparameter-search settings for the LogBERT model.",
+    )
 
 
 class LogBertDetector(DeepLearningDetector):

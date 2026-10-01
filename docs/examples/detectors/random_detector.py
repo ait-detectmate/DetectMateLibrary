@@ -1,47 +1,18 @@
 # --8<-- [start:example]
+import numpy as np
+import yaml
+from detectmatelibrary import schemas
 from detectmatelibrary.detectors.random_detector import RandomDetector
-import detectmatelibrary.schemas as schemas
 
+with open("docs/examples/detectors/random_detector.yaml") as f:
+    config = yaml.safe_load(f)
+detector = RandomDetector(name="RandomDetector", config=config)
 
-config = {
-    "detectors": {
-        "TestDetector": {
-            "auto_config": False,
-            "method_type": "random_detector",
-            "params": {},
-            "events": {
-                1: {
-                    "test": {
-                        "params": {},
-                        "variables": [{
-                            "pos": 0,
-                            "name": "process",
-                            "params": {
-                                "threshold": 0.
-                            }
-                        }]
-                    }
-                }
-            }
-        }
-    }
-}
+login = schemas.ParserSchema({"EventID": 0, "variables": ["alice", "10.0.0.1", "22"]})
 
-# assume `config` is loaded from YAML and converted to the detector Config class
-detector = RandomDetector(name="TestDetector", config=config)
+np.random.seed(0)  # only to make this example reproducible
 
-parser_data = schemas.ParserSchema({
-    "parserType": "test",
-    "EventID": 1,
-    "template": "test template",
-    "variables": ["var1"],
-    "logID": "1",
-    "parsedLogID": "1",
-    "parserID": "test_parser",
-    "log": "test log message",
-    "logFormatVariables": {"timestamp": "123456"}
-})
-
-# process returns True if an alert was emitted, False otherwise
-alert_emitted = detector.process(parser_data)
+# no training needed: with threshold 0.9, roughly 1 in 10 logs raises an alert
+alerts = [detector.process(login) for _ in range(100)]
+print(sum(alert is not None for alert in alerts))  # around 10
 # --8<-- [end:example]

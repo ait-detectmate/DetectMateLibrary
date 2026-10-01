@@ -42,7 +42,7 @@ class From:
         component: CoreComponent,
         df: DataFrame | LazyFrame,
         do_process: bool = True,
-        renames: dict[str, str] | None = None
+        renames: dict[str, str] | None = None,
     ) -> Iterator[BaseSchema]:
         """
         Load Polars dataframe as input schemas follow DetectMatePerformance format.
@@ -122,15 +122,21 @@ The `FromTo` class loads and saves inputs and outputs in a single operation.
 ```python
 class FromTo:
     @staticmethod
-    def log2binary_file(component: CoreComponent, in_path: str, out_path: str) -> Iterator[BaseSchema]:
+    def log2binary_file(
+        component: CoreComponent, in_path: str, out_path: str
+    ) -> Iterator[BaseSchema]:
         """Load a log file and save it to a binary file."""
 
     @staticmethod
-    def log2json(component: CoreComponent, in_path: str, out_path: str) -> Iterator[BaseSchema]:
+    def log2json(
+        component: CoreComponent, in_path: str, out_path: str
+    ) -> Iterator[BaseSchema]:
         """Load a log file and save it to a JSON file."""
 
     @staticmethod
-    def log2yaml(component: CoreComponent, in_path: str, out_path: str) -> Iterator[BaseSchema]:
+    def log2yaml(
+        component: CoreComponent, in_path: str, out_path: str
+    ) -> Iterator[BaseSchema]:
         """Load a log file and save it to a YAML file."""
 
     @staticmethod
@@ -192,7 +198,7 @@ class FromTo:
         component: CoreComponent,
         df: DataFrame | LazyFrame,
         out_path: str,
-        renames: dict[str, str] | None = None
+        renames: dict[str, str] | None = None,
     ) -> Iterator[BaseSchema]:
         """Load DetectMatePerformance Dataframe to binary file"""
 
@@ -201,7 +207,7 @@ class FromTo:
         component: CoreComponent,
         df: DataFrame | LazyFrame,
         out_path: str,
-        renames: dict[str, str] | None = None
+        renames: dict[str, str] | None = None,
     ) -> Iterator[BaseSchema]:
         """Load DetectMatePerformance Dataframe to json"""
 
@@ -210,7 +216,7 @@ class FromTo:
         component: CoreComponent,
         df: DataFrame | LazyFrame,
         out_path: str,
-        renames: dict[str, str] | None = None
+        renames: dict[str, str] | None = None,
     ) -> Iterator[BaseSchema]:
         """Load DetectMatePerformance Dataframe to yaml"""
 ```

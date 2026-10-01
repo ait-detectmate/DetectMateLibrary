@@ -77,7 +77,7 @@ class TestECVC:
         config = {
             "detectors": {
                 "ECVCDetector": {
-                    "method_type": "ecvc_detector_detector",
+                    "method_type": "ecvc_detector",
                     "window_size": 3,
                     "seed": 0,
                     "validation_per": 0.,
@@ -105,6 +105,16 @@ class TestECVC:
             alert = ecvc.process(in_)
         assert alert is not None
 
+    def test_legacy_method_type_still_loads(self):
+        config = {"detectors": {"ECVCDetector": {"method_type": "ecvc_detector_detector", "window_size": 3}}}
+
+        with pytest.warns(DeprecationWarning, match="ecvc_detector_detector"):
+            ecvc = ECVCDetector(config=config)
+
+        assert ecvc.config.method_type == "ecvc_detector"
+        assert ecvc.config.window_size == 3
+        assert "ecvc_detector_detector" in str(config)  # caller's dict is left untouched
+
 
 PIPELINE_CONFIG = {
     "parsers": {
@@ -123,7 +133,7 @@ PIPELINE_CONFIG = {
     },
     "detectors": {
         "ECVCDetector": {
-            "method_type": "ecvc_detector_detector",
+            "method_type": "ecvc_detector",
             "window_size": 10,
             "seed": 0,
             "validation_per": 0.,

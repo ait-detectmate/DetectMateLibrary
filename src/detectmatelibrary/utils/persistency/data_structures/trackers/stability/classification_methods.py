@@ -32,13 +32,37 @@ class ClassificationMethods(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    index: bool = True
-    time: bool = False
-    segment_thresholds: list[float] = Field(default_factory=lambda: [1.1, 0.3, 0.1, 0.01])
-    slope_index: bool = False
-    slope_time: bool = False
-    slope_threshold: float = -0.05
-    decision: Literal["consensus", "majority"] = "consensus"
+    index: bool = Field(default=True, description="Segment-mean test over equal-count segments.")
+    time: bool = Field(
+        default=False,
+        description="Segment-mean test over equal-duration segments. Needs timestamp_variable.",
+    )
+    segment_thresholds: list[float] = Field(
+        default_factory=lambda: [1.1, 0.3, 0.1, 0.01],
+        description=(
+            "Upper bound on the mean change rate, one per segment; the list length is the "
+            "segment count. Used by index and time."
+        ),
+    )
+    slope_index: bool = Field(default=False, description="Change-centroid test on the index axis.")
+    slope_time: bool = Field(
+        default=False,
+        description="Change-centroid test on the time axis. Needs timestamp_variable.",
+    )
+    slope_threshold: float = Field(
+        default=-0.05,
+        description=(
+            "A variable is STABLE when its change centroid (-0.5 to +0.5) is at or below this. "
+            "Used by slope_index and slope_time."
+        ),
+    )
+    decision: Literal["consensus", "majority"] = Field(
+        default="consensus",
+        description=(
+            "How the enabled methods' verdicts combine: consensus needs all of them, "
+            "majority needs more than half."
+        ),
+    )
 
     @field_validator("segment_thresholds")
     @classmethod

@@ -9,7 +9,7 @@ on:
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -23,6 +23,10 @@ jobs:
           activate-environment: true
           enable-cache: true
 
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+
       - name: Set timezone
         run: sudo timedatectl set-timezone Europe/Vienna
 
@@ -31,6 +35,20 @@ jobs:
 
       - name: Test with pytest
         run: uv run pytest -s --run-ignored
+
+      - name: Commit and Push Changes
+        env:
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          git add .
+          if git diff --cached --quiet; then
+            echo "No tracked files changed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Automated documentation update"
+          git push origin "HEAD:$PR_BRANCH"
 
       # integration tests for DetectMateService
       - name: Checkout DetectMateService
