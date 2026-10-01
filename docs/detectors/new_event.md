@@ -15,7 +15,7 @@ Input and output schemas in the pipeline
 
 | Learns from training data | Auto-configuration | Needs `events` | Federation |
 |---|---|---|---|
-| ✅ | ❌ | ❌ | ✅ (binary not available) |
+| ✅ | ❌ | ❌ | ✅ |
 
 ## Description
 
@@ -55,10 +55,11 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `global` | object | {} | shared | Instances monitoring event-independent header variables (e.g. hostname, level), keyed by instance name. Written as `global` in YAML. |
     | `persist` | object, null | None | shared | Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See the Persistency page. |
 
-??? note "params"
+???+ note "params"
 
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
+    | `allow_fed` | boolean | False | specific | Allow to do the federation |
     | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
     | `data_use_training` | integer, null | None | shared | Data used for training, if None, training is not done. |
     | `data_use_configure` | integer, null | None | shared | Data used for configuration, if None, configuration is not done. |

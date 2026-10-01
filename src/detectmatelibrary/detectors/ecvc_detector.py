@@ -97,6 +97,12 @@ class ECVCDetectorConfig(CoreDetectorConfig):
             "fixed threshold of 0."
         ),
     )
+    allow_fed: bool = Field(
+        default=False,
+        description=(
+            "Allow to do the federation"
+        ),
+    )
 
     @classmethod
     def from_dict(cls, data: dict[str, Any], method_id: str) -> Self:
@@ -128,7 +134,7 @@ class ECVCDetector(CoreDetector, VariablesLogic):
         CoreDetector.__init__(
             self, name=name, buffer_mode=BufferMode.WINDOW, config=config, buffer_size=config.window_size
         )
-        VariablesLogic.__init__(self, name=self.name)
+        VariablesLogic.__init__(self, name=self.name, allow_fed=self.config.allow_fed)
         self._register_persistency(self.persistency)
         warn_on_window_size_mismatch(self.name, self.persistency, self.config.window_size)
 
@@ -194,3 +200,13 @@ class ECVCDetector(CoreDetector, VariablesLogic):
         self.build_count_vec()
         for component in components:
             component.build_count_vec()
+
+    def to_binary(self) -> bytes:
+        return self.persistency2binary()
+
+    def from_binary(self, binary: bytes) -> "ECVCDetector":
+        var_detect = type(self)(name=self.name, config=self.config)
+        var_detect.binary2persistency(binary)
+        var_detect.build_count_vec()
+
+        return var_detect

@@ -15,7 +15,7 @@ Input and output schemas in the pipeline
 
 | Learns from training data | Auto-configuration | Needs `events` | Federation |
 |---|---|---|---|
-| ✅ | ❌ | ❌ | ✅ (binary not available) |
+| ✅ | ❌ | ❌ | ✅ |
 
 ## Description
 
@@ -65,6 +65,7 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `validation_per` | number | 0.2 | specific | Fraction of the learned count vectors held out as a validation split and used to derive the anomaly threshold. |
     | `seed` | integer | 0 | specific | Random seed used to shuffle count vectors into train/validation splits. |
     | `threshold_method` | string | mean | specific | Method used to derive the anomaly threshold from the validation split: 'mean' averages the distance scores, 'default' uses a fixed threshold of 0. |
+    | `allow_fed` | boolean | False | specific | Allow to do the federation |
     | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
     | `data_use_training` | integer, null | None | shared | Data used for training, if None, training is not done. |
     | `data_use_configure` | integer, null | None | shared | Data used for configuration, if None, configuration is not done. |

@@ -5,18 +5,18 @@ EventDataFrame (Pandas) and ChunkedEventDataFrame (Polars).
 """
 
 
-import pandas as pd
-import polars as pl
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
-from detectmatelibrary.utils.persistency.event_data_structures.dataframes import (
-    EventDataFrame,
-    ChunkedEventDataFrame,
-)
-from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
+from detectmatelibrary.utils.persistency.data_structures.trackers import (
     EventTracker,
     SingleStabilityTracker,
     EventStabilityTracker
 )
+from detectmatelibrary.utils.persistency.slow_persistency import SlowPersistency, Manager
+from detectmatelibrary.utils.persistency.basic_persistency import PersistencyStruct, get_all_variables
+
+import pytest
+import polars as pl
+import os
 
 
 # Sample test data - variables is a list, not a dict
@@ -42,84 +42,133 @@ SAMPLE_EVENT_3 = {
 }
 
 
+class TestSlowPersisntecy:
+    def test_buffer(self) -> None:
+        persistency = SlowPersistency(columns=[], file_manager=Manager, buffer_size=2)
+
+        persistency.add(["a", 2])
+        assert len(persistency.buffer) == 1
+
+        persistency.add(["b", 1])
+        assert len(persistency.buffer) == 0
+        assert len(persistency.file_manager.test_buffer) == 3
+
+        persistency.add(["c", 1])
+        assert len(persistency.buffer) == 1
+        assert len(persistency.file_manager.test_buffer) == 3
+
+        persistency.push_buffer()
+        assert len(persistency.buffer) == 0
+        assert len(persistency.file_manager.test_buffer) == 4
+
+    def test_csv_frame_file(self) -> None:
+        persistency = SlowPersistency(columns=["char", "int"], buffer_size=2)
+        persistency.add(["a", 2])
+        persistency.add(["b", 2])
+
+        assert os.path.exists(persistency.path)
+
+        df = persistency.load()
+        expected = pl.DataFrame({"char": ["a", "b"], "int": [2, 2]})
+        assert df.equals(expected)
+
+        persistency.reset()
+        assert not os.path.exists(persistency.path)
+
+    def test_transfer(self) -> None:
+        persistency = SlowPersistency(columns=["char", "int"], buffer_size=2)
+        persistency.add(["a", 2])
+        persistency.add(["b", 2])
+
+        df = persistency.load()
+
+        assert len(df) == 2
+        assert persistency == SlowPersistency.from_dataframe(df)
+
+
+class TestPersistencyStruct:
+    def test_add_slow(self) -> None:
+        pers_struct = PersistencyStruct(do_slow_pers=True)
+        vars = get_all_variables(
+            variables=["a", "b"],
+            log_format_variables={"hi": 2},
+            variable_blacklist=[]
+        )
+
+        pers_struct.update_data_structure(
+            event_id="E01", variables=vars, template="as", timestamp=None
+        )
+
+        df = pers_struct.get_data()
+
+        assert df["EventIDs"][0] == "E01"
+        assert len(df) == 1
+        pers_struct.slow_persistency  # no raise issue
+
+    def test_add_slow_disable(self) -> None:
+        pers_struct = PersistencyStruct(do_slow_pers=False)
+        vars = get_all_variables(
+            variables=["a", "b"],
+            log_format_variables={"hi": 2},
+            variable_blacklist=[]
+        )
+
+        pers_struct.update_data_structure(
+            event_id="E01", variables=vars, template="as", timestamp=None
+        )
+
+        df = pers_struct.get_data()
+        assert df.shape[0] == 0
+        with pytest.raises(AttributeError):
+            pers_struct.slow_persistency
+
+
 class TestEventPersistency:
     """Test suite for EventPersistency orchestrator class."""
-
-    def test_initialization_with_pandas_backend(self):
-        """Test initialization with EventDataFrame backend."""
-        persistency = EventPersistency(event_data_class=EventDataFrame)
-        assert persistency is not None
-        assert persistency.get_class() == EventDataFrame
-
-    def test_initialization_with_polars_backend(self):
-        """Test initialization with ChunkedEventDataFrame backend."""
-        persistency = EventPersistency(
-            event_data_class=ChunkedEventDataFrame,
-            event_data_kwargs={"max_rows": 100},
-        )
-        assert persistency is not None
-        assert persistency.get_class() == ChunkedEventDataFrame
 
     def test_initialization_with_tracker_backend(self):
         """Test initialization with EventVariableTrackerData backend."""
         persistency = EventPersistency(
-            event_data_class=EventTracker,
             event_data_kwargs={"tracker_type": SingleStabilityTracker},
         )
         assert persistency is not None
-        assert persistency.get_class() == EventTracker
-
-    def test_ingest_single_event(self):
-        """Test ingesting a single event."""
-        persistency = EventPersistency(event_data_class=EventDataFrame)
-        persistency.ingest_event(**SAMPLE_EVENT_1)
-
-        data = persistency.get_event_data("E001")
-        assert data is not None
-        assert len(data) == 1
-        assert "var_0" in data.columns  # alice
-        assert "var_1" in data.columns  # 192.168.1.1
-        assert "timestamp" in data.columns
 
     def test_ingest_multiple_events_same_id(self):
         """Test ingesting multiple events with the same ID."""
-        persistency = EventPersistency(event_data_class=EventDataFrame)
+        persistency = EventPersistency()
         persistency.ingest_event(**SAMPLE_EVENT_1)
         persistency.ingest_event(**SAMPLE_EVENT_3)
 
         data = persistency.get_event_data("E001")
-        assert len(data) == 2
-        assert data["var_0"].tolist() == ["alice", "bob"]
+        assert len(data) == 3
 
     def test_ingest_multiple_events_different_ids(self):
         """Test ingesting events with different IDs."""
-        persistency = EventPersistency(event_data_class=EventDataFrame)
+        persistency = EventPersistency()
         persistency.ingest_event(**SAMPLE_EVENT_1)
         persistency.ingest_event(**SAMPLE_EVENT_2)
 
         data1 = persistency.get_event_data("E001")
         data2 = persistency.get_event_data("E002")
 
-        assert len(data1) == 1
-        assert len(data2) == 1
-        assert "var_0" in data1.columns
-        assert "var_0" in data2.columns
+        assert len(data1) == 3
+        assert len(data2) == 3
 
     def test_get_all_events_data(self):
         """Test retrieving data for all events."""
-        persistency = EventPersistency(event_data_class=EventDataFrame)
+        persistency = EventPersistency()
         persistency.ingest_event(**SAMPLE_EVENT_1)
         persistency.ingest_event(**SAMPLE_EVENT_2)
 
         all_data = persistency.get_events_data()
         assert "E001" in all_data
         assert "E002" in all_data
-        assert isinstance(all_data["E001"], EventDataFrame)
-        assert isinstance(all_data["E002"], EventDataFrame)
+        assert isinstance(all_data["E001"], EventStabilityTracker)
+        assert isinstance(all_data["E002"], EventStabilityTracker)
 
     def test_template_storage_and_retrieval(self):
         """Test template storage and retrieval."""
-        persistency = EventPersistency(event_data_class=EventDataFrame)
+        persistency = EventPersistency()
         persistency.ingest_event(**SAMPLE_EVENT_1)
         persistency.ingest_event(**SAMPLE_EVENT_2)
 
@@ -131,7 +180,7 @@ class TestEventPersistency:
 
     def test_get_all_templates(self):
         """Test retrieving all templates."""
-        persistency = EventPersistency(event_data_class=EventDataFrame)
+        persistency = EventPersistency()
         persistency.ingest_event(**SAMPLE_EVENT_1)
         persistency.ingest_event(**SAMPLE_EVENT_2)
 
@@ -143,14 +192,14 @@ class TestEventPersistency:
     def test_variable_blacklist(self):
         """Test variable blacklisting functionality."""
         persistency = EventPersistency(
-            event_data_class=EventDataFrame,
             variable_blacklist=[1],  # Blacklist index 1 (second variable)
         )
         persistency.ingest_event(**SAMPLE_EVENT_1)
 
         data = persistency.get_event_data("E001")
-        assert "var_0" in data.columns  # First variable should be present
-        assert "var_1" not in data.columns  # Second variable should be blocked
+        data["var_0"]
+        with pytest.raises(KeyError):
+            data["var_1"]
 
     def test_get_all_variables_method(self):
         """Test the get_all_variables instance method."""
@@ -159,7 +208,6 @@ class TestEventPersistency:
         blacklist = [1]  # Blacklist index 1
 
         persistency = EventPersistency(
-            event_data_class=EventDataFrame,
             variable_blacklist=blacklist,
         )
         combined = persistency.get_all_variables(variables, named_variables)
@@ -172,189 +220,19 @@ class TestEventPersistency:
 
     def test_dict_like_access(self):
         """Test dictionary-like access via __getitem__."""
-        persistency = EventPersistency(event_data_class=EventDataFrame)
+        persistency = EventPersistency()
         persistency.ingest_event(**SAMPLE_EVENT_1)
 
         data_structure = persistency["E001"]
         assert data_structure is not None
-        assert isinstance(data_structure, EventDataFrame)
-
-
-class TestEventDataFrame:
-    """Test suite for EventDataFrame (Pandas backend)."""
-
-    def test_initialization(self):
-        """Test EventDataFrame initialization."""
-        edf = EventDataFrame()
-        assert edf is not None
-        assert len(edf.data) == 0  # Empty DataFrame
-
-    def test_add_single_data(self):
-        """Test adding single data entry."""
-        edf = EventDataFrame()
-        data_dict = {"user": "alice", "ip": "192.168.1.1"}
-        data_df = edf.to_data(data_dict)
-        edf.add_data(data_df)
-
-        assert edf.data is not None
-        assert len(edf.data) == 1
-        assert "user" in edf.data.columns
-
-    def test_add_multiple_data(self):
-        """Test adding multiple data entries."""
-        edf = EventDataFrame()
-        edf.add_data(edf.to_data({"user": "alice", "ip": "192.168.1.1"}))
-        edf.add_data(edf.to_data({"user": "bob", "ip": "192.168.1.2"}))
-
-        assert len(edf.data) == 2
-        assert edf.data["user"].tolist() == ["alice", "bob"]
-
-    def test_get_data(self):
-        """Test retrieving data."""
-        edf = EventDataFrame()
-        edf.add_data(edf.to_data({"user": "alice", "ip": "192.168.1.1"}))
-
-        data = edf.get_data()
-        assert isinstance(data, pd.DataFrame)
-        assert len(data) == 1
-
-    def test_get_variable_names(self):
-        """Test retrieving variable names."""
-        edf = EventDataFrame()
-        edf.add_data(edf.to_data({"user": "alice", "ip": "192.168.1.1", "port": "22"}))
-
-        var_names = edf.get_variables()
-        assert "user" in var_names
-        assert "ip" in var_names
-        assert "port" in var_names
-
-
-class TestChunkedEventDataFrame:
-    """Test suite for ChunkedEventDataFrame (Polars backend)."""
-
-    def test_initialization_default(self):
-        """Test ChunkedEventDataFrame initialization with defaults."""
-        cedf = ChunkedEventDataFrame()
-        assert cedf is not None
-        assert cedf.max_rows == 10_000_000
-        assert cedf.compact_every == 1000
-
-    def test_initialization_custom_params(self):
-        """Test initialization with custom parameters."""
-        cedf = ChunkedEventDataFrame(max_rows=500, compact_every=100)
-        assert cedf.max_rows == 500
-        assert cedf.compact_every == 100
-
-    def test_add_single_data(self):
-        """Test adding single data entry."""
-        cedf = ChunkedEventDataFrame(max_rows=10)
-        data_dict = {"user": ["alice"], "ip": ["192.168.1.1"]}
-        data_df = cedf.to_data(data_dict)
-        cedf.add_data(data_df)
-
-        data = cedf.get_data()
-        assert data is not None
-        assert len(data) == 1
-
-    def test_add_data_triggers_compaction(self):
-        """Test that adding data beyond compact_every triggers compaction."""
-        cedf = ChunkedEventDataFrame(max_rows=10000, compact_every=5)
-
-        # Add 6 entries (should trigger compaction at 5)
-        for i in range(6):
-            cedf.add_data(cedf.to_data({"user": [f"user{i}"], "value": [i]}))
-
-        # After compaction, should have 1 chunk
-        data = cedf.get_data()
-        assert len(data) == 6
-
-    def test_chunked_storage(self):
-        """Test that data is stored in chunks."""
-        cedf = ChunkedEventDataFrame(max_rows=5, compact_every=1000)
-
-        # Add more than max_rows
-        for i in range(8):
-            cedf.add_data(cedf.to_data({"user": [f"user{i}"], "value": [i]}))
-
-        # Should have evicted oldest to stay within max_rows
-        data = cedf.get_data()
-        assert data is not None
-        assert len(data) <= 5
-
-    def test_get_variable_names(self):
-        """Test retrieving variable names from chunks."""
-        cedf = ChunkedEventDataFrame()
-        cedf.add_data(
-            cedf.to_data({"user": ["alice"], "ip": ["192.168.1.1"], "port": ["22"]})
-        )
-
-        var_names = cedf.get_variables()
-        assert "user" in var_names
-        assert "ip" in var_names
-        assert "port" in var_names
-
-    def test_dict_to_dataframe_conversion(self):
-        """Test to_data method."""
-        cedf = ChunkedEventDataFrame()
-        data_dict = {"user": ["alice"], "ip": ["192.168.1.1"]}
-        df = cedf.to_data(data_dict)
-
-        assert isinstance(df, pl.DataFrame)
-        assert len(df) == 1
-        assert "user" in df.columns
+        assert isinstance(data_structure, EventStabilityTracker)
 
 
 class TestEventPersistencyIntegration:
     """Integration tests for EventPersistency with different backends."""
-
-    def test_pandas_backend_full_workflow(self):
-        """Test complete workflow with Pandas backend."""
-        persistency = EventPersistency(event_data_class=EventDataFrame)
-
-        # Ingest multiple events
-        for i in range(10):
-            persistency.ingest_event(
-                event_id=f"E{i % 3}",
-                event_template=f"Template {i % 3}",
-                variables=[str(i), str(i * 10)],
-                named_variables={},
-            )
-
-        # Verify all events stored
-        all_data = persistency.get_events_data()
-        assert len(all_data) == 3  # 3 unique event IDs
-
-        # Verify correct grouping
-        assert len(all_data["E0"].get_data()) == 4  # 0, 3, 6, 9
-        assert len(all_data["E1"].get_data()) == 3  # 1, 4, 7
-        assert len(all_data["E2"].get_data()) == 3  # 2, 5, 8
-
-    def test_polars_backend_full_workflow(self):
-        """Test complete workflow with Polars backend."""
-        persistency = EventPersistency(
-            event_data_class=ChunkedEventDataFrame,
-            event_data_kwargs={"max_rows": 5, "compact_every": 10},
-        )
-
-        # Ingest events
-        for i in range(10):
-            persistency.ingest_event(
-                event_id="E001",
-                event_template="Test template",
-                variables=[str(i)],
-                named_variables={},
-            )
-
-        # Verify data retrieval works
-        data = persistency.get_event_data("E001")
-        assert data is not None
-        assert len(data) <= 5  # Should be trimmed to max_rows
-
     def test_tracker_backend_full_workflow(self):
         """Test complete workflow with Tracker backend."""
-        persistency = EventPersistency(
-            event_data_class=EventStabilityTracker,
-        )
+        persistency = EventPersistency()
 
         # Ingest events with patterns
         for i in range(20):
@@ -366,12 +244,12 @@ class TestEventPersistencyIntegration:
             )
 
         # Verify tracker functionality
-        data_structure = persistency.event_struct.data["E001"]
+        data_structure = persistency.event_struct.fast_persistency["E001"]
         assert isinstance(data_structure, EventTracker)
 
     def test_mixed_event_ids_and_templates(self):
         """Test handling mixed event IDs and templates."""
-        persistency = EventPersistency(event_data_class=EventDataFrame)
+        persistency = EventPersistency()
 
         events = [
             ("E001", "Login from <*>", ["192.168.1.1"]),
@@ -392,8 +270,8 @@ class TestEventPersistencyIntegration:
         # Verify correct storage
         all_data = persistency.get_events_data()
         assert len(all_data) == 3
-        assert len(all_data["E001"].get_data()) == 2
-        assert len(all_data["E002"].get_data()) == 2
+        assert len(all_data["E001"].get_data()) == 1
+        assert len(all_data["E002"].get_data()) == 1
         assert len(all_data["E003"].get_data()) == 1
 
         # Verify templates
@@ -404,7 +282,7 @@ class TestEventPersistencyIntegration:
 
     def test_large_scale_ingestion(self):
         """Test ingesting a large number of events."""
-        persistency = EventPersistency(event_data_class=EventDataFrame)
+        persistency = EventPersistency()
 
         num_events = 1000
         for i in range(num_events):
@@ -421,65 +299,26 @@ class TestEventPersistencyIntegration:
 
         # Verify counts
         total_rows = sum(len(data_structure.get_data()) for data_structure in all_data.values())
-        assert total_rows == num_events
-
-    def test_variable_blacklist_across_backends(self):
-        """Test variable blacklist works with different backends."""
-        # Blacklist log format variables by name and event variables by index
-        log_blacklist = ["timestamp"]
-        event_blacklist = [1]  # Second event variable
-        blacklist = log_blacklist + event_blacklist
-
-        # Test with Pandas
-        p1 = EventPersistency(
-            event_data_class=EventDataFrame,
-            variable_blacklist=blacklist,
-        )
-        p1.ingest_event(
-            event_id="E001",
-            event_template="Test",
-            variables=["alice", "1234"],
-            named_variables={"timestamp": "2024-01-01"},
-        )
-        data1 = p1.get_event_data("E001")
-        assert "var_0" in data1.columns  # First variable
-        assert "var_1" not in data1.columns  # Blacklisted
-        assert "timestamp" not in data1.columns  # Blacklisted
-
-        # Test with Polars
-        p2 = EventPersistency(
-            event_data_class=ChunkedEventDataFrame,
-            variable_blacklist=blacklist,
-        )
-        p2.ingest_event(
-            event_id="E001",
-            event_template="Test",
-            variables=["bob", "5678"],
-            named_variables={"timestamp": "2024-01-02"},
-        )
-        data2 = p2.get_event_data("E001")
-        assert "var_0" in data2.columns  # First variable
-        assert "var_1" not in data2.columns  # Blacklisted
-        assert "timestamp" not in data2.columns  # Blacklisted
+        assert total_rows == 30
 
 
 class TestEventPersistencyEventsSinceSave:
     def test_events_since_save_starts_at_zero(self):
-        p = EventPersistency(event_data_class=EventDataFrame)
+        p = EventPersistency()
         assert p._events_since_save == 0
 
     def test_events_since_save_increments_on_ingest(self):
-        p = EventPersistency(event_data_class=EventDataFrame)
+        p = EventPersistency()
         p.ingest_event(**SAMPLE_EVENT_1)
         assert p._events_since_save == 1
 
     def test_events_since_save_increments_for_no_variable_event(self):
-        p = EventPersistency(event_data_class=EventDataFrame)
+        p = EventPersistency()
         p.ingest_event(event_id="E999", event_template="no vars")
         assert p._events_since_save == 1
 
     def test_reset_events_since_save(self):
-        p = EventPersistency(event_data_class=EventDataFrame)
+        p = EventPersistency()
         p.ingest_event(**SAMPLE_EVENT_1)
         p.ingest_event(**SAMPLE_EVENT_2)
         p.reset_events_since_save()
@@ -488,48 +327,16 @@ class TestEventPersistencyEventsSinceSave:
 
 class TestAggregationUsage:
     def test_equals(self) -> None:
-        persistency = EventPersistency(event_data_class=EventDataFrame)
+        persistency = EventPersistency()
         persistency.ingest_event(**SAMPLE_EVENT_1)
         persistency.ingest_event(**SAMPLE_EVENT_2)
 
-        persistency2 = EventPersistency(event_data_class=EventDataFrame)
+        persistency2 = EventPersistency()
         persistency2.ingest_event(**SAMPLE_EVENT_1)
         persistency2.ingest_event(**SAMPLE_EVENT_2)
 
-        persistency3 = EventPersistency(event_data_class=EventDataFrame)
+        persistency3 = EventPersistency()
         persistency3.ingest_event(**SAMPLE_EVENT_2)
 
         assert persistency == persistency2
         assert persistency != persistency3
-
-    def test_combine_DataFrame(self) -> None:
-        persistency = EventPersistency(event_data_class=EventDataFrame)
-        persistency.ingest_event(**SAMPLE_EVENT_1)
-
-        persistency2 = EventPersistency(event_data_class=EventDataFrame)
-        persistency2.ingest_event(**SAMPLE_EVENT_3)
-        persistency2.ingest_event(**SAMPLE_EVENT_2)
-
-        persistency3 = EventPersistency(event_data_class=EventDataFrame)
-        persistency3.ingest_event(**SAMPLE_EVENT_1)
-        persistency3.ingest_event(**SAMPLE_EVENT_3)
-        persistency3.ingest_event(**SAMPLE_EVENT_2)
-
-        persistency = persistency.combine(persistency2)
-        assert persistency == persistency3
-
-    def test_combine_mix(self) -> None:
-        persistency = EventPersistency(event_data_class=ChunkedEventDataFrame)
-        persistency.ingest_event(**SAMPLE_EVENT_1)
-
-        persistency2 = EventPersistency(event_data_class=EventDataFrame)
-        persistency2.ingest_event(**SAMPLE_EVENT_3)
-        persistency2.ingest_event(**SAMPLE_EVENT_2)
-
-        persistency3 = EventPersistency(event_data_class=EventDataFrame)
-        persistency3.ingest_event(**SAMPLE_EVENT_1)
-        persistency3.ingest_event(**SAMPLE_EVENT_3)
-        persistency3.ingest_event(**SAMPLE_EVENT_2)
-
-        persistency = persistency.combine(persistency2)
-        assert persistency == persistency3

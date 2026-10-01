@@ -68,6 +68,12 @@ class EventSequenceDetectorConfig(CoreDetectorConfig):
     )
 
     auto_config_params: SequenceAutoConfigParams = SequenceAutoConfigParams()
+    allow_fed: bool = Field(
+        default=False,
+        description=(
+            "Allow to do the federation"
+        ),
+    )
 
 
 class EventSequenceDetector(CoreDetector, VariablesLogic):
@@ -89,7 +95,12 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
         self._detect_window: deque[int] = deque(maxlen=self.config.fixed_window_size)
         self._configure_windows: dict[int, deque[int]] = {}
 
-        VariablesLogic.__init__(self, name=self.name, config_vars=self.config.auto_config_params)
+        VariablesLogic.__init__(
+            self,
+            name=self.name,
+            config_vars=self.config.auto_config_params,
+            allow_fed=self.config.allow_fed
+        )
         self._register_persistency(self.persistency)
         self._adopt_restored_length()
 
@@ -237,7 +248,7 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
             event_tracker,
         ) in self.auto_conf_persistency.get_events_data().items():
             tracker = event_tracker.get_data()["seq"]
-            if len(tracker.change_series) < tracker.min_samples:
+            if len(tracker.change_series) < tracker.min_samples:  # type: ignore
                 continue
             if tracker.classify().type in ("STABLE", "STATIC"):
                 stable.append(int(length))
@@ -269,9 +280,7 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
         """Drop configure-phase state — nothing reads it after
         configuration."""
         self._configure_windows.clear()
-        self.auto_conf_persistency = persistency.EventPersistency(
-            event_data_class=persistency.EventStabilityTracker
-        )
+        self.auto_conf_persistency = persistency.EventPersistency()
 
     def reset_window(self) -> None:
         """Clear the training and detection windows."""
@@ -291,3 +300,13 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
         self._adopt_restored_length()
         for component in components:
             component._adopt_restored_length()
+
+    def to_binary(self) -> bytes:
+        return self.persistency2binary()
+
+    def from_binary(self, binary: bytes) -> "EventSequenceDetector":
+        var_detect = type(self)(name=self.name, config=self.config)
+        var_detect.binary2persistency(binary)
+        var_detect._adopt_restored_length()
+
+        return var_detect

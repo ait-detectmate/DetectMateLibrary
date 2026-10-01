@@ -168,6 +168,12 @@ Beyond the common parameters, two groups of detectors inherit group-specific con
 The detectors that learn a per-variable model ([Bigram Frequency](detectors/bigram_frequency.md), [Charset](detectors/charset.md), [New Value Combo](detectors/combo.md), [New Value](detectors/new_value.md), [Value Range](detectors/value_range.md)) share the following parameters, inherited from `VariableDetectorConfig`.
 
 <!-- Start variable_arguments -->
+???+ note "params"
+
+    | Field | Type | Default | Description |
+    |---|---|---|---|
+    | `allow_fed` | boolean | False | Allow to do the federation |
+
 ??? note "auto_config_params (read only while auto_config is true)"
 
     | Field | Type | Default | Description |
