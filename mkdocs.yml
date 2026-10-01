@@ -3,6 +3,25 @@ site_url: https://ait-detectmate.github.io/DetectMateLibrary/
 
 theme:
   name: material # windmill is auch cool
+  palette:
+    # Light mode configuration
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Dark mode configuration
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
 
 nav:
   - Home: index.md
@@ -30,19 +49,19 @@ nav:
       - Template Matcher: parsers/template_matcher.md
       - Template Tree Matcher: parsers/template_tree_matcher.md
     - Detector types:
-      - 00 Random Detector: detectors/random_detector.md
-      - 01 Rule Detector: detectors/rule_based.md
-      - 02 New Event Detector: detectors/new_event.md
-      - 03 New Value Detector: detectors/new_value.md
-      - 04 New Value Combo Detector: detectors/combo.md
-      - 05 Value Range Detector: detectors/value_range.md
-      - 06 Charset Detector: detectors/charset.md
-      - 07 Event Sequence Detector: detectors/event_sequence.md
-      - 08 Bigram Frequency Detector: detectors/bigram_frequency.md
-      - 09 SCVS Detector: detectors/scvs_detector.md
-      - 10 ECVC Detector: detectors/ecvc_detector.md
-      - 11 DeepLog Detector: detectors/deeplog.md
-      - 12 LogBERT Detector: detectors/logbert.md
+      - Random Detector: detectors/random_detector.md
+      - Rule Detector: detectors/rule_based.md
+      - New Event Detector: detectors/new_event.md
+      - New Value Detector: detectors/new_value.md
+      - New Value Combo Detector: detectors/combo.md
+      - Value Range Detector: detectors/value_range.md
+      - Charset Detector: detectors/charset.md
+      - Event Sequence Detector: detectors/event_sequence.md
+      - Bigram Frequency Detector: detectors/bigram_frequency.md
+      - SCVS Detector: detectors/scvs_detector.md
+      - ECVC Detector: detectors/ecvc_detector.md
+      - DeepLog Detector: detectors/deeplog.md
+      - LogBERT Detector: detectors/logbert.md
     - Alert Aggregation methods:
       - Basic Concat: alert_aggregators/basic_concatenation.md
     - Helpers:
