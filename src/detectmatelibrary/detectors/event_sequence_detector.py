@@ -68,7 +68,12 @@ class EventSequenceDetectorConfig(CoreDetectorConfig):
     )
 
     auto_config_params: SequenceAutoConfigParams = SequenceAutoConfigParams()
-    allow_fed: bool = False
+    allow_fed: bool = Field(
+        default=False,
+        description=(
+            "Allow to do the federation"
+        ),
+    )
 
 
 class EventSequenceDetector(CoreDetector, VariablesLogic):

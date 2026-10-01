@@ -27,12 +27,18 @@ from detectmatelibrary.tools.logging import logger
 
 from typing_extensions import override
 from typing import Any, Dict
+from pydantic import Field
 
 
 class VariableDetectorConfig(CoreDetectorConfig):
     auto_config_params: VariableAutoConfigParams = VariableAutoConfigParams()
     method_type: str = "variable_detector"
-    allow_fed: bool = False
+    allow_fed: bool = Field(
+        default=False,
+        description=(
+            "Allow to do the federation"
+        ),
+    )
 
 
 def add_variables(

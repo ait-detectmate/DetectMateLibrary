@@ -12,7 +12,7 @@ from pydantic import ValidationError
 
 from detectmatelibrary.detectors.event_sequence_detector import EventSequenceDetector, \
     EventSequenceDetectorConfig, SequenceAutoConfigParams, BufferMode
-from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
+from detectmatelibrary.utils.persistency.data_structures.trackers import (
     ClassificationMethods,
 )
 from detectmatelibrary.parsers.template_matcher import MatcherParser

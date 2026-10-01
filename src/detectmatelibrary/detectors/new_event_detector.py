@@ -18,7 +18,12 @@ class NewEventDetectorConfig(CoreDetectorConfig):
     method_type: str = Field(
         default="new_event_detector", description="Indicates what type of method it is."
     )
-    allow_fed: bool = False
+    allow_fed: bool = Field(
+        default=False,
+        description=(
+            "Allow to do the federation"
+        ),
+    )
 
 
 class NewEventDetector(CoreDetector, VariablesLogic):

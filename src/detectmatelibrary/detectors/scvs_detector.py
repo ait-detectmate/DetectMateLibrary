@@ -24,7 +24,12 @@ class SCVSDetectorConfig(CoreDetectorConfig):
         default=10,
         description="Length of the event-ID window a count vector is built over.",
     )
-    allow_fed: bool = False
+    allow_fed: bool = Field(
+        default=False,
+        description=(
+            "Allow to do the federation"
+        ),
+    )
 
 
 class SCVSDetector(CoreDetector, VariablesLogic):
