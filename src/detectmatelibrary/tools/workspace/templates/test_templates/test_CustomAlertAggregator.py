@@ -1,3 +1,5 @@
+import os.path
+
 from ..CustomAlertAggregator import CustomAlertAggregator, CustomAlertAggregatorConfig
 from detectmatelibrary.helper.from_to import From
 
@@ -23,7 +25,11 @@ class TestCustomAlertAggregator:
     def test_run_aggregate_alerts_method(self) -> None:
         alert_aggregator = CustomAlertAggregator(name="CustomAlertAggregator", config=default_args)
 
-        gen = From.json(alert_aggregator, "data.json", do_process=False)
+        if os.path.exists("data.json"):
+            gen = From.json(alert_aggregator, "data.json", do_process=False)
+        else:
+            gen = From.json(alert_aggregator, os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), "../data/alerts.json"), do_process=False)
         i = 0
         while True:
             try:
