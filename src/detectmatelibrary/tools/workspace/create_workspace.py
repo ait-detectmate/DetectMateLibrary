@@ -15,7 +15,7 @@ META_FILES = ["LICENSE.md", ".gitignore", ".pre-commit-config.yaml"]
 DATA_FILES = {
     "parser": TEMPLATE_DIR / "data/logs.json",
     "detector": TEMPLATE_DIR / "data/parsed_log.json",
-    "alert_aggregator": TEMPLATE_DIR / "data/anomalies.json"
+    "alert_aggregator": TEMPLATE_DIR / "data/alerts.json"
 }
 
 

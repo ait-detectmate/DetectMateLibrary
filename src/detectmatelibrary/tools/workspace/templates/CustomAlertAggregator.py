@@ -24,14 +24,12 @@ class CustomAlertAggregator(CoreAlertAggregator):
         self, input_: list[DetectorSchema] | DetectorSchema, output_: AggregateSchema
     ) -> bool:
         output_["description"] = "Custom alert aggregation"
-        output_["alertsObtain"]["type"] = "Anomalies aggregated by DummyAlertAggregator"
+        output_["alertsObtain"]["type"] = "Anomalies aggregated by CustomAlertAggregator"
         return True
 
 
 if __name__ == "__main__":
-
     print(aggregator := CustomAlertAggregator())
-
     print("Running with data...")
     for alerts in From.json(aggregator, "data.json"):
         print(alerts)

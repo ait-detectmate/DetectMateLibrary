@@ -1,5 +1,4 @@
 from typing import Any, List
-
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.helper.from_to import From
@@ -24,7 +23,6 @@ class CustomDetector(CoreDetector):
         name: str = "CustomDetector",
         config: CustomDetectorConfig | dict[str, Any] = CustomDetectorConfig(),
     ) -> None:
-
         # Allow passing either a config instance or a plain dict
         if isinstance(config, dict):
             config = CustomDetectorConfig.from_dict(config, name)
@@ -43,9 +41,7 @@ class CustomDetector(CoreDetector):
         :param output_: DetectorSchema instance to be mutated in-place
         :return: Detection result (True/False)
         """
-
         output_["description"] = "Dummy detection process"  # Description of the detection
-
         # Alternating pattern: True, False, True, False, etc
         self._call_count += 1
         pattern = [True, False]
@@ -53,14 +49,11 @@ class CustomDetector(CoreDetector):
         if result:
             output_["score"] = 1.0  # Score of the detector
             output_["alertsObtain"]["type"] = "Anomaly detected by CustomDetector"  # Additional info
-
         return result
 
 
 if __name__ == "__main__":
-
     print(detector := CustomDetector())
-
     print("Running with data...")
     for alerts in From.json(detector, "data.json"):
         print(alerts)

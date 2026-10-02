@@ -55,7 +55,7 @@ data_global += [schemas.DetectorSchema({
 
 
 class TestBasicAggregation:
-    def test_with_buffer_3(self):
+    def test_with_buffer_4(self):
         alert_aggregator = BasicConcatAggregation("Buffer_4", aggregations_config)
         data = data_global
 
@@ -74,7 +74,7 @@ class TestBasicAggregation:
         assert res_dict["description"] == "Basic aggregation by alert concatenation"
         assert res_dict["detectorTypes"] == ["dummy"]*4
 
-    def test_with_buffer_5(self):
+    def test_with_buffer_6(self):
         alert_aggregator = BasicConcatAggregation("Buffer_6", aggregations_config)
         data = data_global
 

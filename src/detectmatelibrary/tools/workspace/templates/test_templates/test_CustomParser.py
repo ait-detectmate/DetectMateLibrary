@@ -1,6 +1,5 @@
-from typing import Any
-from detectmatelibrary import schemas
 from ..CustomParser import CustomParser, CustomParserConfig
+from detectmatelibrary.helper.from_to import From
 
 
 default_args = {
@@ -23,10 +22,20 @@ class TestCustomParser:
 
     def test_run_parse_method(self) -> None:
         parser = CustomParser()
-        input_data = schemas.LogSchema({"log": "test log"})
-        output_data: Any = schemas.ParserSchema()
-
-        parser.parse(input_data, output_data)
-
-        assert output_data.variables == ["dummy_variable"]
-        assert output_data.template == "This is a dummy template"
+        gen = From.json(parser, "data.json", do_process=False)
+        i = 0
+        while True:
+            try:
+                data = next(gen)
+            except StopIteration:
+                break
+            output = parser.process(data)
+            assert output.EventID == 2
+            assert output.template == "This is a dummy template"
+            assert output.logFormatVariables["Time"] == "0"
+            assert output.parserID == "MyCoolParser"
+            assert output.parserType == "MyCoolParser_parser"
+            assert output.variables == ["dummy_variable"]
+            assert output.parsedLogID == f"MyCoolParser_{i + 10}"
+            assert output.logID == str(i)
+            i += 1

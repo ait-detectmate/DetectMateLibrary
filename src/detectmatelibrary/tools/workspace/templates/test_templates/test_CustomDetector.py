@@ -1,6 +1,5 @@
-from typing import Any
-from detectmatelibrary import schemas
 from ..CustomDetector import CustomDetector, CustomDetectorConfig
+from detectmatelibrary.helper.from_to import From
 
 
 default_args = {
@@ -23,15 +22,20 @@ class TestCustomDetector:
 
     def test_run_detect_method(self) -> None:
         detector = CustomDetector()
-        data = schemas.ParserSchema({"log": "test log"})
-        output: Any = schemas.DetectorSchema()
-
-        result = detector.detect(data, output)
-
-        assert output.description == "Dummy detection process"
-        if result:
+        gen = From.json(detector, "data.json", do_process=False)
+        i = 0
+        while True:
+            try:
+                data = next(gen)
+            except StopIteration:
+                break
+            assert detector.process(data) is None
+            output = detector.process(data)
+            assert output.description == "Dummy detection process"
             assert output.score == 1.0
-            assert "Anomaly detected" in output.alertsObtain["type"]
-        else:
-            assert output.score == 0.0
-            assert len(output.alertsObtain) == 0
+            assert output.alertsObtain["type"] == "Anomaly detected by MyCoolThing"
+            assert output.detectorID == "MyCoolThing"
+            assert output.detectorType == "MyCoolThing_detector"
+            assert output.alertID == f"MyCoolThing_{i + 10}"
+            assert output.logIDs == [str(i)]
+            i += 1
