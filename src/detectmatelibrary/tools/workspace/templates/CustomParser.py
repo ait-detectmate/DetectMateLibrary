@@ -1,5 +1,4 @@
 from typing import Any
-
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
 from detectmatelibrary.helper.from_to import From
 from detectmatelibrary import schemas
@@ -25,7 +24,6 @@ class CustomParser(CoreParser):
         # Allow passing either a config instance or a plain dict
         if isinstance(config, dict):
             config = CustomParserConfig.from_dict(config, name)
-
         super().__init__(name=name, config=config)
 
     def parse(
@@ -39,7 +37,6 @@ class CustomParser(CoreParser):
         :param output_: Parser output schema instance to be mutated in-
             place
         """
-
         # Dummy implementation example (replace with real logic)
         output_["EventID"] = 2  # Number of the log template
         output_["variables"].extend(["dummy_variable"])  # Variables found in the log
@@ -47,9 +44,7 @@ class CustomParser(CoreParser):
 
 
 if __name__ == "__main__":
-
     print(parser := CustomParser())
-
     print("Running with data...")
     for parsed_log in From.json(parser, "data.json"):
         print(parsed_log)
