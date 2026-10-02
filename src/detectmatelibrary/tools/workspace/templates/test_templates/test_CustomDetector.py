@@ -31,11 +31,11 @@ class TestCustomDetector:
                 break
             assert detector.process(data) is None
             output = detector.process(data)
-            assert output.description == "Dummy detection process"
-            assert output.score == 1.0
-            assert output.alertsObtain["type"] == "Anomaly detected by MyCoolThing"
-            assert output.detectorID == "MyCoolThing"
-            assert output.detectorType == "MyCoolThing_detector"
-            assert output.alertID == f"MyCoolThing_{i + 10}"
-            assert output.logIDs == [str(i)]
+            assert getattr(output, "description") == "Dummy detection process"
+            assert getattr(output, "score") == 1.0
+            assert getattr(output, "alertsObtain")["type"] == "Anomaly detected by MyCoolThing"
+            assert getattr(output, "detectorID") == "MyCoolThing"
+            assert getattr(output, "detectorType") == "MyCoolThing_detector"
+            assert getattr(output, "alertID") == f"MyCoolThing_{i + 10}"
+            assert getattr(output, "logIDs") == [str(i)]
             i += 1

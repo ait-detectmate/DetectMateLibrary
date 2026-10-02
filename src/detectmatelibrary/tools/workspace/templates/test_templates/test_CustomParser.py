@@ -30,12 +30,12 @@ class TestCustomParser:
             except StopIteration:
                 break
             output = parser.process(data)
-            assert output.EventID == 2
-            assert output.template == "This is a dummy template"
-            assert output.logFormatVariables["Time"] == "0"
-            assert output.parserID == "MyCoolParser"
-            assert output.parserType == "MyCoolParser_parser"
-            assert output.variables == ["dummy_variable"]
-            assert output.parsedLogID == f"MyCoolParser_{i + 10}"
-            assert output.logID == str(i)
+            assert getattr(output, "EventID") == 2
+            assert getattr(output, "template") == "This is a dummy template"
+            assert getattr(output, "logFormatVariables")["Time"] == "0"
+            assert getattr(output, "parserID") == "MyCoolParser"
+            assert getattr(output, "parserType") == "MyCoolParser_parser"
+            assert getattr(output, "variables") == ["dummy_variable"]
+            assert getattr(output, "parsedLogID") == f"MyCoolParser_{i + 10}"
+            assert getattr(output, "logID") == str(i)
             i += 1

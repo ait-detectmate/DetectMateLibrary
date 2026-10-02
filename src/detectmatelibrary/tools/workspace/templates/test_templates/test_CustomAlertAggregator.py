@@ -32,11 +32,12 @@ class TestCustomAlertAggregator:
                 break
             output = alert_aggregator.process(data)
             if i % 3 == 2:
-                assert output.description == "Custom alert aggregation"
-                assert output.detectorIDs == ["MyCoolThing"]*3
-                assert output.alertsObtain["type"] == "Anomalies aggregated by CustomAlertAggregator"
-                assert output.detectorTypes == ["MyCoolThing_detector"]*3
-                assert output.alertIDs == [
+                assert getattr(output, "description") == "Custom alert aggregation"
+                assert getattr(output, "detectorIDs") == ["MyCoolThing"]*3
+                assert getattr(output, "alertsObtain")["type"] == \
+                       "Anomalies aggregated by CustomAlertAggregator"
+                assert getattr(output, "detectorTypes") == ["MyCoolThing_detector"]*3
+                assert getattr(output, "alertIDs") == [
                     f"MyCoolThing_{i + 8}", f"MyCoolThing_{i + 9}", f"MyCoolThing_{i + 10}"]
-                assert output.logIDs == [str(i-2), str(i-1), str(i)]
+                assert getattr(output, "logIDs") == [str(i-2), str(i-1), str(i)]
             i += 1
