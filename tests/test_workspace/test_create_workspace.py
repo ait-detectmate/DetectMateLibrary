@@ -152,7 +152,6 @@ def test_create_workspace_with_dash_name(temp_dir: Path):
     assert f"from {pkg_name}.{module_name} import " in content
 
 
-@pytest.mark.ignored
 def test_fail_if_dir_exists(temp_dir: Path):
     ws_name = "existing"
     workspace_root = temp_dir
