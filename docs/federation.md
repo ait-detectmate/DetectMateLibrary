@@ -11,6 +11,9 @@ def from_binary(self, binary: bytes) -> object:
 
 def aggregate_strategy(self, components: set["FedOperations"]) -> None:
     """(Federation only) Define how to aggregate a set of federated components."""
+
+def finalize_federation(self) -> None:
+    """(Federation only) Liberate memory from federation"""
 ```
 
 There are two main ways to use federation:

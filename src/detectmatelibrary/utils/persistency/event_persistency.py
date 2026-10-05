@@ -1,8 +1,9 @@
-from .event_data_structures.base import EventDataset
 from .basic_persistency import EventPersistencyBase
 
-from typing import Any, Callable, Dict, List, Optional, Type, Self
+from typing import Any, Callable, Dict, List, Optional, Self
 import threading
+import json
+import ast
 
 
 class EventPersistency(EventPersistencyBase):
@@ -20,13 +21,13 @@ class EventPersistency(EventPersistencyBase):
 
     def __init__(
         self,
-        event_data_class: Type[EventDataset],
+        do_slow_per: bool = False,
         variable_blacklist: Optional[List[str | int]] = ["Content"],
         *,
         event_data_kwargs: Optional[dict[str, Any]] = None,
     ):
         super().__init__(
-            event_data_class=event_data_class,
+            do_slow_per=do_slow_per,
             variable_blacklist=variable_blacklist,
             event_data_kwargs=event_data_kwargs
         )
@@ -64,11 +65,12 @@ class EventPersistency(EventPersistencyBase):
 
     def combine(self, other: "EventPersistency") -> Self:
         """Combine two Event persistency."""
-        for event in other.event_struct.get_events():
-            templates = other.event_struct.get_template(event)
-            for vars in other.event_struct[event].as_dict():  # type: ignore
-                self.ingest_event(
-                    event_id=event, event_template=templates, named_variables=vars  # type: ignore
-                )
-
+        df = other.event_struct.get_data()
+        for i in range(df.shape[0]):
+            row = df.row(i, named=True)
+            self.ingest_event(
+                event_id=row["EventIDs"],
+                event_template=row["Templates"],
+                named_variables=json.loads(ast.literal_eval(row["Vars"]))
+            )
         return self

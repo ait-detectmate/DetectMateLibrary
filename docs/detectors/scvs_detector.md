@@ -15,7 +15,7 @@ Input and output schemas in the pipeline
 
 | Learns from training data | Auto-configuration | Needs `events` | Federation |
 |---|---|---|---|
-| ✅ | ❌ | ❌ | ✅ (binary not available) |
+| ✅ | ❌ | ❌ | ✅  |
 
 ## Description
 
@@ -62,6 +62,7 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
     | `window_size` | integer | 10 | specific | Length of the event-ID window a count vector is built over. |
+    | `allow_fed` | boolean | False | specific | Allow to do the federation |
     | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
     | `data_use_training` | integer, null | None | shared | Data used for training, if None, training is not done. |
     | `data_use_configure` | integer, null | None | shared | Data used for configuration, if None, configuration is not done. |

@@ -66,6 +66,7 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `data_use_configure` | integer, null | None | shared | Data used for configuration, if None, configuration is not done. |
     | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
     | `parser` | string | PARSER | shared | Name of the parser used. |
+    | `allow_fed` | boolean | False | shared | Allow to do the federation |
 
 ??? note "auto_config_params (read only while auto_config is true)"
 
