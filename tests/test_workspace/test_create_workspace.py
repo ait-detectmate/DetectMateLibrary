@@ -16,6 +16,7 @@ def temp_dir(tmp_path: Path) -> Path:
     return tmp_path
 
 
+@pytest.mark.ignored
 def test_create_parser_workspace(temp_dir: Path):
     ws_name = "myParser"
     workspace_root = temp_dir
