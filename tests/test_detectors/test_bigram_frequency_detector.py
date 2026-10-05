@@ -279,7 +279,7 @@ class TestBigramFrequencyDetectorEndToEnd:
         assert detected_ids == {'1859', '1860', '1861', '1862'}
 
     @pytest.mark.ignored
-    def test_audit_log_anomalie_fed(self):
+    def test_audit_log_anomaly_fed(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector1 = BigramFrequencyDetector(
             config=BigramFrequencyDetectorConfig(
