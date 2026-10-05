@@ -1,0 +1,194 @@
+{
+  "0": {
+    "__version__": "1.0.0",
+    "detectorID": "MyCoolThing",
+    "detectorType": "MyCoolThing_detector",
+    "alertID": "MyCoolThing_10",
+    "detectionTimestamp": 1790969620,
+    "logIDs": ["0"],
+    "score": 1,
+    "extractedTimestamps": [1642723741],
+    "description": "Dummy detection process",
+    "receivedTimestamp": 1790969620,
+    "alertsObtain": {
+      "key": "type",
+      "value": "Anomaly detected by MyCoolThing"
+    }
+  },
+  "1": {
+    "__version__": "1.0.0",
+    "detectorID": "MyCoolThing",
+    "detectorType": "MyCoolThing_detector",
+    "alertID": "MyCoolThing_11",
+    "detectionTimestamp": 1790969620,
+    "logIDs": ["1"],
+    "score": 1,
+    "extractedTimestamps": [1642723741],
+    "description": "Dummy detection process",
+    "receivedTimestamp": 1790969620,
+    "alertsObtain": {
+      "key": "type",
+      "value": "Anomaly detected by MyCoolThing"
+    }
+  },
+  "2": {
+    "__version__": "1.0.0",
+    "detectorID": "MyCoolThing",
+    "detectorType": "MyCoolThing_detector",
+    "alertID": "MyCoolThing_12",
+    "detectionTimestamp": 1790969620,
+    "logIDs": ["2"],
+    "score": 1,
+    "extractedTimestamps": [1642723741],
+    "description": "Dummy detection process",
+    "receivedTimestamp": 1790969620,
+    "alertsObtain": {
+      "key": "type",
+      "value": "Anomaly detected by MyCoolThing"
+    }
+  },
+  "3": {
+    "__version__": "1.0.0",
+    "detectorID": "MyCoolThing",
+    "detectorType": "MyCoolThing_detector",
+    "alertID": "MyCoolThing_13",
+    "detectionTimestamp": 1790969620,
+    "logIDs": ["3"],
+    "score": 1,
+    "extractedTimestamps": [1642723741],
+    "description": "Dummy detection process",
+    "receivedTimestamp": 1790969620,
+    "alertsObtain": {
+      "key": "type",
+      "value": "Anomaly detected by MyCoolThing"
+    }
+  },
+  "4": {
+    "__version__": "1.0.0",
+    "detectorID": "MyCoolThing",
+    "detectorType": "MyCoolThing_detector",
+    "alertID": "MyCoolThing_14",
+    "detectionTimestamp": 1790969620,
+    "logIDs": ["4"],
+    "score": 1,
+    "extractedTimestamps": [1642723741],
+    "description": "Dummy detection process",
+    "receivedTimestamp": 1790969620,
+    "alertsObtain": {
+      "key": "type",
+      "value": "Anomaly detected by MyCoolThing"
+    }
+  },
+  "5": {
+    "__version__": "1.0.0",
+    "detectorID": "MyCoolThing",
+    "detectorType": "MyCoolThing_detector",
+    "alertID": "MyCoolThing_15",
+    "detectionTimestamp": 1790969620,
+    "logIDs": ["5"],
+    "score": 1,
+    "extractedTimestamps": [1642723741],
+    "description": "Dummy detection process",
+    "receivedTimestamp": 1790969620,
+    "alertsObtain": {
+      "key": "type",
+      "value": "Anomaly detected by MyCoolThing"
+    }
+  },
+  "6": {
+    "__version__": "1.0.0",
+    "detectorID": "MyCoolThing",
+    "detectorType": "MyCoolThing_detector",
+    "alertID": "MyCoolThing_16",
+    "detectionTimestamp": 1790969620,
+    "logIDs": ["6"],
+    "score": 1,
+    "extractedTimestamps": [1642723752],
+    "description": "Dummy detection process",
+    "receivedTimestamp": 1790969620,
+    "alertsObtain": {
+      "key": "type",
+      "value": "Anomaly detected by MyCoolThing"
+    }
+  },
+  "7": {
+    "__version__": "1.0.0",
+    "detectorID": "MyCoolThing",
+    "detectorType": "MyCoolThing_detector",
+    "alertID": "MyCoolThing_17",
+    "detectionTimestamp": 1790969620,
+    "logIDs": ["7"],
+    "score": 1,
+    "extractedTimestamps": [1642723752],
+    "description": "Dummy detection process",
+    "receivedTimestamp": 1790969620,
+    "alertsObtain": {
+      "key": "type",
+      "value": "Anomaly detected by MyCoolThing"
+    }
+  },
+  "8": {
+    "__version__": "1.0.0",
+    "detectorID": "MyCoolThing",
+    "detectorType": "MyCoolThing_detector",
+    "alertID": "MyCoolThing_18",
+    "detectionTimestamp": 1790969620,
+    "logIDs": ["8"],
+    "score": 1,
+    "extractedTimestamps": [1642724221],
+    "description": "Dummy detection process",
+    "receivedTimestamp": 1790969620,
+    "alertsObtain": {
+      "key": "type",
+      "value": "Anomaly detected by MyCoolThing"
+    }
+  },
+  "9": {
+    "__version__": "1.0.0",
+    "detectorID": "MyCoolThing",
+    "detectorType": "MyCoolThing_detector",
+    "alertID": "MyCoolThing_19",
+    "detectionTimestamp": 1790969620,
+    "logIDs": ["9"],
+    "score": 1,
+    "extractedTimestamps": [1642724221],
+    "description": "Dummy detection process",
+    "receivedTimestamp": 1790969620,
+    "alertsObtain": {
+      "key": "type",
+      "value": "Anomaly detected by MyCoolThing"
+    }
+  },
+  "10": {
+    "__version__": "1.0.0",
+    "detectorID": "MyCoolThing",
+    "detectorType": "MyCoolThing_detector",
+    "alertID": "MyCoolThing_20",
+    "detectionTimestamp": 1790969620,
+    "logIDs": ["10"],
+    "score": 1,
+    "extractedTimestamps": [1642724221],
+    "description": "Dummy detection process",
+    "receivedTimestamp": 1790969620,
+    "alertsObtain": {
+      "key": "type",
+      "value": "Anomaly detected by MyCoolThing"
+    }
+  },
+  "11": {
+    "__version__": "1.0.0",
+    "detectorID": "MyCoolThing",
+    "detectorType": "MyCoolThing_detector",
+    "alertID": "MyCoolThing_21",
+    "detectionTimestamp": 1790969620,
+    "logIDs": ["11"],
+    "score": 1,
+    "extractedTimestamps": [1642724221],
+    "description": "Dummy detection process",
+    "receivedTimestamp": 1790969620,
+    "alertsObtain": {
+      "key": "type",
+      "value": "Anomaly detected by MyCoolThing"
+    }
+  }
+}

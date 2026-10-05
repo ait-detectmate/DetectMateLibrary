@@ -1,6 +1,6 @@
-from typing import Any
-from detectmatelibrary import schemas
+import os
 from ..CustomDetector import CustomDetector, CustomDetectorConfig
+from detectmatelibrary.helper.from_to import From
 
 
 default_args = {
@@ -23,15 +23,24 @@ class TestCustomDetector:
 
     def test_run_detect_method(self) -> None:
         detector = CustomDetector()
-        data = schemas.ParserSchema({"log": "test log"})
-        output: Any = schemas.DetectorSchema()
-
-        result = detector.detect(data, output)
-
-        assert output.description == "Dummy detection process"
-        if result:
-            assert output.score == 1.0
-            assert "Anomaly detected" in output.alertsObtain["type"]
+        if os.path.exists("data.json"):
+            gen = From.json(detector, "data.json", do_process=False)
         else:
-            assert output.score == 0.0
-            assert len(output.alertsObtain) == 0
+            gen = From.json(detector, os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), "../data/parsed_log.json"), do_process=False)
+        i = 0
+        while True:
+            try:
+                data = next(gen)
+            except StopIteration:
+                break
+            assert detector.process(data) is None
+            output = detector.process(data)
+            assert getattr(output, "description") == "Dummy detection process"
+            assert getattr(output, "score") == 1.0
+            assert getattr(output, "alertsObtain")["type"] == "Anomaly detected by CustomDetector"
+            assert getattr(output, "detectorID") == "CustomDetector"
+            assert getattr(output, "detectorType") == "custom_detector"
+            assert getattr(output, "alertID") == f"CustomDetector_{i + 10}"
+            assert getattr(output, "logIDs") == [str(i)]
+            i += 1

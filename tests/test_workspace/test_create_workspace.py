@@ -90,6 +90,39 @@ def test_create_detector_workspace(temp_dir: Path):
 
 
 @pytest.mark.ignored
+def test_create_alert_aggregator_workspace(temp_dir: Path):
+    ws_name = "myAlertAggregator"
+    workspace_root = temp_dir
+    pkg_name = normalize_package_name(ws_name)  # myalertaggregator
+    module_name = normalize_package_name(ws_name)  # myalertaggregator
+    pkg_dir = workspace_root / pkg_name
+    tests_dir = workspace_root / "tests"
+
+    subprocess.check_call([
+        *CLI,
+        "create",
+        "--type", "alert_aggregator",
+        "--name", ws_name,
+        "--dir", str(workspace_root),
+    ])
+
+    assert workspace_root.exists()
+    assert pkg_dir.exists()
+
+    assert (workspace_root / "LICENSE.md").exists()
+    assert (workspace_root / ".gitignore").exists()
+    assert (workspace_root / ".pre-commit-config.yaml").exists()
+    assert (workspace_root / "README.md").exists()
+
+    py_files = list(pkg_dir.glob("*.py"))
+    assert len(py_files) == 2  # __init__.py + myAlertAggrogator.py
+    assert (pkg_dir / f"{module_name}.py").exists()
+    assert (pkg_dir / "__init__.py").exists()
+    assert tests_dir.exists()
+    assert (tests_dir / f"test_{ws_name}.py").exists()
+
+
+@pytest.mark.ignored
 def test_create_workspace_with_dash_name(temp_dir: Path):
     ws_name = "custom-parser"
     workspace_root = temp_dir
@@ -205,6 +238,44 @@ def test_generated_parser_tests_pass(temp_dir: Path):
         os.chdir(workspace_root)
         sys.path.insert(0, str(workspace_root))
         result = pytest.main(["-q", str(test_file.relative_to(workspace_root))])
+        assert result == 0
+    finally:
+        os.chdir(old_cwd)
+        sys.path[:] = old_sys_path
+
+
+@pytest.mark.ignored
+def test_generated_alert_aggregator_tests_pass(temp_dir: Path):
+    """Run pytest inside the generated workspace on the generated detector test
+    file."""
+
+    ws_name = "MyCoolAlertAggregator"
+    workspace_root = temp_dir
+    pkg_dir = workspace_root / "mycoolalertaggregator"
+    tests_dir = workspace_root / "tests"
+    test_file = tests_dir / f"test_{ws_name}.py"
+
+    subprocess.check_call([
+        *CLI,
+        "create",
+        "--type", "alert_aggregator",
+        "--name", ws_name,
+        "--dir", str(workspace_root),
+    ])
+
+    assert workspace_root.exists()
+    assert pkg_dir.exists()
+    assert tests_dir.exists()
+    assert test_file.exists()
+
+    # run pytest on the generated test file
+    # and make sure the workspace root is on sys.path so "import mycoolalertaggregator" works
+    old_cwd = os.getcwd()
+    old_sys_path = list(sys.path)
+    try:
+        os.chdir(workspace_root)
+        sys.path.insert(0, str(workspace_root))
+        result = pytest.main([str(test_file.relative_to(workspace_root))])
         assert result == 0
     finally:
         os.chdir(old_cwd)
