@@ -11,7 +11,7 @@ from detectmatelibrary.schemas import BaseSchema
 from detectmatelibrary.tools.logging import logger, setup_logging
 from typing import Any
 from pydantic import Field
-from detectmatelibrary.utils.persistency.component_interfaces import PersistencyOp
+from detectmatelibrary.common._other_op._persistency_components import PersistencyOp
 from pathlib import Path
 from tempfile import TemporaryDirectory
 

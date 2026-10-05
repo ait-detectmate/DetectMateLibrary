@@ -9,7 +9,7 @@ This module tests the BigramFrequencyDetector implementation including:
 """
 
 from unittest.mock import patch
-from detectmatelibrary.utils.persistency.component_interfaces import PersistConfig
+from detectmatelibrary.common._other_op._persistency_components import PersistConfig
 from detectmatelibrary.detectors.bigram_frequency_detector import (
     BigramFrequencyDetector, BigramFrequencyDetectorConfig
 )
@@ -118,7 +118,7 @@ class TestBigramFrequencyDetectorInitialization:
 
         assert detector.name == "CustomInit"
         assert hasattr(detector, 'persistency')
-        assert isinstance(detector.persistency.event_struct.data, dict)
+        assert isinstance(detector.persistency.event_struct.fast_persistency, dict)
 
 
 class TestBigramFrequencyDetectorTraining:
@@ -283,12 +283,14 @@ class TestBigramFrequencyDetectorEndToEnd:
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector1 = BigramFrequencyDetector(
             config=BigramFrequencyDetectorConfig(
-                skip_repetitions=False
+                skip_repetitions=False,
+                allow_fed=True,
             )
         )
         detector2 = BigramFrequencyDetector(
             config=BigramFrequencyDetectorConfig(
-                skip_repetitions=False
+                skip_repetitions=False,
+                allow_fed=True,
             )
         )
 
@@ -300,10 +302,12 @@ class TestBigramFrequencyDetectorEndToEnd:
         detector1.set_configuration()
         detector2.set_configuration()
 
-        for log in logs[:TRAIN_UNTIL]:
-            detector1.train(log)
-
-        assert len(detector2.persistency) == 0
+        for i, log in enumerate(logs[:TRAIN_UNTIL]):
+            if i < 10:
+                detector1.train(log)
+            else:
+                detector2.train(log)
+        assert detector2.persistency != detector1.persistency
 
         (detector1 + detector2).aggregate()
         assert detector2.persistency == detector1.persistency
@@ -312,7 +316,7 @@ class TestBigramFrequencyDetectorEndToEnd:
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
             output = schemas.DetectorSchema()
-            if detector2.detect(log, output_=output):
+            if detector1.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
         assert detected_ids == {'1859', '1860', '1861', '1862'}
