@@ -5,7 +5,7 @@ from pydantic import Field
 from detectmatelibrary.common.variable_detector import VariableDetector, VariableDetectorConfig
 from detectmatelibrary.common._other_op._variable_hooks import get_global_variables
 from detectmatelibrary.common._config._compile import get_configured_variables
-from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
+from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
     EventStabilityTracker,
     SingleStabilityTracker,
 )
@@ -127,9 +127,7 @@ class BigramFrequencyDetector(VariableDetector):
         """Train the detector by updating per-variable bigram frequencies."""
         configured_variables = get_configured_variables(input_, self.config.events)
         current_event_id = input_["EventID"]
-        known_events = cast(
-            dict[int | str, EventStabilityTracker], self.persistency.get_events_data()
-        )
+        known_events = self.persistency.get_events_data()
 
         pre_unique = self._snapshot_unique_sets(
             known_events.get(current_event_id), configured_variables
@@ -140,7 +138,7 @@ class BigramFrequencyDetector(VariableDetector):
             named_variables=configured_variables,
         )
         if configured_variables:
-            known_events = cast(dict[int | str, EventStabilityTracker], self.persistency.get_events_data())
+            known_events = self.persistency.get_events_data()
             self.train_helper(configured_variables, current_event_id, known_events, pre_unique)
 
         if self.config.global_instances:
@@ -152,9 +150,7 @@ class BigramFrequencyDetector(VariableDetector):
                     event_template=input_["template"],
                     named_variables=global_vars,
                 )
-                known_events = cast(
-                    dict[int | str, EventStabilityTracker], self.persistency.get_events_data()
-                )
+                known_events = self.persistency.get_events_data()
                 self.train_helper(global_vars, GLOBAL_EVENT_ID, known_events, pre_unique_global)
 
     @staticmethod
@@ -186,17 +182,15 @@ class BigramFrequencyDetector(VariableDetector):
         known_events: "dict[int | str, EventStabilityTracker]",
         pre_unique: "dict[str, set[Any]]",
     ) -> None:
-        var_trackers = cast(
-            dict[str, SingleStabilityTracker], known_events[event_id].get_data()
-        )
+        var_trackers = known_events[event_id].get_data()
         for var_name, value in variables.items():
             if value is None:
                 continue
             if self.config.skip_repetitions and value in pre_unique.get(var_name, set()):
                 continue
             tracker = var_trackers[var_name]
-            freq = tracker.extra_state.setdefault("freq", {})
-            total_freq = tracker.extra_state.setdefault("total_freq", {})
+            freq = tracker.extra_state.setdefault("freq", {})  # type: ignore
+            total_freq = tracker.extra_state.setdefault("total_freq", {})  # type: ignore
             for i in range(-1, len(value)):
                 first = -1 if i == -1 else value[i]
                 second = -1 if i == len(value) - 1 else value[i + 1]
@@ -250,5 +244,5 @@ class BigramFrequencyDetector(VariableDetector):
         warnings.warn("Diasbale for now")
         return bytes()
 
-    def from_binary(self, binary: bytes) -> None:
+    def from_binary(self, binary: bytes) -> None:  # type: ignore
         warnings.warn("Diasbale for now")

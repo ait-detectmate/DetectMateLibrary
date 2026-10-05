@@ -1,4 +1,5 @@
 # conftest.py
+from detectmatelibrary.utils.persistency.slow_persistency import clean_generated_path
 import pytest
 
 
@@ -21,3 +22,7 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if "ignored" in item.keywords:
             item.add_marker(skip_marker)
+
+
+def pytest_sessionfinish(session, exitstatus):
+    clean_generated_path()

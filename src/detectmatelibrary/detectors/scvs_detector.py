@@ -24,6 +24,12 @@ class SCVSDetectorConfig(CoreDetectorConfig):
         default=10,
         description="Length of the event-ID window a count vector is built over.",
     )
+    allow_fed: bool = Field(
+        default=False,
+        description=(
+            "Allow to do the federation"
+        ),
+    )
 
 
 class SCVSDetector(CoreDetector, VariablesLogic):
@@ -40,7 +46,7 @@ class SCVSDetector(CoreDetector, VariablesLogic):
         CoreDetector.__init__(
             self, name=name, buffer_mode=BufferMode.WINDOW, config=config, buffer_size=config.window_size
         )
-        VariablesLogic.__init__(self, name=self.name)
+        VariablesLogic.__init__(self, name=self.name, allow_fed=self.config.allow_fed)
         self._register_persistency(self.persistency)
         warn_on_window_size_mismatch(self.name, self.persistency, self.config.window_size)
 
@@ -78,3 +84,13 @@ class SCVSDetector(CoreDetector, VariablesLogic):
 
     def aggregate_strategy(self, components: set["SCVSDetector"]) -> None:  # type: ignore
         self.combine(components)  # type: ignore
+
+    def to_binary(self) -> bytes:
+        return self.persistency2binary()
+
+    def from_binary(self, binary: bytes) -> "SCVSDetector":
+
+        var_detect = type(self)(name=self.name, config=self.config)
+        var_detect.binary2persistency(binary)
+
+        return var_detect

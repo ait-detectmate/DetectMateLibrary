@@ -7,8 +7,7 @@ from pydantic import ValidationError
 from detectmatelibrary.common._config._compile import MissingParamsWarning
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 from detectmatelibrary.detectors.new_value_detector import NewValueDetectorConfig
-from detectmatelibrary.utils.persistency.component_interfaces import PersistConfig
-from detectmatelibrary.utils.persistency.event_data_structures.trackers import EventStabilityTracker
+from detectmatelibrary.common._other_op._persistency_components import PersistConfig
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 
 
@@ -74,7 +73,7 @@ class TestCoreDetectorConfigPersistField:
 class TestRegisterPersistency:
     def test_noop_when_persist_is_none(self):
         det = CoreDetector()
-        p = EventPersistency(event_data_class=EventStabilityTracker)
+        p = EventPersistency()
         det._register_persistency(p)
         assert det.saver is None
 
@@ -83,7 +82,7 @@ class TestRegisterPersistency:
             persist=PersistConfig(path="memory://regpersist_create/state")
         )
         det = CoreDetector(config=config)
-        p = EventPersistency(event_data_class=EventStabilityTracker)
+        p = EventPersistency()
         det._register_persistency(p)
         assert det.saver is not None
         det.saver.stop()
@@ -93,7 +92,7 @@ class TestRegisterPersistency:
             persist=PersistConfig(path="memory://regpersist_path/state")
         )
         det = CoreDetector(name="MyDetector", config=config)
-        p = EventPersistency(event_data_class=EventStabilityTracker)
+        p = EventPersistency()
         det._register_persistency(p)
         assert det.saver is not None
         det.saver.stop()  # stop() calls save() as final save

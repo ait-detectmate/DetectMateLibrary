@@ -5,7 +5,7 @@ import math
 import pytest
 from pydantic import ValidationError
 
-from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
+from detectmatelibrary.utils.persistency.data_structures.trackers import (
     ClassificationMethods,
 )
 

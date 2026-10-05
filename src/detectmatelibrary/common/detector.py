@@ -4,7 +4,7 @@ from detectmatelibrary.common.core import CoreComponent, CoreConfig
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 from detectmatelibrary.utils.aux import get_timestamp
 from detectmatelibrary.utils import persistency
-from detectmatelibrary.common.persist import init_persistency
+from detectmatelibrary.common._other_op._persistency_components import init_persistency
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
@@ -12,7 +12,7 @@ from typing_extensions import override
 from typing import Dict, List, Optional, Any, cast
 from pydantic import Field
 
-from detectmatelibrary.utils.persistency.component_interfaces import PersistConfig
+from detectmatelibrary.common._other_op._persistency_components import PersistConfig
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 
 
