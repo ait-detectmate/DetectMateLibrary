@@ -2700,6 +2700,27 @@ reference below explains the blocks those files use.</p>
 <h3 id="per-variable-model-detectors">Per-variable model detectors</h3>
 <p>The detectors that learn a per-variable model (<a href="bigram_frequency/">Bigram Frequency</a>, <a href="charset/">Charset</a>, <a href="combo/">New Value Combo</a>, <a href="new_value/">New Value</a>, <a href="value_range/">Value Range</a>) share the following parameters, inherited from <code>VariableDetectorConfig</code>.</p>
 <!-- Start variable_arguments -->
+<details class="note" open="open">
+<summary>params</summary>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>allow_fed</code></td>
+<td>boolean</td>
+<td>False</td>
+<td>Allow to do the federation</td>
+</tr>
+</tbody>
+</table>
+</details>
 <details class="note">
 <summary>auto_config_params (read only while auto_config is true)</summary>
 <table>
