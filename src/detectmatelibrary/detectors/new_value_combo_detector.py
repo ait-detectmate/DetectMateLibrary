@@ -15,7 +15,7 @@ from detectmatelibrary.utils.persistency.event_data_structures.trackers.stabilit
 from detectmatelibrary.schemas import ParserSchema
 
 from typing import Any, Dict, Optional, Sequence, Tuple, cast
-from itertools import combinations
+from itertools import chain, combinations
 
 from pydantic import Field
 
@@ -89,7 +89,8 @@ class NewValueComboDetector(VariableDetector):
                 {"converter_function": get_all_possible_combos}
             ),
         )
-        # configure inputs for the second pass; past train_buffer_max_records they spill to disk
+        # configure inputs for the second pass that buffer_train does not hold already;
+        # past train_buffer_max_records they spill to disk
         self.inputs = TrainBuffer(
             name=self.name,
             max_records=self.config.train_buffer_max_records,
@@ -128,8 +129,10 @@ class NewValueComboDetector(VariableDetector):
         )
 
     def configure(self, input_: ParserSchema) -> None:  # type: ignore
-        # store inputs to re-ingest after the first configuration pass
-        self.inputs.add(input_)
+        # store inputs to re-ingest after the first configuration pass,
+        # unless process() keeps them for training already
+        if not self._kept_for_training(input_):
+            self.inputs.add(input_)
         super().configure(input_)
 
     def set_configuration(self, max_combo_size: int | None = None) -> None:
@@ -151,9 +154,10 @@ class NewValueComboDetector(VariableDetector):
                 variable_combos[event_id] = stable_vars
         self.config.events = generate_events_config(variable_combos, self.name)
 
-        # re-ingest all inputs to learn combos under the new configuration;
-        # replay empties the buffer and deletes its spill files
-        for record in self.inputs:
+        # re-ingest all inputs to learn combos under the new configuration: buffer_train is
+        # only peeked, since training replays it next; replaying self.inputs empties it
+        # and deletes its spill files
+        for record in chain(self.buffer_train.peek(), self.inputs):
             input_ = cast(ParserSchema, record)
             configured_variables = get_configured_variables(input_, self.config.events)
             self.auto_conf_persistency_combos.ingest_event(

@@ -109,21 +109,22 @@ The detectors are numbered from simplest to most complex, and the sidebar lists 
     Write `null`, not `None`, in YAML: `None` is read as a string.
 
 !!! note "Long configure phases spill to disk"
-    With `use_config_data_as_training: true` (the default) every log of the configure
-    phase is kept until training starts, then replayed into training. Up to
+    With `use_config_data_as_training: true` (the default) every log of the configure phase
+    is kept until training starts, then replayed into training. Up to
     `train_buffer_max_records` logs (default 100000) stay in memory; beyond that the buffer
     is written as Parquet files to `train_buffer_dir` (default: a private per-user directory
-    in the system temp directory, readable only by you) and read back when training starts. A warning in the log
-    marks the first spill. To keep it off disk, lower `data_use_configure` or set
-    `use_config_data_as_training: false`. On local disk, files left by a process that was
-    killed are removed the next time a component starts; with a remote `train_buffer_dir`
-    (any fsspec URI) removing them is up to you. In a container, the default directory is
-    in the container's writable layer: point `train_buffer_dir` at a mounted volume when the
-    configure phase is large. Where `/tmp` is a RAM-backed tmpfs (common on Fedora, Arch and
-    Debian 13) the default spill uses RAM, so point `train_buffer_dir` at real disk.
-    NewValueComboDetector also keeps its configure logs for a second configuration pass;
-    they spill the same way, under the same two settings, whatever
-    `use_config_data_as_training` is.
+    in the system temp directory, readable only by you) and read back when training starts.
+    A warning in the log marks the first spill. To keep it off disk, lower
+    `data_use_configure` or set `use_config_data_as_training: false`. On local disk, files
+    left by a process that was killed are removed the next time a component spills to the
+    same directory; with a remote `train_buffer_dir` (any fsspec URI) removing them is up to
+    you. In a container, the default directory is in the container's writable layer: point
+    `train_buffer_dir` at a mounted volume when the configure phase is large. Where `/tmp`
+    is a RAM-backed tmpfs (common on Fedora, Arch and Debian 13) the default spill uses RAM,
+    so point `train_buffer_dir` at real disk. NewValueComboDetector reads its configure logs
+    a second time, to learn which combinations are stable: it reads the copy kept for
+    training, and only with `use_config_data_as_training: false` keeps one of its own, which
+    spills the same way.
 
 Every detector page shows a minimal, working configuration file next to its example. The
 reference below explains the blocks those files use.

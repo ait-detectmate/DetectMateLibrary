@@ -6,6 +6,10 @@ and replays it into ``train()`` once configuration ends. Up to ``max_records``
 records stay in memory. Beyond that each full batch is written as one closed
 Parquet part file through fsspec, and replay streams the parts back, so memory
 stays bounded however long the configure phase is.
+
+A sliding window shares all but one record with the window before it, so a
+spilled window that slides on from its predecessor stores only its new last
+record, and replay rebuilds it from the window before.
 """
 import contextlib
 import getpass
@@ -15,7 +19,7 @@ import stat
 import tempfile
 import uuid
 import weakref
-from typing import IO, Any, Iterator
+from typing import IO, Any, Iterator, cast
 
 import fsspec
 from fsspec.implementations.local import LocalFileSystem
@@ -32,6 +36,7 @@ except ImportError:  # pragma: no cover - platforms without flock (Windows)
 Record = BaseSchema | list[BaseSchema]
 
 _COLUMN = "record"
+_SLID = "slid"  # window parts only: the row holds just the window's new last record
 _READ_BATCH = 10_000
 _WRITE_SLICE = 10_000
 _LOCK_NAME = re.compile(r"[A-Za-z0-9_-]+-[0-9a-f]{32}\.lock")
@@ -84,6 +89,30 @@ def _encode(rec: Record) -> bytes | list[bytes]:
     if isinstance(rec, list):
         return [r.serialize() for r in rec]
     return rec.serialize()
+
+
+def _slides_on(prev: Record | None, rec: Record) -> bool:
+    """True if window ``rec`` is window ``prev`` moved on by one record: the
+    same record objects minus the first, plus one new one."""
+    return (
+        isinstance(prev, list) and isinstance(rec, list) and 0 < len(rec) == len(prev)
+        and all(a is b for a, b in zip(prev[1:], rec[:-1]))
+    )
+
+
+def _encode_slice(records: list[Record], prev: Record | None) -> dict[str, list[Any]]:
+    """Parquet columns for consecutive records; ``prev`` is the record before
+    the first."""
+    if not isinstance(records[0], list):
+        return {_COLUMN: [_encode(rec) for rec in records]}
+    encoded: list[bytes | list[bytes]] = []
+    slid: list[bool] = []
+    for rec in cast(list[list[BaseSchema]], records):
+        slides = _slides_on(prev, rec)
+        encoded.append([rec[-1].serialize()] if slides else _encode(rec))
+        slid.append(slides)
+        prev = rec
+    return {_COLUMN: encoded, _SLID: slid}
 
 
 def _can_lock(fs: Any) -> bool:
@@ -224,7 +253,7 @@ class TrainBuffer:
     then spilled to Parquet part files under ``dir_`` (an fsspec URI).
 
     Iterating replays every record once, in order, and empties the
-    buffer.
+    buffer; ``peek()`` replays them without emptying it.
     """
 
     def __init__(
@@ -253,12 +282,11 @@ class TrainBuffer:
         self._parts: list[str] = []
         self._spill_at = max_records
         self._n_spilled = 0
+        # The newest record while memory is empty, and the window the next part may slide on from.
+        self._last_spilled: Record | None = None
         self._run: _RunDir | None = None
         self._schema_class: Any = None
         self._warned = False
-        # Never clean up inside a default directory that another user could have planted.
-        if not self._default_dir or _is_own_dir(os.path.dirname(DEFAULT_TRAIN_BUFFER_DIR)):
-            remove_stale_runs(self._fs, self._base)
 
     def __len__(self) -> int:
         return self._n_spilled + len(self._memory)
@@ -268,7 +296,16 @@ class TrainBuffer:
         return self
 
     def __iter__(self) -> Iterator[Record]:
-        return self._replay()
+        return self._replay(consume=True)
+
+    @property
+    def last(self) -> Record | None:
+        """The most recently added record, or None when the buffer is empty."""
+        return self._memory[-1] if self._memory else self._last_spilled
+
+    def peek(self) -> Iterator[Record]:
+        """Replay every record in order and keep them for the next replay."""
+        return self._replay(consume=False)
 
     def add(self, elem: Record) -> None:
         self._memory.append(elem)
@@ -283,6 +320,7 @@ class TrainBuffer:
     def clear(self) -> None:
         """Drop every record and delete the run directory, if any."""
         self._memory, self._parts, self._n_spilled = [], [], 0
+        self._last_spilled = None
         self._spill_at = self.max_records
         if self._run is not None:
             self._run.remove()
@@ -296,8 +334,11 @@ class TrainBuffer:
             first = self._memory[0]
             self._schema_class = (first[0] if isinstance(first, list) else first).schema_class
         if self._run is None:
+            # Nothing touches the disk before the first spill. The default directory is
+            # checked first, so cleanup never runs inside one another user could have planted.
             if self._default_dir:
                 _ensure_private_dir(os.path.dirname(DEFAULT_TRAIN_BUFFER_DIR))
+            remove_stale_runs(self._fs, self._base)
             self._run = _RunDir(self._fs, self._base, self.name)
             if not self._warned:
                 self._warned = True
@@ -307,31 +348,48 @@ class TrainBuffer:
                     "choose where the files go."
                 )
         is_list = isinstance(self._memory[0], list)
-        type_ = pa.list_(pa.large_binary()) if is_list else pa.large_binary()
+        if is_list:
+            schema = pa.schema([(_COLUMN, pa.list_(pa.large_binary())), (_SLID, pa.bool_())])
+        else:
+            schema = pa.schema([(_COLUMN, pa.large_binary())])
         path = f"{self._run.path}/part-{len(self._parts):05d}.parquet"
+        prev = self._last_spilled
         with self._fs.open(path, "wb") as f:
-            with pq.ParquetWriter(f, pa.schema([(_COLUMN, type_)]), compression="zstd") as writer:
+            with pq.ParquetWriter(f, schema, compression="zstd") as writer:
                 # Encode one slice at a time: a window record is many serialized schemas.
                 for i in range(0, len(self._memory), _WRITE_SLICE):
-                    encoded = [_encode(rec) for rec in self._memory[i:i + _WRITE_SLICE]]
-                    writer.write_table(pa.table({_COLUMN: pa.array(encoded, type=type_)}))
-                    del encoded
+                    chunk = self._memory[i:i + _WRITE_SLICE]
+                    columns = _encode_slice(chunk, prev)
+                    writer.write_table(pa.table(columns, schema=schema))
+                    prev = chunk[-1]
+                    del chunk, columns
         # Forget the records only once their part file is complete.
         self._parts.append(path)
         self._n_spilled += len(self._memory)
+        self._last_spilled = self._memory[-1]
         self._memory = []
 
-    def _replay(self) -> Iterator[Record]:
+    def _replay(self, consume: bool) -> Iterator[Record]:
         import pyarrow.parquet as pq
 
+        prev: Record | None = None
         for path in self._parts:
             with self._fs.open(path, "rb") as f:
-                batches = pq.ParquetFile(f).iter_batches(batch_size=_READ_BATCH, columns=[_COLUMN])
-                for batch in batches:
-                    for value in batch.column(0).to_pylist():
-                        yield self._decode(value)
+                for batch in pq.ParquetFile(f).iter_batches(batch_size=_READ_BATCH):
+                    values = batch.column(_COLUMN).to_pylist()
+                    if _SLID in batch.schema.names:
+                        slid = batch.column(_SLID).to_pylist()
+                    else:
+                        slid = [False] * len(values)
+                    for value, slides in zip(values, slid):
+                        if slides:
+                            prev = cast(list[BaseSchema], prev)[1:] + [self._schema(value[0])]
+                        else:
+                            prev = self._decode(value)
+                        yield prev
         yield from self._memory
-        self.clear()
+        if consume:
+            self.clear()
 
     def _decode(self, value: bytes | list[bytes]) -> Record:
         if isinstance(value, list):

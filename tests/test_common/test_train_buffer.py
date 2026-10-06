@@ -11,6 +11,7 @@ import pytest
 
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.common._core_op._train_buffer import DEFAULT_TRAIN_BUFFER_DIR, TrainBuffer
+from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode, DataBuffer
 
 _MOD = "detectmatelibrary.common._core_op._train_buffer"
 
@@ -18,6 +19,28 @@ _MOD = "detectmatelibrary.common._core_op._train_buffer"
 def _log(i: int) -> schemas.BaseSchema:
     # .copy() gives the BaseSchema that CoreComponent actually buffers
     return schemas.LogSchema({"logID": str(i), "logSource": "test", "hostname": "h"}).copy()
+
+
+def _windows(n: int, size: int, flush: bool = False) -> list[list[schemas.BaseSchema]]:
+    """Sliding windows over logs 0..n-1, as a WINDOW-mode CoreComponent buffers
+    them."""
+    data_buffer = DataBuffer(ArgsBuffer(BufferMode.WINDOW, size=size))
+    windows = [w for w in (data_buffer.add(_log(i)) for i in range(n)) if w is not None]
+    if flush:
+        windows.append(data_buffer.flush())  # the end of a stream repeats the last window
+    return windows
+
+
+def _count_serialize(monkeypatch) -> dict[str, int]:
+    calls = {"n": 0}
+    real = schemas.BaseSchema.serialize
+
+    def counting(self):
+        calls["n"] += 1
+        return real(self)
+
+    monkeypatch.setattr(schemas.BaseSchema, "serialize", counting)
+    return calls
 
 
 def _run_dirs(base) -> list[str]:
@@ -80,6 +103,24 @@ class TestSpill:
         assert out == windows
         assert all(isinstance(w, list) and len(w) == 2 for w in out)
 
+    def test_sliding_windows_write_each_record_once(self, tmp_path, monkeypatch):
+        windows = _windows(10, size=3)  # 8 windows: logs 0-2, 1-3, ..., 7-9
+        calls = _count_serialize(monkeypatch)
+        buf = TrainBuffer(name="c", max_records=3, dir_=str(tmp_path))
+        for w in windows:
+            buf.add(w)
+        # windows 0-5 are spilled, in two parts; together they hold logs 0-7
+        assert calls["n"] == 8
+        assert [_ids(w) for w in buf] == [[str(j) for j in range(i, i + 3)] for i in range(8)]
+
+    @pytest.mark.parametrize("size", [1, 3])
+    def test_spilled_windows_replay_with_a_repeated_window(self, tmp_path, size):
+        windows = _windows(6, size=size, flush=True)
+        buf = TrainBuffer(name="c", max_records=1, dir_=str(tmp_path))
+        for w in windows:
+            buf.add(w)
+        assert [_ids(w) for w in buf] == [_ids(w) for w in windows]
+
     def test_first_spill_warns_once(self, tmp_path, caplog):
         buf = TrainBuffer(name="c", max_records=2, dir_=str(tmp_path))
         with caplog.at_level(logging.WARNING):
@@ -138,6 +179,33 @@ class TestSpill:
         assert list(buf) == [0, 1, 2, 3, 4]
 
 
+class TestPeek:
+    """``last`` and ``peek()`` read the buffer without emptying it."""
+
+    def test_last_is_the_most_recently_added_record(self, tmp_path):
+        buf = TrainBuffer(name="c", max_records=2, dir_=str(tmp_path))
+        assert buf.last is None
+        for i in range(3):  # the second add spills
+            rec = _log(i)
+            buf.add(rec)
+            assert buf.last is rec
+        list(buf)
+        assert buf.last is None
+
+    @pytest.mark.parametrize("max_records", [2, 100])
+    def test_peek_replays_without_emptying(self, tmp_path, max_records):
+        buf = TrainBuffer(name="c", max_records=max_records, dir_=str(tmp_path))
+        for i in range(5):
+            buf.add(_log(i))
+        expected = [str(i) for i in range(5)]
+        assert _ids(buf.peek()) == expected
+        assert _ids(buf.peek()) == expected
+        assert len(buf) == 5
+        assert _ids(buf) == expected
+        assert len(buf) == 0
+        assert _run_dirs(tmp_path) == []
+
+
 class TestPrivateDefaultDir:
     def test_default_dir_has_user_tag(self):
         assert f"detectmatelibrary-{os.getuid()}" in DEFAULT_TRAIN_BUFFER_DIR
@@ -166,7 +234,9 @@ class TestPrivateDefaultDir:
         stale = TestStaleCleanup._stale_run(elsewhere / "train_buffer")
         os.symlink(elsewhere, tmp_path / "top")
         monkeypatch.setattr(f"{_MOD}.DEFAULT_TRAIN_BUFFER_DIR", str(tmp_path / "top" / "train_buffer"))
-        TrainBuffer()
+        buf = TrainBuffer(max_records=1)
+        with pytest.raises(PermissionError):
+            buf.add(_log(0))
         assert (stale / "part-00000.parquet").exists()
 
     def test_default_dir_is_created_private(self, tmp_path, monkeypatch):
@@ -303,6 +373,9 @@ fcntl = pytest.importorskip("fcntl")
 
 
 class TestStaleCleanup:
+    """Runs left by killed processes are removed when a buffer first spills,
+    never when it is merely constructed."""
+
     @staticmethod
     def _stale_run(base, stem="old-" + "0" * 32):
         os.makedirs(base / stem)
@@ -310,10 +383,22 @@ class TestStaleCleanup:
         (base / f"{stem}.lock").write_text("")
         return base / stem
 
-    def test_stale_run_dir_is_removed_at_init(self, tmp_path, caplog):
+    @staticmethod
+    def _spill(base, name="c") -> TrainBuffer:
+        buf = TrainBuffer(name=name, max_records=1, dir_=str(base))
+        buf.add(_log(0))
+        return buf
+
+    def test_construction_leaves_stale_runs_alone(self, tmp_path):
+        run = self._stale_run(tmp_path)
+        TrainBuffer(name="c", dir_=str(tmp_path))
+        assert (run / "part-00000.parquet").exists()
+        assert (tmp_path / "old-00000000000000000000000000000000.lock").exists()
+
+    def test_stale_run_dir_is_removed_at_first_spill(self, tmp_path, caplog):
         run = self._stale_run(tmp_path)
         with caplog.at_level(logging.WARNING):
-            TrainBuffer(name="c", dir_=str(tmp_path))
+            self._spill(tmp_path)
         assert not run.exists()
         assert not (tmp_path / "old-00000000000000000000000000000000.lock").exists()
         assert any("stale" in r.message for r in caplog.records)
@@ -321,7 +406,7 @@ class TestStaleCleanup:
     def test_stale_cleanup_leaves_foreign_files(self, tmp_path):
         run = self._stale_run(tmp_path)
         (run / "notes.txt").write_text("keep")
-        TrainBuffer(name="c", dir_=str(tmp_path))
+        self._spill(tmp_path)
         assert not (run / "part-00000.parquet").exists()
         assert (run / "notes.txt").exists()
         assert not (tmp_path / "old-00000000000000000000000000000000.lock").exists()
@@ -330,18 +415,18 @@ class TestStaleCleanup:
         run = self._stale_run(tmp_path)
         with open(tmp_path / "old-00000000000000000000000000000000.lock", "r+") as held:
             fcntl.flock(held, fcntl.LOCK_EX | fcntl.LOCK_NB)
-            TrainBuffer(name="c", dir_=str(tmp_path))
+            self._spill(tmp_path)
             assert run.exists()
 
     def test_live_buffer_holds_its_lock(self, tmp_path):
-        buf = TrainBuffer(name="c", max_records=1, dir_=str(tmp_path))
-        buf.add(_log(0))
+        buf = self._spill(tmp_path)
         [run] = _run_dirs(tmp_path)
         assert (tmp_path / f"{run}.lock").exists()
-        TrainBuffer(name="other", dir_=str(tmp_path))  # scans; must not touch the live run
-        assert _run_dirs(tmp_path) == [run]
+        other = self._spill(tmp_path, name="other")  # scans; must not touch the live run
+        assert run in _run_dirs(tmp_path)
         assert _ids(buf) == ["0"]
         assert not (tmp_path / f"{run}.lock").exists()
+        list(other)
 
     def test_unreadable_lock_file_is_skipped(self, tmp_path):
         if os.geteuid() == 0:
@@ -349,7 +434,7 @@ class TestStaleCleanup:
         run = self._stale_run(tmp_path)
         os.chmod(tmp_path / "old-00000000000000000000000000000000.lock", 0)
         try:
-            TrainBuffer(name="c", dir_=str(tmp_path))
+            self._spill(tmp_path)
             assert run.exists()
         finally:
             os.chmod(tmp_path / "old-00000000000000000000000000000000.lock", 0o600)
@@ -367,9 +452,11 @@ class TestStaleCleanup:
         assert proc.returncode == -9
         [run] = _run_dirs(tmp_path)
         assert (tmp_path / f"{run}.lock").exists()
-        TrainBuffer(name="c", dir_=str(tmp_path))
-        assert _run_dirs(tmp_path) == []
+        buf = self._spill(tmp_path)
+        assert run not in _run_dirs(tmp_path)
         assert not (tmp_path / f"{run}.lock").exists()
+        list(buf)
+        assert _run_dirs(tmp_path) == []
 
     def test_unrelated_lock_files_are_ignored(self, tmp_path):
         # Create unrelated files that should not be touched
@@ -378,7 +465,7 @@ class TestStaleCleanup:
         (results_dir / "model.bin").write_bytes(b"model")
         (tmp_path / "results.lock").write_text("")
         (tmp_path / "uv.lock").write_text("")
-        TrainBuffer(name="c", dir_=str(tmp_path))
+        self._spill(tmp_path)
         assert results_dir.exists()
         assert (results_dir / "model.bin").exists()
         assert (tmp_path / "results.lock").exists()
@@ -391,6 +478,6 @@ class TestStaleCleanup:
         base.mkdir()
         os.chmod(base, 0o300)
         try:
-            TrainBuffer(name="c", dir_=str(base))
+            assert _ids(self._spill(base)) == ["0"]
         finally:
             os.chmod(base, 0o700)
