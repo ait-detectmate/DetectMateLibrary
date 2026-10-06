@@ -112,19 +112,17 @@ The detectors are numbered from simplest to most complex, and the sidebar lists 
     With `use_config_data_as_training: true` (the default) every log of the configure phase
     is kept until training starts, then replayed into training. Up to
     `train_buffer_max_records` logs (default 100000) stay in memory; beyond that the buffer
-    is written as Parquet files to `train_buffer_dir` (default: a private per-user directory
-    in the system temp directory, readable only by you) and read back when training starts.
-    A warning in the log marks the first spill. To keep it off disk, lower
-    `data_use_configure` or set `use_config_data_as_training: false`. On local disk, files
-    left by a process that was killed are removed the next time a component spills to the
-    same directory; with a remote `train_buffer_dir` (any fsspec URI) removing them is up to
-    you. In a container, the default directory is in the container's writable layer: point
-    `train_buffer_dir` at a mounted volume when the configure phase is large. Where `/tmp`
-    is a RAM-backed tmpfs (common on Fedora, Arch and Debian 13) the default spill uses RAM,
-    so point `train_buffer_dir` at real disk. NewValueComboDetector reads its configure logs
-    a second time, to learn which combinations are stable: it reads the copy kept for
-    training, and only with `use_config_data_as_training: false` keeps one of its own, which
-    spills the same way.
+    is written as Parquet files to a private `detectmate-train-*` directory under
+    `train_buffer_dir` (a local path; default: the system temp directory, or `TMPDIR`) and
+    read back when training starts. A warning in the log marks the first spill. The
+    directory is removed once training has read it; a process that is killed leaves it
+    behind, and you can delete it by hand. To keep it off disk, lower `data_use_configure`
+    or set `use_config_data_as_training: false`. In a container, the default directory is
+    in the container's writable layer: point `train_buffer_dir` at a mounted volume when
+    the configure phase is large. Where `/tmp` is a RAM-backed tmpfs (common on Fedora,
+    Arch and Debian 13) the default spill uses RAM, so point `train_buffer_dir` at real
+    disk. NewValueComboDetector reads its configure logs a second time, to learn which
+    combinations are stable, so it keeps a copy of its own, which spills the same way.
 
 Every detector page shows a minimal, working configuration file next to its example. The
 reference below explains the blocks those files use.
@@ -177,7 +175,7 @@ There are some parameters, that **every** detector inhertis from `CoreDetectorCo
     | `data_use_configure` | integer, null | None | Data used for configuration, if None, configuration is not done. |
     | `use_config_data_as_training` | boolean | True | Combine the configured data in the training process if True. |
     | `train_buffer_max_records` | integer | 100000 | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
-    | `train_buffer_dir` | string, null | None | fsspec URI for the spilled training buffer. None uses a private per-user directory in the system temp directory. Files left by killed processes are removed automatically on local disk only. |
+    | `train_buffer_dir` | string, null | None | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
     | `parser` | string | PARSER | Name of the parser used. |
 <!-- End common_arguments -->
 

@@ -136,7 +136,7 @@ There are some parameters, that **every** parser inhertis from `CoreParserrConfi
     | `data_use_configure` | integer, null | None | Data used for configuration, if None, configuration is not done. |
     | `use_config_data_as_training` | boolean | True | Combine the configured data in the training process if True. |
     | `train_buffer_max_records` | integer | 100000 | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
-    | `train_buffer_dir` | string, null | None | fsspec URI for the spilled training buffer. None uses a private per-user directory in the system temp directory. Files left by killed processes are removed automatically on local disk only. |
+    | `train_buffer_dir` | string, null | None | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
     | `log_format` | string, null | None | fitting description yet to find |
     | `time_format` | string, null | None | fitting description yet to find |
 <!-- End common_arguments -->

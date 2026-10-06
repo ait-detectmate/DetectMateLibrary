@@ -57,9 +57,9 @@ class CoreConfig(BasicConfig):
     train_buffer_dir: str | None = Field(
         default=None,
         description=(
-            "fsspec URI for the spilled training buffer. None uses a private per-user directory "
-            "in the system temp directory. Files left by killed processes are removed "
-            "automatically on local disk only."
+            "Local directory for the spilled training buffer. None uses the system temp "
+            "directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, "
+            "removed after training reads it; a killed process leaves it behind."
         ),
     )
 
@@ -88,9 +88,11 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
             data_use_training=self.config.data_use_training,
         )
         self.buffer_train = TrainBuffer(
-            name=self.name,
+            self.input_schema,
             max_records=self.config.train_buffer_max_records,
-            dir_=self.config.train_buffer_dir,
+            spill_dir=self.config.train_buffer_dir,
+            window=self.data_buffer.size if self.data_buffer.mode == BufferMode.WINDOW else None,
+            name=self.name,
         )
 
     def export_state(
@@ -124,12 +126,6 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
     def get_window_size(self) -> int:
         return self.data_buffer.get_window_size()
 
-    def _kept_for_training(self, input_: Any) -> bool:
-        """True when ``input_`` is the record process() just kept in
-        ``buffer_train``: configure() can read it back from there in
-        set_configuration() instead of keeping a copy of its own."""
-        return self.buffer_train.last is input_
-
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
         is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)
         logger.debug(f"<<{self.name}>> received:\n{data}")
@@ -141,12 +137,11 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
         # the window itself still consumes its records and hands them to training,
         # so a rerun with auto_config=False trains on the same data.
         if (fit_state := self.fitlogic.run()) == FitLogicState.DO_CONFIG:
-            # Keep the record before configuring, so configure() can see it is kept.
-            if self.config.use_config_data_as_training:
-                self.buffer_train.add(data_buffered)
             if self.config.auto_config:
                 logger.debug(f"<<{self.name}>> use data for configuration")
                 self.configure(input_=data_buffered)
+            if self.config.use_config_data_as_training:
+                self.buffer_train.add(data_buffered)
             return None
         elif self.fitlogic.finish_config():
             if self.config.auto_config:

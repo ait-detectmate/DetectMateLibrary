@@ -876,17 +876,6 @@ class TestNewValueComboDetectorConfigureSpill:
         assert len(in_memory.config.events[1].instances) == 3
         assert spilled.config.events == in_memory.config.events
 
-    def test_process_keeps_one_copy_of_configure_records(self, tmp_path):
-        detector = self._processed(25, train_buffer_max_records=10, train_buffer_dir=str(tmp_path))
-        assert len(detector.buffer_train) == 25
-        assert len(detector.inputs) == 0
-        assert len(list(tmp_path.glob("*/part-*.parquet"))) == 2  # the train buffer's parts only
-
-    def test_process_without_replay_keeps_its_own_copy(self):
-        detector = self._processed(25, use_config_data_as_training=False)
-        assert len(detector.buffer_train) == 0
-        assert len(detector.inputs) == 25
-
     @pytest.mark.parametrize("replay", [True, False])
     @pytest.mark.parametrize("max_records", [10, 100_000])
     def test_processed_configuration_matches_direct(self, tmp_path, monkeypatch, replay, max_records):
@@ -908,5 +897,5 @@ class TestNewValueComboDetectorConfigureSpill:
         assert processed.config.events == direct.config.events
         # the second configure pass leaves the configure records to training
         assert trained == ([str(i) for i in range(26)] if replay else ["25"])
-        assert len(processed.buffer_train) == len(processed.inputs) == 0
+        assert list(processed.buffer_train) == list(processed.inputs) == []
         assert list(tmp_path.iterdir()) == []
