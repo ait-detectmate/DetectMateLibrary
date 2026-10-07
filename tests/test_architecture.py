@@ -41,10 +41,7 @@ KNOWN_EXCEPTIONS = {
 # deletes the entries it fixes; the list is empty when the refactor is done.
 _PENDING = {
     ("R1", "common/_other_op/_persistency_components.py", PERSISTENCY),
-    ("R1", "common/_other_op/_variable_hooks.py", PERSISTENCY),
-    ("R2", "common/_other_op/_variable_hooks.py", SUBCOMMON),
     ("R1", "common/detector.py", PERSISTENCY),
-    ("R1", "detectors/event_sequence_detector.py", PERSISTENCY),
 }
 
 

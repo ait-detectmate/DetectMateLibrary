@@ -691,6 +691,56 @@ class TestEventSequenceDetectorPersist:
         assert det2.get_known_sequences() == _CYCLE_3_GRAMS | {(7, 8, 9)}
 
 
+def _fed_detector(fixed_window_size):
+    return EventSequenceDetector(
+        config=EventSequenceDetectorConfig(
+            auto_config=False, fixed_window_size=fixed_window_size, allow_fed=True
+        )
+    )
+
+
+def _trained_fed_detector():
+    detector = _fed_detector(3)
+    for event_id in [1, 2, 3, 1, 2, 3]:
+        detector.train(_make_schema(event_id))
+    return detector
+
+
+class TestEventSequenceDetectorFederation:
+    """Federated state is restored after construction, so it has to adopt the
+    persisted length like import_state does."""
+
+    def test_from_binary_adopts_persisted_sequence_length(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)  # the slow store writes .temp/ CSVs here
+        trained = _trained_fed_detector()
+
+        restored = _fed_detector(4).from_binary(trained.to_binary())
+
+        assert restored.config.fixed_window_size == 3
+        assert restored.get_known_sequences() == _CYCLE_3_GRAMS
+        assert restored._detect_window.maxlen == 3
+
+    def test_aggregate_adopts_persisted_sequence_length(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        trained = _trained_fed_detector()
+        receiver = _fed_detector(4)
+
+        (receiver + trained).aggregate()
+
+        assert receiver.config.fixed_window_size == 3
+        assert receiver.get_known_sequences() == _CYCLE_3_GRAMS
+        assert receiver._detect_window.maxlen == 3
+
+    def test_finalize_federation_removes_the_slow_table(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        detector = _trained_fed_detector()
+        assert (tmp_path / ".temp").exists()
+
+        detector.finalize_federation()
+
+        assert not (tmp_path / ".temp").exists()
+
+
 class TestEventSequenceDetectorConfigValidation:
     """Window lengths below 1 disable detection silently, so reject them."""
 
