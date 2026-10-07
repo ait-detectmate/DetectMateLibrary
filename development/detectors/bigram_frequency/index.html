@@ -2300,6 +2300,20 @@
 <td>Combine the configured data in the training process if True.</td>
 </tr>
 <tr>
+<td><code>train_buffer_max_records</code></td>
+<td>integer</td>
+<td>100000</td>
+<td>shared</td>
+<td>Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records.</td>
+</tr>
+<tr>
+<td><code>train_buffer_dir</code></td>
+<td>string, null</td>
+<td>None</td>
+<td>shared</td>
+<td>Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind.</td>
+</tr>
+<tr>
 <td><code>parser</code></td>
 <td>string</td>
 <td>PARSER</td>

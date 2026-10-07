@@ -2584,6 +2584,23 @@ auto-configuration) both default to <code>null</code>, which skips that phase. W
 <code>auto_config: true</code> but no <code>data_use_configure</code>, it never picks anything to monitor.
 Write <code>null</code>, not <code>None</code>, in YAML: <code>None</code> is read as a string.</p>
 </div>
+<div class="admonition note">
+<p class="admonition-title">Long configure phases spill to disk</p>
+<p>With <code>use_config_data_as_training: true</code> (the default) every log of the configure phase
+is kept until training starts, then replayed into training. Up to
+<code>train_buffer_max_records</code> logs (default 100000) stay in memory; beyond that the buffer
+is written as Parquet files to a private <code>detectmate-train-*</code> directory under
+<code>train_buffer_dir</code> (a local path; default: the system temp directory, or <code>TMPDIR</code>) and
+read back when training starts. A warning in the log marks the first spill. The
+directory is removed once training has read it; a process that is killed leaves it
+behind, and you can delete it by hand. To keep it off disk, lower <code>data_use_configure</code>
+or set <code>use_config_data_as_training: false</code>. In a container, the default directory is
+in the container's writable layer: point <code>train_buffer_dir</code> at a mounted volume when
+the configure phase is large. Where <code>/tmp</code> is a RAM-backed tmpfs (common on Fedora,
+Arch and Debian 13) the default spill uses RAM, so point <code>train_buffer_dir</code> at real
+disk. NewValueComboDetector reads its configure logs a second time, to learn which
+combinations are stable, so it keeps a copy of its own, which spills the same way.</p>
+</div>
 <p>Every detector page shows a minimal, working configuration file next to its example. The
 reference below explains the blocks those files use.</p>
 <p>When <code>auto_config</code> is set to <code>False</code>, the detector expects an explicit <code>events</code> or <code>global</code> block that specifies exactly which variables to monitor. <code>events</code>refers to event-specific variables while <code>global</code> refers to variables, that are not bound to events (<code>header_variables</code>can but don't have to be event bound):</p>
@@ -2684,6 +2701,18 @@ reference below explains the blocks those files use.</p>
 <td>boolean</td>
 <td>True</td>
 <td>Combine the configured data in the training process if True.</td>
+</tr>
+<tr>
+<td><code>train_buffer_max_records</code></td>
+<td>integer</td>
+<td>100000</td>
+<td>Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records.</td>
+</tr>
+<tr>
+<td><code>train_buffer_dir</code></td>
+<td>string, null</td>
+<td>None</td>
+<td>Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind.</td>
 </tr>
 <tr>
 <td><code>parser</code></td>
