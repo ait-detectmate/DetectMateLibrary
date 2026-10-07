@@ -2,15 +2,12 @@
 
 import importlib
 from functools import partial
-from typing import Any, Callable, Dict, List, Literal, Set, TYPE_CHECKING
+from typing import Any, Callable, Dict, List, Literal, Set
 from detectmatelibrary.utils.preview_helpers import list_preview_str
 from detectmatelibrary.utils.persistency.data_structures.trackers.rle_list import RLEList
 from ..base import SingleTracker, MultiTracker, EventTracker, Classification
 from .stability_classifier import StabilityClassifier
 from .classification_methods import ClassificationMethods
-
-if TYPE_CHECKING:
-    from detectmatelibrary.common.detector import CoreDetectorConfig
 
 
 def _strip_persist(detector_config: Any, method_id: str) -> Any:
@@ -107,7 +104,7 @@ class SingleStabilityTracker(SingleTracker):
         min_samples: int = 3,
         classification: "ClassificationMethods | Dict[str, Any] | None" = None,
         add_value_fn: str = "default",
-        detector_config: "CoreDetectorConfig | None" = None,
+        detector_config: Dict[str, Any] | None = None,
     ) -> None:
         self.min_samples = min_samples
         self.change_series: RLEList[bool] = RLEList()
@@ -337,7 +334,7 @@ class EventStabilityTracker(EventTracker):
         converter_function: Callable[[Any], Any] = lambda x: x,
         classification: "ClassificationMethods | Dict[str, Any] | None" = None,
         add_value_fn: str = "default",
-        detector_config: "CoreDetectorConfig | None" = None,
+        detector_config: Dict[str, Any] | None = None,
     ) -> None:
         self.multi_tracker: MultiStabilityTracker  # for type hinting
 

@@ -48,13 +48,13 @@ class SCVSDetector(CoreDetector, VariablesLogic):
         )
         VariablesLogic.__init__(self, name=self.name, allow_fed=self.config.allow_fed)
         self._register_persistency(self.persistency)
-        warn_on_window_size_mismatch(self.name, self.persistency, self.config.window_size)
+        warn_on_window_size_mismatch(self.name, self.persistency.get_events_seen(), self.config.window_size)
 
     def import_state(
         self, path: str | bytes, storage_options: dict[str, Any] | None = None
     ) -> None:
         CoreDetector.import_state(self, path, storage_options)
-        warn_on_window_size_mismatch(self.name, self.persistency, self.config.window_size)
+        warn_on_window_size_mismatch(self.name, self.persistency.get_events_seen(), self.config.window_size)
 
     def train(self, input_: List[schemas.ParserSchema]) -> None:  # type: ignore
         self._ingest(

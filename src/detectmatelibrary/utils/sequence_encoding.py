@@ -6,11 +6,10 @@ load and auto-load for free. Shared here rather than in any one detector so
 detectors never have to import from each other.
 """
 
-from typing import List, Sequence
+from typing import Any, Iterable, List, Sequence
 
 from detectmatelibrary import schemas
 from detectmatelibrary.tools.logging import logger
-from detectmatelibrary.utils.persistency import EventPersistency
 
 _SEQUENCE_SEPARATOR = "\x1f"
 
@@ -56,7 +55,7 @@ def decode_count_vec(encoded: str) -> tuple[int, tuple[int, ...]]:
 
 
 def warn_on_window_size_mismatch(
-    name: str, event_persistency: EventPersistency, window_size: int
+    name: str, restored: Iterable[Any], window_size: int
 ) -> None:
     """Warn when restored count vectors were trained at another window size.
 
@@ -64,10 +63,10 @@ def warn_on_window_size_mismatch(
     counted over, so every restored vector would miss and detection
     would degrade into a stream of false positives.
     """
-    restored = event_persistency.get_events_seen()
-    if not restored:
+    first = next(iter(restored), None)
+    if first is None:
         return
-    trained, _ = decode_count_vec(str(next(iter(restored))))
+    trained, _ = decode_count_vec(str(first))
     if trained != window_size:
         logger.warning(
             f"[{name}] restored state was trained with window_size {trained}, but "
