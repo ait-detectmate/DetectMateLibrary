@@ -42,6 +42,7 @@ KNOWN_EXCEPTIONS = {
 _PENDING = {
     ("R1", "common/_other_op/_persistency_components.py", PERSISTENCY),
     ("R1", "common/_other_op/_variable_hooks.py", PERSISTENCY),
+    ("R2", "common/_other_op/_variable_hooks.py", SUBCOMMON),
     ("R1", "common/detector.py", PERSISTENCY),
     ("R1", "common/variable_detector.py", PERSISTENCY),
     ("R1", "detectors/bigram_frequency_detector.py", PERSISTENCY),

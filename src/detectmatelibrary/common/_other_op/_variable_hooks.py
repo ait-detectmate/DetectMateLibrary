@@ -6,7 +6,7 @@ from detectmatelibrary.utils.persistency.event_persistency import EventPersisten
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 
 from detectmatelibrary.common._config._formats import _EventInstance
-from detectmatelibrary.common._config import AutoConfigParams
+from detectmatelibrary.subcommon._stability import StabilityAutoConfigParams
 
 from detectmatelibrary.tools.logging import logger
 from detectmatelibrary.schemas import ParserSchema
@@ -59,21 +59,6 @@ def strip_auto_config_params(detector_config: Dict[str, Any], method_id: str) ->
             method_id: {k: v for k, v in entry.items() if k != "auto_config_params"},
         },
     }
-
-
-class StabilityAutoConfigParams(AutoConfigParams):
-    classification: ClassificationMethods = ClassificationMethods()
-    timestamp_variable: str | None = Field(
-        default=None,
-        description=(
-            "Header variable (from the parser's log_format) holding each event's time. "
-            "Required by the time and slope_time classification methods."
-        ),
-    )
-    timestamp_format: str | None = Field(
-        default=None,  # None -> TimeFormatHandler auto-detect
-        description="Format of timestamp_variable. None detects it automatically.",
-    )
 
 
 class VariableAutoConfigParams(StabilityAutoConfigParams):

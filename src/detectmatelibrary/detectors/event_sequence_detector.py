@@ -1,6 +1,5 @@
-from detectmatelibrary.common._other_op._variable_hooks import (
-    VariablesLogic, StabilityAutoConfigParams
-)
+from detectmatelibrary.common._other_op._variable_hooks import VariablesLogic
+from detectmatelibrary.subcommon import StabilityAutoConfigParams
 from detectmatelibrary.common._config._compile import generate_events_config
 
 from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector
