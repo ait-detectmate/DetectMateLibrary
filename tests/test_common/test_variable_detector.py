@@ -2,6 +2,7 @@
 from detectmatelibrary.common.variable_detector import VariableDetector
 import detectmatelibrary.schemas as schemas
 
+import pytest
 import os
 
 
@@ -77,6 +78,23 @@ class TestFederation:
 
         users = detector2.persistency.get_event_data(1)["user"].unique_set
         assert {"A", "B", "C", "D", "E"} == users
+
+    def test_allow_fed_false(self):
+        detector1 = VariableDetector(name="detector", config=CONFIG)
+        detector2 = VariableDetector(name="detector", config=CONFIG)
+        detector3 = VariableDetector(name="detector", config=CONFIG)
+        detector1.config.allow_fed = False
+
+        detector1 + detector2 + detector3
+
+        train(detector1, "A", "B", "C")
+        train(detector2, "B", "D")
+        train(detector3, "B", "E")
+
+        with pytest.warns(UserWarning):
+            detector1.aggregate()
+        users = detector1.persistency.get_event_data(1)["user"].unique_set
+        assert {"A", "B", "C"} == users
 
     def test_agregate_strategy_stack_binary(self):
         detector1 = VariableDetector(name="detector", config=CONFIG)

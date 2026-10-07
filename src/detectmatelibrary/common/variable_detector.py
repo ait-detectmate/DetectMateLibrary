@@ -28,6 +28,7 @@ from detectmatelibrary.tools.logging import logger
 from typing_extensions import override
 from typing import Any, Dict
 from pydantic import Field
+import warnings
 
 
 class VariableDetectorConfig(CoreDetectorConfig):
@@ -158,7 +159,10 @@ class VariableDetector(CoreDetector, VariablesLogic):
             )
 
     def aggregate_strategy(self, components: set["VariableDetector"]) -> None:  # type: ignore
-        self.combine(components)  # type: ignore
+        if not self.config.allow_fed:
+            warnings.warn(f"Instance {self.name} has allow_fed=False, nothing will be done")
+        else:
+            self.combine(components)  # type: ignore
 
     def to_binary(self) -> bytes:
         return self.persistency2binary()
