@@ -227,7 +227,7 @@ class VariablesLogic(VaribaleHooks):
                 self.persistency.combine(component.persistency)
 
         for component in components:
-            component.persistency = self.persistency
+            self.persistency.transfer_data(component.persistency)
 
     def persistency2binary(self) -> bytes:
         return self.persistency.event_struct.get_data().serialize()  # type: ignore

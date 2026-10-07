@@ -2,8 +2,9 @@ from .data_structures.trackers import EventStabilityTracker
 from .slow_persistency import SlowPersistency
 
 from typing import Any, Dict, List, Optional
-import warnings
+from copy import deepcopy
 import polars as pl
+import warnings
 import json
 
 
@@ -199,3 +200,10 @@ class EventPersistencyBase:
         if not isinstance(other, EventPersistencyBase) or len(self) != len(other):
             return False
         return self.events_seen == other.events_seen and self.event_struct == other.event_struct
+
+    def transfer_data(self, obj: "EventPersistencyBase") -> "EventPersistencyBase":
+        obj.event_struct = deepcopy(self.event_struct)
+        obj.events_seen = deepcopy(self.events_seen)
+        obj.variable_blacklist = deepcopy(self.variable_blacklist)
+        obj._events_since_save = deepcopy(self._events_since_save)
+        return obj
