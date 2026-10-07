@@ -101,7 +101,7 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
         """Save this component's state. The base has none, so returns None.
 
         Components with state override this (see
-        subcommon.TrackerDetector).
+        base_detectors.TrackerDetector).
         """
         return None
 

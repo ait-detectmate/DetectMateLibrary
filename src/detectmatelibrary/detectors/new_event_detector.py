@@ -3,7 +3,7 @@ from detectmatelibrary.common._config._compile import (
     get_configured_variables,
     get_global_variables,
 )
-from detectmatelibrary.subcommon import TrackerDetector, TrackerDetectorConfig
+from detectmatelibrary.base_detectors import TrackerDetector, TrackerDetectorConfig
 
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.utils.data_buffer import BufferMode

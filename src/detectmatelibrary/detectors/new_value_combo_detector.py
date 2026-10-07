@@ -1,7 +1,7 @@
 from detectmatelibrary.common._config import generate_events_config
 from detectmatelibrary.common._config._compile import get_configured_variables
 from detectmatelibrary.common._core_op._train_buffer import TrainBuffer
-from detectmatelibrary.subcommon import (
+from detectmatelibrary.base_detectors import (
     SingleStabilityTracker,
     VariableAutoConfigParams,
     VariableDetector,

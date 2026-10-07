@@ -1,14 +1,14 @@
 """Dependency rules between the packages of detectmatelibrary.
 
-Persistency is a library behind one boundary, ``subcommon.TrackerDetector``.
+Persistency is a library behind one boundary, ``base_detectors.TrackerDetector``.
 These tests parse every module with ``ast`` (whole tree, so imports inside
 functions count) and check:
 
 R1  ``detectmatelibrary.utils.persistency`` is imported only from
-    ``utils/persistency/`` and ``subcommon/``.
-R2  ``common/`` imports neither ``subcommon`` nor ``detectors``.
-R3  ``subcommon/`` does not import ``detectors``.
-R4  ``utils/persistency/`` imports none of ``common``, ``subcommon``, ``detectors``.
+    ``utils/persistency/`` and ``base_detectors/``.
+R2  ``common/`` imports neither ``base_detectors`` nor ``detectors``.
+R3  ``base_detectors/`` does not import ``detectors``.
+R4  ``utils/persistency/`` imports none of ``common``, ``base_detectors``, ``detectors``.
 """
 import ast
 from pathlib import Path
@@ -20,15 +20,15 @@ SRC = Path(detectmatelibrary.__file__).parent
 
 PERSISTENCY = f"{PKG}.utils.persistency"
 COMMON = f"{PKG}.common"
-SUBCOMMON = f"{PKG}.subcommon"
+BASE_DETECTORS = f"{PKG}.base_detectors"
 DETECTORS = f"{PKG}.detectors"
 
 # (rule, applies to module at this path, forbidden import prefixes)
 RULES = [
-    ("R1", lambda rel: not rel.startswith(("utils/persistency/", "subcommon/")), (PERSISTENCY,)),
-    ("R2", lambda rel: rel.startswith("common/"), (SUBCOMMON, DETECTORS)),
-    ("R3", lambda rel: rel.startswith("subcommon/"), (DETECTORS,)),
-    ("R4", lambda rel: rel.startswith("utils/persistency/"), (COMMON, SUBCOMMON, DETECTORS)),
+    ("R1", lambda rel: not rel.startswith(("utils/persistency/", "base_detectors/")), (PERSISTENCY,)),
+    ("R2", lambda rel: rel.startswith("common/"), (BASE_DETECTORS, DETECTORS)),
+    ("R3", lambda rel: rel.startswith("base_detectors/"), (DETECTORS,)),
+    ("R4", lambda rel: rel.startswith("utils/persistency/"), (COMMON, BASE_DETECTORS, DETECTORS)),
 ]
 
 # Intentional: a stability tracker rebuilds the detector named in its saved
@@ -104,12 +104,12 @@ def test_exceptions_and_pending_entries_are_still_real() -> None:
 def test_checker_reports_planted_violations(tmp_path: Path) -> None:
     (tmp_path / "common").mkdir()
     (tmp_path / "common" / "bad.py").write_text(
-        "from detectmatelibrary.subcommon import TrackerDetector\n"
+        "from detectmatelibrary.base_detectors import TrackerDetector\n"
         "def lazy():\n"
         "    from ..utils.persistency import EventPersistency\n"
     )
-    (tmp_path / "subcommon").mkdir()
-    (tmp_path / "subcommon" / "ok.py").write_text(
+    (tmp_path / "base_detectors").mkdir()
+    (tmp_path / "base_detectors" / "ok.py").write_text(
         "from detectmatelibrary.utils.persistency import EventPersistency\n"
     )
     (tmp_path / "utils" / "persistency").mkdir(parents=True)
@@ -119,6 +119,6 @@ def test_checker_reports_planted_violations(tmp_path: Path) -> None:
     )
     assert find_violations(tmp_path) == {
         ("R1", "common/bad.py", PERSISTENCY),
-        ("R2", "common/bad.py", SUBCOMMON),
+        ("R2", "common/bad.py", BASE_DETECTORS),
         ("R4", "utils/persistency/bad.py", COMMON),
     }

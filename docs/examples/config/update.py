@@ -26,9 +26,9 @@ from detectmatelibrary.parsers.tree_matcher import TemplateCppTreeMatcherConfig
 from detectmatelibrary.common.core import CoreConfig
 from detectmatelibrary.common.detector import CoreDetectorConfig
 from detectmatelibrary.common.parser import CoreParserConfig
-from detectmatelibrary.subcommon import TrackerDetectorConfig
-from detectmatelibrary.subcommon import VariableDetectorConfig
-from detectmatelibrary.subcommon import DeepLearningDetectorConfig
+from detectmatelibrary.base_detectors import TrackerDetectorConfig
+from detectmatelibrary.base_detectors import VariableDetectorConfig
+from detectmatelibrary.base_detectors import DeepLearningDetectorConfig
 
 from typing import Any
 

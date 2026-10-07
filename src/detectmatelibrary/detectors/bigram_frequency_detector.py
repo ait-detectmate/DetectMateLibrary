@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional, cast
 from pydantic import Field
 
 from detectmatelibrary.common._config._compile import get_configured_variables, get_global_variables
-from detectmatelibrary.subcommon import (
+from detectmatelibrary.base_detectors import (
     EventStabilityTracker,
     SingleStabilityTracker,
     VariableDetector,

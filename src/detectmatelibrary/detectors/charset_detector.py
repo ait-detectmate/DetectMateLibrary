@@ -1,4 +1,4 @@
-from detectmatelibrary.subcommon import SingleStabilityTracker, VariableDetector, VariableDetectorConfig
+from detectmatelibrary.base_detectors import SingleStabilityTracker, VariableDetector, VariableDetectorConfig
 
 from typing import Any, Dict, Optional
 

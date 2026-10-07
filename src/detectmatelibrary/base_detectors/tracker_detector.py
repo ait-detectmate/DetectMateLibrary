@@ -1,7 +1,7 @@
+from detectmatelibrary.common._config import AutoConfigParams
 from detectmatelibrary.common._core_op._fed_component import FedOperations
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
-from detectmatelibrary.subcommon._stability import StabilityAutoConfigParams
-from detectmatelibrary.subcommon._tracker_persist import PersistConfig, load_state, save_state, start_saver
+from detectmatelibrary.base_detectors._persist import PersistConfig, load_state, save_state, start_saver
 
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.utils.persistency.data_structures.trackers.stability import ClassificationMethods
@@ -17,6 +17,21 @@ from typing import Any, Dict, Optional, cast
 from pydantic import Field
 import polars as pl
 import io
+
+
+class StabilityAutoConfigParams(AutoConfigParams):
+    classification: ClassificationMethods = ClassificationMethods()
+    timestamp_variable: str | None = Field(
+        default=None,
+        description=(
+            "Header variable (from the parser's log_format) holding each event's time. "
+            "Required by the time and slope_time classification methods."
+        ),
+    )
+    timestamp_format: str | None = Field(
+        default=None,  # None -> TimeFormatHandler auto-detect
+        description="Format of timestamp_variable. None detects it automatically.",
+    )
 
 
 class TrackerDetectorConfig(CoreDetectorConfig):

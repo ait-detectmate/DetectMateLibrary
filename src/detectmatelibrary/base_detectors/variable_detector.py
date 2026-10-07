@@ -4,14 +4,18 @@ from detectmatelibrary.common._config._compile import (
     get_global_variables,
 )
 from detectmatelibrary.common.detector import _time_handler as _core_time_handler
-from detectmatelibrary.subcommon._stability import StabilityAutoConfigParams
-from detectmatelibrary.subcommon._tracker_persist import validate_config_coverage
-from detectmatelibrary.subcommon.tracker_detector import TrackerDetector, TrackerDetectorConfig
+from detectmatelibrary.common._config._formats import EventsConfig
+from detectmatelibrary.base_detectors.tracker_detector import (
+    StabilityAutoConfigParams,
+    TrackerDetector,
+    TrackerDetectorConfig,
+)
 
 from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
     EventStabilityTracker,
     SingleStabilityTracker,
 )
+from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
@@ -68,6 +72,45 @@ def add_variables(
     selected = stable + static
     if selected:
         vars[e_id] = selected
+
+
+def validate_config_coverage(
+        detector_name: str,
+        config_events: EventsConfig | dict[str, Any],
+        event_persistency: EventPersistency,
+) -> None:
+    """Log warnings when configured EventIDs or variables have no training
+    data.
+
+    Args:
+        detector_name: Name of the detector (used in warning messages).
+        config_events: The detector's events configuration.
+        event_persistency: The persistency object populated during training.
+    """
+    config_ids = (
+        config_events.events.keys()
+        if isinstance(config_events, EventsConfig)
+        else config_events.keys()
+    )
+    if not config_ids:
+        return
+
+    events_seen = event_persistency.get_events_seen()
+    events_with_data = set(event_persistency.get_events_data().keys())
+
+    for event_id in config_ids:
+        if event_id not in events_seen:
+            logger.warning(
+                f"[{detector_name}] EventID {event_id!r} is configured but was "
+                "never observed in training data. Verify that EventIDs in your "
+                "config match those produced by the parser."
+            )
+        elif event_id not in events_with_data:
+            logger.warning(
+                f"[{detector_name}] EventID {event_id!r} was observed in training "
+                "data but no configured variables were extracted. Verify that "
+                "variable names/positions in your config match those in the data."
+            )
 
 
 class VariableDetector(TrackerDetector):

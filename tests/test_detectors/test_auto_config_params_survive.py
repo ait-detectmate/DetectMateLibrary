@@ -24,7 +24,7 @@ from detectmatelibrary.detectors.new_value_detector import (
     NewValueDetector,
     NewValueDetectorConfig,
 )
-from detectmatelibrary.subcommon import VariableAutoConfigParams
+from detectmatelibrary.base_detectors import VariableAutoConfigParams
 
 
 def _schema(event_id: int, level: str, log_id: str):

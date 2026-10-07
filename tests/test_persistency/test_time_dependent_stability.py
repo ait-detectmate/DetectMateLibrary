@@ -5,7 +5,7 @@ import math
 
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig
-from detectmatelibrary.subcommon import VariableAutoConfigParams
+from detectmatelibrary.base_detectors import VariableAutoConfigParams
 from detectmatelibrary.utils.persistency.data_structures.trackers.rle_list import RLEList
 from detectmatelibrary.utils.persistency import EventPersistency
 from detectmatelibrary.utils.persistency.data_structures.trackers import (
@@ -680,7 +680,7 @@ def test_train_path_records_no_timestamps():
     Stability classification is never consulted at detect time, so the
     trained trackers would carry an unread timestamps list per variable.
     """
-    from detectmatelibrary.subcommon import VariableAutoConfigParams
+    from detectmatelibrary.base_detectors import VariableAutoConfigParams
     from detectmatelibrary.detectors.new_value_detector import (
         NewValueDetector,
         NewValueDetectorConfig,
@@ -717,7 +717,7 @@ def test_persisted_state_omits_auto_config_params():
     """Persisted tracker state never carries auto_config_params: they are
     configure-phase-only inputs, and CharsetDetector's add_value closure
     (recovered from `detector_config` on reconstruction, see
-    strip_auto_config_params in subcommon/variable_detector.py) reads only
+    strip_auto_config_params in base_detectors/variable_detector.py) reads only
     operational fields, never auto_config_params.
     """
     cfg = CharsetDetectorConfig(

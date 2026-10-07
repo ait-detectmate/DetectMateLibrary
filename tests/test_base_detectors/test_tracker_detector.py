@@ -21,7 +21,7 @@ from detectmatelibrary.detectors.deeplog_detector import DeeplogDetectorConfig
 from detectmatelibrary.detectors.logbert_detector import LogBertDetectorConfig
 from detectmatelibrary.detectors.random_detector import RandomDetectorConfig
 from detectmatelibrary.detectors.rule_detector import RuleDetectorConfig
-from detectmatelibrary.subcommon import (
+from detectmatelibrary.base_detectors import (
     PersistConfig,
     StabilityAutoConfigParams,
     TrackerDetector,

@@ -109,11 +109,11 @@ config = generate_detector_config(
 
 Load/save configs via `BasicConfig.from_dict(d, method_id=...)` and `.to_dict(method_id=...)` for YAML round-trip compatibility.
 
-After training completes, variable detectors with `auto_config=False` automatically call `validate_config_coverage()` (`src/detectmatelibrary/subcommon/_tracker_persist.py`, from `VariableDetector.post_train`), which logs warnings when configured EventIDs or variable positions were never observed in training data. This catches config/data mismatches early — check logs after the training phase when adding new detector configs.
+After training completes, variable detectors with `auto_config=False` automatically call `validate_config_coverage()` (`src/detectmatelibrary/base_detectors/variable_detector.py`, from `VariableDetector.post_train`), which logs warnings when configured EventIDs or variable positions were never observed in training data. This catches config/data mismatches early — check logs after the training phase when adding new detector configs.
 
-### Detector families (`src/detectmatelibrary/subcommon/`)
+### Base detectors (`src/detectmatelibrary/base_detectors/`)
 
-A layer between `common/` and `detectors/`, imported as `from detectmatelibrary.subcommon import ...`:
+A layer between `common/` and `detectors/`, imported as `from detectmatelibrary.base_detectors import ...`:
 
 - **`TrackerDetector(CoreDetector)`** — the only owner of persistency. Builds the `EventPersistency` stores (`persistency`, `auto_conf_persistency`), starts the `persist:` saver, implements `export_state`/`import_state` and federation (`to_binary`, `from_binary`, `aggregate_strategy`, `finalize_federation`). `TrackerDetectorConfig` adds `persist` and `allow_fed`.
   - **`VariableDetector(TrackerDetector)`** — per-variable model detectors (NewValue, Combo, Charset, ValueRange, BigramFrequency).
@@ -122,7 +122,7 @@ A layer between `common/` and `detectors/`, imported as `from detectmatelibrary.
 
 `CoreComponent.export_state()` returns `None` and `import_state()` is a no-op; only `TrackerDetector` has state. A `persist:` block on a non-tracker detector is a validation error.
 
-`tests/test_architecture.py` enforces the dependency rules: `utils.persistency` is imported only from `utils/persistency/` and `subcommon/`; `common/` imports neither `subcommon` nor `detectors`; `subcommon/` does not import `detectors`; `utils/persistency/` imports none of the three.
+`tests/test_architecture.py` enforces the dependency rules: `utils.persistency` is imported only from `utils/persistency/` and `base_detectors/`; `common/` imports neither `base_detectors` nor `detectors`; `base_detectors/` does not import `detectors`; `utils/persistency/` imports none of the three.
 
 ### Schema System (`src/detectmatelibrary/schemas/`)
 
@@ -141,7 +141,7 @@ Three modes via `ArgsBuffer` config:
 
 - **Parsers** (`src/detectmatelibrary/parsers/`): `JsonParser`, `LogBatcherParser`, `DummyParser`, `MatcherParser` (Drain3 template mining; supports named wildcards `<username>` alongside positional `<*>`)
 - **Detectors** (`src/detectmatelibrary/detectors/`): `NewValueDetector`, `NewValueComboDetector`, `RandomDetector`, `DummyDetector`
-- **Utilities** (`src/detectmatelibrary/utils/`): `DataBuffer`, `EventPersistency` (used only through `subcommon.TrackerDetector`), `KeyExtractor`, `TimeFormatHandler`, `IdGenerator`
+- **Utilities** (`src/detectmatelibrary/utils/`): `DataBuffer`, `EventPersistency` (used only through `base_detectors.TrackerDetector`), `KeyExtractor`, `TimeFormatHandler`, `IdGenerator`
 - Uses the `regex` package (not stdlib `re`) — relevant when writing type annotations or imports involving patterns
 
 ## Extending the Library
@@ -175,7 +175,7 @@ A detector that keeps state in `EventPersistency` stores subclasses `TrackerDete
 **1. Subclass `TrackerDetector` and its config:**
 
 ```python
-from detectmatelibrary.subcommon import TrackerDetector, TrackerDetectorConfig
+from detectmatelibrary.base_detectors import TrackerDetector, TrackerDetectorConfig
 
 class MyDetectorConfig(TrackerDetectorConfig):
     method_type: str = "my_detector"

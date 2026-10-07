@@ -1,6 +1,6 @@
 from typing import Any, List
 
-from detectmatelibrary.subcommon import TrackerDetector, TrackerDetectorConfig
+from detectmatelibrary.base_detectors import TrackerDetector, TrackerDetectorConfig
 
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.utils.sequence_encoding import (

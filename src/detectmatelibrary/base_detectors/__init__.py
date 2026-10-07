@@ -1,4 +1,4 @@
-"""Detector families built on ``common``.
+"""Detector base classes built on ``common``.
 
 ``TrackerDetector`` is the only boundary to ``utils.persistency``: detectors
 that keep their model in EventPersistency stores subclass it (or
@@ -9,10 +9,9 @@ from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stab
     SingleStabilityTracker,
 )
 
-from ._stability import StabilityAutoConfigParams
-from ._tracker_persist import PersistConfig
+from ._persist import PersistConfig
 from .deeplearning_detector import DeepLearningDetector, DeepLearningDetectorConfig
-from .tracker_detector import TrackerDetector, TrackerDetectorConfig
+from .tracker_detector import StabilityAutoConfigParams, TrackerDetector, TrackerDetectorConfig
 from .variable_detector import VariableAutoConfigParams, VariableDetector, VariableDetectorConfig
 
 __all__ = [

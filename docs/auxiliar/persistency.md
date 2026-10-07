@@ -52,7 +52,7 @@ state has to be written somewhere. `PersistencySaver` wraps an
   tracker detector is used as a context manager.
 
 In practice a detector never instantiates `PersistencySaver` directly: a
-tracker detector (a subclass of `subcommon.TrackerDetector`) takes a `persist:`
+tracker detector (a subclass of `base_detectors.TrackerDetector`) takes a `persist:`
 block in its config and `TrackerDetector` starts the saver.
 
 ---
@@ -220,7 +220,7 @@ credentials and tuning knobs go in `storage_options`.
 
 Detectors do not import `utils.persistency` (`tests/test_architecture.py`
 enforces this). A detector that keeps state subclasses
-`subcommon.TrackerDetector`, which owns the stores, the `persist:` saver,
+`base_detectors.TrackerDetector`, which owns the stores, the `persist:` saver,
 `export_state()` / `import_state()` and federation. The tracker detectors are
 New Event, New Value, New Value Combo, Value Range, Charset, Event Sequence,
 Bigram Frequency, SCVS and ECVC; only they accept a `persist:` block. See
@@ -230,7 +230,7 @@ schema.
 In detector code, the pattern is:
 
 ```python
-from detectmatelibrary.subcommon import TrackerDetector, TrackerDetectorConfig
+from detectmatelibrary.base_detectors import TrackerDetector, TrackerDetectorConfig
 
 class MyDetectorConfig(TrackerDetectorConfig):
     method_type: str = "my_detector"

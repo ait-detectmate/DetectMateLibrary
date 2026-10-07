@@ -18,7 +18,7 @@ from detectmatelibrary.utils.persistency.data_structures.trackers import (
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
-from detectmatelibrary.subcommon import PersistConfig
+from detectmatelibrary.base_detectors import PersistConfig
 from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.utils.aux import time_test_mode
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL

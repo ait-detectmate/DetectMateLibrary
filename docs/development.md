@@ -46,10 +46,10 @@ uv run --dev pytest
 
 The user-facing side of auto-configuration is described in the [Detectors overview](detectors.md#auto-configuration-optional). This section covers what a detector has to implement to support it.
 
-A detector that supports auto-configuration subclasses `subcommon.TrackerDetector`, which builds two stores: `self.persistency` for training and detection, and a separate `self.auto_conf_persistency` for auto-configuration. Detectors never build stores from `utils.persistency` themselves (`tests/test_architecture.py` enforces this):
+A detector that supports auto-configuration subclasses `base_detectors.TrackerDetector`, which builds two stores: `self.persistency` for training and detection, and a separate `self.auto_conf_persistency` for auto-configuration. Detectors never build stores from `utils.persistency` themselves (`tests/test_architecture.py` enforces this):
 
 ```python
-from detectmatelibrary.subcommon import TrackerDetector, TrackerDetectorConfig
+from detectmatelibrary.base_detectors import TrackerDetector, TrackerDetectorConfig
 
 
 class MyDetectorConfig(TrackerDetectorConfig):

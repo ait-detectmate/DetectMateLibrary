@@ -1,7 +1,7 @@
 """State saved before the TrackerDetector refactor still restores.
 
 The files in tests/test_data/pre_tracker_state/ were written by
-``export_state()`` on the code before ``subcommon/`` existed (``development``
+``export_state()`` on the code before ``base_detectors/`` existed (``development``
 at fa3f4a1), by ``write_fixtures()`` below. Never regenerate them with newer
 code: their whole point is to be old. Users upgrade with ``persist:``
 directories written by that code, and the refactor must not change the

@@ -16,7 +16,7 @@ def finalize_federation(self) -> None:
     """(Federation only) Liberate memory from federation"""
 ```
 
-The tracker detectors (subclasses of `subcommon.TrackerDetector`: New Event, New Value, New Value Combo, Value Range, Charset, Event Sequence, Bigram Frequency, SCVS and ECVC) implement all four in `TrackerDetector`, which is the reference implementation. Set `allow_fed: true` in their `params` to enable it.
+The tracker detectors (subclasses of `base_detectors.TrackerDetector`: New Event, New Value, New Value Combo, Value Range, Charset, Event Sequence, Bigram Frequency, SCVS and ECVC) implement all four in `TrackerDetector`, which is the reference implementation. Set `allow_fed: true` in their `params` to enable it.
 
 `from_binary` rebuilds the detector as `type(self)(name=..., config=...)`, so a `TrackerDetector` subclass must be constructible from its name and config alone; give any other constructor argument a default.
 
