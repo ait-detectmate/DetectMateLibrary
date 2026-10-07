@@ -1,9 +1,8 @@
 from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector
 
-from detectmatelibrary.common._other_op._variable_hooks import get_global_variables
 from detectmatelibrary.common._other_op._variable_hooks import VariablesLogic
 
-from detectmatelibrary.common._config._compile import get_configured_variables
+from detectmatelibrary.common._config._compile import get_configured_variables, get_global_variables
 from detectmatelibrary.common._config._compile import generate_events_config
 
 

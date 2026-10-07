@@ -8,7 +8,6 @@ This module tests the BigramFrequencyDetector implementation including:
 - Input/output schema validation
 """
 
-from unittest.mock import patch
 from detectmatelibrary.common._other_op._persistency_components import PersistConfig
 from detectmatelibrary.detectors.bigram_frequency_detector import (
     BigramFrequencyDetector, BigramFrequencyDetectorConfig
@@ -399,18 +398,12 @@ class TestBigramFrequencyDetectorGlobalInstances:
 
 
 class TestBigramFrequencyDetectorPersistencyRegistration:
-    def test_register_persistency_is_called(self):
-        """Persistency must be registered so `persist:` config takes effect."""
-        with patch.object(
-            BigramFrequencyDetector,
-            "_register_persistency",
-            autospec=True,
-        ) as mock_reg:
-            detector = BigramFrequencyDetector()
-
-        mock_reg.assert_called_once()
-        _, called_persistency = mock_reg.call_args[0]  # (self, persistency)
-        assert called_persistency is detector.persistency
+    def test_persist_saver_wraps_the_main_store(self):
+        """`persist:` must save the store detection reads."""
+        config = BigramFrequencyDetectorConfig(persist=PersistConfig(path="memory://bigram_persist/state"))
+        with BigramFrequencyDetector(config=config) as detector:
+            assert detector.saver is not None
+            assert detector.saver._persistency is detector.persistency
 
 
 class TestBigramFrequencyDetectorSetConfigurationPersist:

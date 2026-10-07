@@ -1,5 +1,5 @@
 
-from detectmatelibrary.common.variable_detector import VariableDetector
+from detectmatelibrary.subcommon import VariableDetector
 import detectmatelibrary.schemas as schemas
 
 import os

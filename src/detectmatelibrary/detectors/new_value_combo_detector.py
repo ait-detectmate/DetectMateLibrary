@@ -1,15 +1,11 @@
 from detectmatelibrary.common._config import generate_events_config
-from detectmatelibrary.common._other_op._variable_hooks import VariableAutoConfigParams
-from detectmatelibrary.common.variable_detector import (
-    VariableDetector,
-    VariableDetectorConfig,
-)
 from detectmatelibrary.common._config._compile import get_configured_variables
 from detectmatelibrary.common._core_op._train_buffer import TrainBuffer
-
-from detectmatelibrary.utils import persistency
-from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
+from detectmatelibrary.subcommon import (
     SingleStabilityTracker,
+    VariableAutoConfigParams,
+    VariableDetector,
+    VariableDetectorConfig,
 )
 
 from detectmatelibrary.schemas import ParserSchema
@@ -83,10 +79,8 @@ class NewValueComboDetector(VariableDetector):
         super().__init__(name=name, config=config)
         self.config: NewValueComboDetectorConfig  # type narrowing for IDE
         # second-pass persistency to learn stability of variable combinations
-        self.auto_conf_persistency_combos = persistency.EventPersistency(
-            event_data_kwargs=self._with_classification_kwargs(
-                {"converter_function": get_all_possible_combos}
-            ),
+        self.auto_conf_persistency_combos = self._new_store(
+            {"converter_function": get_all_possible_combos}, classified=True
         )
         # configure inputs for the second pass; past train_buffer_max_records they spill to disk
         self.inputs = TrainBuffer(

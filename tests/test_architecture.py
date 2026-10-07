@@ -44,13 +44,7 @@ _PENDING = {
     ("R1", "common/_other_op/_variable_hooks.py", PERSISTENCY),
     ("R2", "common/_other_op/_variable_hooks.py", SUBCOMMON),
     ("R1", "common/detector.py", PERSISTENCY),
-    ("R1", "common/variable_detector.py", PERSISTENCY),
-    ("R1", "detectors/bigram_frequency_detector.py", PERSISTENCY),
-    ("R1", "detectors/charset_detector.py", PERSISTENCY),
     ("R1", "detectors/event_sequence_detector.py", PERSISTENCY),
-    ("R1", "detectors/new_value_combo_detector.py", PERSISTENCY),
-    ("R1", "detectors/new_value_detector.py", PERSISTENCY),
-    ("R1", "detectors/value_range_detector.py", PERSISTENCY),
 }
 
 

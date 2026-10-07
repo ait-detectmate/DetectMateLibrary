@@ -12,6 +12,7 @@ from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stab
 
 from ._stability import StabilityAutoConfigParams
 from .tracker_detector import TrackerDetector, TrackerDetectorConfig
+from .variable_detector import VariableAutoConfigParams, VariableDetector, VariableDetectorConfig
 
 __all__ = [
     "EventStabilityTracker",
@@ -20,4 +21,7 @@ __all__ = [
     "StabilityAutoConfigParams",
     "TrackerDetector",
     "TrackerDetectorConfig",
+    "VariableAutoConfigParams",
+    "VariableDetector",
+    "VariableDetectorConfig",
 ]
