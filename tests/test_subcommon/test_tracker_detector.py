@@ -3,8 +3,24 @@ from pathlib import Path
 
 import fsspec
 import pytest
+from pydantic import ValidationError
 
 from detectmatelibrary import schemas
+from detectmatelibrary.detectors import (
+    BigramFrequencyDetector,
+    CharsetDetector,
+    ECVCDetector,
+    EventSequenceDetector,
+    NewEventDetector,
+    NewValueComboDetector,
+    NewValueDetector,
+    SCVSDetector,
+    ValueRangeDetector,
+)
+from detectmatelibrary.detectors.deeplog_detector import DeeplogDetectorConfig
+from detectmatelibrary.detectors.logbert_detector import LogBertDetectorConfig
+from detectmatelibrary.detectors.random_detector import RandomDetectorConfig
+from detectmatelibrary.detectors.rule_detector import RuleDetectorConfig
 from detectmatelibrary.subcommon import (
     PersistConfig,
     StabilityAutoConfigParams,
@@ -148,3 +164,48 @@ class TestFinalizeFederation:
         (tmp_path / ".temp" / ".keep.csv").write_text("")
         _Recorder().finalize_federation()
         assert (tmp_path / ".temp" / ".keep.csv").exists()
+
+
+_TRACKER_DETECTORS = [
+    BigramFrequencyDetector, CharsetDetector, ECVCDetector, EventSequenceDetector, NewEventDetector,
+    NewValueComboDetector, NewValueDetector, SCVSDetector, ValueRangeDetector,
+]
+_NON_TRACKER_CONFIGS = [
+    DeeplogDetectorConfig, LogBertDetectorConfig, RuleDetectorConfig, RandomDetectorConfig,
+]
+
+
+class TestPersistField:
+    """`persist:` saves EventPersistency stores, so only tracker detectors
+    accept it."""
+
+    def test_accepted_on_tracker_detector_config(self) -> None:
+        config = TrackerDetectorConfig(persist=PersistConfig(path="./custom"))
+        assert config.persist is not None
+        assert config.persist.path == "./custom"
+
+    @pytest.mark.parametrize("detector_cls", _TRACKER_DETECTORS)
+    def test_yaml_persist_saves_every_tracker_detector(self, detector_cls) -> None:
+        path = f"memory://persist_yaml/{detector_cls.__name__}"
+        data = {"detectors": {"Det": {
+            "method_type": detector_cls().config.method_type,
+            "persist": {"path": path},
+        }}}
+        with detector_cls(name="Det", config=data) as det:
+            assert det.config.persist == PersistConfig(path=path)
+            assert det.saver is not None
+        assert fsspec.filesystem("memory").exists(f"persist_yaml/{detector_cls.__name__}/Det/metadata.json")
+
+    @pytest.mark.parametrize("config_cls", _NON_TRACKER_CONFIGS)
+    def test_rejected_by_constructor(self, config_cls) -> None:
+        with pytest.raises(ValidationError, match="persist"):
+            config_cls(persist={"path": "./state"})
+
+    @pytest.mark.parametrize("config_cls", _NON_TRACKER_CONFIGS)
+    def test_rejected_by_from_dict(self, config_cls) -> None:
+        data = {"detectors": {"Det": {
+            "method_type": config_cls().method_type,
+            "persist": {"path": "./state"},
+        }}}
+        with pytest.raises(ValidationError, match="persist"):
+            config_cls.from_dict(data, "Det")

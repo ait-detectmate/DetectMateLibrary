@@ -10,7 +10,7 @@ This module tests the ValueRangeDetector implementation including:
 import logging
 import random
 import pytest
-from detectmatelibrary.common._other_op._persistency_components import PersistConfig
+from detectmatelibrary.subcommon import PersistConfig
 from detectmatelibrary.detectors.value_range_detector import ValueRangeDetector, ValueRangeDetectorConfig
 from detectmatelibrary.utils.persistency import PersistencySaver
 from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
@@ -531,7 +531,7 @@ class TestValueRangeDetectorPersistFixes:
                 persist=PersistConfig(path="memory://value_range_regpersist/state")
             )
         )
-        # _register_persistency builds a PersistencySaver bound to detector.persistency
+        # TrackerDetector builds a PersistencySaver bound to detector.persistency
         assert detector.saver is not None
         assert detector.saver._persistency is detector.persistency
         detector.saver.stop()

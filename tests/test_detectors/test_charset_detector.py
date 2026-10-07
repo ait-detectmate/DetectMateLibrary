@@ -8,7 +8,7 @@ This module tests the CharsetDetector implementation including:
 - Input/output schema validation
 """
 
-from detectmatelibrary.common._other_op._persistency_components import PersistConfig
+from detectmatelibrary.subcommon import PersistConfig
 from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.common._core_op._fit_logic import EnumState
@@ -98,14 +98,14 @@ class TestCharsetDetectorInitialization:
         single = detector.persistency.get_event_data(1)["v"]
         assert single.unique_set == {"h", "e", "l", "o"}
 
-    def test_register_persistency_was_called(self):
+    def test_persist_saver_wraps_the_main_store(self):
         """Main persistency should be registered so persist/load round-trips
         work."""
         cfg = CharsetDetectorConfig(
             persist=PersistConfig(path="memory://charset_regpersist/state")
         )
         detector = CharsetDetector(config=cfg)
-        # _register_persistency builds a PersistencySaver bound to detector.persistency
+        # TrackerDetector builds a PersistencySaver bound to detector.persistency
         assert detector.saver is not None
         assert detector.saver._persistency is detector.persistency
         detector.saver.stop()

@@ -39,10 +39,7 @@ KNOWN_EXCEPTIONS = {
 
 # Violations the TrackerDetector refactor has not removed yet. Each task
 # deletes the entries it fixes; the list is empty when the refactor is done.
-_PENDING = {
-    ("R1", "common/_other_op/_persistency_components.py", PERSISTENCY),
-    ("R1", "common/detector.py", PERSISTENCY),
-}
+_PENDING: set[tuple[str, str, str]] = set()
 
 
 def _module_name(rel: str) -> str:

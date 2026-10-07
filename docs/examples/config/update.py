@@ -27,7 +27,7 @@ from detectmatelibrary.common.core import CoreConfig
 from detectmatelibrary.common.detector import CoreDetectorConfig
 from detectmatelibrary.common.parser import CoreParserConfig
 from detectmatelibrary.subcommon import VariableDetectorConfig
-from detectmatelibrary.common.deeplearning_detector import DeepLearningDetectorConfig
+from detectmatelibrary.subcommon import DeepLearningDetectorConfig
 
 from typing import Any
 

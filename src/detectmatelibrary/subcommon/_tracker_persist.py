@@ -1,5 +1,4 @@
 from detectmatelibrary.common._config._formats import EventsConfig
-from detectmatelibrary.common._other_op._persistency_components import PersistConfig
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from detectmatelibrary.utils.persistency.persistency_saver import (
     PersistencySaver,
@@ -12,6 +11,26 @@ from detectmatelibrary.tools.logging import logger
 
 from contextlib import nullcontext
 from typing import Any, ContextManager
+from pydantic import BaseModel, ConfigDict, Field
+import os
+
+
+class PersistConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    # Default honors systemd's $STATE_DIRECTORY (set by StateDirectory= in the
+    # unit file) so services persist to /var/lib/<dir> with no explicit path=.
+    # Falls back to CWD-relative ./state outside systemd. Explicit path= wins.
+    path: str = Field(
+        default_factory=lambda: next(
+            (p for p in os.environ.get("STATE_DIRECTORY", "").split(":") if p.strip()),
+            "./state",
+        )
+    )
+    interval_seconds: int = 300
+    events_until_save: int | None = None
+    auto_load: bool = False
+    storage_options: dict[str, Any] = {}
 
 
 def start_saver(

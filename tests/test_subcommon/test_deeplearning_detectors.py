@@ -1,5 +1,5 @@
 
-from detectmatelibrary.common.deeplearning_detector import (
+from detectmatelibrary.subcommon import (
     DeepLearningDetector, DeepLearningDetectorConfig
 )
 

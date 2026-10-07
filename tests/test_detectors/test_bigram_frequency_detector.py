@@ -8,7 +8,7 @@ This module tests the BigramFrequencyDetector implementation including:
 - Input/output schema validation
 """
 
-from detectmatelibrary.common._other_op._persistency_components import PersistConfig
+from detectmatelibrary.subcommon import PersistConfig
 from detectmatelibrary.detectors.bigram_frequency_detector import (
     BigramFrequencyDetector, BigramFrequencyDetectorConfig
 )

@@ -363,8 +363,8 @@ def save(
     that URI and returns None.
 
     Not thread-safe when called concurrently with a running
-    PersistencySaver on the same ep. Use CoreComponent.export_state() in
-    that case.
+    PersistencySaver on the same ep. Use TrackerDetector.export_state()
+    in that case.
     """
     if path is None:
         return _save_to_bytes(ep)
@@ -386,7 +386,7 @@ def load(
 
     Raises PersistencyLoadError if no saved state exists at path. Not
     thread-safe when called concurrently with a running PersistencySaver
-    on the same ep. Use CoreComponent.import_state() in that case.
+    on the same ep. Use TrackerDetector.import_state() in that case.
     """
     if isinstance(path, bytes):
         _load_from_bytes(ep, path)

@@ -1,7 +1,7 @@
 from detectmatelibrary.common._core_op._fed_component import FedOperations
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 from detectmatelibrary.subcommon._stability import StabilityAutoConfigParams
-from detectmatelibrary.subcommon._tracker_persist import load_state, save_state, start_saver
+from detectmatelibrary.subcommon._tracker_persist import PersistConfig, load_state, save_state, start_saver
 
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.utils.persistency.data_structures.trackers.stability import ClassificationMethods
@@ -21,6 +21,13 @@ import io
 
 class TrackerDetectorConfig(CoreDetectorConfig):
     method_type: str = Field(default="tracker_detector", description="<$IGNORE$>")
+    persist: PersistConfig | None = Field(
+        default=None,
+        description=(
+            "Periodic state saving (path, interval_seconds, events_until_save, auto_load, "
+            "storage_options). None disables it. See the Persistency page."
+        ),
+    )
     allow_fed: bool = Field(
         default=False,
         description=(

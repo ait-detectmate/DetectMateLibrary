@@ -22,8 +22,6 @@ from detectmatelibrary.tools.logging import logger, setup_logging
 from typing import Any
 from pydantic import Field
 
-from detectmatelibrary.common._other_op._persistency_components import PersistencyOp
-
 
 setup_logging()
 
@@ -100,16 +98,20 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
         path: str | None = None,
         storage_options: dict[str, Any] | None = None,
     ) -> bytes | None:
-        return PersistencyOp.save(
-            instance=self, path=path, storage_options=storage_options
-        )
+        """Save this component's state. The base has none, so returns None.
+
+        Components with state override this (see
+        subcommon.TrackerDetector).
+        """
+        return None
 
     def import_state(
         self, path: str | bytes, storage_options: dict[str, Any] | None = None
     ) -> None:
-        return PersistencyOp.load(
-            instance=self, path=path, storage_options=storage_options
-        )
+        """Restore this component's state.
+
+        The base has none, so does nothing.
+        """
 
     def update_state(self, state: StatesL) -> None:
         if state == "keep_configuring" and self.config.use_config_data_as_training:
