@@ -46,6 +46,12 @@ class PersistencyStruct:
         if self.do_slow:
             self.slow_persistency = SlowPersistency(self.columns)
 
+    def trasnfer_data(self, obj: "PersistencyStruct") -> "PersistencyStruct":
+        obj.fast_persistency = self.fast_persistency
+        obj.data_kwargs = self.data_kwargs
+        obj.templates = self.templates
+        return obj
+
     def __contains__(self, event_id: int | str) -> bool:
         return event_id in self.fast_persistency
 
@@ -202,7 +208,7 @@ class EventPersistencyBase:
         return self.events_seen == other.events_seen and self.event_struct == other.event_struct
 
     def transfer_data(self, obj: "EventPersistencyBase") -> "EventPersistencyBase":
-        obj.event_struct = deepcopy(self.event_struct)
+        self.event_struct.trasnfer_data(obj.event_struct)
         obj.events_seen = deepcopy(self.events_seen)
         obj.variable_blacklist = deepcopy(self.variable_blacklist)
         obj._events_since_save = deepcopy(self._events_since_save)
