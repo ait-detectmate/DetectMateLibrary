@@ -49,11 +49,11 @@ state has to be written somewhere. `PersistencySaver` wraps an
 - optionally `auto_load`s previously saved state during construction;
 - exposes `start()` / `stop()` so the background timer can be torn down
   cleanly. `stop()` is idempotent and is called automatically when a
-  `Component` is used as a context manager.
+  tracker detector is used as a context manager.
 
-In practice a detector never instantiates `PersistencySaver` directly: it sets
-a `persist:` block in its config and `CoreDetector` wires the saver up via
-`init_persistency`.
+In practice a detector never instantiates `PersistencySaver` directly: a
+tracker detector (a subclass of `subcommon.TrackerDetector`) takes a `persist:`
+block in its config and `TrackerDetector` starts the saver.
 
 ---
 
@@ -204,9 +204,9 @@ detector.import_state("./snapshots/my-detector")
 detector.import_state(data)
 ```
 
-`import_state` is thread-safe: it acquires the saver lock before loading when
-a `PersistencySaver` is running. Both methods raise `RuntimeError` if the
-detector has no persistency configured.
+Both methods are thread-safe: they hold the saver lock while a
+`PersistencySaver` is running. Only tracker detectors have state; on any other
+component `export_state()` returns `None` and `import_state()` does nothing.
 
 ### Storage backends (fsspec)
 
@@ -218,36 +218,45 @@ credentials and tuning knobs go in `storage_options`.
 
 ## Using persistency inside a detector
 
-The recommended path: declare `persist:` in the detector's config and let
-`CoreDetector._register_persistency` build the saver for you. See
+Detectors do not import `utils.persistency` (`tests/test_architecture.py`
+enforces this). A detector that keeps state subclasses
+`subcommon.TrackerDetector`, which owns the stores, the `persist:` saver,
+`export_state()` / `import_state()` and federation. The tracker detectors are
+New Event, New Value, New Value Combo, Value Range, Charset, Event Sequence,
+Bigram Frequency, SCVS and ECVC; only they accept a `persist:` block. See
 [Saving state (persist)](../detectors.md#saving-state-persist) for the config
 schema.
 
 In detector code, the pattern is:
 
 ```python
-from detectmatelibrary.common.detector import CoreDetector
-from detectmatelibrary.utils import persistency
+from detectmatelibrary.subcommon import TrackerDetector, TrackerDetectorConfig
 
-class MyDetector(CoreDetector):
+class MyDetectorConfig(TrackerDetectorConfig):
+    method_type: str = "my_detector"
+
+class MyDetector(TrackerDetector):
     def __init__(self, name="MyDetector", config=MyDetectorConfig()):
         super().__init__(name=name, config=config)
-        self.persistency = persistency.EventPersistency()
-        self._register_persistency(self.persistency)
 
     def train(self, input_):
-        self.persistency.ingest_event(
-            event_id=input_["EventID"],
-            event_template=input_["template"],
-            named_variables={...},
-        )
+        self._ingest(input_, variables={...}, event_id=input_["EventID"])
 
     def detect(self, input_, output_):
         tracker = self.persistency.get_events_data().get(input_["EventID"])
         # compare against tracker to produce alerts
 ```
 
-`_register_persistency` is a one-line wrapper around
-`init_persistency`; the helper
-honours `config.persist` and returns `None` (so `self.saver` stays `None`)
-when persistence is disabled.
+`TrackerDetector` builds `self.persistency`, the store training and detection
+use, and `self.auto_conf_persistency`, the configure-phase store. Override
+`_event_data_kwargs()` / `_auto_conf_kwargs()` to pass tracker kwargs, and call
+`self._new_store()` for any extra store. Without a `persist:` block,
+`self.saver` stays `None`.
+
+Rebuild fields derived from the stores (a count vector, a window length) in
+`_sync_from_state()`. `TrackerDetector` calls it at the end of `__init__`
+(after a possible `auto_load`), after `import_state()`, on the detector
+`from_binary()` returns, and on every component after `aggregate_strategy()`.
+The first call runs inside `TrackerDetector.__init__`, so anything it reads or
+writes must exist before `super().__init__()` returns: declare it as a class
+attribute or assign it before the call.

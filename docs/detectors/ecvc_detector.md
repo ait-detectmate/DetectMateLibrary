@@ -65,7 +65,6 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `validation_per` | number | 0.2 | specific | Fraction of the learned count vectors held out as a validation split and used to derive the anomaly threshold. |
     | `seed` | integer | 0 | specific | Random seed used to shuffle count vectors into train/validation splits. |
     | `threshold_method` | string | mean | specific | Method used to derive the anomaly threshold from the validation split: 'mean' averages the distance scores, 'default' uses a fixed threshold of 0. |
-    | `allow_fed` | boolean | False | specific | Allow to do the federation |
     | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
     | `data_use_training` | integer, null | None | shared | Data used for training, if None, training is not done. |
     | `data_use_configure` | integer, null | None | shared | Data used for configuration, if None, configuration is not done. |
@@ -73,4 +72,5 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `train_buffer_max_records` | integer | 100000 | shared | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
     | `parser` | string | PARSER | shared | Name of the parser used. |
+    | `allow_fed` | boolean | False | shared | Allow to do the federation |
 <!-- End arguments -->

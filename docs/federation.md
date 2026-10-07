@@ -16,6 +16,8 @@ def finalize_federation(self) -> None:
     """(Federation only) Liberate memory from federation"""
 ```
 
+The tracker detectors (subclasses of `subcommon.TrackerDetector`: New Event, New Value, New Value Combo, Value Range, Charset, Event Sequence, Bigram Frequency, SCVS and ECVC) implement all four in `TrackerDetector`, which is the reference implementation. Set `allow_fed: true` in their `params` to enable it.
+
 There are two main ways to use federation:
 
 - **Combine first**: This can only be used when all components run locally. The main idea is to simplify the process by allowing components to share memory.

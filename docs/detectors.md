@@ -164,7 +164,6 @@ There are some parameters, that **every** detector inhertis from `CoreDetectorCo
     | `auto_config` | boolean | True | Runs the configuration step before the training process. |
     | `events` | object | {} | Events configuration dict keyed by event_id. |
     | `global` | object | {} | Instances monitoring event-independent header variables (e.g. hostname, level), keyed by instance name. Written as `global` in YAML. |
-    | `persist` | object, null | None | Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See the Persistency page. |
 
 ???+ note "params"
 
@@ -179,19 +178,31 @@ There are some parameters, that **every** detector inhertis from `CoreDetectorCo
     | `parser` | string | PARSER | Name of the parser used. |
 <!-- End common_arguments -->
 
-Beyond the common parameters, two groups of detectors inherit group-specific configurations.
+Beyond the common parameters, detectors inherit the parameters of the group they belong to.
 
-### Per-variable model detectors
+### Tracker detectors
 
-The detectors that learn a per-variable model ([Bigram Frequency](detectors/bigram_frequency.md), [Charset](detectors/charset.md), [New Value Combo](detectors/combo.md), [New Value](detectors/new_value.md), [Value Range](detectors/value_range.md)) share the following parameters, inherited from `VariableDetectorConfig`.
+The detectors that keep their model in persistency stores ([New Event](detectors/new_event.md), [New Value](detectors/new_value.md), [New Value Combo](detectors/combo.md), [Value Range](detectors/value_range.md), [Charset](detectors/charset.md), [Event Sequence](detectors/event_sequence.md), [Bigram Frequency](detectors/bigram_frequency.md), [SCVS](detectors/scvs_detector.md), [ECVC](detectors/ecvc_detector.md)) share the following parameters, inherited from `TrackerDetectorConfig`. Only these detectors accept a `persist:` block (see [Saving state (persist)](#saving-state-persist)).
 
-<!-- Start variable_arguments -->
+<!-- Start tracker_arguments -->
+???+ note "Top level"
+
+    | Field | Type | Default | Description |
+    |---|---|---|---|
+    | `persist` | object, null | None | Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See the Persistency page. |
+
 ???+ note "params"
 
     | Field | Type | Default | Description |
     |---|---|---|---|
     | `allow_fed` | boolean | False | Allow to do the federation |
+<!-- End tracker_arguments -->
 
+### Per-variable model detectors
+
+The tracker detectors that learn a per-variable model ([Bigram Frequency](detectors/bigram_frequency.md), [Charset](detectors/charset.md), [New Value Combo](detectors/combo.md), [New Value](detectors/new_value.md), [Value Range](detectors/value_range.md)) also share the following parameters, inherited from `VariableDetectorConfig`.
+
+<!-- Start variable_arguments -->
 ??? note "auto_config_params (read only while auto_config is true)"
 
     | Field | Type | Default | Description |
@@ -449,9 +460,9 @@ matters  --  the index pass keeps every segment populated.
 
 ### Saving state (persist)
 
-Detectors can persist their training state to disk (or cloud storage) so it
-can be restored in a later session. Configure this with a top-level `persist:`
-block in the detector config:
+[Tracker detectors](#tracker-detectors) can persist their training state to disk
+(or cloud storage) so it can be restored in a later session. Configure this with a
+top-level `persist:` block in the detector config:
 
 ```yaml
 detectors:
@@ -468,7 +479,9 @@ detectors:
 ```
 
 All fields are optional  --  `persist: {}` uses all defaults. Omitting `persist:` entirely
-disables saving (backward compatible).
+disables saving (backward compatible). The other detectors (Random, Rule, DeepLog,
+LogBERT) have no state to save: a `persist:` block on them fails at config load with
+`persist: Extra inputs are not permitted`.
 
 The detector name is automatically appended to `path`, so `path: ./state` for a detector
 named `NewValueDetector` writes to `./state/NewValueDetector/`.

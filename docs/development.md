@@ -46,21 +46,15 @@ uv run --dev pytest
 
 The user-facing side of auto-configuration is described in the [Detectors overview](detectors.md#auto-configuration-optional). This section covers what a detector has to implement to support it.
 
-A detector that supports auto-configuration typically creates a separate `EventPersistency` instance for this purpose (but doesn't have to):
+A detector that supports auto-configuration subclasses `subcommon.TrackerDetector`, which builds two stores: `self.persistency` for training and detection, and a separate `self.auto_conf_persistency` for auto-configuration. Detectors never build stores from `utils.persistency` themselves (`tests/test_architecture.py` enforces this):
 
 ```python
-class MyDetector(CoreDetector):
-    def __init__(self, ...):
-        super().__init__(...)
+from detectmatelibrary.subcommon import TrackerDetector
 
-        # main persistency for training / detection
-        self.persistency = EventPersistency(
-            event_data_class=EventStabilityTracker,
-        )
-        # separate persistency for auto-configuration
-        self.auto_conf_persistency = EventPersistency(
-            event_data_class=EventStabilityTracker,
-        )
+
+class MyDetector(TrackerDetector):
+    def __init__(self, name="MyDetector", config=MyDetectorConfig()):
+        super().__init__(name=name, config=config)
 ```
 
 The `configure()` method ingests all available variables (not just configured ones) so the tracker can assess each one:
