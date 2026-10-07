@@ -49,7 +49,11 @@ The user-facing side of auto-configuration is described in the [Detectors overvi
 A detector that supports auto-configuration subclasses `subcommon.TrackerDetector`, which builds two stores: `self.persistency` for training and detection, and a separate `self.auto_conf_persistency` for auto-configuration. Detectors never build stores from `utils.persistency` themselves (`tests/test_architecture.py` enforces this):
 
 ```python
-from detectmatelibrary.subcommon import TrackerDetector
+from detectmatelibrary.subcommon import TrackerDetector, TrackerDetectorConfig
+
+
+class MyDetectorConfig(TrackerDetectorConfig):
+    method_type: str = "my_detector"
 
 
 class MyDetector(TrackerDetector):

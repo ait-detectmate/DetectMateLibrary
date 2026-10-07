@@ -188,7 +188,7 @@ class MyDetector(TrackerDetector):
         self._ingest(input_, variables={...}, event_id=input_["EventID"])
 ```
 
-Pass tracker kwargs by overriding `_event_data_kwargs()` / `_auto_conf_kwargs()`; build an extra store with `self._new_store()`.
+Pass tracker kwargs by overriding `_event_data_kwargs()` / `_auto_conf_kwargs()`; build an extra store with `self._new_store()`. Keep `__init__` callable as `MyDetector(name=..., config=...)`: `from_binary()` rebuilds the detector that way, so any other constructor argument needs a default.
 
 **2. Rebuild derived fields in `_sync_from_state()`, and mind the ordering rule:**
 

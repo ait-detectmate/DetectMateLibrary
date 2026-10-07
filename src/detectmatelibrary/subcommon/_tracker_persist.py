@@ -97,7 +97,7 @@ def validate_config_coverage(
     Args:
         detector_name: Name of the detector (used in warning messages).
         config_events: The detector's events configuration.
-        persistency: The persistency object populated during training.
+        event_persistency: The persistency object populated during training.
     """
     config_ids = (
         config_events.events.keys()

@@ -165,6 +165,25 @@ class TestFinalizeFederation:
         _Recorder().finalize_federation()
         assert (tmp_path / ".temp" / ".keep.csv").exists()
 
+    def test_does_not_raise_when_allow_fed_is_set_after_construction(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.chdir(tmp_path)
+        det = _Recorder(config=TrackerDetectorConfig(allow_fed=False))
+        det.config.allow_fed = True
+        det.finalize_federation()
+
+    def test_removes_the_slow_table_when_allow_fed_is_cleared_after_construction(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.chdir(tmp_path)
+        det = _Recorder(config=TrackerDetectorConfig(allow_fed=True))
+        det.train(_event(1))
+        assert (tmp_path / ".temp").exists()
+        det.config.allow_fed = False
+        det.finalize_federation()
+        assert not (tmp_path / ".temp").exists()
+
 
 _TRACKER_DETECTORS = [
     BigramFrequencyDetector, CharsetDetector, ECVCDetector, EventSequenceDetector, NewEventDetector,

@@ -18,6 +18,8 @@ def finalize_federation(self) -> None:
 
 The tracker detectors (subclasses of `subcommon.TrackerDetector`: New Event, New Value, New Value Combo, Value Range, Charset, Event Sequence, Bigram Frequency, SCVS and ECVC) implement all four in `TrackerDetector`, which is the reference implementation. Set `allow_fed: true` in their `params` to enable it.
 
+`from_binary` rebuilds the detector as `type(self)(name=..., config=...)`, so a `TrackerDetector` subclass must be constructible from its name and config alone; give any other constructor argument a default.
+
 There are two main ways to use federation:
 
 - **Combine first**: This can only be used when all components run locally. The main idea is to simplify the process by allowing components to share memory.

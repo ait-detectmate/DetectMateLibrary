@@ -235,7 +235,10 @@ class TrackerDetector(CoreDetector):
 
     @override
     def finalize_federation(self) -> None:
-        """Delete the slow-persistency table, which exists only with
-        `allow_fed`."""
-        if self.config.allow_fed:
+        """Delete the slow-persistency table when the store has one.
+
+        Stores are built with a slow table only when `allow_fed` was set at
+        construction.
+        """
+        if self.persistency.event_struct.do_slow:
             self.persistency.event_struct.slow_persistency.clean()

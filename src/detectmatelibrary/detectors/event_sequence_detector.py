@@ -109,8 +109,6 @@ class EventSequenceDetector(TrackerDetector):
         length cannot be evaluated at another: every restored entry would miss and
         every detection would become a false positive. The persisted length
         therefore wins over the configured one.
-
-        Returns the persisted length, or None when nothing was restored.
         """
         restored = self.persistency.get_events_seen()
         if not restored:
