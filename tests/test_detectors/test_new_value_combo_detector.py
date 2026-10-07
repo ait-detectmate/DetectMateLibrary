@@ -829,3 +829,78 @@ class TestNewValueComboDetectorClassificationCombos:
         )
         assert not set(block) & set(entry.get("params", {}))
         assert NewValueComboDetectorConfig.from_dict(dumped, "NewValueComboDetector") == config
+
+
+class TestNewValueComboDetectorConfigureSpill:
+    """The configure records kept for the second pass spill to disk past
+    train_buffer_max_records, like the train buffer, and are released
+    afterwards."""
+
+    @staticmethod
+    def _record(i: int) -> schemas.ParserSchema:
+        return schemas.ParserSchema({
+            "parserType": "test",
+            "EventID": 1,
+            "template": "Template 1",
+            "variables": [f"a{min(i, 3)}", f"b{min(i, 4)}", f"c{min(i, 2)}"],
+            "logID": str(i),
+            "parsedLogID": str(i),
+            "parserID": "test_parser",
+            "log": "test log",
+        })
+
+    def _configured(self, **config) -> NewValueComboDetector:
+        detector = NewValueComboDetector(
+            config=NewValueComboDetectorConfig(**config), name="NewValueComboDetector"
+        )
+        for i in range(25):
+            detector.configure(self._record(i))
+        return detector
+
+    def _processed(self, n: int, **config) -> NewValueComboDetector:
+        """Feed ``n`` records through process(); the first 25 configure."""
+        detector = NewValueComboDetector(
+            config=NewValueComboDetectorConfig(data_use_configure=25, data_use_training=3, **config),
+            name="NewValueComboDetector",
+        )
+        for i in range(n):
+            detector.process(self._record(i))
+        return detector
+
+    def test_configure_inputs_spill_and_are_released(self, tmp_path):
+        detector = self._configured(train_buffer_max_records=10, train_buffer_dir=str(tmp_path))
+        assert len(list(tmp_path.glob("*/part-*.parquet"))) == 2
+        detector.set_configuration(max_combo_size=2)
+        assert list(tmp_path.iterdir()) == []
+
+    def test_spilled_configuration_matches_in_memory(self, tmp_path):
+        spilled = self._configured(train_buffer_max_records=10, train_buffer_dir=str(tmp_path))
+        in_memory = self._configured()
+        spilled.set_configuration(max_combo_size=2)
+        in_memory.set_configuration(max_combo_size=2)
+        assert len(in_memory.config.events[1].instances) == 3
+        assert spilled.config.events == in_memory.config.events
+
+    @pytest.mark.parametrize("replay", [True, False])
+    @pytest.mark.parametrize("max_records", [10, 100_000])
+    def test_processed_configuration_matches_direct(self, tmp_path, monkeypatch, replay, max_records):
+        trained: list[str] = []
+        train = NewValueComboDetector.train
+
+        def spy(self, input_):
+            trained.append(input_["logID"])
+            train(self, input_)
+
+        monkeypatch.setattr(NewValueComboDetector, "train", spy)
+        processed = self._processed(
+            26, use_config_data_as_training=replay,
+            train_buffer_max_records=max_records, train_buffer_dir=str(tmp_path),
+        )
+        direct = self._configured()
+        direct.set_configuration()
+        assert len(direct.config.events[1].instances) > 0
+        assert processed.config.events == direct.config.events
+        # the second configure pass leaves the configure records to training
+        assert trained == ([str(i) for i in range(26)] if replay else ["25"])
+        assert list(processed.buffer_train) == list(processed.inputs) == []
+        assert list(tmp_path.iterdir()) == []
