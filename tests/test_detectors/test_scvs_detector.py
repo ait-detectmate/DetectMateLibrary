@@ -7,6 +7,8 @@ from detectmatelibrary import schemas
 
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
 
+import logging
+
 import pytest
 
 
@@ -133,3 +135,46 @@ class TestSCVSDetectorEndToEnd:
         (detector1 + detector2).aggregate()
         assert detector2.persistency.events_seen == detector1.persistency.events_seen
         assert len(detector2.persistency.events_seen) > 0
+
+
+def _window(event_ids):
+    return [schemas.ParserSchema({"EventID": i}) for i in event_ids]
+
+
+def _fed_detector(window_size):
+    return SCVSDetector(config=SCVSDetectorConfig(window_size=window_size, allow_fed=True))
+
+
+class TestSCVSDetectorRestoredState:
+    """State counted over another window size warns on every restore path."""
+
+    def test_warns_after_from_binary(self, tmp_path, monkeypatch, caplog):
+        monkeypatch.chdir(tmp_path)  # the slow store writes .temp/ CSVs here
+        trained = _fed_detector(3)
+        trained.train(_window([0, 1, 4]))
+
+        with caplog.at_level(logging.WARNING):
+            _fed_detector(4).from_binary(trained.to_binary())
+
+        assert any("window_size 3" in r.message for r in caplog.records)
+
+    def test_warns_after_aggregate(self, tmp_path, monkeypatch, caplog):
+        monkeypatch.chdir(tmp_path)
+        trained = _fed_detector(3)
+        trained.train(_window([0, 1, 4]))
+        receiver = _fed_detector(4)
+
+        with caplog.at_level(logging.WARNING):
+            (receiver + trained).aggregate()
+
+        assert any("window_size 3" in r.message for r in caplog.records)
+
+    def test_finalize_federation_removes_the_slow_table(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        detector = _fed_detector(3)
+        detector.train(_window([0, 1, 4]))
+        assert (tmp_path / ".temp").exists()
+
+        detector.finalize_federation()
+
+        assert not (tmp_path / ".temp").exists()
