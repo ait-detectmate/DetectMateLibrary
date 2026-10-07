@@ -391,6 +391,20 @@ class TestCoreComponent:
 
         assert component.set_configuration_called == 1
 
+    def test_transfer_data(self) -> None:
+        component_1 = MockComponentWithConfigure(name="DummyCfg6")
+        component_1.id_generator.current_id = 20
+        component_1.fitlogic.last_state = "Training"
+        component_1.data_buffer.size = 999
+        component_1.buffer_train.__add__(29)
+
+        component_2 = MockComponentWithConfigure(name="DummyCfg6")
+        component_1.transfer_data(component_2)
+        assert component_1.id_generator.current_id == 20
+        assert component_1.fitlogic.last_state == "Training"
+        assert component_1.data_buffer.size == 999
+        assert component_1.buffer_train.buffer == component_2.buffer_train.buffer
+
 
 class TestAutoConfigGate:
     """`auto_config` decides whether the configure phase configures anything;

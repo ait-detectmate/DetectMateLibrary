@@ -89,10 +89,17 @@ class TestFederation:
         result = detector1.aggregate()
 
         detector3 = VariableDetector(name="detector", config=CONFIG)
+        detector3.update_state("keep_training")
+        detector3.id_generator.current_id = 100
+        detector3.fitlogic.last_state = "Training"
+
         detector3 = detector3.from_binary(result)
 
         users = detector3.persistency.get_event_data(1)["user"].unique_set
         assert {"A", "B", "C", "D"} == users
+
+        assert detector3.fitlogic.last_state == "Training"
+        assert detector3.id_generator.current_id == 100
 
     def test_finalize_federation(self):
         detector1 = VariableDetector(name="detector", config=CONFIG)

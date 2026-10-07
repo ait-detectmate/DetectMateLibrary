@@ -17,9 +17,9 @@ from detectmatelibrary.schemas import BaseSchema
 
 from detectmatelibrary.tools.logging import logger, setup_logging
 
-
-from typing import Any
 from pydantic import Field
+from copy import deepcopy
+from typing import Any
 
 from detectmatelibrary.common._other_op._persistency_components import PersistencyOp
 
@@ -127,9 +127,6 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
         if (data_buffered := self.data_buffer.add(data)) is None:  # type: ignore
             return None
 
-        # auto_config decides whether the configure window configures anything;
-        # the window itself still consumes its records and hands them to training,
-        # so a rerun with auto_config=False trains on the same data.
         if (fit_state := self.fitlogic.run()) == FitLogicState.DO_CONFIG:
             if self.config.auto_config:
                 logger.debug(f"<<{self.name}>> use data for configuration")
@@ -160,3 +157,13 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
 
         logger.debug(f"<<{self.name}>> processed:\n{output_}")
         return SchemaPipeline.postprocess(output_, is_byte=is_byte)
+
+    def transfer_data(self, obj: "CoreComponent") -> "CoreComponent":
+
+        obj.saver = deepcopy(self.saver)
+        obj.data_buffer = deepcopy(self.data_buffer)
+        obj.id_generator = deepcopy(self.id_generator)
+        obj.fitlogic = deepcopy(self.fitlogic)
+        obj.buffer_train = deepcopy(self.buffer_train)
+
+        return obj

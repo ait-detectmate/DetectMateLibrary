@@ -164,8 +164,9 @@ class VariableDetector(CoreDetector, VariablesLogic):
         return self.persistency2binary()
 
     def from_binary(self, binary: bytes) -> "VariableDetector":
-
-        var_detect = type(self)(name=self.name, config=self.config)
+        var_detect: VariableDetector = self.transfer_data(
+            type(self)(name=self.name, config=self.config)  # type: ignore
+        )
         var_detect.binary2persistency(binary)
 
         return var_detect
