@@ -7,10 +7,10 @@ from detectmatelibrary.common.detector import _time_handler as _core_time_handle
 from detectmatelibrary.common._config._formats import EventsConfig
 from detectmatelibrary.base_detectors._stability import StabilityAutoConfigParams
 from detectmatelibrary.base_detectors.tracker_detector import TrackerDetector, TrackerDetectorConfig
+from detectmatelibrary.base_detectors._variable_hooks import VariableHooks
 
 from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
     EventStabilityTracker,
-    SingleStabilityTracker,
 )
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
@@ -20,7 +20,7 @@ from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.tools.logging import logger
 
 from typing_extensions import override
-from typing import Any, Dict, Optional, cast
+from typing import Any, Dict
 from pydantic import Field
 
 
@@ -110,17 +110,12 @@ def validate_config_coverage(
             )
 
 
-class VariableDetector(TrackerDetector):
+class VariableDetector(TrackerDetector, VariableHooks):
     """Abstract base for detectors that learn a per-variable model from
     configured log variables and flag anomalous values at detection time.
 
-    Subclasses override a small set of hooks:
-      - ``_check_variable`` (required): the per-variable anomaly test.
-      - ``_prepare_variables`` (optional): transform variables per stage.
-      - ``_event_data_kwargs`` / ``_auto_conf_kwargs`` (optional): tracker
-        construction kwargs.
-      - ``_description`` / ``_alert_key`` (optional): output formatting.
-
+    Subclasses override the hooks in ``VariableHooks`` and, for tracker
+    construction kwargs, ``_event_data_kwargs`` / ``_auto_conf_kwargs``.
     The five lifecycle methods (train/detect/configure/post_train/
     set_configuration) live here and are shared by all subclasses.
     """
@@ -137,8 +132,6 @@ class VariableDetector(TrackerDetector):
         super().__init__(name=name, config=config, stability_params=config.auto_config_params)
         self.config: VariableDetectorConfig
 
-    # ---- hooks --------------------------------------------------------------
-
     def _stability_kwargs(self) -> Dict[str, Any]:
         """Redfine to be specific to the detector."""
         name = type(self).__name__
@@ -146,48 +139,6 @@ class VariableDetector(TrackerDetector):
             "add_value_fn": name,
             "detector_config": strip_auto_config_params(self.config.to_dict(method_id=name), name),
         }
-
-    def _prepare_variables(self, variables: Dict[str, Any], stage: str) -> Dict[str, Any]:
-        """Transform extracted variables.
-
-        ``stage`` is "training" or "detection".
-        """
-        return variables
-
-    def _check_variable(
-        self, tracker: SingleStabilityTracker, value: Any, key: Any
-    ) -> Optional[str]:
-        """Return an alert message if ``value`` is anomalous for ``tracker``,
-        else None."""
-        raise NotImplementedError
-
-    def _alert_key(self, event_id: Any, key: Any, is_global: bool) -> str:
-        return f"Global - {key}" if is_global else f"EventID {event_id} - {key}"
-
-    def _description(self) -> str:
-        return f"{self.name} detected anomalies."
-
-    def _check_event(
-        self,
-        alerts: Dict[str, str],
-        event_id: Any,
-        event_tracker: EventStabilityTracker,
-        variables: Dict[str, Any],
-        is_global: bool,
-    ) -> float:
-        """Loop the event's per-variable trackers, accumulate alerts, score +1
-        per anomalous variable."""
-        score = 0.0
-        var_trackers = cast(Dict[str, SingleStabilityTracker], event_tracker.get_data())
-        for key, tracker in var_trackers.items():
-            value = variables.get(key)
-            if value is None:
-                continue
-            message = self._check_variable(tracker, value, key)
-            if message:
-                alerts[self._alert_key(event_id, key, is_global)] = message
-                score += 1.0
-        return score
 
     # ---- lifecycle ----------------------------------------------------------
 
