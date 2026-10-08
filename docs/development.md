@@ -109,7 +109,7 @@ files under `docs/examples/`, mirrored by category (`docs/examples/parsers/`,
 `docs/examples/detectors/`), and are pulled into the Markdown pages via
 [`pymdownx.snippets`](https://facelessuser.github.io/pymdown-extensions/extensions/snippets/).
 This way every snippet in the docs is an actual `.py` file that gets executed by
-the test suite, so a broken example fails CI instead of silently shipping.
+the test suite in CI, so a broken example fails CI instead of silently shipping.
 
 **1. Add the snippet file.** Put your example under `docs/examples/<category>/`.
 By convention the filename matches its documentation page (`charset.md` →
@@ -142,11 +142,12 @@ globs every `.py` under `docs/examples/` and runs each one as a script via
 `runpy.run_path(..., run_name="__main__")`. There is no plugin and no assert
 requirement: a snippet passes as long as it runs standalone without raising. If
 your example needs something unavailable in CI (e.g. an API key), comment out
-those calls rather than letting them fail. Run the snippet tests together with
-the rest of the suite:
+those calls rather than letting them fail. The test is marked `ignored`, so a
+plain `pytest` run skips it; pass `--run-ignored` (as CI does) to include it:
 
 ```bash
-uv run --dev pytest
+uv run --dev pytest --run-ignored                    # whole suite, snippets included
+uv run --dev pytest tests/test_docs --run-ignored    # snippets only
 ```
 
 **4. Component pages: a YAML file, and generated argument tables.** Each parser and
@@ -177,7 +178,7 @@ For a live local preview while editing:
 uv run --dev mkdocs serve
 ```
 
-`mkdocs` comes in transitively via `mike` in the `dev` group, so `--dev` is
-required. There is no `--strict` mode configured; the hard check on the docs is
+`mkdocs` comes in via `mkdocs-material` (a direct dependency of the `dev` group),
+so `--dev` is required. There is no `--strict` mode configured; the hard check on the docs is
 `check_paths: true` from `pymdownx.snippets`, which fails the build on a missing
 snippet or marker.
