@@ -224,7 +224,8 @@ Two details are easy to miss here, and both matter for production configs:
   refer to  --  that's why most rows above pair up alerts from *different*
   underlying logs. The two rows where both `logIDs` are identical
   (`['4', '4']` and `['7', '7']`) are the exception, and not a coincidence:
-  those are exactly the log `#5` and `#8` cases from step 3, where
+  those are exactly the log `#5` and `#8` cases from step 3 (`logIDs` count
+  from 0 while the table above counts from 1, so logID `4` is row `#5`), where
   `NewValueDetector` and `EventSequenceDetector` both alerted on the same
   event back to back, so the window happened to contain only that pair. A
   real deployment that wants alerts grouped *by log* rather than by arrival
