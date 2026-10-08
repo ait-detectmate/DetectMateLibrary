@@ -46,7 +46,7 @@ Using a local Ollama instance:
 
 ## Configuration file
 
-The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
+The configuration used by the first example above (the Ollama example builds its configuration in Python instead). It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
 ```yaml
 --8<-- "docs/examples/parsers/logbatcher_parser.yaml"
