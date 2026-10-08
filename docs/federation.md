@@ -51,7 +51,7 @@ Example 2:
 --8<-- "docs/examples/others/federation.py:example_3"
 ```
 
-## Stack
+## Stack later
 
 The diagram below shows the workflow:
 
