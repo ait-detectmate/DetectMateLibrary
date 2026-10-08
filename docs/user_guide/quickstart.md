@@ -18,7 +18,7 @@ detector to check whether the dataset contains anomalies. We use the
 ```
 ## Common pitfalls
 
-* When re-running the parser code, delete `audit_raw.json` and `audit_parsed.json`
-  first if you want to execute it again --> otherwise output is appended to stale files.
+* Before re-running the parser code, delete `local/audit_raw.json` and
+  `local/audit_parsed.json`; otherwise the new output is appended to the old files.
 
 Go back [Index](../index.md)
