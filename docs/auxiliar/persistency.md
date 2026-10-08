@@ -218,14 +218,13 @@ credentials and tuning knobs go in `storage_options`.
 
 ## Using persistency inside a detector
 
-Detectors do not import `utils.persistency` (`tests/test_architecture.py`
-enforces this). A detector that keeps state subclasses
-`base_detectors.TrackerDetector`, which owns the stores, the `persist:` saver,
-`export_state()` / `import_state()` and federation. The tracker detectors are
-New Event, New Value, New Value Combo, Value Range, Charset, Event Sequence,
-Bigram Frequency, SCVS and ECVC; only they accept a `persist:` block. See
-[Saving state (persist)](../detectors.md#saving-state-persist) for the config
-schema.
+Detectors do not import `utils.persistency`. A detector that keeps state
+subclasses `base_detectors.TrackerDetector`, which owns the stores, the
+`persist:` saver, `export_state()` / `import_state()` and federation. The
+tracker detectors are New Event, New Value, New Value Combo, Value Range,
+Charset, Event Sequence, Bigram Frequency, SCVS and ECVC; only they accept a
+`persist:` block. See [Saving state (persist)](../detectors.md#saving-state-persist)
+for the config schema.
 
 In detector code, the pattern is:
 

@@ -122,7 +122,7 @@ A layer between `common/` and `detectors/`, imported as `from detectmatelibrary.
 
 `CoreComponent.export_state()` returns `None` and `import_state()` is a no-op; only `TrackerDetector` has state. A `persist:` block on a non-tracker detector is a validation error.
 
-`tests/test_architecture.py` enforces the dependency rules: `utils.persistency` is imported only from `utils/persistency/` and `base_detectors/`; `common/` imports neither `base_detectors` nor `detectors`; `base_detectors/` does not import `detectors`; `utils/persistency/` imports none of the three.
+Dependency rules: `utils.persistency` is imported only from `utils/persistency/` and `base_detectors/`; `common/` imports neither `base_detectors` nor `detectors`; `base_detectors/` does not import `detectors`; `utils/persistency/` imports none of the three.
 
 ### Schema System (`src/detectmatelibrary/schemas/`)
 
