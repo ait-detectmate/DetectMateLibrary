@@ -79,7 +79,7 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
         self.config: CoreConfig
         self.input_schema, self.output_schema = input_schema, output_schema
 
-        self.data_buffer = DataBuffer(args_buffer)
+        self.data_buffer, self.args_buffer = DataBuffer(args_buffer), args_buffer
         self.id_generator = SimpleIDGenerator(self.config.start_id, prefix=self.name)
         self.fitlogic = FitLogic(
             data_use_configure=self.config.data_use_configure,
@@ -92,6 +92,18 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
             window=self.data_buffer.size if self.data_buffer.mode == BufferMode.WINDOW else None,
             name=self.name,
         )
+
+    def from_binary(self, binary: bytes) -> "CoreComponent[TInput, TOutput]":
+        new = type(self)(
+            name=self.name,
+            type_=self.type_,
+            config=self.config,
+            args_buffer=self.args_buffer,
+            input_schema=self.input_schema,
+            output_schema=self.output_schema,
+        )
+        new.load_binary(binary)
+        return new
 
     def export_state(
         self,
@@ -135,9 +147,6 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
         if (data_buffered := self.data_buffer.add(data)) is None:  # type: ignore
             return None
 
-        # auto_config decides whether the configure window configures anything;
-        # the window itself still consumes its records and hands them to training,
-        # so a rerun with auto_config=False trains on the same data.
         if (fit_state := self.fitlogic.run()) == FitLogicState.DO_CONFIG:
             if self.config.auto_config:
                 logger.debug(f"<<{self.name}>> use data for configuration")

@@ -64,7 +64,7 @@ class TestJoinOp:
 
 class DummyAppendList(CoreComponent):
     def __init__(
-        self, elems: list[str], name: str = "test", *args, **kwargs
+        self, elems: list[str] = [], name: str = "test", *args, **kwargs
     ) -> None:
         super().__init__(name, *args, **kwargs)
         self.elems = elems
@@ -81,10 +81,9 @@ class DummyAppendList(CoreComponent):
     def to_binary(self):
         return struct.pack(f">{len(self.elems)}h", *self.elems)
 
-    def from_binary(self, binary):
+    def load_binary(self, binary):
         num_ints = len(binary) // 2
-        elems = list(struct.unpack(f">{num_ints}h", binary))
-        return DummyAppendList(elems=elems)
+        self.elems = list(struct.unpack(f">{num_ints}h", binary))
 
 
 class DummyAppendListEmpty(CoreComponent):
@@ -150,7 +149,7 @@ class TestFedComponent:
             comp1.to_binary()
 
         with pytest.warns(UserWarning):
-            comp1.from_binary(b"")
+            comp1.load_binary(b"")
 
         with pytest.warns(UserWarning):
             comp1.aggregate_strategy({comp1, comp2, comp3})
