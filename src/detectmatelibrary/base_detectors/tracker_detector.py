@@ -1,7 +1,7 @@
-from detectmatelibrary.common._config import AutoConfigParams
 from detectmatelibrary.common._core_op._fed_component import FedOperations
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 from detectmatelibrary.base_detectors._persist import PersistConfig, load_state, save_state, start_saver
+from detectmatelibrary.base_detectors._stability import StabilityAutoConfigParams, TimestampReader
 
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.utils.persistency.data_structures.trackers.stability import ClassificationMethods
@@ -10,28 +10,12 @@ from detectmatelibrary.utils.persistency.persistency_saver import PersistencySav
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 
 from detectmatelibrary.schemas import ParserSchema
-from detectmatelibrary.tools.logging import logger
 
 from typing_extensions import Self, override
 from typing import Any, Dict, Optional, cast
 from pydantic import Field
 import polars as pl
 import io
-
-
-class StabilityAutoConfigParams(AutoConfigParams):
-    classification: ClassificationMethods = ClassificationMethods()
-    timestamp_variable: str | None = Field(
-        default=None,
-        description=(
-            "Header variable (from the parser's log_format) holding each event's time. "
-            "Required by the time and slope_time classification methods."
-        ),
-    )
-    timestamp_format: str | None = Field(
-        default=None,  # None -> TimeFormatHandler auto-detect
-        description="Format of timestamp_variable. None detects it automatically.",
-    )
 
 
 class TrackerDetectorConfig(CoreDetectorConfig):
@@ -77,7 +61,7 @@ class TrackerDetector(CoreDetector):
         )
         self.config: TrackerDetectorConfig
         self.config_vars = stability_params
-        self._warned_bad_timestamp = False
+        self._timestamps = TimestampReader(self.name, stability_params, self._time_handler)
         self.persistency = EventPersistency(
             event_data_kwargs=self._event_data_kwargs(), do_slow_per=config.allow_fed
         )
@@ -141,46 +125,6 @@ class TrackerDetector(CoreDetector):
         `super().__init__()` returns -- as a class attribute, or assigned
         before the `super().__init__()` call.
         """
-
-    # ---- stability time axis ---------------------------------------------
-
-    def _warn_time_fallback_once(self, reason: str) -> None:
-        """Log the first time-dependent misconfiguration, then stay quiet.
-
-        A bad config would otherwise emit one warning per record, so the
-        flag latches after the first message.
-        """
-        if self._warned_bad_timestamp:
-            return
-        self._warned_bad_timestamp = True
-        logger.warning(
-            "%s: %s; falling back to the index axis for stability classification.",
-            self.name, reason,
-        )
-
-    def _timestamp(self, input_: ParserSchema) -> float | None:
-        """Resolve the record's event time, or None if no enabled
-        classification method reads the time axis."""
-        if not self.config_vars.classification.needs_timestamps:
-            return None
-
-        if not self.config_vars.timestamp_variable:
-            self._warn_time_fallback_once(
-                "a time-axis classification method is enabled "
-                "but timestamp_variable is not set"
-            )
-            return None
-
-        raw = input_["logFormatVariables"].get(self.config_vars.timestamp_variable)
-        ts = self._time_handler.parse_timestamp(str(raw or ""), self.config_vars.timestamp_format)
-        if ts == "0":
-            self._warn_time_fallback_once(
-                f"timestamp_variable {self.config_vars.timestamp_variable!r} is missing or "
-                f"unparseable (got {raw!r})"
-            )
-            return None
-
-        return float(ts)
 
     # ---- state I/O ----------------------------------------------------------
 

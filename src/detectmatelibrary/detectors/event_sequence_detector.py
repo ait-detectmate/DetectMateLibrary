@@ -192,7 +192,7 @@ class EventSequenceDetector(TrackerDetector):
                     event_id=length,
                     event_template=input_["template"],
                     named_variables={"seq": tuple(window)},
-                    timestamp=self._timestamp(input_),
+                    timestamp=self._timestamps.read(input_),
                 )
 
     def set_configuration(self) -> None:

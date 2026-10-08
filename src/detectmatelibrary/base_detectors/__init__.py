@@ -11,7 +11,8 @@ from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stab
 
 from ._persist import PersistConfig
 from .deeplearning_detector import DeepLearningDetector, DeepLearningDetectorConfig
-from .tracker_detector import StabilityAutoConfigParams, TrackerDetector, TrackerDetectorConfig
+from ._stability import StabilityAutoConfigParams
+from .tracker_detector import TrackerDetector, TrackerDetectorConfig
 from .variable_detector import VariableAutoConfigParams, VariableDetector, VariableDetectorConfig
 
 __all__ = [

@@ -149,7 +149,7 @@ class NewValueComboDetector(VariableDetector):
                 event_id=input_["EventID"],
                 event_template=input_["template"],
                 named_variables=configured_variables,
-                timestamp=self._timestamp(input_),
+                timestamp=self._timestamps.read(input_),
             )
 
         # pass 2: stable/static combos -> final config
