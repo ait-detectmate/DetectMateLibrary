@@ -19,7 +19,7 @@ uv pip install --no-cache-dir <directory_detectmatelibrary>
 ## Optional dependencies
 
 Not every feature needs the same dependencies, so DetectMate uses optional
-extras --> you install only what you need.
+extras: you install only what you need.
 
 | Extra | Installs | When you need it |
 |---|---|---|
