@@ -233,7 +233,7 @@ Two details are easy to miss here, and both matter for production configs:
 ## Common pitfalls
 
 * Manually escaping regex characters (like `(` and `)`) inside a
-  `log_format` string breaks matching
+  `log_format` string breaks matching:
   `generate_logformat_regex()` already escapes literal text for you.
 * A detector's `detect()` only checks `EventID`s it has already seen through
   `train()` at least once. If you configure a detector for an `EventID` that
