@@ -1,6 +1,6 @@
 # Basic knowledge
 
-Before you continue we have to give some insights on the rudimental topics of log anomaly detection.
+This page introduces the basic concepts you need before using DetectMate for log anomaly detection.
 
 ## What is a log?
 
