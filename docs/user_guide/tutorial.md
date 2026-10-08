@@ -11,7 +11,7 @@ deeper:
   what each one finds
 - you combine their alerts with an alert aggregator
 
-By the end you should have seen most of what the library can do and, more
+By the end you should have seen the core workflow and, more
 importantly, understand *why* each piece behaves the way it does.
 
 ## 1. Read a different dataset from scratch
