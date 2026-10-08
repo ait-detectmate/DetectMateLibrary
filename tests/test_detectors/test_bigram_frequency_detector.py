@@ -8,8 +8,7 @@ This module tests the BigramFrequencyDetector implementation including:
 - Input/output schema validation
 """
 
-from unittest.mock import patch
-from detectmatelibrary.utils.persistency.component_interfaces import PersistConfig
+from detectmatelibrary.base_detectors import PersistConfig
 from detectmatelibrary.detectors.bigram_frequency_detector import (
     BigramFrequencyDetector, BigramFrequencyDetectorConfig
 )
@@ -118,7 +117,7 @@ class TestBigramFrequencyDetectorInitialization:
 
         assert detector.name == "CustomInit"
         assert hasattr(detector, 'persistency')
-        assert isinstance(detector.persistency.event_struct.data, dict)
+        assert isinstance(detector.persistency.event_struct.fast_persistency, dict)
 
 
 class TestBigramFrequencyDetectorTraining:
@@ -283,12 +282,14 @@ class TestBigramFrequencyDetectorEndToEnd:
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector1 = BigramFrequencyDetector(
             config=BigramFrequencyDetectorConfig(
-                skip_repetitions=False
+                skip_repetitions=False,
+                allow_fed=True,
             )
         )
         detector2 = BigramFrequencyDetector(
             config=BigramFrequencyDetectorConfig(
-                skip_repetitions=False
+                skip_repetitions=False,
+                allow_fed=True,
             )
         )
 
@@ -300,10 +301,12 @@ class TestBigramFrequencyDetectorEndToEnd:
         detector1.set_configuration()
         detector2.set_configuration()
 
-        for log in logs[:TRAIN_UNTIL]:
-            detector1.train(log)
-
-        assert len(detector2.persistency) == 0
+        for i, log in enumerate(logs[:TRAIN_UNTIL]):
+            if i < 10:
+                detector1.train(log)
+            else:
+                detector2.train(log)
+        assert detector2.persistency != detector1.persistency
 
         (detector1 + detector2).aggregate()
         assert detector2.persistency == detector1.persistency
@@ -312,7 +315,7 @@ class TestBigramFrequencyDetectorEndToEnd:
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
             output = schemas.DetectorSchema()
-            if detector2.detect(log, output_=output):
+            if detector1.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
         assert detected_ids == {'1859', '1860', '1861', '1862'}
@@ -395,18 +398,12 @@ class TestBigramFrequencyDetectorGlobalInstances:
 
 
 class TestBigramFrequencyDetectorPersistencyRegistration:
-    def test_register_persistency_is_called(self):
-        """Persistency must be registered so `persist:` config takes effect."""
-        with patch.object(
-            BigramFrequencyDetector,
-            "_register_persistency",
-            autospec=True,
-        ) as mock_reg:
-            detector = BigramFrequencyDetector()
-
-        mock_reg.assert_called_once()
-        _, called_persistency = mock_reg.call_args[0]  # (self, persistency)
-        assert called_persistency is detector.persistency
+    def test_persist_saver_wraps_the_main_store(self):
+        """`persist:` must save the store detection reads."""
+        config = BigramFrequencyDetectorConfig(persist=PersistConfig(path="memory://bigram_persist/state"))
+        with BigramFrequencyDetector(config=config) as detector:
+            assert detector.saver is not None
+            assert detector.saver._persistency is detector.persistency
 
 
 class TestBigramFrequencyDetectorSetConfigurationPersist:

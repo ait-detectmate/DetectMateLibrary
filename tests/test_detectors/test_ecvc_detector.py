@@ -6,6 +6,8 @@ from detectmatelibrary import schemas
 
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
 
+import logging
+
 import numpy as np
 import pytest
 
@@ -139,6 +141,15 @@ PIPELINE_CONFIG = {
             "validation_per": 0.,
             "threshold_method": "mean",
             "data_use_training": TRAIN_UNTIL,
+        },
+        "ECVCDetector_fed": {
+            "method_type": "ecvc_detector_detector",
+            "window_size": 10,
+            "allow_fed": True,
+            "seed": 0,
+            "validation_per": 0.,
+            "threshold_method": "mean",
+            "data_use_training": TRAIN_UNTIL,
         }
     }
 }
@@ -162,10 +173,28 @@ class TestECVCDetectorEndToEnd:
             assert log_id in detected_ids
 
     @pytest.mark.ignored
+    def test_audit_log_anomalies_to_binary(self):
+        parser = MatcherParser(config=PIPELINE_CONFIG)
+        detector1 = ECVCDetector(name="ECVCDetector_fed", config=PIPELINE_CONFIG)
+        detector2 = ECVCDetector(name="ECVCDetector_fed", config=PIPELINE_CONFIG)
+
+        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
+        for log in logs:
+            detector1.process(log)
+
+        thress = detector1.threshold
+        binary = detector1.to_binary()
+        detector2 = detector2.from_binary(binary)
+
+        assert detector2.persistency == detector1.persistency
+        assert (detector2.count_vecs == detector1.count_vecs).all()
+        assert detector2.threshold == thress
+
+    @pytest.mark.ignored
     def test_audit_log_anomalie_fed(self):
         parser = MatcherParser(config=PIPELINE_CONFIG)
-        detector1 = ECVCDetector(config=PIPELINE_CONFIG)
-        detector2 = ECVCDetector(config=PIPELINE_CONFIG)
+        detector1 = ECVCDetector(name="ECVCDetector_fed", config=PIPELINE_CONFIG)
+        detector2 = ECVCDetector(name="ECVCDetector_fed", config=PIPELINE_CONFIG)
 
         logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
         for log in logs:
@@ -177,3 +206,49 @@ class TestECVCDetectorEndToEnd:
         assert detector2.persistency == detector1.persistency
         assert (detector2.count_vecs == detector1.count_vecs).all()
         assert detector2.threshold == thress
+
+
+def _window(event_ids):
+    return [schemas.ParserSchema({"EventID": i}) for i in event_ids]
+
+
+def _fed_detector(window_size):
+    return ECVCDetector(config=ECVCDetectorConfig(window_size=window_size, allow_fed=True))
+
+
+class TestECVCDetectorRestoredState:
+    """State that arrives after construction warns on a window-size mismatch
+    and rebuilds the count vectors."""
+
+    def test_from_binary_warns_and_rebuilds_count_vectors(self, tmp_path, monkeypatch, caplog):
+        monkeypatch.chdir(tmp_path)  # the slow store writes .temp/ CSVs here
+        trained = _fed_detector(3)
+        trained.train(_window([0, 1, 4]))
+
+        with caplog.at_level(logging.WARNING):
+            restored = _fed_detector(4).from_binary(trained.to_binary())
+
+        assert any("window_size 3" in r.message for r in caplog.records)
+        assert restored.count_vecs is not None
+
+    def test_aggregate_warns_and_rebuilds_count_vectors(self, tmp_path, monkeypatch, caplog):
+        monkeypatch.chdir(tmp_path)
+        trained = _fed_detector(3)
+        trained.train(_window([0, 1, 4]))
+        receiver = _fed_detector(4)
+
+        with caplog.at_level(logging.WARNING):
+            (receiver + trained).aggregate()
+
+        assert any("window_size 3" in r.message for r in caplog.records)
+        assert receiver.count_vecs is not None
+
+    def test_finalize_federation_removes_the_slow_table(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        detector = _fed_detector(3)
+        detector.train(_window([0, 1, 4]))
+        assert (tmp_path / ".temp").exists()
+
+        detector.finalize_federation()
+
+        assert not (tmp_path / ".temp").exists()

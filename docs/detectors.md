@@ -108,6 +108,22 @@ The detectors are numbered from simplest to most complex, and the sidebar lists 
     `auto_config: true` but no `data_use_configure`, it never picks anything to monitor.
     Write `null`, not `None`, in YAML: `None` is read as a string.
 
+!!! note "Long configure phases spill to disk"
+    With `use_config_data_as_training: true` (the default) every log of the configure phase
+    is kept until training starts, then replayed into training. Up to
+    `train_buffer_max_records` logs (default 100000) stay in memory; beyond that the buffer
+    is written as Parquet files to a private `detectmate-train-*` directory under
+    `train_buffer_dir` (a local path; default: the system temp directory, or `TMPDIR`) and
+    read back when training starts. A warning in the log marks the first spill. The
+    directory is removed once training has read it; a process that is killed leaves it
+    behind, and you can delete it by hand. To keep it off disk, lower `data_use_configure`
+    or set `use_config_data_as_training: false`. In a container, the default directory is
+    in the container's writable layer: point `train_buffer_dir` at a mounted volume when
+    the configure phase is large. Where `/tmp` is a RAM-backed tmpfs (common on Fedora,
+    Arch and Debian 13) the default spill uses RAM, so point `train_buffer_dir` at real
+    disk. NewValueComboDetector reads its configure logs a second time, to learn which
+    combinations are stable, so it keeps a copy of its own, which spills the same way.
+
 Every detector page shows a minimal, working configuration file next to its example. The
 reference below explains the blocks those files use.
 
@@ -148,7 +164,6 @@ There are some parameters, that **every** detector inhertis from `CoreDetectorCo
     | `auto_config` | boolean | True | Runs the configuration step before the training process. |
     | `events` | object | {} | Events configuration dict keyed by event_id. |
     | `global` | object | {} | Instances monitoring event-independent header variables (e.g. hostname, level), keyed by instance name. Written as `global` in YAML. |
-    | `persist` | object, null | None | Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See the Persistency page. |
 
 ???+ note "params"
 
@@ -158,14 +173,34 @@ There are some parameters, that **every** detector inhertis from `CoreDetectorCo
     | `data_use_training` | integer, null | None | Data used for training, if None, training is not done. |
     | `data_use_configure` | integer, null | None | Data used for configuration, if None, configuration is not done. |
     | `use_config_data_as_training` | boolean | True | Combine the configured data in the training process if True. |
+    | `train_buffer_max_records` | integer | 100000 | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
+    | `train_buffer_dir` | string, null | None | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
     | `parser` | string | PARSER | Name of the parser used. |
 <!-- End common_arguments -->
 
-Beyond the common parameters, two groups of detectors inherit group-specific configurations.
+Beyond the common parameters, detectors inherit the parameters of the group they belong to.
+
+### Tracker detectors
+
+The detectors that keep their model in persistency stores ([New Event](detectors/new_event.md), [New Value](detectors/new_value.md), [New Value Combo](detectors/combo.md), [Value Range](detectors/value_range.md), [Charset](detectors/charset.md), [Event Sequence](detectors/event_sequence.md), [Bigram Frequency](detectors/bigram_frequency.md), [SCVS](detectors/scvs_detector.md), [ECVC](detectors/ecvc_detector.md)) share the following parameters, inherited from `TrackerDetectorConfig`. Only these detectors accept a `persist:` block (see [Saving state (persist)](#saving-state-persist)).
+
+<!-- Start tracker_arguments -->
+???+ note "Top level"
+
+    | Field | Type | Default | Description |
+    |---|---|---|---|
+    | `persist` | object, null | None | Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See the Persistency page. |
+
+???+ note "params"
+
+    | Field | Type | Default | Description |
+    |---|---|---|---|
+    | `allow_fed` | boolean | False | Allow to do the federation |
+<!-- End tracker_arguments -->
 
 ### Per-variable model detectors
 
-The detectors that learn a per-variable model ([Bigram Frequency](detectors/bigram_frequency.md), [Charset](detectors/charset.md), [New Value Combo](detectors/combo.md), [New Value](detectors/new_value.md), [Value Range](detectors/value_range.md)) share the following parameters, inherited from `VariableDetectorConfig`.
+The tracker detectors that learn a per-variable model ([Bigram Frequency](detectors/bigram_frequency.md), [Charset](detectors/charset.md), [New Value Combo](detectors/combo.md), [New Value](detectors/new_value.md), [Value Range](detectors/value_range.md)) also share the following parameters, inherited from `VariableDetectorConfig`.
 
 <!-- Start variable_arguments -->
 ??? note "auto_config_params (read only while auto_config is true)"
@@ -425,9 +460,9 @@ matters  --  the index pass keeps every segment populated.
 
 ### Saving state (persist)
 
-Detectors can persist their training state to disk (or cloud storage) so it
-can be restored in a later session. Configure this with a top-level `persist:`
-block in the detector config:
+[Tracker detectors](#tracker-detectors) can persist their training state to disk
+(or cloud storage) so it can be restored in a later session. Configure this with a
+top-level `persist:` block in the detector config:
 
 ```yaml
 detectors:
@@ -444,7 +479,9 @@ detectors:
 ```
 
 All fields are optional  --  `persist: {}` uses all defaults. Omitting `persist:` entirely
-disables saving (backward compatible).
+disables saving (backward compatible). The other detectors (Random, Rule, DeepLog,
+LogBERT) have no state to save: a `persist:` block on them fails at config load with
+`persist: Extra inputs are not permitted`.
 
 The detector name is automatically appended to `path`, so `path: ./state` for a detector
 named `NewValueDetector` writes to `./state/NewValueDetector/`.

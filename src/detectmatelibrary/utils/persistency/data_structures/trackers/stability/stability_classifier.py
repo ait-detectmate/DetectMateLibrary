@@ -3,7 +3,7 @@
 from typing import Dict, List
 import numpy as np
 
-from detectmatelibrary.utils.persistency.rle_list import RLEList
+from detectmatelibrary.utils.persistency.data_structures.trackers.rle_list import RLEList
 from .classification_methods import ClassificationMethods
 
 

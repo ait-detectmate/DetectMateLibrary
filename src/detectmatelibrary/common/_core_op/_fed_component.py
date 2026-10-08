@@ -4,15 +4,15 @@ from typing import Self, overload
 
 
 class IncompatibleFed(Exception):
-    def __init__(self) -> None:
-        super().__init__("Instances are incompatible")
+    def __init__(self, inst_1: object, inst_2: object) -> None:
+        super().__init__(f"Instances are incompatible {type(inst_1)} - {type(inst_2)}")
 
 
 class _CompOp:
     @staticmethod
     def is_compatible(main_inst: object, other_inst: object) -> None:
         if not isinstance(other_inst, type(main_inst)):
-            raise IncompatibleFed()
+            raise IncompatibleFed(main_inst, other_inst)
 
     @staticmethod
     def reset(main_inst: object, attr: str) -> None:
@@ -95,14 +95,25 @@ class FedOperations:
 
         return self.to_binary()
 
+    # ---- Needs to be define by CoreComponent ----------------------------------------------------
+
+    def from_binary(self, binary: bytes) -> object:
+        """From binary, return a new object with the binary."""
+        warnings.warn(f"From binary not implemented, return None for {binary!r}")
+        return None
+
+    # ---- Needs to be define in the componets ----------------------------------------------------
     def to_binary(self) -> bytes | None:
         warnings.warn("To binary not implemented, return None")
         return None
 
-    def from_binary(self, binary: bytes) -> object:
-        warnings.warn(f"From binary not implemented, return None for {binary!r}")
-        return None
+    def load_binary(self, binary: bytes) -> None:
+        """Modify current instance with binary."""
+        warnings.warn(f"Load binary not implemented, return None for {binary!r}")
 
     def aggregate_strategy(self, components: set["FedOperations"]) -> None:
         """Aggregation strategy use by the component."""
         warnings.warn(f"No strategy found, aggregations does nothing for {components}")
+
+    def finalize_federation(self) -> None:
+        pass

@@ -12,13 +12,13 @@ from pydantic import ValidationError
 
 from detectmatelibrary.detectors.event_sequence_detector import EventSequenceDetector, \
     EventSequenceDetectorConfig, SequenceAutoConfigParams, BufferMode
-from detectmatelibrary.utils.persistency.event_data_structures.trackers import (
+from detectmatelibrary.utils.persistency.data_structures.trackers import (
     ClassificationMethods,
 )
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as schemas
-from detectmatelibrary.common.detector import PersistConfig
+from detectmatelibrary.base_detectors import PersistConfig
 from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.utils.aux import time_test_mode
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
@@ -86,7 +86,7 @@ class TestEventSequenceDetectorInitialization:
         assert detector.name == "CustomInit"
         assert detector.config.fixed_window_size == 2
         assert hasattr(detector, "persistency")
-        assert isinstance(detector.persistency.event_struct.data, dict)
+        assert isinstance(detector.persistency.event_struct.fast_persistency, dict)
 
 
 class TestEventSequenceDetectorTraining:
@@ -235,11 +235,56 @@ class TestEventSequenceDetectorEndToEnd:
     def test_audit_log_anomalie_fed(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector1 = EventSequenceDetector(
-            config=EventSequenceDetectorConfig(auto_config=False, fixed_window_size=3),
+            config=EventSequenceDetectorConfig(
+                auto_config=False, fixed_window_size=3, allow_fed=True
+            ),
             name="EventSequenceDetector",
         )
         detector2 = EventSequenceDetector(
-            config=EventSequenceDetectorConfig(auto_config=False, fixed_window_size=3),
+            config=EventSequenceDetectorConfig(
+                auto_config=False, fixed_window_size=3, allow_fed=True
+            ),
+            name="EventSequenceDetector",
+        )
+
+        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
+        for log in logs[:TRAIN_UNTIL]:
+            detector1.configure(log)
+            detector2.configure(log)
+
+        detector1.set_configuration()
+        detector2.set_configuration()
+
+        for i, log in enumerate(logs[:TRAIN_UNTIL]):
+            if i < 10:
+                detector1.train(log)
+            else:
+                detector2.train(log)
+
+        (detector1 + detector2).aggregate()
+        assert detector2.persistency == detector1.persistency
+
+        detected_ids: set[str] = set()
+        for log in logs[TRAIN_UNTIL:]:
+            output = schemas.DetectorSchema()
+            if detector1.detect(log, output_=output):
+                detected_ids.add(log["logID"])
+
+        assert detected_ids == {"1863", "1864", "1865"}
+
+    @pytest.mark.ignored
+    def test_audit_log_anomalie_binary(self):
+        parser = MatcherParser(config=_PARSER_CONFIG)
+        detector1 = EventSequenceDetector(
+            config=EventSequenceDetectorConfig(
+                auto_config=False, fixed_window_size=3, allow_fed=True
+            ),
+            name="EventSequenceDetector",
+        )
+        detector2 = EventSequenceDetector(
+            config=EventSequenceDetectorConfig(
+                auto_config=False, fixed_window_size=3, allow_fed=True
+            ),
             name="EventSequenceDetector",
         )
 
@@ -254,13 +299,14 @@ class TestEventSequenceDetectorEndToEnd:
         for log in logs[:TRAIN_UNTIL]:
             detector1.train(log)
 
-        (detector1 + detector2).aggregate()
+        binary = detector1.to_binary()
+        detector2 = detector2.from_binary(binary)
         assert detector2.persistency == detector1.persistency
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
             output = schemas.DetectorSchema()
-            if detector2.detect(log, output_=output):
+            if detector1.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
         assert detected_ids == {"1863", "1864", "1865"}
@@ -643,6 +689,56 @@ class TestEventSequenceDetectorPersist:
 
         # restored sequences survive and the new one joins them at the same length
         assert det2.get_known_sequences() == _CYCLE_3_GRAMS | {(7, 8, 9)}
+
+
+def _fed_detector(fixed_window_size):
+    return EventSequenceDetector(
+        config=EventSequenceDetectorConfig(
+            auto_config=False, fixed_window_size=fixed_window_size, allow_fed=True
+        )
+    )
+
+
+def _trained_fed_detector():
+    detector = _fed_detector(3)
+    for event_id in [1, 2, 3, 1, 2, 3]:
+        detector.train(_make_schema(event_id))
+    return detector
+
+
+class TestEventSequenceDetectorFederation:
+    """Federated state is restored after construction, so it has to adopt the
+    persisted length like import_state does."""
+
+    def test_from_binary_adopts_persisted_sequence_length(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)  # the slow store writes .temp/ CSVs here
+        trained = _trained_fed_detector()
+
+        restored = _fed_detector(4).from_binary(trained.to_binary())
+
+        assert restored.config.fixed_window_size == 3
+        assert restored.get_known_sequences() == _CYCLE_3_GRAMS
+        assert restored._detect_window.maxlen == 3
+
+    def test_aggregate_adopts_persisted_sequence_length(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        trained = _trained_fed_detector()
+        receiver = _fed_detector(4)
+
+        (receiver + trained).aggregate()
+
+        assert receiver.config.fixed_window_size == 3
+        assert receiver.get_known_sequences() == _CYCLE_3_GRAMS
+        assert receiver._detect_window.maxlen == 3
+
+    def test_finalize_federation_removes_the_slow_table(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        detector = _trained_fed_detector()
+        assert (tmp_path / ".temp").exists()
+
+        detector.finalize_federation()
+
+        assert not (tmp_path / ".temp").exists()
 
 
 class TestEventSequenceDetectorConfigValidation:

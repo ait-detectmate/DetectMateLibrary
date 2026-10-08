@@ -1,7 +1,4 @@
-from detectmatelibrary.common.variable_detector import VariableDetector, VariableDetectorConfig
-from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
-    SingleStabilityTracker,
-)
+from detectmatelibrary.base_detectors import SingleStabilityTracker, VariableDetector, VariableDetectorConfig
 
 from typing import Any, Dict, Optional
 

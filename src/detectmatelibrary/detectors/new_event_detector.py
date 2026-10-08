@@ -1,11 +1,9 @@
-from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector
-
-from detectmatelibrary.common._other_op._variable_hooks import get_global_variables
-from detectmatelibrary.common._other_op._variable_hooks import VariablesLogic
-
-from detectmatelibrary.common._config._compile import get_configured_variables
-from detectmatelibrary.common._config._compile import generate_events_config
-
+from detectmatelibrary.common._config._compile import (
+    generate_events_config,
+    get_configured_variables,
+    get_global_variables,
+)
+from detectmatelibrary.base_detectors import TrackerDetector, TrackerDetectorConfig
 
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.utils.data_buffer import BufferMode
@@ -14,13 +12,13 @@ from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 from pydantic import Field
 
 
-class NewEventDetectorConfig(CoreDetectorConfig):
+class NewEventDetectorConfig(TrackerDetectorConfig):
     method_type: str = Field(
         default="new_event_detector", description="Indicates what type of method it is."
     )
 
 
-class NewEventDetector(CoreDetector, VariablesLogic):
+class NewEventDetector(TrackerDetector):
     """Detect new values in log data as anomalies based on learned values."""
 
     def __init__(
@@ -32,11 +30,8 @@ class NewEventDetector(CoreDetector, VariablesLogic):
         if isinstance(config, dict):
             config = NewEventDetectorConfig.from_dict(config, name)
 
-        CoreDetector.__init__(self, name=name, buffer_mode=BufferMode.NO_BUF, config=config)
+        super().__init__(name=name, config=config, buffer_mode=BufferMode.NO_BUF)
         self.config: NewEventDetectorConfig
-
-        VariablesLogic.__init__(self, name=self.name)
-        self._register_persistency(self.persistency)
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by learning values from the input data."""
@@ -87,6 +82,3 @@ class NewEventDetector(CoreDetector, VariablesLogic):
         # the configure phase produces an empty events block.
         self.config.events = generate_events_config({}, self.name)
         self.config.auto_config = False
-
-    def aggregate_strategy(self, components: set["NewEventDetector"]) -> None:  # type: ignore
-        self.combine(components)  # type: ignore

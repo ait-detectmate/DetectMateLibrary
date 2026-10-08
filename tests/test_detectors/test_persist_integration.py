@@ -6,6 +6,10 @@ import numpy as np
 import pytest
 
 from detectmatelibrary import schemas
+from detectmatelibrary.detectors.deeplog_detector import DeeplogDetector
+from detectmatelibrary.detectors.random_detector import RandomDetector
+from detectmatelibrary.parsers.drain import DrainParser
+from detectmatelibrary.parsers.json_parser import JsonParser
 from detectmatelibrary.detectors.ecvc_detector import ECVCDetector, ECVCDetectorConfig
 from detectmatelibrary.detectors.scvs_detector import SCVSDetector, SCVSDetectorConfig
 from detectmatelibrary.utils.sequence_encoding import decode_count_vec, encode_count_vec
@@ -16,7 +20,7 @@ from detectmatelibrary.detectors.new_value_combo_detector import (
 )
 from detectmatelibrary.detectors.new_event_detector import NewEventDetector, NewEventDetectorConfig
 from detectmatelibrary.detectors.rule_detector import RuleDetector
-from detectmatelibrary.utils.persistency.component_interfaces import PersistConfig
+from detectmatelibrary.base_detectors import PersistConfig
 from detectmatelibrary.utils.persistency.persistency_saver import PersistencySaver
 
 
@@ -286,6 +290,19 @@ UNSEEN_WINDOW = [4, 4, 4, 4]
 
 def _window(event_ids):
     return [schemas.ParserSchema({"EventID": i}) for i in event_ids]
+
+
+class TestStatelessComponents:
+    """Pipelines call the state API on every component; components that keep no
+    EventPersistency answer with no-ops."""
+
+    @pytest.mark.parametrize("component_cls", [JsonParser, DrainParser, DeeplogDetector, RandomDetector])
+    def test_state_api_is_a_no_op(self, component_cls):
+        with component_cls() as component:
+            assert component.export_state() is None
+            assert component.export_state("memory://stateless/state") is None
+            component.import_state("memory://stateless/never_saved")
+            component.import_state(b"not a state archive")
 
 
 class TestCountVecCodec:

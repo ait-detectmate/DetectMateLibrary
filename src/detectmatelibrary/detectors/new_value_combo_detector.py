@@ -1,14 +1,11 @@
 from detectmatelibrary.common._config import generate_events_config
-from detectmatelibrary.common._other_op._variable_hooks import VariableAutoConfigParams
-from detectmatelibrary.common.variable_detector import (
+from detectmatelibrary.common._config._compile import get_configured_variables
+from detectmatelibrary.common._core_op._train_buffer import TrainBuffer
+from detectmatelibrary.base_detectors import (
+    SingleStabilityTracker,
+    VariableAutoConfigParams,
     VariableDetector,
     VariableDetectorConfig,
-)
-from detectmatelibrary.common._config._compile import get_configured_variables
-
-from detectmatelibrary.utils import persistency
-from detectmatelibrary.utils.persistency.event_data_structures.trackers.stability.stability_tracker import (
-    SingleStabilityTracker,
 )
 
 from detectmatelibrary.schemas import ParserSchema
@@ -82,13 +79,16 @@ class NewValueComboDetector(VariableDetector):
         super().__init__(name=name, config=config)
         self.config: NewValueComboDetectorConfig  # type narrowing for IDE
         # second-pass persistency to learn stability of variable combinations
-        self.auto_conf_persistency_combos = persistency.EventPersistency(
-            event_data_class=persistency.EventStabilityTracker,
-            event_data_kwargs=self._with_classification_kwargs(
-                {"converter_function": get_all_possible_combos}
-            ),
+        self.auto_conf_persistency_combos = self._new_store(
+            {"converter_function": get_all_possible_combos}, classified=True
         )
-        self.inputs: list[ParserSchema] = []
+        # configure inputs for the second pass; past train_buffer_max_records they spill to disk
+        self.inputs = TrainBuffer(
+            ParserSchema,
+            max_records=self.config.train_buffer_max_records,
+            spill_dir=self.config.train_buffer_dir,
+            name=self.name,
+        )
 
     def _event_data_kwargs(self) -> Optional[Dict[str, Any]]:
         return {"converter_function": get_combo}
@@ -118,7 +118,7 @@ class NewValueComboDetector(VariableDetector):
 
     def configure(self, input_: ParserSchema) -> None:  # type: ignore
         # store inputs to re-ingest after the first configuration pass
-        self.inputs.append(input_)
+        self.inputs.add(input_)
         super().configure(input_)
 
     def set_configuration(self, max_combo_size: int | None = None) -> None:
@@ -135,19 +135,21 @@ class NewValueComboDetector(VariableDetector):
         # pass 1: stable individual variables -> combos
         variable_combos = {}
         for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
-            stable_vars = tracker.get_features_by_classification("STABLE")  # type: ignore
+            stable_vars = tracker.get_features_by_classification("STABLE")
             if len(stable_vars) > 1:
                 variable_combos[event_id] = stable_vars
-        self.config.events = generate_events_config(variable_combos, self.name)
+        self.config.events = generate_events_config(variable_combos, self.name)  # type: ignore
 
-        # re-ingest all inputs to learn combos under the new configuration
-        for input_ in self.inputs:
+        # re-ingest all inputs to learn combos under the new configuration;
+        # replaying empties the buffer and removes its spill files
+        for record in self.inputs:
+            input_ = cast(ParserSchema, record)
             configured_variables = get_configured_variables(input_, self.config.events)
             self.auto_conf_persistency_combos.ingest_event(
                 event_id=input_["EventID"],
                 event_template=input_["template"],
                 named_variables=configured_variables,
-                timestamp=self._timestamp(input_),
+                timestamp=self._timestamps.read(input_),
             )
 
         # pass 2: stable/static combos -> final config
@@ -158,19 +160,19 @@ class NewValueComboDetector(VariableDetector):
             tracker,
         ) in self.auto_conf_persistency_combos.get_events_data().items():
             stable_combos = (
-                tracker.get_features_by_classification("STABLE")  # type: ignore
+                tracker.get_features_by_classification("STABLE")
                 if auto.use_stable_vars
                 else []
             )
             static_combos = (
-                tracker.get_features_by_classification("STATIC")  # type: ignore
+                tracker.get_features_by_classification("STATIC")
                 if auto.use_static_vars
                 else []
             )
             combos = stable_combos + static_combos
             if combos:
                 combo_selection[event_id] = combos
-        self.config.events = generate_events_config(combo_selection, self.name)
+        self.config.events = generate_events_config(combo_selection, self.name)  # type: ignore
         self.config.auto_config = False
         if not self.config.events.events:
             logger.warning(

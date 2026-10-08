@@ -5,10 +5,10 @@ import pytest
 from pydantic import ValidationError
 
 from detectmatelibrary.common._config._compile import MissingParamsWarning
-from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
+from detectmatelibrary.common.detector import CoreDetectorConfig
 from detectmatelibrary.detectors.new_value_detector import NewValueDetectorConfig
-from detectmatelibrary.utils.persistency.component_interfaces import PersistConfig
-from detectmatelibrary.utils.persistency.event_data_structures.trackers import EventStabilityTracker
+from detectmatelibrary.base_detectors import PersistConfig, TrackerDetectorConfig
+from detectmatelibrary.base_detectors._persist import start_saver
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
 
 
@@ -56,47 +56,40 @@ class TestPersistConfigStateDirectoryDefault:
         assert PersistConfig(path="s3://bucket/state").path == "s3://bucket/state"
 
 
-class TestCoreDetectorConfigPersistField:
+class TestTrackerDetectorConfigPersistField:
     def test_persist_is_none_by_default(self):
-        cfg = CoreDetectorConfig()
+        cfg = TrackerDetectorConfig()
         assert cfg.persist is None
 
     def test_persist_accepts_persist_config(self):
-        cfg = CoreDetectorConfig(persist=PersistConfig(path="./custom"))
+        cfg = TrackerDetectorConfig(persist=PersistConfig(path="./custom"))
         assert cfg.persist is not None
         assert cfg.persist.path == "./custom"
 
     def test_persist_accepts_none_explicitly(self):
-        cfg = CoreDetectorConfig(persist=None)
+        cfg = TrackerDetectorConfig(persist=None)
         assert cfg.persist is None
 
+    def test_core_detector_config_has_no_persist(self):
+        with pytest.raises(ValidationError, match="persist"):
+            CoreDetectorConfig(persist=None)
 
-class TestRegisterPersistency:
-    def test_noop_when_persist_is_none(self):
-        det = CoreDetector()
-        p = EventPersistency(event_data_class=EventStabilityTracker)
-        det._register_persistency(p)
-        assert det.saver is None
+
+class TestStartSaver:
+    def test_none_when_persist_is_none(self):
+        assert start_saver("MyDetector", None, EventPersistency()) is None
 
     def test_creates_saver_when_persist_configured(self):
-        config = CoreDetectorConfig(
-            persist=PersistConfig(path="memory://regpersist_create/state")
-        )
-        det = CoreDetector(config=config)
-        p = EventPersistency(event_data_class=EventStabilityTracker)
-        det._register_persistency(p)
-        assert det.saver is not None
-        det.saver.stop()
+        persist = PersistConfig(path="memory://regpersist_create/state")
+        saver = start_saver("MyDetector", persist, EventPersistency())
+        assert saver is not None
+        saver.stop()
 
     def test_saver_path_includes_detector_name(self):
-        config = CoreDetectorConfig(
-            persist=PersistConfig(path="memory://regpersist_path/state")
-        )
-        det = CoreDetector(name="MyDetector", config=config)
-        p = EventPersistency(event_data_class=EventStabilityTracker)
-        det._register_persistency(p)
-        assert det.saver is not None
-        det.saver.stop()  # stop() calls save() as final save
+        persist = PersistConfig(path="memory://regpersist_path/state")
+        saver = start_saver("MyDetector", persist, EventPersistency())
+        assert saver is not None
+        saver.stop()  # stop() calls save() as final save
         fs = fsspec.filesystem("memory")
         assert fs.exists("regpersist_path/state/MyDetector/metadata.json")
 

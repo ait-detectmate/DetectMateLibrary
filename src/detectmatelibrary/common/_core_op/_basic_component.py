@@ -1,4 +1,3 @@
-from detectmatelibrary.utils.persistency.component_interfaces import Stoppable
 from detectmatelibrary.schemas import BaseSchema
 
 from detectmatelibrary.common._config import BasicConfig
@@ -19,7 +18,6 @@ class Component(Generic[TInput, TOutput]):
         config: BasicConfig = BasicConfig(),
     ) -> None:
         self.name, self.type_, self.config = name, type_, config
-        self.saver: Stoppable | None = None
 
     def __repr__(self) -> str:
         return f"<{self.type_}> {self.name}: {self.config}"
@@ -55,5 +53,4 @@ class Component(Generic[TInput, TOutput]):
         return self
 
     def __exit__(self, *_: Any) -> None:
-        if self.saver is not None:
-            self.saver.stop()
+        pass

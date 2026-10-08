@@ -6,12 +6,19 @@ This section explains how to use the federation setup. For a component to suppor
 def to_binary(self) -> bytes | None:
     """(Federation only) Serialize to bytes for federation operations."""
 
-def from_binary(self, binary: bytes) -> object:
-    """(Federation only) Deserialize from bytes for federation operations."""
+def load_binary(self, binary: bytes) -> None:
+    """(Federation only) Deserialize from bytes and update instance for federation operations."""
 
 def aggregate_strategy(self, components: set["FedOperations"]) -> None:
     """(Federation only) Define how to aggregate a set of federated components."""
+
+def finalize_federation(self) -> None:
+    """(Federation only) Liberate memory from federation"""
 ```
+
+The tracker detectors (subclasses of `base_detectors.TrackerDetector`: New Event, New Value, New Value Combo, Value Range, Charset, Event Sequence, Bigram Frequency, SCVS and ECVC) implement all four in `TrackerDetector`, which is the reference implementation. Set `allow_fed: true` in their `params` to enable it.
+
+`from_binary` rebuilds the detector as `type(self)(name=..., config=...)`, so a `TrackerDetector` subclass must be constructible from its name and config alone; give any other constructor argument a default.
 
 There are two main ways to use federation:
 
