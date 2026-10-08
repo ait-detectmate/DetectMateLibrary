@@ -95,13 +95,22 @@ class FedOperations:
 
         return self.to_binary()
 
+    def from_binary(self, binary: bytes) -> object:
+        """From binary, return a new object with the binary."""
+        warnings.warn(f"From binary not implemented, return None for {binary!r}")
+        return None
+
+    # ---- Needs to be define by CoreComponent ----------------------------------------------------
+
     def to_binary(self) -> bytes | None:
         warnings.warn("To binary not implemented, return None")
         return None
 
-    def from_binary(self, binary: bytes) -> object:
-        warnings.warn(f"From binary not implemented, return None for {binary!r}")
-        return None
+    # ---- Needs to be define in the componets ----------------------------------------------------
+
+    def load_binary(self, binary: bytes) -> None:
+        """Modify current instance with binary."""
+        warnings.warn(f"Load binary not implemented, return None for {binary!r}")
 
     def aggregate_strategy(self, components: set["FedOperations"]) -> None:
         """Aggregation strategy use by the component."""
