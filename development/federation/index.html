@@ -2030,8 +2030,8 @@
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">to_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""(Federation only) Serialize to bytes for federation operations."""</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">from_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binary</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">object</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""(Federation only) Deserialize from bytes for federation operations."""</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binary</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""(Federation only) Deserialize from bytes and update instance for federation operations."""</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">aggregate_strategy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">components</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="s2">"FedOperations"</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""(Federation only) Define how to aggregate a set of federated components."""</span>
