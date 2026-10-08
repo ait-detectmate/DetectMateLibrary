@@ -90,11 +90,11 @@ Based on the example above:
 
 A parsed log would contain fields like:
 
-| Field              | Value                                                  |
-|--------------------|--------------------------------------------------------|
-| Template           | `hello I am a log about <*> and about <*>`              |
-| Variables          | `["DetectMate getting started", "what is a log"]`      |
-| LogFormatVariables | `{"Level": "INFO", "Time": "18-05-2005"}`              |
+| Field                | Value                                                  |
+|----------------------|--------------------------------------------------------|
+| `template`           | `hello I am a log about <*> and about <*>`              |
+| `variables`          | `["DetectMate getting started", "what is a log"]`      |
+| `logFormatVariables` | `{"Level": "INFO", "Time": "18-05-2005", "Content": "hello I am a log about DetectMate getting started and about what is a log"}` |
 
 Parsed logs expose structured data that downstream detection components use for
 anomaly detection.
