@@ -781,6 +781,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#tracker-detectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tracker detectors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#per-variable-model-detectors" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2226,6 +2237,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#tracker-detectors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tracker detectors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#per-variable-model-detectors" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2657,12 +2679,6 @@ reference below explains the blocks those files use.</p>
 <td>{}</td>
 <td>Instances monitoring event-independent header variables (e.g. hostname, level), keyed by instance name. Written as <code>global</code> in YAML.</td>
 </tr>
-<tr>
-<td><code>persist</code></td>
-<td>object, null</td>
-<td>None</td>
-<td>Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See the Persistency page.</td>
-</tr>
 </tbody>
 </table>
 </details>
@@ -2725,10 +2741,31 @@ reference below explains the blocks those files use.</p>
 </details>
 <!-- End common_arguments -->
 
-<p>Beyond the common parameters, two groups of detectors inherit group-specific configurations.</p>
-<h3 id="per-variable-model-detectors">Per-variable model detectors</h3>
-<p>The detectors that learn a per-variable model (<a href="bigram_frequency/">Bigram Frequency</a>, <a href="charset/">Charset</a>, <a href="combo/">New Value Combo</a>, <a href="new_value/">New Value</a>, <a href="value_range/">Value Range</a>) share the following parameters, inherited from <code>VariableDetectorConfig</code>.</p>
-<!-- Start variable_arguments -->
+<p>Beyond the common parameters, detectors inherit the parameters of the group they belong to.</p>
+<h3 id="tracker-detectors">Tracker detectors</h3>
+<p>The detectors that keep their model in persistency stores (<a href="new_event/">New Event</a>, <a href="new_value/">New Value</a>, <a href="combo/">New Value Combo</a>, <a href="value_range/">Value Range</a>, <a href="charset/">Charset</a>, <a href="event_sequence/">Event Sequence</a>, <a href="bigram_frequency/">Bigram Frequency</a>, <a href="scvs_detector/">SCVS</a>, <a href="ecvc_detector/">ECVC</a>) share the following parameters, inherited from <code>TrackerDetectorConfig</code>. Only these detectors accept a <code>persist:</code> block (see <a href="#saving-state-persist">Saving state (persist)</a>).</p>
+<!-- Start tracker_arguments -->
+<details class="note" open="open">
+<summary>Top level</summary>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>persist</code></td>
+<td>object, null</td>
+<td>None</td>
+<td>Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See the Persistency page.</td>
+</tr>
+</tbody>
+</table>
+</details>
 <details class="note" open="open">
 <summary>params</summary>
 <table>
@@ -2750,6 +2787,11 @@ reference below explains the blocks those files use.</p>
 </tbody>
 </table>
 </details>
+<!-- End tracker_arguments -->
+
+<h3 id="per-variable-model-detectors">Per-variable model detectors</h3>
+<p>The tracker detectors that learn a per-variable model (<a href="bigram_frequency/">Bigram Frequency</a>, <a href="charset/">Charset</a>, <a href="combo/">New Value Combo</a>, <a href="new_value/">New Value</a>, <a href="value_range/">Value Range</a>) also share the following parameters, inherited from <code>VariableDetectorConfig</code>.</p>
+<!-- Start variable_arguments -->
 <details class="note">
 <summary>auto_config_params (read only while auto_config is true)</summary>
 <table>
@@ -3186,9 +3228,9 @@ variable still do, routinely, so <code>time</code> on its own is lenient towards
 churn followed by silence. Enable <code>index</code> and <code>time</code> together when that leniency
 matters  --  the index pass keeps every segment populated.</p>
 <h3 id="saving-state-persist">Saving state (persist)</h3>
-<p>Detectors can persist their training state to disk (or cloud storage) so it
-can be restored in a later session. Configure this with a top-level <code>persist:</code>
-block in the detector config:</p>
+<p><a href="#tracker-detectors">Tracker detectors</a> can persist their training state to disk
+(or cloud storage) so it can be restored in a later session. Configure this with a
+top-level <code>persist:</code> block in the detector config:</p>
 <div class="highlight"><pre><span></span><code><span class="nt">detectors</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">NewValueDetector</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">new_value_detector</span>
@@ -3202,7 +3244,9 @@ block in the detector config:</p>
 <span class="w">      </span><span class="l l-Scalar l-Scalar-Plain">...</span>
 </code></pre></div>
 <p>All fields are optional  --  <code>persist: {}</code> uses all defaults. Omitting <code>persist:</code> entirely
-disables saving (backward compatible).</p>
+disables saving (backward compatible). The other detectors (Random, Rule, DeepLog,
+LogBERT) have no state to save: a <code>persist:</code> block on them fails at config load with
+<code>persist: Extra inputs are not permitted</code>.</p>
 <p>The detector name is automatically appended to <code>path</code>, so <code>path: ./state</code> for a detector
 named <code>NewValueDetector</code> writes to <code>./state/NewValueDetector/</code>.</p>
 <h4 id="running-under-systemd">Running under systemd</h4>

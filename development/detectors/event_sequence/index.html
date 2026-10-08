@@ -2308,13 +2308,6 @@
 <td>Length of the sliding EventID window. A window whose exact EventID sequence was not seen during training is reported as an anomaly. When set it overrides the <code>auto_config_params</code> window range and skips auto-configuration; auto-configuration writes its own choice here. While it is None the detector is unconfigured and neither trains nor alerts.</td>
 </tr>
 <tr>
-<td><code>allow_fed</code></td>
-<td>boolean</td>
-<td>False</td>
-<td>specific</td>
-<td>Allow to do the federation</td>
-</tr>
-<tr>
 <td><code>start_id</code></td>
 <td>integer</td>
 <td>10</td>
@@ -2362,6 +2355,13 @@
 <td>PARSER</td>
 <td>shared</td>
 <td>Name of the parser used.</td>
+</tr>
+<tr>
+<td><code>allow_fed</code></td>
+<td>boolean</td>
+<td>False</td>
+<td>shared</td>
+<td>Allow to do the federation</td>
 </tr>
 </tbody>
 </table>

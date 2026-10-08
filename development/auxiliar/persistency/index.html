@@ -2343,11 +2343,11 @@ state has to be written somewhere. <code>PersistencySaver</code> wraps an
 <li>optionally <code>auto_load</code>s previously saved state during construction;</li>
 <li>exposes <code>start()</code> / <code>stop()</code> so the background timer can be torn down
   cleanly. <code>stop()</code> is idempotent and is called automatically when a
-  <code>Component</code> is used as a context manager.</li>
+  tracker detector is used as a context manager.</li>
 </ul>
-<p>In practice a detector never instantiates <code>PersistencySaver</code> directly: it sets
-a <code>persist:</code> block in its config and <code>CoreDetector</code> wires the saver up via
-<code>init_persistency</code>.</p>
+<p>In practice a detector never instantiates <code>PersistencySaver</code> directly: a
+tracker detector (a subclass of <code>base_detectors.TrackerDetector</code>) takes a <code>persist:</code>
+block in its config and <code>TrackerDetector</code> starts the saver.</p>
 <hr />
 <h2 id="quick-start">Quick start</h2>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">persistency</span>
@@ -2488,44 +2488,51 @@ the methods on the detector object directly  --  no need to access
 <span class="c1"># Import from bytes (e.g. from an API request body)</span>
 <span class="n">detector</span><span class="o">.</span><span class="n">import_state</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 </code></pre></div>
-<p><code>import_state</code> is thread-safe: it acquires the saver lock before loading when
-a <code>PersistencySaver</code> is running. Both methods raise <code>RuntimeError</code> if the
-detector has no persistency configured.</p>
+<p>Both methods are thread-safe: they hold the saver lock while a
+<code>PersistencySaver</code> is running. Only tracker detectors have state; on any other
+component <code>export_state()</code> returns <code>None</code> and <code>import_state()</code> does nothing.</p>
 <h3 id="storage-backends-fsspec">Storage backends (fsspec)</h3>
 <p><code>PersistencySaverConfig.path</code> accepts any URI fsspec understands: a local path
 (<code>./state</code>), <code>s3://bucket/key</code>, <code>gs://...</code>, <code>az://...</code>, and so on. Provider
 credentials and tuning knobs go in <code>storage_options</code>.</p>
 <hr />
 <h2 id="using-persistency-inside-a-detector">Using persistency inside a detector</h2>
-<p>The recommended path: declare <code>persist:</code> in the detector's config and let
-<code>CoreDetector._register_persistency</code> build the saver for you. See
-<a href="../../detectors/#saving-state-persist">Saving state (persist)</a> for the config
-schema.</p>
+<p>Detectors do not import <code>utils.persistency</code>. A detector that keeps state
+subclasses <code>base_detectors.TrackerDetector</code>, which owns the stores, the
+<code>persist:</code> saver, <code>export_state()</code> / <code>import_state()</code> and federation. The
+tracker detectors are New Event, New Value, New Value Combo, Value Range,
+Charset, Event Sequence, Bigram Frequency, SCVS and ECVC; only they accept a
+<code>persist:</code> block. See <a href="../../detectors/#saving-state-persist">Saving state (persist)</a>
+for the config schema.</p>
 <p>In detector code, the pattern is:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.common.detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreDetector</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">persistency</span>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.base_detectors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrackerDetector</span><span class="p">,</span> <span class="n">TrackerDetectorConfig</span>
 
-<span class="k">class</span><span class="w"> </span><span class="nc">MyDetector</span><span class="p">(</span><span class="n">CoreDetector</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MyDetectorConfig</span><span class="p">(</span><span class="n">TrackerDetectorConfig</span><span class="p">):</span>
+    <span class="n">method_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"my_detector"</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyDetector</span><span class="p">(</span><span class="n">TrackerDetector</span><span class="p">):</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"MyDetector"</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">MyDetectorConfig</span><span class="p">()):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">persistency</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">EventPersistency</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_register_persistency</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">persistency</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">persistency</span><span class="o">.</span><span class="n">ingest_event</span><span class="p">(</span>
-            <span class="n">event_id</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">"EventID"</span><span class="p">],</span>
-            <span class="n">event_template</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">"template"</span><span class="p">],</span>
-            <span class="n">named_variables</span><span class="o">=</span><span class="p">{</span><span class="o">...</span><span class="p">},</span>
-        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ingest</span><span class="p">(</span><span class="n">input_</span><span class="p">,</span> <span class="n">variables</span><span class="o">=</span><span class="p">{</span><span class="o">...</span><span class="p">},</span> <span class="n">event_id</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">"EventID"</span><span class="p">])</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">detect</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">,</span> <span class="n">output_</span><span class="p">):</span>
         <span class="n">tracker</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">persistency</span><span class="o">.</span><span class="n">get_events_data</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">input_</span><span class="p">[</span><span class="s2">"EventID"</span><span class="p">])</span>
         <span class="c1"># compare against tracker to produce alerts</span>
 </code></pre></div>
-<p><code>_register_persistency</code> is a one-line wrapper around
-<code>init_persistency</code>; the helper
-honours <code>config.persist</code> and returns <code>None</code> (so <code>self.saver</code> stays <code>None</code>)
-when persistence is disabled.</p>
+<p><code>TrackerDetector</code> builds <code>self.persistency</code>, the store training and detection
+use, and <code>self.auto_conf_persistency</code>, the configure-phase store. Override
+<code>_event_data_kwargs()</code> / <code>_auto_conf_kwargs()</code> to pass tracker kwargs, and call
+<code>self._new_store()</code> for any extra store. Without a <code>persist:</code> block,
+<code>self.saver</code> stays <code>None</code>.</p>
+<p>Rebuild fields derived from the stores (a count vector, a window length) in
+<code>_sync_from_state()</code>. <code>TrackerDetector</code> calls it at the end of <code>__init__</code>
+(after a possible <code>auto_load</code>), after <code>import_state()</code>, on the detector
+<code>from_binary()</code> returns, and on every component after <code>aggregate_strategy()</code>.
+The first call runs inside <code>TrackerDetector.__init__</code>, so anything it reads or
+writes must exist before <code>super().__init__()</code> returns: declare it as a class
+attribute or assign it before the call.</p>
 
 
 

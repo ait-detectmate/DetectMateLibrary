@@ -2039,6 +2039,8 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">finalize_federation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""(Federation only) Liberate memory from federation"""</span>
 </code></pre></div>
+<p>The tracker detectors (subclasses of <code>base_detectors.TrackerDetector</code>: New Event, New Value, New Value Combo, Value Range, Charset, Event Sequence, Bigram Frequency, SCVS and ECVC) implement all four in <code>TrackerDetector</code>, which is the reference implementation. Set <code>allow_fed: true</code> in their <code>params</code> to enable it.</p>
+<p><code>from_binary</code> rebuilds the detector as <code>type(self)(name=..., config=...)</code>, so a <code>TrackerDetector</code> subclass must be constructible from its name and config alone; give any other constructor argument a default.</p>
 <p>There are two main ways to use federation:</p>
 <ul>
 <li><strong>Combine first</strong>: This can only be used when all components run locally. The main idea is to simplify the process by allowing components to share memory.</li>

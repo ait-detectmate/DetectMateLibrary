@@ -2149,19 +2149,17 @@ and can be installed as part of the <code>dev</code> extras. To ensure pre-commi
 </code></pre></div>
 <h2 id="implement-auto-configuration-in-a-detector">Implement auto-configuration in a detector</h2>
 <p>The user-facing side of auto-configuration is described in the <a href="../detectors/#auto-configuration-optional">Detectors overview</a>. This section covers what a detector has to implement to support it.</p>
-<p>A detector that supports auto-configuration typically creates a separate <code>EventPersistency</code> instance for this purpose (but doesn't have to):</p>
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">MyDetector</span><span class="p">(</span><span class="n">CoreDetector</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">...</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<p>A detector that supports auto-configuration subclasses <code>base_detectors.TrackerDetector</code>, which builds two stores: <code>self.persistency</code> for training and detection, and a separate <code>self.auto_conf_persistency</code> for auto-configuration. Detectors never build stores from <code>utils.persistency</code> themselves:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.base_detectors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrackerDetector</span><span class="p">,</span> <span class="n">TrackerDetectorConfig</span>
 
-        <span class="c1"># main persistency for training / detection</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">persistency</span> <span class="o">=</span> <span class="n">EventPersistency</span><span class="p">(</span>
-            <span class="n">event_data_class</span><span class="o">=</span><span class="n">EventStabilityTracker</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="c1"># separate persistency for auto-configuration</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">auto_conf_persistency</span> <span class="o">=</span> <span class="n">EventPersistency</span><span class="p">(</span>
-            <span class="n">event_data_class</span><span class="o">=</span><span class="n">EventStabilityTracker</span><span class="p">,</span>
-        <span class="p">)</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyDetectorConfig</span><span class="p">(</span><span class="n">TrackerDetectorConfig</span><span class="p">):</span>
+    <span class="n">method_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"my_detector"</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MyDetector</span><span class="p">(</span><span class="n">TrackerDetector</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"MyDetector"</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">MyDetectorConfig</span><span class="p">()):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
 </code></pre></div>
 <p>The <code>configure()</code> method ingests all available variables (not just configured ones) so the tracker can assess each one:</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">):</span>
