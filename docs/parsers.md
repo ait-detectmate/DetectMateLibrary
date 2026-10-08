@@ -32,7 +32,7 @@ class CoreParser:
         - Return True if parsing succeeded and output_ contains a result.
         """
 
-    def train(self, input_: Iterable[schemas.LogSchema]) -> None:
+    def train(self, input_: schemas.LogSchema) -> None:
         """Optional: train internal models. Can be a no-op for stateless parsers."""
 ```
 
@@ -57,9 +57,11 @@ Example:
 
 ```python
 # filepath: src/detectmatelibrary/parsers/my_parser.py
+import time
+from typing import Any
+
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
 from detectmatelibrary import schemas
-from typing import Any
 
 
 class MyParserConfig(CoreParserConfig):
