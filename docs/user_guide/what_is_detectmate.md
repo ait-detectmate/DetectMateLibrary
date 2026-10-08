@@ -1,6 +1,6 @@
 # What is DetectMate?
 
-Welcome to the documentation for the DetectMate Library. DetectMate is a library for anomaly detection in log data.
+DetectMate is a library for anomaly detection in log data.
 It is built from ready-made building blocks (parsers, detectors and aggregators) that you combine into a detection pipeline.
 
 ## Why use DetectMate?
