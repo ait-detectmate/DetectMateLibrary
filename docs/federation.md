@@ -6,8 +6,8 @@ This section explains how to use the federation setup. For a component to suppor
 def to_binary(self) -> bytes | None:
     """(Federation only) Serialize to bytes for federation operations."""
 
-def from_binary(self, binary: bytes) -> object:
-    """(Federation only) Deserialize from bytes for federation operations."""
+def load_binary(self, binary: bytes) -> None:
+    """(Federation only) Deserialize from bytes and update instance for federation operations."""
 
 def aggregate_strategy(self, components: set["FedOperations"]) -> None:
     """(Federation only) Define how to aggregate a set of federated components."""

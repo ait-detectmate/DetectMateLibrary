@@ -95,18 +95,17 @@ class FedOperations:
 
         return self.to_binary()
 
+    # ---- Needs to be define by CoreComponent ----------------------------------------------------
+
     def from_binary(self, binary: bytes) -> object:
         """From binary, return a new object with the binary."""
         warnings.warn(f"From binary not implemented, return None for {binary!r}")
         return None
 
-    # ---- Needs to be define by CoreComponent ----------------------------------------------------
-
+    # ---- Needs to be define in the componets ----------------------------------------------------
     def to_binary(self) -> bytes | None:
         warnings.warn("To binary not implemented, return None")
         return None
-
-    # ---- Needs to be define in the componets ----------------------------------------------------
 
     def load_binary(self, binary: bytes) -> None:
         """Modify current instance with binary."""
