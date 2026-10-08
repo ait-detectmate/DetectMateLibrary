@@ -55,7 +55,7 @@ know, but not the letter inside.
 For example:
 
 ```text
-INFO [18-05-2005] hello I am a log about DetectMate getting started
+INFO [18-05-2005] hello I am a log about DetectMate getting started and about what is a log
 ```
 
 This line has three parts:
