@@ -1,25 +1,19 @@
-from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
-    EventStabilityTracker,
-)
-from detectmatelibrary.common._other_op._persistency_components import (
-    validate_config_coverage
-)
-from detectmatelibrary.utils.data_buffer import BufferMode
-
-
 from detectmatelibrary.common._config._compile import (
     generate_events_config,
     get_configured_variables,
+    get_global_variables,
 )
-from detectmatelibrary.common._other_op._variable_hooks import (
-    get_global_variables, strip_auto_config_params, VariableAutoConfigParams, VariablesLogic
+from detectmatelibrary.common.detector import _time_handler as _core_time_handler
+from detectmatelibrary.common._config._formats import EventsConfig
+from detectmatelibrary.base_detectors._stability import StabilityAutoConfigParams
+from detectmatelibrary.base_detectors.tracker_detector import TrackerDetector, TrackerDetectorConfig
+from detectmatelibrary.base_detectors._variable_hooks import VariableHooks
 
+from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
+    EventStabilityTracker,
 )
-from detectmatelibrary.common.detector import (
-    CoreDetectorConfig,
-    CoreDetector,
-    _time_handler
-)
+from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
+from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
@@ -30,15 +24,41 @@ from typing import Any, Dict
 from pydantic import Field
 
 
-class VariableDetectorConfig(CoreDetectorConfig):
+class VariableAutoConfigParams(StabilityAutoConfigParams):
+    use_stable_vars: bool = Field(
+        default=True, description="Monitor the variables the configure phase classifies as STABLE."
+    )
+    use_static_vars: bool = Field(
+        default=True,
+        description="Monitor the variables the configure phase classifies as STATIC (a single value).",
+    )
+
+
+class VariableDetectorConfig(TrackerDetectorConfig):
     auto_config_params: VariableAutoConfigParams = VariableAutoConfigParams()
     method_type: str = "variable_detector"
-    allow_fed: bool = Field(
-        default=False,
-        description=(
-            "Allow to do the federation"
-        ),
-    )
+
+
+def strip_auto_config_params(detector_config: Dict[str, Any], method_id: str) -> Dict[str, Any]:
+    """Return a copy of a serialized detector_config with its
+    auto_config_params block removed.
+
+    detector_config is stashed on a tracker and persisted verbatim by
+    to_state(). auto_config_params are configure-phase-only inputs --
+    the standing constraint is that persisted tracker state never
+    carries them. Stripped here, at the point the kwargs are built, so
+    the block never reaches state in the first place.
+    """
+    entry = detector_config.get("detectors", {}).get(method_id, {})
+    if "auto_config_params" not in entry:
+        return detector_config
+    return {
+        **detector_config,
+        "detectors": {
+            **detector_config["detectors"],
+            method_id: {k: v for k, v in entry.items() if k != "auto_config_params"},
+        },
+    }
 
 
 def add_variables(
@@ -51,36 +71,66 @@ def add_variables(
         vars[e_id] = selected
 
 
-class VariableDetector(CoreDetector, VariablesLogic):
+def validate_config_coverage(
+        detector_name: str,
+        config_events: EventsConfig | dict[str, Any],
+        event_persistency: EventPersistency,
+) -> None:
+    """Log warnings when configured EventIDs or variables have no training
+    data.
+
+    Args:
+        detector_name: Name of the detector (used in warning messages).
+        config_events: The detector's events configuration.
+        event_persistency: The persistency object populated during training.
+    """
+    config_ids = (
+        config_events.events.keys()
+        if isinstance(config_events, EventsConfig)
+        else config_events.keys()
+    )
+    if not config_ids:
+        return
+
+    events_seen = event_persistency.get_events_seen()
+    events_with_data = set(event_persistency.get_events_data().keys())
+
+    for event_id in config_ids:
+        if event_id not in events_seen:
+            logger.warning(
+                f"[{detector_name}] EventID {event_id!r} is configured but was "
+                "never observed in training data. Verify that EventIDs in your "
+                "config match those produced by the parser."
+            )
+        elif event_id not in events_with_data:
+            logger.warning(
+                f"[{detector_name}] EventID {event_id!r} was observed in training "
+                "data but no configured variables were extracted. Verify that "
+                "variable names/positions in your config match those in the data."
+            )
+
+
+class VariableDetector(TrackerDetector, VariableHooks):
     """Abstract base for detectors that learn a per-variable model from
     configured log variables and flag anomalous values at detection time.
 
-    Subclasses override a small set of hooks:
-      - ``_check_variable`` (required): the per-variable anomaly test.
-      - ``_prepare_variables`` (optional): transform variables per stage.
-      - ``_event_data_kwargs`` / ``_auto_conf_kwargs`` (optional): tracker
-        construction kwargs.
-      - ``_description`` / ``_alert_key`` (optional): output formatting.
-
+    Subclasses override the hooks in ``VariableHooks`` and, for tracker
+    construction kwargs, ``_event_data_kwargs`` / ``_auto_conf_kwargs``.
     The five lifecycle methods (train/detect/configure/post_train/
     set_configuration) live here and are shared by all subclasses.
     """
+
+    # Shared with CoreDetector's timestamp extraction, as before the move.
+    _time_handler: TimeFormatHandler = _core_time_handler
+
     def __init__(
         self, name: str, config: VariableDetectorConfig = VariableDetectorConfig()
     ) -> None:
         if isinstance(config, dict):
             config = VariableDetectorConfig.from_dict(config, name)
 
-        CoreDetector.__init__(self, name=name, buffer_mode=BufferMode.NO_BUF, config=config)
+        super().__init__(name=name, config=config, stability_params=config.auto_config_params)
         self.config: VariableDetectorConfig
-        VariablesLogic.__init__(
-            self,
-            name=self.name,
-            allow_fed=self.config.allow_fed,
-            _time_handler=_time_handler,
-            config_vars=self.config.auto_config_params
-        )
-        self._register_persistency(self.persistency)
 
     def _stability_kwargs(self) -> Dict[str, Any]:
         """Redfine to be specific to the detector."""
@@ -90,12 +140,15 @@ class VariableDetector(CoreDetector, VariablesLogic):
             "detector_config": strip_auto_config_params(self.config.to_dict(method_id=name), name),
         }
 
+    # ---- lifecycle ----------------------------------------------------------
+
     def train(self, input_: ParserSchema) -> None:  # type: ignore
-        self._ingest(input_, get_configured_variables(input_, self.config.events), input_["EventID"])
+        variables = get_configured_variables(input_, self.config.events)
+        self._ingest(input_, self._prepare_variables(variables, "training"), input_["EventID"])
         if self.config.global_instances:
             global_vars = get_global_variables(input_, self.config.global_instances)
             if global_vars:
-                self._ingest(input_, global_vars, GLOBAL_EVENT_ID)
+                self._ingest(input_, self._prepare_variables(global_vars, "training"), GLOBAL_EVENT_ID)
 
     def detect(self, input_: ParserSchema, output_: DetectorSchema) -> bool:  # type: ignore
         alerts: Dict[str, str] = {}
@@ -133,7 +186,7 @@ class VariableDetector(CoreDetector, VariablesLogic):
             event_template=input_["template"],
             variables=input_["variables"],
             named_variables=input_["logFormatVariables"],
-            timestamp=self._timestamp(input_),
+            timestamp=self._timestamps.read(input_),
         )
 
     @override
@@ -156,19 +209,3 @@ class VariableDetector(CoreDetector, VariablesLogic):
                 "No stable variables were found in configure-phase data. "
                 "The detector will produce no alerts."
             )
-
-    def aggregate_strategy(self, components: set["VariableDetector"]) -> None:  # type: ignore
-        self.combine(components)  # type: ignore
-
-    def to_binary(self) -> bytes:
-        return self.persistency2binary()
-
-    def from_binary(self, binary: bytes) -> "VariableDetector":
-
-        var_detect = type(self)(name=self.name, config=self.config)
-        var_detect.binary2persistency(binary)
-
-        return var_detect
-
-    def finalize_federation(self) -> None:
-        self.clean_persistency()

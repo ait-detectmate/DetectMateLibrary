@@ -48,13 +48,13 @@ class Component(CoreComponent):
     def export_state(
         self, path: str | None = None, storage_options: dict[str, Any] | None = None,
     ) -> bytes | None:
-        """Export the current state if persistency class was implemented."""
+        """Export the current state; None for a stateless component."""
         pass
 
     def import_state(
         self, path: str | bytes, storage_options: dict[str, Any] | None = None
     ) -> None:
-        """Import the current state if persistency class was implemented."""
+        """Import a state; a no-op for a stateless component."""
         pass
 
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:

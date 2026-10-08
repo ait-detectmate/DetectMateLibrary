@@ -2,10 +2,7 @@ from typing import Any, Dict, Optional
 
 from pydantic import Field
 
-from detectmatelibrary.common.variable_detector import VariableDetector, VariableDetectorConfig
-from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
-    SingleStabilityTracker,
-)
+from detectmatelibrary.base_detectors import SingleStabilityTracker, VariableDetector, VariableDetectorConfig
 from detectmatelibrary.tools.logging import logger
 
 

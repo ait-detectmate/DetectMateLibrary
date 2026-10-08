@@ -26,8 +26,9 @@ from detectmatelibrary.parsers.tree_matcher import TemplateCppTreeMatcherConfig
 from detectmatelibrary.common.core import CoreConfig
 from detectmatelibrary.common.detector import CoreDetectorConfig
 from detectmatelibrary.common.parser import CoreParserConfig
-from detectmatelibrary.common.variable_detector import VariableDetectorConfig
-from detectmatelibrary.common.deeplearning_detector import DeepLearningDetectorConfig
+from detectmatelibrary.base_detectors import TrackerDetectorConfig
+from detectmatelibrary.base_detectors import VariableDetectorConfig
+from detectmatelibrary.base_detectors import DeepLearningDetectorConfig
 
 from typing import Any
 
@@ -115,16 +116,18 @@ def update_docs(
         raise Exception(f"While updating {doc_path} -> {str(e)}")
 
 
-def _family_rows(config: CoreConfig) -> list[dict[str, Any]]:
-    """What a detector family adds on top of the fields every detector has."""
-    return [r for r in config.get_docs(shared_base=CoreDetectorConfig) if r["Scope"] == "specific"]
+def _family_rows(
+    config: CoreConfig, base: type[CoreConfig] = CoreDetectorConfig
+) -> list[dict[str, Any]]:
+    """What a detector family adds on top of the fields of ``base``."""
+    return [r for r in config.get_docs(shared_base=base) if r["Scope"] == "specific"]
 
 
 def update_shared_args_detectors(doc_path: str) -> None:
     """Fill docs/detectors.md's tables of parameters shared across several
-    detectors: fields every detector has (CoreDetectorConfig), plus the two
-    families that add their own shared block on top (VariableDetectorConfig,
-    DeepLearningDetectorConfig)."""
+    detectors: fields every detector has (CoreDetectorConfig), plus the
+    families that add their own shared block on top (TrackerDetectorConfig,
+    VariableDetectorConfig on top of that, DeepLearningDetectorConfig)."""
     try:
         with open(doc_path, "r") as f:
             docs = f.readlines()
@@ -137,9 +140,17 @@ def update_shared_args_detectors(doc_path: str) -> None:
         )
         docs = append_docs(
             docs=docs,
+            start_cmd="<!-- Start tracker_arguments -->\n",
+            end_cmd="<!-- End tracker_arguments -->\n",
+            add=get_arguments(_family_rows(TrackerDetectorConfig()), with_scope=False),
+        )
+        docs = append_docs(
+            docs=docs,
             start_cmd="<!-- Start variable_arguments -->\n",
             end_cmd="<!-- End variable_arguments -->\n",
-            add=get_arguments(_family_rows(VariableDetectorConfig()), with_scope=False),
+            add=get_arguments(
+                _family_rows(VariableDetectorConfig(), base=TrackerDetectorConfig), with_scope=False
+            ),
         )
         docs = append_docs(
             docs=docs,
@@ -186,7 +197,8 @@ def update_shared_args_parsers(doc_path: str) -> None:
 # Each entry's second element is the family base the page is documented
 # against: a field that also exists there is marked `shared`, everything else
 # `specific`. CoreDetectorConfig for detectors with no family in between,
-# VariableDetectorConfig/DeepLearningDetectorConfig for the two families.
+# TrackerDetectorConfig for tracker detectors outside the variable family, and
+# VariableDetectorConfig/DeepLearningDetectorConfig for those two families.
 DETECTOR_DOCS: list[tuple[CoreConfig, type[CoreConfig], str]] = [
     (RandomDetectorConfig(), CoreDetectorConfig, "docs/detectors/random_detector.md"),
     (
@@ -201,17 +213,17 @@ DETECTOR_DOCS: list[tuple[CoreConfig, type[CoreConfig], str]] = [
         "docs/detectors/combo.md",
     ),
     (DeeplogDetectorConfig(), DeepLearningDetectorConfig, "docs/detectors/deeplog.md"),
-    (ECVCDetectorConfig(), CoreDetectorConfig, "docs/detectors/ecvc_detector.md"),
+    (ECVCDetectorConfig(), TrackerDetectorConfig, "docs/detectors/ecvc_detector.md"),
     (
         EventSequenceDetectorConfig(),
-        CoreDetectorConfig,
+        TrackerDetectorConfig,
         "docs/detectors/event_sequence.md",
     ),
     (LogBertDetectorConfig(), DeepLearningDetectorConfig, "docs/detectors/logbert.md"),
-    (NewEventDetectorConfig(), CoreDetectorConfig, "docs/detectors/new_event.md"),
+    (NewEventDetectorConfig(), TrackerDetectorConfig, "docs/detectors/new_event.md"),
     (NewValueDetectorConfig(), VariableDetectorConfig, "docs/detectors/new_value.md"),
     (RuleDetectorConfig(), CoreDetectorConfig, "docs/detectors/rule_based.md"),
-    (SCVSDetectorConfig(), CoreDetectorConfig, "docs/detectors/scvs_detector.md"),
+    (SCVSDetectorConfig(), TrackerDetectorConfig, "docs/detectors/scvs_detector.md"),
     (
         ValueRangeDetectorConfig(),
         VariableDetectorConfig,

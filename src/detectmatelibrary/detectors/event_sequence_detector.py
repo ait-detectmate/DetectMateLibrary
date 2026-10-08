@@ -1,20 +1,15 @@
-from detectmatelibrary.common._other_op._variable_hooks import (
-    VariablesLogic, StabilityAutoConfigParams
-)
+from detectmatelibrary.base_detectors import StabilityAutoConfigParams, TrackerDetector, TrackerDetectorConfig
 from detectmatelibrary.common._config._compile import generate_events_config
-
-from detectmatelibrary.common.detector import CoreDetectorConfig, CoreDetector
 
 from detectmatelibrary.tools.logging import logger
 from detectmatelibrary.utils.sequence_encoding import decode_sequence, encode_sequence
 from detectmatelibrary.utils.data_buffer import BufferMode
-from detectmatelibrary.utils import persistency
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
 from collections import deque
-from typing import Any
 
+from typing_extensions import override
 from pydantic import Field, model_validator
 
 
@@ -49,7 +44,7 @@ class SequenceAutoConfigParams(StabilityAutoConfigParams):
         return self
 
 
-class EventSequenceDetectorConfig(CoreDetectorConfig):
+class EventSequenceDetectorConfig(TrackerDetectorConfig):
     method_type: str = Field(
         default="event_sequence_detector",
         description="Indicates what type of method it is.",
@@ -68,15 +63,9 @@ class EventSequenceDetectorConfig(CoreDetectorConfig):
     )
 
     auto_config_params: SequenceAutoConfigParams = SequenceAutoConfigParams()
-    allow_fed: bool = Field(
-        default=False,
-        description=(
-            "Allow to do the federation"
-        ),
-    )
 
 
-class EventSequenceDetector(CoreDetector, VariablesLogic):
+class EventSequenceDetector(TrackerDetector):
     """Detect EventID sequences not encountered in training as anomalies."""
 
     def __init__(
@@ -86,23 +75,20 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
     ) -> None:
         if isinstance(config, dict):
             config = EventSequenceDetectorConfig.from_dict(config, name)
-
-        CoreDetector.__init__(
-            self, name=name, buffer_mode=BufferMode.NO_BUF, config=config
-        )
         self.config: EventSequenceDetectorConfig
-        self._train_window: deque[int] = deque(maxlen=self.config.fixed_window_size)
-        self._detect_window: deque[int] = deque(maxlen=self.config.fixed_window_size)
-        self._configure_windows: dict[int, deque[int]] = {}
 
-        VariablesLogic.__init__(
-            self,
-            name=self.name,
-            config_vars=self.config.auto_config_params,
-            allow_fed=self.config.allow_fed
+        # Built before super().__init__(), whose _sync_from_state resizes them.
+        self._train_window: deque[int] = deque(maxlen=config.fixed_window_size)
+        self._detect_window: deque[int] = deque(maxlen=config.fixed_window_size)
+        self._configure_windows: dict[int, deque[int]] = {}
+        self._restored_length: int | None = None
+
+        super().__init__(
+            name=name,
+            config=config,
+            buffer_mode=BufferMode.NO_BUF,
+            stability_params=config.auto_config_params,
         )
-        self._register_persistency(self.persistency)
-        self._adopt_restored_length()
 
         if not self.config.auto_config and self.config.fixed_window_size is None:
             logger.warning(
@@ -123,8 +109,6 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
         length cannot be evaluated at another: every restored entry would miss and
         every detection would become a false positive. The persisted length
         therefore wins over the configured one.
-
-        Returns the persisted length, or None when nothing was restored.
         """
         restored = self.persistency.get_events_seen()
         if not restored:
@@ -140,15 +124,8 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
                 self._set_window_length(length)
             self._restored_length = length
 
-    def import_state(
-        self, path: str | bytes, storage_options: dict[str, Any] | None = None
-    ) -> None:
-        """Load state, then align the window length with what was restored.
-
-        Unlike `auto_load`, this runs after construction, so the length check in
-        `__init__` has already passed and has to be redone here.
-        """
-        CoreDetector.import_state(self, path, storage_options)
+    @override
+    def _sync_from_state(self) -> None:
         self._adopt_restored_length()
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
@@ -215,7 +192,7 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
                     event_id=length,
                     event_template=input_["template"],
                     named_variables={"seq": tuple(window)},
-                    timestamp=self._timestamp(input_),
+                    timestamp=self._timestamps.read(input_),
                 )
 
     def set_configuration(self) -> None:
@@ -280,7 +257,7 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
         """Drop configure-phase state — nothing reads it after
         configuration."""
         self._configure_windows.clear()
-        self.auto_conf_persistency = persistency.EventPersistency()
+        self.auto_conf_persistency = self._new_store()
 
     def reset_window(self) -> None:
         """Clear the training and detection windows."""
@@ -293,20 +270,3 @@ class EventSequenceDetector(CoreDetector, VariablesLogic):
             decode_sequence(str(encoded))
             for encoded in self.persistency.get_events_seen()
         }
-
-    def aggregate_strategy(self, components: set["EventSequenceDetector"]) -> None:  # type: ignore
-        self.combine(components)  # type: ignore
-
-        self._adopt_restored_length()
-        for component in components:
-            component._adopt_restored_length()
-
-    def to_binary(self) -> bytes:
-        return self.persistency2binary()
-
-    def from_binary(self, binary: bytes) -> "EventSequenceDetector":
-        var_detect = type(self)(name=self.name, config=self.config)
-        var_detect.binary2persistency(binary)
-        var_detect._adopt_restored_length()
-
-        return var_detect

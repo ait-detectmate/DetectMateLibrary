@@ -1,8 +1,6 @@
 from typing import Any, List
 
-from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
-
-from detectmatelibrary.common._other_op._variable_hooks import VariablesLogic
+from detectmatelibrary.base_detectors import TrackerDetector, TrackerDetectorConfig
 
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.utils.sequence_encoding import (
@@ -14,9 +12,10 @@ from detectmatelibrary.utils.sequence_encoding import (
 from detectmatelibrary import schemas
 
 from pydantic import Field
+from typing_extensions import override
 
 
-class SCVSDetectorConfig(CoreDetectorConfig):
+class SCVSDetectorConfig(TrackerDetectorConfig):
     method_type: str = Field(
         default="scvs_detector", description="Indicates what type of method it is."
     )
@@ -24,15 +23,9 @@ class SCVSDetectorConfig(CoreDetectorConfig):
         default=10,
         description="Length of the event-ID window a count vector is built over.",
     )
-    allow_fed: bool = Field(
-        default=False,
-        description=(
-            "Allow to do the federation"
-        ),
-    )
 
 
-class SCVSDetector(CoreDetector, VariablesLogic):
+class SCVSDetector(TrackerDetector):
     def __init__(
         self,
         name: str = "SCVSDetector",
@@ -43,18 +36,13 @@ class SCVSDetector(CoreDetector, VariablesLogic):
             config = SCVSDetectorConfig.from_dict(config, name)
         self.config: SCVSDetectorConfig
 
-        CoreDetector.__init__(
-            self, name=name, buffer_mode=BufferMode.WINDOW, config=config, buffer_size=config.window_size
+        super().__init__(
+            name=name, config=config, buffer_mode=BufferMode.WINDOW, buffer_size=config.window_size
         )
-        VariablesLogic.__init__(self, name=self.name, allow_fed=self.config.allow_fed)
-        self._register_persistency(self.persistency)
-        warn_on_window_size_mismatch(self.name, self.persistency, self.config.window_size)
 
-    def import_state(
-        self, path: str | bytes, storage_options: dict[str, Any] | None = None
-    ) -> None:
-        CoreDetector.import_state(self, path, storage_options)
-        warn_on_window_size_mismatch(self.name, self.persistency, self.config.window_size)
+    @override
+    def _sync_from_state(self) -> None:
+        warn_on_window_size_mismatch(self.name, self.persistency.get_events_seen(), self.config.window_size)
 
     def train(self, input_: List[schemas.ParserSchema]) -> None:  # type: ignore
         self._ingest(
@@ -81,16 +69,3 @@ class SCVSDetector(CoreDetector, VariablesLogic):
             decode_count_vec(str(encoded))[1]
             for encoded in self.persistency.get_events_seen()
         }
-
-    def aggregate_strategy(self, components: set["SCVSDetector"]) -> None:  # type: ignore
-        self.combine(components)  # type: ignore
-
-    def to_binary(self) -> bytes:
-        return self.persistency2binary()
-
-    def from_binary(self, binary: bytes) -> "SCVSDetector":
-
-        var_detect = type(self)(name=self.name, config=self.config)
-        var_detect.binary2persistency(binary)
-
-        return var_detect

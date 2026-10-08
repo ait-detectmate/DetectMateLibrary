@@ -1,9 +1,8 @@
 from typing import Any, Collection, List
-from typing_extensions import Self
+from typing_extensions import Self, override
 import warnings
 
-from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
-from detectmatelibrary.common._other_op._variable_hooks import VariablesLogic
+from detectmatelibrary.base_detectors import TrackerDetector, TrackerDetectorConfig
 
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.utils.sequence_encoding import (
@@ -70,7 +69,7 @@ class ECVCOp:
 _LEGACY_METHOD_TYPE = "ecvc_detector_detector"
 
 
-class ECVCDetectorConfig(CoreDetectorConfig):
+class ECVCDetectorConfig(TrackerDetectorConfig):
     method_type: str = Field(
         default="ecvc_detector", description="Indicates what type of method it is."
     )
@@ -97,12 +96,6 @@ class ECVCDetectorConfig(CoreDetectorConfig):
             "fixed threshold of 0."
         ),
     )
-    allow_fed: bool = Field(
-        default=False,
-        description=(
-            "Allow to do the federation"
-        ),
-    )
 
     @classmethod
     def from_dict(cls, data: dict[str, Any], method_id: str) -> Self:
@@ -120,7 +113,11 @@ class ECVCDetectorConfig(CoreDetectorConfig):
         return super().from_dict(data, method_id)
 
 
-class ECVCDetector(CoreDetector, VariablesLogic):
+class ECVCDetector(TrackerDetector):
+    # Class-level defaults: _sync_from_state runs inside TrackerDetector.__init__.
+    count_vecs: np.ndarray | None = None
+    threshold: float = 0.0
+
     def __init__(
         self,
         name: str = "ECVCDetector",
@@ -131,23 +128,14 @@ class ECVCDetector(CoreDetector, VariablesLogic):
             config = ECVCDetectorConfig.from_dict(config, name)
         self.config: ECVCDetectorConfig
 
-        CoreDetector.__init__(
-            self, name=name, buffer_mode=BufferMode.WINDOW, config=config, buffer_size=config.window_size
+        super().__init__(
+            name=name, config=config, buffer_mode=BufferMode.WINDOW, buffer_size=config.window_size
         )
-        VariablesLogic.__init__(self, name=self.name, allow_fed=self.config.allow_fed)
-        self._register_persistency(self.persistency)
-        warn_on_window_size_mismatch(self.name, self.persistency, self.config.window_size)
 
-        self.count_vecs: np.ndarray | None = None
-        self.threshold: float = 0
-        self.build_count_vec()  # no-op unless auto_load restored count vectors
-
-    def import_state(
-        self, path: str | bytes, storage_options: dict[str, Any] | None = None
-    ) -> None:
-        CoreDetector.import_state(self, path, storage_options)
-        warn_on_window_size_mismatch(self.name, self.persistency, self.config.window_size)
-        self.build_count_vec()
+    @override
+    def _sync_from_state(self) -> None:
+        warn_on_window_size_mismatch(self.name, self.persistency.get_events_seen(), self.config.window_size)
+        self.build_count_vec()  # no-op while no count vectors are stored
 
     def train(self, input_: List[schemas.ParserSchema]) -> None:  # type: ignore
         self._ingest(
@@ -193,20 +181,3 @@ class ECVCDetector(CoreDetector, VariablesLogic):
             return True
 
         return False
-
-    def aggregate_strategy(self, components: set["ECVCDetector"]) -> None:  # type: ignore
-        self.combine(components)  # type: ignore
-
-        self.build_count_vec()
-        for component in components:
-            component.build_count_vec()
-
-    def to_binary(self) -> bytes:
-        return self.persistency2binary()
-
-    def from_binary(self, binary: bytes) -> "ECVCDetector":
-        var_detect = type(self)(name=self.name, config=self.config)
-        var_detect.binary2persistency(binary)
-        var_detect.build_count_vec()
-
-        return var_detect

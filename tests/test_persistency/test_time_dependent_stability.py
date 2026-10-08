@@ -5,7 +5,9 @@ import math
 
 import detectmatelibrary.schemas as schemas
 from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig
-from detectmatelibrary.common._other_op._variable_hooks import VariableAutoConfigParams
+from detectmatelibrary.base_detectors import StabilityAutoConfigParams, VariableAutoConfigParams
+from detectmatelibrary.base_detectors._stability import TimestampReader
+from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 from detectmatelibrary.utils.persistency.data_structures.trackers.rle_list import RLEList
 from detectmatelibrary.utils.persistency import EventPersistency
 from detectmatelibrary.utils.persistency.data_structures.trackers import (
@@ -397,75 +399,73 @@ def _parser_record(ts_value, event_id=1):
     })
 
 
-class TestTimestampResolution:
-    # Each test below constructs CharsetDetector(config=CharsetDetectorConfig())
-    # explicitly rather than bare CharsetDetector(). CharsetDetector.__init__'s
-    # `config` default argument is a single shared CharsetDetectorConfig()
-    # instance (pre-existing mutable-default-arg pitfall, see
-    # TestClassificationConfigWiring.test_flag_reaches_per_variable_trackers), and
-    # several tests here mutate `detector.config.*` in place -- writing through
-    # to that shared instance and leaking state into any other bare-constructed
-    # CharsetDetector for the rest of the process. Passing a fresh config keeps
-    # every test isolated regardless of run order.
-    def test_returns_none_when_not_configured(self):
-        detector = CharsetDetector(config=CharsetDetectorConfig())
-        assert detector._timestamp(_parser_record("2026-08-04 10:00:00")) is None
+_TIME = ClassificationMethods(index=False, time=True)
+
+
+def _reader(
+    classification=_TIME, timestamp_variable="ts", timestamp_format=None
+) -> TimestampReader:
+    params = StabilityAutoConfigParams(
+        classification=classification,
+        timestamp_variable=timestamp_variable,
+        timestamp_format=timestamp_format,
+    )
+    return TimestampReader("Det", params, TimeFormatHandler())
+
+
+class TestTimestampReader:
+    def test_returns_none_when_no_method_reads_time(self):
+        reader = _reader(classification=ClassificationMethods())
+        assert reader.read(_parser_record("2026-08-04 10:00:00")) is None
 
     def test_parses_iso_timestamp(self):
-        detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.auto_config_params.classification = ClassificationMethods(index=False, time=True)
-        detector.config.auto_config_params.timestamp_variable = "ts"
-        assert detector._timestamp(_parser_record("2026-08-04 10:00:00")) == 1785837600.0
+        assert _reader().read(_parser_record("2026-08-04 10:00:00")) == 1785837600.0
 
     def test_parses_explicit_format(self):
         """HDFS loghub style, absent from COMMON_TIME_FORMATS."""
-        detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.auto_config_params.classification = ClassificationMethods(index=False, time=True)
-        detector.config.auto_config_params.timestamp_variable = "ts"
-        detector.config.auto_config_params.timestamp_format = "%y%m%d %H%M%S"
-        first = detector._timestamp(_parser_record("081109 203615"))
-        second = detector._timestamp(_parser_record("081109 203645"))
+        reader = _reader(timestamp_format="%y%m%d %H%M%S")
+        first = reader.read(_parser_record("081109 203615"))
+        second = reader.read(_parser_record("081109 203645"))
         assert second - first == 30.0
 
     def test_unparseable_warns_once_and_falls_back(self, caplog):
-        detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.auto_config_params.classification = ClassificationMethods(index=False, time=True)
-        detector.config.auto_config_params.timestamp_variable = "ts"
+        reader = _reader()
         with caplog.at_level(logging.WARNING):
-            assert detector._timestamp(_parser_record("not-a-time")) is None
-            assert detector._timestamp(_parser_record("also-not-a-time")) is None
+            assert reader.read(_parser_record("not-a-time")) is None
+            assert reader.read(_parser_record("also-not-a-time")) is None
         warnings = [r for r in caplog.records if "timestamp_variable" in r.message]
         assert len(warnings) == 1
+        assert warnings[0].message.startswith("Det: ")
 
     def test_unset_timestamp_variable_warns_once_and_falls_back(self, caplog):
         """A time-axis classification method without timestamp_variable is an
         operator error, not an opt-out: it must be distinguishable from a
         working time-dependent run, and must not flood the log."""
-        detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.auto_config_params.classification = ClassificationMethods(
-            index=False, time=True
-        )  # timestamp_variable left unset
+        reader = _reader(timestamp_variable=None)
         with caplog.at_level(logging.WARNING):
-            assert detector._timestamp(_parser_record("2026-08-04 10:00:00")) is None
-            assert detector._timestamp(_parser_record("2026-08-04 10:00:01")) is None
+            assert reader.read(_parser_record("2026-08-04 10:00:00")) is None
+            assert reader.read(_parser_record("2026-08-04 10:00:01")) is None
         warnings = [r for r in caplog.records if "timestamp_variable" in r.message]
         assert len(warnings) == 1
         assert "not set" in warnings[0].message
 
     def test_flag_off_stays_silent(self, caplog):
         """No warning when the feature simply is not enabled."""
-        detector = CharsetDetector(config=CharsetDetectorConfig())
+        reader = _reader(classification=ClassificationMethods(), timestamp_variable=None)
         with caplog.at_level(logging.WARNING):
-            assert detector._timestamp(_parser_record("2026-08-04 10:00:00")) is None
+            assert reader.read(_parser_record("2026-08-04 10:00:00")) is None
         assert not [r for r in caplog.records if "timestamp_variable" in r.message]
 
     def test_missing_variable_warns_and_falls_back(self, caplog):
-        detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.auto_config_params.classification = ClassificationMethods(index=False, time=True)
-        detector.config.auto_config_params.timestamp_variable = "absent"
+        reader = _reader(timestamp_variable="absent")
         with caplog.at_level(logging.WARNING):
-            assert detector._timestamp(_parser_record("2026-08-04 10:00:00")) is None
+            assert reader.read(_parser_record("2026-08-04 10:00:00")) is None
         assert any("timestamp_variable" in r.message for r in caplog.records)
+
+    def test_detector_reads_with_its_auto_config_params(self):
+        params = VariableAutoConfigParams(classification=_TIME, timestamp_variable="ts")
+        detector = CharsetDetector(config=CharsetDetectorConfig(auto_config_params=params))
+        assert detector._timestamps.read(_parser_record("2026-08-04 10:00:00")) == 1785837600.0
 
 
 class TestClassificationConfigWiring:
@@ -680,7 +680,7 @@ def test_train_path_records_no_timestamps():
     Stability classification is never consulted at detect time, so the
     trained trackers would carry an unread timestamps list per variable.
     """
-    from detectmatelibrary.common._other_op._variable_hooks import VariableAutoConfigParams
+    from detectmatelibrary.base_detectors import VariableAutoConfigParams
     from detectmatelibrary.detectors.new_value_detector import (
         NewValueDetector,
         NewValueDetectorConfig,
@@ -717,7 +717,7 @@ def test_persisted_state_omits_auto_config_params():
     """Persisted tracker state never carries auto_config_params: they are
     configure-phase-only inputs, and CharsetDetector's add_value closure
     (recovered from `detector_config` on reconstruction, see
-    _strip_auto_config_params in variable_detector.py) reads only
+    strip_auto_config_params in base_detectors/variable_detector.py) reads only
     operational fields, never auto_config_params.
     """
     cfg = CharsetDetectorConfig(

@@ -309,3 +309,15 @@ class TestNewEventDetectorGlobalInstances:
                 detected_ids.add(log["logID"])
 
         assert len(detected_ids) > 0
+
+
+class TestNewEventDetectorFederationCleanup:
+    def test_finalize_federation_removes_the_slow_table(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)  # the slow store writes .temp/ CSVs here
+        detector = NewEventDetector(config=NewEventDetectorConfig(allow_fed=True))
+        detector.train(schemas.ParserSchema({"EventID": 1, "template": "test template"}))
+        assert (tmp_path / ".temp").exists()
+
+        detector.finalize_federation()
+
+        assert not (tmp_path / ".temp").exists()

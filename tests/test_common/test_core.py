@@ -600,17 +600,13 @@ class TestCoreComponentContextManager:
         with component as c:
             assert c is component
 
-    def test_exit_calls_saver_stop_when_set(self):
-        stopped = {"called": False}
-
-        class FakeSaver:
-            def stop(self): stopped["called"] = True
-
+    def test_has_no_saver(self):
+        """Periodic saving belongs to TrackerDetector, not to every
+        component."""
         component = CoreComponent(name="test", config=CoreConfig(), args_buffer=ArgsBuffer(BufferMode.NO_BUF))
-        component.saver = FakeSaver()
         with component:
             pass
-        assert stopped["called"]
+        assert not hasattr(component, "saver")
 
 
 class MockWindowComponent(CoreComponent):

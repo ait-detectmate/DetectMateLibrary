@@ -53,7 +53,6 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `auto_config` | boolean | True | shared | Runs the configuration step before the training process. |
     | `events` | object | {} | shared | Events configuration dict keyed by event_id. |
     | `global` | object | {} | shared | Instances monitoring event-independent header variables (e.g. hostname, level), keyed by instance name. Written as `global` in YAML. |
-    | `persist` | object, null | None | shared | Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See the Persistency page. |
 
 ??? note "params"
 

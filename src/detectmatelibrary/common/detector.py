@@ -3,16 +3,13 @@ from detectmatelibrary.common.core import CoreComponent, CoreConfig
 
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 from detectmatelibrary.utils.aux import get_timestamp
-from detectmatelibrary.utils import persistency
-from detectmatelibrary.common._other_op._persistency_components import init_persistency
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
 from typing_extensions import override
-from typing import Dict, List, Optional, Any, cast
+from typing import Dict, List, Optional, Any
 from pydantic import Field
 
-from detectmatelibrary.common._other_op._persistency_components import PersistConfig
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 
 
@@ -55,13 +52,6 @@ class CoreDetectorConfig(CoreConfig):
             "keyed by instance name. Written as `global` in YAML."
         ),
     )
-    persist: PersistConfig | None = Field(
-        default=None,
-        description=(
-            "Periodic state saving (path, interval_seconds, events_until_save, auto_load, "
-            "storage_options). None disables it. See the Persistency page."
-        ),
-    )
 
 
 class CoreDetector(CoreComponent[ParserSchema, DetectorSchema]):
@@ -82,13 +72,6 @@ class CoreDetector(CoreComponent[ParserSchema, DetectorSchema]):
             args_buffer=ArgsBuffer(mode=buffer_mode, size=buffer_size),
             input_schema=ParserSchema,
             output_schema=DetectorSchema,
-        )
-
-    def _register_persistency(
-        self, event_persistency: persistency.EventPersistency
-    ) -> None:
-        self.saver = init_persistency(
-            self.name, cast(CoreDetectorConfig, self.config), event_persistency
         )
 
     @override

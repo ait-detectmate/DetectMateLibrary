@@ -70,7 +70,7 @@ detectors:
   MyDetector:
     method_type: new_value_detector
     auto_config: false          # true = auto-discover variables from training data
-    persist:                    # optional — omit to disable state saving
+    persist:                    # tracker detectors only — omit to disable state saving
       path: ./state             # base path; detector name is appended automatically
       interval_seconds: 300     # save every N seconds
       events_until_save: null   # also save after N ingested events (null = disabled)
@@ -109,7 +109,20 @@ config = generate_detector_config(
 
 Load/save configs via `BasicConfig.from_dict(d, method_id=...)` and `.to_dict(method_id=...)` for YAML round-trip compatibility.
 
-After training completes, detectors with `auto_config=False` automatically call `validate_config_coverage()` (`src/detectmatelibrary/common/detector.py`), which logs warnings when configured EventIDs or variable positions were never observed in training data. This catches config/data mismatches early — check logs after the training phase when adding new detector configs.
+After training completes, variable detectors with `auto_config=False` automatically call `validate_config_coverage()` (`src/detectmatelibrary/base_detectors/variable_detector.py`, from `VariableDetector.post_train`), which logs warnings when configured EventIDs or variable positions were never observed in training data. This catches config/data mismatches early — check logs after the training phase when adding new detector configs.
+
+### Base detectors (`src/detectmatelibrary/base_detectors/`)
+
+A layer between `common/` and `detectors/`, imported as `from detectmatelibrary.base_detectors import ...`:
+
+- **`TrackerDetector(CoreDetector)`** — the only owner of persistency. Builds the `EventPersistency` stores (`persistency`, `auto_conf_persistency`), starts the `persist:` saver, implements `export_state`/`import_state` and federation (`to_binary`, `from_binary`, `aggregate_strategy`, `finalize_federation`). `TrackerDetectorConfig` adds `persist` and `allow_fed`.
+  - **`VariableDetector(TrackerDetector)`** — per-variable model detectors (NewValue, Combo, Charset, ValueRange, BigramFrequency).
+  - NewEvent, EventSequence, SCVS and ECVC subclass `TrackerDetector` directly.
+- **`DeepLearningDetector(CoreDetector)`** — DeepLog and LogBERT. Rule and Random subclass `CoreDetector`.
+
+`CoreComponent.export_state()` returns `None` and `import_state()` is a no-op; only `TrackerDetector` has state. A `persist:` block on a non-tracker detector is a validation error.
+
+Dependency rules: `utils.persistency` is imported only from `utils/persistency/` and `base_detectors/`; `common/` imports neither `base_detectors` nor `detectors`; `base_detectors/` does not import `detectors`; `utils/persistency/` imports none of the three.
 
 ### Schema System (`src/detectmatelibrary/schemas/`)
 
@@ -128,7 +141,7 @@ Three modes via `ArgsBuffer` config:
 
 - **Parsers** (`src/detectmatelibrary/parsers/`): `JsonParser`, `LogBatcherParser`, `DummyParser`, `MatcherParser` (Drain3 template mining; supports named wildcards `<username>` alongside positional `<*>`)
 - **Detectors** (`src/detectmatelibrary/detectors/`): `NewValueDetector`, `NewValueComboDetector`, `RandomDetector`, `DummyDetector`
-- **Utilities** (`src/detectmatelibrary/utils/`): `DataBuffer`, `EventPersistency`, `KeyExtractor`, `TimeFormatHandler`, `IdGenerator`
+- **Utilities** (`src/detectmatelibrary/utils/`): `DataBuffer`, `EventPersistency` (used only through `base_detectors.TrackerDetector`), `KeyExtractor`, `TimeFormatHandler`, `IdGenerator`
 - Uses the `regex` package (not stdlib `re`) — relevant when writing type annotations or imports involving patterns
 
 ## Extending the Library
@@ -157,18 +170,31 @@ Same pattern applies for `CoreParser` — implement `parse(input_: LogSchema, ou
 
 ### Wiring persist support into a new detector
 
-Detectors that maintain an `EventPersistency` instance must do two things to support the `persist:` config block:
+A detector that keeps state in `EventPersistency` stores subclasses `TrackerDetector`; it never imports `utils.persistency` or builds stores itself. `TrackerDetector` then provides the stores, the `persist:` block, `export_state`/`import_state` and federation.
 
-**1. Call `_register_persistency()` at the end of `__init__`:**
+**1. Subclass `TrackerDetector` and its config:**
 
 ```python
-def __init__(self, name="MyDetector", config=MyDetectorConfig()):
-    super().__init__(name=name, config=config)
-    self.persistency = EventPersistency(event_data_class=EventStabilityTracker)
-    self._register_persistency(self.persistency)  # must be last
+from detectmatelibrary.base_detectors import TrackerDetector, TrackerDetectorConfig
+
+class MyDetectorConfig(TrackerDetectorConfig):
+    method_type: str = "my_detector"
+
+class MyDetector(TrackerDetector):
+    def __init__(self, name="MyDetector", config=MyDetectorConfig()):
+        super().__init__(name=name, config=config)
+
+    def train(self, input_: ParserSchema) -> None:
+        self._ingest(input_, variables={...}, event_id=input_["EventID"])
 ```
 
-**2. Write only your outputs in `set_configuration()` — never rebuild `self.config`:**
+Pass tracker kwargs by overriding `_event_data_kwargs()` / `_auto_conf_kwargs()`; build an extra store with `self._new_store()`. Keep `__init__` callable as `MyDetector(name=..., config=...)`: `from_binary()` rebuilds the detector that way, so any other constructor argument needs a default.
+
+**2. Rebuild derived fields in `_sync_from_state()`, and mind the ordering rule:**
+
+Anything computed from the stores (a count vector, a window length) goes in a `_sync_from_state()` override. `TrackerDetector` calls it at the end of `__init__` (after a possible `auto_load`), after `import_state()`, on the detector `from_binary()` returns, and on every component after `aggregate_strategy()`. The first call runs inside `TrackerDetector.__init__`, so everything the override reads or writes must exist before `super().__init__()` returns — declare it as a class attribute (ECVC's `count_vecs`) or assign it before the `super().__init__()` call (EventSequence's windows).
+
+**3. Write only your outputs in `set_configuration()` — never rebuild `self.config`:**
 
 `set_configuration()` must not reassign `self.config` (e.g. via `from_dict()`). Write only what the configure phase produced, then flip `auto_config` off:
 

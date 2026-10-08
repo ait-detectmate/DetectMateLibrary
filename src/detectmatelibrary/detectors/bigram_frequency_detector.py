@@ -2,12 +2,12 @@ from typing import Any, Dict, Optional, cast
 
 from pydantic import Field
 
-from detectmatelibrary.common.variable_detector import VariableDetector, VariableDetectorConfig
-from detectmatelibrary.common._other_op._variable_hooks import get_global_variables
-from detectmatelibrary.common._config._compile import get_configured_variables
-from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
+from detectmatelibrary.common._config._compile import get_configured_variables, get_global_variables
+from detectmatelibrary.base_detectors import (
     EventStabilityTracker,
     SingleStabilityTracker,
+    VariableDetector,
+    VariableDetectorConfig,
 )
 from detectmatelibrary.schemas import ParserSchema
 from detectmatelibrary.constants import GLOBAL_EVENT_ID, DEFAULT_FREQUENCIES
