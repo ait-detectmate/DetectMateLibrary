@@ -1,6 +1,6 @@
 #  Data Buffer
 
-The data buffer is an auxiliar methods that can be use in all the components. It takes the stream data and formated to the specifications given.
+The data buffer is an auxiliary method that can be used in all the components. It takes the stream data and formats it to the given specifications.
 
 It has different configuration states to configure its behaviour.
 

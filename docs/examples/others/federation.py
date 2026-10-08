@@ -37,7 +37,7 @@ detector1 + detector2 + detector3
 
 detector2.aggregate()  # Detector 2 is used as centralize node
 
-print("Dectector 3", detector3.elems)  # All detectors have been updated
+print("Detector 3", detector3.elems)  # All detectors have been updated
 
 # --8<-- [end:example_2]
 
@@ -50,7 +50,7 @@ detector1 + detector2 + detector3
 
 detector2.aggregate()  # Detector 2 is used as centralize node
 
-print("Dectector 3", detector3.elems)  # All detectors have been updated
+print("Detector 3", detector3.elems)  # All detectors have been updated
 # --8<-- [end:example_3]
 
 # --8<-- [start:example_4]

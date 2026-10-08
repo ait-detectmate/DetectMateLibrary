@@ -57,7 +57,7 @@ class BaseSchema:
         """Check equality between two schema instances."""
 ```
 
-## Schema Clases
+## Schema Classes
 
 Below are the primary schema classes and their main fields. All fields are optional at the Protobuf level; components should document which fields they require.
 

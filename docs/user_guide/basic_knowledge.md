@@ -61,7 +61,7 @@ INFO [18-05-2005] hello I am a log about DetectMate getting started
 This line has three parts:
 
 - **`INFO` -- the category of the message (the "log level").** Some other
-messages from the programm could be for example `DEBUG` (fine-grained detail for developers) or `WARNING` (something looks off, but it´s not a failure yet). So this part just gives you a hint how important this logging statement is.
+messages from the program could be for example `DEBUG` (fine-grained detail for developers) or `WARNING` (something looks off, but it's not a failure yet). So this part just gives you a hint how important this logging statement is.
 
 - **`[18-05-2005]` -- the timestamp:** when the message was written.
 
@@ -80,7 +80,7 @@ The pattern that tells the parser how to split a line is called the
 so the parser knows which chunk is the log level, which is the timestamp, and
 which is the actual message content.
 
-The term `log_format`is regularly used in the literature. Such as in the
+The term `log_format` is regularly used in the literature. Such as in the
 **Drain-Parser**, **LogParser**, and many more use it frequently.
 
 Based on the example above:

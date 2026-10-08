@@ -7,7 +7,7 @@ Alert aggregation aggregates alerts from detectors.
 | **Input**  | [DetectorSchema](schemas.md)    | Alerts from detectors  |
 | **Output** | [AggregateSchema](schemas.md) | Aggregated alerts    |
 
-This document explains expected APIs, how to implement a parser, testing tips and common pitfalls.
+This document explains expected APIs, how to implement an alert aggregator, testing tips and common pitfalls.
 
 ## Overview
 

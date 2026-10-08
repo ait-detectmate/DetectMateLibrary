@@ -12,7 +12,7 @@ at least the following information in a bug report:
 
 1. Description of the bug. Describe the problem clearly.
 2. Steps to reproduce. With the following configuration, go to.., click.., see error
-3. Expected behavoir. What should happen?
+3. Expected behavior. What should happen?
 4. Environment. What was the environment for the test(version, browser, etc..)
 
 *Please don't include any private/sensitive information in your issue! For reporting security-related issues, see [SECURITY.md](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/SECURITY.md)*
@@ -39,7 +39,7 @@ git clone -b development git@github.com:YOURUSERNAME/DetectMateLibrary.git
 
 ### 3. Create a feature branch
 
-Every single workpackage should be developed in it's own feature-branch. Use a name that describes the feature:
+Every single workpackage should be developed in its own feature-branch. Use a name that describes the feature:
 
 ```bash
 cd DetectMateLibrary
@@ -48,7 +48,7 @@ git checkout -b feature-some_important_work
 
 ### 4. Develop your feature and improvements in the feature-branch
 
-Please make sure that you commit only improvements that are related to the workpage you created the feature-branch for.
+Please make sure that you commit only improvements that are related to the workpackage you created the feature-branch for.
 
 ### 5. Fetch and merge from the upstream
 
@@ -103,13 +103,13 @@ git rebase -i HEAD~2
 
 Delete your local feature-branch after the pull-request was merged into the development branch.
 
-### 8. Update your local main branch
+### 8. Update your local development branch
 
 Update your local development branch:
 
 ```bash
 git fetch upstream development
-git checkout -b development
+git checkout development
 git rebase upstream/development
 ```
 
@@ -117,9 +117,9 @@ Additional infos:
 
 - [https://www.atlassian.com/git/tutorials/merging-vs-rebasing](https://www.atlassian.com/git/tutorials/merging-vs-rebasing)
 
-### 9. Update your main branch in your github-repository
+### 9. Update the development branch in your GitHub repository
 
-Please make sure that you updated your local development branch as described in section 8. above. After that push the changes to your github-repository to keep it up2date:
+Please make sure that you updated your local development branch as described in section 8. above. After that push the changes to your github-repository to keep it up to date:
 
 ```bash
 git push

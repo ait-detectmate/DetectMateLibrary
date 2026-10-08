@@ -127,7 +127,7 @@ The detectors are numbered from simplest to most complex, and the sidebar lists 
 Every detector page shows a minimal, working configuration file next to its example. The
 reference below explains the blocks those files use.
 
-When `auto_config` is set to `False`, the detector expects an explicit `events` or `global` block that specifies exactly which variables to monitor. `events`refers to event-specific variables while `global` refers to variables, that are not bound to events (`header_variables`can but don't have to be event bound):
+When `auto_config` is set to `False`, the detector expects an explicit `events` or `global` block that specifies exactly which variables to monitor. `events` refers to event-specific variables while `global` refers to variables, that are not bound to events (`header_variables` can but don't have to be event bound):
 
 ```yaml
 detectors:
@@ -154,7 +154,7 @@ detectors:
 
 ### Common parameters (all detectors)
 
-There are some parameters, that **every** detector inhertis from `CoreDetectorConfig`/`CoreConfig`/`BasicConfig`, regardless of what it does. The other parameters, that are **specific** for the respective detector, are explained right at the detectors documentation page, later on.
+There are some parameters, that **every** detector inherits from `CoreDetectorConfig`/`CoreConfig`/`BasicConfig`, regardless of what it does. The other parameters, that are **specific** for the respective detector, are explained right at the detectors documentation page, later on.
 
 <!-- Start common_arguments -->
 ???+ note "Top level"

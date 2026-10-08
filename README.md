@@ -9,7 +9,7 @@ The library contains the next components:
 * **Parsers**: parse the logs received from the reader.
 * **Detectors**: return alerts if anomalies are detected.
 * **Alert Aggregation**: aggregate the alerts produced by the detectors.
-* **Schemas**: standard data classes use in DetectMate.
+* **Schemas**: standard data classes used in DetectMate.
 ```
  +--------+     +-----------+    +-------------------+
  | Parser | --> |  Detector | -> | Alert Aggregation |

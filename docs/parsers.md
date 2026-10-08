@@ -118,7 +118,7 @@ def test_my_parser_parse():
 
 ### Common parameters (all parsers)
 
-There are some parameters, that **every** parser inhertis from `CoreParserrConfig`/`CoreConfig`/`BasicConfig`, regardless of what it does. The other parameters, that are **specific** for the respective parser, are explained right at the parsers documentation page, later on.
+There are some parameters, that **every** parser inherits from `CoreParserConfig`/`CoreConfig`/`BasicConfig`, regardless of what it does. The other parameters, that are **specific** for the respective parser, are explained right at the parsers documentation page, later on.
 
 <!-- Start common_arguments -->
 ???+ note "Top level"
