@@ -36,7 +36,6 @@ class BaseSchema:
 
     def init_schema(self, kwargs: dict[str, Any] | None) -> None:
         """Initialize the schema instance and set attributes."""
-        self.var_names = set(var_names)
 
     def is_field_list(self, field_name: str) -> bool:
         """Check if a field is a list."""
