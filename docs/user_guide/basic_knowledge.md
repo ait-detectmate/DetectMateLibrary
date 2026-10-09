@@ -94,11 +94,37 @@ A parsed log would contain fields like:
 
 | Field                | Value                                                  |
 |----------------------|--------------------------------------------------------|
+| `EventID`            | `0`                                                    |
 | `template`           | `hello I am a log about <*> and about <*>`              |
 | `variables`          | `["DetectMate getting started", "what is a log"]`      |
 | `logFormatVariables` | `{"Level": "INFO", "Time": "18-05-2005", "Content": "hello I am a log about DetectMate getting started and about what is a log"}` |
 
 Parsed logs expose structured data that downstream detection components use for
 anomaly detection.
+
+### What is an EventID?
+
+Every distinct template is a different *kind* of event, and the parser gives
+each one a number: the **`EventID`**. All lines that match the same template get
+the same `EventID`, so `User alice logged in from 192.168.0.5` and
+`User bob logged in from 10.0.0.2` share one `EventID`, while a
+`User bob logged out` line would get another.
+
+How the number is chosen depends on the parser. With the
+[Template Matcher](../parsers/template_matcher.md), it is the position of the
+matching template in your template file, counting from `0`: the first template is
+`EventID 0`, the second `EventID 1`, and so on. In the table above the template
+file contains just one template, so the line gets `EventID 0`. A line that
+matches no template gets `EventID -1` and the template `<Not Found>`.
+
+The `EventID` is what detectors build on:
+
+- Detectors that watch variable values are configured per `EventID`: their
+  `events` block says which variables to monitor for which kind of event (see
+  [Detectors](../detectors.md#configuration)).
+- Some detectors look at nothing but the `EventID`, for example the
+  [New Event Detector](../detectors/new_event.md) (an `EventID` never seen
+  before) and the [Event Sequence Detector](../detectors/event_sequence.md) (an
+  unusual order of `EventID`s).
 
 Go back [Index](../index.md)
