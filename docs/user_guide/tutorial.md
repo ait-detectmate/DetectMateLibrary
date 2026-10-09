@@ -24,9 +24,12 @@ this time **you write the templates yourself**. A finished template file is
 included in the repository, but only so you can check your result in step 2.
 That is the point: before you can parse a dataset, you have to look at it.
 
-> Note: you likely have to edit your Path to your project root. In this code snippet we assume, that your
-> notebook lives two folders below the project root. If it sits somewhere else, adjust `parents[...]` (for a
-> script) or the `Path.cwd()` line (for a notebook) accordingly.
+> **Note:** like the Quickstart, this tutorial assumes a cloned repository and
+> runs from the repository root, the folder that contains `pyproject.toml` (see
+> [Before you start](quickstart.md#before-you-start)). The code finds its files
+> relative to that folder through `ROOT = Path.cwd()`. If you work in a notebook
+> stored somewhere else, set `ROOT` to the path of your clone instead, for example
+> `ROOT = Path("/home/me/DetectMateLibrary")`.
 
 ```python
 --8<-- "docs/examples/others/tutorial.py:read"

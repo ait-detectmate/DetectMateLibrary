@@ -2,10 +2,7 @@
 from pathlib import Path
 from detectmatelibrary.helper.from_to import From
 
-try:
-    ROOT = Path(__file__).resolve().parents[3]
-except NameError:  # running inside a Jupyter notebook
-    ROOT = Path.cwd().resolve().parents[1]
+ROOT = Path.cwd()  # the repository root; see the note above this code
 
 log_path = str(ROOT / "docs" / "examples" / "data" / "tutorial_audit.log")
 
