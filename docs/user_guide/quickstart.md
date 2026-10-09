@@ -16,9 +16,5 @@ detector to check whether the dataset contains anomalies. We use the
 ```python
 --8<-- "docs/examples/detectors/random_detector.py"
 ```
-## Common pitfalls
-
-* Before re-running the parser code, delete `local/audit_raw.json` and
-  `local/audit_parsed.json`; otherwise the new output is appended to the old files.
 
 Go back [Index](../index.md)

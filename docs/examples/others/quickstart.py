@@ -25,6 +25,10 @@ parser = MatcherParser(name="MatcherParser", config=config_dict)
 raw_logs = list(From.log(parser, log_path, do_process=False))
 parsed_logs = [parser.process(log) for log in raw_logs]
 
+# To.json appends to existing files, so start from empty ones on every run
+for path in (log_json, parsed_path):
+    Path(path).unlink(missing_ok=True)
+
 To.json(raw_logs, log_json)
 To.json(parsed_logs, parsed_path)
 # --8<-- [end:parse]
