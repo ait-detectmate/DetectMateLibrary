@@ -82,8 +82,8 @@ The pattern that tells the parser how to split a line is called the
 so the parser knows which chunk is the log level, which is the timestamp, and
 which is the actual message content.
 
-The term `log_format` is regularly used in the literature. Such as in the
-**Drain-Parser**, **LogParser**, and many more use it frequently.
+The term `log_format` is common in the log-parsing literature and is used by
+tools such as the **Drain parser** and **LogParser**, among many others.
 
 Based on the example above:
 
