@@ -46,14 +46,26 @@ class BaseSchema:
     def serialize(self) -> bytes:
         """Serialize the schema instance to bytes."""
 
-    def deserialize(self, message: bytes) -> None | op.IncorrectSchema:
-        """Deserialize bytes to populate the schema instance."""
+    def deserialize(self, message: bytes) -> None:
+        """Deserialize bytes to populate the schema instance.
 
-    def check_is_same(self, other: Self) -> None | op.IncorrectSchema:
-        """Check if another schema instance is of the same schema type."""
+        Raises NotSupportedSchema if the bytes cannot be parsed.
+        """
+
+    def check_is_same(self, other: Self) -> None:
+        """Check if another schema instance is of the same schema type.
+
+        Raises IncorrectSchema if it is not.
+        """
 
     def __eq__(self, other: object) -> bool:
         """Check equality between two schema instances."""
+```
+
+The exceptions these methods raise can be imported from `detectmatelibrary.schemas`:
+
+```python
+from detectmatelibrary.schemas import IncorrectSchema, NotSupportedSchema
 ```
 
 ## Schema Classes
