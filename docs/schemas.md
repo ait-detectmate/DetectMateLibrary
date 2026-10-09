@@ -147,6 +147,3 @@ Short examples of working with the schemas.
 ```python
 --8<-- "docs/examples/others/schemas.py:example_3"
 ```
-
-
-Go back [Index](index.md)

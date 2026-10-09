@@ -36,5 +36,3 @@ Step 1 writes its output files to `local/` in the repository root.
 ```python
 --8<-- "docs/examples/detectors/random_detector.py"
 ```
-
-Go back [Index](../index.md)

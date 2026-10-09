@@ -125,5 +125,3 @@ uv run --dev pytest --cov=. --cov-report=term-missing
 * If `uv` is unavailable, use a Python virtualenv and the `pip`/`pytest` commands directly.
 * If `protoc` is missing, install the system package or download a prebuilt binary for your OS.
 * Always run commands from the project root so file paths (`pyproject.toml`, `src/`) resolve correctly.
-
-Go back [Index](../index.md)

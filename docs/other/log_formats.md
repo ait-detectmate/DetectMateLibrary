@@ -308,7 +308,3 @@ Mobile health application log. Pipe-delimited format from a step-counter app.
 ```
 
 **`log_format`:** `<Time>|<Component>|<Pid>|<Content>`
-
----
-
-Go back to [Index](../index.md)

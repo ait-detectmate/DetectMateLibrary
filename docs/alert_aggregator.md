@@ -38,5 +38,3 @@ class CoreAlertAggregation:
 ## Available alert aggregation
 
 - [Basic Concat](alert_aggregators/basic_concatenation.md)
-
-Go back to [Index](index.md)

@@ -31,5 +31,3 @@ Code examples to show the behaviour of the **DataBuffer** class.
 ```python
 --8<-- "docs/examples/others/data_buffer.py:example_3"
 ```
-
-Go back [Index](../index.md)

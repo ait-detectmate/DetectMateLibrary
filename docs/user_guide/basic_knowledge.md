@@ -126,5 +126,3 @@ The `EventID` is what detectors build on:
   [New Event Detector](../detectors/new_event.md) (an `EventID` never seen
   before) and the [Event Sequence Detector](../detectors/event_sequence.md) (an
   unusual order of `EventID`s).
-
-Go back [Index](../index.md)

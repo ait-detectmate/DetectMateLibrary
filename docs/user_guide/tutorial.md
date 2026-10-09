@@ -246,5 +246,3 @@ Two details are easy to miss here, and both matter for production configs:
 * Calling `.process()` on a detector or aggregator returns `None` when
   nothing fires, and the actual output schema (truthy) when it does  --  check
   with `if result:` rather than assuming a boolean.
-
-Go back [Index](../index.md)

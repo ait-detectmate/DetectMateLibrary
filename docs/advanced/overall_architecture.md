@@ -38,5 +38,3 @@ Each Core* base class exposes a small, stable API that implementations must impl
 ```python
 --8<-- "docs/examples/others/components_methods.py:read"
 ```
-
-Go back [Index](../index.md)
