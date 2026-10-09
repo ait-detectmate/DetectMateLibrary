@@ -125,9 +125,9 @@ Fields:
 | description | string | Human-readable description of the alert aggregation. |
 | alertsObtain | map<string,string> | Additional alert metadata from the alert aggregation. |
 
-## Tutorial
+## Examples
 
-Small tutorials of the different schemas.
+Short examples of working with the schemas.
 
 ### Initialize a schema
 
