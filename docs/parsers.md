@@ -26,10 +26,11 @@ class CoreParser:
         Return True when a parsed output was produced, False otherwise.
         """
 
-    def parse(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:
+    def parse(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool | None:
         """Implement parsing here.
-        - Fill required output_ fields (see ParserSchema table below).
-        - Return True if parsing succeeded and output_ contains a result.
+        - Fill the required output_ fields (see "ParserSchema - what to populate" below).
+        - Return True, or None, to emit output_ as the parsed log.
+        - Return False to drop the log: process() then returns None for it.
         """
 
     def train(self, input_: schemas.LogSchema) -> None:
