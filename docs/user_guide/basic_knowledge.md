@@ -10,6 +10,8 @@ states during execution. For example:
 ```python
 import logging
 
+logging.basicConfig(level=logging.INFO, format="%(message)s")  # show INFO messages, without a prefix
+
 var1 = "DetectMate getting started"
 var2 = "what is a log"
 logging.info(f"hello I am a log about {var1} and about {var2}")
