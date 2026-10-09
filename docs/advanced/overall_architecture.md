@@ -25,7 +25,7 @@ Each arrow represents a stream of Schema objects. Components are designed to run
 
 ## Components architecture
 
-All components inherit from a `CoreComponent` class. This class provides all the essential functionality required for DetectMate to operate (see UML diagram below). Every `Detector` must inherit from `CoreDetector`, every `AlertAggregator` must inherit from `CoreAlertAggregation` and every `Parser` must inherit from `CoreParser` to ensure compatibility with DetectMate.
+All components inherit from a `CoreComponent` class. This class provides all the essential functionality required for DetectMate to operate (see UML diagram below). Every `Detector` must inherit from `CoreDetector`, every `AlertAggregator` must inherit from `CoreAlertAggregator` and every `Parser` must inherit from `CoreParser` to ensure compatibility with DetectMate.
 
 Each component's arguments must be stored in its corresponding configuration class. These config classes follow the same design pattern as their components and must inherit from `CoreConfig`.
 
