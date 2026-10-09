@@ -5,8 +5,7 @@ A complete walkthrough of using DetectMate  --  more detailed than the
 ready-made template file and runs one detector. This tutorial goes one level
 deeper:
 
-- you parse a dataset that has no template file yet, so you write the templates
-  yourself
+- you parse a new dataset and write its templates yourself
 - you run two detectors that look for different kinds of anomalies and compare
   what each one finds
 - you combine their alerts with an alert aggregator
@@ -21,8 +20,9 @@ matching `audit_templates.txt`. To actually practice building
 something, this tutorial uses a different file instead:
 `docs/examples/data/tutorial_audit.log`. It is still Linux `auditd` output  --  same overall
 shape as the Quickstart's dataset  --  but recorded on a different machine, and
-it comes with **no template file**. That is the point: before you can parse
-it, you have to look at it.
+this time **you write the templates yourself**. A finished template file is
+included in the repository, but only so you can check your result in step 2.
+That is the point: before you can parse a dataset, you have to look at it.
 
 > Note: you likely have to edit your Path to your project root. In this code snippet we assume, that your
 > notebook lives two folders below the project root. If it sits somewhere else, adjust `parents[...]` (for a
