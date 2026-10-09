@@ -1,9 +1,20 @@
 # Installation
 
-It is recommended to use [uv](https://docs.astral.sh/uv/) for installation. From
-the project root:
+## Requirements
+
+- **Python 3.12 or newer.** If you don't have it, uv can install it for you:
+  `uv python install 3.12`.
+- **[uv](https://docs.astral.sh/uv/)** (recommended) or pip.
+- **git**, to get the source code.
+
+## Install from source
+
+It is recommended to use [uv](https://docs.astral.sh/uv/) for installation. Clone
+the repository and install it from the project root:
 
 ```bash
+git clone https://github.com/ait-detectmate/DetectMateLibrary.git
+cd DetectMateLibrary
 uv sync
 ```
 
