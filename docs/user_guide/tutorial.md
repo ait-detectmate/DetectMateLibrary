@@ -242,10 +242,15 @@ Two details are easy to miss here, and both matter for production configs:
 * Manually escaping regex characters (like `(` and `)`) inside a
   `log_format` string breaks matching:
   `generate_logformat_regex()` already escapes literal text for you.
-* A detector's `detect()` only checks `EventID`s it has already seen through
-  `train()` at least once. If you configure a detector for an `EventID` that
-  never appears in the training window (`data_use_training`), it will stay
-  silent for that event type  --  not alert on everything, and not error either.
+* Detectors configured with an `events` block (such as `NewValueDetector`) only
+  check `EventID`s they have seen in training. If you configure an `EventID` that
+  never appears in the training window (`data_use_training`), the detector stays
+  silent for that event type: it does not alert on everything, and it does not
+  raise an error. It does log a warning when training ends, for example
+  `[NewValueDetector] EventID 5 is configured but was never observed in training data`,
+  so check the log after training. This does not apply to every detector: the
+  [New Event Detector](../detectors/new_event.md) exists to alert on exactly
+  those never-seen `EventID`s.
 * Calling `.process()` on a detector or aggregator returns `None` when
   nothing fires, and the actual output schema (truthy) when it does  --  check
   with `if result:` rather than assuming a boolean.
