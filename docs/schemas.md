@@ -88,8 +88,8 @@ Fields:
 | logID | string | Original raw log ID (link to LogSchema). |
 | log | string | Raw log text. |
 | logFormatVariables | map<string,string> | Key/value pairs from format extraction. |
-| receivedTimestamp | int32 | Timestamp when log was received. |
-| parsedTimestamp | int32 | Timestamp when parsing completed. |
+| receivedTimestamp | int64 | Timestamp when log was received. |
+| parsedTimestamp | int64 | Timestamp when parsing completed. |
 
 ### DetectorSchema
 Output from Detectors (alerts / findings).
@@ -101,12 +101,12 @@ Fields:
 | detectorID | string | Detector instance identifier. |
 | detectorType | string | Type/name of detector. |
 | alertID | string | Unique alert identifier. |
-| detectionTimestamp | int32 | When the alert was produced. |
+| detectionTimestamp | int64 | When the alert was produced. |
 | logIDs | repeated string | IDs of logs related to the alert. |
 | score | float | Confidence/score (if applicable). |
-| extractedTimestamps | repeated int32 | Timestamps extracted from logs. |
+| extractedTimestamps | repeated int64 | Timestamps extracted from logs. |
 | description | string | Human-readable description of the alert. |
-| receivedTimestamp | int32 | When inputs were received by detector. |
+| receivedTimestamp | int64 | When inputs were received by detector. |
 | alertsObtain | map<string,string> | Additional alert metadata. |
 
 ### AggregateSchema
@@ -117,11 +117,11 @@ Fields:
 | Field | Type | Notes |
 |---|---|---|
 | detectorIDs | repeated string | List of detector instance identifier. |
-| detectorTypes | string | List of type/name of detectors. |
-| alertIDs | string | repeated list of unique alert identifier. |
-| outputTimestamp | int32 | When the aggregation was produced. |
+| detectorTypes | repeated string | List of type/name of detectors. |
+| alertIDs | repeated string | List of unique alert identifiers. |
+| outputTimestamp | int64 | When the aggregation was produced. |
 | logIDs | repeated string | IDs of logs related to the alerts. |
-| extractedTimestamps | repeated int32 | Timestamps extracted from logs. |
+| extractedTimestamps | repeated int64 | Timestamps extracted from logs. |
 | description | string | Human-readable description of the alert aggregation. |
 | alertsObtain | map<string,string> | Additional alert metadata from the alert aggregation. |
 
