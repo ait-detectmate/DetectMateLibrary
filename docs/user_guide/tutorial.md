@@ -19,7 +19,7 @@ importantly, understand *why* each piece behaves the way it does.
 The Quickstart uses the `audit.log` dataset, which already ships with a
 matching `audit_templates.txt`. To actually practice building
 something, this tutorial uses a different file instead:
-`tests/test_data/logs.log`. It is still Linux `auditd` output  --  same overall
+`docs/examples/data/tutorial_audit.log`. It is still Linux `auditd` output  --  same overall
 shape as the Quickstart's dataset  --  but recorded on a different machine, and
 it comes with **no template file**. That is the point: before you can parse
 it, you have to look at it.
@@ -75,8 +75,11 @@ type=<Type> msg=audit(<Time>:<Serial>): <Content>
 
 **Writing the templates.** **MatcherParser** needs a template file as an input. For each of the four content shapes above, we
 replace the parts that change between log lines with `<*>`, following the
-[template format](../parsers/template_matcher.md#template-format) rules  --  save the results in
-`tests/test_data/logs_templates.txt`:
+[template format](../parsers/template_matcher.md#template-format) rules, and save the results
+in a file of your own (for example `local/tutorial_templates.txt`, then point
+`templates_path` in the code below at it). The finished version ships as
+`docs/examples/data/tutorial_templates.txt`, which the example code uses, so you
+can compare your result against it:
 
 ```text
 op=start ver=<*> format=<*> kernel=<*> auid=<*> pid=<*> uid=<*> ses=<*> res=<*>
