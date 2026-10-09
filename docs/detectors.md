@@ -18,12 +18,23 @@ This document describes the minimal API, implementation guidance, a short exampl
 class CoreDetectorConfig(CoreConfig):
     component_type: str = "detectors"
     method_type: str = "core_detector"
-    parser: str = "<PLACEHOLDER>"
+    parser: str = "PARSER"
 
     auto_config: bool = True
+    events: EventsConfig | dict[str, Any] = {}
+    global_instances: dict[str, Any] = {}  # written as `global` in YAML
 
 
 class CoreDetector(CoreComponent):
+    def __init__(
+        self,
+        name: str = "CoreDetector",
+        buffer_mode: BufferMode = BufferMode.NO_BUF,
+        buffer_size: int | None = None,
+        config: CoreDetectorConfig | dict[str, Any] | None = CoreDetectorConfig(),
+    ) -> None:
+        """buffer_mode and buffer_size set how many logs detect() receives per call."""
+
     def run(
         self, input_: List[ParserSchema] | ParserSchema, output_: DetectorSchema
     ) -> bool:
@@ -144,7 +155,7 @@ detectors:
             - pos: 0  # location of an unnamed variable from the log message
               name: var1  # name of variable (arbitrary)
           header_variables:
-            - pos: level  # location of a named variable (defined in log_format of parser)
+            - pos: Level  # name of a field in the parser's log_format (case-sensitive: <Level> -> Level)
     global:  # define global instance for new_value_detector similar to "events"
       global_instance1:  # define instance name
         header_variables:  # same logic as header_variables in "events"
@@ -247,7 +258,8 @@ The two neural detectors ([DeepLog](detectors/deeplog.md), [LogBERT](detectors/l
 pid=<*> uid=<*> auid=<*> ses=<*> msg='op=<*> acct=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'
 ```
 
-`pos: 0` captures `pid=`, `pos: 6` captures `exe=`, etc.
+`pos: 0` captures the value after `pid=` (for example `10125`), `pos: 6` the value after
+`exe=` (for example `"/usr/sbin/cron"`), and so on.
 
 **`header_variables[].pos`**  --  A named field from the log format string (e.g., `Type`, `Time`, `Content`) rather than a wildcard position.
 
