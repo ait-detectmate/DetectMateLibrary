@@ -3,7 +3,7 @@ from pathlib import Path
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From, To
 
-ROOT = Path(__file__).resolve().parents[3]  # repository root; adjust if needed
+ROOT = Path.cwd()  # run this from the repository root (see "Before you start")
 templates_path = str(ROOT / "tests" / "test_data" / "audit_templates.txt")
 log_path = str(ROOT / "tests" / "test_data" / "audit.log")
 log_json = str(ROOT / "local" / "audit_raw.json")
@@ -24,6 +24,10 @@ parser = MatcherParser(name="MatcherParser", config=config_dict)
 
 raw_logs = list(From.log(parser, log_path, do_process=False))
 parsed_logs = [parser.process(log) for log in raw_logs]
+
+# To.json appends to existing files, so start from empty ones on every run
+for path in (log_json, parsed_path):
+    Path(path).unlink(missing_ok=True)
 
 To.json(raw_logs, log_json)
 To.json(parsed_logs, parsed_path)

@@ -25,7 +25,7 @@ With the configuration file below, the `message` field is also matched against t
 
 ## Configuration file
 
-The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
+The configuration used by the second example above (the first one runs with all defaults). It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
 ```yaml
 --8<-- "docs/examples/parsers/json_parser.yaml"

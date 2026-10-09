@@ -2,12 +2,9 @@
 from pathlib import Path
 from detectmatelibrary.helper.from_to import From
 
-try:
-    ROOT = Path(__file__).resolve().parents[3]
-except NameError:  # running inside a Jupyter notebook
-    ROOT = Path.cwd().resolve().parents[1]
+ROOT = Path.cwd()  # the repository root; see the note above this code
 
-log_path = str(ROOT / "tests" / "test_data" / "logs.log")
+log_path = str(ROOT / "docs" / "examples" / "data" / "tutorial_audit.log")
 
 # do_process=False turns From.log into a pure reader: it yields raw
 # LogSchema objects without running them through a parser yet, so the
@@ -22,7 +19,7 @@ print(raw_logs[0]["log"])
 # --8<-- [start:own_parser]
 from detectmatelibrary.parsers.template_matcher import MatcherParser  # noqa: E402
 
-templates_path = str(ROOT / "tests" / "test_data" / "logs_templates.txt")
+templates_path = str(ROOT / "docs" / "examples" / "data" / "tutorial_templates.txt")
 
 config_dict = {
     "parsers": {

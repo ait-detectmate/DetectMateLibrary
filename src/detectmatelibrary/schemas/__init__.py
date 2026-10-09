@@ -11,6 +11,7 @@ from ._classes import (
     AggregateSchema,
     FieldNotFound,
 )
+from ._op import IncorrectSchema, NotSupportedSchema
 
 
 __all__ = [
@@ -19,5 +20,7 @@ __all__ = [
     "ParserSchema",
     "DetectorSchema",
     "AggregateSchema",
-    "FieldNotFound"
+    "FieldNotFound",
+    "IncorrectSchema",
+    "NotSupportedSchema",
 ]

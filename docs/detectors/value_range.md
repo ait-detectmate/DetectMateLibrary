@@ -1,6 +1,6 @@
 # Value Range Detector
 
-The Value Range Detector raises alerts when numerical values outside of known ranges appear in configured fields. It is useful to detect unexpected changes, configuration drift, or the appearance of new actors in the environment.
+The Value Range Detector raises alerts when numerical values outside of known ranges appear in configured fields. It is useful to detect unexpected changes in quantities such as sizes, counts, or durations.
 
 ## In/out
 
@@ -19,7 +19,7 @@ Input and output schemas in the pipeline
 
 ## Description
 
-This detector maintains a lightweight set of observed values per monitored field and emits an alert when a value outside the learned range is seen (subject to configuration).
+This detector keeps only the minimum and maximum value seen during training for each monitored field, so its memory use stays constant however many values it sees. It emits an alert when a value falls outside that range (subject to configuration).
 
 ## Example
 

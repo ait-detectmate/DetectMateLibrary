@@ -36,7 +36,6 @@ class BaseSchema:
 
     def init_schema(self, kwargs: dict[str, Any] | None) -> None:
         """Initialize the schema instance and set attributes."""
-        self.var_names = set(var_names)
 
     def is_field_list(self, field_name: str) -> bool:
         """Check if a field is a list."""
@@ -47,17 +46,29 @@ class BaseSchema:
     def serialize(self) -> bytes:
         """Serialize the schema instance to bytes."""
 
-    def deserialize(self, message: bytes) -> None | op.IncorrectSchema:
-        """Deserialize bytes to populate the schema instance."""
+    def deserialize(self, message: bytes) -> None:
+        """Deserialize bytes to populate the schema instance.
 
-    def check_is_same(self, other: Self) -> None | op.IncorrectSchema:
-        """Check if another schema instance is of the same schema type."""
+        Raises NotSupportedSchema if the bytes cannot be parsed.
+        """
+
+    def check_is_same(self, other: Self) -> None:
+        """Check if another schema instance is of the same schema type.
+
+        Raises IncorrectSchema if it is not.
+        """
 
     def __eq__(self, other: object) -> bool:
         """Check equality between two schema instances."""
 ```
 
-## Schema Clases
+The exceptions these methods raise can be imported from `detectmatelibrary.schemas`:
+
+```python
+from detectmatelibrary.schemas import IncorrectSchema, NotSupportedSchema
+```
+
+## Schema Classes
 
 Below are the primary schema classes and their main fields. All fields are optional at the Protobuf level; components should document which fields they require.
 
@@ -89,8 +100,8 @@ Fields:
 | logID | string | Original raw log ID (link to LogSchema). |
 | log | string | Raw log text. |
 | logFormatVariables | map<string,string> | Key/value pairs from format extraction. |
-| receivedTimestamp | int32 | Timestamp when log was received. |
-| parsedTimestamp | int32 | Timestamp when parsing completed. |
+| receivedTimestamp | int64 | Timestamp when log was received. |
+| parsedTimestamp | int64 | Timestamp when parsing completed. |
 
 ### DetectorSchema
 Output from Detectors (alerts / findings).
@@ -102,12 +113,12 @@ Fields:
 | detectorID | string | Detector instance identifier. |
 | detectorType | string | Type/name of detector. |
 | alertID | string | Unique alert identifier. |
-| detectionTimestamp | int32 | When the alert was produced. |
+| detectionTimestamp | int64 | When the alert was produced. |
 | logIDs | repeated string | IDs of logs related to the alert. |
 | score | float | Confidence/score (if applicable). |
-| extractedTimestamps | repeated int32 | Timestamps extracted from logs. |
+| extractedTimestamps | repeated int64 | Timestamps extracted from logs. |
 | description | string | Human-readable description of the alert. |
-| receivedTimestamp | int32 | When inputs were received by detector. |
+| receivedTimestamp | int64 | When inputs were received by detector. |
 | alertsObtain | map<string,string> | Additional alert metadata. |
 
 ### AggregateSchema
@@ -118,17 +129,17 @@ Fields:
 | Field | Type | Notes |
 |---|---|---|
 | detectorIDs | repeated string | List of detector instance identifier. |
-| detectorTypes | string | List of type/name of detectors. |
-| alertIDs | string | repeated list of unique alert identifier. |
-| outputTimestamp | int32 | When the aggregation was produced. |
+| detectorTypes | repeated string | List of type/name of detectors. |
+| alertIDs | repeated string | List of unique alert identifiers. |
+| outputTimestamp | int64 | When the aggregation was produced. |
 | logIDs | repeated string | IDs of logs related to the alerts. |
-| extractedTimestamps | repeated int32 | Timestamps extracted from logs. |
+| extractedTimestamps | repeated int64 | Timestamps extracted from logs. |
 | description | string | Human-readable description of the alert aggregation. |
 | alertsObtain | map<string,string> | Additional alert metadata from the alert aggregation. |
 
-## Tutorial
+## Examples
 
-Small tutorials of the different schemas.
+Short examples of working with the schemas.
 
 ### Initialize a schema
 
@@ -148,6 +159,3 @@ Small tutorials of the different schemas.
 ```python
 --8<-- "docs/examples/others/schemas.py:example_3"
 ```
-
-
-Go back [Index](index.md)

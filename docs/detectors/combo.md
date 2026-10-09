@@ -1,6 +1,6 @@
 # New Value Combo Detector
 
-The New Value Combo Detector raises alerts when previously unseen combinations of values appear in configured fields (for example new user names, IP addresses, or process names). It is useful to detect novelty, configuration drift, or the appearance of new actors in the environment.
+The New Value Combo Detector raises alerts when previously unseen combinations of values appear in configured fields (for example a known user logging in from a known IP address they have never used before). It is useful to detect unusual pairings of otherwise familiar values, which the [New Value Detector](new_value.md) would miss.
 
 ## In/out
 

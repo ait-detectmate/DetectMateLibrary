@@ -1,9 +1,20 @@
 # Installation
 
-It is recommended to use [uv](https://docs.astral.sh/uv/) for installation. From
-the project root:
+## Requirements
+
+- **Python 3.12 or newer.** If you don't have it, uv can install it for you:
+  `uv python install 3.12`.
+- **[uv](https://docs.astral.sh/uv/)** (recommended) or pip.
+- **git**, to get the source code.
+
+## Install from source
+
+It is recommended to use [uv](https://docs.astral.sh/uv/) for installation. Clone
+the repository and install it from the project root:
 
 ```bash
+git clone https://github.com/ait-detectmate/DetectMateLibrary.git
+cd DetectMateLibrary
 uv sync
 ```
 
@@ -19,7 +30,7 @@ uv pip install --no-cache-dir <directory_detectmatelibrary>
 ## Optional dependencies
 
 Not every feature needs the same dependencies, so DetectMate uses optional
-extras --> you install only what you need.
+extras: you install only what you need.
 
 | Extra | Installs | When you need it |
 |---|---|---|
@@ -125,5 +136,3 @@ uv run --dev pytest --cov=. --cov-report=term-missing
 * If `uv` is unavailable, use a Python virtualenv and the `pip`/`pytest` commands directly.
 * If `protoc` is missing, install the system package or download a prebuilt binary for your OS.
 * Always run commands from the project root so file paths (`pyproject.toml`, `src/`) resolve correctly.
-
-Go back [Index](../index.md)

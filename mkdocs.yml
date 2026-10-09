@@ -3,6 +3,8 @@ site_url: https://ait-detectmate.github.io/DetectMateLibrary/
 
 theme:
   name: material # windmill is auch cool
+  features:
+    - navigation.footer   # previous / next page links at the bottom of every page
   palette:
     # Light mode configuration
     - media: "(prefers-color-scheme: light)"

@@ -51,15 +51,23 @@ def is_repeated(schema: SchemaT, field_name: str) -> bool:
 
 def check_is_same_schema(
     id_schema_1: SchemaID, id_schema_2: SchemaID
-) -> None | IncorrectSchema:
-    """Raise exception if two schemas do not match."""
+) -> None:
+    """Check that two schemas are of the same type.
+
+    Raises:
+        IncorrectSchema: If the two schemas do not match.
+    """
     if id_schema_1 != id_schema_2:
         raise IncorrectSchema()
     return None
 
 
-def check_if_schema_is_complete(schema: SchemaT) -> None | NotCompleteSchema:
-    """Check if the schema is complete."""
+def check_if_schema_is_complete(schema: SchemaT) -> None:
+    """Check if the schema is complete.
+
+    Raises:
+        NotCompleteSchema: If a non-repeated field is not set.
+    """
     missing_fields = []
     for field in schema.DESCRIPTOR.fields:
         if not __is_repeated(field) and not schema.HasField(field.name):
@@ -86,8 +94,12 @@ def initialize(schema: SchemaT, **kwargs: Any) -> SchemaT:
 
 def copy(
     schema_class: SchemaT, schema: SchemaT
-) -> SchemaT | IncorrectSchema:
-    """Make a copy of the schema."""
+) -> SchemaT:
+    """Make a copy of the schema.
+
+    Raises:
+        IncorrectSchema: If the schema cannot be copied into schema_class.
+    """
     new_schema = initialize(schema_class, **{})
     try:
         new_schema.CopyFrom(schema)
@@ -100,8 +112,12 @@ def serialize(schema: SchemaT) -> bytes:
     return schema.SerializeToString()  # type: ignore
 
 
-def deserialize(schema_class: SchemaT, message: bytes) -> SchemaT | NotSupportedSchema:
-    """Return the schema and id from a serialize message."""
+def deserialize(schema_class: SchemaT, message: bytes) -> SchemaT:
+    """Parse a serialized message into a new schema_class instance.
+
+    Raises:
+        NotSupportedSchema: If the message cannot be parsed.
+    """
     schema = schema_class()
     try:
         schema.ParseFromString(message)

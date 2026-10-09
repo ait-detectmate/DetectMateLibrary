@@ -15,7 +15,7 @@ This document explains expected APIs, how to implement a parser, testing tips an
 - `CoreParser.run()` handles lifecycle and calls `parse()` for each input; implement pure parsing logic inside `parse()` where possible.
 - Use a typed `Config` class (subclass of `CoreParserConfig`) to hold runtime parameters.
 
-## CoreParser  --  minimal API
+## CoreParser: minimal API
 
 Recommended signatures and behavior:
 
@@ -26,27 +26,38 @@ class CoreParser:
         Return True when a parsed output was produced, False otherwise.
         """
 
-    def parse(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:
+    def parse(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool | None:
         """Implement parsing here.
-        - Fill required output_ fields (see ParserSchema table below).
-        - Return True if parsing succeeded and output_ contains a result.
+        - Fill the required output_ fields (see "ParserSchema: what to populate" below).
+        - Return True, or None, to emit output_ as the parsed log.
+        - Return False to drop the log: process() then returns None for it.
         """
 
-    def train(self, input_: Iterable[schemas.LogSchema]) -> None:
+    def train(self, input_: schemas.LogSchema) -> None:
         """Optional: train internal models. Can be a no-op for stateless parsers."""
 ```
 
-## ParserSchema  --  what to populate
+## ParserSchema: what to populate
 
-Minimum fields commonly expected by downstream components:
+`parse()` only has to fill the fields that describe the match:
 
-- `EventID` (int)  --  identifier for the matched template/event
-- `template` (string)  --  event template text
-- `variables` (repeated string)  --  extracted parameters (extend the list)
-- `parsedLogID` / `logID`  --  identifiers linking raw and parsed records
-- `parsedTimestamp` / `receivedTimestamp`  --  timestamps
+- `EventID` (int): identifier for the matched template/event
+- `template` (string): event template text
+- `variables` (repeated string): extracted parameters (extend the list)
 
-## Creating a new parser  --  step by step
+`CoreParser.run()`, which calls `parse()`, fills in everything else for you:
+
+- `parserID`, `parserType`: the parser's name and `method_type`
+- `parsedLogID`: a new unique ID for the parsed record
+- `logID`, `log`: copied from the input `LogSchema`
+- `logFormatVariables`: the header fields extracted with `log_format`
+- `receivedTimestamp`, `parsedTimestamp`: set just before and just after
+  `parse()` runs
+
+Don't set these in `parse()`: `run()` writes `parsedTimestamp` after `parse()`
+returns, so a value set there is overwritten.
+
+## Creating a new parser: step by step
 
 1. Create a Config class inheriting `CoreParserConfig`.
 2. Create parser class inheriting `CoreParser`.
@@ -57,9 +68,10 @@ Example:
 
 ```python
 # filepath: src/detectmatelibrary/parsers/my_parser.py
+from typing import Any
+
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
 from detectmatelibrary import schemas
-from typing import Any
 
 
 class MyParserConfig(CoreParserConfig):
@@ -85,7 +97,6 @@ class MyParser(CoreParser):
         output_["EventID"] = 1
         output_["template"] = " ".join(["<*>"] * len(tokens))
         output_["variables"].extend(tokens)
-        output_["parsedTimestamp"] = int(time.time())
         return True
 ```
 
@@ -118,7 +129,7 @@ def test_my_parser_parse():
 
 ### Common parameters (all parsers)
 
-There are some parameters, that **every** parser inhertis from `CoreParserrConfig`/`CoreConfig`/`BasicConfig`, regardless of what it does. The other parameters, that are **specific** for the respective parser, are explained right at the parsers documentation page, later on.
+There are some parameters, that **every** parser inherits from `CoreParserConfig`/`CoreConfig`/`BasicConfig`, regardless of what it does. The other parameters, that are **specific** for the respective parser, are explained right at the parsers documentation page, later on.
 
 <!-- Start common_arguments -->
 ???+ note "Top level"

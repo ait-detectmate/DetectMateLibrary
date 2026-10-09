@@ -21,7 +21,7 @@ Input and output schemas in the pipeline
 
 The detector slides a window of `fixed_window_size` event IDs over the log stream. During training every full window is stored as a known sequence; during detection a window whose exact sequence is not in that set is reported as an anomaly.
 
-Because a novel event stays inside the window for `fixed_window_size` steps, a single unexpected event produces up to `fixed_window_size` consecutive alerts  --  one per window it invalidates. This is intentional: each of those windows is a distinct sequence that was never trained.
+Because a novel event stays inside the window for `fixed_window_size` steps, a single unexpected event produces up to `fixed_window_size` consecutive alerts, one per window it invalidates. This is intentional: each of those windows is a distinct sequence that was never trained.
 
 Sequences are stored as fixed-length n-grams, so a persisted model is only meaningful at the length it was trained with. When state is restored via [persistency](../auxiliar/persistency.md) at a different `fixed_window_size`, the detector logs a warning, adopts the persisted length, and skips auto-configuration.
 
@@ -31,7 +31,7 @@ With `auto_config: True` the detector spends the configure phase feeding one win
 
 Candidates whose window never filled during the configure phase are skipped, so a short configure phase simply narrows the choice.
 
-If no candidate is stable, no window length is meaningful for this log stream. Rather than fall back to an arbitrary length and alert on nearly every window, the detector generates an empty configuration: **no instance of the detector is created**, `fixed_window_size` stays `None`, and it neither trains nor alerts for the rest of the run. A warning names the range that was searched. The same applies to `auto_config: False` without a `fixed_window_size`  --  the detector stays inert.
+If no candidate is stable, no window length is meaningful for this log stream. Rather than fall back to an arbitrary length and alert on nearly every window, the detector generates an empty configuration: **no instance of the detector is created**, `fixed_window_size` stays `None`, and it neither trains nor alerts for the rest of the run. A warning names the range that was searched. The same applies to `auto_config: False` without a `fixed_window_size`: the detector stays inert.
 
 Longer windows are more specific and therefore alert more readily; if the auto-configured length is too sensitive, narrow the range or set `fixed_window_size` explicitly.
 

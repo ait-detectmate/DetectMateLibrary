@@ -1,17 +1,16 @@
 # Tutorial (end-to-end)
 
-A complete walkthrough of using DetectMate  --  more detailed than the
+A complete walkthrough of using DetectMate, more detailed than the
 [Quickstart](quickstart.md). The Quickstart parses a ready-made dataset with a
 ready-made template file and runs one detector. This tutorial goes one level
 deeper:
 
-- you parse a dataset that has no template file yet, so you write the templates
-  yourself
+- you parse a new dataset and write its templates yourself
 - you run two detectors that look for different kinds of anomalies and compare
   what each one finds
 - you combine their alerts with an alert aggregator
 
-By the end you should have seen most of what the library can do and, more
+By the end you should have seen the core workflow and, more
 importantly, understand *why* each piece behaves the way it does.
 
 ## 1. Read a different dataset from scratch
@@ -19,14 +18,18 @@ importantly, understand *why* each piece behaves the way it does.
 The Quickstart uses the `audit.log` dataset, which already ships with a
 matching `audit_templates.txt`. To actually practice building
 something, this tutorial uses a different file instead:
-`tests/test_data/logs.log`. It is still Linux `auditd` output  --  same overall
-shape as the Quickstart's dataset  --  but recorded on a different machine, and
-it comes with **no template file**. That is the point: before you can parse
-it, you have to look at it.
+`docs/examples/data/tutorial_audit.log`. It is still Linux `auditd` output (same overall
+shape as the Quickstart's dataset), but recorded on a different machine, and
+this time **you write the templates yourself**. A finished template file is
+included in the repository, but only so you can check your result in step 2.
+That is the point: before you can parse a dataset, you have to look at it.
 
-> Note: you likely have to edit your Path to your project root. In this code snippet we assume, that your
-> notebook lives two folders below the project root. If it sits somewhere else, adjust `parents[...]` (for a
-> script) or the `Path.cwd()` line (for a notebook) accordingly.
+> **Note:** like the Quickstart, this tutorial assumes a cloned repository and
+> runs from the repository root, the folder that contains `pyproject.toml` (see
+> [Before you start](quickstart.md#before-you-start)). The code finds its files
+> relative to that folder through `ROOT = Path.cwd()`. If you work in a notebook
+> stored somewhere else, set `ROOT` to the path of your clone instead, for example
+> `ROOT = Path("/home/me/DetectMateLibrary")`.
 
 ```python
 --8<-- "docs/examples/others/tutorial.py:read"
@@ -35,7 +38,7 @@ it, you have to look at it.
 `From.log` is the same helper used in the Quickstart (see the
 [From helper](../helper/from_to.md) docs). Passing `do_process=False`
 turns it into a plain file reader that hands back [`LogSchema`](../schemas.md)
-objects instead of running them through a parser  --  exactly what you want
+objects instead of running them through a parser, which is exactly what you want
 before you've decided how to parse the data.
 
 The file only has 9 lines, small enough to read in full:
@@ -53,8 +56,8 @@ type=SYSCALL msg=audit(1757673850.283:5): arch=c00000b7 syscall=206 success=yes 
 ```
 
 Every line starts with the same prefix shape, `type=<Type> msg=audit(<Time>:<Serial>):
-<Content>`, and there are only four distinct *event types*  --  `DAEMON_START`,
-`CONFIG_CHANGE`, `SYSCALL`, and `PROCTITLE`  --  each with its own static
+<Content>`, and there are only four distinct *event types* (`DAEMON_START`,
+`CONFIG_CHANGE`, `SYSCALL`, and `PROCTITLE`), each with its own static
 template hiding behind the variable parts.
 
 ## 2. Build and configure your own parser
@@ -75,8 +78,11 @@ type=<Type> msg=audit(<Time>:<Serial>): <Content>
 
 **Writing the templates.** **MatcherParser** needs a template file as an input. For each of the four content shapes above, we
 replace the parts that change between log lines with `<*>`, following the
-[template format](../parsers/template_matcher.md#template-format) rules  --  save the results in
-`tests/test_data/logs_templates.txt`:
+[template format](../parsers/template_matcher.md#template-format) rules, and save the results
+in a file of your own (for example `local/tutorial_templates.txt`, then point
+`templates_path` in the code below at it). The finished version ships as
+`docs/examples/data/tutorial_templates.txt`, which the example code uses, so you
+can compare your result against it:
 
 ```text
 op=start ver=<*> format=<*> kernel=<*> auid=<*> pid=<*> uid=<*> ses=<*> res=<*>
@@ -87,13 +93,13 @@ proctitle=<*>
 
 A few things worth noticing while writing templates like these:
 
-- The line number is the `EventID`  --  line 1 (0-indexed: `0`) matches
+- The line number is the `EventID`: line 1 (0-indexed: `0`) matches
   `DAEMON_START`, line 2 (`1`) matches `CONFIG_CHANGE`, and so on, exactly as
   described in [EventID assignment](../parsers/template_matcher.md#eventid-assignment-preliminary).
 - The second template's `op=set <*> old=<*> ...` has only one wildcard where
   the raw text has an `audit_backlog_limit=8192`, `audit_failure=1`, or
   `audit_backlog_wait_time=60000` key/value pair. A single `<*>` is not
-  limited to one word  --  it happily captures the whole `key=value` chunk, so
+  limited to one word: it happily captures the whole `key=value` chunk, so
   there's no need for a wildcard per key name even though the key itself
   varies between log lines.
 - None of the templates need to account for the trailing `AUID="unset"
@@ -109,17 +115,17 @@ A few things worth noticing while writing templates like these:
 
 > **Common pitfall: don't escape `log_format` yourself.** The Quickstart's
 > `log_format` string escapes the parentheses by hand:
-> `r"...audit\(<Time>:<Serial>\):..."`. Don't copy that  --  it's wrong.
+> `r"...audit\(<Time>:<Serial>\):..."`. Don't copy that; it's wrong.
 > `generate_logformat_regex()` (used internally by every parser that accepts
 > `log_format`) already escapes every literal character outside the
 > `<Placeholder>` tokens, parentheses included. Escaping them yourself asks it
 > to match a **literal backslash** followed by `(`, which never occurs in
-> real log data  --  the regex then silently fails to match anything, and every
+> real log data. The regex then silently fails to match anything, and every
 > log falls back to `<Not Found>`. Write `log_format` as plain text; only the
 > `<Placeholder>` tokens are special.
 
 Running this prints, for each of the 9 logs, the `EventID` and the matched
-template  --  all four templates get used, and every line matches (nothing
+template. All four templates get used, and every line matches (nothing
 comes back as `<Not Found>`).
 
 ## 3. Run several detectors and compare their alerts
@@ -141,7 +147,7 @@ stream:
 
 Both detectors are configured with `data_use_training: 3`: the first 3 logs
 (`DAEMON_START`, `CONFIG_CHANGE`, `SYSCALL`) are used to train, and detection
-runs on the remaining 6  --  see [Configuration](../detectors.md#configuration)
+runs on the remaining 6; see [Configuration](../detectors.md#configuration)
 for how `data_use_training` and `events` interact. `NewValueDetector` is
 pointed at the two fields we identified while writing the templates in step
 2: the `key=value` pair inside `CONFIG_CHANGE` (`EventID: 1`, `pos: 0`) and
@@ -168,24 +174,24 @@ In the table above, **`True` means that detector raised an alert** for that log
 Reading the table alongside the raw data explains why each detector fires
 when it does:
 
-- **`NewValueDetector`** only fires on logs `#5` and `#8`  --  the second and
+- **`NewValueDetector`** only fires on logs `#5` and `#8`: the second and
   third `CONFIG_CHANGE` events, whose `audit_failure=1` and
   `audit_backlog_wait_time=60000` values were never seen during training
   (only `audit_backlog_limit=8192`, from log `#2`, was). It stays silent on
   every `SYSCALL` after log `#3`, because `comm="auditctl"` is identical
-  every time  --  there is nothing *new* about it once it's been trained once.
+  every time, so there is nothing *new* about it once it's been trained once.
 - **`EventSequenceDetector`** fires starting at log `#4`, and on every log
   after that except the `SYSCALL`s. With `fixed_window_size: 2`, training on
   the first 3 logs only teaches it the transitions `(DAEMON_START →
   CONFIG_CHANGE)` and `(CONFIG_CHANGE → SYSCALL)`. The transition `(SYSCALL →
-  PROCTITLE)` at log `#4` was never trained, so it alerts  --  and keeps
+  PROCTITLE)` at log `#4` was never trained, so it alerts, and keeps
   alerting every time that same transition recurs (`#7`), because alerts
   don't teach the detector anything; only `train()` does. `(PROCTITLE →
   CONFIG_CHANGE)` at log `#5` is equally untrained and alerts too, while
   `(CONFIG_CHANGE → SYSCALL)` at logs `#6` and `#9` was trained at log `#3`
   and stays quiet.
 
-Note that both detectors agree on logs `#5` and `#8`  --  the same underlying
+Note that both detectors agree on logs `#5` and `#8`: the same underlying
 event looks anomalous from two independent angles: an unfamiliar value *and*
 an unfamiliar position in the sequence. That overlap is what an alert
 aggregator is for.
@@ -195,7 +201,7 @@ aggregator is for.
 [Alert aggregation](../alert_aggregator.md) takes the stream of alerts coming
 out of one or more detectors and combines them into
 [`AggregateSchema`](../schemas.md) records. Here we feed every alert produced
-in step 3  --  from either detector, in the order they were emitted  --  into
+in step 3 (from either detector, in the order they were emitted) into
 [`BasicConcatAggregation`](../alert_aggregators/basic_concatenation.md), the
 simplest aggregation strategy available:
 
@@ -221,10 +227,11 @@ Two details are easy to miss here, and both matter for production configs:
   produce five overlapping aggregate outputs, not three separate batches.
 - **`BasicConcatAggregation` does not correlate by log line.** It concatenates
   whatever alerts happen to be in the window, regardless of which log they
-  refer to  --  that's why most rows above pair up alerts from *different*
+  refer to. That's why most rows above pair up alerts from *different*
   underlying logs. The two rows where both `logIDs` are identical
   (`['4', '4']` and `['7', '7']`) are the exception, and not a coincidence:
-  those are exactly the log `#5` and `#8` cases from step 3, where
+  those are exactly the log `#5` and `#8` cases from step 3 (`logIDs` count
+  from 0 while the table above counts from 1, so logID `4` is row `#5`), where
   `NewValueDetector` and `EventSequenceDetector` both alerted on the same
   event back to back, so the window happened to contain only that pair. A
   real deployment that wants alerts grouped *by log* rather than by arrival
@@ -233,14 +240,17 @@ Two details are easy to miss here, and both matter for production configs:
 ## Common pitfalls
 
 * Manually escaping regex characters (like `(` and `)`) inside a
-  `log_format` string breaks matching
+  `log_format` string breaks matching:
   `generate_logformat_regex()` already escapes literal text for you.
-* A detector's `detect()` only checks `EventID`s it has already seen through
-  `train()` at least once. If you configure a detector for an `EventID` that
-  never appears in the training window (`data_use_training`), it will stay
-  silent for that event type  --  not alert on everything, and not error either.
+* Detectors configured with an `events` block (such as `NewValueDetector`) only
+  check `EventID`s they have seen in training. If you configure an `EventID` that
+  never appears in the training window (`data_use_training`), the detector stays
+  silent for that event type: it does not alert on everything, and it does not
+  raise an error. It does log a warning when training ends, for example
+  `[NewValueDetector] EventID 5 is configured but was never observed in training data`,
+  so check the log after training. This does not apply to every detector: the
+  [New Event Detector](../detectors/new_event.md) exists to alert on exactly
+  those never-seen `EventID`s.
 * Calling `.process()` on a detector or aggregator returns `None` when
-  nothing fires, and the actual output schema (truthy) when it does  --  check
+  nothing fires, and the actual output schema (truthy) when it does, so check
   with `if result:` rather than assuming a boolean.
-
-Go back [Index](../index.md)

@@ -25,8 +25,8 @@ uv sync --extra llm
 
 `LogBatcherParser` wraps the [LogBatcher](https://github.com/LogIntelligence/LogBatcher) engine (MIT, LogIntelligence 2024) as a `CoreParser`. Parsing proceeds in two phases:
 
-1. **Cache lookup**  --  the incoming log is matched against previously seen templates using a hash-based exact match followed by a tree-based similarity check. If a match is found, no LLM call is made.
-2. **LLM query**  --  on a cache miss, the log is submitted to the configured model. The returned template is stored in the cache for future reuse.
+1. **Cache lookup**: the incoming log is matched against previously seen templates using a hash-based exact match followed by a tree-based similarity check. If a match is found, no LLM call is made.
+2. **LLM query**: on a cache miss, the log is submitted to the configured model. The returned template is stored in the cache for future reuse.
 
 Variable slots in templates use the `<*>` wildcard notation (e.g. `User <*> logged in from <*>`). Extracted variables are written to `output_["variables"]` in order of appearance.
 
@@ -46,7 +46,7 @@ Using a local Ollama instance:
 
 ## Configuration file
 
-The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
+The configuration used by the first example above (the Ollama example builds its configuration in Python instead). It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
 ```yaml
 --8<-- "docs/examples/parsers/logbatcher_parser.yaml"

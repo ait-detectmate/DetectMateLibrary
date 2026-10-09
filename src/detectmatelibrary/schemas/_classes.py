@@ -88,15 +88,22 @@ class BaseSchema(SchemaVariables):
         """Serialize the schema instance to bytes."""
         return op.serialize(schema=self.get_schema())
 
-    def deserialize(self, message: bytes) -> None | op.IncorrectSchema:
-        """Deserialize bytes to populate the schema instance."""
+    def deserialize(self, message: bytes) -> None:
+        """Deserialize bytes to populate the schema instance.
+
+        Raises:
+            NotSupportedSchema: If the bytes cannot be parsed.
+        """
         schema = op.deserialize(schema_class=self.schema_class, message=message)
         self.set_schema(schema=schema)
-        return None
 
-    def check_is_same(self, other: Self) -> None | op.IncorrectSchema:
-        """Check if another schema instance is of the same schema type."""
-        return op.check_is_same_schema(
+    def check_is_same(self, other: Self) -> None:
+        """Check if another schema instance is of the same schema type.
+
+        Raises:
+            IncorrectSchema: If the other instance is of another schema type.
+        """
+        op.check_is_same_schema(
             id_schema_1=self.schema_class,
             id_schema_2=other.schema_class
         )
