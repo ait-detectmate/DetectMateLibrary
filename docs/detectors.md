@@ -138,6 +138,13 @@ The detectors are numbered from simplest to most complex, and the sidebar lists 
 Every detector page shows a minimal, working configuration file next to its example. The
 reference below explains the blocks those files use.
 
+`auto_config` defaults to `True` for detectors, but the configure phase only runs when
+`data_use_configure` is set. A detector with an `events` block and no
+`data_use_configure` therefore uses that block even if `auto_config` is left out. The
+example configurations set `auto_config: false` anyway, to make this explicit. If
+`auto_config` is `True` *and* `data_use_configure` is set, the configure phase replaces the
+`events` block with its own selection.
+
 When `auto_config` is set to `False`, the detector expects an explicit `events` or `global` block that specifies exactly which variables to monitor. `events` refers to event-specific variables while `global` refers to variables, that are not bound to events (`header_variables` can but don't have to be event bound):
 
 ```yaml
@@ -248,7 +255,7 @@ The two neural detectors ([DeepLog](detectors/deeplog.md), [LogBERT](detectors/l
 
 ### Configuration semantics (preliminary)
 
-**`events` key**  --  The integer key is the `EventID` (or `event_id`) to monitor (see the [Template Matcher](parsers/template_matcher.md) docs for how the EventID is assigned.
+**`events` key**  --  The key is the `EventID` (or `event_id`) to monitor: an integer as the parser emits it (see the [Template Matcher](parsers/template_matcher.md) docs for how the EventID is assigned), or a name (see [Named EventIDs and variables](#named-eventids-and-variables) below).
 
 **`global` key** - This one has a similar functionality as the `events` key but refers to variables, that are not bound to events (thus can only contain `header_variables`).
 
@@ -262,6 +269,31 @@ pid=<*> uid=<*> auid=<*> ses=<*> msg='op=<*> acct=<*> exe=<*> hostname=<*> addr=
 `exe=` (for example `"/usr/sbin/cron"`), and so on.
 
 **`header_variables[].pos`**  --  A named field from the log format string (e.g., `Type`, `Time`, `Content`) rather than a wildcard position.
+
+### Named EventIDs and variables
+
+Instead of numbers, the `events` block can use names: a name for the `EventID`, and
+the name of a wildcard for `variables[].pos`. The names come from the
+[Template Matcher](parsers/template_matcher.md)'s template file:
+
+- **Named variables:** write `<user>` instead of `<*>` in a template. A template uses
+  either named wildcards or `<*>`, not both. This works in `.txt` and `.csv` template files.
+- **Named EventIDs:** use a `.csv` template file with an `EventId` column next to the
+  `EventTemplate` column:
+
+    ```text
+    --8<-- "docs/examples/data/named_templates.csv"
+    ```
+
+The parser still emits numbers (`EventID` 1 and position 0 for `<user>` in the second
+template), so the names must be translated before the detector runs. Do this once,
+after creating both components, with `compile_detector_config()`. **Without this step
+the detector monitors nothing**; it only logs a warning that the named `EventID` was
+never observed in training.
+
+```python
+--8<-- "docs/examples/detectors/named_events.py:example"
+```
 
 
 ### Auto-configuration (optional)
