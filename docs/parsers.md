@@ -15,7 +15,7 @@ This document explains expected APIs, how to implement a parser, testing tips an
 - `CoreParser.run()` handles lifecycle and calls `parse()` for each input; implement pure parsing logic inside `parse()` where possible.
 - Use a typed `Config` class (subclass of `CoreParserConfig`) to hold runtime parameters.
 
-## CoreParser  --  minimal API
+## CoreParser: minimal API
 
 Recommended signatures and behavior:
 
@@ -28,7 +28,7 @@ class CoreParser:
 
     def parse(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool | None:
         """Implement parsing here.
-        - Fill the required output_ fields (see "ParserSchema - what to populate" below).
+        - Fill the required output_ fields (see "ParserSchema: what to populate" below).
         - Return True, or None, to emit output_ as the parsed log.
         - Return False to drop the log: process() then returns None for it.
         """
@@ -37,27 +37,27 @@ class CoreParser:
         """Optional: train internal models. Can be a no-op for stateless parsers."""
 ```
 
-## ParserSchema  --  what to populate
+## ParserSchema: what to populate
 
 `parse()` only has to fill the fields that describe the match:
 
-- `EventID` (int)  --  identifier for the matched template/event
-- `template` (string)  --  event template text
-- `variables` (repeated string)  --  extracted parameters (extend the list)
+- `EventID` (int): identifier for the matched template/event
+- `template` (string): event template text
+- `variables` (repeated string): extracted parameters (extend the list)
 
 `CoreParser.run()`, which calls `parse()`, fills in everything else for you:
 
-- `parserID`, `parserType`  --  the parser's name and `method_type`
-- `parsedLogID`  --  a new unique ID for the parsed record
-- `logID`, `log`  --  copied from the input `LogSchema`
-- `logFormatVariables`  --  the header fields extracted with `log_format`
-- `receivedTimestamp`, `parsedTimestamp`  --  set just before and just after
+- `parserID`, `parserType`: the parser's name and `method_type`
+- `parsedLogID`: a new unique ID for the parsed record
+- `logID`, `log`: copied from the input `LogSchema`
+- `logFormatVariables`: the header fields extracted with `log_format`
+- `receivedTimestamp`, `parsedTimestamp`: set just before and just after
   `parse()` runs
 
 Don't set these in `parse()`: `run()` writes `parsedTimestamp` after `parse()`
 returns, so a value set there is overwritten.
 
-## Creating a new parser  --  step by step
+## Creating a new parser: step by step
 
 1. Create a Config class inheriting `CoreParserConfig`.
 2. Create parser class inheriting `CoreParser`.

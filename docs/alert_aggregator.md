@@ -15,7 +15,7 @@ This document explains expected APIs, how to implement an alert aggregator, test
 - `CoreParser.run()` handles lifecycle and calls `aggregate_alerts()` for each input; implement pure alert aggregation logic inside `aggregate_alerts()` where possible.
 - Use a typed `Config` class (subclass of `CoreAlertAggregatorConfig`) to hold runtime parameters.
 
-## CoreParser  --  minimal API
+## CoreAlertAggregator: minimal API
 
 Recommended signatures and behavior:
 

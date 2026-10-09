@@ -62,12 +62,12 @@ INFO [18-05-2005] hello I am a log about DetectMate getting started and about wh
 
 This line has three parts:
 
-- **`INFO` -- the category of the message (the "log level").** Some other
+- **`INFO`: the category of the message (the "log level").** Some other
 messages from the program could be for example `DEBUG` (fine-grained detail for developers) or `WARNING` (something looks off, but it's not a failure yet). So this part just gives you a hint how important this logging statement is.
 
-- **`[18-05-2005]` -- the timestamp:** when the message was written.
+- **`[18-05-2005]`: the timestamp,** i.e. when the message was written.
 
-- **`hello I am a log...` -- the actual text:** what the program wants to tell you.
+- **`hello I am a log...`: the actual text,** i.e. what the program wants to tell you.
 
 The log level sits at the very front because it acts as a filter: in real systems thousands of lines pile up every second, so you can say e.g. "only show me `WARNING` and worse." That way both humans and machines can instantly decide whether a line is relevant.
 

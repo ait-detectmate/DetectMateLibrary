@@ -10,7 +10,7 @@ Detectors process structured logs from Parsers and emit alerts when anomalies ar
 
 This document describes the minimal API, implementation guidance, a short example detector and a unit test pattern.
 
-## CoreDetector  --  minimal API
+## CoreDetector: minimal API
 
 
 
@@ -51,7 +51,7 @@ class CoreDetector(CoreComponent):
         """Empty, can be define in the detector. It trains the detector"""
 ```
 
-## Implementing a detector  --  example
+## Implementing a detector: example
 
 Simple detector that raises an alert when a numeric variable exceeds a threshold.
 
@@ -255,11 +255,11 @@ The two neural detectors ([DeepLog](detectors/deeplog.md), [LogBERT](detectors/l
 
 ### Configuration semantics (preliminary)
 
-**`events` key**  --  The key is the `EventID` (or `event_id`) to monitor: an integer as the parser emits it (see the [Template Matcher](parsers/template_matcher.md) docs for how the EventID is assigned), or a name (see [Named EventIDs and variables](#named-eventids-and-variables) below).
+**`events` key**: the key is the `EventID` (or `event_id`) to monitor: an integer as the parser emits it (see the [Template Matcher](parsers/template_matcher.md) docs for how the EventID is assigned), or a name (see [Named EventIDs and variables](#named-eventids-and-variables) below).
 
 **`global` key** - This one has a similar functionality as the `events` key but refers to variables, that are not bound to events (thus can only contain `header_variables`).
 
-**`variables[].pos`**  --  The 0-indexed position of the `<*>` wildcard in the matched template, counting from left to right starting at 0. For example, given:
+**`variables[].pos`**: the 0-indexed position of the `<*>` wildcard in the matched template, counting from left to right starting at 0. For example, given:
 
 ```text
 pid=<*> uid=<*> auid=<*> ses=<*> msg='op=<*> acct=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'
@@ -268,7 +268,7 @@ pid=<*> uid=<*> auid=<*> ses=<*> msg='op=<*> acct=<*> exe=<*> hostname=<*> addr=
 `pos: 0` captures the value after `pid=` (for example `10125`), `pos: 6` the value after
 `exe=` (for example `"/usr/sbin/cron"`), and so on.
 
-**`header_variables[].pos`**  --  A named field from the log format string (e.g., `Type`, `Time`, `Content`) rather than a wildcard position.
+**`header_variables[].pos`**: a named field from the log format string (e.g., `Type`, `Time`, `Content`) rather than a wildcard position.
 
 ### Named EventIDs and variables
 
@@ -298,7 +298,7 @@ never observed in training.
 
 ### Auto-configuration (optional)
 
-Detectors can optionally support **auto-configuration**  --  a process where the detector automatically discovers which variables are worth monitoring, instead of requiring the user to specify them manually.
+Detectors can optionally support **auto-configuration**: a process where the detector automatically discovers which variables are worth monitoring, instead of requiring the user to specify them manually.
 
 Auto-configuration is controlled by the `auto_config` flag in the pipeline config (e.g. `config/pipeline_config_default.yaml`):
 
@@ -310,7 +310,7 @@ detectors:
     params:
       data_use_configure: 1000  # logs used to pick the variables
       data_use_training: 1000   # logs used to train on them afterwards
-    # no "events" block needed  --  it will be generated automatically
+    # no "events" block needed: it is generated automatically
 ```
 
 
@@ -318,9 +318,9 @@ detectors:
 
 When auto-configuration is enabled, the detector goes through two extra phases before training:
 
-**Phase 1  --  `configure(input_)`**: The detector ingests events into an `EventPersistency` instance that uses a tracker backend to analyze variable behavior  --  for example, whether each variable is stable, random, or still has insufficient data. This instance is typically separate from the one used for training, because the configuration phase needs to observe *all* variables to decide which ones are worth monitoring, while training only tracks the variables that were selected as a result.
+**Phase 1, `configure(input_)`**: The detector ingests events into an `EventPersistency` instance that uses a tracker backend to analyze variable behavior, for example whether each variable is stable, random, or still has insufficient data. This instance is typically separate from the one used for training, because the configuration phase needs to observe *all* variables to decide which ones are worth monitoring, while training only tracks the variables that were selected as a result.
 
-**Phase 2  --  `set_configuration()`**: After enough data has been ingested, the detector queries the tracker to select variables that meet its criteria (e.g. only stable variables). It then generates a full `events` configuration from those results and updates its own config. At this point `auto_config` is set to `False` in the generated config, since the configuration is now explicit.
+**Phase 2, `set_configuration()`**: After enough data has been ingested, the detector queries the tracker to select variables that meet its criteria (e.g. only stable variables). It then generates a full `events` configuration from those results and updates its own config. At this point `auto_config` is set to `False` in the generated config, since the configuration is now explicit.
 
 After these two phases, the detector proceeds with the normal `train()` and `detect()` lifecycle using the generated configuration.
 
@@ -344,9 +344,9 @@ the hyperparameter searches of `DrainParser` and the deep-learning detectors.
 That distinction is visible in the config. A detector's settings live in two
 blocks:
 
-* **`auto_config_params`**  --  inputs *to* the configure phase. They pick which
+* **`auto_config_params`**: inputs *to* the configure phase. They pick which
   variables the phase selects and are read only while `auto_config` is `True`.
-* **`params`**  --  operational settings, read during training and detection on
+* **`params`**: operational settings, read during training and detection on
   every run.
 
 The configure phase writes its results into the top-level `events` block (and,
@@ -369,11 +369,11 @@ axes:
 | `slope_time` | change centroid vs. `slope_threshold` | normalized timestamps |
 
 Any subset of the four may be enabled, and any single one may stand alone. The
-default  --  `index` alone  --  is the historical behaviour: each segment's mean rate
-of change is compared against its entry in `segment_thresholds`  --  four segments
-by default, one threshold per segment  --  and the segments are **equal-count**:
+default (`index` alone) is the historical behaviour: each segment's mean rate
+of change is compared against its entry in `segment_thresholds` (four segments
+by default, one threshold per segment), and the segments are **equal-count**:
 each holds the same number of observations, regardless of how much time they
-cover. For bursty log sources that is misleading  --  a variable that changed
+cover. For bursty log sources that is misleading: a variable that changed
 constantly during a quiet night and then went silent under a flood of daytime
 traffic looks stable, because the flood supplies enough samples to dominate the
 later segments. Enabling `time` cuts the same segments at **equal
@@ -381,12 +381,12 @@ durations** instead, so each segment covers the same amount of wall-clock time;
 the detector then needs an event time per record, which it reads from the log's
 named variables (`logFormatVariables`, i.e. the fields declared in the parser's
 `log_format`) under the name given by `timestamp_variable`. `slope_index` and
-`slope_time` ask a different question  --  whether the change centroid sits early
-or late in the series  --  on the index axis and the time axis respectively.
+`slope_time` ask a different question (whether the change centroid sits early
+or late in the series), on the index axis and the time axis respectively.
 
 These parameters live on every `VariableDetector` subclass (`NewValueDetector`,
 `NewValueComboDetector`, `ValueRangeDetector`, `CharsetDetector`, `BigramDetector`, …)
-and go in the detector's `auto_config_params` block  --  they are inputs to the
+and go in the detector's `auto_config_params` block: they are inputs to the
 auto-configuration phase, read only while `auto_config` is `True`, and never
 consulted at detection time.
 
@@ -432,7 +432,7 @@ requires strictly more than half of them to.
 
 Ties resolve to UNSTABLE. That keeps `majority` from ever being more lenient
 than a coin-flip, and makes it collapse onto `consensus` at one and two enabled
-methods  --  turning a third method on is the only place the rule starts to matter.
+methods. Turning a third method on is the only place the rule starts to matter.
 
 **All four methods false is a config error**, rejected by a pydantic validator.
 It is not a harmless no-op: classification decides `INSUFFICIENT_DATA`,
@@ -448,7 +448,7 @@ All of these live in the detector's `auto_config_params` block.
 | `use_stable_vars` | `bool` | `true` | Include variables classified `STABLE` in the generated configuration. |
 | `use_static_vars` | `bool` | `true` | Include variables classified `STATIC`. Defaults to `false` on `NewValueComboDetector`. |
 | `classification` | `ClassificationMethods` | see below | Which classification methods run and how their verdicts combine. |
-| `timestamp_variable` | `str \| null` | `null` | Name of the field in `logFormatVariables` holding the record's event time. Required for `time` and `slope_time` to have any effect. Only named log-format fields are consulted  --  never the positional `variables` list. |
+| `timestamp_variable` | `str \| null` | `null` | Name of the field in `logFormatVariables` holding the record's event time. Required for `time` and `slope_time` to have any effect. Only named log-format fields are consulted, never the positional `variables` list. |
 | `timestamp_format` | `str \| null` | `null` | Explicit [`strftime`](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes) pattern for parsing that field. When unset, `TimeFormatHandler` auto-detects the format (ISO 8601, Apache, syslog, numeric epoch seconds/milliseconds, and other common layouts). |
 
 Set `timestamp_format` when the source uses a layout the auto-detection does not
@@ -485,13 +485,13 @@ Time-aware classification is best-effort and never fails a run:
   falls back to the index axis.
 * If timestamps stop lining up with the recorded observations, or the observed time
   span is zero, or they arrive out of order, `time` silently reuses the equal-index
-  cuts, and `slope_time` computes its centroid on the index axis instead  --  it
+  cuts, and `slope_time` computes its centroid on the index axis instead, so it
   degrades to `slope_index`.
 * Under `majority`, a method that fell back still casts its own vote. If both methods
   of a pair (`slope_index`/`slope_time` or `index`/`time`) are enabled and timestamps
   are unusable, they compute the same verdict, which then counts twice.
 
-In every fallback case classification still runs and produces a result  --  only the
+In every fallback case classification still runs and produces a result; only the
 axis behind it changes back to index.
 
 A segment with no observations in it is *not* a fallback: it scores a mean of 0.0,
@@ -499,7 +499,7 @@ because nothing observed means nothing changed. Once the segment floor above is
 met, equal-index cuts never leave a segment empty; equal-duration cuts of a bursty
 variable still do, routinely, so `time` on its own is lenient towards a burst of
 churn followed by silence. Enable `index` and `time` together when that leniency
-matters  --  the index pass keeps every segment populated.
+matters: the index pass keeps every segment populated.
 
 
 ### Saving state (persist)
@@ -522,7 +522,7 @@ detectors:
       ...
 ```
 
-All fields are optional  --  `persist: {}` uses all defaults. Omitting `persist:` entirely
+All fields are optional: `persist: {}` uses all defaults. Omitting `persist:` entirely
 disables saving (backward compatible). The other detectors (Random, Rule, DeepLog,
 LogBERT) have no state to save: a `persist:` block on them fails at config load with
 `persist: Extra inputs are not permitted`.
@@ -534,7 +534,7 @@ named `NewValueDetector` writes to `./state/NewValueDetector/`.
 
 The default `path` is CWD-relative. systemd services usually run with CWD `/`,
 so `./state` would resolve to `/state` (wrong location, needs root). To avoid
-this, set `StateDirectory=` in your unit file  --  systemd creates `/var/lib/<dir>`
+this, set `StateDirectory=` in your unit file: systemd creates `/var/lib/<dir>`
 with the right ownership and exports `$STATE_DIRECTORY`, which the default `path`
 reads automatically. No explicit `path:` needed:
 
@@ -558,7 +558,7 @@ Setting `path:` explicitly (e.g. an `s3://` URL) always overrides `$STATE_DIRECT
 
 #### Storage options examples
 
-**Local filesystem**  --  no `storage_options` needed:
+**Local filesystem** (no `storage_options` needed):
 
 ```yaml
 persist:
@@ -608,5 +608,5 @@ persist:
 ```
 
 In practice, credentials are usually supplied via environment variables
-(`AWS_ACCESS_KEY_ID`, etc.) or instance roles  --  in which case `storage_options`
+(`AWS_ACCESS_KEY_ID`, etc.) or instance roles, in which case `storage_options`
 stays empty or is omitted.

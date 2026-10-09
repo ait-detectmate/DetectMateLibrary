@@ -1,6 +1,6 @@
 # Tutorial (end-to-end)
 
-A complete walkthrough of using DetectMate  --  more detailed than the
+A complete walkthrough of using DetectMate, more detailed than the
 [Quickstart](quickstart.md). The Quickstart parses a ready-made dataset with a
 ready-made template file and runs one detector. This tutorial goes one level
 deeper:
@@ -18,8 +18,8 @@ importantly, understand *why* each piece behaves the way it does.
 The Quickstart uses the `audit.log` dataset, which already ships with a
 matching `audit_templates.txt`. To actually practice building
 something, this tutorial uses a different file instead:
-`docs/examples/data/tutorial_audit.log`. It is still Linux `auditd` output  --  same overall
-shape as the Quickstart's dataset  --  but recorded on a different machine, and
+`docs/examples/data/tutorial_audit.log`. It is still Linux `auditd` output (same overall
+shape as the Quickstart's dataset), but recorded on a different machine, and
 this time **you write the templates yourself**. A finished template file is
 included in the repository, but only so you can check your result in step 2.
 That is the point: before you can parse a dataset, you have to look at it.
@@ -38,7 +38,7 @@ That is the point: before you can parse a dataset, you have to look at it.
 `From.log` is the same helper used in the Quickstart (see the
 [From helper](../helper/from_to.md) docs). Passing `do_process=False`
 turns it into a plain file reader that hands back [`LogSchema`](../schemas.md)
-objects instead of running them through a parser  --  exactly what you want
+objects instead of running them through a parser, which is exactly what you want
 before you've decided how to parse the data.
 
 The file only has 9 lines, small enough to read in full:
@@ -56,8 +56,8 @@ type=SYSCALL msg=audit(1757673850.283:5): arch=c00000b7 syscall=206 success=yes 
 ```
 
 Every line starts with the same prefix shape, `type=<Type> msg=audit(<Time>:<Serial>):
-<Content>`, and there are only four distinct *event types*  --  `DAEMON_START`,
-`CONFIG_CHANGE`, `SYSCALL`, and `PROCTITLE`  --  each with its own static
+<Content>`, and there are only four distinct *event types* (`DAEMON_START`,
+`CONFIG_CHANGE`, `SYSCALL`, and `PROCTITLE`), each with its own static
 template hiding behind the variable parts.
 
 ## 2. Build and configure your own parser
@@ -93,13 +93,13 @@ proctitle=<*>
 
 A few things worth noticing while writing templates like these:
 
-- The line number is the `EventID`  --  line 1 (0-indexed: `0`) matches
+- The line number is the `EventID`: line 1 (0-indexed: `0`) matches
   `DAEMON_START`, line 2 (`1`) matches `CONFIG_CHANGE`, and so on, exactly as
   described in [EventID assignment](../parsers/template_matcher.md#eventid-assignment-preliminary).
 - The second template's `op=set <*> old=<*> ...` has only one wildcard where
   the raw text has an `audit_backlog_limit=8192`, `audit_failure=1`, or
   `audit_backlog_wait_time=60000` key/value pair. A single `<*>` is not
-  limited to one word  --  it happily captures the whole `key=value` chunk, so
+  limited to one word: it happily captures the whole `key=value` chunk, so
   there's no need for a wildcard per key name even though the key itself
   varies between log lines.
 - None of the templates need to account for the trailing `AUID="unset"
@@ -115,17 +115,17 @@ A few things worth noticing while writing templates like these:
 
 > **Common pitfall: don't escape `log_format` yourself.** The Quickstart's
 > `log_format` string escapes the parentheses by hand:
-> `r"...audit\(<Time>:<Serial>\):..."`. Don't copy that  --  it's wrong.
+> `r"...audit\(<Time>:<Serial>\):..."`. Don't copy that; it's wrong.
 > `generate_logformat_regex()` (used internally by every parser that accepts
 > `log_format`) already escapes every literal character outside the
 > `<Placeholder>` tokens, parentheses included. Escaping them yourself asks it
 > to match a **literal backslash** followed by `(`, which never occurs in
-> real log data  --  the regex then silently fails to match anything, and every
+> real log data. The regex then silently fails to match anything, and every
 > log falls back to `<Not Found>`. Write `log_format` as plain text; only the
 > `<Placeholder>` tokens are special.
 
 Running this prints, for each of the 9 logs, the `EventID` and the matched
-template  --  all four templates get used, and every line matches (nothing
+template. All four templates get used, and every line matches (nothing
 comes back as `<Not Found>`).
 
 ## 3. Run several detectors and compare their alerts
@@ -147,7 +147,7 @@ stream:
 
 Both detectors are configured with `data_use_training: 3`: the first 3 logs
 (`DAEMON_START`, `CONFIG_CHANGE`, `SYSCALL`) are used to train, and detection
-runs on the remaining 6  --  see [Configuration](../detectors.md#configuration)
+runs on the remaining 6; see [Configuration](../detectors.md#configuration)
 for how `data_use_training` and `events` interact. `NewValueDetector` is
 pointed at the two fields we identified while writing the templates in step
 2: the `key=value` pair inside `CONFIG_CHANGE` (`EventID: 1`, `pos: 0`) and
@@ -174,24 +174,24 @@ In the table above, **`True` means that detector raised an alert** for that log
 Reading the table alongside the raw data explains why each detector fires
 when it does:
 
-- **`NewValueDetector`** only fires on logs `#5` and `#8`  --  the second and
+- **`NewValueDetector`** only fires on logs `#5` and `#8`: the second and
   third `CONFIG_CHANGE` events, whose `audit_failure=1` and
   `audit_backlog_wait_time=60000` values were never seen during training
   (only `audit_backlog_limit=8192`, from log `#2`, was). It stays silent on
   every `SYSCALL` after log `#3`, because `comm="auditctl"` is identical
-  every time  --  there is nothing *new* about it once it's been trained once.
+  every time, so there is nothing *new* about it once it's been trained once.
 - **`EventSequenceDetector`** fires starting at log `#4`, and on every log
   after that except the `SYSCALL`s. With `fixed_window_size: 2`, training on
   the first 3 logs only teaches it the transitions `(DAEMON_START →
   CONFIG_CHANGE)` and `(CONFIG_CHANGE → SYSCALL)`. The transition `(SYSCALL →
-  PROCTITLE)` at log `#4` was never trained, so it alerts  --  and keeps
+  PROCTITLE)` at log `#4` was never trained, so it alerts, and keeps
   alerting every time that same transition recurs (`#7`), because alerts
   don't teach the detector anything; only `train()` does. `(PROCTITLE →
   CONFIG_CHANGE)` at log `#5` is equally untrained and alerts too, while
   `(CONFIG_CHANGE → SYSCALL)` at logs `#6` and `#9` was trained at log `#3`
   and stays quiet.
 
-Note that both detectors agree on logs `#5` and `#8`  --  the same underlying
+Note that both detectors agree on logs `#5` and `#8`: the same underlying
 event looks anomalous from two independent angles: an unfamiliar value *and*
 an unfamiliar position in the sequence. That overlap is what an alert
 aggregator is for.
@@ -201,7 +201,7 @@ aggregator is for.
 [Alert aggregation](../alert_aggregator.md) takes the stream of alerts coming
 out of one or more detectors and combines them into
 [`AggregateSchema`](../schemas.md) records. Here we feed every alert produced
-in step 3  --  from either detector, in the order they were emitted  --  into
+in step 3 (from either detector, in the order they were emitted) into
 [`BasicConcatAggregation`](../alert_aggregators/basic_concatenation.md), the
 simplest aggregation strategy available:
 
@@ -227,7 +227,7 @@ Two details are easy to miss here, and both matter for production configs:
   produce five overlapping aggregate outputs, not three separate batches.
 - **`BasicConcatAggregation` does not correlate by log line.** It concatenates
   whatever alerts happen to be in the window, regardless of which log they
-  refer to  --  that's why most rows above pair up alerts from *different*
+  refer to. That's why most rows above pair up alerts from *different*
   underlying logs. The two rows where both `logIDs` are identical
   (`['4', '4']` and `['7', '7']`) are the exception, and not a coincidence:
   those are exactly the log `#5` and `#8` cases from step 3 (`logIDs` count
@@ -252,5 +252,5 @@ Two details are easy to miss here, and both matter for production configs:
   [New Event Detector](../detectors/new_event.md) exists to alert on exactly
   those never-seen `EventID`s.
 * Calling `.process()` on a detector or aggregator returns `None` when
-  nothing fires, and the actual output schema (truthy) when it does  --  check
+  nothing fires, and the actual output schema (truthy) when it does, so check
   with `if result:` rather than assuming a boolean.

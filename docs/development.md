@@ -74,7 +74,7 @@ def configure(self, input_):
 ```
 
 The `set_configuration()` method queries the tracker results and writes the
-final `events` block. It touches nothing else on the config  --  everything the
+final `events` block. It touches nothing else on the config: everything the
 operator set under `params` or `auto_config_params` must survive untouched, so
 `set_configuration` never rebuilds the config from scratch:
 
@@ -92,8 +92,8 @@ def set_configuration(self):
 ### Why `auto_config_params` lives on `BasicConfig`
 
 Both `auto_config` and `Component.configure()` are declared on the shared base,
-so `auto_config_params` is declared there too  --  on `BasicConfig`, beside
-`auto_config`  --  rather than on the detector config alone. Detectors are the only
+so `auto_config_params` is declared there too (on `BasicConfig`, beside
+`auto_config`) rather than on the detector config alone. Detectors are the only
 component type with a real configure phase today, so they are the only ones that
 narrow the block with fields; parsers and alert aggregators inherit it empty, and
 an empty block is omitted from the serialized config, so their YAML is unaffected.
@@ -135,7 +135,7 @@ from detectmatelibrary.parsers.logbatcher import LogBatcherParser, LogBatcherPar
 You can also include the whole file by dropping the `:section` suffix
 (`--8<-- "docs/examples/parsers/template_tree_matcher.py"`), but section markers
 are the norm. Because `check_paths: true` is set, the build aborts if the file or
-marker doesn't exist  --  a missing snippet is caught at build time.
+marker doesn't exist, so a missing snippet is caught at build time.
 
 **3. Make sure it's testable.** The test (`tests/test_docs/test_doc_examples.py`)
 globs every `.py` under `docs/examples/` and runs each one as a script via
