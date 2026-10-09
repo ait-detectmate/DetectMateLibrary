@@ -38,13 +38,23 @@ class CoreParser:
 
 ## ParserSchema  --  what to populate
 
-Minimum fields commonly expected by downstream components:
+`parse()` only has to fill the fields that describe the match:
 
 - `EventID` (int)  --  identifier for the matched template/event
 - `template` (string)  --  event template text
 - `variables` (repeated string)  --  extracted parameters (extend the list)
-- `parsedLogID` / `logID`  --  identifiers linking raw and parsed records
-- `parsedTimestamp` / `receivedTimestamp`  --  timestamps
+
+`CoreParser.run()`, which calls `parse()`, fills in everything else for you:
+
+- `parserID`, `parserType`  --  the parser's name and `method_type`
+- `parsedLogID`  --  a new unique ID for the parsed record
+- `logID`, `log`  --  copied from the input `LogSchema`
+- `logFormatVariables`  --  the header fields extracted with `log_format`
+- `receivedTimestamp`, `parsedTimestamp`  --  set just before and just after
+  `parse()` runs
+
+Don't set these in `parse()`: `run()` writes `parsedTimestamp` after `parse()`
+returns, so a value set there is overwritten.
 
 ## Creating a new parser  --  step by step
 
@@ -57,7 +67,6 @@ Example:
 
 ```python
 # filepath: src/detectmatelibrary/parsers/my_parser.py
-import time
 from typing import Any
 
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
@@ -87,7 +96,6 @@ class MyParser(CoreParser):
         output_["EventID"] = 1
         output_["template"] = " ".join(["<*>"] * len(tokens))
         output_["variables"].extend(tokens)
-        output_["parsedTimestamp"] = int(time.time())
         return True
 ```
 
