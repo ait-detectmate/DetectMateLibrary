@@ -125,13 +125,13 @@ class TestCoreAlertAggregator:
         alert_aggregator = MockupAlertAggregator(name="TestDetector", config=MockupConfig(), buffer_size=3)
         expected_result = schemas.AggregateSchema({
             "__version__": "1.0.0",
-            "detectorIDs": ["1", "1", "1"],
-            "detectorTypes": ["dummy", "dummy", "dummy"],
-            "alertIDs": ["2", "2", "2"],
+            "detectorIDs": ["1"],
+            "detectorTypes": ["dummy"],
+            "alertIDs": ["2"],
             "outputTimestamp": 0,
-            "logIDs": ["logID1", "logID1", "logID1"],
+            "logIDs": ["logID1"],
             "description": "Mockup aggregator",
-            "extractedTimestamps": [-1, -1, -1],
+            "extractedTimestamps": [-1],
             "alertsObtain": {}
         })
         data = schemas.DetectorSchema(dummy_schema)
@@ -148,13 +148,13 @@ class TestCoreAlertAggregator:
         )
         expected_result = schemas.AggregateSchema({
             "__version__": "1.0.0",
-            "detectorIDs": ["1", "1", "1"],
-            "detectorTypes": ["dummy", "dummy", "dummy"],
-            "alertIDs": ["2", "2", "2"],
+            "detectorIDs": ["1"],
+            "detectorTypes": ["dummy"],
+            "alertIDs": ["2"],
             "outputTimestamp": 0,
-            "logIDs": ["logID1", "logID1", "logID1"],
+            "logIDs": ["logID1"],
             "description": "Mockup aggregator",
-            "extractedTimestamps": [-1, -1, -1],
+            "extractedTimestamps": [-1],
             "alertsObtain": {}
         })
         data = schemas.DetectorSchema(dummy_schema)

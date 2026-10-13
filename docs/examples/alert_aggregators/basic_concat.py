@@ -4,18 +4,11 @@ from detectmatelibrary.alert_aggregation.basic_concat import BasicConcatAggregat
 
 import detectmatelibrary.schemas as schemas
 
+import yaml
 
-aggregations_config = {
-    "alert_aggregators": {
-        "BasicConcatAggregator": {
-            "method_type": "basic_concat_aggregator",
-            "buffer_size": 3,
-            "deduplicate_values": False,
-            "auto_config": False,
-        }
-    }
-}
 
+with open("docs/examples/alert_aggregators/basic_concat.yaml") as f:
+    config = yaml.safe_load(f)
 
 input_ = schemas.DetectorSchema({
     "detectorID": "1",
@@ -30,9 +23,7 @@ input_ = schemas.DetectorSchema({
     "alertsObtain": {"99 problems": "but logs aint one"}
 })
 
-alert_aggregator = BasicConcatAggregation(
-    "BasicConcatAggregator", aggregations_config
-)
+alert_aggregator = BasicConcatAggregation("BasicConcatAggregator", config)
 alert_aggregator.process(input_)
 
 # --8<-- [end:example_1]

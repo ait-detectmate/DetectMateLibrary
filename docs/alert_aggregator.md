@@ -19,6 +19,7 @@ This document explains the expected API and how to implement an alert aggregator
   With the default `buffer_size` of 1, it is called for every alert with a list of one.
 - Use a typed `Config` class (subclass of `CoreAlertAggregatorConfig`) to hold runtime parameters.
 
+
 ## CoreAlertAggregator: minimal API
 
 ```python
@@ -62,6 +63,35 @@ fields left for `aggregate_alerts()` to fill are `description` and `alertsObtain
     unless your `aggregate_alerts()` keeps it, including their `detectionTimestamp` and
     `receivedTimestamp`.
 
-## Available alert aggregators
+## Alert aggregator methods
 
-- [Basic Concat](alert_aggregators/basic_concatenation.md)
+The alert aggregator are numbered from simplest to most complex, and the sidebar lists them in the same order.
+
+| # | Detector | What it detects |
+|---|---|---|
+| 00 | [Basic Concat Aggregator](alert_aggregators/basic_concatenation.md) | Concat a set of alerts. |
+| 01 | [LogID Count Aggregator](alert_aggregators/logid_count.md) | Count the amount of times a logID is in alerts. |
+
+
+### Common parameters (all alert aggregators)
+
+There are some parameters, that **every** alert aggregator inherits from `CoreAlertAggregatorConfig`/`CoreConfigCoreAlertAggregator`/`BasicConfig`, regardless of what it does. The other parameters, that are **specific** for the respective detector, are explained right at the detectors documentation page, later on.
+
+<!-- Start common_arguments -->
+???+ note "Top level"
+
+    | Field | Type | Default | Description |
+    |---|---|---|---|
+    | `auto_config` | boolean | False | Runs the configuration step before the training process. |
+
+???+ note "params"
+
+    | Field | Type | Default | Description |
+    |---|---|---|---|
+    | `start_id` | integer | 10 | Number used to start the unique ID generator. |
+    | `data_use_training` | integer, null | None | Data used for training, if None, training is not done. |
+    | `data_use_configure` | integer, null | None | Data used for configuration, if None, configuration is not done. |
+    | `use_config_data_as_training` | boolean | True | Combine the configured data in the training process if True. |
+    | `train_buffer_max_records` | integer | 100000 | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
+    | `train_buffer_dir` | string, null | None | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
+<!-- End common_arguments -->

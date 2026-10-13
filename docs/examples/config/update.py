@@ -25,10 +25,13 @@ from detectmatelibrary.parsers.tree_matcher import TemplateCppTreeMatcherConfig
 
 from detectmatelibrary.common.core import CoreConfig
 from detectmatelibrary.common.detector import CoreDetectorConfig
+from detectmatelibrary.common.alert_aggregator import CoreAlertAggregatorConfig
 from detectmatelibrary.common.parser import CoreParserConfig
 from detectmatelibrary.base_detectors import TrackerDetectorConfig
 from detectmatelibrary.base_detectors import VariableDetectorConfig
 from detectmatelibrary.base_detectors import DeepLearningDetectorConfig
+
+from detectmatelibrary.alert_aggregation.basic_concat import BasicConcatAggregationConfig
 
 from typing import Any
 
@@ -184,6 +187,25 @@ def update_shared_args_parsers(doc_path: str) -> None:
         raise Exception(f"While updating {doc_path} -> {str(e)}")
 
 
+def update_shared_args_aggregation(doc_path: str) -> None:
+    """Fill docs/alert_aggregation.md's tables of parameters shared across several
+    alert_aggregator: fields every parser has (CoreAlertAggregatorConfig)."""
+    try:
+        with open(doc_path, "r") as f:
+            docs = f.readlines()
+
+        docs = append_docs(
+            docs=docs,
+            start_cmd="<!-- Start common_arguments -->\n",
+            end_cmd="<!-- End common_arguments -->\n",
+            add=get_arguments(CoreAlertAggregatorConfig().get_docs(), with_scope=False),
+        )
+        with open(doc_path, "w") as f:
+            f.writelines(docs)
+    except Exception as e:
+        raise Exception(f"While updating {doc_path} -> {str(e)}")
+
+
 # %% Documentation update
 #
 # Every config below drives its own doc page: whenever a Field is added,
@@ -244,11 +266,23 @@ PARSER_DOCS: list[tuple[CoreConfig, type[CoreConfig], str]] = [
     ),
 ]
 
+AGGREGATOR_DOCS: list[tuple[CoreConfig, type[CoreConfig], str]] = [
+    (
+        BasicConcatAggregationConfig(),
+        CoreAlertAggregatorConfig,
+        "docs/alert_aggregators/basic_concatenation.md"
+    )
+]
+
 update_shared_args_detectors("docs/detectors.md")
 update_shared_args_parsers("docs/parsers.md")
+update_shared_args_aggregation("docs/alert_aggregator.md")
 
 for detector_config, shared_base, doc_path in DETECTOR_DOCS:
     update_docs(detector_config, doc_path=doc_path, shared_base=shared_base)
 
 for parser_config, shared_base, doc_path in PARSER_DOCS:
     update_docs(parser_config, doc_path=doc_path, shared_base=shared_base)
+
+for aggr_config, shared_base, doc_path in AGGREGATOR_DOCS:
+    update_docs(aggr_config, doc_path=doc_path, shared_base=shared_base)
