@@ -41,6 +41,20 @@ class TestLogBatcherParserInit:
         config = LogBatcherParserConfig(api_key="k")
         assert config.method_type == "logbatcher_parser"
 
+    def test_api_key_falls_back_to_env(self, monkeypatch):
+        monkeypatch.setenv("OPENAI_API_KEY", "env-key")
+
+        parser = LogBatcherParser()
+
+        assert parser._llm_parser.client.api_key == "env-key"
+
+    def test_config_api_key_overrides_env(self, monkeypatch):
+        monkeypatch.setenv("OPENAI_API_KEY", "env-key")
+
+        parser = LogBatcherParser(config=LogBatcherParserConfig(api_key="config-key"))
+
+        assert parser._llm_parser.client.api_key == "config-key"
+
 
 class TestLogBatcherParserParse:
     def test_template_extracted(self):

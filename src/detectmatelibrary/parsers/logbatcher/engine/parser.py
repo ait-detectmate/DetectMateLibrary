@@ -46,7 +46,7 @@ class Parser:
         self.dataset: str = 'null'
         self.token_list: List[int] = [0, 0]
         self.time_consumption_llm: float = 0
-        self.api_key = config['api_key']
+        self.api_key = config['api_key'] or None
         base_url = config.get('base_url') or None
         self.client = OpenAI(
             api_key=self.api_key,
