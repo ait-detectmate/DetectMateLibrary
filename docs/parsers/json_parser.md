@@ -23,6 +23,16 @@ With the configuration file below, the `message` field is also matched against t
 --8<-- "docs/examples/parsers/json_parser.py:dict-based"
 ```
 
+## Event IDs
+
+| Log | Event ID | Template |
+|-----|----------|----------|
+| `message` matches a template | that template's ID | the template |
+| `message` matches no template | `-1` | `<Not Found>` |
+| no `message` field | `-2` | empty |
+
+If the content parser has no templates (for example with the defaults, as in the first example), every message gets `-1`. The parser then logs a warning at the first message.
+
 ## Configuration file
 
 The configuration used by the second example above (the first one runs with all defaults). It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).

@@ -1,4 +1,5 @@
 import json
+import logging
 from detectmatelibrary.parsers.json_parser import (
     JsonParser,
     JsonParserConfig,
@@ -60,10 +61,10 @@ class TestJsonParser:
         output = schemas.ParserSchema()
         parser.parse(input_log, output)
 
-        # When no message field, template should be empty
+        # When no message field, the template is empty and the eventID is -2
         assert output.template == ""
         assert len(output.variables) == 0
-        assert output.eventID == 0
+        assert output.eventID == -2
 
         # But other fields should be present
         assert "level" in output.headerVariables
@@ -163,6 +164,94 @@ class TestJsonParser:
         assert output.template != ""
         assert len(output.variables) > 0
         assert "level" in output.headerVariables
+
+    def test_parse_message_with_config_object(self):
+        """A message parsed with a config object matches no template."""
+        config = JsonParserConfig()
+        parser = JsonParser(name="TestParser", config=config)
+
+        json_log = {
+            "time": "2023-11-18 10:30:00",
+            "message": "hello world"
+        }
+
+        input_log = schemas.LogSchema({
+            "logID": "1",
+            "log": json.dumps(json_log)
+        })
+
+        output = schemas.ParserSchema()
+        parser.parse(input_log, output)
+
+        assert output.template == "<Not Found>"
+        assert output.eventID == -1
+
+    def test_no_message_differs_from_first_template_and_no_match(self):
+        """Logs without message share neither the first template's eventID nor
+        the eventID of a message that matches no template."""
+        config_dict = {
+            "parsers": {
+                "TestParser": {
+                    "auto_config": True,
+                    "method_type": "json_parser",
+                },
+                "JsonMatcherParser": {
+                    "auto_config": True,
+                    "method_type": "matcher_parser",
+                    "path_templates": TEST_TEMPLATES
+                }
+            }
+        }
+        parser = JsonParser(name="TestParser", config=config_dict)
+
+        json_logs = [
+            {"message": "pid=9699 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\""},
+            {"message": "matches no template"},
+            {"level": "INFO"},
+        ]
+
+        event_ids = []
+        for json_log in json_logs:
+            output = schemas.ParserSchema()
+            parser.parse(schemas.LogSchema({"logID": "1", "log": json.dumps(json_log)}), output)
+            event_ids.append(output.eventID)
+
+        assert event_ids == [0, -1, -2]
+
+    def test_warns_once_when_message_meets_no_templates(self, caplog):
+        """A parser without templates warns once, at the first message."""
+        parser = JsonParser(name="TestParser", config=JsonParserConfig())
+
+        def parse(json_log):
+            parser.parse(schemas.LogSchema({"log": json.dumps(json_log)}), schemas.ParserSchema())
+
+        with caplog.at_level(logging.WARNING):
+            parse({"level": "INFO"})
+            assert not caplog.records
+            parse({"message": "hello"})
+            parse({"message": "world"})
+
+        warnings = [r for r in caplog.records if "no templates" in r.message]
+        assert len(warnings) == 1
+
+    def test_no_warning_with_templates(self, caplog):
+        """A parser with templates does not warn about missing templates."""
+        config_dict = {
+            "parsers": {
+                "TestParser": {"auto_config": True, "method_type": "json_parser"},
+                "JsonMatcherParser": {
+                    "auto_config": True,
+                    "method_type": "matcher_parser",
+                    "path_templates": TEST_TEMPLATES
+                }
+            }
+        }
+        parser = JsonParser(name="TestParser", config=config_dict)
+
+        with caplog.at_level(logging.WARNING):
+            parser.parse(schemas.LogSchema({"log": json.dumps({"message": "hello"})}), schemas.ParserSchema())
+
+        assert not [r for r in caplog.records if "no templates" in r.message]
 
     def test_custom_field_names(self):
         """Test with custom timestamp and message field names."""
