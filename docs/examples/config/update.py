@@ -26,6 +26,8 @@ from detectmatelibrary.parsers.tree_matcher import TemplateCppTreeMatcherConfig
 from detectmatelibrary.common.core import CoreConfig
 from detectmatelibrary.common.detector import CoreDetectorConfig
 from detectmatelibrary.common.parser import CoreParserConfig
+from detectmatelibrary.common.alert_aggregator import CoreAlertAggregatorConfig
+from detectmatelibrary.alert_aggregation.basic_concat import BasicConcatAggregationConfig
 from detectmatelibrary.base_detectors import TrackerDetectorConfig
 from detectmatelibrary.base_detectors import VariableDetectorConfig
 from detectmatelibrary.base_detectors import DeepLearningDetectorConfig
@@ -252,3 +254,14 @@ for detector_config, shared_base, doc_path in DETECTOR_DOCS:
 
 for parser_config, shared_base, doc_path in PARSER_DOCS:
     update_docs(parser_config, doc_path=doc_path, shared_base=shared_base)
+
+ALERT_AGGREGATOR_DOCS: list[tuple[CoreConfig, type[CoreConfig], str]] = [
+    (
+        BasicConcatAggregationConfig(),
+        CoreAlertAggregatorConfig,
+        "docs/alert_aggregators/basic_concatenation.md",
+    ),
+]
+
+for aggregator_config, shared_base, doc_path in ALERT_AGGREGATOR_DOCS:
+    update_docs(aggregator_config, doc_path=doc_path, shared_base=shared_base)

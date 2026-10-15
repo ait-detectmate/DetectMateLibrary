@@ -19,7 +19,7 @@ Input and output schemas in the pipeline
 
 ## Description
 
-This detector maintains a lightweight set of observed combination of values per monitored fields and emits an alert when a combination is not present in the set seen for the first time (subject to configuration).
+This detector keeps the set of value combinations observed during training for each group of monitored fields and emits an alert whenever a combination that is not in the set appears. Alerts don't add the combination to the set, so the same unseen combination raises an alert every time it appears.
 
 A combination needs at least two variables in the same instance: with a single variable the detector behaves like the [New Value Detector](new_value.md).
 
@@ -54,23 +54,23 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
     | `method_type` | string | new_value_combo_detector | shared | Indicates what type of method it is. |
-    | `auto_config` | boolean | True | shared | Runs the configuration step before the training process. |
+    | `auto_config` | boolean | True | shared | Runs the configuration step before the training process. Has no effect unless data_use_configure is set. |
     | `events` | object | {} | shared | Events configuration dict keyed by event_id. |
     | `global` | object | {} | shared | Instances monitoring event-independent header variables (e.g. hostname, level), keyed by instance name. Written as `global` in YAML. |
-    | `persist` | object, null | None | shared | Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See the Persistency page. |
+    | `persist` | object, null | None | shared | Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See Saving state (persist) on the Detectors page. |
 
 ??? note "params"
 
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
     | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
-    | `data_use_training` | integer, null | None | shared | Data used for training, if None, training is not done. |
-    | `data_use_configure` | integer, null | None | shared | Data used for configuration, if None, configuration is not done. |
+    | `data_use_training` | integer, null | None | shared | Number of logs used for training. None skips training. |
+    | `data_use_configure` | integer, null | None | shared | Number of logs used for the configuration step. None skips it. |
     | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
     | `train_buffer_max_records` | integer | 100000 | shared | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
     | `parser` | string | PARSER | shared | Name of the parser used. |
-    | `allow_fed` | boolean | False | shared | Allow to do the federation |
+    | `allow_fed` | boolean | False | shared | Builds the stores needed to take part in federation. |
 
 ??? note "auto_config_params (read only while auto_config is true)"
 

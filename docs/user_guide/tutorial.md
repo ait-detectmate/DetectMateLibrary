@@ -24,12 +24,13 @@ this time **you write the templates yourself**. A finished template file is
 included in the repository, but only so you can check your result in step 2.
 That is the point: before you can parse a dataset, you have to look at it.
 
-> **Note:** like the Quickstart, this tutorial assumes a cloned repository and
-> runs from the repository root, the folder that contains `pyproject.toml` (see
-> [Before you start](quickstart.md#before-you-start)). The code finds its files
-> relative to that folder through `ROOT = Path.cwd()`. If you work in a notebook
-> stored somewhere else, set `ROOT` to the path of your clone instead, for example
-> `ROOT = Path("/home/me/DetectMateLibrary")`.
+!!! note
+    Like the Quickstart, this tutorial assumes a cloned repository and
+    runs from the repository root, the folder that contains `pyproject.toml` (see
+    [Before you start](quickstart.md#before-you-start)). The code finds its files
+    relative to that folder through `ROOT = Path.cwd()`. If you work in a notebook
+    stored somewhere else, set `ROOT` to the path of your clone instead, for example
+    `ROOT = Path("/home/me/DetectMateLibrary")`.
 
 ```python
 --8<-- "docs/examples/others/tutorial.py:read"
@@ -113,16 +114,16 @@ A few things worth noticing while writing templates like these:
 --8<-- "docs/examples/others/tutorial.py:own_parser"
 ```
 
-> **Common pitfall: don't escape `log_format` yourself.** The Quickstart's
-> `log_format` string escapes the parentheses by hand:
-> `r"...audit\(<Time>:<Serial>\):..."`. Don't copy that; it's wrong.
-> `generate_logformat_regex()` (used internally by every parser that accepts
-> `log_format`) already escapes every literal character outside the
-> `<Placeholder>` tokens, parentheses included. Escaping them yourself asks it
-> to match a **literal backslash** followed by `(`, which never occurs in
-> real log data. The regex then silently fails to match anything, and every
-> log falls back to `<Not Found>`. Write `log_format` as plain text; only the
-> `<Placeholder>` tokens are special.
+!!! warning "Common pitfall: don't escape log_format yourself"
+    The Quickstart's `log_format` string escapes the parentheses by hand:
+    `r"...audit\(<Time>:<Serial>\):..."`. Don't copy that; it's wrong.
+    `generate_logformat_regex()` (used internally by every parser that accepts
+    `log_format`) already escapes every literal character outside the
+    `<Placeholder>` tokens, parentheses included. Escaping them yourself asks it
+    to match a **literal backslash** followed by `(`, which never occurs in
+    real log data. The regex then silently fails to match anything, and every
+    log falls back to `<Not Found>`. Write `log_format` as plain text; only the
+    `<Placeholder>` tokens are special.
 
 Running this prints, for each of the 9 logs, the `eventID` and the matched
 template. All four templates get used, and every line matches (nothing

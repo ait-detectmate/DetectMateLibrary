@@ -34,11 +34,11 @@ class CoreConfig(BasicConfig):
     )
     data_use_training: int | None = Field(
         default=None,
-        description="Data used for training, if None, training is not done.",
+        description="Number of logs used for training. None skips training.",
     )
     data_use_configure: int | None = Field(
         default=None,
-        description="Data used for configuration, if None, configuration is not done.",
+        description="Number of logs used for the configuration step. None skips it.",
     )
     use_config_data_as_training: bool = Field(
         default=True,

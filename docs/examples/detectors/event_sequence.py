@@ -1,4 +1,6 @@
 # --8<-- [start:example]
+from itertools import count
+
 import yaml
 from detectmatelibrary import schemas
 from detectmatelibrary.detectors.event_sequence_detector import EventSequenceDetector
@@ -8,9 +10,13 @@ with open("docs/examples/detectors/event_sequence.yaml") as f:
 detector = EventSequenceDetector(name="LoginSequenceDetector", config=config)
 
 
+log_ids = count()
+
+
 def event(event_id: int) -> schemas.ParserSchema:
-    """A parsed log; only its EventID (the matched template) matters here."""
-    return schemas.ParserSchema({"eventID": event_id})
+    """A parsed log with a running logID; only its EventID (the matched
+    template) matters for detection."""
+    return schemas.ParserSchema({"eventID": event_id, "logID": str(next(log_ids))})
 
 
 # normal session: 0 = login accepted, 1 = session opened, 2 = session closed.
@@ -24,7 +30,7 @@ for i in [0, 1, 2]:
 detector.process(event(0))
 alert = detector.process(event(2))  # session closed without being opened
 print(dict(alert["alertDetails"]))
-# {'Sequence (0, 2)': 'EventID sequence of length 2 ending at logID  was not seen during training.'}
+# {'Sequence (0, 2)': 'EventID sequence of length 2 ending at logID 10 was not seen during training.'}
 
 print(detector.get_known_sequences())  # {(0, 1), (1, 2), (2, 0)}
 # --8<-- [end:example]

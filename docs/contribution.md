@@ -11,9 +11,13 @@ Bug reports are very helpful to us in improving the software, and therefore, the
 at least the following information in a bug report:
 
 1. Description of the bug. Describe the problem clearly.
-2. Steps to reproduce. With the following configuration, go to.., click.., see error
-3. Expected behavior. What should happen?
-4. Environment. What was the environment for the test(version, browser, etc..)
+2. Steps to reproduce. A minimal code snippet, plus the configuration (YAML or dict) and, if
+   possible, a few log lines that trigger the problem.
+3. Expected behavior. What should happen, and what happens instead (including the full error
+   message, if any)?
+4. Environment. Your Python version, your DetectMate version
+   (`python -c "import detectmatelibrary; print(detectmatelibrary.__version__)"`) and your
+   operating system.
 
 *Please don't include any private/sensitive information in your issue! For reporting security-related issues, see [SECURITY.md](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/SECURITY.md)*
 

@@ -1,0 +1,6 @@
+alert_aggregators:
+  BasicConcatAggregator:
+    method_type: basic_concat_aggregator
+    auto_config: false
+    params:
+      buffer_size: 3            # aggregate the 3 most recent alerts

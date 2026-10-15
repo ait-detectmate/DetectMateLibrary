@@ -1,20 +1,12 @@
 
 # --8<-- [start:example_1]
+import yaml
 from detectmatelibrary.alert_aggregation.basic_concat import BasicConcatAggregation
 
 import detectmatelibrary.schemas as schemas
 
-
-aggregations_config = {
-    "alert_aggregators": {
-        "BasicConcatAggregator": {
-            "method_type": "basic_concat_aggregator",
-            "buffer_size": 3,
-            "deduplicate_values": False,
-            "auto_config": False,
-        }
-    }
-}
+with open("docs/examples/alert_aggregators/basic_concat.yaml") as f:
+    aggregations_config = yaml.safe_load(f)
 
 
 input_ = schemas.DetectorSchema({

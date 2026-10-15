@@ -39,7 +39,10 @@ class CoreDetectorConfig(CoreConfig):
 
     auto_config: bool = Field(
         default=True,
-        description="Runs the configuration step before the training process.",
+        description=(
+            "Runs the configuration step before the training process. "
+            "Has no effect unless data_use_configure is set."
+        ),
     )
     events: EventsConfig | dict[str, Any] = Field(
         default={},

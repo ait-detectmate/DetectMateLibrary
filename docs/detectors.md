@@ -8,7 +8,7 @@ Detectors process structured logs from Parsers and emit alerts when anomalies ar
 | **Input**  | [ParserSchema](schemas.md) | Structured log     |
 | **Output** | [DetectorSchema](schemas.md)| Alert / finding    |
 
-This document describes the minimal API, implementation guidance, a short example detector and a unit test pattern.
+This document describes the minimal API, implementation guidance and a short example detector.
 
 ## CoreDetector: minimal API
 
@@ -145,7 +145,7 @@ example configurations set `auto_config: false` anyway, to make this explicit. I
 `auto_config` is `True` *and* `data_use_configure` is set, the configure phase replaces the
 `events` block with its own selection.
 
-When `auto_config` is set to `False`, the detector expects an explicit `events` or `global` block that specifies exactly which variables to monitor. `events` refers to event-specific variables while `global` refers to variables, that are not bound to events (`header_variables` can but don't have to be event bound):
+When `auto_config` is set to `False`, the detector expects an explicit `events` or `global` block that specifies exactly which variables to monitor. `events` refers to event-specific variables while `global` refers to variables that are not bound to events (`header_variables` can but don't have to be event bound):
 
 ```yaml
 detectors:
@@ -172,14 +172,14 @@ detectors:
 
 ### Common parameters (all detectors)
 
-There are some parameters, that **every** detector inherits from `CoreDetectorConfig`/`CoreConfig`/`BasicConfig`, regardless of what it does. The other parameters, that are **specific** for the respective detector, are explained right at the detectors documentation page, later on.
+Some parameters are inherited by **every** detector from `CoreDetectorConfig`/`CoreConfig`/`BasicConfig`, regardless of what it does. The parameters that are **specific** to a detector are explained on that detector's own page.
 
 <!-- Start common_arguments -->
 ???+ note "Top level"
 
     | Field | Type | Default | Description |
     |---|---|---|---|
-    | `auto_config` | boolean | True | Runs the configuration step before the training process. |
+    | `auto_config` | boolean | True | Runs the configuration step before the training process. Has no effect unless data_use_configure is set. |
     | `events` | object | {} | Events configuration dict keyed by event_id. |
     | `global` | object | {} | Instances monitoring event-independent header variables (e.g. hostname, level), keyed by instance name. Written as `global` in YAML. |
 
@@ -188,8 +188,8 @@ There are some parameters, that **every** detector inherits from `CoreDetectorCo
     | Field | Type | Default | Description |
     |---|---|---|---|
     | `start_id` | integer | 10 | Number used to start the unique ID generator. |
-    | `data_use_training` | integer, null | None | Data used for training, if None, training is not done. |
-    | `data_use_configure` | integer, null | None | Data used for configuration, if None, configuration is not done. |
+    | `data_use_training` | integer, null | None | Number of logs used for training. None skips training. |
+    | `data_use_configure` | integer, null | None | Number of logs used for the configuration step. None skips it. |
     | `use_config_data_as_training` | boolean | True | Combine the configured data in the training process if True. |
     | `train_buffer_max_records` | integer | 100000 | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
@@ -207,13 +207,13 @@ The detectors that keep their model in persistency stores ([New Event](detectors
 
     | Field | Type | Default | Description |
     |---|---|---|---|
-    | `persist` | object, null | None | Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See the Persistency page. |
+    | `persist` | object, null | None | Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See Saving state (persist) on the Detectors page. |
 
 ???+ note "params"
 
     | Field | Type | Default | Description |
     |---|---|---|---|
-    | `allow_fed` | boolean | False | Allow to do the federation |
+    | `allow_fed` | boolean | False | Builds the stores needed to take part in federation. |
 <!-- End tracker_arguments -->
 
 ### Per-variable model detectors
@@ -368,8 +368,8 @@ axes:
 | `slope_index` | change centroid vs. `slope_threshold` | index positions |
 | `slope_time` | change centroid vs. `slope_threshold` | normalized timestamps |
 
-Any subset of the four may be enabled, and any single one may stand alone. The
-default (`index` alone) is the historical behaviour: each segment's mean rate
+Any subset of the four may be enabled, and any single one may stand alone. By
+default only `index` is enabled: each segment's mean rate
 of change is compared against its entry in `segment_thresholds` (four segments
 by default, one threshold per segment), and the segments are **equal-count**:
 each holds the same number of observations, regardless of how much time they
@@ -410,12 +410,11 @@ detectors:
       timestamp_format: "%y%m%d %H%M%S"
 ```
 
-Defaults reproduce the historical behaviour exactly: `index: True`, the other
-three `False`, `segment_thresholds: [1.1, 0.3, 0.1, 0.01]`, `decision: consensus`,
+The defaults are `index: True`, the other three `False`,
+`segment_thresholds: [1.1, 0.3, 0.1, 0.01]`, `decision: consensus` and
 `slope_threshold: -0.05`. A config that sets nothing under `classification`
-classifies identically to before these changes on every series with at least
-four observations; the one exception is the segment floor described under
-"Fields" below.
+uses exactly these. A variable with fewer observations than segments is
+classified `INSUFFICIENT_DATA`; see the segment floor under "Fields" below.
 
 #### The decision rule
 
