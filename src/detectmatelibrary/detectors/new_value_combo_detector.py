@@ -142,7 +142,7 @@ class NewValueComboDetector(VariableDetector):
 
     def configure(self, input_: ParserSchema) -> None:  # type: ignore
         # store inputs to re-ingest after the first configuration pass
-        self.inputs.add(input_)
+        self.inputs.add(input_, None)
         super().configure(input_)
 
     def set_configuration(self, max_combo_size: int | None = None) -> None:

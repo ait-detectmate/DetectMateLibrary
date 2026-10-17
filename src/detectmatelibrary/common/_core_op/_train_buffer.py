@@ -13,16 +13,13 @@ before it, so only the logs are written, each once, and replay rebuilds the
 windows from them.
 """
 import tempfile
-from collections import deque
-from pathlib import Path
-from typing import Iterator, cast
-
 import pyarrow as pa
 import pyarrow.parquet as pq
-
+from collections import deque
+from pathlib import Path
+from typing import Iterator, cast, Any
 from detectmatelibrary.schemas import BaseSchema
 from detectmatelibrary.tools.logging import logger
-
 Record = BaseSchema | list[BaseSchema]
 
 
@@ -47,17 +44,25 @@ class TrainBuffer:
         spill_dir: str | None = None,
         window: int | None = None,
         name: str = "component",
+        store_serialized: bool | None = None,
     ) -> None:
         self.schema_class = schema_class  # decodes the spilled records
         self.max_records = max_records
         self.spill_dir = spill_dir  # None: the system temp directory
         self.window = window  # the window size, when records are sliding windows
         self.name = name
+        self.store_serialized: bool | None = store_serialized
         self._memory: list[Record] = []
+        self._memory_serialized: list[bytes | list[bytes]] = []
         self._parts: list[Path] = []
         self._tmp: tempfile.TemporaryDirectory[str] | None = None
 
-    def add(self, record: Record) -> None:
+    def add(self, record: Record, record_serialized: Any) -> None:
+        if self.store_serialized is None:
+            self.store_serialized = isinstance(record_serialized, bytes) or (isinstance(
+                record_serialized, list) and all(isinstance(x, bytes) for x in record_serialized))
+        if self.store_serialized:
+            self._memory_serialized.append(record_serialized)
         self._memory.append(record)
         if len(self._memory) >= self.max_records:
             self._spill()
@@ -80,6 +85,7 @@ class TrainBuffer:
     def clear(self) -> None:
         """Drop every record and remove the spill directory."""
         self._memory = []
+        self._memory_serialized = []
         self._parts = []
         if self._tmp is not None:
             try:
@@ -103,18 +109,25 @@ class TrainBuffer:
         pq.write_table(pa.table({"record": self._encode()}), path, compression="zstd")
         self._parts.append(path)  # only once the part is complete
         self._memory = []
+        self._memory_serialized = []
 
-    def _encode(self) -> pa.Array:
+    def _encode(self) -> pa.Array | pa.ChunkedArray:
         if self.window is not None:
-            windows = cast(list[list[BaseSchema]], self._memory)
-            # The first part holds the whole first window, then each window adds its last log.
-            logs = (windows[0][:-1] if not self._parts else []) + [w[-1] for w in windows]
-            return pa.array([log.serialize() for log in logs], type=pa.large_binary())
+            windows: list[list[BaseSchema]] | list[list[bytes]]
+            if not self.store_serialized:
+                windows = cast(list[list[BaseSchema]], self._memory)
+                # The first part holds the whole first window, then each window adds its last log.
+                logs = [log.serialize() for log in (windows[0][:-1] if not self._parts else []) + [
+                    w[-1] for w in windows]]
+            else:
+                windows = cast(list[list[bytes]], self._memory_serialized)
+                # The first part holds the whole first window, then each window adds its last log.
+                logs = windows[0][:-1] if not self._parts else [] + [w[-1] for w in windows]
+            return pa.array(logs, type=pa.large_binary())
         is_batch = isinstance(self._memory[0], list)
-        return pa.array(
-            [_serialize(r) for r in self._memory],
-            type=pa.list_(pa.large_binary()) if is_batch else pa.large_binary(),
-        )
+        serialized_logs = self._memory_serialized if self.store_serialized else [
+            _serialize(r) for r in self._memory]
+        return pa.array(serialized_logs, type=pa.list_(pa.large_binary()) if is_batch else pa.large_binary())
 
     def _decode(self, blob: bytes) -> BaseSchema:
         record = self.schema_class()

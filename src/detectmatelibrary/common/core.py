@@ -141,6 +141,7 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
         return self.data_buffer.get_window_size()
 
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
+        data_serialized = data
         is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)
         logger.debug(f"<<{self.name}>> received:\n{data}")
 
@@ -152,7 +153,7 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
                 logger.debug(f"<<{self.name}>> use data for configuration")
                 self.configure(input_=data_buffered)
             if self.config.use_config_data_as_training:
-                self.buffer_train.add(data_buffered)
+                self.buffer_train.add(data_buffered, data_serialized)
             return None
         elif self.fitlogic.finish_config():
             if self.config.auto_config:
