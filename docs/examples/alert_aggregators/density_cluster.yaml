@@ -1,0 +1,3 @@
+alert_aggregators:
+    NAME:
+        method_type: "ADD_DENSITY_CLUSTER"

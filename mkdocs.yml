@@ -68,6 +68,7 @@ nav:
     - Alert Aggregation methods:
       - 00_Basic Concat: alert_aggregators/basic_concatenation.md
       - 01_LogID Count: alert_aggregators/logid_count.md
+      - 02_Density Cluster: alert_aggregators/density_cluster.md
     - Helpers:
       - FromTo: helper/from_to.md
       - Select Component: helper/select_component.md
