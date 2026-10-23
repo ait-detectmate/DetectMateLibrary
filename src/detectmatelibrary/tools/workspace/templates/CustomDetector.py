@@ -48,7 +48,7 @@ class CustomDetector(CoreDetector):
         result = pattern[self._call_count % len(pattern)]
         if result:
             output_["score"] = 1.0  # Score of the detector
-            output_["alertsObtain"]["type"] = "Anomaly detected by CustomDetector"  # Additional info
+            output_["alertDetails"]["type"] = "Anomaly detected by CustomDetector"  # Additional info
         return result
 
 

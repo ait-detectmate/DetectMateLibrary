@@ -6,7 +6,7 @@ from detectmatelibrary.common._config import BasicConfig
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 
 import detectmatelibrary.schemas._op as op_schemas
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 
 import logging
 import os
@@ -41,9 +41,9 @@ default_args = {
 }
 
 
-def _make_log(i: int) -> schemas.LogSchema:
-    return schemas.LogSchema({
-        "__version__": "1.0.0",
+def _make_log(i: int) -> sc.LogSchema:
+    return sc.LogSchema({
+        "__version__": "2.0.0",
         "logID": str(i),
         "logSource": "test",
         "hostname": "test_hostname"
@@ -60,7 +60,7 @@ class MockComponentWithTraining(CoreComponent):
         self, name: str, config: MockConfigWithTraining = MockConfigWithTraining()
     ) -> None:
         super().__init__(
-            name=name, type_="Dummy", config=config, input_schema=schemas.LogSchema
+            name=name, type_="Dummy", config=config, input_schema=sc.LogSchema
         )
         self.train_data = []
 
@@ -83,7 +83,7 @@ class MockComponentWithConfigure(CoreComponent):
         self, name: str, config: MockConfigWithConfigure = MockConfigWithConfigure()
     ) -> None:
         super().__init__(
-            name=name, type_="Dummy", config=config, input_schema=schemas.LogSchema
+            name=name, type_="Dummy", config=config, input_schema=sc.LogSchema
         )
         self.configure_data: list = []
         self.set_configuration_called: int = 0
@@ -101,7 +101,7 @@ class MockComponentWithConfigure(CoreComponent):
 class MockComponentWithConfigureAndTraining(CoreComponent):
     def __init__(self, name: str, config: CoreConfig = CoreConfig()) -> None:
         super().__init__(
-            name=name, type_="Dummy", config=config, input_schema=schemas.LogSchema
+            name=name, type_="Dummy", config=config, input_schema=sc.LogSchema
         )
         self.configure_data: list = []
         self.train_data: list = []
@@ -240,8 +240,8 @@ class TestCoreComponent:
 
         for i in range(10):
             component.process(
-                schemas.LogSchema({
-                    "__version__": "1.0.0",
+                sc.LogSchema({
+                    "__version__": "2.0.0",
                     "logID": str(i),
                     "logSource": "test",
                     "hostname": "test_hostname"
@@ -250,8 +250,8 @@ class TestCoreComponent:
 
         assert len(component.train_data) == component.fitlogic.train_state.data_used
         for i, log in enumerate(component.train_data):
-            expected = schemas.LogSchema({
-                "__version__": "1.0.0",
+            expected = sc.LogSchema({
+                "__version__": "2.0.0",
                 "logID": str(i),
                 "logSource": "test",
                 "hostname": "test_hostname"
@@ -266,8 +266,8 @@ class TestCoreComponent:
 
         for i in range(10):
             component.process(
-                schemas.LogSchema({
-                    "__version__": "1.0.0",
+                sc.LogSchema({
+                    "__version__": "2.0.0",
                     "logID": str(i),
                     "logSource": "test",
                     "hostname": "test_hostname"
@@ -277,8 +277,8 @@ class TestCoreComponent:
         total += component.fitlogic.config_state.total_need_data
         assert len(component.train_data) == total
         for i, log in enumerate(component.train_data):
-            expected = schemas.LogSchema({
-                "__version__": "1.0.0",
+            expected = sc.LogSchema({
+                "__version__": "2.0.0",
                 "logID": str(i),
                 "logSource": "test",
                 "hostname": "test_hostname"
@@ -292,8 +292,8 @@ class TestCoreComponent:
             if i == 2:
                 component.update_state("stop_training")
             component.process(
-                schemas.LogSchema({
-                    "__version__": "1.0.0",
+                sc.LogSchema({
+                    "__version__": "2.0.0",
                     "logID": str(i),
                     "logSource": "test",
                     "hostname": "test_hostname"
@@ -308,8 +308,8 @@ class TestCoreComponent:
 
         for i in range(10):
             component.process(
-                schemas.LogSchema({
-                    "__version__": "1.0.0",
+                sc.LogSchema({
+                    "__version__": "2.0.0",
                     "logID": str(i),
                     "logSource": "test",
                     "hostname": "test_hostname"
@@ -477,7 +477,7 @@ class MockConfigWithPostTrain(CoreConfig):
 class MockComponentWithPostTrain(CoreComponent):
     def __init__(self, name: str, config: CoreConfig = MockConfigWithPostTrain()) -> None:
         super().__init__(
-            name=name, type_="Dummy", config=config, input_schema=schemas.LogSchema
+            name=name, type_="Dummy", config=config, input_schema=sc.LogSchema
         )
         self.post_train_called: int = 0
 
@@ -612,7 +612,7 @@ class TestCoreComponentContextManager:
 class MockWindowComponent(CoreComponent):
     def __init__(self, name: str, config: CoreConfig) -> None:
         super().__init__(
-            name=name, type_="Dummy", config=config, input_schema=schemas.LogSchema,
+            name=name, type_="Dummy", config=config, input_schema=sc.LogSchema,
             args_buffer=ArgsBuffer(mode=BufferMode.WINDOW, size=2),
         )
         self.train_data: list = []

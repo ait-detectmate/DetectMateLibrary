@@ -49,11 +49,11 @@ class AutoParser(CoreParser):
     def parse(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> None:
 
         if self.tree_match is None:
-            output_["EventID"] = -1
+            output_["eventID"] = -1
             output_["template"] = "templates not yet generated"
         else:
             parsed = self.tree_match.match_log(input_["log"], get_var=True)[0]
 
-            output_["EventID"] = parsed["EventID"]
+            output_["eventID"] = parsed["EventID"]
             output_["variables"].extend(parsed["ParamList"])
             output_["template"] = parsed["Template"]

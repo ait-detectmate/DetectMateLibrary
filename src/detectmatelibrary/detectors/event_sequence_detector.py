@@ -9,7 +9,7 @@ from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
 from collections import deque
 
-from typing_extensions import override
+from typing_extensions import override, Any
 from pydantic import Field, model_validator
 
 
@@ -71,7 +71,7 @@ class EventSequenceDetector(TrackerDetector):
     def __init__(
         self,
         name: str = "EventSequenceDetector",
-        config: EventSequenceDetectorConfig = EventSequenceDetectorConfig(),
+        config: EventSequenceDetectorConfig | dict[str, Any] = EventSequenceDetectorConfig(),
     ) -> None:
         if isinstance(config, dict):
             config = EventSequenceDetectorConfig.from_dict(config, name)
@@ -136,7 +136,7 @@ class EventSequenceDetector(TrackerDetector):
         """
         if (length := self.config.fixed_window_size) is None:
             return
-        self._train_window.append(input_["EventID"])
+        self._train_window.append(input_["eventID"])
         if len(self._train_window) < length:
             return
         self.persistency.ingest_event(
@@ -153,7 +153,7 @@ class EventSequenceDetector(TrackerDetector):
         """
         if (length := self.config.fixed_window_size) is None:
             return False
-        self._detect_window.append(input_["EventID"])
+        self._detect_window.append(input_["eventID"])
         if len(self._detect_window) < length:
             return False
 
@@ -165,7 +165,7 @@ class EventSequenceDetector(TrackerDetector):
         output_["description"] = (
             f"{self.name} detects unknown EventID sequences as anomalies."
         )
-        output_["alertsObtain"].update(
+        output_["alertDetails"].update(
             {
                 f"Sequence {sequence}": (
                     f"EventID sequence of length {len(sequence)} ending at logID "
@@ -186,7 +186,7 @@ class EventSequenceDetector(TrackerDetector):
         auto = self.config.auto_config_params
         for length in range(auto.min_window_size, auto.max_window_size + 1):
             window = self._configure_windows.setdefault(length, deque(maxlen=length))
-            window.append(input_["EventID"])
+            window.append(input_["eventID"])
             if len(window) == length:
                 self.auto_conf_persistency.ingest_event(
                     event_id=length,

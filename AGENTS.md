@@ -84,7 +84,7 @@ detectors:
             - pos: pid          # named wildcard label OR integer position in ParserSchema.variables[]
               name: pid
           header_variables:
-            - pos: Type         # key in ParserSchema.logFormatVariables{}
+            - pos: Type         # key in ParserSchema.headerVariables{}
               params: {}
     global:                     # event-ID-independent instances (GLOBAL_EVENT_ID = "*")
       global_monitor:
@@ -185,7 +185,7 @@ class MyDetector(TrackerDetector):
         super().__init__(name=name, config=config)
 
     def train(self, input_: ParserSchema) -> None:
-        self._ingest(input_, variables={...}, event_id=input_["EventID"])
+        self._ingest(input_, variables={...}, event_id=input_["eventID"])
 ```
 
 Pass tracker kwargs by overriding `_event_data_kwargs()` / `_auto_conf_kwargs()`; build an extra store with `self._new_store()`. Keep `__init__` callable as `MyDetector(name=..., config=...)`: `from_binary()` rebuilds the detector that way, so any other constructor argument needs a default.

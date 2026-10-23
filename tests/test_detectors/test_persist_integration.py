@@ -289,7 +289,7 @@ UNSEEN_WINDOW = [4, 4, 4, 4]
 
 
 def _window(event_ids):
-    return [schemas.ParserSchema({"EventID": i}) for i in event_ids]
+    return [schemas.ParserSchema({"eventID": i}) for i in event_ids]
 
 
 class TestStatelessComponents:

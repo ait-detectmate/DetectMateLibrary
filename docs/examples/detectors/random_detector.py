@@ -8,7 +8,7 @@ with open("docs/examples/detectors/random_detector.yaml") as f:
     config = yaml.safe_load(f)
 detector = RandomDetector(name="RandomDetector", config=config)
 
-login = schemas.ParserSchema({"EventID": 0, "variables": ["alice", "10.0.0.1", "22"]})
+login = schemas.ParserSchema({"eventID": 0, "variables": ["alice", "10.0.0.1", "22"]})
 
 np.random.seed(0)  # only to make this example reproducible
 

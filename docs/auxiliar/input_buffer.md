@@ -1,4 +1,4 @@
-#  Data Buffer
+# Data Buffer
 
 The data buffer is an auxiliary method that can be used in all the components. It takes the stream data and formats it to the given specifications.
 

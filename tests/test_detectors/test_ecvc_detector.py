@@ -15,7 +15,7 @@ import pytest
 class TestECVCOP:
     def test_build_count_vec(self):
         input_ = [
-            schemas.ParserSchema({"EventID": i}) for i in [0, 1, 4, 0]
+            schemas.ParserSchema({"eventID": i}) for i in [0, 1, 4, 0]
         ]
         expected = tuple([2, 1, 0, 0, 1])
 
@@ -23,7 +23,7 @@ class TestECVCOP:
 
     def test_build_one_vec(self):
         input_ = [
-            schemas.ParserSchema({"EventID": i}) for i in [0, 1, 4, 0]
+            schemas.ParserSchema({"eventID": i}) for i in [0, 1, 4, 0]
         ]
 
         expected = np.array([2, 1, 0, 0, 1, 0, 0, 0])
@@ -93,7 +93,7 @@ class TestECVC:
 
         input_ = []
         for _ in range(10):
-            input_.extend([schemas.ParserSchema({"EventID": i}) for i in [0, 1, 4, 0]])
+            input_.extend([schemas.ParserSchema({"eventID": i}) for i in [0, 1, 4, 0]])
 
         for in_ in input_:
             ecvc.process(in_)
@@ -103,7 +103,7 @@ class TestECVC:
             alert = ecvc.process(in_)
         assert alert is None
 
-        for in_ in [schemas.ParserSchema({"EventID": i}) for i in [4, 4, 4, 4, 4, 4, 1, 0, 1, 1]]:
+        for in_ in [schemas.ParserSchema({"eventID": i}) for i in [4, 4, 4, 4, 4, 4, 1, 0, 1, 1]]:
             alert = ecvc.process(in_)
         assert alert is not None
 
@@ -209,7 +209,7 @@ class TestECVCDetectorEndToEnd:
 
 
 def _window(event_ids):
-    return [schemas.ParserSchema({"EventID": i}) for i in event_ids]
+    return [schemas.ParserSchema({"eventID": i}) for i in event_ids]
 
 
 def _fed_detector(window_size):

@@ -15,7 +15,7 @@ PARSER_SCHEMA: SchemaT = s.ParserSchema  # type: ignore
 DETECTOR_SCHEMA: SchemaT = s.DetectorSchema  # type: ignore
 AGGREGATE_SCHEMA: SchemaT = s.AggregateSchema  # type: ignore
 
-__current_version = "1.0.0"
+__current_version = "2.0.0"
 
 
 #  Exceptions ****************************************

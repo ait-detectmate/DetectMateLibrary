@@ -23,7 +23,7 @@ class ECVCOp:
 
     @staticmethod
     def build_one_vec(input_: List[schemas.ParserSchema], n: int) -> np.ndarray:
-        events = [in_["EventID"] for in_ in input_]
+        events = [in_["eventID"] for in_ in input_]
         arr = np.zeros(n if n > (m := max(events) + 1) else m)
 
         for e in events:

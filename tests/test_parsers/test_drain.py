@@ -23,19 +23,19 @@ class TestDrainParser:
         parser = DrainParser(config=config_dict)
 
         parsed = parser.process(schemas.LogSchema({"log": "hello there, general kenobi!"}))
-        assert parsed["EventID"] == -1
+        assert parsed["eventID"] == -1
         assert parsed["template"] == "templates not yet generated"
 
         parsed = parser.process(schemas.LogSchema({"log": "hello there, captain kenobi!"}))
-        assert parsed["EventID"] == -1
+        assert parsed["eventID"] == -1
         assert parsed["template"] == "templates not yet generated"
 
         parsed = parser.process(schemas.LogSchema({"log": "hello there, sargent kenobi!"}))
-        assert parsed["EventID"] == 0
+        assert parsed["eventID"] == 0
         assert parsed["template"] == "hello there <*> kenobi"
 
         parsed = parser.process(schemas.LogSchema({"log": "hello there, general R2D2!"}))
-        assert parsed["EventID"] == -1
+        assert parsed["eventID"] == -1
         assert parsed["template"] == "template not found"
 
     def test_reset_after_train(self):
@@ -54,15 +54,15 @@ class TestDrainParser:
         parser = DrainParser(config=config_dict)
 
         parsed = parser.process(schemas.LogSchema({"log": "hello there, general kenobi!"}))
-        assert parsed["EventID"] == -1
+        assert parsed["eventID"] == -1
         assert parsed["template"] == "templates not yet generated"
 
         parsed = parser.process(schemas.LogSchema({"log": "hello there, captain kenobi!"}))
-        assert parsed["EventID"] == -1
+        assert parsed["eventID"] == -1
         assert parsed["template"] == "templates not yet generated"
 
         parsed = parser.process(schemas.LogSchema({"log": "hello there, sargent kenobi!"}))
-        assert parsed["EventID"] == 0
+        assert parsed["eventID"] == 0
         assert parsed["template"] == "hello there <*> kenobi"
 
         parser.update_state("keep_training")
@@ -70,7 +70,7 @@ class TestDrainParser:
         parser.update_state("stop_training")
 
         parsed = parser.process(schemas.LogSchema({"log": "hello there, sargent kenobi!"}))
-        assert parsed["EventID"] == -1
+        assert parsed["eventID"] == -1
         assert parsed["template"] == "template not found"
 
     def test_not_reset_train(self):
@@ -89,15 +89,15 @@ class TestDrainParser:
         parser = DrainParser(config=config_dict)
 
         parsed = parser.process(schemas.LogSchema({"log": "hello there, general kenobi!"}))
-        assert parsed["EventID"] == -1
+        assert parsed["eventID"] == -1
         assert parsed["template"] == "templates not yet generated"
 
         parsed = parser.process(schemas.LogSchema({"log": "hello there, captain kenobi!"}))
-        assert parsed["EventID"] == -1
+        assert parsed["eventID"] == -1
         assert parsed["template"] == "templates not yet generated"
 
         parsed = parser.process(schemas.LogSchema({"log": "hello there, sargent kenobi!"}))
-        assert parsed["EventID"] == 0
+        assert parsed["eventID"] == 0
         assert parsed["template"] == "hello there <*> kenobi"
 
         parser.update_state("keep_training")

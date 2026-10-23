@@ -125,7 +125,7 @@ class VariableDetector(TrackerDetector, VariableHooks):
     _time_handler: TimeFormatHandler = _core_time_handler
 
     def __init__(
-        self, name: str, config: VariableDetectorConfig = VariableDetectorConfig()
+        self, name: str, config: VariableDetectorConfig | dict[str, Any] = VariableDetectorConfig()
     ) -> None:
         if isinstance(config, dict):
             config = VariableDetectorConfig.from_dict(config, name)
@@ -154,7 +154,7 @@ class VariableDetector(TrackerDetector, VariableHooks):
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         for variables in self._event_variables(input_):
-            self._ingest(input_, self._prepare_variables(variables, "training"), input_["EventID"])
+            self._ingest(input_, self._prepare_variables(variables, "training"), input_["eventID"])
         if self.config.global_instances:
             global_vars = get_global_variables(input_, self.config.global_instances)
             if global_vars:
@@ -164,7 +164,7 @@ class VariableDetector(TrackerDetector, VariableHooks):
         alerts: Dict[str, str] = {}
         overall_score = 0.0
         known_events = self.persistency.get_events_data()
-        current_event_id = input_["EventID"]
+        current_event_id = input_["eventID"]
 
         if current_event_id in known_events:
             variables: Dict[str, Any] = {}
@@ -186,16 +186,16 @@ class VariableDetector(TrackerDetector, VariableHooks):
         if overall_score > 0:
             output_["score"] = overall_score
             output_["description"] = self._description()
-            output_["alertsObtain"].update(alerts)
+            output_["alertDetails"].update(alerts)
             return True
         return False
 
     def configure(self, input_: ParserSchema) -> None:  # type: ignore
         self.auto_conf_persistency.ingest_event(
-            event_id=input_["EventID"],
+            event_id=input_["eventID"],
             event_template=input_["template"],
             variables=input_["variables"],
-            named_variables=input_["logFormatVariables"],
+            named_variables=input_["headerVariables"],
             timestamp=self._timestamps.read(input_),
         )
 

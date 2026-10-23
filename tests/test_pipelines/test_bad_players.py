@@ -28,10 +28,10 @@ class MockupBadParser(CoreParser):
     def parse(self, input_, output_):
         input_.log = "This message was change!"
 
-        output_.EventID = 1
+        output_.eventID = 1
         output_.template = "hello"
         output_.variables.extend(["a", "b"])
-        output_.logFormatVariables["timestamp"] = "1"
+        output_.headerVariables["timestamp"] = "1"
 
 
 class MockupDetector(CoreDetector):

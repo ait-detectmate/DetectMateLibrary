@@ -51,7 +51,7 @@ class TimestampReader:
             )
             return None
 
-        raw = input_["logFormatVariables"].get(self._params.timestamp_variable)
+        raw = input_["headerVariables"].get(self._params.timestamp_variable)
         ts = self._handler.parse_timestamp(str(raw or ""), self._params.timestamp_format)
         if ts == "0":
             self._warn_once(

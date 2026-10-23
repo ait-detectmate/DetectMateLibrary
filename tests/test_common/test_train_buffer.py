@@ -5,19 +5,19 @@ from pathlib import Path
 
 import pytest
 
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 from detectmatelibrary.common._core_op._train_buffer import TrainBuffer
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode, DataBuffer
 
 _MOD = "detectmatelibrary.common._core_op._train_buffer"
 
 
-def _log(i: int) -> schemas.BaseSchema:
+def _log(i: int) -> sc.BaseSchema:
     # .copy() gives the BaseSchema that CoreComponent actually buffers
-    return schemas.LogSchema({"logID": str(i), "logSource": "test", "hostname": "h"}).copy()
+    return sc.LogSchema({"logID": str(i), "logSource": "test", "hostname": "h"}).copy()
 
 
-def _windows(n: int, size: int, start: int = 0) -> list[list[schemas.BaseSchema]]:
+def _windows(n: int, size: int, start: int = 0) -> list[list[sc.BaseSchema]]:
     """Sliding windows over logs start..start+n-1, as a WINDOW-mode
     CoreComponent buffers them."""
     data_buffer = DataBuffer(ArgsBuffer(BufferMode.WINDOW, size=size))
@@ -26,13 +26,13 @@ def _windows(n: int, size: int, start: int = 0) -> list[list[schemas.BaseSchema]
 
 def _count_serialize(monkeypatch) -> dict[str, int]:
     calls = {"n": 0}
-    real = schemas.BaseSchema.serialize
+    real = sc.BaseSchema.serialize
 
     def counting(self):
         calls["n"] += 1
         return real(self)
 
-    monkeypatch.setattr(schemas.BaseSchema, "serialize", counting)
+    monkeypatch.setattr(sc.BaseSchema, "serialize", counting)
     return calls
 
 
@@ -46,7 +46,7 @@ def _ids(records) -> list[str]:
 
 def _buffer(tmp_path: Path, max_records: int, window: int | None = None, name: str = "c") -> TrainBuffer:
     return TrainBuffer(
-        schemas.LogSchema, max_records=max_records, spill_dir=str(tmp_path), window=window, name=name
+        sc.LogSchema, max_records=max_records, spill_dir=str(tmp_path), window=window, name=name
     )
 
 
@@ -73,7 +73,7 @@ class TestSpill:
         assert len(list(run.glob("*.parquet"))) == 3
         out = list(buf)
         assert _ids(out) == [str(i) for i in range(10)]
-        assert all(r.schema_class is schemas.LogSchema().schema_class for r in out)
+        assert all(r.schema_class is sc.LogSchema().schema_class for r in out)
         assert _run_dirs(tmp_path) == []
 
     def test_spilled_batches_replay_in_order(self, tmp_path):
@@ -126,7 +126,7 @@ class TestSpill:
 
     def test_default_dir_is_the_system_temp_dir(self, tmp_path, monkeypatch):
         monkeypatch.setattr(tempfile, "tempdir", str(tmp_path))
-        buf = TrainBuffer(schemas.LogSchema, max_records=1, name="c")
+        buf = TrainBuffer(sc.LogSchema, max_records=1, name="c")
         buf.add(_log(0))
         assert len(_run_dirs(tmp_path)) == 1
         assert _ids(buf) == ["0"]

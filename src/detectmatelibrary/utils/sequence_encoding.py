@@ -28,7 +28,7 @@ def build_count_vec(input_: List[schemas.ParserSchema]) -> tuple[int, ...]:
     """Count how often each EventID occurs in a window, indexed by EventID."""
     sequence, n = [0], 0
     for in_ in input_:
-        event = in_["EventID"]
+        event = in_["eventID"]
         if n < event:
             for _ in range(n, event):
                 sequence.append(0)

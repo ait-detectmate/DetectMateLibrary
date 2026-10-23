@@ -10,7 +10,7 @@ detector = SCVSDetector(name="SCVSDetector", config=config)
 
 def event(event_id: int) -> schemas.ParserSchema:
     """A parsed log; only its EventID (the matched template) matters here."""
-    return schemas.ParserSchema({"EventID": event_id})
+    return schemas.ParserSchema({"eventID": event_id})
 
 
 # normal session: 0 = login accepted, 1 = session opened, 2 = session closed.

@@ -103,14 +103,14 @@ Example JSON save file format:
         "hostname": "",
         "log": "pid=<*> uid=<*> auid=<*> ses=<*> msg='op=<*> acct=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'",
         "logSource": "",
-        "__version__": "1.0.0"
+        "__version__": "2.0.0"
     },
     "1": {
         "logID": "1",
         "hostname": "",
         "log": "pid=<*> uid=<*> auid=<*> ses=<*> msg='unit=<*> comm=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'",
         "logSource": "",
-        "__version__": "1.0.0"
+        "__version__": "2.0.0"
     }
 }
 ```
@@ -236,14 +236,14 @@ Example input data:
         "hostname": "",
         "log": "pid=<*> uid=<*> auid=<*> ses=<*> msg='op=<*> acct=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'",
         "logSource": "",
-        "__version__": "1.0.0"
+        "__version__": "2.0.0"
     },
     "1": {
         "logID": "1",
         "hostname": "",
         "log": "pid=<*> uid=<*> auid=<*> ses=<*> msg='unit=<*> comm=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'",
         "logSource": "",
-        "__version__": "1.0.0"
+        "__version__": "2.0.0"
     }
 }
 ```
@@ -255,8 +255,8 @@ Example output data after parsing:
     "0": {
         "template": "This is a dummy template",
         "parsedTimestamp": 1771336089,
-        "EventID": 2,
-        "logFormatVariables": {
+        "eventID": 2,
+        "headerVariables": {
             "Time": "0"
         },
         "parserID": "DummyParser",
@@ -267,14 +267,14 @@ Example output data after parsing:
         ],
         "receivedTimestamp": 1771336089,
         "logID": "0",
-        "__version__": "1.0.0",
+        "__version__": "2.0.0",
         "parsedLogID": "10"
     },
     "1": {
         "template": "This is a dummy template",
         "parsedTimestamp": 1771336089,
-        "EventID": 2,
-        "logFormatVariables": {
+        "eventID": 2,
+        "headerVariables": {
             "Time": "0"
         },
         "parserID": "DummyParser",
@@ -285,7 +285,7 @@ Example output data after parsing:
         ],
         "receivedTimestamp": 1771336089,
         "logID": "1",
-        "__version__": "1.0.0",
+        "__version__": "2.0.0",
         "parsedLogID": "11"
     }
 }

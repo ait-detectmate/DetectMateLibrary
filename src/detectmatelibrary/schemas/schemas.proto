@@ -16,13 +16,13 @@ message ParserSchema {
     optional string __version__ = 1;
     optional string parserType = 2;
     optional string parserID = 3;
-    optional int32 EventID = 4;
+    optional int32 eventID = 4;
     optional string template = 5;
     repeated string variables = 6;
     optional string parsedLogID = 7;
     optional string logID = 8;
     optional string log = 9;
-    map<string, string> logFormatVariables = 10;
+    map<string, string> headerVariables = 10;
     optional int64 receivedTimestamp = 11;
     optional int64 parsedTimestamp = 12;
 }
@@ -32,13 +32,13 @@ message DetectorSchema {
     optional string detectorID = 2;
     optional string detectorType = 3;
     optional string alertID = 4;
-    optional int64 detectionTimestamp = 5;
+    optional int64 detectedTimestamp = 5;
     repeated string logIDs = 6;
     optional float score = 8;
-    repeated int64 extractedTimestamps = 9;
+    repeated int64 logTimestamps = 9;
     optional string description = 10;
     optional int64 receivedTimestamp = 11;
-    map<string, string> alertsObtain = 12;
+    map<string, string> alertDetails = 12;
 }
 
 message AggregateSchema {
@@ -46,9 +46,9 @@ message AggregateSchema {
     repeated string detectorIDs = 2;
     repeated string detectorTypes = 3;
     repeated string alertIDs = 4;
-    optional int64 outputTimestamp = 5;
+    optional int64 aggregatedTimestamp = 5;
     repeated string logIDs = 6;
-    repeated int64 extractedTimestamps = 9;
+    repeated int64 logTimestamps = 9;
     optional string description = 10;
-    map<string, string> alertsObtain = 12;
+    map<string, string> alertDetails = 12;
 }

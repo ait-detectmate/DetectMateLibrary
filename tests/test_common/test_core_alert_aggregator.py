@@ -1,9 +1,9 @@
 from detectmatelibrary.common.alert_aggregator import (
-    CoreAlertAggregatorConfig, CoreAlertAggregator, BufferMode
+    CoreAlertAggregatorConfig, CoreAlertAggregator, BufferMode, _extract_field, _extract_list_fields
 )
 
 from detectmatelibrary.utils.aux import time_test_mode
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 
 import pydantic
 import pytest
@@ -52,13 +52,13 @@ dummy_schema = {
     "detectorID": "1",
     "detectorType": "dummy",
     "alertID": "2",
-    "detectionTimestamp": 0,
+    "detectedTimestamp": 0,
     "logIDs": ["logID1"],
     "score": 0.2,
-    "extractedTimestamps": [-1],
+    "logTimestamps": [-1],
     "description": "hello there",
     "receivedTimestamp": 1,
-    "alertsObtain": {"99 problems": "but logs aint one"}
+    "alertDetails": {"99 problems": "but logs aint one"}
 }
 
 
@@ -74,6 +74,59 @@ dummy_config = {
 time_test_mode()
 
 
+class TestAuxiliar:
+    def test_get_field_single(self) -> None:
+        expected = {"dummy"}
+        input_ = sc.DetectorSchema(dummy_schema)
+
+        assert len(field := _extract_field(input_, "detectorType")) == 1
+        assert expected == set(field)
+
+    def test_get_field_multiple(self) -> None:
+        expected = {"dummy2", "dummy"}
+
+        dummy_schema2 = dummy_schema.copy()
+        dummy_schema2["detectorType"] = "dummy2"
+        input_ = [dummy_schema, dummy_schema2]
+        input_ = [sc.DetectorSchema(in_) for in_ in input_]
+
+        assert len(field := _extract_field(input_, "detectorType")) == 2
+        assert expected == set(field)
+
+    def test_get_logID_timestamp_single(self) -> None:
+        expected_logID = ["logID1", "logID2", "logID3"]
+        expected_times = [-1, 0, 1]
+
+        dummy_schema2 = dummy_schema.copy()
+        dummy_schema2["logIDs"] = ["logID1", "logID2", "logID3", "logID1"]
+        dummy_schema2["logTimestamps"] = [-1, 0, 1, 3]
+        input_ = sc.DetectorSchema(dummy_schema2)
+
+        logids, times = _extract_list_fields(
+            input_, field1="logIDs", field2="logTimestamps"
+        )
+
+        assert expected_logID == logids
+        assert times == expected_times
+
+    def test_get_logID_timestamp_multiple(self) -> None:
+        expected_logID = ["logID1", "logID2", "logID3"]
+        expected_times = [-1, 0, 1]
+
+        dummy_schema2 = dummy_schema.copy()
+        dummy_schema2["logIDs"] = ["logID2", "logID3", "logID1"]
+        dummy_schema2["logTimestamps"] = [0, 1, 3]
+        input_ = [dummy_schema, dummy_schema2]
+        input_ = [sc.DetectorSchema(in_) for in_ in input_]
+
+        logids, times = _extract_list_fields(
+            input_, field1="logIDs", field2="logTimestamps"
+        )
+
+        assert expected_logID == logids
+        assert times == expected_times
+
+
 class TestCoreAlertAggregator:
     def test_initialize_default(self) -> None:
         detector = MockupAlertAggregator(name="TestAAG", config=dummy_config)
@@ -81,8 +134,8 @@ class TestCoreAlertAggregator:
         assert isinstance(detector, CoreAlertAggregator)
         assert detector.name == "TestAAG"
         assert isinstance(detector.config, CoreAlertAggregatorConfig)
-        assert detector.input_schema == schemas.DetectorSchema
-        assert detector.output_schema == schemas.AggregateSchema
+        assert detector.input_schema == sc.DetectorSchema
+        assert detector.output_schema == sc.AggregateSchema
 
     def test_incorrect_config_type(self) -> None:
         dummy_config2 = {
@@ -100,41 +153,41 @@ class TestCoreAlertAggregator:
 
     def test_process_correct_input_schema(self) -> None:
         detector = MockupAlertAggregator(name="TestAAG", config=dummy_config)
-        data = schemas.DetectorSchema(dummy_schema).serialize()
+        data = sc.DetectorSchema(dummy_schema).serialize()
         result = detector.process(data)  # no error should be produced
         assert isinstance(result, bytes)  # and result should be bytes
 
     def test_process_input_schema_not_serialized(self) -> None:
         alert_aggregator = MockupAlertAggregator(name="TestAAG", config=MockupConfig())
-        expected_result = schemas.AggregateSchema({
-            "__version__": "1.0.0",
+        expected_result = sc.AggregateSchema({
+            "__version__": "2.0.0",
             "detectorIDs": ["1"],
             "detectorTypes": ["dummy"],
             "alertIDs": ["2"],
-            "outputTimestamp": 0,
+            "aggregatedTimestamp": 0,
             "logIDs": ["logID1"],
             "description": "Mockup aggregator",
-            "extractedTimestamps": [-1],
-            "alertsObtain": {}
+            "logTimestamps": [-1],
+            "alertDetails": {}
         })
-        data = schemas.DetectorSchema(dummy_schema)
+        data = sc.DetectorSchema(dummy_schema)
         result = alert_aggregator.process(data)
         assert result == expected_result, f"result -> {result}"
 
     def test_process_input_schema_not_serialized_window_3(self) -> None:
         alert_aggregator = MockupAlertAggregator(name="TestDetector", config=MockupConfig(), buffer_size=3)
-        expected_result = schemas.AggregateSchema({
+        expected_result = sc.AggregateSchema({
             "__version__": "1.0.0",
-            "detectorIDs": ["1", "1", "1"],
-            "detectorTypes": ["dummy", "dummy", "dummy"],
-            "alertIDs": ["2", "2", "2"],
-            "outputTimestamp": 0,
-            "logIDs": ["logID1", "logID1", "logID1"],
+            "detectorIDs": ["1"],
+            "detectorTypes": ["dummy"],
+            "alertIDs": ["2"],
+            "aggregatedTimestamp": 0,
+            "logIDs": ["logID1"],
             "description": "Mockup aggregator",
-            "extractedTimestamps": [-1, -1, -1],
-            "alertsObtain": {}
+            "logTimestamps": [-1],
+            "alertDetails": {}
         })
-        data = schemas.DetectorSchema(dummy_schema)
+        data = sc.DetectorSchema(dummy_schema)
 
         assert alert_aggregator.process(data) is None
         assert alert_aggregator.process(data) is None
@@ -146,18 +199,18 @@ class TestCoreAlertAggregator:
         alert_aggregator = MockupAlertAggregatorBuffer(
             name="TestDetector", config=MockupConfig(), buffer_size=3
         )
-        expected_result = schemas.AggregateSchema({
+        expected_result = sc.AggregateSchema({
             "__version__": "1.0.0",
-            "detectorIDs": ["1", "1", "1"],
-            "detectorTypes": ["dummy", "dummy", "dummy"],
-            "alertIDs": ["2", "2", "2"],
-            "outputTimestamp": 0,
-            "logIDs": ["logID1", "logID1", "logID1"],
+            "detectorIDs": ["1"],
+            "detectorTypes": ["dummy"],
+            "alertIDs": ["2"],
+            "aggregatedTimestamp": 0,
+            "logIDs": ["logID1"],
             "description": "Mockup aggregator",
-            "extractedTimestamps": [-1, -1, -1],
-            "alertsObtain": {}
+            "logTimestamps": [-1],
+            "alertDetails": {}
         })
-        data = schemas.DetectorSchema(dummy_schema)
+        data = sc.DetectorSchema(dummy_schema)
 
         assert alert_aggregator.process(data) is None
         assert alert_aggregator.process(data) is None
@@ -167,7 +220,7 @@ class TestCoreAlertAggregator:
 
     def test_none_detector(self) -> None:
         alert_aggregator = NoneMockupAlertAggregator(name="TestDetector", config=MockupConfig())
-        data = schemas.DetectorSchema(dummy_schema)
+        data = sc.DetectorSchema(dummy_schema)
 
         assert alert_aggregator.process(data) is None
         assert alert_aggregator.process(data) is not None

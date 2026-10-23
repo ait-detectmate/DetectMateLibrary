@@ -6,7 +6,7 @@ from detectmatelibrary.common.core import CoreComponent, CoreConfig
 from detectmatelibrary.utils.aux import get_timestamp
 from detectmatelibrary import schemas
 
-from typing import Any, Optional, cast
+from typing import Any, cast
 from pydantic import model_validator
 import re
 from pydantic import Field
@@ -44,15 +44,15 @@ class CoreParser(CoreComponent):
     def __init__(
         self,
         name: str = "CoreParser",
-        config: Optional[CoreParserConfig | dict[str, Any]] = CoreParserConfig(),
+        config: CoreParserConfig | dict[str, Any] = CoreParserConfig(),
     ):
         if isinstance(config, dict):
             config = CoreParserConfig.from_dict(config, name)
 
         super().__init__(
             name=name,
-            type_=config.method_type,  # type: ignore
-            config=config,  # type: ignore
+            type_=config.method_type,
+            config=config,
             args_buffer=ArgsBuffer(mode=BufferMode.NO_BUF, size=None),
             input_schema=schemas.LogSchema,
             output_schema=schemas.ParserSchema,
@@ -73,7 +73,7 @@ class CoreParser(CoreComponent):
         output_["parserType"] = self.config.method_type
         output_["logID"] = input_["logID"]
         output_["log"] = input_["log"]
-        output_["logFormatVariables"].update(var)
+        output_["headerVariables"].update(var)
         input_["log"] = content
 
         output_["receivedTimestamp"] = get_timestamp()

@@ -73,4 +73,4 @@ class LogBatcherParser(CoreParser):
 
         output_["template"] = template
         output_["variables"].extend(list(variables))
-        output_["EventID"] = event_id
+        output_["eventID"] = event_id

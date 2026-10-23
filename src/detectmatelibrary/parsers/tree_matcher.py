@@ -38,6 +38,6 @@ class TemplateCppTreeMatcher(CoreParser):
 
         parsed = self.tree.match_log(input_["log"], get_var=True)[0]
 
-        output_["EventID"] = parsed["EventID"]
+        output_["eventID"] = parsed["EventID"]
         output_["variables"].extend(parsed["ParamList"])
         output_["template"] = parsed["Template"]

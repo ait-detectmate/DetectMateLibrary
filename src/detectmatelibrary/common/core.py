@@ -34,11 +34,11 @@ class CoreConfig(BasicConfig):
     )
     data_use_training: int | None = Field(
         default=None,
-        description="Data used for training, if None, training is not done.",
+        description="Number of logs used for training. None skips training.",
     )
     data_use_configure: int | None = Field(
         default=None,
-        description="Data used for configuration, if None, configuration is not done.",
+        description="Number of logs used for the configuration step. None skips it.",
     )
     use_config_data_as_training: bool = Field(
         default=True,
@@ -69,11 +69,14 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
         self,
         name: str,
         type_: str = "Core",
-        config: CoreConfig = CoreConfig(),
+        config: CoreConfig | dict[str, Any] = CoreConfig(),
         args_buffer: ArgsBuffer = ArgsBuffer(BufferMode.NO_BUF),
         input_schema: type[BaseSchema] = BaseSchema,
         output_schema: type[BaseSchema] = BaseSchema,
     ) -> None:
+        if isinstance(config, dict):
+            config = CoreConfig.from_dict(config, name)
+
         Component.__init__(self, name=name, type_=type_, config=config)
         FedOperations.__init__(self)
         self.config: CoreConfig

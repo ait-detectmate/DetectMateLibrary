@@ -1,6 +1,6 @@
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig, get_format_variables
 from detectmatelibrary.utils.aux import time_test_mode
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 
 import pydantic
 import pytest
@@ -16,7 +16,7 @@ class MockupParser(CoreParser):
         super().__init__(name=name, config=config)
 
     def parse(self, input_, output_):
-        output_.EventID = 1
+        output_.eventID = 1
         output_.template = "hello"
         output_.variables = ["a", "b"]
 
@@ -26,7 +26,7 @@ class IncompleteMockupParser(CoreParser):
         super().__init__(name=name, config=config)
 
     def parse(self, input_, output_):
-        output_.EventID = 1
+        output_.eventID = 1
         output_.variables = ["a", "b"]
 
 
@@ -38,7 +38,7 @@ class NoneMockupParser(CoreParser):
     def parse(self, input_, output_):
         self.value = not self.value
 
-        output_.EventID = 1
+        output_.eventID = 1
         output_.template = "hello"
         output_.variables = ["a", "b"]
 
@@ -64,8 +64,8 @@ class TestCoreParser:
         assert isinstance(parser, CoreParser)
         assert parser.name == "TestParser"
         assert isinstance(parser.config, CoreParserConfig)
-        assert parser.input_schema == schemas.LogSchema
-        assert parser.output_schema == schemas.ParserSchema
+        assert parser.input_schema == sc.LogSchema
+        assert parser.output_schema == sc.ParserSchema
 
     def test_incorrect_config_type(self) -> None:
         invalid_args = {
@@ -82,17 +82,17 @@ class TestCoreParser:
 
     def test_process_correct_input_schema(self) -> None:
         parser = MockupParser(name="TestParser", config=default_args)
-        data = schemas.LogSchema({"logID": "1", "log": "This is a log."}).serialize()
+        data = sc.LogSchema({"logID": "1", "log": "This is a log."}).serialize()
         result = parser.process(data)  # no error should be produced
         assert isinstance(result, bytes)  # and result should be bytes
 
     def test_process_correct_input_schema_not_serialize(self) -> None:
         parser = MockupParser(name="TestParser", config=MockupConfig())
-        expected_result = schemas.ParserSchema({
-            "__version__": "1.0.0",
+        expected_result = sc.ParserSchema({
+            "__version__": "2.0.0",
             "parserType": "core_parser",
             "parserID": "TestParser",
-            "EventID": 1,
+            "eventID": 1,
             "template": "hello",
             "parsedLogID": "TestParser_10",
             "logID": "1",
@@ -101,16 +101,16 @@ class TestCoreParser:
             "parsedTimestamp": 0,
         })
         expected_result.variables = ["a", "b"]
-        expected_result.logFormatVariables["Time"] = "0"
+        expected_result.headerVariables["Time"] = "0"
 
-        data = schemas.LogSchema({"logID": "1", "log": "This is a log."})
+        data = sc.LogSchema({"logID": "1", "log": "This is a log."})
         result = parser.process(data)
 
         assert result == expected_result, f"results {result} and expected {expected_result}"
 
     def test_process_ids(self) -> None:
         parser = MockupParser(name="TestParser", config=MockupConfig())
-        data = schemas.LogSchema({
+        data = sc.LogSchema({
             "logID": "1", "log": "This is a log.", "logSource": "", "hostname": ""
         })
 
@@ -122,7 +122,7 @@ class TestCoreParser:
 
     def test_none_parser(self) -> None:
         parser = NoneMockupParser(name="TestParser", config=MockupConfig())
-        data = schemas.LogSchema({
+        data = sc.LogSchema({
             "logID": "1", "log": "This is a log.", "logSource": "", "hostname": ""
         })
 

@@ -21,7 +21,7 @@ from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 from detectmatelibrary.utils.aux import time_test_mode
 from detectmatelibrary.tools.logging import logger
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
@@ -75,8 +75,8 @@ class TestValueRangeDetectorInitialization:
         assert detector.name == "ValueRangeDetector"
         assert hasattr(detector, 'config')
         assert detector.data_buffer.mode == BufferMode.NO_BUF
-        assert detector.input_schema == schemas.ParserSchema
-        assert detector.output_schema == schemas.DetectorSchema
+        assert detector.input_schema == sc.ParserSchema
+        assert detector.output_schema == sc.DetectorSchema
         assert hasattr(detector, 'persistency')
 
     def test_custom_config_initialization(self):
@@ -130,16 +130,16 @@ class TestValueRangeDetectorTraining:
                 if event == 1:
                     min_val = min(min_val, value)
                     max_val = max(max_val, value)
-                parser_data = schemas.ParserSchema({
+                parser_data = sc.ParserSchema({
                     "parserType": "test",
-                    "EventID": event,
+                    "eventID": event,
                     "template": "test template",
                     "variables": ["val0", str(value), "val2", "val3", "val4"],
                     "logID": "1",
                     "parsedLogID": "1",
                     "parserID": "test_parser",
                     "log": "test log message",
-                    "logFormatVariables": {}
+                    "headerVariables": {}
                 })
                 detector.train(parser_data)
 
@@ -148,16 +148,16 @@ class TestValueRangeDetectorTraining:
                 if event == 1:
                     min_val = min(min_val, value)
                     max_val = max(max_val, value)
-                parser_data = schemas.ParserSchema({
+                parser_data = sc.ParserSchema({
                     "parserType": "test",
-                    "EventID": event,
+                    "eventID": event,
                     "template": "test template",
                     "variables": ["val0", str(value), "val2", "val3", "val4"],
                     "logID": "1",
                     "parsedLogID": "1",
                     "parserID": "test_parser",
                     "log": "test log message",
-                    "logFormatVariables": {}
+                    "headerVariables": {}
                 })
                 detector.train(parser_data)
 
@@ -175,33 +175,33 @@ class TestValueRangeDetectorTraining:
 
         detector = ValueRangeDetector(config=config, name="CustomInit")
         # Train with multiple values (the minimum and maximum value should be captured)
-        parser_data = schemas.ParserSchema({
+        parser_data = sc.ParserSchema({
             "parserType": "test",
-            "EventID": 1,
+            "eventID": 1,
             "template": "test template",
             "variables": ["val0", f"val{random.randint(0, 300)}", "val2", "val3", "val4"],
             "logID": "1",
             "parsedLogID": "1",
             "parserID": "test_parser",
             "log": "test log message",
-            "logFormatVariables": {}
+            "headerVariables": {}
         })
         with pytest.raises(ValueError):
             detector.train(parser_data)
-        normal_data = schemas.ParserSchema({
+        normal_data = sc.ParserSchema({
             "parserType": "test",
-            "EventID": 1,
+            "eventID": 1,
             "template": "test template",
             "variables": ["val0", f"{random.randint(0, 300)}", "val2", "val3", "val4"],
             "logID": "1",
             "parsedLogID": "1",
             "parserID": "test_parser",
             "log": "test log message",
-            "logFormatVariables": {}
+            "headerVariables": {}
         })
         detector.train(normal_data)
         with pytest.raises(ValueError):
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             detector.detect(parser_data, output)
 
     def test_train_detect_non_numeric_ignore(self):
@@ -209,31 +209,31 @@ class TestValueRangeDetectorTraining:
 
         detector = ValueRangeDetector(config=config, name="MultipleDetector")
         # Train with multiple values (the minimum and maximum value should be captured)
-        parser_data = schemas.ParserSchema({
+        parser_data = sc.ParserSchema({
             "parserType": "test",
-            "EventID": 1,
+            "eventID": 1,
             "template": "test template",
             "variables": ["val0", f"val{random.randint(0, 300)}", "val2", "val3", "val4"],
             "logID": "1",
             "parsedLogID": "1",
             "parserID": "test_parser",
             "log": "test log message",
-            "logFormatVariables": {}
+            "headerVariables": {}
         })
         detector.train(parser_data)
-        normal_data = schemas.ParserSchema({
+        normal_data = sc.ParserSchema({
             "parserType": "test",
-            "EventID": 1,
+            "eventID": 1,
             "template": "test template",
             "variables": ["val0", f"{random.randint(0, 300)}", "val2", "val3", "val4"],
             "logID": "1",
             "parsedLogID": "1",
             "parserID": "test_parser",
             "log": "test log message",
-            "logFormatVariables": {}
+            "headerVariables": {}
         })
         detector.train(normal_data)
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
         detector.detect(parser_data, output)
 
 
@@ -245,32 +245,32 @@ class TestValueRangeDetectorDetection:
 
         # Train with values
         for val in ["1", "5000", "2130"]:
-            train_data = schemas.ParserSchema({
+            train_data = sc.ParserSchema({
                 "parserType": "test",
-                "EventID": 1,
+                "eventID": 1,
                 "template": "test template",
                 "variables": ["adsasd", val],
                 "logID": "1",
                 "parsedLogID": "1",
                 "parserID": "test_parser",
                 "log": "test log message",
-                "logFormatVariables": {"level": "INFO"}
+                "headerVariables": {"level": "INFO"}
             })
             detector.train(train_data)
 
         # Detect with the same value
-        test_data = schemas.ParserSchema({
+        test_data = sc.ParserSchema({
             "parserType": "test",
-            "EventID": 1,
+            "eventID": 1,
             "template": "test template",
             "variables": ["adsasd", "4321"],
             "logID": "2",
             "parsedLogID": "2",
             "parserID": "test_parser",
             "log": "test log message",
-            "logFormatVariables": {"level": "CRITICAL"}
+            "headerVariables": {"level": "CRITICAL"}
         })
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
 
         result = detector.detect(test_data, output)
 
@@ -282,32 +282,32 @@ class TestValueRangeDetectorDetection:
 
         # Train with values
         for val in ["1", "5000", "2130"]:
-            train_data = schemas.ParserSchema({
+            train_data = sc.ParserSchema({
                 "parserType": "test",
-                "EventID": 1,
+                "eventID": 1,
                 "template": "test template",
                 "variables": ["adsasd", val],
                 "logID": "1",
                 "parsedLogID": "1",
                 "parserID": "test_parser",
                 "log": "test log message",
-                "logFormatVariables": {"level": "INFO"}
+                "headerVariables": {"level": "INFO"}
             })
             detector.train(train_data)
 
         # Detect with the different value
-        test_data = schemas.ParserSchema({
+        test_data = sc.ParserSchema({
             "parserType": "test",
-            "EventID": 1,
+            "eventID": 1,
             "template": "test template",
             "variables": ["adsasd", "5001"],
             "logID": "2",
             "parsedLogID": "2",
             "parserID": "test_parser",
             "log": "test log message",
-            "logFormatVariables": {"level": "CRITICAL"}
+            "headerVariables": {"level": "CRITICAL"}
         })
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
 
         result = detector.detect(test_data, output)
 
@@ -315,18 +315,18 @@ class TestValueRangeDetectorDetection:
         assert output.score == 1.0
 
         # Detect with the different value
-        test_data = schemas.ParserSchema({
+        test_data = sc.ParserSchema({
             "parserType": "test",
-            "EventID": 1,
+            "eventID": 1,
             "template": "test template",
             "variables": ["adsasd", "0"],
             "logID": "2",
             "parsedLogID": "2",
             "parserID": "test_parser",
             "log": "test log message",
-            "logFormatVariables": {"level": "CRITICAL"}
+            "headerVariables": {"level": "CRITICAL"}
         })
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
 
         result = detector.detect(test_data, output)
 
@@ -373,7 +373,7 @@ class TestValueRangeDetectorEndToEnd:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
@@ -403,7 +403,7 @@ class TestValueRangeDetectorEndToEnd:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector2.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
@@ -437,7 +437,7 @@ class TestValueRangeDetectorEndToEnd:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector1.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
@@ -514,9 +514,9 @@ class TestValueRangeDetectorGlobalInstances:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector.detect(log, output_=output):
-                assert all(key.startswith("Global -") for key in output["alertsObtain"])
+                assert all(key.startswith("Global -") for key in output["alertDetails"])
                 detected_ids.add(log["logID"])
 
         assert len(detected_ids) > 0
@@ -544,11 +544,11 @@ class TestValueRangeDetectorPersistFixes:
 
         # Feed configure() with a couple of stable-variable samples
         for _ in range(5):
-            sample = schemas.ParserSchema({
-                "parserType": "test", "EventID": 1, "template": "t",
+            sample = sc.ParserSchema({
+                "parserType": "test", "eventID": 1, "template": "t",
                 "variables": ["123"], "logID": "x", "parsedLogID": "x",
                 "parserID": "p", "log": "l",
-                "logFormatVariables": {"level": "INFO"},
+                "headerVariables": {"level": "INFO"},
             })
             detector.configure(sample)
 

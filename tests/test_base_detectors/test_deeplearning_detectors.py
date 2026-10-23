@@ -35,7 +35,7 @@ class TestDeepLearning:
 
         for i in range(10):
             deep_learning_detector.configure(
-                [schemas.ParserSchema({"EventID": i})]
+                [schemas.ParserSchema({"eventID": i})]
             )
 
         for i in range(10):
@@ -51,7 +51,7 @@ class TestDeepLearning:
 
         for i in range(10):
             deep_learning_detector.train(
-                [schemas.ParserSchema({"EventID": i})]
+                [schemas.ParserSchema({"eventID": i})]
             )
 
         for i in range(10):
@@ -66,4 +66,4 @@ class TestDeepLearning:
         )
 
         with pytest.raises(Flag):
-            deep_learning_detector.process(schemas.ParserSchema({"EventID": 0}))
+            deep_learning_detector.process(schemas.ParserSchema({"eventID": 0}))

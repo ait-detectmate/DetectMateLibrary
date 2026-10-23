@@ -10,7 +10,7 @@ detector = RuleDetector(name="RuleDetector", config=config)
 
 def parsed(event_id: int, log: str, level: str = "INFO") -> schemas.ParserSchema:
     """A parsed log; EventID -1 means the parser found no matching template."""
-    return schemas.ParserSchema({"EventID": event_id, "log": log, "logFormatVariables": {"Level": level}})
+    return schemas.ParserSchema({"eventID": event_id, "log": log, "headerVariables": {"Level": level}})
 
 
 logs = [
@@ -21,7 +21,7 @@ logs = [
 ]
 for log in logs:
     alert = detector.process(log)
-    print(dict(alert["alertsObtain"]) if alert else None)
+    print(dict(alert["alertDetails"]) if alert else None)
 # None
 # {'R001 - TemplateNotFound': 'No template found by parser'}
 # {'R002 - SpecificKeyword': "Found word 'sudo' in the logs"}

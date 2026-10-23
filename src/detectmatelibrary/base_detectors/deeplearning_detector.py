@@ -43,7 +43,7 @@ class DeepLearningDetectorConfig(CoreDetectorConfig):
 
 
 def build_seq(input_: list[schemas.ParserSchema]) -> tuple[int]:
-    return tuple([in_["EventID"] for in_ in input_])
+    return tuple([in_["eventID"] for in_ in input_])
 
 
 class DeepLearningDetector(CoreDetector):
@@ -51,7 +51,7 @@ class DeepLearningDetector(CoreDetector):
         self,
         model_cls: DeepModel,
         name: str = "CoreDetector",
-        config: DeepLearningDetectorConfig = DeepLearningDetectorConfig()
+        config: DeepLearningDetectorConfig | dict[str, Any] = DeepLearningDetectorConfig()
     ) -> None:
 
         if isinstance(config, dict):

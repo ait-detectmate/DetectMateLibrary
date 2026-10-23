@@ -15,7 +15,7 @@ import pytest
 class TestSCVSDetector:
     def test_build_count_vec(self):
         input_ = [
-            schemas.ParserSchema({"EventID": i}) for i in [0, 1, 4, 0]
+            schemas.ParserSchema({"eventID": i}) for i in [0, 1, 4, 0]
         ]
         expected = tuple([2, 1, 0, 0, 1])
 
@@ -43,7 +43,7 @@ class TestSCVSDetector:
 
         input_ = []
         for _ in range(10):
-            input_.extend([schemas.ParserSchema({"EventID": i}) for i in [0, 1, 4, 0]])
+            input_.extend([schemas.ParserSchema({"eventID": i}) for i in [0, 1, 4, 0]])
 
         for in_ in input_:
             scvs.process(in_)
@@ -53,7 +53,7 @@ class TestSCVSDetector:
             alert = scvs.process(in_)
         assert alert is None
 
-        for in_ in [schemas.ParserSchema({"EventID": i}) for i in [4, 4, 4, 4, 4, 4, 1, 0, 1, 1]]:
+        for in_ in [schemas.ParserSchema({"eventID": i}) for i in [4, 4, 4, 4, 4, 4, 1, 0, 1, 1]]:
             alert = scvs.process(in_)
         assert alert is not None
 
@@ -138,7 +138,7 @@ class TestSCVSDetectorEndToEnd:
 
 
 def _window(event_ids):
-    return [schemas.ParserSchema({"EventID": i}) for i in event_ids]
+    return [schemas.ParserSchema({"eventID": i}) for i in event_ids]
 
 
 def _fed_detector(window_size):

@@ -43,6 +43,7 @@ nav:
       - Parsers: parsers.md
       - Detectors: detectors.md
       - Alert Aggregation: alert_aggregator.md
+      - Pipelines: pipeline.md
     - Parser types:
       - 00_JSON Parser: parsers/json_parser.md
       - 01_Template Matcher: parsers/template_matcher.md
@@ -66,8 +67,10 @@ nav:
       - 12_LogBERT Detector: detectors/logbert.md
     - Alert Aggregation methods:
       - 00_Basic Concat: alert_aggregators/basic_concatenation.md
+      - 01_LogID Count: alert_aggregators/logid_count.md
     - Helpers:
       - FromTo: helper/from_to.md
+      - Select Component: helper/select_component.md
     - Auxiliary:
       - Persistency: auxiliar/persistency.md
       - Data buffer: auxiliar/input_buffer.md

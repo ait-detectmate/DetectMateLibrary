@@ -14,13 +14,13 @@ class TestCaseDefaultValues:
         values = {
             "parserType": "test",
             "parserID": "test",
-            "EventID": 0,
+            "eventID": 0,
             "template": "test template",
             "variables": ["a", "b"],
             "parsedLogID": "0",
             "logID": "0",
             "log": "test log",
-            "logFormatVariables": {"TimeStamp": "test timestamp"},
+            "headerVariables": {"TimeStamp": "test timestamp"},
             "receivedTimestamp": 0,
             "parsedTimestamp": 0,
         }
@@ -32,10 +32,10 @@ class TestCaseDefaultValues:
             "detectorID": "test id",
             "detectorType": "type test",
             "alertID": "0",
-            "detectionTimestamp": 0,
+            "detectedTimestamp": 0,
             "logIDs": ["0", "0", "0"],
             "score": 0.0,
-            "extractedTimestamps": [0, 0, 0],
+            "logTimestamps": [0, 0, 0],
             "description": "",
             "receivedTimestamp": 0,
         }
@@ -46,7 +46,7 @@ class TestCaseDefaultValues:
         values = {
             "parserType": "test",
             "parserID": "test",
-            "EventID": 0,
+            "eventID": 0,
             "template": "test template",
             "parsedLogID": "0",
             "logID": "0",
@@ -57,5 +57,5 @@ class TestCaseDefaultValues:
         schema = op_schemas.initialize(op_schemas.PARSER_SCHEMA, **values)
         op_schemas.check_if_schema_is_complete(schema)
 
-        assert len(schema.logFormatVariables) == 0
+        assert len(schema.headerVariables) == 0
         assert len(schema.variables) == 0

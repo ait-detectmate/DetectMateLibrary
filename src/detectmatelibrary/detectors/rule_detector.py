@@ -20,7 +20,7 @@ from pydantic import Field
 
 
 def template_not_found(input_: schemas.ParserSchema, *args: list[Any]) -> tuple[bool, str]:
-    raise_alert = input_["EventID"] == -1
+    raise_alert = input_["eventID"] == -1
     message = "No template found by parser"
     return raise_alert, message
 
@@ -40,7 +40,7 @@ def exceptions(input_: schemas.ParserSchema, *args: list[Any]) -> tuple[bool, st
 
 
 def error_log(input_: schemas.ParserSchema, *args: list[Any]) -> tuple[bool, str]:
-    vars_: dict[str, str] = input_["logFormatVariables"]
+    vars_: dict[str, str] = input_["headerVariables"]
     raise_alert = "Level" in vars_ and "error" == vars_["Level"].lower()
     message = "Error found"
     return raise_alert, message
@@ -103,7 +103,7 @@ class RuleDetector(CoreDetector):
             alert, msg = rules[rule["rule"]](input_, rule["args"])  # type: ignore
 
             if alert:
-                output_["alertsObtain"][rule["rule"]] = msg
+                output_["alertDetails"][rule["rule"]] = msg
                 output_["score"] += 1
 
             anomaly = anomaly or alert

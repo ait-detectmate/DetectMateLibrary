@@ -1,10 +1,11 @@
 import json
+import logging
 from detectmatelibrary.parsers.json_parser import (
     JsonParser,
     JsonParserConfig,
     flatten_dict
 )
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 from tests.test_data import TEST_TEMPLATES
 
 
@@ -52,24 +53,24 @@ class TestJsonParser:
             "error_code": 404
         }
 
-        input_log = schemas.LogSchema({
+        input_log = sc.LogSchema({
             "logID": "1",
             "log": json.dumps(json_log)
         })
 
-        output = schemas.ParserSchema()
+        output = sc.ParserSchema()
         parser.parse(input_log, output)
 
-        # When no message field, template should be empty
+        # When no message field, the template is empty and the eventID is -2
         assert output.template == ""
         assert len(output.variables) == 0
-        assert output.EventID == 0
+        assert output.eventID == -2
 
         # But other fields should be present
-        assert "level" in output.logFormatVariables
-        assert output.logFormatVariables["level"] == "ERROR"
-        assert "error_code" in output.logFormatVariables
-        assert output.logFormatVariables["error_code"] == "404"
+        assert "level" in output.headerVariables
+        assert output.headerVariables["level"] == "ERROR"
+        assert "error_code" in output.headerVariables
+        assert output.headerVariables["error_code"] == "404"
 
     def test_parse_nested_json(self):
         """Test parsing nested JSON structure."""
@@ -87,20 +88,20 @@ class TestJsonParser:
             }
         }
 
-        input_log = schemas.LogSchema({
+        input_log = sc.LogSchema({
             "logID": "1",
             "log": json.dumps(json_log)
         })
 
-        output = schemas.ParserSchema()
+        output = sc.ParserSchema()
         parser.parse(input_log, output)
 
         # Check flattened structure
-        assert "request.method" in output.logFormatVariables
-        assert output.logFormatVariables["request.method"] == "GET"
-        assert "request.path" in output.logFormatVariables
-        assert output.logFormatVariables["request.path"] == "/api/users"
-        assert "request.headers.content-type" in output.logFormatVariables
+        assert "request.method" in output.headerVariables
+        assert output.headerVariables["request.method"] == "GET"
+        assert "request.path" in output.headerVariables
+        assert output.headerVariables["request.path"] == "/api/users"
+        assert "request.headers.content-type" in output.headerVariables
 
     def test_parse_json_with_array(self):
         """Test parsing JSON with arrays."""
@@ -112,19 +113,19 @@ class TestJsonParser:
             "events": ["login", "update", "logout"]
         }
 
-        input_log = schemas.LogSchema({
+        input_log = sc.LogSchema({
             "logID": "1",
             "log": json.dumps(json_log)
         })
 
-        output = schemas.ParserSchema()
+        output = sc.ParserSchema()
         parser.parse(input_log, output)
 
         # Check array is flattened
-        assert "events.0" in output.logFormatVariables
-        assert output.logFormatVariables["events.0"] == "login"
-        assert "events.2" in output.logFormatVariables
-        assert output.logFormatVariables["events.2"] == "logout"
+        assert "events.0" in output.headerVariables
+        assert output.headerVariables["events.0"] == "login"
+        assert "events.2" in output.headerVariables
+        assert output.headerVariables["events.2"] == "logout"
 
     def test_parse_with_content_parser(self):
         """Test parsing with MatcherParser for message field."""
@@ -151,18 +152,106 @@ class TestJsonParser:
             "level": "INFO"
         }
 
-        input_log = schemas.LogSchema({
+        input_log = sc.LogSchema({
             "logID": "1",
             "log": json.dumps(json_log)
         })
 
-        output = schemas.ParserSchema()
+        output = sc.ParserSchema()
         parser.parse(input_log, output)
 
         # The content parser should have parsed the message
         assert output.template != ""
         assert len(output.variables) > 0
-        assert "level" in output.logFormatVariables
+        assert "level" in output.headerVariables
+
+    def test_parse_message_with_config_object(self):
+        """A message parsed with a config object matches no template."""
+        config = JsonParserConfig()
+        parser = JsonParser(name="TestParser", config=config)
+
+        json_log = {
+            "time": "2023-11-18 10:30:00",
+            "message": "hello world"
+        }
+
+        input_log = sc.LogSchema({
+            "logID": "1",
+            "log": json.dumps(json_log)
+        })
+
+        output = sc.ParserSchema()
+        parser.parse(input_log, output)
+
+        assert output.template == "<Not Found>"
+        assert output.eventID == -1
+
+    def test_no_message_differs_from_first_template_and_no_match(self):
+        """Logs without message share neither the first template's eventID nor
+        the eventID of a message that matches no template."""
+        config_dict = {
+            "parsers": {
+                "TestParser": {
+                    "auto_config": True,
+                    "method_type": "json_parser",
+                },
+                "JsonMatcherParser": {
+                    "auto_config": True,
+                    "method_type": "matcher_parser",
+                    "path_templates": TEST_TEMPLATES
+                }
+            }
+        }
+        parser = JsonParser(name="TestParser", config=config_dict)
+
+        json_logs = [
+            {"message": "pid=9699 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct=\"root\""},
+            {"message": "matches no template"},
+            {"level": "INFO"},
+        ]
+
+        event_ids = []
+        for json_log in json_logs:
+            output = sc.ParserSchema()
+            parser.parse(sc.LogSchema({"logID": "1", "log": json.dumps(json_log)}), output)
+            event_ids.append(output.eventID)
+
+        assert event_ids == [0, -1, -2]
+
+    def test_warns_once_when_message_meets_no_templates(self, caplog):
+        """A parser without templates warns once, at the first message."""
+        parser = JsonParser(name="TestParser", config=JsonParserConfig())
+
+        def parse(json_log):
+            parser.parse(sc.LogSchema({"log": json.dumps(json_log)}), sc.ParserSchema())
+
+        with caplog.at_level(logging.WARNING):
+            parse({"level": "INFO"})
+            assert not caplog.records
+            parse({"message": "hello"})
+            parse({"message": "world"})
+
+        warnings = [r for r in caplog.records if "no templates" in r.message]
+        assert len(warnings) == 1
+
+    def test_no_warning_with_templates(self, caplog):
+        """A parser with templates does not warn about missing templates."""
+        config_dict = {
+            "parsers": {
+                "TestParser": {"auto_config": True, "method_type": "json_parser"},
+                "JsonMatcherParser": {
+                    "auto_config": True,
+                    "method_type": "matcher_parser",
+                    "path_templates": TEST_TEMPLATES
+                }
+            }
+        }
+        parser = JsonParser(name="TestParser", config=config_dict)
+
+        with caplog.at_level(logging.WARNING):
+            parser.parse(sc.LogSchema({"log": json.dumps({"message": "hello"})}), sc.ParserSchema())
+
+        assert not [r for r in caplog.records if "no templates" in r.message]
 
     def test_custom_field_names(self):
         """Test with custom timestamp and message field names."""
@@ -174,19 +263,19 @@ class TestJsonParser:
             "severity": "high"
         }
 
-        input_log = schemas.LogSchema({
+        input_log = sc.LogSchema({
             "logID": "1",
             "log": json.dumps(json_log)
         })
 
-        output = schemas.ParserSchema()
+        output = sc.ParserSchema()
         parser.parse(input_log, output)
 
-        # Timestamp should be extracted and Time should be in logFormatVariables
-        assert "Time" in output.logFormatVariables
-        assert "severity" in output.logFormatVariables
+        # Timestamp should be extracted and Time should be in headerVariables
+        assert "Time" in output.headerVariables
+        assert "severity" in output.headerVariables
         # timestamp key should not appear in flattened dict (deleted after extraction)
-        assert "timestamp" not in output.logFormatVariables
+        assert "timestamp" not in output.headerVariables
 
     def test_process_method(self):
         """Test the full process method."""
@@ -198,7 +287,7 @@ class TestJsonParser:
             "status": "ok"
         }
 
-        input_log = schemas.LogSchema({
+        input_log = sc.LogSchema({
             "logID": "1",
             "log": json.dumps(json_log)
         })
@@ -206,7 +295,7 @@ class TestJsonParser:
         # Test the full process method
         result = parser.process(input_log)
 
-        assert isinstance(result, schemas.ParserSchema)
-        assert "Time" in result.logFormatVariables
-        assert "status" in result.logFormatVariables
-        assert result.logFormatVariables["status"] == "ok"
+        assert isinstance(result, sc.ParserSchema)
+        assert "Time" in result.headerVariables
+        assert "status" in result.headerVariables
+        assert result.headerVariables["status"] == "ok"

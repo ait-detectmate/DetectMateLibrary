@@ -10,6 +10,7 @@ from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
 from pydantic import Field
+from typing import Any
 
 
 class NewEventDetectorConfig(TrackerDetectorConfig):
@@ -24,7 +25,7 @@ class NewEventDetector(TrackerDetector):
     def __init__(
         self,
         name: str = "NewEventDetector",
-        config: NewEventDetectorConfig = NewEventDetectorConfig()
+        config: NewEventDetectorConfig | dict[str, Any] = NewEventDetectorConfig()
     ) -> None:
 
         if isinstance(config, dict):
@@ -35,7 +36,7 @@ class NewEventDetector(TrackerDetector):
 
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by learning values from the input data."""
-        self._ingest(event_id=input_["EventID"], input_=input_, variables={})
+        self._ingest(event_id=input_["eventID"], input_=input_, variables={})
         if self.config.global_instances:
             global_vars = get_global_variables(input_, self.config.global_instances)
             if global_vars:
@@ -48,7 +49,7 @@ class NewEventDetector(TrackerDetector):
         alerts: dict[str, str] = {}
         overall_score = 0.0
 
-        current_event_id = input_["EventID"]
+        current_event_id = input_["eventID"]
         known_events = self.persistency.get_events_seen()
 
         if self.config.global_instances and GLOBAL_EVENT_ID in known_events:
@@ -66,14 +67,14 @@ class NewEventDetector(TrackerDetector):
             output_["score"] = overall_score
             output_["description"] = \
                 f"{self.name} detects event IDs not encountered in training as anomalies."
-            output_["alertsObtain"].update(alerts)
+            output_["alertDetails"].update(alerts)
             return True
 
         return False
 
     def configure(self, input_: ParserSchema) -> None:  # type: ignore
         self.auto_conf_persistency.ingest_event(
-            event_id=input_["EventID"],
+            event_id=input_["eventID"],
             event_template=input_["template"]
         )
 

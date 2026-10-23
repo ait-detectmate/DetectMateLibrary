@@ -41,7 +41,7 @@ class CoreParser:
 
 `parse()` only has to fill the fields that describe the match:
 
-- `EventID` (int): identifier for the matched template/event
+- `eventID` (int): identifier for the matched template/event
 - `template` (string): event template text
 - `variables` (repeated string): extracted parameters (extend the list)
 
@@ -50,7 +50,7 @@ class CoreParser:
 - `parserID`, `parserType`: the parser's name and `method_type`
 - `parsedLogID`: a new unique ID for the parsed record
 - `logID`, `log`: copied from the input `LogSchema`
-- `logFormatVariables`: the header fields extracted with `log_format`
+- `headerVariables`: the header fields extracted with `log_format`
 - `receivedTimestamp`, `parsedTimestamp`: set just before and just after
   `parse()` runs
 
@@ -94,7 +94,7 @@ class MyParser(CoreParser):
         text = input_.log or ""
         # simple example: split on whitespace and treat as variables
         tokens = text.split()
-        output_["EventID"] = 1
+        output_["eventID"] = 1
         output_["template"] = " ".join(["<*>"] * len(tokens))
         output_["variables"].extend(tokens)
         return True
@@ -114,7 +114,7 @@ def test_my_parser_parse():
     out = schemas.ParserSchema()
     ok = parser.parse(raw, out)
     assert ok is True
-    assert out["EventID"] == 1
+    assert out["eventID"] == 1
     assert out["variables"] == ["a", "b", "c"]
 ```
 
@@ -143,8 +143,8 @@ There are some parameters, that **every** parser inherits from `CoreParserConfig
     | Field | Type | Default | Description |
     |---|---|---|---|
     | `start_id` | integer | 10 | Number used to start the unique ID generator. |
-    | `data_use_training` | integer, null | None | Data used for training, if None, training is not done. |
-    | `data_use_configure` | integer, null | None | Data used for configuration, if None, configuration is not done. |
+    | `data_use_training` | integer, null | None | Number of logs used for training. None skips training. |
+    | `data_use_configure` | integer, null | None | Number of logs used for the configuration step. None skips it. |
     | `use_config_data_as_training` | boolean | True | Combine the configured data in the training process if True. |
     | `train_buffer_max_records` | integer | 100000 | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |

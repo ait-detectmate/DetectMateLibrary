@@ -30,10 +30,10 @@ from detectmatelibrary.base_detectors import VariableAutoConfigParams
 def _schema(event_id: int, level: str, log_id: str):
     return {
         "logID": log_id,
-        "EventID": event_id,
+        "eventID": event_id,
         "template": "user <*> from <*>",
         "variables": ["alice", "10.0.0.1"],
-        "logFormatVariables": {"user": "alice", "src": "10.0.0.1", "level": level},
+        "headerVariables": {"user": "alice", "src": "10.0.0.1", "level": level},
     }
 
 

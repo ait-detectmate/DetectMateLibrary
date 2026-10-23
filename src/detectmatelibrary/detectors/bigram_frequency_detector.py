@@ -73,7 +73,7 @@ class BigramFrequencyDetector(VariableDetector):
     def __init__(
         self,
         name: str = "BigramFrequencyDetector",
-        config: BigramFrequencyDetectorConfig = BigramFrequencyDetectorConfig(),
+        config: BigramFrequencyDetectorConfig | dict[str, Any] = BigramFrequencyDetectorConfig(),
     ) -> None:
         if isinstance(config, dict):
             config = BigramFrequencyDetectorConfig.from_dict(config, name)
@@ -126,7 +126,7 @@ class BigramFrequencyDetector(VariableDetector):
     def train(self, input_: ParserSchema) -> None:  # type: ignore
         """Train the detector by updating per-variable bigram frequencies."""
         configured_variables = get_configured_variables(input_, self.config.events)
-        current_event_id = input_["EventID"]
+        current_event_id = input_["eventID"]
         known_events = self.persistency.get_events_data()
 
         pre_unique = self._snapshot_unique_sets(

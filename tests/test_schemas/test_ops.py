@@ -7,7 +7,7 @@ class TestCaseSchemas:
     def test_initialize_basic(self):
         schema = op_schemas.initialize(op_schemas.BASE_SCHEMA, **{})
 
-        assert schema.__version__ == "1.0.0"
+        assert schema.__version__ == "2.0.0"
 
     def test_initialize_log_schema(self) -> None:
         values = {
@@ -15,7 +15,7 @@ class TestCaseSchemas:
         }
         schema = op_schemas.initialize(op_schemas.LOG_SCHEMA, **values)
 
-        assert schema.__version__ == "1.0.0"
+        assert schema.__version__ == "2.0.0"
         assert schema.logID == "1"
         assert schema.log == "test"
         assert schema.logSource == "example"
@@ -25,70 +25,70 @@ class TestCaseSchemas:
         values = {
             "parserType": "test",
             "parserID": "test",
-            "EventID": 5,
+            "eventID": 5,
             "template": "test template",
             "variables": ["a", "b"],
             "parsedLogID": "2",
             "logID": "4",
             "log": "test log",
-            "logFormatVariables": {"TimeStamp": "test timestamp"}
+            "headerVariables": {"TimeStamp": "test timestamp"}
         }
         schema = op_schemas.initialize(op_schemas.PARSER_SCHEMA, **values)
 
-        assert schema.__version__ == "1.0.0"
-        assert schema.EventID == 5
+        assert schema.__version__ == "2.0.0"
+        assert schema.eventID == 5
         assert schema.template == "test template"
         assert schema.variables == ["a", "b"]
         assert schema.parserID == "test"
         assert schema.logID == "4"
         assert schema.parsedLogID == "2"
         assert schema.log == "test log"
-        assert schema.logFormatVariables == {"TimeStamp": "test timestamp"}
+        assert schema.headerVariables == {"TimeStamp": "test timestamp"}
 
     def test_initialize_detector_schema(self) -> None:
         values = {
             "detectorID": "test id",
             "detectorType": "type test",
             "alertID": "1",
-            "detectionTimestamp": 2,
+            "detectedTimestamp": 2,
             "logIDs": ["1", "2", "3"],
             "score": 0.5,
-            "extractedTimestamps": [4, 5, 6]
+            "logTimestamps": [4, 5, 6]
         }
         schema = op_schemas.initialize(op_schemas.DETECTOR_SCHEMA, **values)
 
-        assert schema.__version__ == "1.0.0"
+        assert schema.__version__ == "2.0.0"
         assert schema.detectorID == "test id"
         assert schema.detectorType == "type test"
         assert schema.alertID == "1"
-        assert schema.detectionTimestamp == 2
+        assert schema.detectedTimestamp == 2
         assert schema.logIDs == ["1", "2", "3"]
         assert schema.score == 0.5
-        assert schema.extractedTimestamps == [4, 5, 6]
+        assert schema.logTimestamps == [4, 5, 6]
 
     def test_initialize_output_schema(self) -> None:
         values = {
             "detectorIDs": ["test id", "another id"],
             "detectorTypes": ["type test", "another type"],
             "alertIDs": ["1", "2"],
-            "outputTimestamp": 2,
+            "aggregatedTimestamp": 2,
             "logIDs": ["1", "2", "3"],
-            "extractedTimestamps": [4, 5, 6],
+            "logTimestamps": [4, 5, 6],
             "description": "test description",
-            "alertsObtain": {"key": "value"}
+            "alertDetails": {"key": "value"}
         }
         schema = op_schemas.initialize(op_schemas.AGGREGATE_SCHEMA, **values)
 
-        assert schema.__version__ == "1.0.0"
+        assert schema.__version__ == "2.0.0"
         assert schema.detectorIDs == ["test id", "another id"]
         assert schema.detectorTypes == ["type test", "another type"]
         assert schema.alertIDs == ["1", "2"]
-        assert schema.outputTimestamp == 2
+        assert schema.aggregatedTimestamp == 2
         assert schema.logIDs == ["1", "2", "3"]
-        assert schema.extractedTimestamps == [4, 5, 6]
+        assert schema.logTimestamps == [4, 5, 6]
         assert schema.description == "test description"
-        assert schema.alertsObtain == {"key": "value"}
-        assert schema.extractedTimestamps == [4, 5, 6]
+        assert schema.alertDetails == {"key": "value"}
+        assert schema.logTimestamps == [4, 5, 6]
 
     def test_copy(self) -> None:
         values = {
@@ -118,7 +118,7 @@ class TestCaseSchemas:
 
         new_schema = op_schemas.deserialize(op_schemas.LOG_SCHEMA, bschema)
 
-        assert new_schema.__version__ == "1.0.0"
+        assert new_schema.__version__ == "2.0.0"
         assert new_schema.logID == "1"
         assert new_schema.log == "test"
         assert new_schema.logSource == "example"
@@ -157,14 +157,14 @@ class TestCaseSchemas:
             "detectorID": "test id",
             "detectorType": "type test",
             "alertID": "1",
-            "detectionTimestamp": 2,
+            "detectedTimestamp": 2,
             "logIDs": ["1", "2", "3"],
             "score": 0.5,
-            "extractedTimestamps": [4, 5, 6]
+            "logTimestamps": [4, 5, 6]
         }
         schema = op_schemas.initialize(op_schemas.DETECTOR_SCHEMA, **values)
 
         assert not op_schemas.is_repeated(schema, "detectorID")
         assert not op_schemas.is_repeated(schema, "score")
         assert op_schemas.is_repeated(schema, "logIDs")
-        assert op_schemas.is_repeated(schema, "extractedTimestamps")
+        assert op_schemas.is_repeated(schema, "logTimestamps")

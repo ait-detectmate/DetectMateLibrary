@@ -20,7 +20,7 @@ def _extract_timestamp(input_: List[ParserSchema] | ParserSchema) -> List[int]:
     if not isinstance(input_, list):
         input_ = [input_]
     return [
-        int(_time_handler.parse_timestamp(i["logFormatVariables"]["Time"]))
+        int(_time_handler.parse_timestamp(i["headerVariables"]["Time"]))
         for i in input_
     ]
 
@@ -39,7 +39,10 @@ class CoreDetectorConfig(CoreConfig):
 
     auto_config: bool = Field(
         default=True,
-        description="Runs the configuration step before the training process.",
+        description=(
+            "Runs the configuration step before the training process. "
+            "Has no effect unless data_use_configure is set."
+        ),
     )
     events: EventsConfig | dict[str, Any] = Field(
         default={},
@@ -60,15 +63,15 @@ class CoreDetector(CoreComponent[ParserSchema, DetectorSchema]):
         name: str = "CoreDetector",
         buffer_mode: BufferMode = BufferMode.NO_BUF,
         buffer_size: Optional[int] = None,
-        config: Optional[CoreDetectorConfig | dict[str, Any]] = CoreDetectorConfig(),
+        config: CoreDetectorConfig | dict[str, Any] = CoreDetectorConfig(),
     ) -> None:
         if isinstance(config, dict):
             config = CoreDetectorConfig.from_dict(config, name)
 
         super().__init__(
             name=name,
-            type_=config.component_type,  # type: ignore
-            config=config,  # type: ignore
+            type_=config.component_type,
+            config=config,
             args_buffer=ArgsBuffer(mode=buffer_mode, size=buffer_size),
             input_schema=ParserSchema,
             output_schema=DetectorSchema,
@@ -84,12 +87,12 @@ class CoreDetector(CoreComponent[ParserSchema, DetectorSchema]):
         output_["detectorID"] = self.name
         output_["detectorType"] = self.config.method_type
         output_["logIDs"] = _extract_logIDs(input_)
-        output_["extractedTimestamps"] = _extract_timestamp(input_)
+        output_["logTimestamps"] = _extract_timestamp(input_)
         output_["receivedTimestamp"] = get_timestamp()
 
         if anomaly_detected := self.detect(input_=input_, output_=output_):
             output_["alertID"] = str(self.id_generator())
-            output_["detectionTimestamp"] = get_timestamp()
+            output_["detectedTimestamp"] = get_timestamp()
 
         return anomaly_detected
 

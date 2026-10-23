@@ -9,7 +9,7 @@ Also covers the auto_config=True empty-config warning.
 
 import logging
 import pytest
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 from detectmatelibrary.detectors.new_value_detector import NewValueDetector
 from detectmatelibrary.detectors.new_value_combo_detector import NewValueComboDetector
 
@@ -18,17 +18,17 @@ def _make_parser_schema(
     event_id: int,
     variables: list,
     log_format_variables: dict,
-) -> schemas.ParserSchema:
-    return schemas.ParserSchema({
+) -> sc.ParserSchema:
+    return sc.ParserSchema({
         "parserType": "test",
-        "EventID": event_id,
+        "eventID": event_id,
         "template": "test template",
         "variables": variables,
         "logID": "1",
         "parsedLogID": "1",
         "parserID": "test_parser",
         "log": "test log message",
-        "logFormatVariables": log_format_variables,
+        "headerVariables": log_format_variables,
     })
 
 

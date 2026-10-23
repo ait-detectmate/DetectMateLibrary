@@ -4,12 +4,16 @@ from detectmatelibrary.parsers.template_matcher import (
 )
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
 from detectmatelibrary.utils.key_extractor import KeyExtractor
+from detectmatelibrary.tools.logging import logger
 from detectmatelibrary import schemas
 
 from collections.abc import Mapping
 from typing import Any, Iterable
 import json
 from pydantic import Field
+
+# eventID of a log without a message field (-1 is a message that matches no template)
+NO_MESSAGE_EVENT_ID = -2
 
 
 def iter_flatten(obj: dict[str, Any], sep: str = ".") -> Iterable[tuple[str, Any]]:
@@ -74,8 +78,12 @@ class JsonParser(CoreParser):
             )
             self.content_parser = MatcherParser(config=content_parser_config)
             config = cfg_dict
+        else:
+            # a config object cannot define the content parser: use one without templates
+            self.content_parser = MatcherParser()
         super().__init__(name=name, config=config)
         self.config: JsonParserConfig
+        self._warn_no_templates = self.content_parser.config.path_templates is None
 
         self.time_extractor = KeyExtractor(key_substr=config.timestamp_name)
         self.content_extractor = KeyExtractor(key_substr=config.content_name)
@@ -86,22 +94,28 @@ class JsonParser(CoreParser):
         timestamp = self.time_extractor.extract(obj=log, delete=True)
         content = self.content_extractor.extract(obj=log, delete=True)
 
-        parsed = {"EventTemplate": "", "Params": [], "EventId": 0}
+        parsed = {"EventTemplate": "", "Params": [], "EventId": NO_MESSAGE_EVENT_ID}
         # if the json also contains a message field, parse it for template and parameters
         if content:
+            if self._warn_no_templates:
+                logger.warning(
+                    f"<<{self.name}>> the content parser has no templates, so every message gets "
+                    "eventID -1. Define the content parser with path_templates in a config dict."
+                )
+                self._warn_no_templates = False
             log_ = schemas.LogSchema({"log": content})
             parsed_content = self.content_parser.process(log_)
             parsed["EventTemplate"] = parsed_content["template"]  # type: ignore
             parsed["Params"] = parsed_content["variables"]  # type: ignore
-            parsed["EventId"] = parsed_content["EventID"]  # type: ignore
+            parsed["EventId"] = parsed_content["eventID"]  # type: ignore
 
         log_flat = flatten_dict(log)
-        output_["logFormatVariables"].clear()  # ensure it's empty before updating
-        output_["logFormatVariables"].update({k: str(v) for k, v in log_flat.items()})
+        output_["headerVariables"].clear()  # ensure it's empty before updating
+        output_["headerVariables"].update({k: str(v) for k, v in log_flat.items()})
         time = self.time_format_handler.parse_timestamp(
             str(timestamp), self.config.time_format
         )
-        output_["logFormatVariables"].update({"Time": time})
+        output_["headerVariables"].update({"Time": time})
         output_["template"] = parsed["EventTemplate"]
         output_["variables"].extend(parsed["Params"])
-        output_["EventID"] = parsed["EventId"]
+        output_["eventID"] = parsed["EventId"]

@@ -28,7 +28,7 @@ class TestMatcherParserBasic:
         parser.parse(input_log, output_data)
 
         assert output_data.template == "<Not Found>"
-        assert output_data.EventID == -1
+        assert output_data.eventID == -1
         assert output_data.variables == []
 
     def test_templates_not_found(self):
@@ -60,7 +60,7 @@ class TestMatcherParserBasic:
         parser.parse(input_log, output_data)
 
         assert output_data.template == test_template[0]
-        assert output_data.EventID == 0
+        assert output_data.eventID == 0
         assert len(output_data.variables) > 0
 
     def test_no_match(self):
@@ -79,7 +79,7 @@ class TestMatcherParserBasic:
         parser.parse(input_log, output_data)
 
         assert output_data.template == "<Not Found>"
-        assert output_data.EventID == -1
+        assert output_data.eventID == -1
         assert output_data.variables == []
 
     def test_custom_preprocessing_flags(self):
@@ -147,7 +147,7 @@ class TestNamedWildcardsTxt:
         parser.parse(input_log, output_data)
 
         assert output_data.template == self.named_template_compiled
-        assert output_data.EventID == 0
+        assert output_data.eventID == 0
         assert len(output_data.variables) == 6
 
     def test_compile_resolves_named_positions(self):
@@ -200,7 +200,7 @@ class TestNamedEventIdCsv:
         parser.parse(input_log, output_data)
 
         assert output_data.template == self.named_template_compiled
-        assert output_data.EventID == 0
+        assert output_data.eventID == 0
         assert len(output_data.variables) == 6
 
     def test_compile_resolves_named_event_key(self):

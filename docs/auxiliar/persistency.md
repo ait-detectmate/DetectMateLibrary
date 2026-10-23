@@ -1,7 +1,7 @@
 # Persistency
 
 The persistency module gives a detector a place to remember things about the
-events it sees. State is keyed by `EventID` and survives across training, the
+events it sees. State is keyed by `eventID` and survives across training, the
 detection loop, and (optionally) restarts on disk.
 
 This page is structured to read top-to-bottom: first the mental model, then a
@@ -14,10 +14,10 @@ rest of the page much easier to follow.
 
 ### 1. Events
 
-Logs are grouped by `EventID`. Two events with the same ID share a template
+Logs are grouped by `eventID`. Two events with the same ID share a template
 but have their own variable values. Persistency stores **one independent state
-object per event ID**, so an `EventStabilityTracker` for `EventID=4733` does
-not interfere with one for `EventID=4624`.
+object per event ID**, so an `EventStabilityTracker` for `eventID=4733` does
+not interfere with one for `eventID=4624`.
 
 ### 2. Backends (`EventDataStructure`)
 
@@ -239,10 +239,10 @@ class MyDetector(TrackerDetector):
         super().__init__(name=name, config=config)
 
     def train(self, input_):
-        self._ingest(input_, variables={...}, event_id=input_["EventID"])
+        self._ingest(input_, variables={...}, event_id=input_["eventID"])
 
     def detect(self, input_, output_):
-        tracker = self.persistency.get_events_data().get(input_["EventID"])
+        tracker = self.persistency.get_events_data().get(input_["eventID"])
         # compare against tracker to produce alerts
 ```
 

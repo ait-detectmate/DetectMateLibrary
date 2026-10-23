@@ -12,8 +12,8 @@ json_log = {
 output = schemas.ParserSchema()
 parser.parse(schemas.LogSchema({"logID": "1", "log": json.dumps(json_log)}), output)
 
-print(output.logFormatVariables["request.method"])  # GET
-print(output.logFormatVariables["request.path"])    # /api/users
+print(output.headerVariables["request.method"])  # GET
+print(output.headerVariables["request.path"])    # /api/users
 # --8<-- [end:basic]
 
 # --8<-- [start:dict-based]
@@ -31,6 +31,6 @@ json_log = {
 output = schemas.ParserSchema()
 parser.parse(schemas.LogSchema({"logID": "1", "log": json.dumps(json_log)}), output)
 
-print(output.logFormatVariables["level"])  # INFO
+print(output.headerVariables["level"])  # INFO
 print(output.template)                     # pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>
 # --8<-- [end:dict-based]

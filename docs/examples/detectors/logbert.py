@@ -10,7 +10,7 @@ detector = LogBertDetector(name="LogBertDetector", config=config)
 
 def event(event_id: int) -> schemas.ParserSchema:
     """A parsed log; only its EventID (the matched template) matters here."""
-    return schemas.ParserSchema({"EventID": event_id})
+    return schemas.ParserSchema({"eventID": event_id})
 
 
 # a repeating workflow of 4 events; the model trains once 60 windows are collected

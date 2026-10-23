@@ -2,37 +2,28 @@
 # --8<-- [start:example_1]
 from detectmatelibrary.alert_aggregation.basic_concat import BasicConcatAggregation
 
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
+
+import yaml
 
 
-aggregations_config = {
-    "alert_aggregators": {
-        "BasicConcatAggregator": {
-            "method_type": "basic_concat_aggregator",
-            "buffer_size": 3,
-            "deduplicate_values": False,
-            "auto_config": False,
-        }
-    }
-}
+with open("docs/examples/alert_aggregators/basic_concat.yaml") as f:
+    config = yaml.safe_load(f)
 
-
-input_ = schemas.DetectorSchema({
+input_ = sc.DetectorSchema({
     "detectorID": "1",
     "detectorType": "dummy",
     "alertID": "2",
-    "detectionTimestamp": 0,
+    "detectedTimestamp": 0,
     "logIDs": ["logID1"],
     "score": 0.2,
-    "extractedTimestamps": [-1],
+    "logTimestamps": [-1],
     "description": "hello there",
     "receivedTimestamp": 1,
-    "alertsObtain": {"99 problems": "but logs aint one"}
+    "alertDetails": {"99 problems": "but logs aint one"}
 })
 
-alert_aggregator = BasicConcatAggregation(
-    "BasicConcatAggregator", aggregations_config
-)
+alert_aggregator = BasicConcatAggregation("BasicConcatAggregator", config)
 alert_aggregator.process(input_)
 
 # --8<-- [end:example_1]

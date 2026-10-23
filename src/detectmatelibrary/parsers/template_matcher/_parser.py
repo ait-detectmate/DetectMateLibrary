@@ -159,4 +159,4 @@ class MatcherParser(CoreParser):
 
         output_["template"] = parsed["EventTemplate"]
         output_["variables"] = parsed["Params"]
-        output_["EventID"] = parsed["EventId"]
+        output_["eventID"] = parsed["EventId"]

@@ -93,13 +93,13 @@ Fields:
 |---|---|---|
 | parserType | string | Parser type. |
 | parserID | string | Parser instance identifier. |
-| EventID | int32 | Template/event identifier. |
+| eventID | int32 | Template/event identifier. |
 | template | string | Event template text. |
 | variables | repeated string | Parameters extracted from the template. |
 | parsedLogID | string | ID assigned after parsing (optional). |
 | logID | string | Original raw log ID (link to LogSchema). |
 | log | string | Raw log text. |
-| logFormatVariables | map<string,string> | Key/value pairs from format extraction. |
+| headerVariables | map<string,string> | Key/value pairs from format extraction. |
 | receivedTimestamp | int64 | Timestamp when log was received. |
 | parsedTimestamp | int64 | Timestamp when parsing completed. |
 
@@ -113,13 +113,13 @@ Fields:
 | detectorID | string | Detector instance identifier. |
 | detectorType | string | Type/name of detector. |
 | alertID | string | Unique alert identifier. |
-| detectionTimestamp | int64 | When the alert was produced. |
+| detectedTimestamp | int64 | When the alert was produced. |
 | logIDs | repeated string | IDs of logs related to the alert. |
 | score | float | Confidence/score (if applicable). |
-| extractedTimestamps | repeated int64 | Timestamps extracted from logs. |
+| logTimestamps | repeated int64 | Timestamps extracted from logs. |
 | description | string | Human-readable description of the alert. |
 | receivedTimestamp | int64 | When inputs were received by detector. |
-| alertsObtain | map<string,string> | Additional alert metadata. |
+| alertDetails | map<string,string> | Additional alert metadata. |
 
 ### AggregateSchema
 Output from Alert Aggregations (alerts / findings).
@@ -131,11 +131,11 @@ Fields:
 | detectorIDs | repeated string | List of detector instance identifier. |
 | detectorTypes | repeated string | List of type/name of detectors. |
 | alertIDs | repeated string | List of unique alert identifiers. |
-| outputTimestamp | int64 | When the aggregation was produced. |
+| aggregatedTimestamp | int64 | When the aggregation was produced. |
 | logIDs | repeated string | IDs of logs related to the alerts. |
-| extractedTimestamps | repeated int64 | Timestamps extracted from logs. |
+| logTimestamps | repeated int64 | Timestamps extracted from logs. |
 | description | string | Human-readable description of the alert aggregation. |
-| alertsObtain | map<string,string> | Additional alert metadata from the alert aggregation. |
+| alertDetails | map<string,string> | Additional alert metadata from the alert aggregation. |
 
 ## Examples
 

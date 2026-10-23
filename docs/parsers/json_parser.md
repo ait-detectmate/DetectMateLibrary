@@ -1,6 +1,6 @@
 # JSON Parser
 
-Extracts structured information from JSON-formatted logs. Optionally delegates parsing of a specific JSON field (the "content") to a sibling Template Matcher parser. Nested JSON objects are always flattened to dot-separated keys in `logFormatVariables`.
+Extracts structured information from JSON-formatted logs. Optionally delegates parsing of a specific JSON field (the "content") to a sibling Template Matcher parser. Nested JSON objects are always flattened to dot-separated keys in `headerVariables`.
 
 ## In/out
 
@@ -22,6 +22,16 @@ With the configuration file below, the `message` field is also matched against t
 ```python
 --8<-- "docs/examples/parsers/json_parser.py:dict-based"
 ```
+
+## Event IDs
+
+| Log | Event ID | Template |
+|-----|----------|----------|
+| `message` matches a template | that template's ID | the template |
+| `message` matches no template | `-1` | `<Not Found>` |
+| no `message` field | `-2` | empty |
+
+If the content parser has no templates (for example with the defaults, as in the first example), every message gets `-1`. The parser then logs a warning at the first message.
 
 ## Configuration file
 
@@ -56,8 +66,8 @@ All parameters this parser accepts, grouped by the YAML block they go in. **Scop
     | `content_name` | string | message | specific | fitting description yet to find |
     | `content_parser` | string | JsonMatcherParser | specific | fitting description yet to find |
     | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
-    | `data_use_training` | integer, null | None | shared | Data used for training, if None, training is not done. |
-    | `data_use_configure` | integer, null | None | shared | Data used for configuration, if None, configuration is not done. |
+    | `data_use_training` | integer, null | None | shared | Number of logs used for training. None skips training. |
+    | `data_use_configure` | integer, null | None | shared | Number of logs used for the configuration step. None skips it. |
     | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
     | `train_buffer_max_records` | integer | 100000 | shared | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |

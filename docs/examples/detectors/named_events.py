@@ -35,7 +35,7 @@ lines = [
 ]
 for line in lines:
     alert = detector.process(parser.process(schemas.LogSchema({"log": line})))
-    print(dict(alert["alertsObtain"]) if alert else None)
+    print(dict(alert["alertDetails"]) if alert else None)
 # None
 # None
 # {'EventID 1 - user': "Unknown value: 'mallory'"}

@@ -38,7 +38,7 @@ class TestCustomDetector:
             output = detector.process(data)
             assert getattr(output, "description") == "Dummy detection process"
             assert getattr(output, "score") == 1.0
-            assert getattr(output, "alertsObtain")["type"] == "Anomaly detected by CustomDetector"
+            assert getattr(output, "alertDetails")["type"] == "Anomaly detected by CustomDetector"
             assert getattr(output, "detectorID") == "CustomDetector"
             assert getattr(output, "detectorType") == "custom_detector"
             assert getattr(output, "alertID") == f"CustomDetector_{i + 10}"

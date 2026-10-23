@@ -17,7 +17,7 @@ from detectmatelibrary.utils.persistency.data_structures.trackers import (
 )
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 from detectmatelibrary.base_detectors import PersistConfig
 from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.utils.aux import time_test_mode
@@ -48,16 +48,16 @@ config = {
 
 
 def _make_schema(event_id, template="test template", log_id="1", log_format_variables=None):
-    return schemas.ParserSchema({
+    return sc.ParserSchema({
         "parserType": "test",
-        "EventID": event_id,
+        "eventID": event_id,
         "template": template,
         "variables": ["adsasd", "asdasd"],
         "logID": log_id,
         "parsedLogID": log_id,
         "parserID": "test_parser",
         "log": "test log message",
-        "logFormatVariables": log_format_variables or {"level": "INFO"}
+        "headerVariables": log_format_variables or {"level": "INFO"}
     })
 
 
@@ -70,8 +70,8 @@ class TestEventSequenceDetectorInitialization:
         assert detector.name == "EventSequenceDetector"
         assert hasattr(detector, "config")
         assert detector.data_buffer.mode == BufferMode.NO_BUF
-        assert detector.input_schema == schemas.ParserSchema
-        assert detector.output_schema == schemas.DetectorSchema
+        assert detector.input_schema == sc.ParserSchema
+        assert detector.output_schema == sc.DetectorSchema
         assert hasattr(detector, "persistency")
         # unconfigured until auto-config picks a length
         assert detector.config.fixed_window_size is None
@@ -121,8 +121,8 @@ class TestEventSequenceDetectorDetection:
             detector.train(_make_schema(event_id))
         # The detection window is independent of the training one, so prime it
         # with a 3 before appending the 1 that completes the known (3, 1)
-        detector.detect(_make_schema(3, log_id="6"), schemas.DetectorSchema())
-        output = schemas.DetectorSchema()
+        detector.detect(_make_schema(3, log_id="6"), sc.DetectorSchema())
+        output = sc.DetectorSchema()
         result = detector.detect(_make_schema(1, log_id="7"), output)
 
         assert not result
@@ -135,19 +135,19 @@ class TestEventSequenceDetectorDetection:
             detector.train(_make_schema(event_id))
 
         # (3, 9) was never seen during training
-        detector.detect(_make_schema(3, log_id="6"), schemas.DetectorSchema())
-        output = schemas.DetectorSchema()
+        detector.detect(_make_schema(3, log_id="6"), sc.DetectorSchema())
+        output = sc.DetectorSchema()
         result = detector.detect(_make_schema(9, log_id="7"), output)
 
         assert result
         assert output.score == 1.0
-        assert any("Sequence" in key for key in output["alertsObtain"])
+        assert any("Sequence" in key for key in output["alertDetails"])
 
     def test_detect_below_window_length_no_alert(self):
         detector = EventSequenceDetector(config=config, name="MultipleDetector")
 
         # First event with an empty detector: window not yet full, can't be an anomaly
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
         result = detector.detect(_make_schema(1), output)
 
         assert not result
@@ -161,7 +161,7 @@ class TestEventSequenceDetectorWindow:
         detector = EventSequenceDetector(config=config, name="MultipleDetector")
 
         detector.train(_make_schema(1))
-        detector.detect(_make_schema(1), schemas.DetectorSchema())
+        detector.detect(_make_schema(1), sc.DetectorSchema())
         assert len(detector._train_window) == 1
         assert len(detector._detect_window) == 1
 
@@ -223,7 +223,7 @@ class TestEventSequenceDetectorEndToEnd:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
@@ -266,7 +266,7 @@ class TestEventSequenceDetectorEndToEnd:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector1.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
@@ -305,7 +305,7 @@ class TestEventSequenceDetectorEndToEnd:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector1.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
@@ -458,7 +458,7 @@ class TestEventSequenceDetectorAutoConfig:
         for event_id in [4, 5, 6, 7]:
             detector.train(_make_schema(event_id))
         assert detector.get_known_sequences() == set()
-        assert not detector.detect(_make_schema(9), schemas.DetectorSchema())
+        assert not detector.detect(_make_schema(9), sc.DetectorSchema())
 
     def test_unstable_stream_generates_no_instance(self):
         """The other route to 'no stable candidate': every window fills and
@@ -488,7 +488,7 @@ class TestEventSequenceDetectorAutoConfig:
         for event_id in [1, 2, 3, 1, 2, 3]:
             detector.train(_make_schema(event_id))
         assert detector.get_known_sequences() == set()
-        assert not detector.detect(_make_schema(9), schemas.DetectorSchema())
+        assert not detector.detect(_make_schema(9), sc.DetectorSchema())
 
     def test_auto_config_off_without_fixed_window_size_is_inert(self):
         detector = EventSequenceDetector(
@@ -500,7 +500,7 @@ class TestEventSequenceDetectorAutoConfig:
             detector.train(_make_schema(event_id))
 
         assert detector.get_known_sequences() == set()
-        assert not detector.detect(_make_schema(9), schemas.DetectorSchema())
+        assert not detector.detect(_make_schema(9), sc.DetectorSchema())
 
     def test_auto_config_off_stays_inert_through_a_configure_phase(self):
         """A configure window alone must not pick a length: auto_config=False
@@ -598,7 +598,7 @@ class TestEventSequenceDetectorPersist:
 
         # the known cycle must not alert under the restored model
         alerted = [
-            det2.detect(_make_schema(event_id), schemas.DetectorSchema())
+            det2.detect(_make_schema(event_id), sc.DetectorSchema())
             for event_id in [1, 2, 3, 1, 2, 3]
         ]
         assert not any(alerted)

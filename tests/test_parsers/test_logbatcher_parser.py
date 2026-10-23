@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 from detectmatelibrary.common.parser import CoreParser
 from detectmatelibrary.parsers.logbatcher import LogBatcherParser, LogBatcherParserConfig
 from detectmatelibrary.utils.aux import time_test_mode
@@ -59,7 +59,7 @@ class TestLogBatcherParserInit:
 class TestLogBatcherParserParse:
     def test_template_extracted(self):
         parser = _make_parser()
-        log_schema = schemas.LogSchema({"logID": "1", "log": LOG})
+        log_schema = sc.LogSchema({"logID": "1", "log": LOG})
 
         result = parser.process(log_schema)
 
@@ -67,7 +67,7 @@ class TestLogBatcherParserParse:
 
     def test_variables_extracted(self):
         parser = _make_parser()
-        log_schema = schemas.LogSchema({"logID": "1", "log": LOG})
+        log_schema = sc.LogSchema({"logID": "1", "log": LOG})
 
         result = parser.process(log_schema)
 
@@ -76,21 +76,21 @@ class TestLogBatcherParserParse:
 
     def test_event_id_is_int(self):
         parser = _make_parser()
-        log_schema = schemas.LogSchema({"logID": "1", "log": LOG})
+        log_schema = sc.LogSchema({"logID": "1", "log": LOG})
 
         result = parser.process(log_schema)
 
-        assert isinstance(result["EventID"], int)
+        assert isinstance(result["eventID"], int)
 
     def test_second_call_hits_cache(self):
         """Second identical log must not trigger a new LLM call."""
         parser = _make_parser()
 
-        log_schema1 = schemas.LogSchema({"logID": "1", "log": LOG})
+        log_schema1 = sc.LogSchema({"logID": "1", "log": LOG})
         parser.process(log_schema1)
         llm_call_count = parser._llm_parser.chat.call_count
 
-        log_schema2 = schemas.LogSchema({"logID": "2", "log": LOG})
+        log_schema2 = sc.LogSchema({"logID": "2", "log": LOG})
         parser.process(log_schema2)
 
         assert parser._llm_parser.chat.call_count == llm_call_count

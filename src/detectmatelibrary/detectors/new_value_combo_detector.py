@@ -91,7 +91,7 @@ class NewValueComboDetector(VariableDetector):
     def __init__(
         self,
         name: str = "NewValueComboDetector",
-        config: NewValueComboDetectorConfig = NewValueComboDetectorConfig(),
+        config: NewValueComboDetectorConfig | dict[str, Any] = NewValueComboDetectorConfig(),
     ) -> None:
         if isinstance(config, dict):
             config = NewValueComboDetectorConfig.from_dict(config, name)
@@ -155,7 +155,7 @@ class NewValueComboDetector(VariableDetector):
 
         Variables and combos are sorted before they are written, so the
         generated config does not depend on the order the variables arrived in
-        (a ParserSchema keeps its logFormatVariables in no fixed order).
+        (a ParserSchema keeps its headerVariables in no fixed order).
         """
         if max_combo_size is not None:
             self.config.auto_config_params.max_combo_size = max_combo_size
@@ -174,7 +174,7 @@ class NewValueComboDetector(VariableDetector):
             input_ = cast(ParserSchema, record)
             configured_variables = get_configured_variables(input_, self.config.events)
             self.auto_conf_persistency_combos.ingest_event(
-                event_id=input_["EventID"],
+                event_id=input_["eventID"],
                 event_template=input_["template"],
                 named_variables=configured_variables,
                 timestamp=self._timestamps.read(input_),

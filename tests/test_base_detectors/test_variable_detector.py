@@ -1,6 +1,6 @@
 
 from detectmatelibrary.base_detectors import VariableDetector
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 
 import os
 
@@ -28,10 +28,10 @@ CONFIG = {
 
 def train(detector: VariableDetector, *users) -> None:
     for u in users:
-        detector.train(schemas.ParserSchema({
-            "parserType": "t", "EventID": 1, "template": "t", "variables": [u],
+        detector.train(sc.ParserSchema({
+            "parserType": "t", "eventID": 1, "template": "t", "variables": [u],
             "logID": "1", "parsedLogID": "1", "parserID": "p", "log": "l",
-            "logFormatVariables": {},
+            "headerVariables": {},
         }))
 
 

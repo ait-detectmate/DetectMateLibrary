@@ -13,18 +13,18 @@ class TestSchemaVariables:
         schema_var = SchemaVariables(schema_class=PARSER_SCHEMA)
 
         assert schema_var.schema_class == PARSER_SCHEMA
-        assert schema_var.get_schema().__version__ == "1.0.0"
+        assert schema_var.get_schema().__version__ == "2.0.0"
 
     def test_init_with_kwargs(self):
         values = {
             "parserType": "test",
             "parserID": "test",
-            "EventID": 0,
+            "eventID": 0,
             "template": "test template",
             "variables": ["a", "b"],
             "parsedLogID": "0",
             "log": "test log",
-            "logFormatVariables": {"TimeStamp": "test timestamp"},
+            "headerVariables": {"TimeStamp": "test timestamp"},
             "receivedTimestamp": 0,
             "parsedTimestamp": 0,
         }
@@ -33,13 +33,13 @@ class TestSchemaVariables:
 
         assert schema_var.parserType == "test"
         assert schema_var.parserID == "test"
-        assert schema_var.EventID == 0
+        assert schema_var.eventID == 0
         assert schema_var.template == "test template"
         assert schema_var.variables == ["a", "b"]
         assert schema_var.parsedLogID == "0"
         assert schema_var.logID == "0"
         assert schema_var.log == "test log"
-        assert schema_var.logFormatVariables == {"TimeStamp": "test timestamp"}
+        assert schema_var.headerVariables == {"TimeStamp": "test timestamp"}
         assert schema_var.receivedTimestamp == 0
         assert schema_var.parsedTimestamp == 0
 
@@ -67,7 +67,7 @@ class TestBaseSchema:
         base_schema = BaseSchema()
 
         assert base_schema.schema_class == BASE_SCHEMA
-        assert base_schema.get_schema().__version__ == "1.0.0"
+        assert base_schema.get_schema().__version__ == "2.0.0"
 
     def test_all_initialize(self):
         LogSchema()
@@ -151,15 +151,15 @@ class TestBaseSchema:
     def test_as_dict(self):
         detector_schema = DetectorSchema()
         assert detector_schema.as_dict() == {
-            "__version__": "1.0.0",
+            "__version__": "2.0.0",
             "detectorID": detector_schema.detectorID,
             "detectorType": detector_schema.detectorType,
             "alertID": detector_schema.alertID,
-            "detectionTimestamp": detector_schema.detectionTimestamp,
+            "detectedTimestamp": detector_schema.detectedTimestamp,
             "logIDs": detector_schema.logIDs,
             "score": detector_schema.score,
-            "extractedTimestamps": detector_schema.extractedTimestamps,
+            "logTimestamps": detector_schema.logTimestamps,
             "description": detector_schema.description,
             "receivedTimestamp": detector_schema.receivedTimestamp,
-            "alertsObtain": detector_schema.alertsObtain,
+            "alertDetails": detector_schema.alertDetails,
         }

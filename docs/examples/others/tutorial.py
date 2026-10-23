@@ -35,7 +35,7 @@ parser = MatcherParser(name="MatcherParser", config=config_dict)
 
 parsed_logs = [parser.process(raw) for raw in raw_logs]
 for plog in parsed_logs:
-    print(plog["EventID"], plog["template"])
+    print(plog["eventID"], plog["template"])
 # --8<-- [end:own_parser]
 
 # --8<-- [start:detectors]
@@ -89,7 +89,7 @@ for i, plog in enumerate(parsed_logs, start=1):
     nv_alert = new_value_detector.process(plog)
     es_alert = event_sequence_detector.process(plog)
     print(
-        f"{i:>2}  {plog['EventID']:>7}  {str(bool(nv_alert)):>8}  {str(bool(es_alert)):>13}"
+        f"{i:>2}  {plog['eventID']:>7}  {str(bool(nv_alert)):>8}  {str(bool(es_alert)):>13}"
     )
     if nv_alert:
         alerts.append(nv_alert)

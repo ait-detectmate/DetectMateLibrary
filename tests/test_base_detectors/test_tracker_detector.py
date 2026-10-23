@@ -34,14 +34,14 @@ from detectmatelibrary.utils.persistency.persistency_saver import PersistencyLoa
 def _event(event_id: int) -> schemas.ParserSchema:
     return schemas.ParserSchema({
         "parserType": "test",
-        "EventID": event_id,
+        "eventID": event_id,
         "template": "test template",
         "variables": [],
         "logID": str(event_id),
         "parsedLogID": str(event_id),
         "parserID": "test_parser",
         "log": "test log message",
-        "logFormatVariables": {},
+        "headerVariables": {},
     })
 
 
@@ -61,7 +61,7 @@ class _Recorder(TrackerDetector):
         self.synced += 1
 
     def train(self, input_: schemas.ParserSchema) -> None:  # type: ignore[override]
-        self._ingest(input_, {}, input_["EventID"])
+        self._ingest(input_, {}, input_["eventID"])
 
 
 class TestSyncFromState:

@@ -1,7 +1,8 @@
 from detectmatelibrary.common.alert_aggregator import (CoreAlertAggregatorConfig, CoreAlertAggregator)
 from detectmatelibrary.schemas import DetectorSchema, AggregateSchema
-from typing import Any, Optional
 from detectmatelibrary.helper.from_to import From
+
+from typing import Any
 
 
 class CustomAlertAggregatorConfig(CoreAlertAggregatorConfig):
@@ -13,18 +14,18 @@ class CustomAlertAggregator(CoreAlertAggregator):
     def __init__(
         self,
         name: str = "CustomAlertAggregator",
-        config: Optional[CustomAlertAggregatorConfig | dict[str, Any]] = CustomAlertAggregatorConfig(),
+        config: CustomAlertAggregatorConfig | dict[str, Any] = CustomAlertAggregatorConfig(),
     ) -> None:
         if isinstance(config, dict):
             config = CustomAlertAggregatorConfig.from_dict(config, name)
-        buffer_size: int = config.buffer_size  # type: ignore
+        buffer_size: int = config.buffer_size
         super().__init__(name=name, buffer_size=buffer_size, config=config)
 
     def aggregate_alerts(
         self, input_: list[DetectorSchema] | DetectorSchema, output_: AggregateSchema
     ) -> bool:
         output_["description"] = "Custom alert aggregation"
-        output_["alertsObtain"]["type"] = "Anomalies aggregated by CustomAlertAggregator"
+        output_["alertDetails"]["type"] = "Anomalies aggregated by CustomAlertAggregator"
         return True
 
 

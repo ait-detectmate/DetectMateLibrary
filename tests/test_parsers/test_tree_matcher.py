@@ -26,7 +26,7 @@ class TestMatcherParserBasic:
         parser.parse(input_log, output_data)
 
         assert output_data.template == "template not found"
-        assert output_data.EventID == -1
+        assert output_data.eventID == -1
         assert output_data.variables == []
 
     def test_successful_match(self):
@@ -44,5 +44,5 @@ class TestMatcherParserBasic:
         parser.parse(input_log, output_data)
 
         assert output_data.template == test_template[0]
-        assert output_data.EventID == 0
+        assert output_data.eventID == 0
         assert len(output_data.variables) > 0

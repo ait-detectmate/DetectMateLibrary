@@ -146,7 +146,7 @@ class _Polars:
             for i in range(len(df)):
                 data = df.row(i, named=True)
                 if len(df_vars) > 0:
-                    data["logFormatVariables"] = df_vars.row(i, named=True)
+                    data["headerVariables"] = df_vars.row(i, named=True)
                 data["logID"] = str(i)
                 schema = component.input_schema(data)
                 yield schema
@@ -179,7 +179,7 @@ class _Polars:
                     data = df_batch.row(i, named=True)
                     data_var = batch_vars.row(i, named=True)
                     if len(data_var) > 0:
-                        data["logFormatVariables"] = data_var
+                        data["headerVariables"] = data_var
                     data["logID"] = str(i)
                     schema = component.input_schema(data)
                     yield schema
@@ -266,7 +266,7 @@ class From:
     ) -> Iterator[BaseSchema]:
 
         renames = {
-            "Content": "log", "ParamList": "variables", "EventIDs": "EventID", "Templates": "template"
+            "Content": "log", "ParamList": "variables", "EventIDs": "eventID", "Templates": "template"
         } if renames is None else renames
         columns = df.columns if isinstance(df, pl.DataFrame) else df.collect_schema().names()
         if "ParamList" not in columns and "ParamList" in renames:

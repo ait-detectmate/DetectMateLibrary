@@ -1,7 +1,7 @@
 from detectmatelibrary.common.detector import CoreDetectorConfig, BufferMode
 from detectmatelibrary.common.detector import CoreDetector
 from detectmatelibrary.utils.aux import time_test_mode
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 
 import pydantic
 import pytest
@@ -72,14 +72,14 @@ class NoneMockupDetector(CoreDetector):
 
 dummy_schema = {
     "parserType": "a",
-    "EventID": 0,
+    "eventID": 0,
     "template": "asd",
     "variables": [""],
     "logID": "0",
     "parsedLogID": "22",
     "parserID": "test",
     "log": "This is a parsed log.",
-    "logFormatVariables": {"Time": "12121.12"},
+    "headerVariables": {"Time": "12121.12"},
 }
 
 
@@ -103,8 +103,8 @@ class TestCoreDetector:
         assert isinstance(detector, CoreDetector)
         assert detector.name == "TestDetector"
         assert isinstance(detector.config, CoreDetectorConfig)
-        assert detector.input_schema == schemas.ParserSchema
-        assert detector.output_schema == schemas.DetectorSchema
+        assert detector.input_schema == sc.ParserSchema
+        assert detector.output_schema == sc.DetectorSchema
 
     def test_incorrect_config_type(self) -> None:
         dummy_config2 = {
@@ -122,43 +122,43 @@ class TestCoreDetector:
 
     def test_process_correct_input_schema(self) -> None:
         detector = MockupDetector(name="TestDetector", config=dummy_config)
-        data = schemas.ParserSchema(dummy_schema).serialize()
+        data = sc.ParserSchema(dummy_schema).serialize()
         result = detector.process(data)  # no error should be produced
         assert isinstance(result, bytes)  # and result should be bytes
 
     def test_process_input_schema_not_serialized(self) -> None:
         detector = MockupDetector(name="TestDetector", config=MockupConfig())
-        expected_result = schemas.DetectorSchema({
-            "__version__": "1.0.0",
+        expected_result = sc.DetectorSchema({
+            "__version__": "2.0.0",
             "detectorID": "TestDetector",
             "detectorType": "core_detector",
             "alertID": "TestDetector_10",
-            "detectionTimestamp": 0,
+            "detectedTimestamp": 0,
             "logIDs": ["0"],
             "score": 0.9,
             "description": "hii",
-            "extractedTimestamps": [12121],
+            "logTimestamps": [12121],
             "receivedTimestamp": 0,
         })
-        data = schemas.ParserSchema(dummy_schema)
+        data = sc.ParserSchema(dummy_schema)
         result = detector.process(data)
         assert result == expected_result, f"result -> {result}"
 
     def test_process_input_schema_not_serialized_window_3(self) -> None:
         detector = MockupDetector_window(name="TestDetector", config=MockupConfig())
-        expected_result = schemas.DetectorSchema({
-            "__version__": "1.0.0",
+        expected_result = sc.DetectorSchema({
+            "__version__": "2.0.0",
             "detectorID": "TestDetector",
             "detectorType": "core_detector",
             "alertID": "TestDetector_10",
-            "detectionTimestamp": 0,
+            "detectedTimestamp": 0,
             "logIDs": ["0", "0", "0"],
             "score": 0.9,
             "description": "hii",
-            "extractedTimestamps": [12121, 12121, 12121],
+            "logTimestamps": [12121, 12121, 12121],
             "receivedTimestamp": 0
         })
-        data = schemas.ParserSchema(dummy_schema)
+        data = sc.ParserSchema(dummy_schema)
 
         assert detector.process(data) is None
         assert detector.process(data) is None
@@ -168,19 +168,19 @@ class TestCoreDetector:
 
     def test_process_input_schema_not_serialized_buffer_3(self) -> None:
         detector = MockupDetector_window(name="TestDetector01", config=MockupConfig())
-        expected_result = schemas.DetectorSchema({
-            "__version__": "1.0.0",
+        expected_result = sc.DetectorSchema({
+            "__version__": "2.0.0",
             "detectorID": "TestDetector01",
             "detectorType": "core_detector",
             "alertID": "TestDetector01_10",
-            "detectionTimestamp": 0,
+            "detectedTimestamp": 0,
             "logIDs": ["0", "0", "0"],
             "score": 0.9,
             "description": "hii",
-            "extractedTimestamps": [12121, 12121, 12121],
+            "logTimestamps": [12121, 12121, 12121],
             "receivedTimestamp": 0,
         })
-        data = schemas.ParserSchema(dummy_schema)
+        data = sc.ParserSchema(dummy_schema)
 
         assert detector.process(data) is None
         assert detector.process(data) is None
@@ -190,7 +190,7 @@ class TestCoreDetector:
 
     def test_none_detector(self) -> None:
         detector = NoneMockupDetector(name="TestDetector", config=MockupConfig())
-        data = schemas.ParserSchema(dummy_schema)
+        data = sc.ParserSchema(dummy_schema)
 
         assert detector.process(data) is None
         assert detector.process(data) is not None

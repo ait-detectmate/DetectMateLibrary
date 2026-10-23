@@ -1,5 +1,7 @@
 # DetectMate Library
 
+![UML](img/logo.png)
+
 Welcome to the documentation for the DetectMate Library. DetectMate is a flexible,
 component-based library for parsing and log anomaly detection. It can be used in research and production,
 and together with the
@@ -25,6 +27,7 @@ Here you can get the full scope.
 * [Parsers](parsers.md)
 * [Detectors](detectors.md)
 * [Alert Aggregation](alert_aggregator.md)
+* [Pipelines](pipeline.md)
 * [Federation](federation.md)
 
 ## How to contribute

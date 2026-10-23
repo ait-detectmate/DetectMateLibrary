@@ -1,4 +1,4 @@
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 
 from typing import Any
 import pandas as pd
@@ -13,8 +13,8 @@ class DataNormalizer:
     def __init__(
         self,
         data: pd.DataFrame | dict[str, Any] | list[Any],
-        input_schema: schemas.BaseSchema,
-        output_schema: schemas.BaseSchema
+        input_schema: sc.BaseSchema,
+        output_schema: sc.BaseSchema
     ) -> None:
         self.data = data
         self.input_schema = input_schema

@@ -36,7 +36,7 @@ _ECVC_WINDOWS = [[1, 2, 3], [1, 1, 2], [2, 3, 3], [1, 2, 3]]
 
 def _event(event_id: int, variables: list[str] | None = None) -> schemas.ParserSchema:
     return schemas.ParserSchema({
-        "EventID": event_id, "template": "login <*>", "variables": variables or [], "logID": "1",
+        "eventID": event_id, "template": "login <*>", "variables": variables or [], "logID": "1",
     })
 
 
