@@ -71,6 +71,7 @@ The alert aggregator are numbered from simplest to most complex, and the sidebar
 |---|---|---|
 | 00 | [Basic Concat Aggregator](alert_aggregators/basic_concatenation.md) | Concat a set of alerts. |
 | 01 | [LogID Count Aggregator](alert_aggregators/logid_count.md) | Count the amount of times a logID is in alerts. |
+| 02 | [Density Cluster](alert_aggregators/density_cluster.md) | Base class for clustering alerts using a distance function. |
 
 
 ### Common parameters (all alert aggregators)
