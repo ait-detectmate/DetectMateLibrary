@@ -1,0 +1,4 @@
+alert_aggregators:
+    DensityClusteringAggregator:
+        method_type: density_clustering_aggregator
+        delta: 4.0

@@ -14,7 +14,7 @@
         <link rel="prev" href="../basic_concatenation/">
       
       
-        <link rel="next" href="../../helper/from_to/">
+        <link rel="next" href="../density_cluster/">
       
       
         
@@ -1608,6 +1608,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../density_cluster/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02_Density Cluster
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2268,7 +2296,6 @@
 <!-- Start arguments -->
 <details class="note">
 <summary>Top level</summary>
-</details>
 <table>
 <thead>
 <tr>
@@ -2283,7 +2310,7 @@
 <tr>
 <td><code>method_type</code></td>
 <td>string</td>
-<td>basic_concat_aggregator</td>
+<td>logid_count_aggregator</td>
 <td>shared</td>
 <td>Indicates what type of method it is.</td>
 </tr>
@@ -2296,9 +2323,9 @@
 </tr>
 </tbody>
 </table>
+</details>
 <details class="note" open="open">
 <summary>params</summary>
-</details>
 <table>
 <thead>
 <tr>
@@ -2311,11 +2338,18 @@
 </thead>
 <tbody>
 <tr>
-<td><code>buffer_size</code></td>
+<td><code>max_count</code></td>
 <td>integer</td>
-<td>3</td>
+<td>4</td>
 <td>specific</td>
-<td>Buffer size use in the aggregation.</td>
+<td>Max count of alerts in a specific logID.</td>
+</tr>
+<tr>
+<td><code>max_memory</code></td>
+<td>integer</td>
+<td>5000</td>
+<td>specific</td>
+<td>Max number of logIDs store in the count memory.</td>
 </tr>
 <tr>
 <td><code>start_id</code></td>
@@ -2329,14 +2363,14 @@
 <td>integer, null</td>
 <td>None</td>
 <td>shared</td>
-<td>Data used for training, if None, training is not done.</td>
+<td>Number of logs used for training. None skips training.</td>
 </tr>
 <tr>
 <td><code>data_use_configure</code></td>
 <td>integer, null</td>
 <td>None</td>
 <td>shared</td>
-<td>Data used for configuration, if None, configuration is not done.</td>
+<td>Number of logs used for the configuration step. None skips it.</td>
 </tr>
 <tr>
 <td><code>use_config_data_as_training</code></td>
@@ -2361,6 +2395,7 @@
 </tr>
 </tbody>
 </table>
+</details>
 <!-- End arguments -->
 
 
@@ -2408,13 +2443,13 @@
         
         
           
-          <a href="../../helper/from_to/" class="md-footer__link md-footer__link--next" aria-label="Next: FromTo">
+          <a href="../density_cluster/" class="md-footer__link md-footer__link--next" aria-label="Next: 02_Density Cluster">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                FromTo
+                02_Density Cluster
               </div>
             </div>
             <div class="md-footer__button md-icon">
