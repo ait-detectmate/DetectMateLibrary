@@ -8,7 +8,7 @@
       
       
       
-        <link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/alert_aggregators/density_cluster/">
+        <link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/alert_aggregators/time_delta/">
       
       
         <link rel="prev" href="../logid_count/">
@@ -25,7 +25,7 @@
     
     
       
-        <title>02_Density Cluster - DetectMate Library</title>
+        <title>03_Time Delta - DetectMate Library</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#density-cluster-alert-aggregation" class="md-skip">
+        <a href="#time-delta-alert-aggregation" class="md-skip">
           Skip to content
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              02_Density Cluster
+              03_Time Delta
             
           </span>
         </div>
@@ -1499,6 +1499,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../density_cluster.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    02_Density Cluster
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -1518,7 +1546,7 @@
   <span class="md-ellipsis">
     
   
-    02_Density Cluster
+    03_Time Delta
   
 
     
@@ -1536,7 +1564,7 @@
   <span class="md-ellipsis">
     
   
-    02_Density Cluster
+    03_Time Delta
   
 
     
@@ -1591,34 +1619,6 @@
       
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Description">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#implementation-details" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Implementation Details
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#labelling-of-alerts" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Labelling of Alerts
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -2179,34 +2179,6 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Description">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#implementation-details" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Implementation Details
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#labelling-of-alerts" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Labelling of Alerts
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
@@ -2259,8 +2231,8 @@
 
 
 
-<h1 id="density-cluster-alert-aggregation">Density Cluster Alert Aggregation</h1>
-<p>The density-clustering-based alert aggregator is a base class to implement alert aggregation by clustering alerts according a given distance function of alerts.</p>
+<h1 id="time-delta-alert-aggregation">Time Delta Alert Aggregation</h1>
+<p>The time-delta alert aggregator implements alert aggregation by grouping alerts according their time-difference as proposed by <a href="https://dl.acm.org/doi/pdf/10.1145/3510581">Landauer et al.</a>.</p>
 <h2 id="inout">In/out</h2>
 <table>
 <thead>
@@ -2303,46 +2275,23 @@
 </tbody>
 </table>
 <h2 id="description">Description</h2>
-<p>This class implements alert aggregation by density clustering.</p>
-<h3 id="implementation-details">Implementation Details</h3>
-<p>Creating a custom density clustering aggregator requires the implementation of 2 methods in subclasses:</p>
-<ol>
-<li>
-<p>One has to implement either the single_metric or the metric function.
-The single_metric function computes the distance between 2 alerts,
-while the metric function computes the distance matrix between a list of alerts.
-If both functions are implemented, the metric function will be used.</p>
-</li>
-<li>
-<p>The discard_alert_fn function must be implemented to determine which alerts
-should no longer be considered for aggregation.
-To this end, after each aggregation step, the discard_alert_fn
-function is called with the list of relevant alerts.
-It should return a list of booleans indicating which alerts should be discarded (True)
-and which should be kept (False).</p>
-</li>
-</ol>
-<h3 id="labelling-of-alerts">Labelling of Alerts</h3>
-<p>The group labels assigned to alerts are published in the output schema as a
-dictionary mapping alert IDs to group IDs in the "alertDetails" field.
-Every alert is assigned a group ID immediately after it is received,
-but as the aggregation progresses, groups may be merged.
-This is published in the output schema as a list of messages in the "alertDetails" field.
-Likewise, when a group is finished and no longer reachable from any active alert,
-this is also published in the output schema as a list of messages in the "alertDetails" field.</p>
+<p>This class implements alert aggregation by considering the differences between the timestamps of alerts.</p>
+<p>Two alerts will be assigned to the same group if the time difference between them is below a certain threshold delta.
+The time difference is computed based on the timestamps of the last logs associated with each alert as these determine the earliest time at which the alert was detected.
+Important: It is assumed that the alerts arrive in order of their timestamps!</p>
 <h2 id="example">Example</h2>
 <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.alert_aggregation.density_clustering</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">DensityClusteringAggregation</span><span class="p">,</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.alert_aggregation.time_delta</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">TimeDeltaAggregation</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.schemas</span><span class="w"> </span><span class="kn">import</span> <span class="n">AggregateSchema</span><span class="p">,</span> <span class="n">DetectorSchema</span>
 
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"docs/examples/alert_aggregators/density_cluster.yaml"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"docs/examples/alert_aggregators/time_delta.yaml"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
     <span class="n">config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">make_alert</span><span class="p">(</span><span class="n">alert_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">score</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DetectorSchema</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_alert</span><span class="p">(</span><span class="n">alert_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DetectorSchema</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">DetectorSchema</span><span class="p">(</span>
         <span class="p">{</span>
             <span class="s2">"detectorID"</span><span class="p">:</span> <span class="s2">"detector"</span><span class="p">,</span>
@@ -2350,8 +2299,8 @@ this is also published in the output schema as a list of messages in the "alertD
             <span class="s2">"alertID"</span><span class="p">:</span> <span class="n">alert_id</span><span class="p">,</span>
             <span class="s2">"detectedTimestamp"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
             <span class="s2">"logIDs"</span><span class="p">:</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"log-</span><span class="si">{</span><span class="n">alert_id</span><span class="si">}</span><span class="s2">"</span><span class="p">],</span>
-            <span class="s2">"score"</span><span class="p">:</span> <span class="n">score</span><span class="p">,</span>
-            <span class="s2">"logTimestamps"</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="s2">"score"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="s2">"logTimestamps"</span><span class="p">:</span> <span class="p">[</span><span class="n">timestamp</span><span class="p">],</span>
             <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"test alert"</span><span class="p">,</span>
             <span class="s2">"receivedTimestamp"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
             <span class="s2">"alertDetails"</span><span class="p">:</span> <span class="p">{},</span>
@@ -2359,22 +2308,11 @@ this is also published in the output schema as a list of messages in the "alertD
     <span class="p">)</span>
 
 
-<span class="k">class</span><span class="w"> </span><span class="nc">ConcreteDensityClusteringAggregation</span><span class="p">(</span><span class="n">DensityClusteringAggregation</span><span class="p">):</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">single_metric</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">alert1</span><span class="p">:</span> <span class="n">DetectorSchema</span><span class="p">,</span>
-        <span class="n">alert2</span><span class="p">:</span> <span class="n">DetectorSchema</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">alert1</span><span class="p">[</span><span class="s2">"score"</span><span class="p">]</span> <span class="o">-</span> <span class="n">alert2</span><span class="p">[</span><span class="s2">"score"</span><span class="p">])</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">discard_alert_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alerts</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">DetectorSchema</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">bool</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="p">[</span><span class="kc">False</span> <span class="k">for</span> <span class="n">alert</span> <span class="ow">in</span> <span class="n">alerts</span><span class="p">]</span>
-
-
-<span class="n">aggregator</span> <span class="o">=</span> <span class="n">ConcreteDensityClusteringAggregation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
-<span class="n">first</span> <span class="o">=</span> <span class="n">make_alert</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
-<span class="n">second</span> <span class="o">=</span> <span class="n">make_alert</span><span class="p">(</span><span class="s2">"b"</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">)</span>
-<span class="n">bridge</span> <span class="o">=</span> <span class="n">make_alert</span><span class="p">(</span><span class="s2">"c"</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">)</span>
+<span class="n">aggregator</span> <span class="o">=</span> <span class="n">TimeDeltaAggregation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="n">first</span> <span class="o">=</span> <span class="n">make_alert</span><span class="p">(</span><span class="s2">"a"</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">second</span> <span class="o">=</span> <span class="n">make_alert</span><span class="p">(</span><span class="s2">"b"</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+<span class="n">third</span> <span class="o">=</span> <span class="n">make_alert</span><span class="p">(</span><span class="s2">"c"</span><span class="p">,</span> <span class="mi">9</span><span class="p">)</span>
+<span class="n">fourth</span> <span class="o">=</span> <span class="n">make_alert</span><span class="p">(</span><span class="s2">"d"</span><span class="p">,</span> <span class="mi">15</span><span class="p">)</span>
 
 <span class="n">first_output</span> <span class="o">=</span> <span class="n">AggregateSchema</span><span class="p">()</span>
 <span class="n">aggregator</span><span class="o">.</span><span class="n">aggregate_alerts</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">first_output</span><span class="p">)</span>
@@ -2382,28 +2320,137 @@ this is also published in the output schema as a list of messages in the "alertD
 <span class="n">second_output</span> <span class="o">=</span> <span class="n">AggregateSchema</span><span class="p">()</span>
 <span class="n">aggregator</span><span class="o">.</span><span class="n">aggregate_alerts</span><span class="p">(</span><span class="n">second</span><span class="p">,</span> <span class="n">second_output</span><span class="p">)</span>
 
-<span class="n">bridge_output</span> <span class="o">=</span> <span class="n">AggregateSchema</span><span class="p">()</span>
-<span class="n">aggregator</span><span class="o">.</span><span class="n">aggregate_alerts</span><span class="p">(</span><span class="n">bridge</span><span class="p">,</span> <span class="n">bridge_output</span><span class="p">)</span>
+<span class="n">third_output</span> <span class="o">=</span> <span class="n">AggregateSchema</span><span class="p">()</span>
+<span class="n">aggregator</span><span class="o">.</span><span class="n">aggregate_alerts</span><span class="p">(</span><span class="n">third</span><span class="p">,</span> <span class="n">third_output</span><span class="p">)</span>
+
+<span class="n">fourth_output</span> <span class="o">=</span> <span class="n">AggregateSchema</span><span class="p">()</span>
+<span class="n">aggregator</span><span class="o">.</span><span class="n">aggregate_alerts</span><span class="p">(</span><span class="n">fourth</span><span class="p">,</span> <span class="n">fourth_output</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">first_output</span><span class="p">[</span><span class="s2">"alertDetails"</span><span class="p">][</span><span class="s2">"a"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"0"</span><span class="p">)</span>  <span class="c1"># True</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">second_output</span><span class="p">[</span><span class="s2">"alertDetails"</span><span class="p">][</span><span class="s2">"b"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"1"</span><span class="p">)</span>  <span class="c1"># True</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">bridge_output</span><span class="p">[</span><span class="s2">"alertDetails"</span><span class="p">][</span><span class="s2">"c"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"0"</span><span class="p">)</span>  <span class="c1"># True</span>
-
-<span class="c1"># group labels 0 and 1 are merged into a single group</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">aggregator</span><span class="o">.</span><span class="n">active_groups</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="p">{</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">})</span>  <span class="c1"># True</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">third_output</span><span class="p">[</span><span class="s2">"alertDetails"</span><span class="p">][</span><span class="s2">"c"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"1"</span><span class="p">)</span>  <span class="c1"># True</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">fourth_output</span><span class="p">[</span><span class="s2">"alertDetails"</span><span class="p">][</span><span class="s2">"d"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"2"</span><span class="p">)</span>  <span class="c1"># True</span>
 </code></pre></div>
 <h2 id="configuration-file">Configuration file</h2>
 <p>The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see <a href="#configuration-arguments">Configuration arguments</a>).</p>
 <div class="highlight"><pre><span></span><code><span class="nt">alert_aggregators</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">DensityClusteringAggregator</span><span class="p">:</span>
-<span class="w">        </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">density_clustering_aggregator</span>
+<span class="w">    </span><span class="nt">TimeDeltaAggregator</span><span class="p">:</span>
+<span class="w">        </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">time_delta_aggregator</span>
 <span class="w">        </span><span class="nt">delta</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4.0</span>
 </code></pre></div>
 <p>Load it with <code>yaml.safe_load</code> and pass the dict as <code>config=</code>, as in the example. The key under <code>alert_aggregators:</code> must match the aggregator's <code>name</code>.</p>
 <h2 id="configuration-arguments">Configuration arguments</h2>
 <p>All parameters this alert aggregator accepts, grouped by the YAML block they go in. <strong>Scope</strong> tells whether a parameter is <code>specific</code> to this aggregator or <code>shared</code> with other alert aggregators.</p>
 <!-- Start arguments -->
-
+<details class="note">
+<summary>Top level</summary>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Scope</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>method_type</code></td>
+<td>string</td>
+<td>density_clustering_aggregator</td>
+<td>shared</td>
+<td>The kind of aggregation method.</td>
+</tr>
+<tr>
+<td><code>auto_config</code></td>
+<td>boolean</td>
+<td>False</td>
+<td>shared</td>
+<td>Runs the configuration step before the training process.</td>
+</tr>
+</tbody>
+</table>
+</details>
+<details class="note" open="open">
+<summary>params</summary>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Scope</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>buffer_size</code></td>
+<td>integer</td>
+<td>3</td>
+<td>specific</td>
+<td>The size of the buffer.</td>
+</tr>
+<tr>
+<td><code>buffer_mode</code></td>
+<td>object</td>
+<td>BufferMode.BATCH</td>
+<td>specific</td>
+<td>The mode of the buffer.</td>
+</tr>
+<tr>
+<td><code>delta</code></td>
+<td>number</td>
+<td>0.5</td>
+<td>specific</td>
+<td>The threshold for the clustering.</td>
+</tr>
+<tr>
+<td><code>start_id</code></td>
+<td>integer</td>
+<td>10</td>
+<td>shared</td>
+<td>Number used to start the unique ID generator.</td>
+</tr>
+<tr>
+<td><code>data_use_training</code></td>
+<td>integer, null</td>
+<td>None</td>
+<td>shared</td>
+<td>Number of logs used for training. None skips training.</td>
+</tr>
+<tr>
+<td><code>data_use_configure</code></td>
+<td>integer, null</td>
+<td>None</td>
+<td>shared</td>
+<td>Number of logs used for the configuration step. None skips it.</td>
+</tr>
+<tr>
+<td><code>use_config_data_as_training</code></td>
+<td>boolean</td>
+<td>True</td>
+<td>shared</td>
+<td>Combine the configured data in the training process if True.</td>
+</tr>
+<tr>
+<td><code>train_buffer_max_records</code></td>
+<td>integer</td>
+<td>100000</td>
+<td>shared</td>
+<td>Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records.</td>
+</tr>
+<tr>
+<td><code>train_buffer_dir</code></td>
+<td>string, null</td>
+<td>None</td>
+<td>shared</td>
+<td>Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind.</td>
+</tr>
+</tbody>
+</table>
+</details>
 <!-- End arguments -->
 
 

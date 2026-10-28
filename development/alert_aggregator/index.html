@@ -808,6 +808,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#density-clustering-aggregator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Density Clustering Aggregator
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1610,7 +1621,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../alert_aggregators/density_cluster/" class="md-nav__link">
+      <a href="../alert_aggregators/density_cluster.md" class="md-nav__link">
         
   
   
@@ -1618,6 +1629,34 @@
     
   
     02_Density Cluster
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../alert_aggregators/time_delta/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03_Time Delta
   
 
     
@@ -2171,6 +2210,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#density-clustering-aggregator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Density Clustering Aggregator
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2289,8 +2339,8 @@ unless your <code>aggregate_alerts()</code> keeps it, including their <code>dete
 </tr>
 <tr>
 <td>02</td>
-<td><a href="../alert_aggregators/density_cluster/">Density Cluster</a></td>
-<td>Base class for clustering alerts using a distance function.</td>
+<td><a href="../alert_aggregators/time_delta/">Time Delta</a></td>
+<td>Group alerts by their time difference.</td>
 </tr>
 </tbody>
 </table>
@@ -2370,6 +2420,120 @@ unless your <code>aggregate_alerts()</code> keeps it, including their <code>dete
 </table>
 </details>
 <!-- End common_arguments -->
+
+<h3 id="density-clustering-aggregator">Density Clustering Aggregator</h3>
+<p>The alert aggregators that are based on density clustering (<a href="../alert_aggregators/time_delta/">Time Delta</a>) accept also the following arguments:</p>
+<!-- Start density_clustering_arguments -->
+<details class="note">
+<summary>Top level</summary>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Scope</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>method_type</code></td>
+<td>string</td>
+<td>density_clustering_aggregator</td>
+<td>shared</td>
+<td>The kind of aggregation method.</td>
+</tr>
+<tr>
+<td><code>auto_config</code></td>
+<td>boolean</td>
+<td>False</td>
+<td>shared</td>
+<td>Runs the configuration step before the training process.</td>
+</tr>
+</tbody>
+</table>
+</details>
+<details class="note" open="open">
+<summary>params</summary>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Scope</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>buffer_size</code></td>
+<td>integer</td>
+<td>3</td>
+<td>specific</td>
+<td>The size of the buffer.</td>
+</tr>
+<tr>
+<td><code>buffer_mode</code></td>
+<td>object</td>
+<td>BufferMode.BATCH</td>
+<td>specific</td>
+<td>The mode of the buffer.</td>
+</tr>
+<tr>
+<td><code>delta</code></td>
+<td>number</td>
+<td>0.5</td>
+<td>specific</td>
+<td>The threshold for the clustering.</td>
+</tr>
+<tr>
+<td><code>start_id</code></td>
+<td>integer</td>
+<td>10</td>
+<td>shared</td>
+<td>Number used to start the unique ID generator.</td>
+</tr>
+<tr>
+<td><code>data_use_training</code></td>
+<td>integer, null</td>
+<td>None</td>
+<td>shared</td>
+<td>Number of logs used for training. None skips training.</td>
+</tr>
+<tr>
+<td><code>data_use_configure</code></td>
+<td>integer, null</td>
+<td>None</td>
+<td>shared</td>
+<td>Number of logs used for the configuration step. None skips it.</td>
+</tr>
+<tr>
+<td><code>use_config_data_as_training</code></td>
+<td>boolean</td>
+<td>True</td>
+<td>shared</td>
+<td>Combine the configured data in the training process if True.</td>
+</tr>
+<tr>
+<td><code>train_buffer_max_records</code></td>
+<td>integer</td>
+<td>100000</td>
+<td>shared</td>
+<td>Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records.</td>
+</tr>
+<tr>
+<td><code>train_buffer_dir</code></td>
+<td>string, null</td>
+<td>None</td>
+<td>shared</td>
+<td>Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind.</td>
+</tr>
+</tbody>
+</table>
+</details>
+<!-- End density_clustering_arguments -->
 
 
 

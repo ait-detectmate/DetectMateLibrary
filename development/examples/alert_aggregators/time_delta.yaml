@@ -1,0 +1,4 @@
+alert_aggregators:
+    TimeDeltaAggregator:
+        method_type: time_delta_aggregator
+        delta: 4.0
