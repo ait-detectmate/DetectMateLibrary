@@ -7,6 +7,7 @@ This module tests the EventSequenceDetector implementation including:
 - Window handling (reset_window) and end-to-end regression on audit.log
 """
 
+import logging
 import pytest
 from pydantic import ValidationError
 
@@ -893,3 +894,19 @@ class TestEventSequenceDetectorClassification:
         assert tracker.classification.enabled == ("index", "time", "slope_index")
         assert tracker.classification.decision == "majority"
         assert len(tracker.timestamps) == len(tracker.change_series)
+
+
+class TestEventSequenceDetectorInertWarning:
+    def test_default_build_does_not_warn(self, caplog):
+        with caplog.at_level(logging.WARNING):
+            EventSequenceDetector(config=EventSequenceDetectorConfig())
+        assert not any("data_use_configure is not set" in r.message for r in caplog.records)
+
+    def test_no_configure_phase_warns_once(self, caplog):
+        detector = EventSequenceDetector(config=EventSequenceDetectorConfig())
+        with caplog.at_level(logging.WARNING):
+            for event_id in [1, 2, 3]:
+                detector.train(_make_schema(event_id))
+            detector.detect(_make_schema(4), sc.DetectorSchema())
+        assert sum("data_use_configure is not set" in r.message for r in caplog.records) == 1
+        assert detector.get_known_sequences() == set()

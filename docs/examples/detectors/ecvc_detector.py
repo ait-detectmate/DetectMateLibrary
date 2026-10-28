@@ -14,7 +14,7 @@ def event(event_id: int) -> schemas.ParserSchema:
 
 
 # normal session: 0 = login accepted, 1 = session opened, 2 = session closed.
-# The detector works on sliding windows of 3 logs (window_size: 3).
+# The detector works on sliding windows of 3 logs (fixed_window_size: 3).
 for log in [event(i) for i in [0, 1, 2] * 8]:
     detector.process(log)
 

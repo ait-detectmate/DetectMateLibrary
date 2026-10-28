@@ -20,7 +20,7 @@ from detectmatelibrary.detectors.new_value_combo_detector import (
 )
 from detectmatelibrary.detectors.new_event_detector import NewEventDetector, NewEventDetectorConfig
 from detectmatelibrary.detectors.rule_detector import RuleDetector
-from detectmatelibrary.base_detectors import PersistConfig
+from detectmatelibrary.base_detectors import PersistConfig, SequenceAutoConfigParams
 from detectmatelibrary.utils.persistency.persistency_saver import PersistencySaver
 
 
@@ -409,7 +409,7 @@ class TestECVCDetectorPersist:
         det_name = "ECVC_Reload"
         config_args = dict(
             auto_config=False,
-            window_size=WINDOW_SIZE,
+            fixed_window_size=WINDOW_SIZE,
             validation_per=0.5,
             seed=0,
             threshold_method="mean",
@@ -421,8 +421,8 @@ class TestECVCDetectorPersist:
                 persist=PersistConfig(path=base_path), **config_args
             ),
         )
-        for window in TRAIN_WINDOWS:
-            det1.train(_window(window))
+        for event_id in sum(TRAIN_WINDOWS, []):
+            det1.train(_window([event_id])[0])
         det1.post_train()
         assert det1.count_vecs is not None
         assert isinstance(det1.saver, PersistencySaver)
@@ -442,11 +442,11 @@ class TestECVCDetectorPersist:
 
     def test_import_state_rebuilds_model(self):
         config_args = dict(
-            auto_config=False, window_size=WINDOW_SIZE, validation_per=0.5, seed=0
+            auto_config=False, fixed_window_size=WINDOW_SIZE, validation_per=0.5, seed=0
         )
         det1 = ECVCDetector(name="ECVC_ImpSrc", config=ECVCDetectorConfig(**config_args))
-        for window in TRAIN_WINDOWS:
-            det1.train(_window(window))
+        for event_id in sum(TRAIN_WINDOWS, []):
+            det1.train(_window([event_id])[0])
         det1.post_train()
         state = det1.export_state()
 
@@ -456,6 +456,67 @@ class TestECVCDetectorPersist:
         assert det2.count_vecs is not None
         assert np.array_equal(det2.count_vecs, det1.count_vecs)
 
+    def test_import_state_adopts_persisted_window_size(self):
+        config_args = dict(auto_config=False, validation_per=0.5, seed=0)
+        det1 = ECVCDetector(
+            name="ECVC_LenSrc", config=ECVCDetectorConfig(fixed_window_size=4, **config_args)
+        )
+        for event_id in sum(TRAIN_WINDOWS, []):
+            det1.train(_window([event_id])[0])
+        det1.post_train()
+        state = det1.export_state()
+
+        det2 = ECVCDetector(
+            name="ECVC_LenDst", config=ECVCDetectorConfig(fixed_window_size=6, **config_args)
+        )
+        det2.import_state(state)
+
+        assert det2.config.fixed_window_size == 4
+        assert det2._detect_window.maxlen == 4
+        assert det2.count_vecs is not None and det1.count_vecs is not None
+        assert np.array_equal(det2.count_vecs, det1.count_vecs)
+
     def test_untrained_detector_stays_silent(self):
-        det = ECVCDetector(name="ECVC_Empty", config=ECVCDetectorConfig(auto_config=False))
-        assert det.detect(_window(UNSEEN_WINDOW), schemas.DetectorSchema()) is False
+        det = ECVCDetector(
+            name="ECVC_Empty",
+            config=ECVCDetectorConfig(auto_config=False, fixed_window_size=WINDOW_SIZE),
+        )
+        for record in _window(UNSEEN_WINDOW):
+            assert det.detect(record, schemas.DetectorSchema()) is False
+
+    def test_restored_state_disables_auto_config(self, caplog: pytest.LogCaptureFixture) -> None:
+        """Auto-configuration would pick a size the restored count vectors were
+        never counted at."""
+        base_path = "memory://ecvc_autoconf/state"
+        det1 = ECVCDetector(
+            name="ECVC_AutoConf",
+            config=ECVCDetectorConfig(
+                auto_config=False, fixed_window_size=3, persist=PersistConfig(path=base_path)
+            ),
+        )
+        for record in _window([0, 1, 4, 0, 1, 4]):
+            det1.train(record)
+        assert det1.saver is not None
+        det1.saver.save()
+        det1.saver.stop()
+
+        det2 = ECVCDetector(
+            name="ECVC_AutoConf",
+            config=ECVCDetectorConfig(
+                data_use_configure=5,
+                data_use_training=1,
+                # 3 deliberately excluded
+                auto_config_params=SequenceAutoConfigParams(min_window_size=4, max_window_size=5),
+                persist=PersistConfig(path=base_path, auto_load=True),
+            ),
+        )
+        assert det2.saver is not None
+        det2.saver.stop()
+
+        with caplog.at_level(logging.WARNING):
+            for record in _window([1, 2, 3, 1, 2, 3]):
+                det2.process(record)
+
+        assert det2.config.fixed_window_size == 3
+        assert any("persisted state was restored" in r.message for r in caplog.records)
+        assert {decode_count_vec(str(key))[0] for key in det2.persistency.get_events_seen()} == {3}

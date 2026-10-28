@@ -1,4 +1,11 @@
-from detectmatelibrary.base_detectors import StabilityAutoConfigParams, TrackerDetector, TrackerDetectorConfig
+from detectmatelibrary.base_detectors import (
+    SequenceAutoConfigParams,
+    TrackerDetector,
+    TrackerDetectorConfig,
+    choose_window_length,
+    feed_candidate_windows,
+    warn_if_never_configured,
+)
 from detectmatelibrary.common._config._compile import generate_events_config
 
 from detectmatelibrary.tools.logging import logger
@@ -10,38 +17,7 @@ from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 from collections import deque
 
 from typing_extensions import override, Any
-from pydantic import Field, model_validator
-
-
-class SequenceAutoConfigParams(StabilityAutoConfigParams):
-    """Configure-phase inputs: the candidate window lengths to try.
-
-    @param min_window_size shortest window length tried during the
-           auto-configuration phase. Only used while `fixed_window_size` is None.
-    @param max_window_size longest window length tried during the
-           auto-configuration phase. The longest length whose sequences are
-           classified STABLE or STATIC wins.
-    """
-
-    min_window_size: int = Field(
-        default=2,
-        ge=1,
-        description="Shortest window length tried by the configure phase. Must be >= 1.",
-    )
-    max_window_size: int = Field(
-        default=10,
-        ge=1,
-        description=(
-            "Longest window length tried by the configure phase; the longest length whose "
-            "sequences are STABLE or STATIC wins. Must be >= min_window_size."
-        ),
-    )
-
-    @model_validator(mode="after")
-    def _validate_window_range(self) -> "SequenceAutoConfigParams":
-        if self.max_window_size < self.min_window_size:
-            raise ValueError("max_window_size must be >= min_window_size")
-        return self
+from pydantic import Field
 
 
 class EventSequenceDetectorConfig(TrackerDetectorConfig):
@@ -82,6 +58,7 @@ class EventSequenceDetector(TrackerDetector):
         self._detect_window: deque[int] = deque(maxlen=config.fixed_window_size)
         self._configure_windows: dict[int, deque[int]] = {}
         self._restored_length: int | None = None
+        self._warned_unconfigured = False
 
         super().__init__(
             name=name,
@@ -135,6 +112,9 @@ class EventSequenceDetector(TrackerDetector):
         No-op while the window size is unconfigured.
         """
         if (length := self.config.fixed_window_size) is None:
+            self._warned_unconfigured = warn_if_never_configured(
+                self.name, self.config, self._warned_unconfigured
+            )
             return
         self._train_window.append(input_["eventID"])
         if len(self._train_window) < length:
@@ -152,6 +132,9 @@ class EventSequenceDetector(TrackerDetector):
         sequence. No-op while the window size is unconfigured.
         """
         if (length := self.config.fixed_window_size) is None:
+            self._warned_unconfigured = warn_if_never_configured(
+                self.name, self.config, self._warned_unconfigured
+            )
             return False
         self._detect_window.append(input_["eventID"])
         if len(self._detect_window) < length:
@@ -184,16 +167,15 @@ class EventSequenceDetector(TrackerDetector):
         if self.config.fixed_window_size is not None:
             return
         auto = self.config.auto_config_params
-        for length in range(auto.min_window_size, auto.max_window_size + 1):
-            window = self._configure_windows.setdefault(length, deque(maxlen=length))
-            window.append(input_["eventID"])
-            if len(window) == length:
-                self.auto_conf_persistency.ingest_event(
-                    event_id=length,
-                    event_template=input_["template"],
-                    named_variables={"seq": tuple(window)},
-                    timestamp=self._timestamps.read(input_),
-                )
+        for length, window in feed_candidate_windows(
+            self._configure_windows, input_["eventID"], auto
+        ):
+            self.auto_conf_persistency.ingest_event(
+                event_id=length,
+                event_template=input_["template"],
+                named_variables={"seq": tuple(window)},
+                timestamp=self._timestamps.read(input_),
+            )
 
     def set_configuration(self) -> None:
         """Choose `fixed_window_size` from the configure-phase data.
@@ -219,37 +201,15 @@ class EventSequenceDetector(TrackerDetector):
             self._release_configure_state()
             return
 
-        stable = []
-        for (
-            length,
-            event_tracker,
-        ) in self.auto_conf_persistency.get_events_data().items():
-            tracker = event_tracker.get_data()["seq"]
-            if len(tracker.change_series) < tracker.min_samples:  # type: ignore
-                continue
-            if tracker.classify().type in ("STABLE", "STATIC"):
-                stable.append(int(length))
-
-        if not stable:
-            auto = self.config.auto_config_params
-            logger.warning(
-                f"[{self.name}] auto_config=True found no stable window size in "
-                f"[{auto.min_window_size}..{auto.max_window_size}]. "
-                "Generating an empty configuration — no instance of this detector is "
-                "created and it will neither train nor alert."
-            )
-            self.config.events = generate_events_config({}, self.name)
-            self.config.auto_config = False
-            self._release_configure_state()
-            return
-
-        chosen = max(stable)
-        logger.debug(
-            f"[{self.name}] auto_config selected fixed_window_size={chosen} "
-            f"from stable candidates {sorted(stable)}."
+        chosen = choose_window_length(
+            self.name,
+            self.auto_conf_persistency.get_events_data(),
+            "seq",
+            self.config.auto_config_params,
         )
         self.config.events = generate_events_config({}, self.name)
-        self._set_window_length(chosen)
+        if chosen is not None:
+            self._set_window_length(chosen)
         self.config.auto_config = False
         self._release_configure_state()
 

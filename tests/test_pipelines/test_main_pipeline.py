@@ -148,7 +148,7 @@ class TestPipeline:
             detectors=[
                 ECVCDetectorConfig(
                     data_use_configure=TRAIN_UNTIL,
-                    window_size=10,
+                    fixed_window_size=10,
                     seed=0,
                     validation_per=0.,
                     threshold_method="mean"
@@ -184,7 +184,7 @@ class TestPipeline:
             detectors=[
                 ECVCDetectorConfig(
                     data_use_configure=TRAIN_UNTIL,
-                    window_size=10,
+                    fixed_window_size=10,
                     seed=0,
                     validation_per=0.,
                     threshold_method="mean"

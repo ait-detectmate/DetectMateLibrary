@@ -22,7 +22,7 @@ config = PipelineConfig(
                     "ECVCDetector": {
                         "method_type": "ecvc_detector",
                         "data_use_configure": 100,
-                        "window_size": 10,
+                        "fixed_window_size": 10,
                         "seed": 0,
                         "validation_per": 0.,
                         "threshold_method": "mean"

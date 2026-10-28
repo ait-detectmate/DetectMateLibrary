@@ -31,7 +31,9 @@ _CHARSET_CONFIG = {
     }
 }
 _SEQUENCE = [1, 2, 3, 1, 2, 3]
-_ECVC_WINDOWS = [[1, 2, 3], [1, 1, 2], [2, 3, 3], [1, 2, 3]]
+# Trained per line: its 3-windows give exactly the count vectors of the old
+# windows [1,2,3], [1,1,2] and [2,3,3] that wrote the fixture.
+_ECVC_STREAM = [3, 3, 2, 1, 1]
 
 
 def _event(event_id: int, variables: list[str] | None = None) -> schemas.ParserSchema:
@@ -51,7 +53,7 @@ def _sequence(fixed_window_size: int = 3) -> EventSequenceDetector:
 
 
 def _ecvc() -> ECVCDetector:
-    return ECVCDetector(config=ECVCDetectorConfig(window_size=3))
+    return ECVCDetector(config=ECVCDetectorConfig(fixed_window_size=3))
 
 
 def _trained() -> dict[str, CharsetDetector | EventSequenceDetector | ECVCDetector]:
@@ -62,8 +64,8 @@ def _trained() -> dict[str, CharsetDetector | EventSequenceDetector | ECVCDetect
     for event_id in _SEQUENCE:
         sequence.train(_event(event_id))
     ecvc = _ecvc()
-    for window in _ECVC_WINDOWS:
-        ecvc.train([_event(event_id) for event_id in window])
+    for event_id in _ECVC_STREAM:
+        ecvc.train(_event(event_id))
     ecvc.post_train()
     return {"charset": charset, "event_sequence": sequence, "ecvc": ecvc}
 

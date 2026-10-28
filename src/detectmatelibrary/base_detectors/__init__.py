@@ -13,6 +13,12 @@ from ._persist import PersistConfig
 from .deeplearning_detector import DeepLearningDetector, DeepLearningDetectorConfig
 from ._stability import StabilityAutoConfigParams
 from .tracker_detector import TrackerDetector, TrackerDetectorConfig
+from ._window_autoconfig import (
+    SequenceAutoConfigParams,
+    choose_window_length,
+    feed_candidate_windows,
+    warn_if_never_configured,
+)
 from .variable_detector import VariableAutoConfigParams, VariableDetector, VariableDetectorConfig
 
 __all__ = [
@@ -20,6 +26,7 @@ __all__ = [
     "DeepLearningDetectorConfig",
     "EventStabilityTracker",
     "PersistConfig",
+    "SequenceAutoConfigParams",
     "SingleStabilityTracker",
     "StabilityAutoConfigParams",
     "TrackerDetector",
@@ -27,4 +34,7 @@ __all__ = [
     "VariableAutoConfigParams",
     "VariableDetector",
     "VariableDetectorConfig",
+    "choose_window_length",
+    "feed_candidate_windows",
+    "warn_if_never_configured",
 ]
