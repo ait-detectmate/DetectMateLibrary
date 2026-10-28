@@ -1,0 +1,4 @@
+op=start ver=<*> format=<*> kernel=<*> auid=<*> pid=<*> uid=<*> ses=<*> res=<*>
+op=set <*> old=<*> auid=<*> ses=<*> res=<*>
+arch=<*> syscall=<*> success=<*> exit=<*> a0=<*> a1=<*> a2=<*> a3=<*> items=<*> ppid=<*> pid=<*> auid=<*> uid=<*> gid=<*> euid=<*> suid=<*> fsuid=<*> egid=<*> sgid=<*> fsgid=<*> tty=<*> ses=<*> comm=<*> exe=<*> key=<*>
+proctitle=<*>

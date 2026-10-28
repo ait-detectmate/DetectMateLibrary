@@ -1,0 +1,5 @@
+detectors:
+  NewEventDetector:
+    method_type: new_event_detector
+    params:
+      data_use_training: 3      # learn the known EventIDs from the first 3 logs, then detect
