@@ -165,6 +165,7 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
                 logger.debug(f"<<{self.name}>> Adding data from config to training")
                 for input_ in self.buffer_train:
                     self.train(input_)
+                    fit_state = self.fitlogic.run()  # must increase data_used counter.
         if fit_state == FitLogicState.DO_TRAIN:
             logger.debug(f"<<{self.name}>> use data for training")
             self.train(input_=data_buffered)
