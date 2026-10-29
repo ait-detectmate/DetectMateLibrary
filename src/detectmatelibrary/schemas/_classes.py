@@ -1,4 +1,6 @@
+from detectmatelibrary.schemas.connectors import select_connector, DefaultConnector
 import detectmatelibrary.schemas._op as op
+
 
 from typing_extensions import Self
 from typing import Any
@@ -66,13 +68,28 @@ class SchemaVariables:
         return is_list
 
 
+SCHEMA_CONNECTOR: str = "default"
+SCHEMA_URL: str = "url"
+
+
+def set_connector(connector: str = "Default", url: str = "None") -> None:
+    global SCHEMA_CONNECTOR
+    SCHEMA_CONNECTOR = connector
+
+    global SCHEMA_URL
+    SCHEMA_URL = url
+
+
 class BaseSchema(SchemaVariables):
     def __init__(
         self,
+        primary_key: str = "None",
         schema_class: op.SchemaT = op.BASE_SCHEMA,
         kwargs: dict[str, Any] | None = None
     ) -> None:
         super().__init__(schema_class=schema_class, kwargs=kwargs)
+        self._conector: DefaultConnector = select_connector(SCHEMA_CONNECTOR)(url=SCHEMA_URL)
+        self.primary_key = primary_key
 
     def __str__(self) -> str:
         return str(self.get_schema())
@@ -89,20 +106,12 @@ class BaseSchema(SchemaVariables):
         return op.serialize(schema=self.get_schema())
 
     def deserialize(self, message: bytes) -> None:
-        """Deserialize bytes to populate the schema instance.
-
-        Raises:
-            NotSupportedSchema: If the bytes cannot be parsed.
-        """
+        """Deserialize bytes to populate the schema instance."""
         schema = op.deserialize(schema_class=self.schema_class, message=message)
         self.set_schema(schema=schema)
 
     def check_is_same(self, other: Self) -> None:
-        """Check if another schema instance is of the same schema type.
-
-        Raises:
-            IncorrectSchema: If the other instance is of another schema type.
-        """
+        """Check if another schema instance is of the same schema type."""
         op.check_is_same_schema(
             id_schema_1=self.schema_class,
             id_schema_2=other.schema_class
@@ -125,6 +134,15 @@ class BaseSchema(SchemaVariables):
             raise FieldNotFound(idx, self.var_names)
 
         return setattr(self, idx, value)
+
+    # --------------- Connection methods
+    def store(self) -> None:
+        self._conector.store_data(self[self.primary_key], data=self.as_dict())
+
+    @classmethod
+    def from_id(cls, id_: str) -> "BaseSchema":
+        (inst := cls()).init_schema(inst._conector.restore_data(id_))
+        return inst
 
 
 # Main schema classes ########################################
