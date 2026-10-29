@@ -25,20 +25,22 @@
 from __future__ import annotations
 
 import re
+import signal
 from types import FrameType
 from typing import Optional, Tuple
 
 from .cluster import Cluster
 
-import signal
 
 class TimeoutException(Exception):
     pass
 
+
 def timeout_handler(_signum: int, _frame: Optional[FrameType]) -> None:
     raise TimeoutException()
 
-def safe_search(pattern: str, string: str, timeout: float = 0.5) -> Optional[re.Match[str]]:
+
+def safe_search(pattern: str, string: str, timeout: int = 1) -> Optional[re.Match[str]]:
     signal.signal(signal.SIGALRM, timeout_handler)
     signal.alarm(timeout)
     try:
@@ -52,17 +54,18 @@ def safe_search(pattern: str, string: str, timeout: float = 0.5) -> Optional[re.
 
 # @timeout(10)
 def extract_variables(log: str, template: str) -> Optional[Tuple[str, ...]]:
-    log = re.sub(r'\s+', ' ', log.strip()) # DS
+    log = re.sub(r'\s+', ' ', log.strip())  # DS
     pattern_parts = template.split("<*>")
     pattern_parts_escaped = [re.escape(part) for part in pattern_parts]
     regex_pattern = "(.*?)".join(pattern_parts_escaped)
-    regex = "^" + regex_pattern + "$"  
+    regex = "^" + regex_pattern + "$"
     # matches = re.search(regex, log)
     matches = safe_search(regex, log, 1)
     if matches:
         return matches.groups()
     else:
         return None
+
 
 def matches_template(log: str, cached_pair: Tuple[str, str]) -> Optional[str]:
 
@@ -75,9 +78,9 @@ def matches_template(log: str, cached_pair: Tuple[str, str]) -> Optional[str]:
 
     try:
         groups = extract_variables(log, template)
-    except:
+    except Exception:
         groups = None
-    if groups == None:
+    if groups is None:
         return None
 
     # consider the case where the varaible is empty
@@ -93,13 +96,12 @@ def matches_template(log: str, cached_pair: Tuple[str, str]) -> Optional[str]:
     return ''.join(parts)
 
 
-
 def prune_from_cluster(template: str, cluster: Cluster) -> Tuple[Cluster, Cluster]:
 
     new_cluster = Cluster()
     logs, indexs = cluster.logs, cluster.indexs
     for log, index in zip(logs, indexs):
-        if extract_variables(log, template) == None:
+        if extract_variables(log, template) is None:
             new_cluster.append_log(log, index)
     if new_cluster.size != 0:
         old_logs = [log for log in logs if log not in new_cluster.logs]
