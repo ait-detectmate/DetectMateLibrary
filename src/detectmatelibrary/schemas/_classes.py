@@ -106,7 +106,7 @@ class BaseSchema(SchemaVariables):
     def copy(self) -> Self:
         """Create a deep copy of the schema instance."""
         copy_schema = op.copy(schema_class=self.schema_class, schema=self.get_schema())
-        new_instance = type(self)(schema_class=self.schema_class)
+        new_instance = type(self)()
         new_instance.set_schema(copy_schema)
         return new_instance
 
