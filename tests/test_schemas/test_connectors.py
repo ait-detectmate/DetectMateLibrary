@@ -5,6 +5,23 @@ import detectmatelibrary.schemas as sc
 import pytest
 
 
+dummy_parser_schema = {
+    "parserType": "testType",
+    "parserID": "Parser_1",
+    "eventID": 2,
+    "template": "hello there <*>",
+    "variables": ["General", "Kenobi"],
+    "logID": "log1",
+    "log": "hello there General Kenobi",
+    "headerVariables": {
+        "Time": "-1", "Level": "info"
+    },
+    "receivedTimestamp": -2,
+    "parsedTimestamp": 1,
+    "parsedLogID": "Parsed_1",
+}
+
+
 class TestConnectors:
     def test_arguments(self):
         sc.set_connector("Default", url="None", reset_ver=True)
@@ -60,3 +77,29 @@ class TestConnectors:
 
         log_schema = sc.LogSchema.from_id("Log1")
         assert isinstance(log_schema, sc.LogSchema)
+
+    def test_check_complex_schema(self):
+        sc.set_connector("Verification", reset_ver=True)
+        parsed_schema = sc.ParserSchema(dummy_parser_schema).store()
+
+        assert ver_record["Parsed_1"][0] == {
+            '__version__': '2.0.0',
+            "parserType": "testType",
+            "parserID": "Parser_1",
+            "eventID": 2,
+            "template": "hello there <*>",
+            "variables": '$LIST$_["General", "Kenobi"]',
+            "logID": "log1",
+            "log": "hello there General Kenobi",
+            "headerVariables": "$DICT$_1",
+            "receivedTimestamp": -2,
+            "parsedTimestamp": 1,
+            "parsedLogID": "Parsed_1",
+        }
+        assert ver_record["Parsed_1"][1] == {
+            "Time": "-1",
+            "Level": "info"
+        }
+
+        parsed_schema2 = sc.ParserSchema.from_id("Parsed_1")
+        assert parsed_schema == parsed_schema2
