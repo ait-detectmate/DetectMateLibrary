@@ -1,5 +1,5 @@
 from detectmatelibrary.schemas.connectors import select_connector, DefaultConnector
-from detectmatelibrary.schemas.connectors.default import verification_dict  # noqa: ignore
+from detectmatelibrary.schemas.connectors.default import ver_record  # noqa: ignore
 
 import detectmatelibrary.schemas._op as op
 
@@ -85,8 +85,8 @@ def set_connector(
     SCHEMA_URL = url
 
     if reset_ver:
-        global verification_dict
-        verification_dict = {}
+        global ver_record
+        ver_record = {}
 
 
 class BaseSchema(SchemaVariables):

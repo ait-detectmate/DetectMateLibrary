@@ -1,5 +1,5 @@
 
-from detectmatelibrary.schemas.connectors.default import verification_dict
+from detectmatelibrary.schemas.connectors.default import ver_record
 import detectmatelibrary.schemas as sc
 
 import pytest
@@ -23,6 +23,7 @@ class TestConnectors:
     def test_store_data_connector(self):
         sc.set_connector("Verification", reset_ver=True)
         expected = {
+            "__version__": "2.0.0",
             "logID": "Log1",
             "log": "Hello world",
             "logSource": "World",
@@ -30,8 +31,7 @@ class TestConnectors:
         }
         sc.LogSchema(expected).store()
 
-        expected["__version__"] = "2.0.0"
-        assert verification_dict == {"Log1": expected}
+        assert ver_record == {"Log1": [expected]}
 
     def test_restore_data(self):
         sc.set_connector("Verification", reset_ver=True)
@@ -44,7 +44,7 @@ class TestConnectors:
         }
         log_schema = sc.LogSchema({"logID": "Log1"})
 
-        verification_dict["Log1"] = expected
+        ver_record["Log1"] = [expected]
         assert log_schema.restore().as_dict() == expected
 
     def test_from_id(self):
@@ -56,7 +56,7 @@ class TestConnectors:
             "logSource": "World",
             "hostname": "Hello"
         }
-        verification_dict["Log1"] = expected
+        ver_record["Log1"] = [expected]
 
         log_schema = sc.LogSchema.from_id("Log1")
         assert isinstance(log_schema, sc.LogSchema)
