@@ -8,7 +8,7 @@ import optax
 from functools import lru_cache
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 from tqdm import tqdm
 from math import ceil
 
@@ -183,6 +183,29 @@ def train(
     }
 
 
+Scorer = Callable[[dict[str, Any], jnp.ndarray, int, int], jnp.ndarray]
+
+
+def _compile_scorer(model: LogBertModel, mask: Mask) -> Scorer:
+    """Jit-compile the anomaly score of one LogBERT model.
+
+    The compiled function takes the parameters, a window ``x`` of shape
+    (1, window), a draw number ``i`` of ``mask`` and a static ``top_k``.
+    It masks ``x`` with draw ``i`` and returns how many masked events
+    are not among the model's ``top_k`` predictions for their position.
+    """
+    def score(params: dict[str, Any], x: jnp.ndarray, i: int, top_k: int) -> jnp.ndarray:
+        m = mask.at(i, x.shape[0])
+        y, _ = model.apply({"params": params}, x * m, training=False)
+
+        idx = jnp.nonzero(m[0] == 0, size=mask.s0)[0]
+        pred = jnp.argsort(y[0, idx], axis=1, descending=True)[:, :top_k]
+        return jnp.sum(~jnp.any(pred == x[0, idx][:, None], axis=1))
+
+    compiled: Scorer = jax.jit(score, static_argnums=3)
+    return compiled
+
+
 ## Final model
 default_config = {
     "Model": {
@@ -210,6 +233,7 @@ class LogBert(DeepModel):
         self.params = {}
         self.model: LogBertModel | None = None
         self.mask: Mask | None = None
+        self._scorer: Scorer | None = None
         self.config_train = TrainConfig(**self.config["Train"])
 
     def __str__(self) -> str:
@@ -234,15 +258,11 @@ class LogBert(DeepModel):
 
     @lru_cache
     def check_anomaly(self, seq: tuple[int], top_k: int) -> int:
-        if self.model is None:
+        if self.model is None or self.mask is None or self._scorer is None:
             return False
-        
-        pred, y = self.top_pred(jnp.array([seq]))
-        pred = pred[:, :top_k]
-        score = 0
-        for i in range(pred.shape[0]):
-            score += not bool(jnp.isin(y[i], pred[i]))
-        return score
+
+        # One mask draw per uncached call, from the counter training left.
+        return int(self._scorer(self.params, jnp.array([seq]), self.mask.next_draw(), top_k))
 
     def _prepare_data(self, seqs: list[tuple[int]], var_per: float) -> tuple[jnp.ndarray]:
         seed = jax.random.key(self.config_train.seed)
@@ -263,7 +283,8 @@ class LogBert(DeepModel):
         )
         self.params, stats = train(
             model=self.model, mask=self.mask, x=train_seqs, x_val=val_seqs, trainConfig=self.config_train
-        ) 
+        )
+        self._scorer = _compile_scorer(self.model, self.mask)
         stats["top_k"] = self.get_best_k(val_seqs)
 
         return stats

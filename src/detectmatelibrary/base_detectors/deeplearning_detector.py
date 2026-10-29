@@ -8,6 +8,7 @@ from detectmatelibrary import schemas
 
 from typing import Any
 from pydantic import Field
+import numpy as np
 import logging
 
 
@@ -23,6 +24,20 @@ class DeepLearningDetectorConfig(CoreDetectorConfig):
     finetune_epochs: int = Field(
         default=2,
         description="Number of epochs used when finetuning during the configuration phase.",
+    )
+    train_sample: float = Field(
+        default=1.0,
+        gt=0.0,
+        le=1.0,
+        description=(
+            "Fraction of the collected sequences the model finetunes and trains on: a seeded "
+            "random sample, kept in log order, rounded down to at least one sequence. "
+            "1.0 uses every sequence."
+        ),
+    )
+    train_sample_seed: int = Field(
+        default=0,
+        description="Seed of the train_sample draw, so reruns use the same sequences.",
     )
 
     hyperparameters: dict[str, Any] = Field(
@@ -44,6 +59,21 @@ class DeepLearningDetectorConfig(CoreDetectorConfig):
 
 def build_seq(input_: list[schemas.ParserSchema]) -> tuple[int]:
     return tuple([in_["eventID"] for in_ in input_])
+
+
+def sample_seqs(seqs: list[tuple[int]], share: float, seed: int) -> list[tuple[int]]:
+    """Keep a seeded random ``share`` of the sequences, in log order.
+
+    The count is rounded down, but at least one sequence is kept.
+    ``share`` 1.0 returns ``seqs`` itself.
+    """
+    if share >= 1.0 or not seqs:
+        return seqs
+
+    n_keep = max(1, int(share * len(seqs)))
+    keep = np.sort(np.random.default_rng(seed).choice(len(seqs), size=n_keep, replace=False))
+    logging.info(f"train_sample {share}: keeping {n_keep} of {len(seqs)} sequences")
+    return [seqs[i] for i in keep]
 
 
 class DeepLearningDetector(CoreDetector):
@@ -77,14 +107,19 @@ class DeepLearningDetector(CoreDetector):
     def configure(self, input_: list[schemas.ParserSchema]) -> None:  # type: ignore
         self.config_seqs.append(build_seq(input_))
 
+    def _sample(self, seqs: list[tuple[int]]) -> list[tuple[int]]:
+        return sample_seqs(seqs, share=self.config.train_sample, seed=self.config.train_sample_seed)
+
     def set_configuration(self) -> None:
         self.model.finetune(
-            self.config_seqs, var_per=self.config.validation_per, epochs=self.config.finetune_epochs
+            self._sample(self.config_seqs),
+            var_per=self.config.validation_per,
+            epochs=self.config.finetune_epochs,
         )
         self.config_seqs = []
 
     def post_train(self) -> None:
-        self.stats = self.model.train(self.train_seqs, var_per=self.config.validation_per)
+        self.stats = self.model.train(self._sample(self.train_seqs), var_per=self.config.validation_per)
         self.train_seqs = []
 
         if "top_k" in self.stats:
