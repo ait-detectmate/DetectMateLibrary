@@ -168,7 +168,8 @@ class TestCoreAlertAggregator:
             "logIDs": ["logID1"],
             "description": "Mockup aggregator",
             "logTimestamps": [-1],
-            "alertDetails": {}
+            "alertDetails": {},
+            "aggregateID": "TestAAG_10",
         })
         data = sc.DetectorSchema(dummy_schema)
         result = alert_aggregator.process(data)
@@ -185,7 +186,8 @@ class TestCoreAlertAggregator:
             "logIDs": ["logID1"],
             "description": "Mockup aggregator",
             "logTimestamps": [-1],
-            "alertDetails": {}
+            "alertDetails": {},
+            "aggregateID": "TestDetector_10",
         })
         data = sc.DetectorSchema(dummy_schema)
 
@@ -208,7 +210,8 @@ class TestCoreAlertAggregator:
             "logIDs": ["logID1"],
             "description": "Mockup aggregator",
             "logTimestamps": [-1],
-            "alertDetails": {}
+            "alertDetails": {},
+            "aggregateID": "TestDetector_10",
         })
         data = sc.DetectorSchema(dummy_schema)
 

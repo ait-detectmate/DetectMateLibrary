@@ -51,4 +51,5 @@ message AggregateSchema {
     repeated int64 logTimestamps = 9;
     optional string description = 10;
     map<string, string> alertDetails = 12;
+    optional string aggregateID = 13;
 }
