@@ -21,9 +21,11 @@ class DefaultConnector:
         return f"Connector <{self.name}> connected to: {self.url}"
 
     def to_database(self, id_: str, data: list[dict[str, Any]]) -> None:
+        """Implement method."""
         pass
 
     def from_databse(self, id_: str) -> list[dict[str, Any]]:
+        """Implement method."""
         return [{}]
 
     def store_data(self, id_: str, data: dict[str, Any]) -> None:
