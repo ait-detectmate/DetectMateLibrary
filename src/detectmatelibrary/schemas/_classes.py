@@ -1,4 +1,6 @@
 from detectmatelibrary.schemas.connectors import select_connector, DefaultConnector
+from detectmatelibrary.schemas.connectors.default import verification_dict  # noqa: ignore
+
 import detectmatelibrary.schemas._op as op
 
 
@@ -68,16 +70,23 @@ class SchemaVariables:
         return is_list
 
 
-SCHEMA_CONNECTOR: str = "default"
+SCHEMA_CONNECTOR: str = "Default"
 SCHEMA_URL: str = "url"
 
 
-def set_connector(connector: str = "Default", url: str = "None") -> None:
+def set_connector(
+    connector: str = "Default", url: str = "None", reset_ver: bool = False
+) -> None:
+
     global SCHEMA_CONNECTOR
     SCHEMA_CONNECTOR = connector
 
     global SCHEMA_URL
     SCHEMA_URL = url
+
+    if reset_ver:
+        global verification_dict
+        verification_dict = {}
 
 
 class BaseSchema(SchemaVariables):
@@ -94,10 +103,10 @@ class BaseSchema(SchemaVariables):
     def __str__(self) -> str:
         return str(self.get_schema())
 
-    def copy(self) -> "BaseSchema":
+    def copy(self) -> Self:
         """Create a deep copy of the schema instance."""
         copy_schema = op.copy(schema_class=self.schema_class, schema=self.get_schema())
-        new_instance = BaseSchema(schema_class=self.schema_class)
+        new_instance = type(self)(schema_class=self.schema_class)
         new_instance.set_schema(copy_schema)
         return new_instance
 
@@ -136,13 +145,19 @@ class BaseSchema(SchemaVariables):
         return setattr(self, idx, value)
 
     # --------------- Connection methods
-    def store(self) -> None:
+    def store(self) -> Self:
         self._conector.store_data(self[self.primary_key], data=self.as_dict())
+        return self
+
+    def restore(self) -> Self:
+        self.init_schema(self._conector.restore_data(self[self.primary_key]))
+        return self
 
     @classmethod
-    def from_id(cls, id_: str) -> "BaseSchema":
-        (inst := cls()).init_schema(inst._conector.restore_data(id_))
-        return inst
+    def from_id(cls, id_: str) -> Self:
+        inst = cls()
+        inst[inst.primary_key] = id_
+        return inst.restore()
 
 
 # Main schema classes ########################################
@@ -151,11 +166,9 @@ class LogSchema(BaseSchema):
     def __init__(
         self, kwargs: dict[str, Any] | None = None
     ) -> None:
-        super().__init__(schema_class=op.LOG_SCHEMA, kwargs=kwargs)
-
-    def copy(self) -> "LogSchema":
-        schema: LogSchema = super().copy()  # type: ignore
-        return schema
+        super().__init__(
+            primary_key="logID", schema_class=op.LOG_SCHEMA, kwargs=kwargs
+        )
 
 
 class ParserSchema(BaseSchema):
@@ -163,11 +176,9 @@ class ParserSchema(BaseSchema):
     def __init__(
         self, kwargs: dict[str, Any] | None = None
     ) -> None:
-        super().__init__(schema_class=op.PARSER_SCHEMA, kwargs=kwargs)
-
-    def copy(self) -> "ParserSchema":
-        schema: ParserSchema = super().copy()  # type: ignore
-        return schema
+        super().__init__(
+            primary_key="parsedLogID", schema_class=op.PARSER_SCHEMA, kwargs=kwargs
+        )
 
 
 class DetectorSchema(BaseSchema):
@@ -175,11 +186,9 @@ class DetectorSchema(BaseSchema):
     def __init__(
         self, kwargs: dict[str, Any] | None = None
     ) -> None:
-        super().__init__(schema_class=op.DETECTOR_SCHEMA, kwargs=kwargs)
-
-    def copy(self) -> "DetectorSchema":
-        schema: DetectorSchema = super().copy()  # type: ignore
-        return schema
+        super().__init__(
+            primary_key="alertID", schema_class=op.DETECTOR_SCHEMA, kwargs=kwargs
+        )
 
 
 class AggregateSchema(BaseSchema):
@@ -187,8 +196,6 @@ class AggregateSchema(BaseSchema):
     def __init__(
         self, kwargs: dict[str, Any] | None = None
     ) -> None:
-        super().__init__(schema_class=op.AGGREGATE_SCHEMA, kwargs=kwargs)
-
-    def copy(self) -> "AggregateSchema":
-        schema: AggregateSchema = super().copy()  # type: ignore
-        return schema
+        super().__init__(
+            primary_key="aggregateID", schema_class=op.AGGREGATE_SCHEMA, kwargs=kwargs
+        )

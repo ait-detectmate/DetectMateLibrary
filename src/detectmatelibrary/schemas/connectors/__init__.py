@@ -5,7 +5,7 @@ from .default import VeficationConnector, DefaultConnector
 __all__ = ["VeficationConnector", "DefaultConnector"]
 
 
-def select_connector(connector_name: str) -> type[DefaultConnector]:
+def select_connector(connector_name: str = "Default") -> type[DefaultConnector]:
     try:
         return {
             "Verification": VeficationConnector,

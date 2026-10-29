@@ -17,15 +17,17 @@ class DefaultConnector:
         return {}
 
 
+verification_dict: dict[str, dict[str, Any]] = {}
+
+
 class VeficationConnector(DefaultConnector):
     """Only use to verify the system offline."""
 
     def __init__(self, url: str) -> None:
         super().__init__(name="Verification", url=url)
-        self._dict: dict[str, dict[str, Any]] = {}
 
     def store_data(self, id_: str, data: dict[str, Any]) -> None:
-        self._dict[id_] = data
+        verification_dict[id_] = data
 
     def restore_data(self, id_: str) -> dict[str, Any]:
-        return self._dict[id_]
+        return verification_dict[id_]
