@@ -248,7 +248,7 @@ class TestRedisConnector:
 
         assert client.hgetall("a") == {}
 
-        args = redis_c.RedisArgs(host="localhost", port=6379)
+        args = redis_c.RedisArgs(host="localhost", port=6379, db=0)
         redis_c.insert_data("a", [{"b": "test"}], args=args)
         redis_c.insert_data("b", [{"b": "test"}, {"d": "time"}], args=args)
 
@@ -266,7 +266,7 @@ class TestRedisConnector:
         assert client.hgetall("a") == {}
         client.close()
 
-        args = redis_c.RedisArgs(host="localhost", port=6379)
+        args = redis_c.RedisArgs(host="localhost", port=6379, db=0)
         redis_c.insert_data("a", [{"b": "test", "c": 0.2}], args=args)
         redis_c.insert_data("b", [{"b": "test"}, {"d": "time"}], args=args)
 
@@ -279,7 +279,7 @@ class TestRedisConnector:
 
     @pytest.mark.ignored_redis
     def test_redis_connector_log_schema(self):
-        sc.set_connector("Redis", url="http://localhost:6379")
+        sc.set_connector("Redis", url="http://localhost:6379:0")
         client = redis.Redis(host="localhost", port=6379)
         client.flushdb()
 
@@ -293,7 +293,7 @@ class TestRedisConnector:
 
     @pytest.mark.ignored_redis
     def test_mongo_connector_parsed_schema(self):
-        sc.set_connector("Redis", url="http://localhost:6379")
+        sc.set_connector("Redis", url="http://localhost:6379:0")
         client = redis.Redis(host="localhost", port=6379)
         client.flushdb()
 

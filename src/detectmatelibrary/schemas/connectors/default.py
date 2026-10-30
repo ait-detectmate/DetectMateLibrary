@@ -34,9 +34,12 @@ def recover_data(data: list[dict[str, Any]]) -> dict[str, Any]:
     for key, value in out.items():
         if isinstance(value, str):
             if "$DICT$_" in value:
-                out[key] = data[int(value.split("_")[-1])]
+                if (idx := int(value.split("_")[-1])) < len(data):
+                    out[key] = data[idx]
+                else:
+                    out[key] = {}
             elif "$LIST$_" in value:
-                out[key] = json.loads(value.split("_")[-1])
+                out[key] = json.loads(value.replace("$LIST$_", ""))
 
     return out
 

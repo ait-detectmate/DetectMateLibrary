@@ -73,7 +73,7 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
 
     def __init__(
         self,
-        name: str,
+        name: str = "Component",
         type_: str = "Core",
         config: CoreConfig | dict[str, Any] = CoreConfig(),
         args_buffer: ArgsBuffer = ArgsBuffer(BufferMode.NO_BUF),

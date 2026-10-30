@@ -15,6 +15,7 @@ import json
 class RedisArgs:
     host: str
     port: int
+    db: int
 
 
 def __insert(id_: str, data: dict[str, Any], client: Redis) -> None:
@@ -27,13 +28,16 @@ def insert_data(id_: str, data: list[dict[str, Any]], args: RedisArgs) -> None:
 
     try:
 
-        with Redis(host=args.host, port=args.port) as client:
+        with Redis(host=args.host, port=args.port, db=args.db) as client:
             __insert(id_, data=data[0], client=client)
             for i, data_i in enumerate(data[1:]):
-                __insert(f"{id_}_{i + 1}", data=data_i, client=client)
+                if data_i != {}:
+                    __insert(f"{id_}_{i + 1}", data=data_i, client=client)
 
     except (ConnectionError, TimeoutError):
         warnings.warn("Redis server offline, no insertion will be done.")
+    except Exception as e:
+        warnings.warn(f"Not control exception found: {e}")
 
 
 def read_data(id_: str, args: RedisArgs) -> list[dict[str, Any]]:
@@ -41,7 +45,7 @@ def read_data(id_: str, args: RedisArgs) -> list[dict[str, Any]]:
 
     try:
 
-        with Redis(host=args.host, port=args.port) as client:
+        with Redis(host=args.host, port=args.port, db=args.db) as client:
             out_[0] = client.hgetall(id_)
 
             if out_ == [{}]:
@@ -74,6 +78,7 @@ class RedisConnector(DefaultConnector):
         self.args = RedisArgs(
             host=(aux := self.url.split("/")[-1].split(":"))[0],
             port=int(aux[1]),
+            db=int(aux[2]),
         )
 
     def to_database(self, id_: str, data: list[dict[str, Any]]) -> None:

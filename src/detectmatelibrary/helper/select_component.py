@@ -56,7 +56,7 @@ def selectComponent(
     if component is None:
         raise ValueError(f"{method_type} form {component_type} not found.")
 
-    return component(name=name, config=config)
+    return component(config=config)
 
 
 def selectComponents(

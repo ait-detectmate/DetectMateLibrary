@@ -20,6 +20,10 @@ from detectmatelibrary.parsers.tree_matcher import TemplateCppTreeMatcherConfig
 
 from detectmatelibrary.alert_aggregation.logid_count import LogIDCountAggegationConfig
 
+import logging
+import pymongo
+import redis
+
 import pytest
 
 
@@ -164,7 +168,7 @@ class TestPipeline:
 
         pipeline = Pipeline(config=config)
         alerts = []
-        for parsed_log in From.log(pipeline.parser, in_path=AUDIT_LOG, do_process=True):
+        for parsed_log in From.log(pipeline.parser, in_path=AUDIT_LOG, do_process=False):
             if (alert := pipeline.process(parsed_log)) is not None:
                 alerts.extend(alert["logIDs"])
 
@@ -200,9 +204,126 @@ class TestPipeline:
 
         pipeline = Pipeline(config=config)
         alerts = []
-        for parsed_log in From.log(pipeline.parser, in_path=AUDIT_LOG, do_process=True):
+        for parsed_log in From.log(pipeline.parser, in_path=AUDIT_LOG, do_process=False):
             if (alert := pipeline.process(parsed_log)) is not None:
                 alerts.extend(alert["logIDs"])
 
         expected = ['1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867']
         assert set(alerts) == set(expected)
+
+    @pytest.mark.ignored_mongo
+    @pytest.mark.ignored
+    def test_full_pipeline_mongo(self) -> None:
+        logging.getLogger().setLevel(logging.CRITICAL)
+        client = pymongo.MongoClient("mongodb://localhost:27017")
+        for col_n in ["Parser", "Detector", "Aggregator"]:
+            col = client["FullPipeline"][col_n]
+            col.delete_many({})
+        client.close()
+
+        config = PipelineConfig(
+            do_parsing=True,
+            do_aggregation=True,
+            n_workers=1,
+            parser=TemplateCppTreeMatcherConfig(
+                path_templates=AUDIT_TEMPLATES,
+                log_format="type=<Type> msg=audit(<Time>): <Content>",
+                connector_name="Mongo",
+                connector_url="mongodb://localhost:27017/FullPipeline/Parser",
+            ),
+            detectors=[
+                ECVCDetectorConfig(
+                    data_use_configure=TRAIN_UNTIL,
+                    window_size=10,
+                    seed=0,
+                    validation_per=0.,
+                    threshold_method="mean",
+                    connector_name="Mongo",
+                    connector_url="mongodb://localhost:27017/FullPipeline/Detector",
+                ),
+                CharsetDetectorConfig(
+                    data_use_configure=TRAIN_UNTIL,
+                    data_use_training=1,
+                    auto_config=True,
+                    connector_name="Mongo",
+                    connector_url="mongodb://localhost:27017/FullPipeline/Detector",
+                )
+            ],
+            aggregator=LogIDCountAggegationConfig(
+                max_count=1,
+                connector_name="Mongo",
+                connector_url="mongodb://localhost:27017/FullPipeline/Aggregator",
+            )
+        )
+
+        pipeline = Pipeline(config=config)
+        for parsed_log in From.log(pipeline.parser, in_path=AUDIT_LOG, do_process=False):
+            if pipeline.process(parsed_log) is not None:
+                break
+
+        sc.set_connector("Mongo", url="mongodb://localhost:27017/FullPipeline/Parser")
+        assert sc.ParserSchema.from_id("TreeMatcher_10")["log"] != ""
+
+        sc.set_connector("Mongo", url="mongodb://localhost:27017/FullPipeline/Detector")
+        assert sc.DetectorSchema.from_id("CharsetDetector_10")["score"] != 0.0
+
+        sc.set_connector("Mongo", url="mongodb://localhost:27017/FullPipeline/Aggregator")
+        assert sc.AggregateSchema.from_id("LogIDCountAggregator_10")["logIDs"] != ""
+
+    @pytest.mark.ignored_redis
+    @pytest.mark.ignored
+    def test_full_pipeline_redis(self) -> None:
+        logging.getLogger().setLevel(logging.CRITICAL)
+        for i in range(3):
+            client = redis.Redis(host="localhost", port=6379, db=i)
+            client.flushdb()
+            client.close()
+
+        config = PipelineConfig(
+            do_parsing=True,
+            do_aggregation=True,
+            n_workers=1,
+            parser=TemplateCppTreeMatcherConfig(
+                path_templates=AUDIT_TEMPLATES,
+                log_format="type=<Type> msg=audit(<Time>): <Content>",
+                connector_name="Redis",
+                connector_url="http://localhost:6379:0",
+            ),
+            detectors=[
+                ECVCDetectorConfig(
+                    data_use_configure=TRAIN_UNTIL,
+                    window_size=10,
+                    seed=0,
+                    validation_per=0.,
+                    threshold_method="mean",
+                    connector_name="Redis",
+                    connector_url="http://localhost:6379:1",
+                ),
+                CharsetDetectorConfig(
+                    data_use_configure=TRAIN_UNTIL,
+                    data_use_training=1,
+                    auto_config=True,
+                    connector_name="Redis",
+                    connector_url="http://localhost:6379:1",
+                )
+            ],
+            aggregator=LogIDCountAggegationConfig(
+                max_count=1,
+                connector_name="Redis",
+                connector_url="http://localhost:6379:2",
+            )
+        )
+
+        pipeline = Pipeline(config=config)
+        for parsed_log in From.log(pipeline.parser, in_path=AUDIT_LOG, do_process=False):
+            if pipeline.process(parsed_log) is not None:
+                break
+
+        sc.set_connector("Redis", url="http://localhost:6379:0")
+        assert sc.ParserSchema.from_id("TreeMatcher_10")["log"] != ""
+
+        sc.set_connector("Redis", url="http://localhost:6379:1")
+        assert sc.DetectorSchema.from_id("CharsetDetector_10")["score"] != 0.0
+
+        sc.set_connector("Redis", url="http://localhost:6379:2")
+        assert sc.AggregateSchema.from_id("LogIDCountAggregator_10")["logIDs"] != ""
