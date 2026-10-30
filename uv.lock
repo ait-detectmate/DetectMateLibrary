@@ -364,6 +364,7 @@ dependencies = [
 
 [package.optional-dependencies]
 alertbert = [
+    { name = "scikit-learn" },
     { name = "tensordict" },
     { name = "torch", version = "2.15.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
     { name = "torch", version = "2.15.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
@@ -394,6 +395,9 @@ llm = [
 ]
 polars-rtcompat = [
     { name = "polars", extra = ["rtcompat"] },
+]
+scipy = [
+    { name = "scipy" },
 ]
 
 [package.dev-dependencies]
@@ -430,14 +434,16 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2.13.3" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "regex", specifier = ">=2025.11.3" },
+    { name = "scikit-learn", marker = "extra == 'alertbert'" },
     { name = "scikit-learn", marker = "extra == 'llm'", specifier = ">=1.8.0" },
     { name = "scipy", marker = "extra == 'llm'", specifier = ">=1.17.1" },
+    { name = "scipy", marker = "extra == 'scipy'" },
     { name = "tenacity", marker = "extra == 'llm'", specifier = ">=9.1.4" },
     { name = "tensordict", marker = "extra == 'alertbert'" },
     { name = "tiktoken", marker = "extra == 'llm'", specifier = ">=0.12.0" },
     { name = "torch", marker = "extra == 'alertbert'", index = "https://download.pytorch.org/whl/cpu", conflict = { package = "detectmatelibrary", extra = "alertbert" } },
 ]
-provides-extras = ["llm", "dataframes", "polars-rtcompat", "alertbert", "full"]
+provides-extras = ["llm", "dataframes", "polars-rtcompat", "alertbert", "scipy", "full"]
 
 [package.metadata.requires-dev]
 dev = [

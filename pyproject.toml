@@ -56,6 +56,10 @@ polars-rtcompat = [
 alertbert = [
     "torch",
     "tensordict",
+    "scikit-learn",
+]
+scipy = [
+    "scipy",
 ]
 # install all optional extras at once:  uv pip install detectmatelibrary[full]
 full = [
