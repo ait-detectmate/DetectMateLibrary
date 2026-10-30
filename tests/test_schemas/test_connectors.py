@@ -8,6 +8,14 @@ import pymongo
 import pytest
 
 
+dummy_log_schema = {
+    "__version__": "2.0.0",
+    "logID": "Log1",
+    "log": "Hello world",
+    "logSource": "World",
+    "hostname": "Hello"
+}
+
 dummy_parser_schema = {
     "parserType": "testType",
     "parserID": "Parser_1",
@@ -42,26 +50,14 @@ class TestConnectors:
 
     def test_store_data_connector(self):
         sc.set_connector("Verification", reset_ver=True)
-        expected = {
-            "__version__": "2.0.0",
-            "logID": "Log1",
-            "log": "Hello world",
-            "logSource": "World",
-            "hostname": "Hello"
-        }
+        expected = dummy_log_schema
         sc.LogSchema(expected).store()
 
         assert ver_record == {"Log1": [expected]}
 
     def test_restore_data(self):
         sc.set_connector("Verification", reset_ver=True)
-        expected = {
-            "__version__": "2.0.0",
-            "logID": "Log1",
-            "log": "Hello world",
-            "logSource": "World",
-            "hostname": "Hello"
-        }
+        expected = dummy_log_schema
         log_schema = sc.LogSchema({"logID": "Log1"})
 
         ver_record["Log1"] = [expected]
@@ -69,13 +65,7 @@ class TestConnectors:
 
     def test_from_id(self):
         sc.set_connector("Verification", reset_ver=True)
-        expected = {
-            "__version__": "2.0.0",
-            "logID": "Log1",
-            "log": "Hello world",
-            "logSource": "World",
-            "hostname": "Hello"
-        }
+        expected = dummy_log_schema
         ver_record["Log1"] = [expected]
 
         log_schema = sc.LogSchema.from_id("Log1")
@@ -195,3 +185,47 @@ class TestMongoConnector:
         assert read_data("b", args) == [{"d": "test"}, {"c": "hello"}]
 
         client.close()
+
+    @pytest.mark.ignored_mongo
+    def test_mongo_connector_log_schema(self):
+        sc.set_connector(
+            "Mongo", url="mongodb://localhost:27017/TestDataset/LogSchema"
+        )
+        args = MongoArgs(
+            url="mongodb://localhost:27017",
+            database="TestDataset",
+            collection="LogSchema"
+        )
+
+        client = pymongo.MongoClient(args.url)
+        col = client[args.database][args.collection]
+        col.delete_many({})
+
+        log_schema = sc.LogSchema(dummy_log_schema).store()
+        log_schema2 = sc.LogSchema.from_id(log_schema["logID"])
+
+        client.close()
+
+        assert log_schema == log_schema2
+
+    @pytest.mark.ignored_mongo
+    def test_mongo_connector_parsed_schema(self):
+        sc.set_connector(
+            "Mongo", url="mongodb://localhost:27017/TestDataset/ParsedSchema"
+        )
+        args = MongoArgs(
+            url="mongodb://localhost:27017",
+            database="TestDataset",
+            collection="ParsedSchema"
+        )
+
+        client = pymongo.MongoClient(args.url)
+        col = client[args.database][args.collection]
+        col.delete_many({})
+
+        parsed_schema = sc.ParserSchema(dummy_parser_schema).store()
+        parsed_schema2 = sc.ParserSchema.from_id(parsed_schema["parsedLogID"])
+
+        client.close()
+
+        assert parsed_schema == parsed_schema2
