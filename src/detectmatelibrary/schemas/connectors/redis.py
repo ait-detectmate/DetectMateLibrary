@@ -6,6 +6,7 @@ from redis import Redis
 from dataclasses import dataclass
 from typing import Any
 import warnings
+import logging
 import json
 
 
@@ -76,7 +77,9 @@ class RedisConnector(DefaultConnector):
         )
 
     def to_database(self, id_: str, data: list[dict[str, Any]]) -> None:
+        logging.info(f"<<RedisConnector>> sending data from {id_}")
         insert_data(id_=id_, data=data, args=self.args)
 
     def from_databse(self, id_: str) -> list[dict[str, Any]]:
+        logging.info(f"<<RedisConnector>> getting data from {id_}")
         return read_data(id_=id_, args=self.args)

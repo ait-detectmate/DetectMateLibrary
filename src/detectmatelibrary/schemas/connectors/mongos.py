@@ -8,6 +8,7 @@ from pymongo import MongoClient
 from dataclasses import dataclass
 from typing import Any
 import warnings
+import logging
 
 
 # ---------------- Mongo logic
@@ -108,7 +109,9 @@ class MongoConnector(DefaultConnector):
         )
 
     def to_database(self, id_: str, data: list[dict[str, Any]]) -> None:
+        logging.info(f"<<MongoConnector>> sending data from {id_}")
         insert_data(id_=id_, data=data, args=self.args)
 
     def from_databse(self, id_: str) -> list[dict[str, Any]]:
+        logging.info(f"<<MongoConnector>> getting data from {id_}")
         return read_data(id_=id_, args=self.args)

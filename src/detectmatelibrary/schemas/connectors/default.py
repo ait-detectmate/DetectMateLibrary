@@ -1,5 +1,6 @@
 
 from typing import Any
+import logging
 import json
 
 
@@ -45,6 +46,7 @@ class DefaultConnector:
         self.name = name
         self.url = url
 
+        logging.debug(str(self))
         if name == "Default":
             # Optimization when connectors are not use
             self.store_data = self.store_data_empty  # type: ignore[method-assign]
