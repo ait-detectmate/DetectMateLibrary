@@ -48,8 +48,20 @@ jobs:
           docker compose -f tests/test_schemas/compose.yaml logs mongo
           exit 1
 
+      - name: Wait for redis Redis
+        run: |
+          for attempt in {1..30}; do
+            if [ "$(docker compose -f tests/test_schemas/compose.yaml exec -T redis redis-cli ping 2>/dev/null)" = "PONG" ]; then
+              echo "Redis is ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          docker compose -f tests/test_schemas/compose.yaml logs redis
+          exit 1
+
       - name: Test with pytest
-        run: uv run pytest -s --run-ignored --run-ignored-mongo
+        run: uv run pytest -s --run-ignored --run-ignored-mongo --ignored_redis
 
       - name: Stop Containers
         if: always()
