@@ -115,11 +115,24 @@ protoc \
 
 ### Step 3: Run unit tests
 
-The full test suite covers dataframe and LLM-parser code, so all extras must be present. Since `uv sync --dev` already installs the `full` extra, run all tests with:
+The full test suite covers dataframe and LLM-parser code, so all extras must be present. Since `uv sync --dev` already installs the `full` extra, run the fast tests with:
 
 ```bash
 uv run --dev pytest -s
 ```
+
+To run all the unitests do:
+
+```bash
+docker compose -f tests/test_schemas/compose.yaml up
+```
+
+and
+
+```bash
+uv run pytest  --run-ignored --run-ignored-mongo --ignored_redis
+```
+
 
 * Run tests with coverage (terminal summary):
 
