@@ -133,7 +133,36 @@ class TestMongoConnector:
 
         with pytest.warns(UserWarning):
             insert_data("a", [{"a": "test"}], args=args)
-            assert col.find_one({"a": "test"}) is not None
-            assert col.count_documents({}) == 2
+        assert col.find_one({"a": "test"}) is not None
+        assert col.count_documents({}) == 2
+
+        client.close()
+
+    @pytest.mark.ignored_mongo
+    def test_insert_mutliple_data(self):
+        args = MongoArgs(
+            url="mongodb://localhost:27017",
+            database="TestDataset",
+            collection="TestCollection"
+        )
+
+        client = pymongo.MongoClient(args.url)
+        col = client[args.database][args.collection]
+        col.delete_many({})
+
+        col1 = client[args.database][args.collection + "_1"]
+        col1.delete_many({})
+
+        insert_data("a", [{"a": "test"}, {"c": "hello"}], args=args)
+        assert col.count_documents({}) == 1
+        assert col1.find_one({"c": "hello"}) is not None
+        assert col1.count_documents({}) == 1
+
+        with pytest.warns(UserWarning):
+            insert_data("a", [{"a": "test"}, {"c": "hello"}], args=args)
+
+        assert col.count_documents({}) == 1
+        assert col1.find_one({"c": "hello"}) is not None
+        assert col1.count_documents({}) == 1
 
         client.close()

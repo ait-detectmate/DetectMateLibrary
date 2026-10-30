@@ -10,6 +10,7 @@ from typing import Any
 import warnings
 
 
+# ---------------- Mongo logic
 @dataclass
 class MongoArgs:
     url: str
@@ -17,12 +18,14 @@ class MongoArgs:
     collection: str
 
 
-def _insert_single_elemt(id_: str, data: dict[str, Any], collection: Collection) -> None:
+def _insert_single_elemt(id_: str, data: dict[str, Any], collection: Collection) -> bool:
 
     if collection.find_one({id_: data[id_]}) is None:
         collection.insert_one(data)
-    else:
-        warnings.warn(f"Value with ID {id_} is duplicated, no insertion will be done.")
+        return True
+
+    warnings.warn(f"Value with ID {id_} is duplicated, no insertion will be done.")
+    return False
 
 
 def insert_data(id_: str, data: list[dict[str, Any]], args: MongoArgs) -> None:
@@ -30,11 +33,24 @@ def insert_data(id_: str, data: list[dict[str, Any]], args: MongoArgs) -> None:
 
         with MongoClient(args.url) as client:
             database = client[args.database]
-            _insert_single_elemt(id_, data=data[0], collection=database[args.collection])
+            not_duplicated = _insert_single_elemt(
+                id_, data=data[0], collection=database[args.collection]
+            )
+            if not not_duplicated:
+                return None
+
+            id_value = data[0][id_]
+            for j, data_i in enumerate(data[1:]):
+                data_i[id_] = id_value
+                _insert_single_elemt(
+                    id_, data=data_i, collection=database[f"{args.collection}_{j + 1}"]
+                )
 
     except ServerSelectionTimeoutError:
         warnings.warn("Mongo server offline, no insertion will be done.")
 
+
+# ---------------- Connector interface
 
 class MongoConnector(DefaultConnector):
     def __init__(self, url: str = "None") -> None:
