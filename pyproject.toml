@@ -56,12 +56,16 @@ polars-rtcompat = [
 mongo = [
     "pymongo>=4.19.0",
 ]
+redis = [
+    "redis[hiredis]>=8.1.0",
+]
 # install all optional extras at once:  uv pip install detectmatelibrary[full]
 full = [
     "detectmatelibrary[llm]",
     "detectmatelibrary[dataframes]",
     "detectmatelibrary[polars-rtcompat]",
     "detectmatelibrary[mongo]",
+    "detectmatelibrary[redis]",
 ]
 
 [tool.setuptools.dynamic]
