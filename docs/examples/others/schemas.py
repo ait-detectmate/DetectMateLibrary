@@ -64,8 +64,8 @@ set_connector(
 # This schema use the verification connector
 parsed_schema = schemas.ParserSchema(
     {"parsedLogID": "ciao"},
-    connector="Verification",  # Overwrite Name
-    url="None"  # Overwrite URL
+    connector="Default",  # Overwrite Name
+    url="NewURL",  # Overwrite URL
 ).store()
 
 # This schema use the default connector
