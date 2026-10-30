@@ -1,10 +1,13 @@
 
-from detectmatelibrary.schemas.connectors.mongos import MongoArgs, insert_data, read_data
 from detectmatelibrary.schemas.connectors.default import ver_record
+import detectmatelibrary.schemas.connectors.mongos as mongo_c
+import detectmatelibrary.schemas.connectors.redis as redis_c
 
 import detectmatelibrary.schemas as sc
 
 import pymongo
+import redis
+
 import pytest
 
 
@@ -101,7 +104,7 @@ class TestConnectors:
 class TestMongoConnector:
     @pytest.mark.ignored_mongo
     def test_insert_data(self):
-        args = MongoArgs(
+        args = mongo_c.MongoArgs(
             url="mongodb://localhost:27017",
             database="TestDataset",
             collection="TestCollection"
@@ -113,16 +116,16 @@ class TestMongoConnector:
 
         assert col.count_documents({}) == 0
 
-        insert_data("a", [{"b": "test"}], args=args)
+        mongo_c.insert_data("a", [{"b": "test"}], args=args)
         assert col.find_one({"Primary_key": "a"}) is not None
         assert col.count_documents({}) == 1
 
-        insert_data("b", [{"b": "test2"}], args=args)
+        mongo_c.insert_data("b", [{"b": "test2"}], args=args)
         assert col.find_one({"Primary_key": "b"}) is not None
         assert col.count_documents({}) == 2
 
         with pytest.warns(UserWarning):
-            insert_data("a", [{"b": "test"}], args=args)
+            mongo_c.insert_data("a", [{"b": "test"}], args=args)
         assert col.find_one({"Primary_key": "a"}) is not None
         assert col.count_documents({}) == 2
 
@@ -130,7 +133,7 @@ class TestMongoConnector:
 
     @pytest.mark.ignored_mongo
     def test_insert_mutliple_data(self):
-        args = MongoArgs(
+        args = mongo_c.MongoArgs(
             url="mongodb://localhost:27017",
             database="TestDataset",
             collection="TestCollection"
@@ -143,13 +146,13 @@ class TestMongoConnector:
         col1 = client[args.database][args.collection + "_1"]
         col1.delete_many({})
 
-        insert_data("a", [{"d": "test"}, {"c": "hello"}], args=args)
+        mongo_c.insert_data("a", [{"d": "test"}, {"c": "hello"}], args=args)
         assert col.count_documents({}) == 1
         assert col1.find_one({"c": "hello"}) is not None
         assert col1.count_documents({}) == 1
 
         with pytest.warns(UserWarning):
-            insert_data("a", [{"d": "test"}, {"c": "hello"}], args=args)
+            mongo_c.insert_data("a", [{"d": "test"}, {"c": "hello"}], args=args)
 
         assert col.count_documents({}) == 1
         assert col1.find_one({"c": "hello"}) is not None
@@ -159,7 +162,7 @@ class TestMongoConnector:
 
     @pytest.mark.ignored_mongo
     def test_read_data(self):
-        args = MongoArgs(
+        args = mongo_c.MongoArgs(
             url="mongodb://localhost:27017",
             database="TestDataset",
             collection="TestCollection"
@@ -172,17 +175,17 @@ class TestMongoConnector:
         col1 = client[args.database][args.collection + "_1"]
         col1.delete_many({})
 
-        insert_data("a", [{"d": "test2"}], args=args)
-        insert_data("b", [{"d": "test"}, {"c": "hello"}], args=args)
+        mongo_c.insert_data("a", [{"d": "test2"}], args=args)
+        mongo_c.insert_data("b", [{"d": "test"}, {"c": "hello"}], args=args)
 
         with pytest.warns(UserWarning):  # Missing subtable
-            assert read_data("a", args) == [{"d": "test2"}]
+            assert mongo_c.read_data("a", args) == [{"d": "test2"}]
 
         with pytest.warns(UserWarning):
-            no_data = read_data("not_a", args)
+            no_data = mongo_c.read_data("not_a", args)
         assert no_data == [{}]
 
-        assert read_data("b", args) == [{"d": "test"}, {"c": "hello"}]
+        assert mongo_c.read_data("b", args) == [{"d": "test"}, {"c": "hello"}]
 
         client.close()
 
@@ -191,7 +194,7 @@ class TestMongoConnector:
         sc.set_connector(
             "Mongo", url="mongodb://localhost:27017/TestDataset/LogSchema"
         )
-        args = MongoArgs(
+        args = mongo_c.MongoArgs(
             url="mongodb://localhost:27017",
             database="TestDataset",
             collection="LogSchema"
@@ -213,7 +216,7 @@ class TestMongoConnector:
         sc.set_connector(
             "Mongo", url="mongodb://localhost:27017/TestDataset/ParsedSchema"
         )
-        args = MongoArgs(
+        args = mongo_c.MongoArgs(
             url="mongodb://localhost:27017",
             database="TestDataset",
             collection="ParsedSchema"
@@ -229,3 +232,41 @@ class TestMongoConnector:
         client.close()
 
         assert parsed_schema == parsed_schema2
+
+
+class TestRedisConnector:
+    @pytest.mark.ignored_redis
+    def test_insert_data(self):
+        client = redis.Redis(host="localhost", port=6379)
+        client.flushdb()
+
+        assert client.hgetall("a") == {}
+
+        args = redis_c.RedisArgs(host="localhost", port=6379)
+        redis_c.insert_data("a", [{"b": "test"}], args=args)
+        redis_c.insert_data("b", [{"b": "test"}, {"d": "time"}], args=args)
+
+        assert client.hgetall("a") == {b"b": b'"test"'}
+        assert client.hgetall("b") == {b"b": b'"test"'}
+        assert client.hgetall("b_1") == {b"d": b'"time"'}
+
+        client.close()
+
+    @pytest.mark.ignored_redis
+    def test_read_data(self):
+        client = redis.Redis(host="localhost", port=6379)
+        client.flushdb()
+
+        assert client.hgetall("a") == {}
+        client.close()
+
+        args = redis_c.RedisArgs(host="localhost", port=6379)
+        redis_c.insert_data("a", [{"b": "test", "c": 0.2}], args=args)
+        redis_c.insert_data("b", [{"b": "test"}, {"d": "time"}], args=args)
+
+        assert redis_c.read_data("a", args) == [{"b": "test", "c": 0.2}]
+
+        with pytest.warns(UserWarning):
+            redis_c.read_data("not_a", args)
+
+        assert redis_c.read_data("b", args) == [{"b": "test"}, {"d": "time"}]

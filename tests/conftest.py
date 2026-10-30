@@ -15,12 +15,21 @@ def pytest_addoption(parser):
         default=False,
         help="Run tests marked ignored_mongo",
     )
+    parser.addoption(
+        "--ignored_redis",
+        action="store_true",
+        default=False,
+        help="Run tests marked ignored_redis",
+    )
 
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "ignored: skipped unless --run-ignored is passed")
     config.addinivalue_line(
         "markers", "ignored_mongo: skipped unless --run-ignored-mongo is passed"
+    )
+    config.addinivalue_line(
+        "markers", "ignored_redis: skipped unless --ignored_redis is passed"
     )
 
 
@@ -31,6 +40,8 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.skip(reason="Skipped: requires --run-ignored flag"))
         if "ignored_mongo" in item.keywords and not config.getoption("--run-ignored-mongo"):
             item.add_marker(pytest.mark.skip(reason="Skipped: requires --run-ignored-mongo flag"))
+        if "ignored_redis" in item.keywords and not config.getoption("--ignored_redis"):
+            item.add_marker(pytest.mark.skip(reason="Skipped: requires --ignored_redis flag"))
 
 
 def pytest_sessionfinish(session, exitstatus):
