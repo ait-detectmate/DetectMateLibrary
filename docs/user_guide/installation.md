@@ -106,12 +106,12 @@ protoc --version
 
 ```bash
 protoc \
-  --proto_path=src/detectmatelibrary/schemas/ \
-  --python_out=src/detectmatelibrary/schemas/ \
-  src/detectmatelibrary/schemas/schemas.proto
+  --proto_path=src/detectmatelibrary/schemas/protobuf/ \
+  --python_out=src/detectmatelibrary/schemas/protobuf/ \
+  src/detectmatelibrary/schemas/protobuf/schemas.proto
 ```
 
-**Result:** generated Python modules appear under `src/detectmatelibrary/schemas/`. If you edit proto files, re-run this command and commit generated code if required by your workflow.
+**Result:** generated Python modules appear under `src/detectmatelibrary/schemas/protobuf/`. If you edit proto files, re-run this command and commit generated code if required by your workflow.
 
 ### Step 3: Run unit tests
 

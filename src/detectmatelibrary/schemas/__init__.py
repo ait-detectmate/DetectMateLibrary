@@ -12,7 +12,7 @@ from ._classes import (
     FieldNotFound,
     set_connector,
 )
-from ._op import IncorrectSchema, NotSupportedSchema
+from .protobuf._op import IncorrectSchema, NotSupportedSchema
 
 
 __all__ = [

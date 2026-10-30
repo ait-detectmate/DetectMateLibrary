@@ -1,5 +1,5 @@
 """" Interface between the code base and the protobuf code."""
-import detectmatelibrary.schemas.schemas_pb2 as s
+import detectmatelibrary.schemas.protobuf.schemas_pb2 as s
 
 
 from typing import NewType, Union, Any

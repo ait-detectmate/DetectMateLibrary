@@ -1,7 +1,7 @@
 from detectmatelibrary.schemas.connectors import select_connector, DefaultConnector
 from detectmatelibrary.schemas.connectors.default import ver_record  # noqa: ignore
 
-import detectmatelibrary.schemas._op as op
+import detectmatelibrary.schemas.protobuf._op as op
 
 
 from typing_extensions import Self
