@@ -61,7 +61,7 @@ jobs:
           exit 1
 
       - name: Test with pytest
-        run: uv run pytest -s --run-ignored --run-ignored-mongo --ignored_redis
+        run: uv run pytest -s --run-ignored --run-ignored-mongo --run-ignored-redis
 
       - name: Stop Containers
         if: always()
