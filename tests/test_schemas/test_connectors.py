@@ -103,3 +103,9 @@ class TestConnectors:
 
         parsed_schema2 = sc.ParserSchema.from_id("Parsed_1")
         assert parsed_schema == parsed_schema2
+
+
+class TestMongoConnector:
+    @pytest.mark.ignored_mongo
+    def test_this_should_not_run(self):
+        raise Exception("Fail")
