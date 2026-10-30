@@ -9,6 +9,7 @@ import warnings
 import json
 
 
+# ---------------- Redis logic
 @dataclass
 class RedisArgs:
     host: str
@@ -64,5 +65,18 @@ def read_data(id_: str, args: RedisArgs) -> list[dict[str, Any]]:
         ]
 
 
+# ---------------- Connector interface
 class RedisConnector(DefaultConnector):
-    pass
+    def __init__(self, url: str = "None") -> None:
+        super().__init__("Redis", url=url)
+
+        self.args = RedisArgs(
+            host=(aux := self.url.split("/")[-1].split(":"))[0],
+            port=int(aux[1]),
+        )
+
+    def to_database(self, id_: str, data: list[dict[str, Any]]) -> None:
+        insert_data(id_=id_, data=data, args=self.args)
+
+    def from_databse(self, id_: str) -> list[dict[str, Any]]:
+        return read_data(id_=id_, args=self.args)

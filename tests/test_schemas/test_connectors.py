@@ -270,3 +270,31 @@ class TestRedisConnector:
             redis_c.read_data("not_a", args)
 
         assert redis_c.read_data("b", args) == [{"b": "test"}, {"d": "time"}]
+
+    @pytest.mark.ignored_redis
+    def test_redis_connector_log_schema(self):
+        sc.set_connector("Redis", url="http://localhost:6379")
+        client = redis.Redis(host="localhost", port=6379)
+        client.flushdb()
+
+        assert client.hgetall(dummy_log_schema["logID"]) == {}
+        client.close()
+
+        log_schema = sc.LogSchema(dummy_log_schema).store()
+        log_schema2 = sc.LogSchema.from_id(log_schema["logID"])
+
+        assert log_schema == log_schema2
+
+    @pytest.mark.ignored_redis
+    def test_mongo_connector_parsed_schema(self):
+        sc.set_connector("Redis", url="http://localhost:6379")
+        client = redis.Redis(host="localhost", port=6379)
+        client.flushdb()
+
+        assert client.hgetall(dummy_parser_schema["parsedLogID"]) == {}
+        client.close()
+
+        parsed_schema = sc.ParserSchema(dummy_parser_schema).store()
+        parsed_schema2 = sc.ParserSchema.from_id(parsed_schema["parsedLogID"])
+
+        assert parsed_schema == parsed_schema2

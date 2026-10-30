@@ -1,9 +1,10 @@
 
 from .default import VeficationConnector, DefaultConnector
 from .mongos import MongoConnector
+from .redis import RedisConnector
 
 
-__all__ = ["VeficationConnector", "DefaultConnector", "MongoConnector"]
+__all__ = ["VeficationConnector", "DefaultConnector", "MongoConnector", "RedisConnector"]
 
 
 def select_connector(connector_name: str = "Default") -> type[DefaultConnector]:
@@ -13,6 +14,7 @@ def select_connector(connector_name: str = "Default") -> type[DefaultConnector]:
             "Verification": VeficationConnector,
             "Default": DefaultConnector,
             "Mongo": MongoConnector,
+            "Redis": RedisConnector,
         }[connector_name]
 
     except KeyError:
