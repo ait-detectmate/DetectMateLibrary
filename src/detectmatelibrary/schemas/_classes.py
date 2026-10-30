@@ -101,7 +101,7 @@ class BaseSchema(SchemaVariables):
         self.primary_key = primary_key
 
     def __str__(self) -> str:
-        return str(self.get_schema())
+        return type(self).__name__ + "\n------------------\n" + str(self.get_schema())
 
     def copy(self) -> Self:
         """Create a deep copy of the schema instance."""
