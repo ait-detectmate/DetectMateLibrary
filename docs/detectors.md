@@ -250,8 +250,6 @@ The two neural detectors ([DeepLog](detectors/deeplog.md), [LogBERT](detectors/l
     | `window_size` | integer | 10 | Number of consecutive events used as one training/detection sequence. |
     | `validation_per` | number | 0.2 | Fraction of data held out for validation during (fine)training. |
     | `finetune_epochs` | integer | 2 | Number of epochs used when finetuning during the configuration phase. |
-    | `train_sample` | number | 1.0 | Fraction of the collected sequences the model finetunes and trains on: a seeded random sample, kept in log order, rounded down to at least one sequence. 1.0 uses every sequence. |
-    | `train_sample_seed` | integer | 0 | Seed of the train_sample draw, so reruns use the same sequences. |
     | `hyperparameters` | object | {'Model': {}, 'Train': {}, 'Finetune': []} | Model, training and hyperparameter-search settings passed to the underlying deep learning model. |
 <!-- End deeplearning_arguments -->
 
