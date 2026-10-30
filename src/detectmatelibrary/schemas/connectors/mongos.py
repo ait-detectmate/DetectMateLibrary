@@ -1,10 +1,13 @@
 
 from .default import DefaultConnector
 
+from pymongo.errors import ServerSelectionTimeoutError
+from pymongo.collection import Collection
 from pymongo import MongoClient
 
 from dataclasses import dataclass
 from typing import Any
+import warnings
 
 
 @dataclass
@@ -14,12 +17,23 @@ class MongoArgs:
     collection: str
 
 
-def insert_data(id_: str, data: list[dict[str, Any]], args: MongoArgs) -> None:
+def _insert_single_elemt(id_: str, data: dict[str, Any], collection: Collection) -> None:
 
-    with MongoClient(args.url) as client:
-        database = client[args.database]
-        for data_i in data:
-            database[args.collection].insert_one(data_i)
+    if collection.find_one({id_: data[id_]}) is None:
+        collection.insert_one(data)
+    else:
+        warnings.warn(f"Value with ID {id_} is duplicated, no insertion will be done.")
+
+
+def insert_data(id_: str, data: list[dict[str, Any]], args: MongoArgs) -> None:
+    try:
+
+        with MongoClient(args.url) as client:
+            database = client[args.database]
+            _insert_single_elemt(id_, data=data[0], collection=database[args.collection])
+
+    except ServerSelectionTimeoutError:
+        warnings.warn("Mongo server offline, no insertion will be done.")
 
 
 class MongoConnector(DefaultConnector):

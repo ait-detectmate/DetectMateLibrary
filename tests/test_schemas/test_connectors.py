@@ -1,7 +1,10 @@
 
 from detectmatelibrary.schemas.connectors.default import ver_record
+from detectmatelibrary.schemas.connectors.mongos import MongoArgs, insert_data
+
 import detectmatelibrary.schemas as sc
 
+import pymongo
 import pytest
 
 
@@ -107,5 +110,30 @@ class TestConnectors:
 
 class TestMongoConnector:
     @pytest.mark.ignored_mongo
-    def test_this_should_not_run(self):
-        raise Exception("Fail")
+    def test_insert_data(self):
+        args = MongoArgs(
+            url="mongodb://localhost:27017",
+            database="TestDataset",
+            collection="TestCollection"
+        )
+
+        client = pymongo.MongoClient(args.url)
+        col = client[args.database][args.collection]
+        col.delete_many({})
+
+        assert col.count_documents({}) == 0
+
+        insert_data("a", [{"a": "test"}], args=args)
+        assert col.find_one({"a": "test"}) is not None
+        assert col.count_documents({}) == 1
+
+        insert_data("a", [{"a": "test2"}], args=args)
+        assert col.find_one({"a": "test2"}) is not None
+        assert col.count_documents({}) == 2
+
+        with pytest.warns(UserWarning):
+            insert_data("a", [{"a": "test"}], args=args)
+            assert col.find_one({"a": "test"}) is not None
+            assert col.count_documents({}) == 2
+
+        client.close()
