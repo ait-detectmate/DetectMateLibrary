@@ -38,6 +38,8 @@ default_args = {
     "use_config_data_as_training": True,
     "train_buffer_max_records": 100_000,
     "train_buffer_dir": None,
+    'connector_name': None,
+    'connector_url': None
 }
 
 
@@ -135,7 +137,7 @@ class DummyComponentWithBuffer(CoreComponent):
 class TestConfigCore:
     def test_initialize(self) -> None:
         config = MockConfig(thresholds=0.5, max_iter=100)
-        expected = {"thresholds": 0.5, "max_iter": 100}
+        expected = {"thresholds": 0.5, "max_iter": 100, 'connector_name': None, 'connector_url': None}
         expected.update(default_args)
 
         assert isinstance(config, BasicConfig)
@@ -159,7 +161,7 @@ class TestConfigCore:
             },
             "test_id"
         )
-        expected = {"thresholds": 0.8, "max_iter": 30}
+        expected = {"thresholds": 0.8, "max_iter": 30, 'connector_name': None, 'connector_url': None}
         expected.update(default_args)
         expected["data_use_training"] = 10
 
@@ -173,16 +175,34 @@ class TestConfigCore:
     def test_update_config(self) -> None:
         config = MockConfig()
 
-        expected = {"thresholds": 0.7, "max_iter": 50, "data_use_training": None}
+        expected = {
+            "thresholds": 0.7,
+            "max_iter": 50,
+            "data_use_training": None,
+            'connector_name': None,
+            'connector_url': None
+        }
         expected.update(default_args)
         assert config.get_config() == expected
 
-        expected = {"thresholds": 0.9, "max_iter": 50, "data_use_training": None}
+        expected = {
+            "thresholds": 0.9,
+            "max_iter": 50,
+            "data_use_training": None,
+            'connector_name': None,
+            'connector_url': None
+        }
         expected.update(default_args)
         config.update_config({"thresholds": 0.9})
         assert config.get_config() == expected
 
-        expected = {"max_iter": 200, "thresholds": 0.9, "data_use_training": None}
+        expected = {
+            "max_iter": 200,
+            "thresholds": 0.9,
+            "data_use_training": None, ''
+            'connector_name': None, ''
+            'connector_url': None
+        }
         expected.update(default_args)
         config.update_config({"max_iter": 200})
         assert config.get_config() == expected
