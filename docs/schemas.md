@@ -184,6 +184,14 @@ Available frameworks:
 | Mongo | Uses [MongoDB](https://www.mongodb.com/) | Mongo | mongodb://localhost:27017/TestDataset/ParsedSchema |
 | Redis | Uses [Redis](https://redis.io/) (Always use bd=0) | Redis | http://localhost:6379 |
 
+You can configure all schema connectors in this way:
+
 ```python
 --8<-- "docs/examples/others/schemas.py:example_4"
+```
+
+Optionally, you can configure the connector separately for each schema. Keep in mind that a schema-specific configuration will override the general setup for that particular schema.
+
+```python
+--8<-- "docs/examples/others/schemas.py:example_5"
 ```

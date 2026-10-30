@@ -4,7 +4,7 @@ from detectmatelibrary.schemas.connectors.default import ver_record  # noqa: ign
 import detectmatelibrary.schemas.protobuf._op as op
 
 
-from typing_extensions import Self
+from typing_extensions import Self, Optional
 from typing import Any
 
 
@@ -94,10 +94,14 @@ class BaseSchema(SchemaVariables):
         self,
         primary_key: str = "None",
         schema_class: op.SchemaT = op.BASE_SCHEMA,
-        kwargs: dict[str, Any] | None = None
+        kwargs: dict[str, Any] | None = None,
+        connector: Optional[str] = None,
+        url: Optional[str] = None,
     ) -> None:
         super().__init__(schema_class=schema_class, kwargs=kwargs)
-        self._conector: DefaultConnector = select_connector(SCHEMA_CONNECTOR)(url=SCHEMA_URL)
+        self._conector: DefaultConnector = select_connector(
+            connector if connector is not None else SCHEMA_CONNECTOR
+        )(url=url if url is not None else SCHEMA_URL)
         self.primary_key = primary_key
 
     def __str__(self) -> str:
@@ -164,38 +168,70 @@ class BaseSchema(SchemaVariables):
 class LogSchema(BaseSchema):
     """Log schema class."""
     def __init__(
-        self, kwargs: dict[str, Any] | None = None
+        self,
+        kwargs: dict[str, Any] | None = None,
+        connector: Optional[str] = None,
+        url: Optional[str] = None,
     ) -> None:
+
         super().__init__(
-            primary_key="logID", schema_class=op.LOG_SCHEMA, kwargs=kwargs
+            primary_key="logID",
+            schema_class=op.LOG_SCHEMA,
+            kwargs=kwargs,
+            connector=connector,
+            url=url,
         )
 
 
 class ParserSchema(BaseSchema):
     """Parser schema class."""
     def __init__(
-        self, kwargs: dict[str, Any] | None = None
+        self,
+        kwargs: dict[str, Any] | None = None,
+        connector: Optional[str] = None,
+        url: Optional[str] = None,
     ) -> None:
+
         super().__init__(
-            primary_key="parsedLogID", schema_class=op.PARSER_SCHEMA, kwargs=kwargs
+            primary_key="parsedLogID",
+            schema_class=op.PARSER_SCHEMA,
+            kwargs=kwargs,
+            connector=connector,
+            url=url,
         )
 
 
 class DetectorSchema(BaseSchema):
     """Detector schema class."""
     def __init__(
-        self, kwargs: dict[str, Any] | None = None
+        self,
+        kwargs: dict[str, Any] | None = None,
+        connector: Optional[str] = None,
+        url: Optional[str] = None,
     ) -> None:
+
         super().__init__(
-            primary_key="alertID", schema_class=op.DETECTOR_SCHEMA, kwargs=kwargs
+            primary_key="alertID",
+            schema_class=op.DETECTOR_SCHEMA,
+            kwargs=kwargs,
+            connector=connector,
+            url=url,
         )
 
 
 class AggregateSchema(BaseSchema):
     """Aggregate schema class."""
     def __init__(
-        self, kwargs: dict[str, Any] | None = None
+        self,
+        kwargs: dict[str, Any] | None = None,
+        connector: Optional[str] = None,
+        url: Optional[str] = None,
     ) -> None:
+
         super().__init__(
-            primary_key="aggregateID", schema_class=op.AGGREGATE_SCHEMA, kwargs=kwargs
+            primary_key="aggregateID",
+            schema_class=op.AGGREGATE_SCHEMA,
+            kwargs=kwargs,
+            connector=connector,
+            url=url,
         )

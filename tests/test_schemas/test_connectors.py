@@ -46,6 +46,12 @@ class TestConnectors:
         assert (con := sc.BaseSchema()._conector).name == "Verification"
         assert con.url == "A"
 
+    def test_arguments_priority(self):
+        sc.set_connector("Default", url="None", reset_ver=True)
+
+        assert (con := sc.BaseSchema(connector="Verification", url="A")._conector).name == "Verification"
+        assert con.url == "A"
+
     def test_incorrect_connector(self):
         with pytest.raises(ValueError):
             sc.set_connector("Incorrect")
