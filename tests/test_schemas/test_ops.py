@@ -1,4 +1,4 @@
-import detectmatelibrary.schemas._op as op_schemas
+import detectmatelibrary.schemas.protobuf._op as op_schemas
 
 import pytest
 

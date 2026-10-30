@@ -33,8 +33,39 @@ jobs:
       - name: Run pre-commit with prek
         run: uv run --dev prek run -a
 
+      - name: Start Containers
+        run: docker compose -f tests/test_schemas/compose.yaml up -d
+
+      - name: Wait for MongoDB
+        run: |
+          for attempt in {1..30}; do
+            if docker compose -f tests/test_schemas/compose.yaml exec -T mongo \
+              mongosh --quiet --eval 'db.adminCommand("ping")' >/dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 1
+          done
+          docker compose -f tests/test_schemas/compose.yaml logs mongo
+          exit 1
+
+      - name: Wait for redis Redis
+        run: |
+          for attempt in {1..30}; do
+            if [ "$(docker compose -f tests/test_schemas/compose.yaml exec -T redis redis-cli ping 2>/dev/null)" = "PONG" ]; then
+              echo "Redis is ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          docker compose -f tests/test_schemas/compose.yaml logs redis
+          exit 1
+
       - name: Test with pytest
-        run: uv run pytest -s --run-ignored
+        run: uv run pytest -s --run-ignored --run-ignored-mongo --run-ignored-redis
+
+      - name: Stop Containers
+        if: always()
+        run: docker compose -f tests/test_schemas/compose.yaml down
 
       - name: Commit and Push Changes
         env:

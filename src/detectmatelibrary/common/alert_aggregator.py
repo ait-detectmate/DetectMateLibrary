@@ -78,6 +78,7 @@ class CoreAlertAggregator(CoreComponent):
 
         if (alert := self.aggregate_alerts(input_=input_, output_=output_)):
             output_["aggregatedTimestamp"] = get_timestamp()
+            output_["aggregateID"] = str(self.id_generator())
 
         return alert
 

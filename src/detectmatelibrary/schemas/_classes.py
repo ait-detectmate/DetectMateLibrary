@@ -1,6 +1,10 @@
-import detectmatelibrary.schemas._op as op
+from detectmatelibrary.schemas.connectors import select_connector, DefaultConnector
+from detectmatelibrary.schemas.connectors.default import ver_record  # noqa: ignore
 
-from typing_extensions import Self
+import detectmatelibrary.schemas.protobuf._op as op
+
+
+from typing_extensions import Self, Optional
 from typing import Any
 
 
@@ -66,21 +70,47 @@ class SchemaVariables:
         return is_list
 
 
+SCHEMA_CONNECTOR: str = "Default"
+SCHEMA_URL: str = "url"
+
+
+def set_connector(
+    connector: str = "Default", url: str = "None", reset_ver: bool = False
+) -> None:
+
+    global SCHEMA_CONNECTOR
+    SCHEMA_CONNECTOR = connector
+
+    global SCHEMA_URL
+    SCHEMA_URL = url
+
+    if reset_ver:
+        global ver_record
+        ver_record = {}
+
+
 class BaseSchema(SchemaVariables):
     def __init__(
         self,
+        primary_key: str = "None",
         schema_class: op.SchemaT = op.BASE_SCHEMA,
-        kwargs: dict[str, Any] | None = None
+        kwargs: dict[str, Any] | None = None,
+        connector: Optional[str] = None,
+        url: Optional[str] = None,
     ) -> None:
         super().__init__(schema_class=schema_class, kwargs=kwargs)
+        self._conector: DefaultConnector = select_connector(
+            connector if connector is not None else SCHEMA_CONNECTOR
+        )(url=url if url is not None else SCHEMA_URL)
+        self.primary_key = primary_key
 
     def __str__(self) -> str:
-        return str(self.get_schema())
+        return type(self).__name__ + "\n------------------\n" + str(self.get_schema())
 
-    def copy(self) -> "BaseSchema":
+    def copy(self) -> Self:
         """Create a deep copy of the schema instance."""
         copy_schema = op.copy(schema_class=self.schema_class, schema=self.get_schema())
-        new_instance = BaseSchema(schema_class=self.schema_class)
+        new_instance = type(self)()
         new_instance.set_schema(copy_schema)
         return new_instance
 
@@ -89,20 +119,12 @@ class BaseSchema(SchemaVariables):
         return op.serialize(schema=self.get_schema())
 
     def deserialize(self, message: bytes) -> None:
-        """Deserialize bytes to populate the schema instance.
-
-        Raises:
-            NotSupportedSchema: If the bytes cannot be parsed.
-        """
+        """Deserialize bytes to populate the schema instance."""
         schema = op.deserialize(schema_class=self.schema_class, message=message)
         self.set_schema(schema=schema)
 
     def check_is_same(self, other: Self) -> None:
-        """Check if another schema instance is of the same schema type.
-
-        Raises:
-            IncorrectSchema: If the other instance is of another schema type.
-        """
+        """Check if another schema instance is of the same schema type."""
         op.check_is_same_schema(
             id_schema_1=self.schema_class,
             id_schema_2=other.schema_class
@@ -126,51 +148,90 @@ class BaseSchema(SchemaVariables):
 
         return setattr(self, idx, value)
 
+    # --------------- Connection methods
+    def store(self) -> Self:
+        self._conector.store_data(self[self.primary_key], data=self.as_dict())
+        return self
+
+    def restore(self) -> Self:
+        self.init_schema(self._conector.restore_data(self[self.primary_key]))
+        return self
+
+    @classmethod
+    def from_id(cls, id_: str) -> Self:
+        inst = cls()
+        inst[inst.primary_key] = id_
+        return inst.restore()
+
 
 # Main schema classes ########################################
 class LogSchema(BaseSchema):
     """Log schema class."""
     def __init__(
-        self, kwargs: dict[str, Any] | None = None
+        self,
+        kwargs: dict[str, Any] | None = None,
+        connector: Optional[str] = None,
+        url: Optional[str] = None,
     ) -> None:
-        super().__init__(schema_class=op.LOG_SCHEMA, kwargs=kwargs)
 
-    def copy(self) -> "LogSchema":
-        schema: LogSchema = super().copy()  # type: ignore
-        return schema
+        super().__init__(
+            primary_key="logID",
+            schema_class=op.LOG_SCHEMA,
+            kwargs=kwargs,
+            connector=connector,
+            url=url,
+        )
 
 
 class ParserSchema(BaseSchema):
     """Parser schema class."""
     def __init__(
-        self, kwargs: dict[str, Any] | None = None
+        self,
+        kwargs: dict[str, Any] | None = None,
+        connector: Optional[str] = None,
+        url: Optional[str] = None,
     ) -> None:
-        super().__init__(schema_class=op.PARSER_SCHEMA, kwargs=kwargs)
 
-    def copy(self) -> "ParserSchema":
-        schema: ParserSchema = super().copy()  # type: ignore
-        return schema
+        super().__init__(
+            primary_key="parsedLogID",
+            schema_class=op.PARSER_SCHEMA,
+            kwargs=kwargs,
+            connector=connector,
+            url=url,
+        )
 
 
 class DetectorSchema(BaseSchema):
     """Detector schema class."""
     def __init__(
-        self, kwargs: dict[str, Any] | None = None
+        self,
+        kwargs: dict[str, Any] | None = None,
+        connector: Optional[str] = None,
+        url: Optional[str] = None,
     ) -> None:
-        super().__init__(schema_class=op.DETECTOR_SCHEMA, kwargs=kwargs)
 
-    def copy(self) -> "DetectorSchema":
-        schema: DetectorSchema = super().copy()  # type: ignore
-        return schema
+        super().__init__(
+            primary_key="alertID",
+            schema_class=op.DETECTOR_SCHEMA,
+            kwargs=kwargs,
+            connector=connector,
+            url=url,
+        )
 
 
 class AggregateSchema(BaseSchema):
     """Aggregate schema class."""
     def __init__(
-        self, kwargs: dict[str, Any] | None = None
+        self,
+        kwargs: dict[str, Any] | None = None,
+        connector: Optional[str] = None,
+        url: Optional[str] = None,
     ) -> None:
-        super().__init__(schema_class=op.AGGREGATE_SCHEMA, kwargs=kwargs)
 
-    def copy(self) -> "AggregateSchema":
-        schema: AggregateSchema = super().copy()  # type: ignore
-        return schema
+        super().__init__(
+            primary_key="aggregateID",
+            schema_class=op.AGGREGATE_SCHEMA,
+            kwargs=kwargs,
+            connector=connector,
+            url=url,
+        )

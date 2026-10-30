@@ -1,4 +1,4 @@
-
+# flake8: noqa
 # --8<-- [start:example_1]
 from detectmatelibrary import schemas
 
@@ -36,3 +36,41 @@ new_log_schema = schemas.LogSchema()
 new_log_schema.deserialize(serialized)
 print(new_log_schema == log_schema)  # True
 # --8<-- [end:example_3]
+
+
+# --8<-- [start:example_4]
+from detectmatelibrary.schemas import set_connector
+
+set_connector(
+    connector="Default", # Add Name
+    url="None",  # Add URL
+)
+
+parsed_schema = schemas.ParserSchema({"parsedLogID": "ciao"}).store()
+parsed_schema2 = schemas.ParserSchema.from_id(parsed_schema["parsedLogID"])
+
+print(parsed_schema == parsed_schema2)  # True
+
+# --8<-- [end:example_4]
+
+
+# --8<-- [start:example_5]
+
+set_connector(
+    connector="Default", # Add Name
+    url="None",  # Add URL
+)
+
+# This schema use the verification connector
+parsed_schema = schemas.ParserSchema(
+    {"parsedLogID": "ciao"},
+    connector="Default",  # Overwrite Name
+    url="NewURL",  # Overwrite URL
+).store()
+
+# This schema use the default connector
+parsed_schema2 = schemas.ParserSchema.from_id(parsed_schema["parsedLogID"])
+
+print(parsed_schema == parsed_schema2)  # True
+
+# --8<-- [end:example_5]

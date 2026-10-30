@@ -10,8 +10,9 @@ from ._classes import (
     DetectorSchema,
     AggregateSchema,
     FieldNotFound,
+    set_connector,
 )
-from ._op import IncorrectSchema, NotSupportedSchema
+from .protobuf._op import IncorrectSchema, NotSupportedSchema
 
 
 __all__ = [
@@ -23,4 +24,5 @@ __all__ = [
     "FieldNotFound",
     "IncorrectSchema",
     "NotSupportedSchema",
+    "set_connector"
 ]

@@ -60,6 +60,12 @@ class CoreConfig(BasicConfig):
             "removed after training reads it; a killed process leaves it behind."
         ),
     )
+    connector_name: str | None = Field(
+        default=None, description="Add a connector in the output schema.",
+    )
+    connector_url: str | None = Field(
+        default=None, description="Setup the url of the connector in the output schema.",
+    )
 
 
 class CoreComponent(Component[TInput, TOutput], FedOperations):
@@ -67,7 +73,7 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
 
     def __init__(
         self,
-        name: str,
+        name: str = "Component",
         type_: str = "Core",
         config: CoreConfig | dict[str, Any] = CoreConfig(),
         args_buffer: ArgsBuffer = ArgsBuffer(BufferMode.NO_BUF),
@@ -172,7 +178,7 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
             logger.debug(f"<<{self.name}>> finalizing training")
             self.post_train()
 
-        output_ = self.output_schema()
+        output_ = self.output_schema(connector=self.config.connector_name, url=self.config.connector_url)
         logger.debug(f"<<{self.name}>> processing data")
         return_schema = self.run(input_=data_buffered, output_=output_)
         if not return_schema:
@@ -180,4 +186,4 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
             return None
 
         logger.debug(f"<<{self.name}>> processed:\n{output_}")
-        return SchemaPipeline.postprocess(output_, is_byte=is_byte)
+        return SchemaPipeline.postprocess(output_.store(), is_byte=is_byte)

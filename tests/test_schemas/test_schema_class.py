@@ -1,7 +1,7 @@
 from detectmatelibrary.schemas._classes import (
     SchemaVariables, BaseSchema, LogSchema, ParserSchema, DetectorSchema, FieldNotFound
 )
-from detectmatelibrary.schemas._op import (
+from detectmatelibrary.schemas.protobuf._op import (
     PARSER_SCHEMA, BASE_SCHEMA, IncorrectSchema
 )
 

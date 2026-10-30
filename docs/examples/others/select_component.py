@@ -7,12 +7,12 @@ import detectmatelibrary.helper.select_component as selc
 configs = [
     {
         "detectors": {
-            "a": {"method_type": "random_detector"}
+            "RandomDetector": {"method_type": "random_detector"}
         }
     },
     RandomDetectorConfig(),
 ]
-names = ["a", "b"]
+names = ["RandomDetector", "RandomDetector"]
 
 components = selc.selectComponents(
     configs=configs, names=names, component_type="detectors"
