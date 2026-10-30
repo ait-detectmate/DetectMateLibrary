@@ -1,6 +1,6 @@
 
 from detectmatelibrary.schemas.connectors.default import ver_record
-from detectmatelibrary.schemas.connectors.mongos import MongoArgs, insert_data
+from detectmatelibrary.schemas.connectors.mongos import MongoArgs, insert_data, read_data
 
 import detectmatelibrary.schemas as sc
 
@@ -123,17 +123,17 @@ class TestMongoConnector:
 
         assert col.count_documents({}) == 0
 
-        insert_data("a", [{"a": "test"}], args=args)
-        assert col.find_one({"a": "test"}) is not None
+        insert_data("a", [{"b": "test"}], args=args)
+        assert col.find_one({"Primary_key": "a"}) is not None
         assert col.count_documents({}) == 1
 
-        insert_data("a", [{"a": "test2"}], args=args)
-        assert col.find_one({"a": "test2"}) is not None
+        insert_data("b", [{"b": "test2"}], args=args)
+        assert col.find_one({"Primary_key": "b"}) is not None
         assert col.count_documents({}) == 2
 
         with pytest.warns(UserWarning):
-            insert_data("a", [{"a": "test"}], args=args)
-        assert col.find_one({"a": "test"}) is not None
+            insert_data("a", [{"b": "test"}], args=args)
+        assert col.find_one({"Primary_key": "a"}) is not None
         assert col.count_documents({}) == 2
 
         client.close()
@@ -153,16 +153,45 @@ class TestMongoConnector:
         col1 = client[args.database][args.collection + "_1"]
         col1.delete_many({})
 
-        insert_data("a", [{"a": "test"}, {"c": "hello"}], args=args)
+        insert_data("a", [{"d": "test"}, {"c": "hello"}], args=args)
         assert col.count_documents({}) == 1
         assert col1.find_one({"c": "hello"}) is not None
         assert col1.count_documents({}) == 1
 
         with pytest.warns(UserWarning):
-            insert_data("a", [{"a": "test"}, {"c": "hello"}], args=args)
+            insert_data("a", [{"d": "test"}, {"c": "hello"}], args=args)
 
         assert col.count_documents({}) == 1
         assert col1.find_one({"c": "hello"}) is not None
         assert col1.count_documents({}) == 1
+
+        client.close()
+
+    @pytest.mark.ignored_mongo
+    def test_read_data(self):
+        args = MongoArgs(
+            url="mongodb://localhost:27017",
+            database="TestDataset",
+            collection="TestCollection"
+        )
+
+        client = pymongo.MongoClient(args.url)
+        col = client[args.database][args.collection]
+        col.delete_many({})
+
+        col1 = client[args.database][args.collection + "_1"]
+        col1.delete_many({})
+
+        insert_data("a", [{"d": "test2"}], args=args)
+        insert_data("b", [{"d": "test"}, {"c": "hello"}], args=args)
+
+        with pytest.warns(UserWarning):  # Missing subtable
+            assert read_data("a", args) == [{"d": "test2"}]
+
+        with pytest.warns(UserWarning):
+            no_data = read_data("not_a", args)
+        assert no_data == [{}]
+
+        assert read_data("b", args) == [{"d": "test"}, {"c": "hello"}]
 
         client.close()

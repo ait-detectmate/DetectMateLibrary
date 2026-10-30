@@ -20,7 +20,8 @@ class MongoArgs:
 
 def _insert_single_elemt(id_: str, data: dict[str, Any], collection: Collection) -> bool:
 
-    if collection.find_one({id_: data[id_]}) is None:
+    data["Primary_key"] = id_
+    if collection.find_one({"Primary_key": id_}) is None:
         collection.insert_one(data)
         return True
 
@@ -39,15 +40,59 @@ def insert_data(id_: str, data: list[dict[str, Any]], args: MongoArgs) -> None:
             if not not_duplicated:
                 return None
 
-            id_value = data[0][id_]
             for j, data_i in enumerate(data[1:]):
-                data_i[id_] = id_value
                 _insert_single_elemt(
                     id_, data=data_i, collection=database[f"{args.collection}_{j + 1}"]
                 )
 
     except ServerSelectionTimeoutError:
         warnings.warn("Mongo server offline, no insertion will be done.")
+
+    except Exception as e:
+        warnings.warn(f"Not control exception found: {e}")
+
+
+def _read_single_elemt(id_: str, collection: Collection) -> tuple[bool, dict[str, Any]]:
+    if (elemt := collection.find_one({"Primary_key": id_})) is None:
+        warnings.warn(f"Value with ID {id_} not found, empty elment will be return.")
+        return False, {}
+
+    else:
+        del elemt["_id"]
+        del elemt["Primary_key"]
+
+        return True, elemt
+
+
+def read_data(id_: str, args: MongoArgs) -> list[dict[str, Any]]:
+    out_: list[dict[str, Any]] = [{}]
+    try:
+
+        with MongoClient(args.url) as client:
+            database = client[args.database]
+            was_found, elemt = _read_single_elemt(id_, collection=database[args.collection])
+            out_[0] = elemt
+
+            if was_found:
+                i = 1
+                names = database.list_collection_names()
+                while True:
+                    if (col_ := f"{args.collection}_{i}") not in names:
+                        break
+                    i += 1
+
+                    was_found, elemt = _read_single_elemt(id_, collection=database[col_])
+                    if was_found:
+                        out_.append(elemt)
+
+    except ServerSelectionTimeoutError:
+        warnings.warn("Mongo server offline, empty element will be return.")
+
+    except Exception as e:
+        warnings.warn(f"Not control exception found: {e}")
+
+    finally:
+        return out_
 
 
 # ---------------- Connector interface
@@ -66,4 +111,4 @@ class MongoConnector(DefaultConnector):
         insert_data(id_=id_, data=data, args=self.args)
 
     def from_databse(self, id_: str) -> list[dict[str, Any]]:
-        return [{}]
+        return read_data(id_=id_, args=self.args)
