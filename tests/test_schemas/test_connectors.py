@@ -1,6 +1,6 @@
 
-from detectmatelibrary.schemas.connectors.default import ver_record
 from detectmatelibrary.schemas.connectors.mongos import MongoArgs, insert_data, read_data
+from detectmatelibrary.schemas.connectors.default import ver_record
 
 import detectmatelibrary.schemas as sc
 
