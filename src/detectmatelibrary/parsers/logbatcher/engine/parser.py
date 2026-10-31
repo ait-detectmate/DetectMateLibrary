@@ -37,6 +37,7 @@ from .postprocess import correct_single_template
 from .util import verify_template, count_message_tokens
 from .parsing_cache import ParsingCache
 
+
 class Parser:
 
     def __init__(self, model: str, theme: str, config: Dict[str, str]) -> None:
@@ -53,21 +54,22 @@ class Parser:
             base_url=base_url,
         )
 
-    @retry(wait=wait_random_exponential(min=1, max=8), stop=stop_after_attempt(10))
+    @retry(wait=wait_random_exponential(min=1, max=8), stop=stop_after_attempt(10))  # type: ignore[misc]
     def chat(self, messages: List[Dict[str, str]]) -> str:
         response = self.client.chat.completions.create(
             model=self.model,
             messages=messages,
             temperature=0.05,
         )
-        return response.choices[0].message.content.strip('\n')
+        content: str = response.choices[0].message.content
+        return content.strip('\n')
 
     def get_responce(self, cluster: Cluster, cache_base: ParsingCache) -> Tuple[str, Cluster, Cluster]:
 
         # initialize
         logs = cluster.batch_logs
         sample_log = cluster.sample_log
-        
+
         # Matching and Pruning
         new_cluster = Cluster()
         for log in cluster.logs:
@@ -89,7 +91,16 @@ class Parser:
         variables = variable_cluster.batch_logs
 
         variable_prompt = f' Historical variables: {variables}.' if variables != [] else ''
-        instruction = "You will be provided with some log messages separated by line break. You must abstract variables with `{{placeholders}}` to extract the corresponding template. The variable type in log messages can be any of the following: ['url', 'IPv4_port', 'host_port', 'package_host', 'IPv6', 'Mac_address', 'time', 'path', 'id', 'date', 'duration', 'size', 'numerical', 'weekday_months', 'user_name']." + variable_prompt + " Constant text and strings should not be recognized as variables.\nPrint the input log's template delimited by backticks."
+        instruction = (
+            "You will be provided with some log messages separated by line break. "
+            "You must abstract variables with `{{placeholders}}` to extract the corresponding template. "
+            "The variable type in log messages can be any of the following: "
+            "['url', 'IPv4_port', 'host_port', 'package_host', 'IPv6', 'Mac_address', 'time', 'path', "
+            "'id', 'date', 'duration', 'size', 'numerical', 'weekday_months', 'user_name']."
+            + variable_prompt
+            + " Constant text and strings should not be recognized as variables.\n"
+            "Print the input log's template delimited by backticks."
+        )
 
         # invoke LLM
         messages = [
@@ -107,11 +118,11 @@ class Parser:
         except Exception as e:
             logger.error(f"invoke LLM error: {e}")
             answer = sample_log
-        
+
         template = post_process(answer)
         if not verify_template(template):
             template = correct_single_template(sample_log)
-        
+
         cluster, new_cluster = prune_from_cluster(template, cluster)
         if new_cluster.size == cluster.size:
             cluster.logs, cluster.indexs = new_cluster.logs, new_cluster.indexs
