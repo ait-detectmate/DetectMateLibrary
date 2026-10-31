@@ -37,6 +37,26 @@ class TestDLOp:
         for i in range(3):
             assert mask_tensor_2[i].sum() == 2
 
+    def test_mask_draws_are_unchanged(self) -> None:
+        mask = op.Mask(seq_size=10, mask_per=0.4)
+        base = jnp.concat([jnp.ones((3, 6)), jnp.zeros((3, 4))], axis=1).astype(jnp.int32)
+
+        for i in range(4):
+            expected = jax.random.permutation(jax.random.key(i), base, independent=True, axis=1)
+            assert jnp.array_equal(mask(3), expected)
+        assert mask.i == 4
+
+    def test_mask_at_is_draw_i_without_advancing(self) -> None:
+        drawn = op.Mask(seq_size=10, mask_per=0.4)
+        draws = [drawn(3) for _ in range(4)]
+
+        mask = op.Mask(seq_size=10, mask_per=0.4)
+        at_jit = jax.jit(mask.at, static_argnums=1)
+        for i in range(4):
+            assert jnp.array_equal(mask.at(i, 3), draws[i])
+            assert jnp.array_equal(at_jit(i, 3), draws[i])
+        assert mask.i == 0
+
 
 class TestDeeplog:
     @pytest.mark.ignored
