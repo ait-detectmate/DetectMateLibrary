@@ -1,7 +1,8 @@
-# ty: ignore[invalid-mutable-override] # Used to silence an error in the typing of nn.ModuleDict!
+# ty: ignore[invalid-mutable-override] # Used to silence an invalid error in the typing of nn.ModuleDict!
 
 from __future__ import annotations
 
+import copy
 import json
 import logging
 import os
@@ -20,6 +21,7 @@ from alertbert.preprocessing import (
     Vocabulary,
     default_collate_fn,
 )
+from numpy.typing import NDArray
 from scipy.sparse import coo_array
 from scipy.sparse.csgraph import connected_components
 from sklearn.decomposition import PCA
@@ -392,8 +394,7 @@ class MaskedLangModelEncoder(nn.Module):
         biases: bool = True,
     ) -> None:
         super().__init__()
-        self.layers: nn.ModuleList = nn.modules.transformer._get_clones(  # type: ignore[no-untyped-call]
-            EncoderLayer(
+        layer = EncoderLayer(
                 d_model=d_model,
                 nhead=nhead,
                 dim_feedforward=dim_feedforward,
@@ -402,9 +403,8 @@ class MaskedLangModelEncoder(nn.Module):
                 rotary_pos_enc=rotary_pos_enc,
                 rotary_pos_enc_freqs=rotary_pos_enc_freqs,
                 biases=biases,
-            ),
-            num_layers,
         )
+        self.layers = nn.ModuleList([copy.deepcopy(layer) for _ in range(num_layers)])
 
     def forward(self, x: torch.Tensor, p: torch.Tensor | None = None) -> torch.Tensor:
         for layer in self.layers:
@@ -809,6 +809,7 @@ class MaskedLanguageModel(nn.ModuleDict):
         - dict[str, float | dict[str, torch.tensor]]: A dictionary containing the evaluation statistics.
         """
         model_ev = MaskedLangModelEvalWrapper(self)
+        model = cast(MaskedLanguageModel, model_ev.module)
         stats: dict[str, Any] = {  # dictionary to store statistics for each target of the model
             t: {
                 "loss": [],  # average loss
@@ -818,7 +819,7 @@ class MaskedLanguageModel(nn.ModuleDict):
                 "true": [],  # true labels
                 "size": [],  # number of samples
             }
-            for t in model_ev.module["head"].targets
+            for t in cast(MultiClassificationHead, model["head"]).targets
         }
         loss_fn = nn.CrossEntropyLoss(reduction="sum")
         self.eval()
@@ -827,7 +828,8 @@ class MaskedLanguageModel(nn.ModuleDict):
                 for batch in loader:
                     batch = batch.to(self.device)
                     batch = model_ev(batch)
-                    for t in model_ev.module["head"].targets:
+                    model = cast(MaskedLanguageModel, model_ev.module)
+                    for t in cast(MultiClassificationHead, model["head"]).targets:
                         true = batch[f"{t}_true"]
                         stats[t]["true"].append(true.cpu())
                         stats[t]["size"].append(len(true))
@@ -842,7 +844,8 @@ class MaskedLanguageModel(nn.ModuleDict):
                             out.t() >= out[(torch.arange(len(true)), true)], dim=0
                         )
                         stats[t]["rank"].append(rank.cpu())
-        for t in model_ev.module["head"].targets:
+        model = cast(MaskedLanguageModel, model_ev.module)
+        for t in cast(MultiClassificationHead, model["head"]).targets:
             # aggregate statistics
             stats[t]["size"] = sum(stats[t]["size"])
             stats[t]["loss"] = sum(stats[t]["loss"]) / stats[t]["size"]
@@ -852,8 +855,8 @@ class MaskedLanguageModel(nn.ModuleDict):
             stats[t]["true"] = torch.cat(stats[t]["true"])
         # add average loss across all targets
         stats["total_loss"] = sum(
-            stats[t]["loss"] for t in model_ev.module["head"].targets
-        ) / len(model_ev.module["head"].targets)
+            stats[t]["loss"] for t in cast(MultiClassificationHead, model["head"]).targets
+        ) / len(cast(MultiClassificationHead, model["head"]).targets)
         return stats
 
     def _load_report(self) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -963,7 +966,7 @@ class MaskedLanguageModel(nn.ModuleDict):
 # region wrappers to make the models work with TensorDicts
 
 
-class MaskedLangModelInferenceWrapper(TensorDictModule[str, torch.Tensor]):  # type: ignore[misc]
+class MaskedLangModelInferenceWrapper(TensorDictModule):
     """A wrapper class for obtaining embeddings of a MaskedLanguageModel and
     TensorDicts.
 
@@ -988,7 +991,7 @@ class MaskedLangModelInferenceWrapper(TensorDictModule[str, torch.Tensor]):  # t
             out_keys=["output"],
         )
         self.encoding = model.config["encoding"]
-        self.module.forward = self._star_forward
+        setattr(cast(nn.Sequential, self.module), "forward", self._star_forward)  # noqa: B010
 
     @torch.no_grad()
     def _star_forward(self, **x: torch.Tensor) -> torch.Tensor:
@@ -1003,7 +1006,7 @@ class MaskedLangModelInferenceWrapper(TensorDictModule[str, torch.Tensor]):  # t
         return output
 
 
-class MaskedLangModelEvalWrapper(TensorDictModule[str, torch.Tensor]):  # type: ignore[misc]
+class MaskedLangModelEvalWrapper(TensorDictModule):
     """Wrapper class for evaluating the training of MaskedLanguageModel with
     TensorDicts.
 
@@ -1040,17 +1043,17 @@ class MaskedLangModelEvalWrapper(TensorDictModule[str, torch.Tensor]):  # type: 
         self.masked_out_keys = [f"{k}_mask" for k in self.out_keys]
 
     def forward(
-        self, batch: TensorDict[str, torch.Tensor]
-    ) -> TensorDict[str, torch.Tensor]:
+        self, batch: TensorDict
+    ) -> TensorDict:
         mask_idx = torch.unbind(batch["mask_index"])
-        batch = cast(TensorDict[str, torch.Tensor], super().forward(batch))
+        batch = cast(TensorDict, super().forward(batch))
         model = cast(MaskedLanguageModel, self.module)
         head = cast(MultiClassificationHead, model["head"])
         for t, k in zip(head.targets, self.true_target_keys):
             batch[k] = head.vocabs[t].compute_targets(batch[t][mask_idx])
         for k, m in zip(self.out_keys, self.masked_out_keys):
             batch[m] = batch[k][mask_idx]
-        return cast(TensorDict[str, torch.Tensor], batch)
+        return batch
 
 
 class MaskedLangModelTrainWrapper(MaskedLangModelEvalWrapper):
@@ -1066,8 +1069,8 @@ class MaskedLangModelTrainWrapper(MaskedLangModelEvalWrapper):
         self.loss_fn = loss_fn
 
     def forward(
-        self, batch: TensorDict[str, torch.Tensor]
-    ) -> TensorDict[str, torch.Tensor]:
+        self, batch: TensorDict
+    ) -> TensorDict:
         batch = super().forward(batch)
         batch["loss"] = self.loss_fn(
             tuple(batch[k] for k in self.masked_out_keys),
@@ -1186,12 +1189,12 @@ class AlertBERT(AbstractDatasetGroupingModel):
         alert_idx_offset = 0
 
         # iterate over all pre-clusters and perform agglomerative clustering
-        pred = []
+        pred: list[NDArray[Any]] = []
         next_label = 0
 
         for pre_cluster in range(pre_clustering[-1] + 1):
             current_alerts = pre_clustering == pre_cluster
-            pre_cluster_size = np.sum(current_alerts)
+            pre_cluster_size = int(np.sum(current_alerts))
             if pre_cluster_size == 1 or self.config.delta == self.config.theta:
                 # either only one alert in the pre-cluster or all alerts belong to the same group,
                 # so no need to compute distances
@@ -1227,23 +1230,23 @@ class AlertBERT(AbstractDatasetGroupingModel):
             # these 3 clusterings are then united to produce the final clustering
 
             next_prelim_label = 0
-            primary_labels = []
-            secondary_labels = []
-            tertiary_labels = []
+            primary_labels: list[NDArray[Any]] = []
+            secondary_labels: list[NDArray[Any]] = []
+            tertiary_labels: list[NDArray[Any]] = []
 
             # determine the block sizes
-            square_sizes = []
+            square_sizes_list: list[int] = []
             current_square_size = 1
             square_start_time = pre_cluster_raw_time[0]
             for i in range(1, pre_cluster_size):
                 if pre_cluster_raw_time[i] - square_start_time < self.config.delta:
                     current_square_size += 1
                 else:
-                    square_sizes.append(current_square_size)
+                    square_sizes_list.append(current_square_size)
                     square_start_time = pre_cluster_raw_time[i]
                     current_square_size = 1
-            square_sizes.append(current_square_size)
-            square_sizes = np.array(square_sizes)
+            square_sizes_list.append(current_square_size)
+            square_sizes = np.array(square_sizes_list)
             if not square_sizes.sum() == pre_cluster_size:
                 raise ValueError(
                     f"Sum of square sizes ({square_sizes.sum()}) does not match \
@@ -1316,103 +1319,106 @@ class AlertBERT(AbstractDatasetGroupingModel):
                 current_square_start += current_square_size
 
             # check and agglomerate the preliminary labels
-            primary_labels = np.concatenate(primary_labels)
-            secondary_labels = np.concatenate(secondary_labels)
-            tertiary_labels = (
+            primary_labels_array = np.concatenate(primary_labels)
+            secondary_labels_array = np.concatenate(secondary_labels)
+            tertiary_labels_array = (
                 np.concatenate(tertiary_labels)
                 if len(tertiary_labels) > 0
                 else np.array([])
             )
-            if not len(primary_labels) == pre_cluster_size:
+            if not len(primary_labels_array) == pre_cluster_size:
                 raise ValueError(
-                    f"Length of primary labels ({len(primary_labels)}) does not match \
+                    f"Length of primary labels ({len(primary_labels_array)}) does not match \
                         pre-cluster size ({pre_cluster_size})!"
                 )
             if not i % 2:
-                if not len(secondary_labels) == pre_cluster_size:
+                if not len(secondary_labels_array) == pre_cluster_size:
                     raise ValueError(
-                        f"Length of secondary labels ({len(secondary_labels)}) does not match \
+                        f"Length of secondary labels ({len(secondary_labels_array)}) does not match \
                             pre-cluster size ({pre_cluster_size})!"
                     )
                 if not (
-                    len(tertiary_labels)
+                    len(tertiary_labels_array)
                     == pre_cluster_size - square_sizes[0] - square_sizes[-1]
                 ):
                     raise ValueError(
-                        f"Length of tertiary labels ({len(tertiary_labels)}) does not match \
+                        f"Length of tertiary labels ({len(tertiary_labels_array)}) does not match \
                             pre-cluster size ({pre_cluster_size})!"
                     )
-                tertiary_labels = np.concatenate(  # add additional labels to get sequences of same length
+                # Add labels to make the sequences the same length.
+                tertiary_labels_array = np.concatenate(
                     [
                         -1
                         * np.arange(
                             1, square_sizes[0] + 1
                         ),  # make sure the labels dont collide
-                        tertiary_labels,
+                        tertiary_labels_array,
                         -1 * np.arange(1, square_sizes[-1] + 1)
                         - 2 * square_sizes[0],  # make sure the labels dont collide
                     ]
                 )
             else:
-                if not len(tertiary_labels) == pre_cluster_size - square_sizes[0]:
+                if not len(tertiary_labels_array) == pre_cluster_size - square_sizes[0]:
                     raise ValueError(
-                        f"Length of tertiary labels ({len(tertiary_labels)}) does not match \
+                        f"Length of tertiary labels ({len(tertiary_labels_array)}) does not match \
                             pre-cluster size ({pre_cluster_size})!"
                     )
-                if not len(secondary_labels) == pre_cluster_size - square_sizes[-1]:
+                if not len(secondary_labels_array) == pre_cluster_size - square_sizes[-1]:
                     raise ValueError(
-                        f"Length of secondary labels ({len(secondary_labels)}) does not match \
+                        f"Length of secondary labels ({len(secondary_labels_array)}) does not match \
                             pre-cluster size ({pre_cluster_size})!"
                     )
-                secondary_labels = np.concatenate(  # add additional labels to get sequences of same length
+                # Add labels to make the sequences the same length.
+                secondary_labels_array = np.concatenate(
                     [
-                        secondary_labels,
+                        secondary_labels_array,
                         -1 * np.arange(1, square_sizes[-1] + 1),
                     ]  # make sure the labels dont collide
                 )
-                tertiary_labels = np.concatenate(  # add additional labels to get sequences of same length
+                # Add labels to make the sequences the same length.
+                tertiary_labels_array = np.concatenate(
                     [
                         -1 * np.arange(1, square_sizes[0] + 1)
                         - 2 * square_sizes[-1],  # make sure the labels dont collide
-                        tertiary_labels,
+                        tertiary_labels_array,
                     ]
                 )
-            if not len(secondary_labels) == len(tertiary_labels):
+            if not len(secondary_labels_array) == len(tertiary_labels_array):
                 raise ValueError(
-                    f"Length of secondary labels ({len(secondary_labels)}) does not match length of \
-                        tertiary labels ({len(tertiary_labels)})!"
+                    f"Length of secondary labels ({len(secondary_labels_array)}) does not match length of \
+                        tertiary labels ({len(tertiary_labels_array)})!"
                 )
 
-            if len(tertiary_labels) > 0:
-                secondary_labels, _ = self._unite_labels(
-                    secondary_labels, tertiary_labels
+            if len(tertiary_labels_array) > 0:
+                secondary_labels_array, _ = self._unite_labels(
+                    secondary_labels_array, tertiary_labels_array
                 )
-            primary_labels, n_labels = self._unite_labels(
-                primary_labels,
+            primary_labels_array, n_labels = self._unite_labels(
+                primary_labels_array,
                 -1
                 * (
-                    1 + secondary_labels
+                    1 + secondary_labels_array
                 ),  # make sure the labels dont collide  # change 2
             )
 
-            pred.append(primary_labels + next_label)
+            pred.append(primary_labels_array + next_label)
             next_label += n_labels
             alert_idx_offset += pre_cluster_size
 
-        pred = np.concatenate(pred)
+        predictions = np.concatenate(pred)
         if not alert_idx_offset == len(data):
             raise ValueError(
                 f"Alert index offset ({alert_idx_offset}) does not match number of alerts ({len(data)})!"
             )
-        if not len(pred) == len(data):
+        if not len(predictions) == len(data):
             raise ValueError(
-                f"Length of predictions ({len(pred)}) does not match number of alerts ({len(data)})!"
+                f"Length of predictions ({len(predictions)}) does not match number of alerts ({len(data)})!"
             )
-        if not np.max(pred) + 1 == next_label:
+        if not np.max(predictions) + 1 == next_label:
             raise ValueError(
-                f"Max label ({np.max(pred)}) does not match next label ({next_label})!"
+                f"Max label ({np.max(predictions)}) does not match next label ({next_label})!"
             )
-        return pred
+        return predictions
 
     def _dist_matrix_to_connected_components(
         self,
@@ -1468,8 +1474,8 @@ class AlertBERT(AbstractDatasetGroupingModel):
         return pred, n_groups
 
     def _unite_labels(
-        self, prelim_labels_1: np.ndarray[int], prelim_labels_2: np.ndarray[int]
-    ) -> tuple[np.ndarray[int], int]:
+        self, prelim_labels_1: NDArray[Any], prelim_labels_2: NDArray[Any]
+    ) -> tuple[NDArray[Any], int]:
         """Merges two clustering results into a single set of labels by merging
         all intersecting clusters.
 
@@ -1559,10 +1565,10 @@ class AlertBERT(AbstractDatasetGroupingModel):
                     f"Preliminary labels {l1} and {l2} are assigned to different final labels {f1} and {f2}!"
                 )
             assigned_labels.append(f1)
-        used_labels, final_labels = np.unique(
+        used_labels, merged_labels = np.unique(
             np.array(assigned_labels), return_inverse=True
         )
-        return final_labels, len(used_labels)
+        return merged_labels, len(used_labels)
 
     def _get_embeddings(
         self,
@@ -1577,7 +1583,7 @@ class AlertBERT(AbstractDatasetGroupingModel):
 
         num_contexts = len(data) // self.readout
         remainder = len(data) % self.readout
-        embeddings = []
+        embedding_batches: list[NDArray[Any]] = []
 
         if remainder:
             batch_start = 0
@@ -1585,7 +1591,7 @@ class AlertBERT(AbstractDatasetGroupingModel):
             batch = self.feature_extraction_fn(data[batch_start:batch_end])
             batch = self.collate_fn([batch])
             batch = self.model(batch)
-            embeddings.append(batch["output"][0, 0:remainder].cpu().numpy())
+            embedding_batches.append(batch["output"][0, 0:remainder].cpu().numpy())
 
         for i in range(num_contexts):
             batch_start = max(0, i * self.readout + remainder - self.padding)
@@ -1599,7 +1605,7 @@ class AlertBERT(AbstractDatasetGroupingModel):
             batch = self.feature_extraction_fn(data[batch_start:batch_end])
             batch = self.collate_fn([batch])
             batch = self.model(batch)
-            embeddings.append(
+            embedding_batches.append(
                 batch["output"][
                     0, batch_start_offset: batch_end - batch_start - batch_end_offset
                 ]
@@ -1607,7 +1613,7 @@ class AlertBERT(AbstractDatasetGroupingModel):
                 .numpy()
             )
 
-        embeddings = np.concatenate(embeddings)
+        embeddings = np.concatenate(embedding_batches)
         if not embeddings.shape[0] == len(data):
             raise ValueError(
                 "Number of embeddings does not match number of alerts! "
@@ -1630,16 +1636,21 @@ class AlertBERT(AbstractDatasetGroupingModel):
 
         return embeddings
 
-    def time_cosine_metric(self, x: np.ndarray, y: np.ndarray = None) -> np.ndarray:
+    def time_cosine_metric(
+        self, x: NDArray[Any], y: NDArray[Any] | None = None
+    ) -> NDArray[Any]:
         if y is None:
             y = x
         if x.ndim == 1:
-            x = x.unsequeze(0)
+            x = np.expand_dims(x, axis=0)
         if y.ndim == 1:
-            y = y.unsequeze(0)
-        return np.maximum(
-            cosine_distances(x[:, :-1], y[:, :-1]) / 2.0 * self.config.theta,
-            np.abs(x[:, -1][:, None] - y[:, -1]),
+            y = np.expand_dims(y, axis=0)
+        return cast(
+            NDArray[Any],
+            np.maximum(
+                cosine_distances(x[:, :-1], y[:, :-1]) / 2.0 * self.config.theta,
+                np.abs(x[:, -1][:, None] - y[:, -1]),
+            ),
         )
 
 

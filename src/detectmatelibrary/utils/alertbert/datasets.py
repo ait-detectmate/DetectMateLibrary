@@ -7,6 +7,7 @@ from typing import Any, Optional, cast
 
 import numpy as np
 import torch
+from numpy.typing import NDArray
 from torch.utils.data import BatchSampler, Dataset, Sampler
 
 from detectmatelibrary.schemas import DetectorSchema
@@ -162,7 +163,7 @@ class AlertDataset(Dataset[dict[str, Any]]):
         return len(self.data[self.keys[0]])
 
     def __getitem__(
-        self, idx: int | slice | np.ndarray[int]
+        self, idx: int | slice | NDArray[np.int_]
     ) -> dict[str, Any] | dict[str, list[Any]]:  # ty: ignore[invalid-method-override]
         if isinstance(idx, int):
             try:
