@@ -66,10 +66,7 @@ class AlertBERTAggregationConfig(DensityClusteringAggregationConfig):
     """
 
     # general
-    method_type: str = Field(
-        default="AlertBERT_aggregator",
-        description="The type of the aggregation method.",
-    )
+    method_type: str = "AlertBERT_aggregator"
     path: str = Field(
         default="alertbert_models", description="The path to the AlertBERT models."
     )
@@ -184,7 +181,7 @@ class AlertBERTAggregation(DensityClusteringAggregation):
                 return self._aggregate_alerts(input_, output_)
             else:
                 raise ValueError(
-                    f"Clustering backend '{self.config['clustering_backend']}' is not supported."
+                    f"Clustering backend '{self.config.clustering_backend}' is not supported."
                 )
 
     def _aggregate_alerts(
@@ -240,8 +237,8 @@ class AlertBERTAggregation(DensityClusteringAggregation):
         )
 
     def discard_alert_fn(self, alerts: list[DetectorSchema]) -> list[bool]:
-        cutoff = self.relevant_alerts[-1]["extractedTimestamps"][-1] - self.config.delta
-        return [alert["extractedTimestamps"][-1] < cutoff for alert in alerts]
+        cutoff = self.relevant_alerts[-1]["logTimestamps"][-1] - self.config.delta
+        return [alert["logTimestamps"][-1] < cutoff for alert in alerts]
 
     def _set_up_mlm(self) -> None:
         self.mlm = MaskedLanguageModel(self.config)
@@ -280,15 +277,11 @@ class AlertBERTAggregation(DensityClusteringAggregation):
                     "train_data and val_data must be provided if use_gathered_alerts is False."
                 )
         logger.info("Training AlertBERT model ...")
-        try:
-            self.mlm.fit(train_data, val_data)
-            self.config.train_model = False
-        except Exception as e:
-            logger.error(f"Error during AlertBERT model training: {e}")
-            return
+        self.mlm.fit(train_data, val_data)
+        self.config.train_model = False
         logger.info("AlertBERT model training complete.")
         self._set_up_alertbert()
-        if not self.config.train_model:
+        if self.config.train_model:
             raise ValueError(
                 "The model should not be trained after training!"
             )

@@ -268,7 +268,7 @@ class AlertSequenceSampler(Sampler[slice]):
             )
 
         # create a tensor containing the starting indices of the chunks
-        index: torch.IntTensor = torch.IntTensor(torch.arange(self.n_chunks) * self.context_size + offset)
+        index: torch.Tensor = torch.arange(self.n_chunks) * self.context_size + offset
 
         if self.shuffle:
             perm = torch.randperm(len(self), generator=self.generator)

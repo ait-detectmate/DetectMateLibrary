@@ -14,13 +14,6 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 
 import numpy as np
 import torch
-from alertbert.datasets import AlertDataset, AlertSequenceBatchSampler
-from alertbert.preprocessing import (
-    BaseSequenceCollate,
-    MaskedLangModelingSequenceCollate,
-    Vocabulary,
-    default_collate_fn,
-)
 from numpy.typing import NDArray
 from scipy.sparse import coo_array
 from scipy.sparse.csgraph import connected_components
@@ -34,6 +27,14 @@ from torch.utils.data import DataLoader
 
 from detectmatelibrary.schemas import DetectorSchema
 from detectmatelibrary.tools.logging import setup_logging
+
+from .datasets import AlertDataset, AlertSequenceBatchSampler
+from .preprocessing import (
+    BaseSequenceCollate,
+    MaskedLangModelingSequenceCollate,
+    Vocabulary,
+    default_collate_fn,
+)
 
 if TYPE_CHECKING:
     from detectmatelibrary.alert_aggregation.alertbert import (
@@ -98,7 +99,7 @@ class MaskedLangModelEmbeddingLayer(nn.Module):
             }
         )
         for emb in self.embeddings.values():
-            emb.weight = nn.init.normal_(torch.tensor(emb.weight), mean=0, std=init_std)
+            nn.init.normal_(cast(nn.Embedding, emb).weight, mean=0, std=init_std)
 
         if self.encoding == "position":
             self.embeddings["position"] = nn.Embedding(
@@ -545,7 +546,7 @@ class MaskedLanguageModel(nn.ModuleDict):
         )
         self.config["tag"] = (
             f"{self.config['method_type']}_{self.config['num_layers']}l_\
-            {self.config['n_heads']}h_{self.config['dim_per_head']}d"
+{self.config['n_heads']}h_{self.config['dim_per_head']}d"
         )
 
         if not self.config["train_model"]:
@@ -613,10 +614,13 @@ class MaskedLanguageModel(nn.ModuleDict):
             features=list(set(self.config["features"])),
             min_freq=self.config["min_freq"],
         )
-        self.vocabs[self.config["encoding"]] = default_collate_fn
+        collate_vocabs = cast(
+            dict[str, Callable[[Sequence[np.ndarray]], torch.Tensor]], self.vocabs
+        )
+        collate_vocabs[self.config["encoding"]] = default_collate_fn
 
         self.collate_function = MaskedLangModelingSequenceCollate(
-            self.vocabs,
+            collate_vocabs,
             0.2,
             0.8,
             0.0,
@@ -665,7 +669,7 @@ class MaskedLanguageModel(nn.ModuleDict):
 
         logging.info(
             f"Specified number of {self.config['updates'][1]} updates amounts to {epochs} epochs \
-                with {updates_per_epoch} updates per epoch."
+with {updates_per_epoch} updates per epoch."
         )
         logging.info(f"Save intervals in epochs: {save_interval_epochs}")
 
@@ -742,8 +746,8 @@ class MaskedLanguageModel(nn.ModuleDict):
                 for t in self.config["features"]:
                     logging.info(
                         f"Evaluation: target = {t}, train loss = {tr_stats[t]['loss']:1.05f}, \
-                            train acc = {tr_stats[t]['corr']:1.05f}; val loss = {val_stats[t]['loss']:1.05f}\
-                            , val acc = {val_stats[t]['corr']:1.05f}"
+train acc = {tr_stats[t]['corr']:1.05f}; val loss = {val_stats[t]['loss']:1.05f}\
+, val acc = {val_stats[t]['corr']:1.05f}"
                     )
 
                 if saving and val_stats["total_loss"] < best_val_loss:
@@ -778,13 +782,13 @@ class MaskedLanguageModel(nn.ModuleDict):
         if best_train_stats is None or best_val_stats is None:
             raise RuntimeError("No best model checkpoint was created during training.")
         results = f"{str(dt.now())} Model: {self.config['model_id']} Results: train loss = \
-            {best_train_stats['total_loss']:1.05f}, val loss = {best_val_stats['total_loss']:1.05f}"
+{best_train_stats['total_loss']:1.05f}, val loss = {best_val_stats['total_loss']:1.05f}"
         for t in self.config["features"]:
             results += f", {t: >5} train acc = {best_train_stats[t]['corr']:1.05f}, \
-                {t: >5} val acc = {best_val_stats[t]['corr']:1.05f}"
+{t: >5} val acc = {best_val_stats[t]['corr']:1.05f}"
             results += (
                 f", {t: >5} train f1 = {report['training'][t]['macro_f1']:1.05f}, \
-                {t: >5} val f1 = {report['validation'][t]['macro_f1']:1.05f}"
+{t: >5} val f1 = {report['validation'][t]['macro_f1']:1.05f}"
             )
         results += f"; params = {self.config}"
         logging.info(results)
@@ -1122,7 +1126,7 @@ class TimeDelta(AbstractDatasetGroupingModel):
         self.config = config
 
     def forward(self, data: list[DetectorSchema]) -> np.ndarray:
-        c = np.array([alert["extractedTimestamps"][-1] for alert in data])
+        c = np.array([alert["logTimestamps"][-1] for alert in data])
         c = np.diff(c, prepend=c[0])
         c = np.where(c >= self.config.delta, 1, 0)
         return np.cumsum(c)
@@ -1160,11 +1164,14 @@ class AlertBERT(AbstractDatasetGroupingModel):
         if not config.theta >= config.delta:
             raise ValueError(
                 f"theta must be greater than or equal to delta ({self.config.theta} >= {self.config.delta}) \
-                as it determines the maximal possoble value of the cosine distance!"
+as it determines the maximal possoble value of the cosine distance!"
             )
         self.model = MaskedLangModelInferenceWrapper(model, layers=self.config.layers)
-        self.collate_fn: Callable[[list[dict[str, list[Any]]]], Any] = BaseSequenceCollate(
-            model.vocabs
+        self.collate_fn: BaseSequenceCollate = BaseSequenceCollate(
+            cast(
+                dict[str, Callable[[Sequence[np.ndarray]], torch.Tensor]],
+                model.vocabs,
+            )
         )
         self.dim_reduction = (
             PCA(n_components=self.config.dim_reduction)
@@ -1203,7 +1210,7 @@ class AlertBERT(AbstractDatasetGroupingModel):
                 next_label += 1
                 continue
             pre_cluster_raw_time = np.array(
-                [alert["extractedTimestamps"][-1] for alert in data]
+                [alert["logTimestamps"][-1] for alert in data]
             )[current_alerts]
             pre_cluster_time_length = pre_cluster_raw_time[-1] - pre_cluster_raw_time[0]
 
@@ -1250,7 +1257,7 @@ class AlertBERT(AbstractDatasetGroupingModel):
             if not square_sizes.sum() == pre_cluster_size:
                 raise ValueError(
                     f"Sum of square sizes ({square_sizes.sum()}) does not match \
-                        pre-cluster size ({pre_cluster_size})!"
+pre-cluster size ({pre_cluster_size})!"
                 )
 
             # at first compute labels of the initial square
@@ -1329,13 +1336,13 @@ class AlertBERT(AbstractDatasetGroupingModel):
             if not len(primary_labels_array) == pre_cluster_size:
                 raise ValueError(
                     f"Length of primary labels ({len(primary_labels_array)}) does not match \
-                        pre-cluster size ({pre_cluster_size})!"
+pre-cluster size ({pre_cluster_size})!"
                 )
             if not i % 2:
                 if not len(secondary_labels_array) == pre_cluster_size:
                     raise ValueError(
                         f"Length of secondary labels ({len(secondary_labels_array)}) does not match \
-                            pre-cluster size ({pre_cluster_size})!"
+pre-cluster size ({pre_cluster_size})!"
                     )
                 if not (
                     len(tertiary_labels_array)
@@ -1343,7 +1350,7 @@ class AlertBERT(AbstractDatasetGroupingModel):
                 ):
                     raise ValueError(
                         f"Length of tertiary labels ({len(tertiary_labels_array)}) does not match \
-                            pre-cluster size ({pre_cluster_size})!"
+pre-cluster size ({pre_cluster_size})!"
                     )
                 # Add labels to make the sequences the same length.
                 tertiary_labels_array = np.concatenate(
@@ -1361,12 +1368,12 @@ class AlertBERT(AbstractDatasetGroupingModel):
                 if not len(tertiary_labels_array) == pre_cluster_size - square_sizes[0]:
                     raise ValueError(
                         f"Length of tertiary labels ({len(tertiary_labels_array)}) does not match \
-                            pre-cluster size ({pre_cluster_size})!"
+pre-cluster size ({pre_cluster_size})!"
                     )
                 if not len(secondary_labels_array) == pre_cluster_size - square_sizes[-1]:
                     raise ValueError(
                         f"Length of secondary labels ({len(secondary_labels_array)}) does not match \
-                            pre-cluster size ({pre_cluster_size})!"
+pre-cluster size ({pre_cluster_size})!"
                     )
                 # Add labels to make the sequences the same length.
                 secondary_labels_array = np.concatenate(
@@ -1386,7 +1393,7 @@ class AlertBERT(AbstractDatasetGroupingModel):
             if not len(secondary_labels_array) == len(tertiary_labels_array):
                 raise ValueError(
                     f"Length of secondary labels ({len(secondary_labels_array)}) does not match length of \
-                        tertiary labels ({len(tertiary_labels_array)})!"
+tertiary labels ({len(tertiary_labels_array)})!"
                 )
 
             if len(tertiary_labels_array) > 0:
@@ -1490,7 +1497,7 @@ class AlertBERT(AbstractDatasetGroupingModel):
         if not len(prelim_labels_1) == len(prelim_labels_2):
             raise ValueError(
                 f"Length of preliminary labels 1 ({len(prelim_labels_1)}) does not match length of \
-                    preliminary labels 2 ({len(prelim_labels_2)})!"
+preliminary labels 2 ({len(prelim_labels_2)})!"
             )
         # check if the two sets of preliminary labels are disjoint
         if not set(prelim_labels_1).isdisjoint(set(prelim_labels_2)):
@@ -1589,7 +1596,7 @@ class AlertBERT(AbstractDatasetGroupingModel):
             batch_start = 0
             batch_end = min(len(data), remainder + self.padding)
             batch = self.feature_extraction_fn(data[batch_start:batch_end])
-            batch = self.collate_fn([batch])
+            batch = self.collate_fn([cast(dict[str, np.ndarray], batch)])
             batch = self.model(batch)
             embedding_batches.append(batch["output"][0, 0:remainder].cpu().numpy())
 
@@ -1603,7 +1610,7 @@ class AlertBERT(AbstractDatasetGroupingModel):
                 self.padding, len(data) - (i + 1) * self.readout - remainder
             )
             batch = self.feature_extraction_fn(data[batch_start:batch_end])
-            batch = self.collate_fn([batch])
+            batch = self.collate_fn([cast(dict[str, np.ndarray], batch)])
             batch = self.model(batch)
             embedding_batches.append(
                 batch["output"][
@@ -1631,7 +1638,7 @@ class AlertBERT(AbstractDatasetGroupingModel):
 
         # add time dimension
         if add_time:
-            timestamps = np.array([alert["extractedTimestamps"][-1] for alert in data])
+            timestamps = np.array([alert["logTimestamps"][-1] for alert in data])
             embeddings = np.concatenate((embeddings, timestamps.reshape(-1, 1)), axis=1)
 
         return embeddings

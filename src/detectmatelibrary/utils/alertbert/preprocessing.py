@@ -1,7 +1,7 @@
 import json
 from collections import Counter
 from collections.abc import Callable, Iterable, Sequence
-from typing import Any, Optional
+from typing import Any, Optional, cast
 
 import numpy as np
 import torch
@@ -37,7 +37,7 @@ class Vocabulary:
         get_frequencies() -> torch.FloatTensor: Returns the frequencies of target words in the vocabulary,
             i.e. the returned tensor contains num_targets values and the first value is the frequency of
                 "<UNK>" which includes all words with less than min_freq occurrences.
-        compute_targets(tokens: torch.IntTensor) -> torch.IntTensor: Computes target indices from tokens.
+        compute_targets(tokens: torch.Tensor) -> torch.Tensor: Computes target indices from tokens.
         __call__(src: str | Sequence[Any]) -> int | torch.IntTensor: To be used as collate function, returns
             the token of a word or a tensor of tokens for a sequence of words.
         save(path: str): Saves the vocabulary to a file.
@@ -82,8 +82,8 @@ class Vocabulary:
         frequencies = [1.0 - sum(frequencies)] + frequencies
         return torch.FloatTensor(frequencies)
 
-    def compute_targets(self, tokens: torch.IntTensor) -> torch.IntTensor:
-        return torch.IntTensor(tokens - self.offset)
+    def compute_targets(self, tokens: torch.Tensor) -> torch.Tensor:
+        return (tokens - self.offset).to(dtype=torch.int64)
 
     def __call__(self, src: str | Sequence[Sequence[str]]) -> int | torch.IntTensor:
         if isinstance(src, str):
@@ -92,10 +92,13 @@ class Vocabulary:
             return self.word2idx.get(src, self.word2idx["<UNK>"])
         else:
             # if called on sequence of strings return tensor of tokens
-            return torch.IntTensor(torch.tensor(
-                [[self(token) for token in sequence] for sequence in src],
-                dtype=torch.int64,
-            ))
+            return cast(
+                torch.IntTensor,
+                torch.tensor(
+                    [[self(token) for token in sequence] for sequence in src],
+                    dtype=torch.int64,
+                ),
+            )
 
     def save(self, path: str) -> None:
         with open(path, "w") as f:
