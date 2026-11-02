@@ -4,7 +4,7 @@ import jax
 import flax.linen as nn
 import optax
 
-from functools import lru_cache
+from functools import lru_cache, partial
 
 from dataclasses import dataclass
 from typing import Any, Callable
@@ -12,7 +12,7 @@ from tqdm import tqdm
 from math import ceil
 
 from detectmatelibrary.utils.deep_learning.imodel import DeepModel
-from detectmatelibrary.utils.deep_learning._op import CheckPoint
+from detectmatelibrary.utils.deep_learning._op import CheckPoint, batched
 from detectmatelibrary.utils.finetune import Combinations
 
 import logging
@@ -44,10 +44,21 @@ class TrainConfig:
     patience: int = 3
 
 
-def loss_f(model: nn.Module, params: dict[str, Any], x: jnp.ndarray, y: jnp.ndarray) -> jnp.ndarray:
+def window_losses(
+    model: nn.Module, params: dict[str, Any], x: jnp.ndarray, y: jnp.ndarray
+) -> jnp.ndarray:
     return optax.softmax_cross_entropy_with_integer_labels(
             logits=model.apply({'params': params}, x), labels=y
-        ).mean()
+        )
+
+
+def loss_f(model: nn.Module, params: dict[str, Any], x: jnp.ndarray, y: jnp.ndarray) -> jnp.ndarray:
+    return window_losses(model=model, params=params, x=x, y=y).mean()
+
+
+def val_loss(model: nn.Module, params: dict[str, Any], x: jnp.ndarray, y: jnp.ndarray) -> jnp.ndarray:
+    """loss_f over the validation set, its window losses taken in batches."""
+    return batched(partial(window_losses, model, params), x, y).mean()
 
 
 def train(
@@ -92,7 +103,7 @@ def train(
             step_loss += loss
             losses_step.append(loss)
         losses_epoch.append(step_loss / n_steps)
-        loss_val.append(loss_f(model=model, params=params, x=x_val, y=y_val))
+        loss_val.append(val_loss(model=model, params=params, x=x_val, y=y_val))
         idx = jax.random.permutation(jax.random.key(epoch), idx)
         if checkpoint(loss=loss_val[-1], epoch=epoch, param=params):
             logging.info("Early stop")
@@ -173,13 +184,14 @@ class DeepLog(DeepModel):
         if seq.shape[0] == 0:
             return 0
 
-        x_s, y_s = seq[:, :-1, :], seq[:, -1]
-        x_s = jnp.argsort(
-            self.model.apply({"params": self.params}, x_s), descending=True
-        )
+        def ranks(x_s: jnp.ndarray, y_s: jnp.ndarray) -> jnp.ndarray:
+            x_s = jnp.argsort(
+                self.model.apply({"params": self.params}, x_s), descending=True
+            )
+            return (jnp.arange(x_s.shape[1]) * (x_s == y_s)).sum(1)
 
         return int(jax.scipy.stats.mode(
-            (jnp.arange(x_s.shape[1]) * (x_s == y_s)).sum(1)
+            batched(ranks, seq[:, :-1, :], seq[:, -1])
         ).mode + 2)  # give a little space for variation
 
     @lru_cache
