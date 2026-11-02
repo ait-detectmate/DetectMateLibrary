@@ -56,11 +56,6 @@ def loss_f(model: nn.Module, params: dict[str, Any], x: jnp.ndarray, y: jnp.ndar
     return window_losses(model=model, params=params, x=x, y=y).mean()
 
 
-def val_loss(model: nn.Module, params: dict[str, Any], x: jnp.ndarray, y: jnp.ndarray) -> jnp.ndarray:
-    """loss_f over the validation set, its window losses taken in batches."""
-    return batched(partial(window_losses, model, params), x, y).mean()
-
-
 def train(
     model: nn.Module, 
     x: jnp.ndarray, 
@@ -80,7 +75,11 @@ def train(
         updates, opt_state = optimizer.update(grads, opt_state)
         params = optax.apply_updates(params, updates)
         return params, opt_state, loss
-        
+
+    # Compiled once: an eager call traces the LSTM scan anew and caches one more program,
+    # so a validation pass in batches would add a program per batch.
+    window_losses_jit = jax.jit(partial(window_losses, model))
+
     key = jax.random.PRNGKey(trainConfig.seed)
     n_steps = ceil(x.shape[0] / trainConfig.batch_size)
 
@@ -103,7 +102,7 @@ def train(
             step_loss += loss
             losses_step.append(loss)
         losses_epoch.append(step_loss / n_steps)
-        loss_val.append(val_loss(model=model, params=params, x=x_val, y=y_val))
+        loss_val.append(batched(partial(window_losses_jit, params), x_val, y_val).mean())
         idx = jax.random.permutation(jax.random.key(epoch), idx)
         if checkpoint(loss=loss_val[-1], epoch=epoch, param=params):
             logging.info("Early stop")
