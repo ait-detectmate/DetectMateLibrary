@@ -61,14 +61,14 @@ set_connector(
     url="None",  # Add URL
 )
 
-# This schema use the verification connector
+# This schema uses the verification connector
 parsed_schema = schemas.ParserSchema(
     {"parsedLogID": "ciao"},
     connector="Default",  # Overwrite Name
     url="NewURL",  # Overwrite URL
 ).store()
 
-# This schema use the default connector
+# This schema uses the default connector
 parsed_schema2 = schemas.ParserSchema.from_id(parsed_schema["parsedLogID"])
 
 print(parsed_schema == parsed_schema2)  # True
