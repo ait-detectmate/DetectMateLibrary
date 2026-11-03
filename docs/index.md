@@ -8,6 +8,9 @@ and together with the
 [DetectMate Service](https://github.com/ait-detectmate/DetectMateService/tree/main)
 it deploys into microservice architectures.
 
+In the figure below, we can see how the different components of the DetectMate environment interact. The Service enables codeless deployment, while using the Library provides greater flexibility and allows developers to integrate the tool into their own scripts.
+
+
 ![Diagram](img/overall.svg)
 
 
