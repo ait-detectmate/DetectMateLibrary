@@ -3,6 +3,7 @@ site_url: https://ait-detectmate.github.io/DetectMateLibrary/
 
 theme:
   name: material # windmill is auch cool
+  logo: img/small_logo.svg
   features:
     - navigation.footer   # previous / next page links at the bottom of every page
   palette:
