@@ -35,7 +35,7 @@ extras: you install only what you need.
 | Extra | Installs | When you need it |
 |---|---|---|
 | `llm` | `openai`, `tenacity`, `scipy`, `scikit-learn`, `tiktoken`, `pandas` | Using the `LogBatcherParser` (LLM-based log parsing) |
-| `dataframes` | `pandas`, `polars` | Using `EventDataFrame`, `ChunkedEventDataFrame`, or `DataNormalizer` |
+| `dataframes` | `pandas`, `polars` | Using , or `DataNormalizer` |
 | `polars-rtcompat` | `polars[rtcompat]` | Running on older CPUs without AVX2 support (e.g. some VMs or embedded hardware); not needed for standard deployments |
 | `full` | `llm` + `dataframes` + `polars-rtcompat` | Installing every optional extra at once |
 
