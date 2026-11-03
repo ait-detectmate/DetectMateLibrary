@@ -76,8 +76,8 @@ nav:
       - Select Component: helper/select_component.md
       - Persistency: auxiliar/persistency.md
       - Data buffer: auxiliar/input_buffer.md
-    - Usefull information:
-      - Log Formats: other/log_formats.md
+  - Usefull information:
+    - Log Formats: other/log_formats.md
 
   - How to contribute:
     - Contributing: contribution.md
