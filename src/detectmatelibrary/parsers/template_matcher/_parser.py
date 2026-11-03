@@ -85,9 +85,8 @@ def load_templates(path: str) -> tuple[list[str], list[str | None]]:
         with open(path, "r") as f:
             for line in f:
                 s = line.strip()
-                if s:
-                    templates.append(s)
-                    eid_labels.append(None)
+                templates.append(s if s is not None else line)
+                eid_labels.append(None)
     elif path.endswith(".csv"):
         with open(path, newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
