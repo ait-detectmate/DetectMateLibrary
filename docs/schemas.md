@@ -16,7 +16,7 @@ This document summarizes the available schema classes, the BaseSchema API and co
 
 Schemas are used to transfer data between components. Each schema implements the methods defined in `BaseSchema`. This class acts as a wrapper around the underlying Protobuf classes (`op.SchemaT`).
 
-![UML](img/uml_schemas.png)
+![UML](img/uml_schemas.svg)
 
 All concrete schema classes inherit from `BaseSchema`. Key utility methods:
 

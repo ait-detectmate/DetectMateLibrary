@@ -21,7 +21,7 @@ The pipeline is strictly directional:
 
 Each arrow represents a stream of Schema objects. Components are designed to run in the same process for lightweight setups or as separate services for scalable deployments.
 
-![Components flow](../img/diagrams_structure.png)
+![Components flow](../img/diagrams_structure.svg)
 
 ## Components architecture
 
@@ -29,7 +29,7 @@ All components inherit from a `CoreComponent` class. This class provides all the
 
 Each component's arguments must be stored in its corresponding configuration class. These config classes follow the same design pattern as their components and must inherit from `CoreConfig`.
 
-![Architecture](../img/uml_structure.png)
+![Architecture](../img/uml_structure.svg)
 
 ## Components methods
 
