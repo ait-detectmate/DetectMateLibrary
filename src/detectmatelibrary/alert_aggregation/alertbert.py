@@ -47,6 +47,11 @@ class AlertBERTAggregationConfig(DensityClusteringAggregationConfig):
             If False, the model will be loaded from disk.
             Defaults to False.""",
     )
+    save_model: bool = Field(
+        default=True,
+        description="""Whether to save the trained AlertBERT model to disk.
+            Defaults to True.""",
+    )
 
     # aggregation
     delta: NonNegativeFloat = Field(

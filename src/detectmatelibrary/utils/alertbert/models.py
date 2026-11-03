@@ -614,9 +614,12 @@ class MaskedLanguageModel(nn.ModuleDict):
         """
         # set up environment
 
-        os.makedirs(self.path, exist_ok=True)
-        logfile = f"{self.path}/training.log"
-        setup_logging(logfile=logfile)
+        if self.config["save_model"]:
+            os.makedirs(self.path, exist_ok=True)
+            logfile = f"{self.path}/training.log"
+            setup_logging(logfile=logfile)
+        else:
+            setup_logging()
         logging.info(f"Run id: {self.config['tag']}")
         logging.info(f"Using device: {self.device}")
 
@@ -770,9 +773,10 @@ train acc = {tr_stats[t]['corr']:1.05f}; val loss = {val_stats[t]['loss']:1.05f}
                     best_val_stats = val_stats
                     self.config["updates"] = (e + 1) * updates_per_epoch
                     logging.info("Creating checkpoint...")
-                    torch.save(self.state_dict(), self.path + "/model.pt")
-                    for f in set(self.config["features"]):
-                        self.vocabs[f].save(self.path + f"/vocab_{f}.json")
+                    if self.config["save_model"]:
+                        torch.save(self.state_dict(), self.path + "/model.pt")
+                        for f in set(self.config["features"]):
+                            self.vocabs[f].save(self.path + f"/vocab_{f}.json")
                     self.config["train_model"] = False
                     report = {
                         "model": self.config["model_id"],
@@ -788,8 +792,9 @@ train acc = {tr_stats[t]['corr']:1.05f}; val loss = {val_stats[t]['loss']:1.05f}
                         },
                         "params": self.config,
                     }
-                    with open(self.path + "/report.json", "w") as f:
-                        json.dump(report, f, indent=4)
+                    if self.config["save_model"]:
+                        with open(self.path + "/report.json", "w") as f:
+                            json.dump(report, f, indent=4)
 
         logging.info("End of training.")
         if best_train_stats is None or best_val_stats is None:

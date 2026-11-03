@@ -13,3 +13,4 @@ alert_aggregators:
         updates:
             - 200
             - 240
+        save_model: false
