@@ -196,13 +196,13 @@ class DeepLog(DeepModel):
         )
 
     @lru_cache
-    def check_anomaly(self, seq: tuple[int], top_k: int) -> bool:
+    def check_anomaly(self, seq: tuple[int, ...], top_k: int) -> bool:
         if not self.model_trained or self._scorer is None:
             return False
 
         return bool(self._scorer(self.params, jnp.array(seq), top_k))
 
-    def _prepare_data(self, seqs: list[tuple[int]], var_per: float) -> tuple[jnp.ndarray]:
+    def _prepare_data(self, seqs: list[tuple[int, ...]], var_per: float) -> tuple[jnp.ndarray]:
         seed = jax.random.key(self.config_train.seed)
         idx = jax.random.permutation(seed, len(seqs))
         seqs = jnp.array(seqs)[..., None][idx]
@@ -210,7 +210,7 @@ class DeepLog(DeepModel):
         val_seqs = seqs[ceil(len(seqs) * (1 - var_per)):]
         return train_seqs, val_seqs
 
-    def train(self, seqs: list[tuple[int]], var_per: float) -> dict[str, int | float]:
+    def train(self, seqs: list[tuple[int, ...]], var_per: float) -> dict[str, int | float]:
         train_seqs, val_seqs = self._prepare_data(seqs=seqs, var_per=var_per)
 
         self.config_train = TrainConfig(**self.config["Train"])
@@ -227,7 +227,7 @@ class DeepLog(DeepModel):
 
         return stats
  
-    def finetune(self, seqs: list[tuple[int]], var_per: float, epochs: int = 2) -> None:
+    def finetune(self, seqs: list[tuple[int, ...]], var_per: float, epochs: int = 2) -> None:
         train_seqs, val_seqs = self._prepare_data(seqs=seqs, var_per=var_per)
         combos = Combinations(config=self.config)
 
