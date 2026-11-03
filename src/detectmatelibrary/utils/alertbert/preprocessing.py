@@ -11,9 +11,6 @@ from tensordict import TensorDict
 class Vocabulary:
     """Vocabulary class for tokenizing sequential data.
 
-    Args:
-        min_freq (int): The minimum frequency of a word to be included in the vocabulary. Default is 1.
-
     Attributes:
         base_vocabulary (list[str]): The base vocabulary containing the special tokens "<MASK>" and "<UNK>".
         min_freq (int): The minimum frequency of a word to be included in the vocabulary.
@@ -28,34 +25,23 @@ class Vocabulary:
         vocab_size (int): The size of the vocabulary.
         num_targets (int): The number of tokens that can be predicted by the model, i.e "<UNK>"
             and the words with more than min_freq occurrences.
-
-    Methods:
-        refresh(): Refreshes the vocabulary based on the contents of the counter.
-        build_from_iterator(iterator: Iterable[Any]): Builds the vocabulary from an iterator of objects.
-        remove(words: Iterable[Any]): Removes specified words from the vocabulary.
-            This changes the word2idx mapping!
-        get_frequencies() -> torch.FloatTensor: Returns the frequencies of target words in the vocabulary,
-            i.e. the returned tensor contains num_targets values and the first value is the frequency of
-                "<UNK>" which includes all words with less than min_freq occurrences.
-        compute_targets(tokens: torch.Tensor) -> torch.Tensor: Computes target indices from tokens.
-        __call__(src: str | Sequence[Any]) -> int | torch.IntTensor: To be used as collate function, returns
-            the token of a word or a tensor of tokens for a sequence of words.
-        save(path: str): Saves the vocabulary to a file.
-        load(path: str): Loads the vocabulary from a file.
-        __len__() -> int: Returns the size of the vocabulary.
-        __getitem__(idx: int) -> Any: Returns the word at the specified index.
-        __iter__() -> Iterable[Any]: Returns an iterator over the vocabulary words.
     """
 
     base_vocabulary = ["<MASK>", "<UNK>"]
 
     def __init__(self, min_freq: int = 1) -> None:
+        """Initialize an empty vocabulary.
+
+        Args:
+            min_freq: Minimum frequency required for a word to be included.
+        """
         self.min_freq = min_freq
         self.counter: Counter[str] = Counter()
         self.offset = len(self.base_vocabulary) - 1
         self.refresh()
 
     def refresh(self) -> None:
+        """Refresh vocabulary indices and sizes from the word counter."""
         self.vocabulary = self.base_vocabulary + [
             word for word, freq in self.counter.items() if freq >= self.min_freq
         ]
@@ -64,15 +50,31 @@ class Vocabulary:
         self.num_targets = self.vocab_size - self.offset
 
     def build_from_iterator(self, iterator: Iterable[Any]) -> None:
+        """Add words from an iterator and refresh the vocabulary.
+
+        Args:
+            iterator: Iterable containing words to add to the vocabulary.
+        """
         self.counter.update(iterator)
         self.refresh()
 
     def remove(self, words: Iterable[Any]) -> None:
+        """Remove words from the vocabulary and refresh its indices.
+
+        Args:
+            words: Iterable containing words to remove.
+        """
         for word in words:
             del self.counter[word]
         self.refresh()
 
     def get_frequencies(self) -> torch.FloatTensor:
+        """Return normalized frequencies for all prediction targets.
+
+        Returns:
+            A tensor containing the frequency of ``<UNK>`` followed by the
+            frequencies of all words included in the vocabulary.
+        """
         total = sum(self.counter.values())
         frequencies = [
             self.counter[word] / total
@@ -83,9 +85,25 @@ class Vocabulary:
         return torch.FloatTensor(frequencies)
 
     def compute_targets(self, tokens: torch.Tensor) -> torch.Tensor:
+        """Convert vocabulary tokens to model target indices.
+
+        Args:
+            tokens: Tensor containing vocabulary token indices.
+
+        Returns:
+            Tensor containing indices relative to the model's target classes.
+        """
         return (tokens - self.offset).to(dtype=torch.int64)
 
     def __call__(self, src: str | Sequence[Sequence[str]]) -> int | torch.IntTensor:
+        """Convert a word or sequence of words to vocabulary indices.
+
+        Args:
+            src: A word or a sequence of word sequences to tokenize.
+
+        Returns:
+            The index of a word, or a tensor of indices for a sequence.
+        """
         if isinstance(src, str):
             # if called on string return token of word
             # if word is not in vocabulary return token of <UNK>
@@ -101,21 +119,41 @@ class Vocabulary:
             )
 
     def save(self, path: str) -> None:
+        """Save word frequencies as JSON.
+
+        Args:
+            path: Destination path for the vocabulary data.
+        """
         with open(path, "w") as f:
             json.dump(dict(self.counter.most_common()), f, indent=4)
 
     def load(self, path: str) -> None:
+        """Load word frequencies from JSON and refresh the vocabulary.
+
+        Args:
+            path: Source path containing vocabulary data.
+        """
         with open(path) as f:
             self.counter = Counter(json.load(f))
         self.refresh()
 
     def __len__(self) -> int:
+        """Return the number of entries in the vocabulary."""
         return self.vocab_size
 
     def __getitem__(self, idx: int) -> Any:  # noqa: ANN401
+        """Return the vocabulary entry at an index.
+
+        Args:
+            idx: Index of the requested vocabulary entry.
+
+        Returns:
+            The vocabulary entry at ``idx``.
+        """
         return self.vocabulary[idx]
 
     def __iter__(self) -> Iterable[Any]:
+        """Return an iterator over vocabulary entries."""
         return iter(self.vocabulary)
 
 
@@ -123,14 +161,13 @@ class Vocabulary:
 
 
 def default_collate_fn(x: Sequence[np.ndarray]) -> torch.Tensor:
-    """Basic collate function that stacks a batch of numpy arrays into a torch
-    tensor.
+    """Stack a batch of NumPy arrays into a tensor.
 
     Args:
-        x (Sequence[np.ndarray]): A sequence of numpy arrays to be collated.
+        x: A sequence of NumPy arrays to collate.
 
     Returns:
-        torch.Tensor: A tensor containing the stacked numpy arrays.
+        A tensor containing the stacked NumPy arrays.
     """
     return torch.tensor(np.stack(x))
 
@@ -139,24 +176,12 @@ class BaseSequenceCollate:
     """A class for collating dictionaries of sequences into dictionaries of
     batches.
 
-    Args:
-        collate_fn_map (dict[str, Callable[[Sequence[np.ndarray]], torch.Tensor]]):
-            A dictionary mapping feature names to collate functions that convert a sequence of numpy arrays
-            into a torch tensor.
-        generator (Optional[torch.Generator]):
-            An optional torch generator for random number generation. If not provided,
-                a new generator will be created.
-
     Attributes:
         collate_fn_map (dict[str, Callable[[Sequence[np.ndarray]], torch.Tensor]]):
             A dictionary mapping feature names to collate functions that convert a sequence of
                 numpy arrays into a torch tensor.
         generator (torch.Generator):
             A torch generator for random number generation.
-
-    Methods:
-        __call__(batch: Iterable[dict[str, np.ndarray]]) -> TensorDict[str, torch.Tensor]:
-            Collates the input batch of dictionaries of sequences into a dictionary of batches.
     """
 
     def __init__(
@@ -164,6 +189,16 @@ class BaseSequenceCollate:
         collate_fn_map: dict[str, Callable[[Sequence[np.ndarray]], torch.Tensor]],
         generator: Optional[torch.Generator] = None,
     ) -> None:
+        """Initialize a sequence collator.
+
+        Args:
+        collate_fn_map (dict[str, Callable[[Sequence[np.ndarray]], torch.Tensor]]):
+            A dictionary mapping feature names to collate functions that convert a sequence of numpy arrays
+            into a torch tensor.
+        generator (Optional[torch.Generator]):
+            An optional torch generator for random number generation. If not provided,
+                a new generator will be created.
+        """
         self.collate_fn_map = collate_fn_map
         self.add_position = "position" in collate_fn_map
         if generator is None:
@@ -174,6 +209,14 @@ class BaseSequenceCollate:
             self.generator = generator
 
     def __call__(self, batch: Sequence[dict[str, np.ndarray]]) -> TensorDict:
+        """Collate feature dictionaries into a batched tensor dictionary.
+
+        Args:
+            batch: Sequence of feature dictionaries to collate.
+
+        Returns:
+            A tensor dictionary containing the collated batch.
+        """
         batch_size = len(batch)
         context_size = len(next(iter(batch[0].values())))
         # transpose the batch of feature dictionaries to a dictionary of feature batches
@@ -196,29 +239,12 @@ class BaseSequenceCollate:
 
 class MaskedLangModelingSequenceCollate(BaseSequenceCollate):
     """A collate function for training a masked language model on sequential
-    data. In an input sequence target_ratio of the tokens will be targets for
-    prediction, mask_ratio of the target tokens will be masked, perturb_ratio
-    of the masked target tokens will be permuted, and the rest of the target
-    tokens will be left unchanged.
+    data.
 
-    Args:
-        collate_fn_map (dict[str, Callable[[Sequence[np.ndarray]], torch.Tensor]]):
-            A dictionary mapping feature names to collate functions that convert a sequence of numpy
-            arrays into a torch tensor.
-        target_ratio (float, optional):
-            The ratio of tokens that will be targets for prediction. Default is 0.15.
-        mask_ratio (float, optional):
-            The ratio of target tokens that will be masked. Default is 0.8.
-        perturb_ratio (float, optional):
-            The ratio of masked target tokens that will be permuted. Default is 0.1.
-        generator (Optional[torch.Generator]):
-            An optional torch generator for random number generation. If not provided,
-            a new generator will be created.
-
-    Methods:
-        __call__(batch: Iterable[dict[str, np.ndarray]]) -> TensorDict[str, torch.Tensor]:
-            Collates the input batch of dictionaries of sequences into a dictionary of batches and
-            applies the RoBERTa-like masking.
+    In an input sequence target_ratio of the tokens will be targets for
+    prediction, mask_ratio of the target tokens will be masked,
+    perturb_ratio of the masked target tokens will be permuted, and the
+    rest of the target tokens will be left unchanged.
     """
 
     def __init__(
@@ -229,12 +255,36 @@ class MaskedLangModelingSequenceCollate(BaseSequenceCollate):
         perturb_ratio: float = 0.1,
         generator: Optional[torch.Generator] = None,
     ) -> None:
+        """Initialize a masked language-model collator.
+
+        Args:
+            collate_fn_map (dict[str, Callable[[Sequence[np.ndarray]], torch.Tensor]]):
+                A dictionary mapping feature names to collate functions that convert a sequence of numpy
+                arrays into a torch tensor.
+            target_ratio (float, optional):
+                The ratio of tokens that will be targets for prediction. Default is 0.15.
+            mask_ratio (float, optional):
+                The ratio of target tokens that will be masked. Default is 0.8.
+            perturb_ratio (float, optional):
+                The ratio of masked target tokens that will be permuted. Default is 0.1.
+            generator (Optional[torch.Generator]):
+                An optional torch generator for random number generation. If not provided,
+                a new generator will be created.
+        """
         super().__init__(collate_fn_map, generator)
         self.target_ratio = target_ratio
         self.mask_ratio = mask_ratio
         self.perturb_ratio = perturb_ratio
 
     def __call__(self, batch: Sequence[dict[str, np.ndarray]]) -> TensorDict:
+        """Collate a batch and apply masked-language-model preprocessing.
+
+        Args:
+            batch: Sequence of feature dictionaries to collate.
+
+        Returns:
+            A tensor dictionary containing masked and perturbed features.
+        """
         return_batch: TensorDict = super().__call__(batch)
         # get batch size and sequence length
         dim = return_batch.batch_size_

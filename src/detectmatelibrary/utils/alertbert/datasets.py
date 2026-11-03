@@ -72,22 +72,18 @@ class MergeAlertSequences:
     """A class for merging multiple alert sequences into a single sequence,
     sorted by timestamp.
 
-    Args:
-        sources (dict[str, Iterable[DetectorSchema]]): A dictionary of alert sequences to merge,
-        where the keys are the names of the sequences and the values are the sequences themselves.
-
     Attributes:
         sources (dict[str, Iterable[DetectorSchema]]): A dictionary of alert sequences to merge
         queue (PriorityQueue): A priority queue for merging the alert sequences.
-
-    Methods:
-        __iter__(self) -> Iterator[DetectorSchema]: Returns an iterator over the merged alert sequences,
-            sorted by timestamp.
-        add_source(self, name: str, source: Iterable[DetectorSchema]) -> None: Adds a new alert sequence
-            to the merger.
     """
 
     def __init__(self, sources: dict[str, Iterable[DetectorSchema]]) -> None:
+        """Initialize a merger and preload one alert from each source.
+
+        Args:
+            sources (dict[str, Iterable[DetectorSchema]]): A dictionary of alert sequences to merge,
+            where the keys are the names of the sequences and the values are the sequences themselves.
+        """
         self.sources = sources
         self.queue: PriorityQueue[tuple[float, str, DetectorSchema]] = PriorityQueue()
 
@@ -96,6 +92,11 @@ class MergeAlertSequences:
             self.add_source(name, source)
 
     def __iter__(self) -> Iterator[DetectorSchema]:
+        """Yield alerts from all sources in timestamp order.
+
+        Yields:
+            The next alert in ascending timestamp order.
+        """
         while not self.queue.empty():
             try:
                 timestamp, name, item = self.queue.get()
@@ -109,6 +110,12 @@ class MergeAlertSequences:
                 del self.sources[name]
 
     def add_source(self, name: str, source: Iterable[DetectorSchema]) -> None:
+        """Add a source and queue its first alert.
+
+        Args:
+            name: Name used to identify the source.
+            source: Iterable of alerts to merge.
+        """
         self.sources[name] = source
         try:
             item = next(iter(source))
@@ -125,26 +132,20 @@ class AlertDataset(Dataset[dict[str, Any]]):
     each alert. Additionally, a new field "relevantTimestamp" is added to each
     alert, which is the last timestamp in the "logTimestamps" field.
 
-    Args:
-        source (Iterable[DetectorSchema]): An iterable of detectmate detector schema objects.
-
     Attributes:
         data (dict[str, list[Any]]): The loaded data.
         keys (dict_keys[str]): The keys of the data.
-
-    Methods:
-        process_alert(self, alert: DetectorSchema) -> dict[str, Any]: Processes a single alert and
-            returns a dictionary of its fields.
-        __len__(self) -> int: Returns the length of the dataset.
-        __getitem__(self, idx: int | slice | np.ndarray[int]) -> dict[str, Any] | dict[str, Sequence]:
-            Returns the data at the given index or slice. Supports cyclic indexing.
-        __iter__(self) -> Iterator[dict[str, Any]]: Returns an iterator over the data.
     """
 
     def __init__(
         self,
         source: Iterable[DetectorSchema],
     ) -> None:
+        """Build a dataset from an iterable of detector alerts.
+
+        Args:
+            source (Iterable[DetectorSchema]): An iterable of detectmate detector schema objects.
+        """
         super().__init__()
 
         # load data from all sources
@@ -155,16 +156,43 @@ class AlertDataset(Dataset[dict[str, Any]]):
         self.data = {k: [d[k] for d in data] for k in self.keys}
 
     def process_alert(self, alert: DetectorSchema) -> dict[str, Any]:
+        """Convert an alert to a flat dictionary with a relevant timestamp.
+
+        Args:
+            alert: Detector alert to process.
+
+        Returns:
+            The flattened alert fields and its final log timestamp.
+        """
         alert_dict = detectorschema_to_dict(alert)
         alert_dict["relevantTimestamp"] = alert_dict["logTimestamps"][-1]
         return alert_dict
 
     def __len__(self) -> int:
+        """Return the number of alerts in the dataset.
+
+        Returns:
+            The number of loaded alerts.
+        """
         return len(self.data[self.keys[0]])
 
     def __getitem__(
         self, idx: int | slice | NDArray[np.int_]
     ) -> dict[str, Any] | dict[str, list[Any]]:  # ty: ignore[invalid-method-override]
+        """Retrieve one alert or a collection of alerts.
+
+        Integer indices wrap around the dataset, as do out-of-range indices
+        in slices and NumPy index arrays.
+
+        Args:
+            idx: An integer, slice, or NumPy array of indices.
+
+        Returns:
+            A single alert dictionary or dictionaries of batched values.
+
+        Raises:
+            TypeError: If ``idx`` is not an integer, slice, or NumPy array.
+        """
         if isinstance(idx, int):
             try:
                 return {k: self.data[k][idx] for k in self.keys}
@@ -185,6 +213,11 @@ class AlertDataset(Dataset[dict[str, Any]]):
         return {k: [self.data[k][i] for i in idx_array] for k in self.keys}
 
     def __iter__(self) -> Iterator[dict[str, Any]]:
+        """Yield each alert in dataset order.
+
+        Yields:
+            The next alert as a dictionary of field values.
+        """
         for i in range(len(self)):
             yield {k: self.data[k][i] for k in self.keys}
 
@@ -195,15 +228,6 @@ class AlertDataset(Dataset[dict[str, Any]]):
 class AlertSequenceSampler(Sampler[slice]):
     """A custom PyTorch sampler for sampling sequences from an AlertDataset.
 
-    Args:
-        data_source (AlertDataset): The alert dataset to sample from.
-        context_size (int, optional): The context window of each sampled sequence. Defaults to 1024.
-        cyclic (bool, optional): Whether to sample sequences cyclically. Defaults to False.
-        generator (Optional[torch.Generator], optional): The random number generator used for sampling.
-            Defaults to None.
-        shuffle (bool, optional): Whether to shuffle the sequences. Defaults to True.
-            Ignored for time sampling as in time sampling.
-
     Attributes:
         data_source (AlertDataset): The alert dataset to sample from.
         context_size (int): The size of each sampled sequence.
@@ -213,11 +237,6 @@ class AlertSequenceSampler(Sampler[slice]):
         source_length (int): The length of the alert dataset.
         n_chunks (int): The number of chunks in the alert dataset.
         margin (int): The margin for the alert dataset.
-
-    Methods:
-        __iter__(self) -> Iterator[slice]: Returns an iterator over the sampled sequences.
-            The sampled sequences have randomly chosen offsets.
-        __len__(self) -> int: How many times context_size fits in the dataset.
     """
 
     def __init__(
@@ -228,6 +247,17 @@ class AlertSequenceSampler(Sampler[slice]):
         generator: Optional[torch.Generator] = None,
         shuffle: bool = True,
     ) -> None:
+        """Initialize a sampler for fixed-size alert sequences.
+
+        Args:
+            data_source (AlertDataset): The alert dataset to sample from.
+            context_size (int, optional): The context window of each sampled sequence. Defaults to 1024.
+            cyclic (bool, optional): Whether to sample sequences cyclically. Defaults to False.
+            generator (Optional[torch.Generator], optional): The random number generator used for sampling.
+                Defaults to None.
+            shuffle (bool, optional): Whether to shuffle the sequences. Defaults to True.
+                Ignored for time sampling as in time sampling.
+        """
         super().__init__()
         self.data_source = data_source
         self.context_size = context_size
@@ -241,6 +271,11 @@ class AlertSequenceSampler(Sampler[slice]):
         self.margin = self.source_length % self.context_size
 
     def __iter__(self) -> Iterator[slice[int]]:
+        """Yield slices representing sampled alert sequences.
+
+        Yields:
+            A slice selecting one context-sized sequence.
+        """
         if self.generator is None:
             seed = int(torch.empty((), dtype=torch.int64).random_().item())
             self.generator = torch.Generator()
@@ -283,22 +318,17 @@ class AlertSequenceSampler(Sampler[slice]):
             )
 
     def __len__(self) -> int:
+        """Return the number of sequences produced by this sampler.
+
+        Returns:
+            The number of context-sized chunks.
+        """
         return self.n_chunks
 
 
 class AlertSequenceBatchSampler(BatchSampler):
     """A batch sampler for generating batches of sequences from an alert
-    dataset.
-
-    Args:
-        data_source (AlertDataset): The alert dataset to sample from.
-        context_size (int): The size of the context window for each sequence. Defaults to 1024.
-        cyclic (bool): Whether to sample sequences in a cyclic manner. Defaults to True.
-        generator (torch.Generator | None): The random number generator used for sampling. Defaults to None.
-        shuffle (bool): Whether to shuffle the sequences. Defaults to True.
-        batch_size (int): The size of each batch. Defaults to 16.
-        drop_last (bool): Whether to drop the last incomplete batch. Defaults to True.
-    """
+    dataset."""
 
     def __init__(
         self,
@@ -310,6 +340,18 @@ class AlertSequenceBatchSampler(BatchSampler):
         batch_size: int = 16,
         drop_last: bool = True,
     ) -> None:
+        """Initialize a batch sampler for alert sequences.
+
+        Args:
+            data_source (AlertDataset): The alert dataset to sample from.
+            context_size (int): The size of the context window for each sequence. Defaults to 1024.
+            cyclic (bool): Whether to sample sequences in a cyclic manner. Defaults to True.
+            generator (torch.Generator | None): The random number generator used for sampling.
+                Defaults to None.
+            shuffle (bool): Whether to shuffle the sequences. Defaults to True.
+            batch_size (int): The size of each batch. Defaults to 16.
+            drop_last (bool): Whether to drop the last incomplete batch. Defaults to True.
+        """
         super().__init__(
             cast(
                 Sampler[int],

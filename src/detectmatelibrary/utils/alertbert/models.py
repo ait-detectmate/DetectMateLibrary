@@ -561,6 +561,7 @@ class MaskedLanguageModel(nn.ModuleDict):
             )
 
     def _set_up_model(self) -> None:
+        """Sets up the model architecture based on the configuration."""
         super().__init__(
             {
                 "embedding": MaskedLangModelEmbeddingLayer(
@@ -602,6 +603,15 @@ class MaskedLanguageModel(nn.ModuleDict):
         return cast(tuple[torch.Tensor], head(x))
 
     def fit(self, train_data: AlertDataset, val_data: AlertDataset) -> None:
+        """Fits the model to the training data and evaluates it on the
+        validation data.
+
+        Args:
+            train_data (AlertDataset): The training dataset.
+            val_data (AlertDataset): The validation dataset.
+        Raises:
+            RuntimeError: If no best model checkpoint was created during training.
+        """
         # set up environment
 
         os.makedirs(self.path, exist_ok=True)
@@ -1661,6 +1671,16 @@ preliminary labels 2 ({len(prelim_labels_2)})!"
     def time_cosine_metric(
         self, x: NDArray[Any], y: NDArray[Any] | None = None
     ) -> NDArray[Any]:
+        """Compute the combined cosine and timestamp distance between
+        embeddings.
+
+        Args:
+            x (NDArray[Any]): The first set of embeddings.
+            y (NDArray[Any] | None): The second set of embeddings. If None, use x.
+
+        Returns:
+            NDArray[Any]: The combined distances.
+        """
         if y is None:
             y = x
         if x.ndim == 1:

@@ -19,94 +19,154 @@ from detectmatelibrary.utils.data_buffer import BufferMode
 
 
 class AlertBERTAggregationConfig(DensityClusteringAggregationConfig):
-    """Configuration of the AlertBERTAggregation class. Besides the parameters
-    of the alert aggregation this configuration also determines the training of
-    the masked-languge-model used to obtain the alert embeddings.
+    """Configuration of the AlertBERTAggregation class.
 
-    Args:
-        path (str): The path to the save location of the AlertBERT model. Defaults to 'alertbert_models'.
-        train_model (bool): Whether to train the AlertBERT model.
-            If False, the model will be loaded from disk. Defaults to False.
-        delta (NonNegativeFloat): The threshold for the clustering. Defaults to 10.0
-        theta (NonNegativeFloat): The parameter for the time-cosine-distance. Defaults to 20.0
-        dim_reduction (int): The dimension to which the alert embeddings will be reduced via
-            PCA before clustering. Defaults to 2.
-        clustering_backend (Literal["detectmate", "scipy"]): The backend to use for clustering.
-            The option "detectmate" uses the implementation inherited from the parent class, the option
-            "scipy" uses the implementation of the AlertBERT model. Defaults to "detectmate".
-        layers (tuple[Literal["embedding", "encoder"]]): The layers of the AlertBERT model to use for
-            obtaining the alert embeddings. Defaults to ("embedding", "encoder").
-        buffer_size (int): The size of the buffer. Defaults to 1000.
-        buffer_mode (BufferMode): The mode of the buffer. Defaults to BufferMode.BATCH.
-        train_size (int): The number of alerts to use for training the AlertBERT model. Defaults to 10000.
-        val_size (int): The number of alerts to use for validation during training of the AlertBERT model.
-            Defaults to 1000.
-        skip_first (int): The number of alerts to skip before starting to collect alerts for
-            training the AlertBERT model. Defaults to 0.
-        min_freq (int): The minimum frequency of tokens to be included in the
-            vocabulary of the AlertBERT model. Defaults to 10.
-        features (tuple[str, ...]): The keys of fields of the alerts to use as features for training the
-            AlertBERT model. Defaults to ("description",).
-        encoding (Literal["index", "relevantTimestamp"]): The features of the alerts to use for rotary
-            positional encoding in the AlertBERT model. Defaults to "relevantTimestamp".
-        n_heads (int): The number of attention heads in the AlertBERT model. Defaults to 4.
-        dim_per_head (int): The dimension of each attention head in the AlertBERT model. Defaults to 16.
-        num_layers (int): The number of layers in the AlertBERT model. Defaults to 1.
-        feedforward_factor (int): The factor by which the feedforward dimension is larger than the model
-            dimension in the AlertBERT model. Defaults to 4.
-        rotary_max_exp (int): The maximum exponent for the rotary embeddings in the AlertBERT model.
-            Defaults to 14.
-        rotary_cutoff (float): The cutoff exponent for the frequencies of the rotary embeddings in the
-            AlertBERT model. Defaults to 0.75.
-        context_size (int): The context size for the AlertBERT model. Defaults to 1024.
-        batch_size (int): The batch size for training the AlertBERT model. Defaults to 8.
-        updates (tuple[int, int]): The number of updates for training the AlertBERT model.
-            Defaults to (1800, 2000).
-        lr (float): The learning rate for training the AlertBERT model. Defaults to 5e-3.
-        warm_up_steps (int): The number of warm-up steps for training the AlertBERT model. Defaults to 100.
+    Besides the parameters of the alert aggregation this configuration
+    also determines the training of the masked-languge-model used to
+    obtain the alert embeddings.
     """
-
     # general
-    method_type: str = "AlertBERT_aggregator"
-    path: str = Field(
-        default="alertbert_models", description="The path to the AlertBERT models."
+    _method_type: str = "AlertBERT_aggregator"
+    _model_id: str = f"{_method_type}_{dt.now().isoformat()}"
+    method_type: str = Field(
+        default=_method_type,
+        description="The type of the aggregation method. Defaults to 'AlertBERT_aggregator'.",
     )
-    model_id: str = f"{method_type}_{dt.now().isoformat()}"
+    model_id: str = Field(
+        default=_model_id,
+        description="""The unique identifier of the model.
+            Defaults to 'AlertBERT_aggregator_<current_datetime>'.""",
+    )
+    path: str = Field(
+        default="alertbert_models",
+        description="The path to the save location of the AlertBERT model. Defaults to 'alertbert_models'.",
+    )
     train_model: bool = Field(
-        default=False, description="Whether to train the AlertBERT model."
+        default=True,
+        description="""Whether to train the AlertBERT model.
+            If False, the model will be loaded from disk.
+            Defaults to False.""",
     )
 
     # aggregation
-    delta: NonNegativeFloat = 10.0
-    theta: NonNegativeFloat = 20.0
-    dim_reduction: int = 2
-    clustering_backend: Literal["detectmate", "scipy"] = "detectmate"
-    layers: tuple[str] | tuple[str, str] = ("embedding", "encoder")
-    buffer_size: int = 1000
-    buffer_mode: BufferMode = BufferMode.BATCH
+    delta: NonNegativeFloat = Field(
+        default=10.0,
+        description="The threshold for the clustering. Defaults to 10.0."
+    )
+    theta: NonNegativeFloat = Field(
+        default=20.0,
+        description="The parameter for the time-cosine-distance. Defaults to 20.0.",
+    )
+    dim_reduction: int = Field(
+        default=2,
+        description="""The dimension to which the alert embeddings will be reduced via PCA before clustering.
+            Defaults to 2."""
+    )
+    clustering_backend: Literal["detectmate", "scipy"] = Field(
+        default="detectmate",
+        description="""The backend to use for clustering.
+            The option "detectmate" uses the implementation inherited from the parent class,
+            the option "scipy" uses the implementation of the AlertBERT model.
+            Defaults to "detectmate".""",
+    )
+    layers: tuple[str] | tuple[str, str] = Field(
+        default=("embedding", "encoder"),
+        description="""The layers of the AlertBERT model to use for obtaining the alert embeddings.
+            Defaults to ("embedding", "encoder").""",
+    )
+    buffer_size: int = Field(
+        default=1000,
+        description="The size of the buffer. Defaults to 1000."
+    )
+    buffer_mode: BufferMode = Field(
+        default=BufferMode.BATCH,
+        description="The mode of the buffer. Defaults to 'BATCH'.",
+    )
 
     # data
-    train_size: int = 10000
-    val_size: int = 1000
-    skip_first: int = 0
-    min_freq: int = 10
+    train_size: int = Field(
+        default=50000,
+        description="The number of alerts to use for training the AlertBERT model. Defaults to 50000."
+    )
+    val_size: int = Field(
+        default=10000,
+        description="""The number of alerts to use for validation during training of the AlertBERT model.
+            Defaults to 10000."""
+    )
+    skip_first: int = Field(
+        default=0,
+        description="""The number of alerts to skip before starting to collect alerts for training the
+            AlertBERT model.
+            Defaults to 0."""
+    )
+    min_freq: int = Field(
+        default=10,
+        description="""The minimum frequency of tokens to be included in the
+            vocabulary of the AlertBERT model.
+            Defaults to 10.""",
+    )
 
     # model
-    features: tuple[str, ...] = ("descritption",)
-    encoding: Literal["index", "relevantTimestamp"] = "relevantTimestamp"
-    n_heads: int = 4
-    dim_per_head: int = 16
-    num_layers: int = 1
-    feedforward_factor: int = 4
-    rotary_max_exp: int = 14
-    rotary_cutoff: float = 0.75
+    features: tuple[str, ...] = Field(
+        default=("description",),
+        description="""The keys of fields of the alerts to use as features for training the AlertBERT model.
+            Fields within the 'alertDetails' field can be accessed by the syntax 'alertDetails:fieldName'.
+            Defaults to ("description",).""",
+    )
+    encoding: Literal["index", "relevantTimestamp"] = Field(
+        default="relevantTimestamp",
+        description="""The features of the alerts to use for rotary positional encoding.
+            Defaults to "relevantTimestamp".""",
+    )
+    n_heads: int = Field(
+        default=4,
+        description="The number of attention heads in the AlertBERT model. Defaults to 4."
+    )
+    dim_per_head: int = Field(
+        default=16,
+        description="The dimensionality of each attention head in the AlertBERT model. Defaults to 16.",
+    )
+    num_layers: int = Field(
+        default=1,
+        description="The number of layers in the model in the AlertBERT model. Defaults to 1."
+    )
+    feedforward_factor: int = Field(
+        default=4,
+        description="""The factor by which the feedforward dimension is larger than the model dimension
+            in the AlertBERT model. Defaults to 4.""",
+    )
+    rotary_max_exp: int = Field(
+        default=14,
+        description="""The maximum exponent for the rotary positional encoding in the AlertBERT model.
+            Defaults to 14.""",
+    )
+    rotary_cutoff: float = Field(
+        default=0.75,
+        description="""The cutoff for the rotary positional encoding in the AlertBERT model.
+            Defaults to 0.75.""",
+    )
 
     # training
-    context_size: int = 1024
-    batch_size: int = 8
-    updates: tuple[int, int] = (1800, 2000)
-    lr: float = 5e-3
-    warm_up_steps: int = 100
+    context_size: int = Field(
+        default=1024,
+        description="The context size for the AlertBERT model. Defaults to 1024."
+    )
+    batch_size: int = Field(
+        default=8,
+        description="The batch size for training the AlertBERT model. Defaults to 8."
+    )
+    updates: tuple[int, int] = Field(
+        default=(240, 300),
+        description="The number of updates for training the AlertBERT model. Defaults to (240, 300).",
+    )
+    lr: float = Field(
+        default=5e-3,
+        description="The learning rate for training the AlertBERT model. Defaults to 5e-3.",
+    )
+    warm_up_steps: int = Field(
+        default=20,
+        description="The number of warm-up steps for training the AlertBERT model. Defaults to 100."
+    )
 
     def _get_mlm_config(self) -> dict[str, Any]:
         return self.model_dump(
@@ -137,10 +197,6 @@ class AlertBERTAggregation(DensityClusteringAggregation):
     certain threshold theta.
     The time-cosine-distance is the maximum of the time difference and the cosine similarity between
     the embeddings of each alert.
-
-    Args:
-        config (AlertBERTAggregationConfig): The configuration of this method.
-        name (str): The name identifying this aggregation method.
     """
 
     def __init__(
@@ -148,6 +204,12 @@ class AlertBERTAggregation(DensityClusteringAggregation):
         config: AlertBERTAggregationConfig,
         name: str = "AlertBERTAggregator",
     ) -> None:
+        """Initialize the AlertBERTAggregation class.
+
+        Args:
+            config (AlertBERTAggregationConfig): The configuration of this method.
+            name (str): The name identifying this aggregation method.
+        """
         if isinstance(config, dict):
             config = AlertBERTAggregationConfig.from_dict(config, name)
         super().__init__(name=name, config=config)
@@ -164,6 +226,19 @@ class AlertBERTAggregation(DensityClusteringAggregation):
     def aggregate_alerts(
         self, input_: list[DetectorSchema] | DetectorSchema, output_: AggregateSchema
     ) -> bool:
+        """Aggregate alerts into groups using the AlertBERT method. If the
+        model is set to be trained, it will first collect enough alerts to
+        train the model, and then proceed with the aggregation. If the model is
+        already trained, it will directly aggregate the alerts using the
+        specified clustering backend.
+
+        Args:
+            input_ (list[DetectorSchema] | DetectorSchema): The alerts to aggregate.
+            output_ (AggregateSchema): The output schema to populate.
+
+        Returns:
+            bool: True if the alerts were aggregated, False otherwise.
+        """
         if not isinstance(input_, list):
             input_ = [input_]
         if self.timestamp_extraction_fn(input_[0]) < self.last_timestamp:
@@ -200,6 +275,16 @@ class AlertBERTAggregation(DensityClusteringAggregation):
     def _aggregate_alerts(
         self, input_: list[DetectorSchema], output_: AggregateSchema
     ) -> bool:
+        """Aggregate alerts into groups using the AlertBERT method with the
+        scipy backend.
+
+        Args:
+            input_ (list[DetectorSchema]): The alerts to aggregate.
+            output_ (AggregateSchema): The output schema to populate.
+
+        Returns:
+            bool: True if the alerts were aggregated, False otherwise.
+        """
         self._add_new_alerts(input_)
         labels = self.alertbert(self.relevant_alerts)
 
@@ -241,6 +326,16 @@ class AlertBERTAggregation(DensityClusteringAggregation):
         alerts: list[DetectorSchema],
         return_last_rows: int = 0,
     ) -> list[list[NonNegativeFloat]]:
+        """Compute the time-cosine-distance between the embeddings of the
+        alerts.
+
+        Args:
+            alerts (list[DetectorSchema]): The alerts for which to compute the metric.
+            return_last_rows (int): The number of last rows to return. Defaults to 0.
+
+        Returns:
+            list[list[NonNegativeFloat]]: The time-cosine-distances between the embeddings of the alerts.
+        """
         alert_emb = self.alertbert._get_embeddings(alerts)
         return cast(
             list[list[NonNegativeFloat]],
@@ -250,10 +345,20 @@ class AlertBERTAggregation(DensityClusteringAggregation):
         )
 
     def discard_alert_fn(self, alerts: list[DetectorSchema]) -> list[bool]:
+        """Determine which alerts should be discarded based on their
+        timestamps.
+
+        Args:
+            alerts (list[DetectorSchema]): The alerts to check for discarding.
+
+        Returns:
+            list[bool]: A list of booleans indicating whether each alert should be discarded.
+        """
         cutoff = self.relevant_alerts[-1]["logTimestamps"][-1] - self.config.delta
         return [alert["logTimestamps"][-1] < cutoff for alert in alerts]
 
     def _set_up_mlm(self) -> None:
+        """Set up the MaskedLanguageModel."""
         self.mlm = MaskedLanguageModel(self.config)
         if not self.config.train_model:
             logger.info("AlertBERT model loaded from disk.")
@@ -262,6 +367,7 @@ class AlertBERTAggregation(DensityClusteringAggregation):
             logger.info("AlertBERT model will be trained ...")
 
     def _set_up_alertbert(self) -> None:
+        """Set up the AlertBERT model."""
         self.alertbert = AlertBERT(
             model=self.mlm,
             config=self.config,
@@ -274,6 +380,15 @@ class AlertBERTAggregation(DensityClusteringAggregation):
         train_data: AlertDataset | None = None,
         val_data: AlertDataset | None = None,
     ) -> None:
+        """Train the MaskedLanguageModel.
+
+        Args:
+            use_gathered_alerts (bool): Whether to use the gathered alerts for training. Defaults to True.
+            train_data (AlertDataset | None): The training dataset. Required if use_gathered_alerts is False.
+            val_data (AlertDataset | None): The validation dataset. Required if use_gathered_alerts is False.
+        Raises:
+            ValueError: If use_gathered_alerts is False and train_data or val_data is None.
+        """
         if use_gathered_alerts:
             train_plus_val_size = self.config.train_size + self.config.val_size
             train_split = self.config.train_size / train_plus_val_size
