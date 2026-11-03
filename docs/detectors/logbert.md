@@ -1,4 +1,4 @@
-# LogBERT Detector
+# LogBERT Detector [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/detectors/logbert_detector.py)]
 
 It employs a Transformer model \( f_\theta(\cdot) \) to predict event IDs within a sequence. It follows a BERT-style setup in which randomly selected parsed event IDs are masked \(M\), and the model must infer the masked values. If the model fails to do so, it flags the sequence as an anomaly.
 

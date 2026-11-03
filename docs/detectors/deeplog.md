@@ -1,4 +1,4 @@
-# DeepLog Detector
+# DeepLog Detector [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/detectors/deeplog_detector.py)]
 
 It employs an LSTM deep learning model \(f_\theta(\cdot)\) to predict the event ID \(e_i\) of the next parsed log. The model outputs the top \(K\) candidate event IDs for \(e_i\). If \(e_i\) is not among these candidates, the detector flags it as an anomaly.
 

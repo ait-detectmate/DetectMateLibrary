@@ -1,4 +1,4 @@
-# Bigram Frequency Detector
+# Bigram Frequency Detector [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/detectors/bigram_frequency_detector.py)]
 
 The Bigram Frequency Detector raises alerts when a variable's character bigrams (pairs of neighbouring letters/characters) appear improbable under a learned per-variable bigram frequency model. Optionally, an English-language bigram table can be consulted as a fallback for bigrams not yet seen during training.
 

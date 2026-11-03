@@ -1,4 +1,4 @@
-# Federation
+# Federation [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/common/_core_op/_fed_component.py)]
 
 This section explains how to use the federation setup. For a component to support federation, it must implement the following methods:
 

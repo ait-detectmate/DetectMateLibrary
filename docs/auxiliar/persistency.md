@@ -1,4 +1,4 @@
-# Persistency
+# Persistency [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/utils/persistency/event_persistency.py)]
 
 The persistency module gives a detector a place to remember things about the
 events it sees. State is keyed by `eventID` and survives across training, the

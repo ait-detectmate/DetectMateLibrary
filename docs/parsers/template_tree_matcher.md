@@ -1,4 +1,4 @@
-# Template Tree Matcher
+# Template Tree Matcher [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/parsers/tree_matcher.py)]
 
 The Template Tree Matcher is a parser that matches incoming logs against a set of templates using a tree-based depth-first search. It provides faster matching for batch workloads compared with the streaming Template Matcher.
 

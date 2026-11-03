@@ -1,4 +1,4 @@
-# New Value Combo Detector
+# New Value Combo Detector [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/detectors/new_value_detector.py)]
 
 The New Value Combo Detector raises alerts when previously unseen combinations of values appear in configured fields (for example a known user logging in from a known IP address they have never used before). It is useful to detect unusual pairings of otherwise familiar values, which the [New Value Detector](new_value.md) would miss.
 

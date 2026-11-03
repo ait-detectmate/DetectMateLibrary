@@ -1,4 +1,4 @@
-# LogBatcher Parser
+# LogBatcher Parser [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/parsers/logbatcher/parser.py)]
 
 LLM-based log parser that infers event templates from raw log messages using any OpenAI-compatible model. No training data or labeled examples are required.
 

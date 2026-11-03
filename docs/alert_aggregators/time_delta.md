@@ -1,4 +1,4 @@
-# Time Delta Alert Aggregation
+# Time Delta Alert Aggregation [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/alert_aggregation/time_delta.py)]
 
 The time-delta alert aggregator implements alert aggregation by grouping alerts according their time-difference as proposed by [Landauer et al.](https://dl.acm.org/doi/pdf/10.1145/3510581).
 

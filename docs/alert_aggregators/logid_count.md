@@ -1,4 +1,4 @@
-# LogID Count Alert Aggregation
+# LogID Count Alert Aggregation [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/alert_aggregation/logid_count.py)]
 
 The logID count alert aggregation tracks how many times each log ID appears in the alerts, and if it exceeds a specified threshold, it triggers the aggregation.
 

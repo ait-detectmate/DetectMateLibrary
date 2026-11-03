@@ -1,4 +1,4 @@
-# SCVS Detector
+# SCVS Detector [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/detectors/scvs_detector.py)]
 
 The Sequence Count Vector Set Detector (SCVS) detects anomalies by finding count vectors that were not present in the training dataset.
 

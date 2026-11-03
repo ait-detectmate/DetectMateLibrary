@@ -1,4 +1,4 @@
-# Rule Detector
+# Rule Detector [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/detectors/rule_detector.py)]
 
 The Rule Detector raises alerts based on a configurable set of rules.
 

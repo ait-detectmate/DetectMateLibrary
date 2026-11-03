@@ -1,4 +1,4 @@
-# Parsers
+# Parsers  [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/common/parser.py)]
 
 Parsers convert unstructured raw logs into structured ParserSchema objects that downstream detectors consume.
 

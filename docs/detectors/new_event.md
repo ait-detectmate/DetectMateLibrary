@@ -1,4 +1,4 @@
-# New Event Detector
+# New Event Detector [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/detectors/new_event_detector.py)]
 
 The New Event Detector raises alerts when previously unseen log templates, distinguished by event IDs, appear in log data. It is useful to detect unexpected types of events in the environment.
 

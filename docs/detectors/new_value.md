@@ -1,4 +1,4 @@
-# New Value Detector
+# New Value Detector [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/detectors/new_value_detector.py)]
 
 The New Value Detector raises alerts when previously unseen values appear in configured fields (for example new user names, IP addresses, or process names). It is useful to detect novelty, configuration drift, or the appearance of new actors in the environment.
 

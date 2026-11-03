@@ -1,4 +1,4 @@
-# Basic Concat Alert Aggregation
+# Basic Concat Alert Aggregation [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/alert_aggregation/basic_concat.py)]
 
 The Basic Concat alert aggregation combines the most recent alerts into one aggregated record by
 concatenating their IDs and timestamps.

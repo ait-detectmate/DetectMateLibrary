@@ -1,4 +1,4 @@
-# Event Sequence Detector
+# Event Sequence Detector [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/detectors/event_sequence_detector.py)]
 
 The Event Sequence Detector raises alerts when a run of consecutive event IDs appears in an order that was never observed during training. It is useful to detect broken or unexpected workflows in an environment where the individual events are all benign on their own.
 

@@ -1,4 +1,4 @@
-# Value Range Detector
+# Value Range Detector [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/detectors/value_range_detector.py)]
 
 The Value Range Detector raises alerts when numerical values outside of known ranges appear in configured fields. It is useful to detect unexpected changes in quantities such as sizes, counts, or durations.
 
