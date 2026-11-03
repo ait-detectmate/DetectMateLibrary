@@ -173,9 +173,7 @@ class BaseSequenceCollate:
         else:
             self.generator = generator
 
-    def __call__(
-        self, batch: Sequence[dict[str, np.ndarray]]
-    ) -> TensorDict:
+    def __call__(self, batch: Sequence[dict[str, np.ndarray]]) -> TensorDict:
         batch_size = len(batch)
         context_size = len(next(iter(batch[0].values())))
         # transpose the batch of feature dictionaries to a dictionary of feature batches
@@ -183,11 +181,11 @@ class BaseSequenceCollate:
             return_batch: dict[str, list[np.ndarray]] = {
                 k: [d[k] for d in batch] for k in self.collate_fn_map if k != "position"
             }
-            return_batch["position"] = [np.arange(context_size) for i in range(batch_size)]
+            return_batch["position"] = [
+                np.arange(context_size) for i in range(batch_size)
+            ]
         else:
-            return_batch = {
-                k: [d[k] for d in batch] for k in self.collate_fn_map
-            }
+            return_batch = {k: [d[k] for d in batch] for k in self.collate_fn_map}
         # apply the collate functions to the feature batches and return it as a TensorDict
         return_batch_2: TensorDict = TensorDict(
             {k: self.collate_fn_map[k](return_batch[k]) for k in self.collate_fn_map}
@@ -236,9 +234,7 @@ class MaskedLangModelingSequenceCollate(BaseSequenceCollate):
         self.mask_ratio = mask_ratio
         self.perturb_ratio = perturb_ratio
 
-    def __call__(
-        self, batch: Sequence[dict[str, np.ndarray]]
-    ) -> TensorDict:
+    def __call__(self, batch: Sequence[dict[str, np.ndarray]]) -> TensorDict:
         return_batch: TensorDict = super().__call__(batch)
         # get batch size and sequence length
         dim = return_batch.batch_size_

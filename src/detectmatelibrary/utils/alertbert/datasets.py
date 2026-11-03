@@ -313,7 +313,9 @@ class AlertSequenceBatchSampler(BatchSampler):
         super().__init__(
             cast(
                 Sampler[int],
-                AlertSequenceSampler(data_source, context_size, cyclic, generator, shuffle),
+                AlertSequenceSampler(
+                    data_source, context_size, cyclic, generator, shuffle
+                ),
             ),
             batch_size,
             drop_last,

@@ -67,6 +67,7 @@ full = [
     "detectmatelibrary[dataframes]",
     "detectmatelibrary[polars-rtcompat]",
     "detectmatelibrary[alertbert]",
+    "detectmatelibrary[scipy]",
 ]
 
 [tool.setuptools.dynamic]

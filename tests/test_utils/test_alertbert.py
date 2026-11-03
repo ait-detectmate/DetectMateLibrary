@@ -38,7 +38,9 @@ from detectmatelibrary.utils.alertbert.preprocessing import (
 )
 
 
-def make_alert(alert_id: str, timestamp: int, description: str = "login") -> DetectorSchema:
+def make_alert(
+    alert_id: str, timestamp: int, description: str = "login"
+) -> DetectorSchema:
     return DetectorSchema(
         {
             "detectorID": "detector",
@@ -133,7 +135,9 @@ def test_alert_dataset_converts_alerts_and_supports_indexing() -> None:
 
 def test_split_dataset_and_sequence_samplers() -> None:
     dataset = AlertDataset(make_alert(str(i), i) for i in range(10))
-    train, validation, test = split_alert_dataset(dataset, (0.5, 0.3, 0.2), drop_first_n=2)
+    train, validation, test = split_alert_dataset(
+        dataset, (0.5, 0.3, 0.2), drop_first_n=2
+    )
 
     assert len(train) == 4
     assert len(validation) == 2
@@ -143,13 +147,21 @@ def test_split_dataset_and_sequence_samplers() -> None:
         split_alert_dataset(dataset, (0.5, 0.5, 0.5))
 
     generator = torch.Generator().manual_seed(2)
-    sampler = AlertSequenceSampler(dataset, context_size=3, cyclic=False, generator=generator, shuffle=False)
+    sampler = AlertSequenceSampler(
+        dataset, context_size=3, cyclic=False, generator=generator, shuffle=False
+    )
     slices = list(sampler)
     assert len(sampler) == 3
     assert all(s.stop - s.start == 3 for s in slices)
-    batches = list(AlertSequenceBatchSampler(dataset, context_size=3, batch_size=2, drop_last=False))
+    batches = list(
+        AlertSequenceBatchSampler(
+            dataset, context_size=3, batch_size=2, drop_last=False
+        )
+    )
     assert len(batches) == 2
-    cyclic = AlertSequenceSampler(dataset, context_size=4, cyclic=True, generator=generator, shuffle=False)
+    cyclic = AlertSequenceSampler(
+        dataset, context_size=4, cyclic=True, generator=generator, shuffle=False
+    )
     assert len(list(cyclic)) == 3
 
 
@@ -185,8 +197,17 @@ def test_alertbert_neural_components() -> None:
 
     attention = SelfAttention(4, 1)
     assert attention(torch.ones((1, 2, 4))).shape == (1, 2, 4)
-    assert attention(torch.ones((1, 2, 4)), return_attn_weights=True).shape == (1, 1, 2, 2)
-    assert EncoderMLP(4, 8, gated_activation=False)(torch.ones((1, 2, 4))).shape == (1, 2, 4)
+    assert attention(torch.ones((1, 2, 4)), return_attn_weights=True).shape == (
+        1,
+        1,
+        2,
+        2,
+    )
+    assert EncoderMLP(4, 8, gated_activation=False)(torch.ones((1, 2, 4))).shape == (
+        1,
+        2,
+        4,
+    )
     layer = EncoderLayer(4, 1, 8)
     assert layer(torch.ones((1, 2, 4))).shape == (1, 2, 4)
     encoder = MaskedLangModelEncoder(4, 1, 2, 8)
@@ -263,9 +284,7 @@ def make_model_batch() -> TensorDict:
         mask_ratio=0.0,
         perturb_ratio=0.0,
         generator=torch.Generator().manual_seed(0),
-    )(
-        [{"token": np.array([2, 3, 2]), "position": np.array([0, 1, 2])}]
-    )
+    )([{"token": np.array([2, 3, 2]), "position": np.array([0, 1, 2])}])
 
 
 def test_model_wrappers_compute_masked_outputs_and_loss() -> None:

@@ -417,6 +417,7 @@ requires-dist = [
     { name = "detectmatelibrary", extras = ["dataframes"], marker = "extra == 'full'" },
     { name = "detectmatelibrary", extras = ["llm"], marker = "extra == 'full'" },
     { name = "detectmatelibrary", extras = ["polars-rtcompat"], marker = "extra == 'full'" },
+    { name = "detectmatelibrary", extras = ["scipy"], marker = "extra == 'full'" },
     { name = "detectmateperformance", specifier = ">=0.1.6" },
     { name = "flax", specifier = ">=0.12.8" },
     { name = "fsspec", specifier = ">=2024.1.0" },

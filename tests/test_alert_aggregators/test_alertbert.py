@@ -12,21 +12,34 @@ from detectmatelibrary.schemas import AggregateSchema, DetectorSchema
 
 def make_alerts(count: int) -> list[DetectorSchema]:
     random = np.random.default_rng(42)
-    descriptions = random.choice(np.array(["a", "b", "c", "d"]), size=count)
-    severities = random.choice(np.array(["w", "e"]), size=count)
+    descriptions = random.choice(
+        np.array(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]),
+        p=[0.2, 0.15, 0.15, 0.1, 0.1, 0.1, 0.05, 0.05, 0.05, 0.05],
+        size=count,
+    )
+    severities = random.choice(np.array(["w", "e", "c"]), p=[0.5, 0.3, 0.2], size=count)
+    hostnames = random.choice(
+        np.array(["host1", "host2", "host3", "host4", "host5", "host6"]), size=count
+    )
+    timestamps = np.floor(
+        np.cumulative_sum(random.exponential(scale=1.2, size=count))
+    ).astype(int)
     return [
         DetectorSchema(
             {
                 "detectorID": "detector",
                 "detectorType": "alertbert-test",
                 "alertID": f"alert-{i}",
-                "detectedTimestamp": i,
+                "detectedTimestamp": timestamps[i],
                 "logIDs": [f"log-{i}"],
                 "score": 0.0,
-                "logTimestamps": [i],
+                "logTimestamps": [timestamps[i]],
                 "description": str(descriptions[i]),
-                "receivedTimestamp": i,
-                "alertDetails": {"severity": str(severities[i])},
+                "receivedTimestamp": timestamps[i],
+                "alertDetails": {
+                    "severity": str(severities[i]),
+                    "hostname": str(hostnames[i]),
+                },
             }
         )
         for i in range(count)
@@ -38,30 +51,31 @@ def make_config(path: Path, train_model: bool) -> AlertBERTAggregationConfig:
         path=str(path),
         model_id="alertbert-integration",
         train_model=train_model,
-        delta=1.0,
-        theta=1.0,
+        delta=3.0,
+        theta=9.0,
         clustering_backend="scipy",
-        train_size=50_000,
-        val_size=10_000,
-        min_freq=1,
-        features=("description", "alertDetails:severity"),
-        n_heads=1,
+        train_size=10_000,
+        val_size=1_000,
+        min_freq=10,
+        features=("description", "alertDetails:severity", "alertDetails:hostname"),
+        n_heads=2,
         dim_per_head=4,
         num_layers=1,
-        context_size=1024,
-        batch_size=1,
-        updates=(49, 49),
-        warm_up_steps=1,
+        context_size=64,
+        batch_size=8,
+        updates=(100, 150),
+        warm_up_steps=10,
     )
 
 
 def test_alertbert_aggregation_training_saving_loading_and_inference(
     tmp_path: Path,
 ) -> None:
-    alerts = make_alerts(100_000)
-    training_alerts = alerts[:60_000]
-    first_inference = alerts[60_000:80_000]
-    second_inference = alerts[80_000:]
+    alerts = make_alerts(15_000)
+    training_alerts = alerts[:11_000]
+    first_inference = alerts[11_000:13_000]
+    second_inference = alerts[13_000:-100]
+    third_inference = alerts[-100:]
 
     aggregator = AlertBERTAggregation(make_config(tmp_path, train_model=True))
     training_output = AggregateSchema()
@@ -78,29 +92,30 @@ def test_alertbert_aggregation_training_saving_loading_and_inference(
     first_output = AggregateSchema()
     assert aggregator.aggregate_alerts(first_inference, first_output)
     assert len(first_output["alertDetails"]) >= len(first_inference)
-    assert {
-        alert["alertID"] for alert in first_inference
-    }.issubset(first_output["alertDetails"])
+    assert {alert["alertID"] for alert in first_inference}.issubset(
+        first_output["alertDetails"]
+    )
 
     loaded_aggregator = AlertBERTAggregation(make_config(tmp_path, train_model=False))
     second_output = AggregateSchema()
     assert loaded_aggregator.aggregate_alerts(second_inference, second_output)
     assert len(second_output["alertDetails"]) >= len(second_inference)
-    assert {
-        alert["alertID"] for alert in second_inference
-    }.issubset(second_output["alertDetails"])
+    assert {alert["alertID"] for alert in second_inference}.issubset(
+        second_output["alertDetails"]
+    )
     assert second_output["description"] == "Alert aggregation by the AlertBERT method."
     assert set(loaded_aggregator.mlm.config["features"]) == {
         "description",
         "alertDetails:severity",
+        "alertDetails:hostname",
     }
 
     loaded_aggregator.config.clustering_backend = "detectmate"
     detectmate_output = AggregateSchema()
-    assert loaded_aggregator.aggregate_alerts(second_inference[:10], detectmate_output)
-    assert {
-        alert["alertID"] for alert in second_inference[:10]
-    }.issubset(detectmate_output["alertDetails"])
+    assert loaded_aggregator.aggregate_alerts(third_inference, detectmate_output)
+    assert {alert["alertID"] for alert in third_inference}.issubset(
+        detectmate_output["alertDetails"]
+    )
 
 
 def test_alertbert_config_excludes_aggregation_fields(tmp_path: Path) -> None:
@@ -108,7 +123,11 @@ def test_alertbert_config_excludes_aggregation_fields(tmp_path: Path) -> None:
 
     model_config = config._get_mlm_config()
 
-    assert model_config["features"] == ("description", "alertDetails:severity")
+    assert model_config["features"] == (
+        "description",
+        "alertDetails:severity",
+        "alertDetails:hostname",
+    )
     assert "buffer_size" not in model_config
     assert "clustering_backend" not in model_config
     assert "delta" not in model_config

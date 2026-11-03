@@ -234,13 +234,14 @@ class SelfAttention(nn.Module):
                     "rotary_pos_enc_freqs must be provided if rotary_pos_enc is True"
                 )
             freqs = list(rotary_pos_enc_freqs)
-            self.rotary_emb = RotaryEmbedding(
-                dim=self.dim_head, freqs=freqs
-            )
+            self.rotary_emb = RotaryEmbedding(dim=self.dim_head, freqs=freqs)
         self.softmax = nn.Softmax(dim=-1)
 
     def forward(
-        self, x: torch.Tensor, p: torch.Tensor | None = None, return_attn_weights: bool = False
+        self,
+        x: torch.Tensor,
+        p: torch.Tensor | None = None,
+        return_attn_weights: bool = False,
     ) -> torch.Tensor:
         # qkv: [batch_size, seqlen, 3, nheads, headdim]
         qkv = self.Wqkv(x).view(x.size(0), x.size(1), 3, self.nhead, self.dim_head)
@@ -250,7 +251,9 @@ class SelfAttention(nn.Module):
         if self.rotary_pos_enc:
             query, key = self.rotary_emb(query, key, p)
 
-        attn_weights: torch.Tensor = torch.matmul(query, key.transpose(2, 3)) * self.scale
+        attn_weights: torch.Tensor = (
+            torch.matmul(query, key.transpose(2, 3)) * self.scale
+        )
         attn_weights = self.softmax(attn_weights)
         if return_attn_weights:
             return attn_weights
@@ -396,14 +399,14 @@ class MaskedLangModelEncoder(nn.Module):
     ) -> None:
         super().__init__()
         layer = EncoderLayer(
-                d_model=d_model,
-                nhead=nhead,
-                dim_feedforward=dim_feedforward,
-                activation=activation,
-                gated_activation=gated_activation,
-                rotary_pos_enc=rotary_pos_enc,
-                rotary_pos_enc_freqs=rotary_pos_enc_freqs,
-                biases=biases,
+            d_model=d_model,
+            nhead=nhead,
+            dim_feedforward=dim_feedforward,
+            activation=activation,
+            gated_activation=gated_activation,
+            rotary_pos_enc=rotary_pos_enc,
+            rotary_pos_enc_freqs=rotary_pos_enc_freqs,
+            biases=biases,
         )
         self.layers = nn.ModuleList([copy.deepcopy(layer) for _ in range(num_layers)])
 
@@ -781,8 +784,10 @@ train acc = {tr_stats[t]['corr']:1.05f}; val loss = {val_stats[t]['loss']:1.05f}
         logging.info("End of training.")
         if best_train_stats is None or best_val_stats is None:
             raise RuntimeError("No best model checkpoint was created during training.")
-        results = f"{str(dt.now())} Model: {self.config['model_id']} Results: train loss = \
+        results = (
+            f"{str(dt.now())} Model: {self.config['model_id']} Results: train loss = \
 {best_train_stats['total_loss']:1.05f}, val loss = {best_val_stats['total_loss']:1.05f}"
+        )
         for t in self.config["features"]:
             results += f", {t: >5} train acc = {best_train_stats[t]['corr']:1.05f}, \
 {t: >5} val acc = {best_val_stats[t]['corr']:1.05f}"
@@ -814,7 +819,9 @@ train acc = {tr_stats[t]['corr']:1.05f}; val loss = {val_stats[t]['loss']:1.05f}
         """
         model_ev = MaskedLangModelEvalWrapper(self)
         model = cast(MaskedLanguageModel, model_ev.module)
-        stats: dict[str, Any] = {  # dictionary to store statistics for each target of the model
+        stats: dict[
+            str, Any
+        ] = {  # dictionary to store statistics for each target of the model
             t: {
                 "loss": [],  # average loss
                 "corr": [],  # accuracy
@@ -859,7 +866,8 @@ train acc = {tr_stats[t]['corr']:1.05f}; val loss = {val_stats[t]['loss']:1.05f}
             stats[t]["true"] = torch.cat(stats[t]["true"])
         # add average loss across all targets
         stats["total_loss"] = sum(
-            stats[t]["loss"] for t in cast(MultiClassificationHead, model["head"]).targets
+            stats[t]["loss"]
+            for t in cast(MultiClassificationHead, model["head"]).targets
         ) / len(cast(MultiClassificationHead, model["head"]).targets)
         return stats
 
@@ -890,9 +898,7 @@ train acc = {tr_stats[t]['corr']:1.05f}; val loss = {val_stats[t]['loss']:1.05f}
         )
         self.eval()
 
-    def _load_feature_vocabs(
-        self, features: list[str], min_freq: int = 1
-    ) -> None:
+    def _load_feature_vocabs(self, features: list[str], min_freq: int = 1) -> None:
         """Load feature vocabularies from the specified path for the given
         features.
 
@@ -989,7 +995,9 @@ class MaskedLangModelInferenceWrapper(TensorDictModule):
             nn.Sequential(OrderedDict({layer: model[layer] for layer in layers})),
             in_keys={
                 f: f
-                for f in cast(MaskedLangModelEmbeddingLayer, model["embedding"]).features
+                for f in cast(
+                    MaskedLangModelEmbeddingLayer, model["embedding"]
+                ).features
                 + [model.config["encoding"]]
             },
             out_keys=["output"],
@@ -1032,7 +1040,9 @@ class MaskedLangModelEvalWrapper(TensorDictModule):
             model,
             in_keys={
                 f"{f}_mask": f
-                for f in cast(MaskedLangModelEmbeddingLayer, model["embedding"]).features
+                for f in cast(
+                    MaskedLangModelEmbeddingLayer, model["embedding"]
+                ).features
             }
             | {model.config["encoding"]: model.config["encoding"]},
             out_keys=[
@@ -1046,9 +1056,7 @@ class MaskedLangModelEvalWrapper(TensorDictModule):
         ]
         self.masked_out_keys = [f"{k}_mask" for k in self.out_keys]
 
-    def forward(
-        self, batch: TensorDict
-    ) -> TensorDict:
+    def forward(self, batch: TensorDict) -> TensorDict:
         mask_idx = torch.unbind(batch["mask_index"])
         batch = cast(TensorDict, super().forward(batch))
         model = cast(MaskedLanguageModel, self.module)
@@ -1072,9 +1080,7 @@ class MaskedLangModelTrainWrapper(MaskedLangModelEvalWrapper):
         super().__init__(model)
         self.loss_fn = loss_fn
 
-    def forward(
-        self, batch: TensorDict
-    ) -> TensorDict:
+    def forward(self, batch: TensorDict) -> TensorDict:
         batch = super().forward(batch)
         batch["loss"] = self.loss_fn(
             tuple(batch[k] for k in self.masked_out_keys),
@@ -1370,7 +1376,10 @@ pre-cluster size ({pre_cluster_size})!"
                         f"Length of tertiary labels ({len(tertiary_labels_array)}) does not match \
 pre-cluster size ({pre_cluster_size})!"
                     )
-                if not len(secondary_labels_array) == pre_cluster_size - square_sizes[-1]:
+                if (
+                    not len(secondary_labels_array)
+                    == pre_cluster_size - square_sizes[-1]
+                ):
                     raise ValueError(
                         f"Length of secondary labels ({len(secondary_labels_array)}) does not match \
 pre-cluster size ({pre_cluster_size})!"
@@ -1528,7 +1537,9 @@ preliminary labels 2 ({len(prelim_labels_2)})!"
                     final_labels = final_label_to_prelim_labels[final_label]
                     old_l2_labels = final_label_to_prelim_labels[old_l2_final_label]
                     if final_labels is None or old_l2_labels is None:
-                        raise RuntimeError("Deleted label was referenced during clustering.")
+                        raise RuntimeError(
+                            "Deleted label was referenced during clustering."
+                        )
                     final_labels.update(old_l2_labels)
                     for prelim_label in old_l2_labels:
                         prelim_labels_to_final_label[prelim_label] = final_label
@@ -1540,7 +1551,9 @@ preliminary labels 2 ({len(prelim_labels_2)})!"
                 final_label = prelim_labels_to_final_label[l1]
                 labels = final_label_to_prelim_labels[final_label]
                 if labels is None:
-                    raise RuntimeError("Deleted label was referenced during clustering.")
+                    raise RuntimeError(
+                        "Deleted label was referenced during clustering."
+                    )
                 labels.add(l2)
                 prelim_labels_to_final_label[l2] = final_label
 
@@ -1550,7 +1563,9 @@ preliminary labels 2 ({len(prelim_labels_2)})!"
                 final_label = prelim_labels_to_final_label[l2]
                 labels = final_label_to_prelim_labels[final_label]
                 if labels is None:
-                    raise RuntimeError("Deleted label was referenced during clustering.")
+                    raise RuntimeError(
+                        "Deleted label was referenced during clustering."
+                    )
                 labels.add(l1)
                 prelim_labels_to_final_label[l1] = final_label
 

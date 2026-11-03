@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from datetime import datetime as dt
 from typing import Any, Literal, cast
 
@@ -147,18 +148,29 @@ class AlertBERTAggregation(DensityClusteringAggregation):
         config: AlertBERTAggregationConfig,
         name: str = "AlertBERTAggregator",
     ) -> None:
+        if isinstance(config, dict):
+            config = AlertBERTAggregationConfig.from_dict(config, name)
         super().__init__(name=name, config=config)
         self.config: AlertBERTAggregationConfig  # ty: ignore[invalid-mutable-override]
         self.description = "Alert aggregation by the AlertBERT method."
         self._set_up_mlm()
         if self.config.train_model:
             self.collected_data: list[DetectorSchema] = []
+        self.timestamp_extraction_fn: Callable[[DetectorSchema], float] = lambda alert: (
+            float(alert["logTimestamps"][-1])
+        )
+        self.last_timestamp: float = 0.0
 
     def aggregate_alerts(
         self, input_: list[DetectorSchema] | DetectorSchema, output_: AggregateSchema
     ) -> bool:
         if not isinstance(input_, list):
             input_ = [input_]
+        if self.timestamp_extraction_fn(input_[0]) < self.last_timestamp:
+            raise ValueError("Alerts must be given in order of their timestamps!")
+        else:
+            self.last_timestamp = self.timestamp_extraction_fn(input_[-1])
+
         if self.config.train_model:
             self.collected_data.extend(input_)
             if (
@@ -171,6 +183,7 @@ class AlertBERTAggregation(DensityClusteringAggregation):
                 self._train_mlm()
                 del self.collected_data
                 logger.info("Proceeding with alert aggregation ...")
+                self.last_timestamp = 0.0
                 return self.aggregate_alerts(input_, output_)
             else:
                 return False
@@ -282,6 +295,4 @@ class AlertBERTAggregation(DensityClusteringAggregation):
         logger.info("AlertBERT model training complete.")
         self._set_up_alertbert()
         if self.config.train_model:
-            raise ValueError(
-                "The model should not be trained after training!"
-            )
+            raise ValueError("The model should not be trained after training!")
