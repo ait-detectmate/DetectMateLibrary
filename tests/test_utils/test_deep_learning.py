@@ -74,9 +74,34 @@ class TestDLOp:
         assert all(jnp.array_equal(b, o) for b, o in zip(batched, f(x, y)))
         assert jnp.array_equal(op.batched(lambda x: x.sum(1), x[:0]), x[:0].sum(1))
 
+    def test_smallest_top_k(self) -> None:
+        scores = jnp.array([0] * 95 + [3] * 4 + [7])
+
+        assert op.smallest_top_k(scores, alert_rate=0.05) == 1  # the 5 windows ranked 3 or 7 alert
+        assert op.smallest_top_k(scores, alert_rate=0.01) == 4  # only the window ranked 7 alerts
+        assert op.smallest_top_k(scores, alert_rate=0.0) == 8
+        assert op.smallest_top_k(scores, alert_rate=1.0) == 1
+
 
 def random_windows(n: int, size: int) -> list[tuple[int, ...]]:
     return [tuple(int(v) for v in row) for row in jax.random.randint(jax.random.key(1), (n, size), 0, 6)]
+
+
+def validation_alert_share(model: Any, top_k: int) -> float:
+    """Share of the validation windows of the training run below that
+    check_anomaly flags at top_k."""
+    _, val_seqs = model._prepare_data(seqs=random_windows(60, 5), var_per=0.5)
+    seqs = [tuple(int(v) for v in row) for row in val_seqs.reshape(val_seqs.shape[0], -1)]
+    return sum(bool(model.check_anomaly(seq, top_k)) for seq in seqs) / len(seqs)
+
+
+def assert_smallest_top_k_within_alert_rate(model: Any, alert_rate: float) -> None:
+    """The top_k a training run picks is the smallest at which at most
+    alert_rate of its validation windows alert."""
+    top_k = model.train(seqs=random_windows(60, 5), var_per=0.5)["top_k"]
+
+    assert validation_alert_share(model, top_k) <= alert_rate
+    assert top_k == 1 or validation_alert_share(model, top_k - 1) > alert_rate
 
 
 def validation_stats(monkeypatch: pytest.MonkeyPatch, eval_batch: int, model: Any) -> dict:
@@ -101,6 +126,13 @@ class TestDeeplog:
         one_pass = validation_stats(monkeypatch, 1000, deeplog.DeepLog(config=config))
         assert one_pass["passes"] == [30, 30, 30]  # the loss after each epoch, then top_k
         assert validation_stats(monkeypatch, 7, deeplog.DeepLog(config=config)) == one_pass
+
+    def test_top_k_keeps_validation_alerts_within_alert_rate(self) -> None:
+        config = {
+            "Model": {"hidden_dim": 4, "n_layers": 1},
+            "Train": {"batch_size": 8, "learning_rate": 0.01, "epochs": 2, "alert_rate": 0.1},
+        }
+        assert_smallest_top_k_within_alert_rate(deeplog.DeepLog(config=config), alert_rate=0.1)
 
     @pytest.mark.ignored
     def test_deeplog_model(self) -> None:
@@ -170,6 +202,17 @@ class TestLogBert:
         one_pass = validation_stats(monkeypatch, 1000, logbert.LogBert(config=config))
         assert one_pass["passes"] == [30, 30, 30]  # the loss after each epoch, then top_k
         assert validation_stats(monkeypatch, 7, logbert.LogBert(config=config)) == one_pass
+
+    def test_top_k_keeps_validation_alerts_within_alert_rate(self) -> None:
+        # mask_per 1.0 masks every event, so each mask draw is the same and check_anomaly
+        # sees the masks that picked top_k.
+        config = {
+            "Model": {"hidden": 4, "n_layers": 1, "num_heads": 1, "dropout": 0.0, "max_len": 10},
+            "Train": {
+                "batch_size": 8, "learning_rate": 0.01, "epochs": 2, "mask_per": 1.0, "alert_rate": 0.1
+            },
+        }
+        assert_smallest_top_k_within_alert_rate(logbert.LogBert(config=config), alert_rate=0.1)
 
     @pytest.mark.ignored
     def test_logbert_model(self) -> None:
