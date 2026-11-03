@@ -1,5 +1,12 @@
 # DeepLog Detector
 
+It employs an LSTM deep learning model \(f_\theta(\cdot)\) to predict the event ID \(e_i\) of the next parsed log. The model outputs the top \(K\) candidate event IDs for \(e_i\). If \(e_i\) is not among these candidates, the detector flags it as an anomaly.
+
+\[
+    candidates = topK(f_\theta(e_i | i \in [0...n-1])) 
+\]
+
+
 The DeepLog Detector is inspired by the [DeepLog paper](https://dl.acm.org/doi/10.1145/3133956.3134015).
 
 ## In/out
