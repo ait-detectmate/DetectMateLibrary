@@ -1,4 +1,6 @@
 # --8<-- [start:example_1]
+from collections.abc import Iterator
+
 import numpy as np
 import yaml
 
@@ -12,7 +14,7 @@ with open("docs/examples/alert_aggregators/alertbert.yaml") as f:
     config = yaml.safe_load(f)
 
 
-def alert_generator(count: int) -> iter[DetectorSchema]:
+def alert_generator(count: int) -> Iterator[DetectorSchema]:
     random = np.random.default_rng(42)
     descriptions = random.choice(
         np.array(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]),
