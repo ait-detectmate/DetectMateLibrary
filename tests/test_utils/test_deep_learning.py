@@ -87,21 +87,30 @@ def random_windows(n: int, size: int) -> list[tuple[int, ...]]:
     return [tuple(int(v) for v in row) for row in jax.random.randint(jax.random.key(1), (n, size), 0, 6)]
 
 
-def validation_alert_share(model: Any, top_k: int) -> float:
-    """Share of the validation windows of the training run below that
+def padded_windows(n: int, size: int) -> list[tuple[int, ...]]:
+    """random_windows with the first i % size events of window i set to PAD, as
+    at the start of a session."""
+    return [(op.PAD,) * (i % size) + w[i % size:] for i, w in enumerate(random_windows(n, size))]
+
+
+def validation_alert_share(model: Any, top_k: int, windows: list[tuple[int, ...]]) -> float:
+    """Share of the validation windows of a training run on windows that
     check_anomaly flags at top_k."""
-    _, val_seqs = model._prepare_data(seqs=random_windows(60, 5), var_per=0.5)
+    _, val_seqs = model._prepare_data(seqs=windows, var_per=0.5)
     seqs = [tuple(int(v) for v in row) for row in val_seqs.reshape(val_seqs.shape[0], -1)]
     return sum(bool(model.check_anomaly(seq, top_k)) for seq in seqs) / len(seqs)
 
 
-def assert_smallest_top_k_within_alert_rate(model: Any, alert_rate: float) -> None:
+def assert_smallest_top_k_within_alert_rate(
+    model: Any, alert_rate: float, windows: list[tuple[int, ...]] | None = None
+) -> None:
     """The top_k a training run picks is the smallest at which at most
     alert_rate of its validation windows alert."""
-    top_k = model.train(seqs=random_windows(60, 5), var_per=0.5)["top_k"]
+    windows = windows or random_windows(60, 5)
+    top_k = model.train(seqs=windows, var_per=0.5)["top_k"]
 
-    assert validation_alert_share(model, top_k) <= alert_rate
-    assert top_k == 1 or validation_alert_share(model, top_k - 1) > alert_rate
+    assert validation_alert_share(model, top_k, windows) <= alert_rate
+    assert top_k == 1 or validation_alert_share(model, top_k - 1, windows) > alert_rate
 
 
 def validation_stats(monkeypatch: pytest.MonkeyPatch, eval_batch: int, model: Any) -> dict:
@@ -213,6 +222,38 @@ class TestLogBert:
             },
         }
         assert_smallest_top_k_within_alert_rate(logbert.LogBert(config=config), alert_rate=0.1)
+
+    def test_padding_adds_no_loss(self) -> None:
+        model = logbert.LogBertModel(n_embed=6, hidden=4, num_heads=1, n_layers=1, dropout=0.0, max_len=10)
+        x = jnp.array(padded_windows(10, 5))
+        params = model.init(jax.random.key(0), x)["params"]
+        loss_mlkp, _ = logbert.window_losses(model, params, x, jnp.zeros_like(x))  # every event masked
+
+        assert jnp.isfinite(loss_mlkp).all()
+        assert (loss_mlkp[x == op.PAD] == 0).all() and (loss_mlkp[x != op.PAD] > 0).all()
+
+    def test_padding_is_not_scored(self) -> None:
+        # At top_k = n_embed every event is among the predictions, so only padding could miss.
+        config = {
+            "Model": {"hidden": 4, "n_layers": 1, "num_heads": 1, "dropout": 0.0, "max_len": 10},
+            "Train": {"batch_size": 8, "learning_rate": 0.01, "epochs": 2, "mask_per": 1.0},
+        }
+        model = logbert.LogBert(config=config)
+        model.train(seqs=random_windows(60, 5), var_per=0.5)
+        n_embed = model.config["Model"]["n_embed"]
+
+        assert [model.check_anomaly(w, n_embed) for w in padded_windows(10, 5)] == [0] * 10
+
+    def test_top_k_keeps_padded_validation_alerts_within_alert_rate(self) -> None:
+        config = {
+            "Model": {"hidden": 4, "n_layers": 1, "num_heads": 1, "dropout": 0.0, "max_len": 10},
+            "Train": {
+                "batch_size": 8, "learning_rate": 0.01, "epochs": 2, "mask_per": 1.0, "alert_rate": 0.1
+            },
+        }
+        assert_smallest_top_k_within_alert_rate(
+            logbert.LogBert(config=config), alert_rate=0.1, windows=padded_windows(60, 5)
+        )
 
     @pytest.mark.ignored
     def test_logbert_model(self) -> None:
