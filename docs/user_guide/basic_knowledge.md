@@ -83,7 +83,7 @@ so the parser knows which chunk is the log level, which is the timestamp, and
 which is the actual message content.
 
 The term `log_format` is common in the log-parsing literature and is used by
-tools such as the **Drain parser** and **LogParser**, among many others.
+tools such as the **[Drain parser](../parsers/drain_parser.md)** among many others.
 
 Based on the example above:
 
