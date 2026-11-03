@@ -88,10 +88,10 @@ All parameters this parser accepts, grouped by the YAML block they go in. **Scop
 
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
-    | `remove_spaces` | boolean | True | specific | fitting description yet to find |
-    | `remove_punctuation` | boolean | True | specific | fitting description yet to find |
-    | `lowercase` | boolean | True | specific | fitting description yet to find |
-    | `path_templates` | string, null | None | specific | fitting description yet to find |
+    | `remove_spaces` | boolean | True | specific | Remove duplicate spaces. |
+    | `remove_punctuation` | boolean | True | specific | Remove punctuations symbols. |
+    | `lowercase` | boolean | True | specific | Converts all characters in lowercase. |
+    | `path_templates` | string, null | None | specific | Path of the templates file. |
     | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
     | `data_use_training` | integer, null | None | shared | Number of logs used for training. None skips training. |
     | `data_use_configure` | integer, null | None | shared | Number of logs used for the configuration step. None skips it. |
