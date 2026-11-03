@@ -24,9 +24,6 @@ Input and output schemas in the pipeline
 |---|---|---|---|
 | ✅ | ✅ fine-tunes the model | ❌ | ❌ |
 
-## Description
-
-Deep learning method that looks at the event ID sequence.
 
 ## Example
 

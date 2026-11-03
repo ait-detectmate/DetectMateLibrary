@@ -1,6 +1,14 @@
 # LogBERT Detector
 
-The LogBERT Detector is inspired by the [LogBERT paper](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=9534113).
+It employs a Transformer model \( f_\theta(\cdot) \) to predict event IDs within a sequence. It follows a BERT-style setup in which randomly selected parsed event IDs are masked \(M\), and the model must infer the masked values. If the model fails to do so, it flags the sequence as an anomaly.
+
+Based on the original paper, the model is trained using two losses.
+
+\[
+ \mathcal{L_rec}(x \in M, f_\theta(x \notin M)) + \alpha * \mathcal{L_{sphere}}
+\]
+
+where \(\alpha \in [0, 1]\). The LogBERT Detector is inspired by the [LogBERT paper](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=9534113).
 
 ## In/out
 
@@ -17,9 +25,6 @@ Input and output schemas in the pipeline
 |---|---|---|---|
 | ✅ | ✅ fine-tunes the model | ❌ | ❌ |
 
-## Description
-
-Deep learning method that looks at the event ID sequence.
 
 ## Example
 
