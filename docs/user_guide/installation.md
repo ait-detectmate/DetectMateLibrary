@@ -71,6 +71,9 @@ uv pip install "detectmatelibrary[full]"
 
 ## Developer setup
 
+!!! warning "Only need it as developer"
+    Only follow these steps to work in the DetectMate development.
+
 ### Step 1: Install Python development dependencies & pre-commit hooks
 
 * Install dev dependencies (testing, linters, formatters). The `dev` group also pulls in the `full` extra, so every optional dependency (LLM, dataframes, polars-rtcompat) is installed too:
