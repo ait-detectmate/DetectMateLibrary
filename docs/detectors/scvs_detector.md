@@ -2,6 +2,24 @@
 
 The Sequence Count Vector Set Detector (SCVS) detects anomalies by finding count vectors that were not present in the training dataset.
 
+
+### Count Vector
+
+To build a count vector, we first collect the event IDs and arrange them into sequences. Each fixed-size sequence is then processed to produce a count vector that records how many times each event ID occurs in total. If an event ID does not appear, its count is set to 0.
+
+
+![Image](../img/CountVector.png)
+
+
+The count vector cv is defined as:
+
+\[
+cv_i = \sum_{j=1}^{n} \mathbf{1}(x_j = event\_id_i)
+\]
+
+Where \(event\_id_i\) represents the event id constant value of that position in the vector and \( x_j\) the event id of the sequence in position j.
+
+
 ## In/out
 
 Input and output schemas in the pipeline
@@ -20,14 +38,6 @@ Input and output schemas in the pipeline
 ## Description
 
 Count vectors learned during training are stored via [persistency](../auxiliar/persistency.md), so a trained model can be saved and restored with a `persist:` block. A count vector is only comparable within the window it was counted over, so restoring state at a different `window_size` logs a warning, because the restored vectors cannot match and every window would alert.
-
-### Count Vector
-
-To build a count vector, we first collect the event IDs and arrange them into sequences. Each fixed-size sequence is then processed to produce a count vector that records how many times each event ID occurs in total. If an event ID does not appear, its count is set to 0.
-
-
-![Image](../img/CountVector.png)
-
 
 ## Example
 
