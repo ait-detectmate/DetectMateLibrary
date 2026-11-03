@@ -89,7 +89,7 @@ class TemplatesManager:
 
             info = {
                 "raw": tpl,
-                "tokens": tokens,
+                "process": cleaned_tpl,
                 "min_len": min_len,
                 "count": 0,
                 "event_id": (event_id := event_id + 1)
@@ -162,7 +162,6 @@ class TemplatesManager:
             if first == "" or pre_s.startswith(first):
                 candidates.extend(idxs)
         candidates.sort(key=lambda i: -self.templates[i]["count"])  # small heuristic
-        print(pre_s)
         return pre_s, candidates
 
 
@@ -214,7 +213,7 @@ class TemplateMatcher:
             t = self.manager.templates[i]
             if len(s) < t["min_len"]:
                 continue
-            params = self.extract_parameters(log, t["raw"])
+            params = self.extract_parameters(log, t["process"])
             if params is not None:
                 t["count"] += 1
                 return t["raw"], params
@@ -223,7 +222,9 @@ class TemplateMatcher:
     def __call__(self, log: str) -> Dict[str, Any]:
         """Batch matching that also returns the params list."""
         output: dict[str, Any] = {}
+        log = self.manager.preprocess(log)
         res = self.match_template_with_params(log)
+
         if res is None:
             output["EventTemplate"] = "<Not Found>"
             output["Params"] = []
