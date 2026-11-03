@@ -62,7 +62,7 @@ All parameters this alert aggregator accepts, grouped by the YAML block they go 
     | `buffer_size` | integer | 1000 | specific | The size of the buffer. Defaults to 1000. |
     | `buffer_mode` | object | BufferMode.BATCH | specific | The mode of the buffer. Defaults to 'BATCH'. |
     | `delta` | number | 10.0 | specific | The threshold for the clustering. Defaults to 10.0. |
-    | `model_id` | string | AlertBERT_aggregator_2026-11-03T16:57:39.442811 | specific | The unique identifier of the model. Defaults to 'AlertBERT_aggregator_<current_datetime>'. |
+    | `model_id` | string | AlertBERT_aggregator_2026-11-03T17:08:16.062231 | specific | The unique identifier of the model. Defaults to 'AlertBERT_aggregator_<current_datetime>'. |
     | `path` | string | alertbert_models | specific | The path to the save location of the AlertBERT model. Defaults to 'alertbert_models'. |
     | `train_model` | boolean | True | specific | Whether to train the AlertBERT model. If False, the model will be loaded from disk. Defaults to False. |
     | `save_model` | boolean | True | specific | Whether to save the trained AlertBERT model to disk. Defaults to True. |
