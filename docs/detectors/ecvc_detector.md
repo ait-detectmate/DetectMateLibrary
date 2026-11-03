@@ -15,7 +15,7 @@ The method can be found in [this publication](https://dl.acm.org/doi/10.1145/366
 To build a count vector, we first collect the event IDs and arrange them into sequences. Each fixed-size sequence is then processed to produce a count vector that records how many times each event ID occurs in total. If an event ID does not appear, its count is set to 0.
 
 
-![Image](../img/CountVector.png)
+![Image](../img/CountVector.svg)
 
 The count vector cv is defined as:
 

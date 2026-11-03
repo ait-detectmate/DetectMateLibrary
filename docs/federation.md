@@ -39,7 +39,7 @@ For all the examples below, we will use this code:
 
 The diagram below shows the workflow:
 
-![combine](img/fed_combine_first.png)
+![combine](img/fed_combine_first.svg)
 
 Example 1:
 
@@ -57,7 +57,7 @@ Example 2:
 
 The diagram below shows the workflow:
 
-![stack](img/fed_stack_later.png)
+![stack](img/fed_stack_later.svg)
 
 Example 1:
 
