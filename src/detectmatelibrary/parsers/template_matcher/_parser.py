@@ -116,15 +116,15 @@ class MatcherParserConfig(CoreParserConfig):
     method_type: str = Field(default="matcher_parser", description="Indicates what type of method it is.")
 
     remove_spaces: bool = Field(
-        default=True, description="fitting description yet to find"
+        default=True, description="Remove duplicate spaces."
     )
     remove_punctuation: bool = Field(
-        default=True, description="fitting description yet to find"
+        default=True, description="Remove punctuations symbols."
     )
-    lowercase: bool = Field(default=True, description="fitting description yet to find")
+    lowercase: bool = Field(default=True, description="Converts all characters in lowercase.")
 
     path_templates: str | None = Field(
-        default=None, description="fitting description yet to find"
+        default=None, description="Path of the templates file."
     )
 
 

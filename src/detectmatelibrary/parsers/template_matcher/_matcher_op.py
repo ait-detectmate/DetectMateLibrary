@@ -35,9 +35,6 @@ class Preprocess:
         self.__re_punctuation = re_punctuation
         self.__do_lowercase = do_lowercase
 
-        self._punct_re = re.compile(r'[^\w\s]')
-        self._ws_re = re.compile(r'\s+')
-
     @staticmethod
     def _remove_punctuation(text: str) -> str:
         return re.sub(r'[^\w\s]', '', text)
@@ -52,19 +49,16 @@ class Preprocess:
 
     def __call__(self, text: str) -> str:
         if self.__re_spaces:
-            text = text.replace(" ", "")
+            text = self._remove_extra_spaces(text)
 
         if self.__re_punctuation:
             text = text.replace("<*>", "WILDCARD")
-            text = self._punct_re.sub('', text)
+            text = self._remove_punctuation(text)
             text = text.replace("WILDCARD", "<*>")
 
         text = text.strip()
-        if not self.__re_spaces:
-            text = self._ws_re.sub(' ', text)
-
         if self.__do_lowercase:
-            text = text.lower()
+            text = self._to_lowercase(text)
 
         return text
 
@@ -168,6 +162,7 @@ class TemplatesManager:
             if first == "" or pre_s.startswith(first):
                 candidates.extend(idxs)
         candidates.sort(key=lambda i: -self.templates[i]["count"])  # small heuristic
+        print(pre_s)
         return pre_s, candidates
 
 
