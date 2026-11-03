@@ -298,7 +298,7 @@ AGGREGATOR_DOCS: list[tuple[CoreConfig, type[CoreConfig], str]] = [
         "docs/alert_aggregators/time_delta.md"
     ),
     (
-        AlertBERTAggregationConfig(),
+        AlertBERTAggregationConfig(model_id="AlertBERT_aggregator"),
         CoreAlertAggregatorConfig,
         "docs/alert_aggregators/alertbert.md"
     )
