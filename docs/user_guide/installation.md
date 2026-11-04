@@ -34,10 +34,12 @@ extras: you install only what you need.
 
 | Extra | Installs | When you need it |
 |---|---|---|
-| `llm` | `openai`, `tenacity`, `scipy`, `scikit-learn`, `tiktoken`, `pandas` | Using the `LogBatcherParser` (LLM-based log parsing) |
-| `dataframes` | `pandas`, `polars` | Using , or `DataNormalizer` |
-| `polars-rtcompat` | `polars[rtcompat]` | Running on older CPUs without AVX2 support (e.g. some VMs or embedded hardware); not needed for standard deployments |
-| `full` | `llm` + `dataframes` + `polars-rtcompat` | Installing every optional extra at once |
+| `llm` | `openai`, `tenacity`, `scipy`, `scikit-learn`, `tiktoken`, `pandas` | Using the `LogBatcherParser` (LLM-based log parsing.) |
+| `dataframes` | `pandas`, `polars` | Using , or `DataNormalizer`. |
+| `polars-rtcompat` | `polars[rtcompat]` | Running on older CPUs without AVX2 support (e.g. some VMs or embedded hardware); not needed for standard deployments. |
+| `mongo` | `pymongo` | Optional dependency of the schema class. |
+| `redis` | `redis[hiredis]` | Optional dependency of the schema class. |
+| `full` | All from above. | Installing every optional extra at once. |
 
 To have a closer look at all the dependencies, see [Optional dependencies](https://pydevtools.com/handbook/explanation/what-are-optional-dependencies-and-dependency-groups/).
 
