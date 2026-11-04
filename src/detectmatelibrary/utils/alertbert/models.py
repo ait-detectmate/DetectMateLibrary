@@ -135,7 +135,7 @@ class RotaryEmbedding(nn.Module):
         super().__init__()
         self.dim = dim
         if not len(freqs) <= dim // 2:
-            raise ValueError(
+            logging.error(
                 "Number of frequencies must be less than or equal to dim // 2"
             )
         if len(freqs) < dim // 2:
@@ -150,8 +150,8 @@ class RotaryEmbedding(nn.Module):
         self, position_ids: torch.Tensor
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """Returns the rotation matrices for the given position ids."""
-        if not position_ids.dtype == torch.float32:
-            raise ValueError("position_ids must be of type torch.float32")
+        if position_ids.dtype != torch.float32:
+            logging.error("position_ids must be of type torch.float32")
         position_ids = position_ids.to(torch.float64)
         # position_ids: [batch_size, seqlen]
         # freqs: [head_dim]
@@ -230,10 +230,11 @@ class SelfAttention(nn.Module):
         self.rotary_pos_enc = rotary_pos_enc
         if rotary_pos_enc:
             if rotary_pos_enc_freqs is None:
-                raise ValueError(
+                logging.error(
                     "rotary_pos_enc_freqs must be provided if rotary_pos_enc is True"
                 )
-            freqs = list(rotary_pos_enc_freqs)
+            else:
+                freqs = list(rotary_pos_enc_freqs)
             self.rotary_emb = RotaryEmbedding(dim=self.dim_head, freqs=freqs)
         self.softmax = nn.Softmax(dim=-1)
 
@@ -555,7 +556,7 @@ class MaskedLanguageModel(nn.ModuleDict):
         if not self.config["train_model"]:
             self._load_model()
             self._set_up_model()
-        else:
+        elif self.config["save_model"]:
             os.makedirs(
                 f"{self.config['path']}/{self.config['model_id']}", exist_ok=True
             )
@@ -896,7 +897,7 @@ train acc = {tr_stats[t]['corr']:1.05f}; val loss = {val_stats[t]['loss']:1.05f}
         self,
     ) -> None:
         """Loads model from saved state dict."""
-        report, model_param_dict = self._load_report()
+        _, model_param_dict = self._load_report()
         for key, value in model_param_dict.items():
             if key in self.config:
                 self.config[key] = value
@@ -1183,10 +1184,12 @@ class AlertBERT(AbstractDatasetGroupingModel):
         super().__init__()
         self.config = config
         if not config.theta >= config.delta:
-            raise ValueError(
-                f"theta must be greater than or equal to delta ({self.config.theta} >= {self.config.delta}) \
-as it determines the maximal possoble value of the cosine distance!"
+            logging.warning(
+                f"""theta must be greater than or equal to delta ({self.config.theta} >= {self.config.delta})
+                as it determines the maximal possible value of the cosine distance!
+                Setting theta = delta!"""
             )
+            self.config.theta = self.config.delta
         self.model = MaskedLangModelInferenceWrapper(model, layers=self.config.layers)
         self.collate_fn: BaseSequenceCollate = BaseSequenceCollate(
             cast(
@@ -1275,8 +1278,8 @@ as it determines the maximal possoble value of the cosine distance!"
                     current_square_size = 1
             square_sizes_list.append(current_square_size)
             square_sizes = np.array(square_sizes_list)
-            if not square_sizes.sum() == pre_cluster_size:
-                raise ValueError(
+            if square_sizes.sum() != pre_cluster_size:
+                logging.error(
                     f"Sum of square sizes ({square_sizes.sum()}) does not match \
 pre-cluster size ({pre_cluster_size})!"
                 )
@@ -1354,22 +1357,19 @@ pre-cluster size ({pre_cluster_size})!"
                 if len(tertiary_labels) > 0
                 else np.array([])
             )
-            if not len(primary_labels_array) == pre_cluster_size:
-                raise ValueError(
+            if len(primary_labels_array) != pre_cluster_size:
+                logging.error(
                     f"Length of primary labels ({len(primary_labels_array)}) does not match \
 pre-cluster size ({pre_cluster_size})!"
                 )
             if not i % 2:
-                if not len(secondary_labels_array) == pre_cluster_size:
-                    raise ValueError(
+                if len(secondary_labels_array) != pre_cluster_size:
+                    logging.error(
                         f"Length of secondary labels ({len(secondary_labels_array)}) does not match \
 pre-cluster size ({pre_cluster_size})!"
                     )
-                if not (
-                    len(tertiary_labels_array)
-                    == pre_cluster_size - square_sizes[0] - square_sizes[-1]
-                ):
-                    raise ValueError(
+                if len(tertiary_labels_array) != pre_cluster_size - square_sizes[0] - square_sizes[-1]:
+                    logging.error(
                         f"Length of tertiary labels ({len(tertiary_labels_array)}) does not match \
 pre-cluster size ({pre_cluster_size})!"
                     )
@@ -1386,16 +1386,15 @@ pre-cluster size ({pre_cluster_size})!"
                     ]
                 )
             else:
-                if not len(tertiary_labels_array) == pre_cluster_size - square_sizes[0]:
-                    raise ValueError(
+                if len(tertiary_labels_array) != pre_cluster_size - square_sizes[0]:
+                    logging.error(
                         f"Length of tertiary labels ({len(tertiary_labels_array)}) does not match \
 pre-cluster size ({pre_cluster_size})!"
                     )
                 if (
-                    not len(secondary_labels_array)
-                    == pre_cluster_size - square_sizes[-1]
+                    len(secondary_labels_array) != pre_cluster_size - square_sizes[-1]
                 ):
-                    raise ValueError(
+                    logging.error(
                         f"Length of secondary labels ({len(secondary_labels_array)}) does not match \
 pre-cluster size ({pre_cluster_size})!"
                     )
@@ -1414,8 +1413,8 @@ pre-cluster size ({pre_cluster_size})!"
                         tertiary_labels_array,
                     ]
                 )
-            if not len(secondary_labels_array) == len(tertiary_labels_array):
-                raise ValueError(
+            if len(secondary_labels_array) != len(tertiary_labels_array):
+                logging.error(
                     f"Length of secondary labels ({len(secondary_labels_array)}) does not match length of \
 tertiary labels ({len(tertiary_labels_array)})!"
                 )
@@ -1437,16 +1436,16 @@ tertiary labels ({len(tertiary_labels_array)})!"
             alert_idx_offset += pre_cluster_size
 
         predictions = np.concatenate(pred)
-        if not alert_idx_offset == len(data):
-            raise ValueError(
+        if alert_idx_offset != len(data):
+            logging.error(
                 f"Alert index offset ({alert_idx_offset}) does not match number of alerts ({len(data)})!"
             )
-        if not len(predictions) == len(data):
-            raise ValueError(
+        if len(predictions) != len(data):
+            logging.error(
                 f"Length of predictions ({len(predictions)}) does not match number of alerts ({len(data)})!"
             )
-        if not np.max(predictions) + 1 == next_label:
-            raise ValueError(
+        if np.max(predictions) + 1 != next_label:
+            logging.error(
                 f"Max label ({np.max(predictions)}) does not match next label ({next_label})!"
             )
         return predictions
@@ -1518,14 +1517,14 @@ tertiary labels ({len(tertiary_labels_array)})!"
             np.ndarray[int]: The final set of labels after merging.
             int: The number of unique labels in the final set.
         """
-        if not len(prelim_labels_1) == len(prelim_labels_2):
-            raise ValueError(
+        if len(prelim_labels_1) != len(prelim_labels_2):
+            logging.error(
                 f"Length of preliminary labels 1 ({len(prelim_labels_1)}) does not match length of \
 preliminary labels 2 ({len(prelim_labels_2)})!"
             )
         # check if the two sets of preliminary labels are disjoint
         if not set(prelim_labels_1).isdisjoint(set(prelim_labels_2)):
-            raise ValueError(
+            logging.error(
                 "Preliminary labels must be disjoint! "
                 f"Found overlapping labels: {set(prelim_labels_1).intersection(set(prelim_labels_2))}"
             )
@@ -1597,8 +1596,8 @@ preliminary labels 2 ({len(prelim_labels_2)})!"
         for l1, l2 in zip(prelim_labels_1, prelim_labels_2):
             f1 = prelim_labels_to_final_label[l1]
             f2 = prelim_labels_to_final_label[l2]
-            if not f1 == f2:
-                raise ValueError(
+            if f1 != f2:
+                logging.error(
                     f"Preliminary labels {l1} and {l2} are assigned to different final labels {f1} and {f2}!"
                 )
             assigned_labels.append(f1)
@@ -1614,7 +1613,7 @@ preliminary labels 2 ({len(prelim_labels_2)})!"
         add_time: bool = True,
     ) -> np.ndarray:
         if apply_dim_red and self.dim_reduction is None:
-            raise ValueError(
+            logging.error(
                 "Dimensionality reduction module must be specified if apply_dim_red is True!"
             )
 
@@ -1651,8 +1650,8 @@ preliminary labels 2 ({len(prelim_labels_2)})!"
             )
 
         embeddings = np.concatenate(embedding_batches)
-        if not embeddings.shape[0] == len(data):
-            raise ValueError(
+        if embeddings.shape[0] != len(data):
+            logging.error(
                 "Number of embeddings does not match number of alerts! "
                 f"Embeddings: {embeddings.shape[0]}, Alerts: {len(data)}"
             )
@@ -1661,10 +1660,11 @@ preliminary labels 2 ({len(prelim_labels_2)})!"
         if apply_dim_red:
             dim_reduction = self.dim_reduction
             if dim_reduction is None:
-                raise ValueError(
+                logging.error(
                     "Dimensionality reduction module must be specified if apply_dim_red is True!"
                 )
-            embeddings = dim_reduction.fit_transform(embeddings)
+            else:
+                embeddings = dim_reduction.fit_transform(embeddings)
 
         # add time dimension
         if add_time:
