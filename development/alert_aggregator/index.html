@@ -1540,7 +1540,7 @@
   <span class="md-ellipsis">
     
   
-    Alert Aggregation methods
+    Alert Aggregator types
   
 
     
@@ -1556,7 +1556,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    Alert Aggregation methods
+    Alert Aggregator types
   
 
           </label>
@@ -1633,6 +1633,34 @@
     
   
     02_Time Delta
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../alert_aggregators/alertbert/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    03_AlertBERT
   
 
     
@@ -2318,6 +2346,11 @@ unless your <code>aggregate_alerts()</code> keeps it, including their <code>dete
 <td><a href="../alert_aggregators/time_delta/">Time Delta</a></td>
 <td>Group alerts by their time difference.</td>
 </tr>
+<tr>
+<td>03</td>
+<td><a href="../alert_aggregators/alertbert/">AlertBERT</a></td>
+<td>Group alerts based on timestamps and embeddings.</td>
+</tr>
 </tbody>
 </table>
 <h3 id="common-parameters-all-alert-aggregators">Common parameters (all alert aggregators)</h3>
@@ -2398,7 +2431,7 @@ unless your <code>aggregate_alerts()</code> keeps it, including their <code>dete
 <!-- End common_arguments -->
 
 <h3 id="density-clustering-aggregator">Density Clustering Aggregator</h3>
-<p>The alert aggregators that are based on density clustering (<a href="../alert_aggregators/time_delta/">Time Delta</a>) accept also the following arguments:</p>
+<p>The alert aggregators that are based on density clustering (<a href="../alert_aggregators/time_delta/">Time Delta</a>, <a href="../alert_aggregators/alertbert/">AlertBERT</a>) accept also the following arguments:</p>
 <!-- Start density_clustering_arguments -->
 <details class="note" open="open">
 <summary>params</summary>
