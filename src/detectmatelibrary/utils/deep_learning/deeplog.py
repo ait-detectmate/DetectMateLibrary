@@ -12,7 +12,7 @@ from tqdm import tqdm
 from math import ceil
 
 from detectmatelibrary.utils.deep_learning.imodel import DeepModel
-from detectmatelibrary.utils.deep_learning._op import CheckPoint, batched
+from detectmatelibrary.utils.deep_learning._op import CheckPoint, batched, smallest_top_k
 from detectmatelibrary.utils.finetune import Combinations
 
 import logging
@@ -42,6 +42,7 @@ class TrainConfig:
     learning_rate: float = 0.05
     batch_size: int = 2
     patience: int = 3
+    alert_rate: float = 0.001  # share of validation windows allowed to alert; sets top_k
 
 
 def window_losses(
@@ -163,6 +164,7 @@ default_config = {
         "learning_rate": 0.01,
         "epochs": 10,
         "patience": 3,
+        "alert_rate": 0.001,
     },
 }
 
@@ -189,9 +191,9 @@ class DeepLog(DeepModel):
             )
             return (jnp.arange(x_s.shape[1]) * (x_s == y_s)).sum(1)
 
-        return int(jax.scipy.stats.mode(
-            batched(ranks, seq[:, :-1, :], seq[:, -1])
-        ).mode + 2)  # give a little space for variation
+        return smallest_top_k(
+            batched(ranks, seq[:, :-1, :], seq[:, -1]), self.config_train.alert_rate
+        )
 
     @lru_cache
     def check_anomaly(self, seq: tuple[int], top_k: int) -> bool:

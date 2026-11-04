@@ -12,7 +12,7 @@ from typing import Any, Callable
 from tqdm import tqdm
 from math import ceil
 
-from detectmatelibrary.utils.deep_learning._op import CheckPoint, Mask, batched
+from detectmatelibrary.utils.deep_learning._op import CheckPoint, Mask, batched, smallest_top_k
 from detectmatelibrary.utils.deep_learning.imodel import DeepModel
 from detectmatelibrary.utils.finetune import Combinations
 
@@ -119,6 +119,7 @@ class TrainConfig:
     mask_per: float = 0.4
     alpha: float = 0.0
     patience: int = 3
+    alert_rate: float = 0.001  # share of validation windows allowed to alert; sets top_k
 
 
 def window_losses(
@@ -237,6 +238,7 @@ default_config = {
         "mask_per": 0.4,
         "alpha": 0.0,
         "patience": 3,
+        "alert_rate": 0.001,
     },
 }
 
@@ -266,11 +268,13 @@ class LogBert(DeepModel):
 
         def ranks(x: jnp.ndarray, m: jnp.ndarray) -> jnp.ndarray:
             pred, y = self.top_pred(x, m)
-            return ((y[..., None] == pred) * jnp.arange(pred.shape[1])[None, ...]).sum(1)
+            r = ((y[..., None] == pred) * jnp.arange(pred.shape[1])[None, ...]).sum(1)
+            # A window alerts when one of its masked events misses, so it counts its worst rank.
+            return r.reshape(x.shape[0], -1).max(1)
 
-        return int(jax.scipy.stats.mode(
-            batched(ranks, seq, self.mask(seq.shape[0]))
-        ).mode + 2)
+        return smallest_top_k(
+            batched(ranks, seq, self.mask(seq.shape[0])), self.config_train.alert_rate
+        )
 
     @lru_cache
     def check_anomaly(self, seq: tuple[int], top_k: int) -> int:

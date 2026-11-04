@@ -32,6 +32,7 @@ class LogBertDetectorConfig(DeepLearningDetectorConfig):
                 "mask_per": 0.4,
                 "alpha": 0.0,
                 "patience": 3,
+                "alert_rate": 0.001,
             },
             "Finetune": [
                 ["Model", "hidden", [64, 128, 256]],

@@ -19,7 +19,7 @@ Input and output schemas in the pipeline
 
 ## Description
 
-Deep learning method that looks at the event ID sequence.
+Deep learning method that looks at the event ID sequence. After training it sets `top_k`, how many of its guesses for an event count as normal, to the smallest value at which at most `alert_rate` (a `Train` hyperparameter) of the validation windows alert.
 
 ## Example
 
@@ -68,5 +68,5 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `window_size` | integer | 10 | shared | Number of consecutive events used as one training/detection sequence. |
     | `validation_per` | number | 0.2 | shared | Fraction of data held out for validation during (fine)training. |
     | `finetune_epochs` | integer | 2 | shared | Number of epochs used when finetuning during the configuration phase. |
-    | `hyperparameters` | object | {'Model': {'n_embed': 10, 'hidden': 32, 'num_heads': 2, 'n_layers': 1, 'dropout': 0.0, 'max_len': 1000}, 'Train': {'seed': 0, 'batch_size': 256, 'learning_rate': 0.01, 'epochs': 10, 'mask_per': 0.4, 'alpha': 0.0, 'patience': 3}, 'Finetune': [['Model', 'hidden', [64, 128, 256]], ['Model', 'n_layers', [1, 2, 3]], ['Train', 'learning_rate', [0.002, 0.001, 0.005]]]} | shared | Model, training and hyperparameter-search settings for the LogBERT model. |
+    | `hyperparameters` | object | {'Model': {'n_embed': 10, 'hidden': 32, 'num_heads': 2, 'n_layers': 1, 'dropout': 0.0, 'max_len': 1000}, 'Train': {'seed': 0, 'batch_size': 256, 'learning_rate': 0.01, 'epochs': 10, 'mask_per': 0.4, 'alpha': 0.0, 'patience': 3, 'alert_rate': 0.001}, 'Finetune': [['Model', 'hidden', [64, 128, 256]], ['Model', 'n_layers', [1, 2, 3]], ['Train', 'learning_rate', [0.002, 0.001, 0.005]]]} | shared | Model, training and hyperparameter-search settings for the LogBERT model. |
 <!-- End arguments -->
