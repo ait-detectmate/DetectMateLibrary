@@ -474,7 +474,7 @@ epy = [
 
 [[package]]
 name = "flax"
-version = "0.12.10"
+version = "0.12.12"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jax" },
@@ -488,9 +488,9 @@ dependencies = [
     { name = "treescope" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/35/88/5a5c56489484650771f4d2ef35d70353a4366ce9e048ddcdb80acf66cc2a/flax-0.12.10.tar.gz", hash = "sha256:5cc6cca80157f6810a4d76d2a03832ad1e8dba43cfcbbfdb53b6806745f3ec63", size = 15714821, upload-time = "2026-09-24T20:29:44.686Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/4e/2e/81f5a423c67dd1a075b77aba93a8a889b488272e82075aee38772024dd6d/flax-0.12.12.tar.gz", hash = "sha256:103cc503c94219513b73027aa0e93aac408adfd3fcdfb1df85e9d147219e4896", size = 15770479, upload-time = "2026-10-27T01:31:00.703Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/27/f3/2379515e36844500cebbf5552c97f718d0cf0c5956c3483db4ee9204e22b/flax-0.12.10-py3-none-any.whl", hash = "sha256:8f752114350feb3dedb4e6c2fcabd735057e7b11973efe06b9a29a7bb220ce2a", size = 532454, upload-time = "2026-09-24T20:29:42.718Z" },
+    { url = "https://files.pythonhosted.org/packages/e1/13/1ff65631ded9bc0395894109bcc5d0645816cd09b80aa5dd3ccb8495078c/flax-0.12.12-py3-none-any.whl", hash = "sha256:42714e509a754d769a22b01013202a81f0cb4fd7c52988eb5592cca14167eb0f", size = 533938, upload-time = "2026-10-27T01:30:58.831Z" },
 ]
 
 [[package]]
