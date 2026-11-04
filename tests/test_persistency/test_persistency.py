@@ -1,7 +1,6 @@
 """Tests for the persistency module core functionality.
 
 This module tests EventPersistency and data structure backends including
-EventDataFrame (Pandas) and ChunkedEventDataFrame (Polars).
 """
 
 

@@ -1,4 +1,4 @@
-# Drain Parser
+# Drain Parser [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/parsers/drain.py)]
 
 The parser is derived from the official [Drain publication](https://ieeexplore.ieee.org/document/8029742).
 

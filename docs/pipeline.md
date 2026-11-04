@@ -3,7 +3,7 @@
 Pipelines that enable running the various components within the library, simulating the final behavior delivered by the service.
 
 
-## Main pipeline
+## Main pipeline [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/pipeline.py)]
 
 The main pipeline functions like a standard inference pipeline. To initialize the entire system, the user only needs to provide either a configuration dictionary or the configuration classes themselves. Since the pipeline inherits from [CoreComponent](advanced/overall_architecture.md), all CoreComponent methods are also available in the pipeline class.
 

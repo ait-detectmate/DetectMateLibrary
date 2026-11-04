@@ -1,4 +1,4 @@
-# Charset Detector
+# Charset Detector [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/detectors/charset_detector.py)]
 
 The Charset Detector raises alerts when previously unseen characters appear in configured fields. It is useful to detect malformed or injected values in fields with a predictable format, for example shell characters such as `;` in a user name.
 

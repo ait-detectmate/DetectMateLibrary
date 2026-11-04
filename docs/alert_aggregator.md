@@ -1,4 +1,4 @@
-# Alert Aggregation
+# Alert Aggregation [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/common/alert_aggregator.py)]
 
 Alert aggregators combine the alerts produced by detectors into aggregated records.
 

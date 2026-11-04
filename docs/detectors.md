@@ -1,5 +1,5 @@
 
-# Detectors
+# Detectors [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/common/detector.py)]
 
 Detectors process structured logs from Parsers and emit alerts when anomalies are detected.
 

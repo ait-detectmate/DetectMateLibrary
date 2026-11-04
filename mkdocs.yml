@@ -3,13 +3,15 @@ site_url: https://ait-detectmate.github.io/DetectMateLibrary/
 
 theme:
   name: material # windmill is auch cool
+  logo: img/small_logo.svg
+  favicon: img/small_logo.svg
   features:
     - navigation.footer   # previous / next page links at the bottom of every page
   palette:
     # Light mode configuration
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo
+      primary: black
       accent: indigo
       toggle:
         icon: material/brightness-7
@@ -18,7 +20,7 @@ theme:
     # Dark mode configuration
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: indigo
+      primary: black
       accent: indigo
       toggle:
         icon: material/brightness-4
@@ -69,14 +71,13 @@ nav:
       - 00_Basic Concat: alert_aggregators/basic_concatenation.md
       - 01_LogID Count: alert_aggregators/logid_count.md
       - 02_Time Delta: alert_aggregators/time_delta.md
-    - Helpers:
+    - Others:
       - FromTo: helper/from_to.md
       - Select Component: helper/select_component.md
-    - Auxiliary:
       - Persistency: auxiliar/persistency.md
       - Data buffer: auxiliar/input_buffer.md
-    - Other:
-      - Log Formats: other/log_formats.md
+  - Usefull information:
+    - Log Formats: other/log_formats.md
 
   - How to contribute:
     - Contributing: contribution.md
@@ -90,3 +91,15 @@ markdown_extensions:
       base_path: ["."]
       check_paths: true
   - pymdownx.superfences
+  - pymdownx.arithmatex:
+      generic: true
+  - attr_list
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
+
+extra:
+  version:
+    provider: mike

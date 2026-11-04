@@ -7,7 +7,7 @@ import optax
 from functools import lru_cache
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 from tqdm import tqdm
 from math import ceil
 
@@ -121,6 +121,26 @@ def do_train(
     ) 
 
 
+Scorer = Callable[[dict[str, Any], jnp.ndarray, int], jnp.ndarray]
+
+
+def _compile_scorer(model: DeepLogModel) -> Scorer:
+    """Jit-compile the anomaly check of one DeepLog model.
+
+    The compiled function takes the parameters, a window ``seq`` and a
+    static ``top_k``, and returns True when the window's last event is
+    not among the ``top_k`` events the model predicts from the ones
+    before it.
+    """
+    def is_anomaly(params: dict[str, Any], seq: jnp.ndarray, top_k: int) -> jnp.ndarray:
+        x, y = seq[:-1], seq[-1]
+        order = jnp.argsort(model.apply({"params": params}, x[None, ..., None]).flatten(), descending=True)
+        return ~jnp.isin(y, order[:top_k])
+
+    compiled: Scorer = jax.jit(is_anomaly, static_argnums=2)
+    return compiled
+
+
 ## Final model
 default_config = {
     "Model": {
@@ -144,16 +164,11 @@ class DeepLog(DeepModel):
         self.config_train = TrainConfig(**config["Train"])
         self.model_trained = False
         self.model: DeepLogModel | None = None
+        self._scorer: Scorer | None = None
 
     def __str__(self) -> str:
         return str(self.model) + "\n" + str(self.config_train)
 
-    def top_pred(self, x: jnp.ndarray) -> jnp.ndarray:
-        return jnp.argsort(
-            self.model.apply({"params": self.params}, x[None, ..., None]).flatten(),
-            descending=True
-        )
-    
     def get_best_k(self, seq: jnp.ndarray) -> int:
         if seq.shape[0] == 0:
             return 0
@@ -169,12 +184,10 @@ class DeepLog(DeepModel):
 
     @lru_cache
     def check_anomaly(self, seq: tuple[int], top_k: int) -> bool:
-        if not self.model_trained:
+        if not self.model_trained or self._scorer is None:
             return False
 
-        seq = jnp.array(seq)
-        x, y = seq[:-1], seq[-1]
-        return not jnp.isin(y, self.top_pred(x)[:top_k])
+        return bool(self._scorer(self.params, jnp.array(seq), top_k))
 
     def _prepare_data(self, seqs: list[tuple[int]], var_per: float) -> tuple[jnp.ndarray]:
         seed = jax.random.key(self.config_train.seed)
@@ -194,7 +207,8 @@ class DeepLog(DeepModel):
         self.model = DeepLogModel(**self.config["Model"])
         self.params, stats = do_train(
             self.model, train_seqs=train_seqs, val_seqs=val_seqs, config=self.config_train
-        ) 
+        )
+        self._scorer = _compile_scorer(self.model)
         self.model_trained = True
         stats["top_k"] = self.get_best_k(val_seqs)
 

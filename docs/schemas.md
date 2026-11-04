@@ -1,4 +1,4 @@
-# Schemas
+# Schemas [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/schemas/_classes.py)]
 
 Schemas are the typed message objects used to transmit data between components (Parser → Detector). Each schema class wraps a Protobuf message and provides a small, convenient Python API for creation, inspection, (de)serialization and validation.
 
@@ -16,7 +16,7 @@ This document summarizes the available schema classes, the BaseSchema API and co
 
 Schemas are used to transfer data between components. Each schema implements the methods defined in `BaseSchema`. This class acts as a wrapper around the underlying Protobuf classes (`op.SchemaT`).
 
-![UML](img/uml_schemas.png)
+![UML](img/uml_schemas.svg)
 
 All concrete schema classes inherit from `BaseSchema`. Key utility methods:
 

@@ -1,4 +1,4 @@
-# Auto Parser
+# Auto Parser [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/parsers/autoparser.py)]
 
 The Auto Parser uses a brute-force strategy: it iterates through every log-type record in the internal dataset and chooses the regex and templates that best matches the provided logs.
 

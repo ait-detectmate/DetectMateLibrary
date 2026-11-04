@@ -1,4 +1,4 @@
-# Template Matcher
+# Template Matcher [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/parsers/template_matcher/_parser.py)]
 
 The Template Matcher is a parser that takes a set of templates and matches them to incoming logs. It extracts parameters from positions marked with the <*> wildcard and returns a ParserSchema with the matched template and the extracted variables.
 

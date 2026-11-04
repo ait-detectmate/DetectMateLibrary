@@ -34,13 +34,23 @@ class Mask:
         self.s0 = int(seq_size * mask_per)
         self.s1 = self.seq_size - self.s0
 
-    def __call__(self, batch_size: int) -> jnp.ndarray:
+    def at(self, i: int | jnp.ndarray, batch_size: int) -> jnp.ndarray:
+        """Return draw number ``i`` without moving the counter.
+
+        ``i`` may be a traced value, so compiled code draws the same
+        masks as the calls.
+        """
         mask = jnp.concat([
             jnp.ones((batch_size, self.s1)), jnp.zeros((batch_size, self.s0))
         ], axis=1).astype(jnp.int32)
 
-        seed = jax.random.key(self.i)
-        self.i += 1
+        return jax.random.permutation(jax.random.key(i), mask, independent=True, axis=1)
 
-        mask = jax.random.permutation(seed, mask, independent=True, axis=1)
-        return mask
+    def next_draw(self) -> int:
+        """Return the number of the next draw and move the counter past it."""
+        i = self.i
+        self.i += 1
+        return i
+
+    def __call__(self, batch_size: int) -> jnp.ndarray:
+        return self.at(self.next_draw(), batch_size)
