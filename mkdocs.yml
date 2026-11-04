@@ -65,10 +65,11 @@ nav:
       - 10_ECVC Detector: detectors/ecvc_detector.md
       - 11_DeepLog Detector: detectors/deeplog.md
       - 12_LogBERT Detector: detectors/logbert.md
-    - Alert Aggregation methods:
+    - Alert Aggregator types:
       - 00_Basic Concat: alert_aggregators/basic_concatenation.md
       - 01_LogID Count: alert_aggregators/logid_count.md
       - 02_Time Delta: alert_aggregators/time_delta.md
+      - 03_AlertBERT: alert_aggregators/alertbert.md
     - Helpers:
       - FromTo: helper/from_to.md
       - Select Component: helper/select_component.md
