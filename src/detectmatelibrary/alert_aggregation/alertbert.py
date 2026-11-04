@@ -88,93 +88,92 @@ class AlertBERTAggregationConfig(DensityClusteringAggregationConfig):
         description="The mode of the buffer. Defaults to 'BATCH'.",
     )
 
-    # data
-    train_size: int = Field(
-        default=50000,
-        description="The number of alerts to use for training the AlertBERT model. Defaults to 50000."
-    )
-    val_size: int = Field(
-        default=10000,
-        description="""The number of alerts to use for validation during training of the AlertBERT model.
-            Defaults to 10000."""
-    )
-    skip_first: int = Field(
-        default=0,
-        description="""The number of alerts to skip before starting to collect alerts for training the
-            AlertBERT model.
-            Defaults to 0."""
-    )
-    min_freq: int = Field(
-        default=10,
-        description="""The minimum frequency of tokens to be included in the
-            vocabulary of the AlertBERT model.
-            Defaults to 10.""",
-    )
+    hyperparameters: dict[str, dict[str, Any]] = Field(
+        default={
+            "data": {
+                "train_size": 50000,
+                "val_size": 10000,
+                "skip_first": 0,
+                "min_freq": 10,
+            },
+            "model": {
+                "features": ("description",),
+                "encoding": "relevantTimestamp",
+                "n_heads": 4,
+                "dim_per_head": 16,
+                "num_layers": 1,
+                "feedforward_factor": 4,
+                "rotary_max_exp": 14,
+                "rotary_cutoff": 0.75,
+            },
+            "training": {
+                "context_size": 1024,
+                "batch_size": 8,
+                "updates": (240, 300),
+                "lr": 5e-3,
+                "warm_up_steps": 20,
+            },
+        },
+        description="""The hyperparameters of the AlertBERT model.
+            Defaults to the following:
+            {
+                "data": {
+                    "train_size": 50000,
+                    "val_size": 10000,
+                    "skip_first": 0,
+                    "min_freq": 10,
+                },
+                "model": {
+                    "features": ("description",),
+                    "encoding": "relevantTimestamp",
+                    "n_heads": 4,
+                    "dim_per_head": 16,
+                    "num_layers": 1,
+                    "feedforward_factor": 4,
+                    "rotary_max_exp": 14,
+                    "rotary_cutoff": 0.75,
+                },
+                "training": {
+                    "context_size": 1024,
+                    "batch_size": 8,
+                    "updates": (240, 300),
+                    "lr": 5e-3,
+                    "warm_up_steps": 20,
+                },
+            }
 
-    # model
-    features: tuple[str, ...] = Field(
-        default=("description",),
-        description="""The keys of fields of the alerts to use as features for training the AlertBERT model.
-            Fields within the 'alertDetails' field can be accessed by the syntax 'alertDetails:fieldName'.
-            Defaults to ("description",).""",
-    )
-    encoding: Literal["index", "relevantTimestamp"] = Field(
-        default="relevantTimestamp",
-        description="""The features of the alerts to use for rotary positional encoding.
-            Defaults to "relevantTimestamp".""",
-    )
-    n_heads: int = Field(
-        default=4,
-        description="The number of attention heads in the AlertBERT model. Defaults to 4."
-    )
-    dim_per_head: int = Field(
-        default=16,
-        description="The dimensionality of each attention head in the AlertBERT model. Defaults to 16.",
-    )
-    num_layers: int = Field(
-        default=1,
-        description="The number of layers in the model in the AlertBERT model. Defaults to 1."
-    )
-    feedforward_factor: int = Field(
-        default=4,
-        description="""The factor by which the feedforward dimension is larger than the model dimension
-            in the AlertBERT model. Defaults to 4.""",
-    )
-    rotary_max_exp: int = Field(
-        default=14,
-        description="""The maximum exponent for the rotary positional encoding in the AlertBERT model.
-            Defaults to 14.""",
-    )
-    rotary_cutoff: float = Field(
-        default=0.75,
-        description="""The cutoff for the rotary positional encoding in the AlertBERT model.
-            Defaults to 0.75.""",
-    )
-
-    # training
-    context_size: int = Field(
-        default=1024,
-        description="The context size for the AlertBERT model. Defaults to 1024."
-    )
-    batch_size: int = Field(
-        default=8,
-        description="The batch size for training the AlertBERT model. Defaults to 8."
-    )
-    updates: tuple[int, int] = Field(
-        default=(240, 300),
-        description="The number of updates for training the AlertBERT model. Defaults to (240, 300).",
-    )
-    lr: float = Field(
-        default=5e-3,
-        description="The learning rate for training the AlertBERT model. Defaults to 5e-3.",
-    )
-    warm_up_steps: int = Field(
-        default=20,
-        description="The number of warm-up steps for training the AlertBERT model. Defaults to 100."
+            Description of the hyperparameters:
+            - data:
+                - train_size: The number of alerts to use for training the AlertBERT model.
+                - val_size: The number of alerts to use for validation during training of the AlertBERT model.
+                - skip_first: The number of alerts to skip before collecting alerts to train the model.
+                - min_freq: The minimum frequency of tokens to be included in the vocabulary of the model.
+            - model:
+                - features: The keys of fields of the alerts to use as features for AlertBERT.
+                    Fields within the 'alertDetails' field can be accessed by as 'alertDetails:fieldName'.
+                - encoding: The features of the alerts to use for rotary positional encoding.
+                - n_heads: The number of attention heads in the AlertBERT model.
+                - dim_per_head: The dimensionality of each attention head in the AlertBERT model.
+                - num_layers: The number of layers in the model in the AlertBERT model.
+                - feedforward_factor: The factor by which the feedforward dimension is larger than
+                    the model dimension in the AlertBERT model.
+                - rotary_max_exp: The maximum exponent for the rotary positional encoding in the model.
+                - rotary_cutoff: The cutoff for the rotary positional encoding in the AlertBERT model.
+            - training:
+                - context_size: The context size for the AlertBERT model.
+                - batch_size: The batch size for training the AlertBERT model.
+                - updates: The number of updates for training the AlertBERT model.
+                - lr: The learning rate for training the AlertBERT model.
+                - warm_up_steps: The number of warm-up steps for training the AlertBERT model.
+            """,
     )
 
     def _get_mlm_config(self) -> dict[str, Any]:
-        return self.model_dump(
+        """Get the configuration of the MaskedLanguageModel by excluding the
+        parameters of the AlertBERTAggregationConfig that are not relevant for
+        the MaskedLanguageModel and adding the hyperparameters of the AlertBERT
+        model directly to the configuration dictionary."""
+        d = self.model_dump(
             exclude={
                 "buffer_mode",
                 "params",
@@ -187,11 +186,16 @@ class AlertBERTAggregationConfig(DensityClusteringAggregationConfig):
                 "buffer_size",
                 "delta",
                 "theta",
-                "dim_reduciton",
+                "dim_reduction",
                 "clustering_backend",
                 "layers",
             }
         )
+        for v in self.hyperparameters.values():
+            for k, val in v.items():
+                d[k] = val
+        del d["hyperparameters"]
+        return d
 
 
 class AlertBERTAggregation(DensityClusteringAggregation):
@@ -255,9 +259,9 @@ class AlertBERTAggregation(DensityClusteringAggregation):
             self.collected_data.extend(input_)
             if (
                 len(self.collected_data)
-                >= self.config.skip_first
-                + self.config.train_size
-                + self.config.val_size
+                >= self.config.hyperparameters["data"]["skip_first"]
+                + self.config.hyperparameters["data"]["train_size"]
+                + self.config.hyperparameters["data"]["val_size"]
             ):
                 logger.info("Data collection complete.")
                 self._train_mlm()
@@ -367,6 +371,9 @@ class AlertBERTAggregation(DensityClusteringAggregation):
         self.mlm = MaskedLanguageModel(self.config)
         if not self.config.train_model:
             logger.info("AlertBERT model loaded from disk.")
+            for _, v in self.config.hyperparameters.items():
+                for k in v:
+                    v[k] = self.mlm.config[k]
             self._set_up_alertbert()
         else:
             logger.info("AlertBERT model will be trained ...")
@@ -395,12 +402,15 @@ class AlertBERTAggregation(DensityClusteringAggregation):
             ValueError: If use_gathered_alerts is False and train_data or val_data is None.
         """
         if use_gathered_alerts:
-            train_plus_val_size = self.config.train_size + self.config.val_size
-            train_split = self.config.train_size / train_plus_val_size
-            val_split = self.config.val_size / train_plus_val_size
+            train_plus_val_size = (
+                self.config.hyperparameters["data"]["train_size"]
+                + self.config.hyperparameters["data"]["val_size"]
+            )
+            train_split = self.config.hyperparameters["data"]["train_size"] / train_plus_val_size
+            val_split = self.config.hyperparameters["data"]["val_size"] / train_plus_val_size
             train_data, val_data, _ = split_alert_dataset(
                 AlertDataset(
-                    self.collected_data[self.config.skip_first:],
+                    self.collected_data[self.config.hyperparameters["data"]["skip_first"]:],
                 ),
                 train_val_test_split=(train_split, val_split, 0.0),
             )

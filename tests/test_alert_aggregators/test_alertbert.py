@@ -54,17 +54,25 @@ def make_config(path: Path, train_model: bool) -> AlertBERTAggregationConfig:
         delta=3.0,
         theta=9.0,
         clustering_backend="scipy",
-        train_size=10_000,
-        val_size=1_000,
-        min_freq=10,
-        features=("description", "alertDetails:severity", "alertDetails:hostname"),
-        n_heads=2,
-        dim_per_head=4,
-        num_layers=1,
-        context_size=64,
-        batch_size=8,
-        updates=(100, 150),
-        warm_up_steps=10,
+        hyperparameters={
+            "data": {
+                "train_size": 10_000,
+                "val_size": 1_000,
+                "min_freq": 10,
+            },
+            "model": {
+                "features": ("description", "alertDetails:severity", "alertDetails:hostname"),
+                "n_heads": 2,
+                "dim_per_head": 4,
+                "num_layers": 1,
+            },
+            "training": {
+                "context_size": 64,
+                "batch_size": 8,
+                "updates": (100, 150),
+                "warm_up_steps": 10,
+            },
+        },
     )
 
 
@@ -133,6 +141,17 @@ def test_alertbert_config_excludes_aggregation_fields(tmp_path: Path) -> None:
     assert "clustering_backend" not in model_config
     assert "delta" not in model_config
     assert "layers" not in model_config
+    assert "theta" not in model_config
+    assert "dim_reduction" not in model_config
+    assert "hyperparameters" not in model_config
+    assert "train_size" in model_config
+    assert "val_size" in model_config
+    assert "min_freq" in model_config
+    assert "n_heads" in model_config
+    assert "dim_per_head" in model_config
+    assert "num_layers" in model_config
+    assert "context_size" in model_config
+    assert "batch_size" in model_config
 
 
 def test_alertbert_training_requires_explicit_datasets(
