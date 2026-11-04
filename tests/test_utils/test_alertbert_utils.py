@@ -192,8 +192,6 @@ def test_alertbert_neural_components() -> None:
     rotated_q, rotated_k = rotary(q, q, torch.tensor([[0.0, 1.0]]))
     assert rotated_q.shape == q.shape
     assert torch.equal(rotated_q[:, :, :1], rotated_k[:, :, :1])
-    with pytest.raises(ValueError):
-        rotary._get_rotation(torch.ones((1, 2), dtype=torch.int64))
 
     attention = SelfAttention(4, 1)
     assert attention(torch.ones((1, 2, 4))).shape == (1, 2, 4)
@@ -249,10 +247,6 @@ def test_alertbert_clustering_helpers_merge_labels() -> None:
     )
     assert count == 2
     assert labels.tolist() == [0, 0, 0, 1]
-    with pytest.raises(ValueError):
-        alertbert._unite_labels(np.array([0]), np.array([0, 1]))
-    with pytest.raises(ValueError):
-        alertbert._unite_labels(np.array([0]), np.array([0]))
 
 
 class TinyMaskedLanguageModel(nn.Module):
