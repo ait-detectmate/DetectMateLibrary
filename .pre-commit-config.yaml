@@ -31,6 +31,8 @@ repos:
         - pydantic
         - types-PyYAML
         - pydantic-settings
+        - torch
+        - tensordict
 
 # Code formatting
 - repo: https://github.com/hhatto/autopep8
