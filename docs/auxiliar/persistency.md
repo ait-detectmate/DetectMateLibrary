@@ -25,7 +25,7 @@ A backend is the thing that actually stores the per-event state. Persistency
 owns the dict `{event_id: backend}`; the backend itself decides *how* data is
 kept.
 
-Two families ship today:
+One family ships today:
 
 - **Tracker backends** (`EventStabilityTracker`) keep only derived features
   (e.g. "this variable has been constant for the last 10k events") that are relevant for the detector. Use these

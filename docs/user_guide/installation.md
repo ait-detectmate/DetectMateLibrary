@@ -34,12 +34,12 @@ extras: you install only what you need.
 
 | Extra | Installs | When you need it |
 |---|---|---|
-| `llm` | `openai`, `tenacity`, `scipy`, `scikit-learn`, `tiktoken`, `pandas` | Using the `LogBatcherParser` (LLM-based log parsing.) |
-| `dataframes` | `pandas`, `polars` | Using , or `DataNormalizer`. |
+| `llm` | `openai`, `tenacity`, `scipy`, `scikit-learn`, `tiktoken`, `pandas` | Using the `LogBatcherParser` (LLM-based log parsing). |
+| `dataframes` | `pandas`, `polars` | Using `DataNormalizer`. |
 | `polars-rtcompat` | `polars[rtcompat]` | Running on older CPUs without AVX2 support (e.g. some VMs or embedded hardware); not needed for standard deployments. |
-| `mongo` | `pymongo` | Optional dependency of the schema class. |
-| `redis` | `redis[hiredis]` | Optional dependency of the schema class. |
-| `full` | All from above. | Installing every optional extra at once. |
+| `mongo` | `pymongo` | Using the `Mongo` schema connector. |
+| `redis` | `redis[hiredis]` | Using the `Redis` schema connector. |
+| `full` | All of the above. | Installing every optional extra at once. |
 
 To have a closer look at all the dependencies, see [Optional dependencies](https://pydevtools.com/handbook/explanation/what-are-optional-dependencies-and-dependency-groups/).
 
@@ -73,8 +73,8 @@ uv pip install "detectmatelibrary[full]"
 
 ## Developer setup
 
-!!! warning "Only need it as developer"
-    Only follow these steps to work in the DetectMate development.
+!!! warning "Only needed for development"
+    Only follow these steps if you are contributing to DetectMate.
 
 ### Step 1: Install Python development dependencies & pre-commit hooks
 
@@ -126,16 +126,16 @@ The full test suite covers dataframe and LLM-parser code, so all extras must be 
 uv run --dev pytest -s
 ```
 
-To run all the unitests do:
+To run all unit tests, first start the database containers:
 
 ```bash
-docker compose -f tests/test_schemas/compose.yaml up
+docker compose -f tests/test_schemas/compose.yaml up -d
 ```
 
-and
+and then run:
 
 ```bash
-uv run pytest  --run-ignored --run-ignored-mongo --ignored_redis
+uv run pytest --run-ignored --run-ignored-mongo --run-ignored-redis
 ```
 
 

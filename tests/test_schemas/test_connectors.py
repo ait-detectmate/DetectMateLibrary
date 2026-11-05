@@ -39,17 +39,17 @@ dummy_parser_schema = {
 class TestConnectors:
     def test_arguments(self):
         sc.set_connector("Default", url="None", reset_ver=True)
-        assert (con := sc.BaseSchema()._conector).name == "Default"
+        assert (con := sc.BaseSchema()._connector).name == "Default"
         assert con.url == "None"
 
         sc.set_connector("Verification", url="A", reset_ver=True)
-        assert (con := sc.BaseSchema()._conector).name == "Verification"
+        assert (con := sc.BaseSchema()._connector).name == "Verification"
         assert con.url == "A"
 
     def test_arguments_priority(self):
         sc.set_connector("Default", url="None", reset_ver=True)
 
-        assert (con := sc.BaseSchema(connector="Verification", url="A")._conector).name == "Verification"
+        assert (con := sc.BaseSchema(connector="Verification", url="A")._connector).name == "Verification"
         assert con.url == "A"
 
     def test_incorrect_connector(self):
@@ -138,7 +138,7 @@ class TestMongoConnector:
         client.close()
 
     @pytest.mark.ignored_mongo
-    def test_insert_mutliple_data(self):
+    def test_insert_multiple_data(self):
         args = mongo_c.MongoArgs(
             url="mongodb://localhost:27017",
             database="TestDataset",
@@ -292,7 +292,7 @@ class TestRedisConnector:
         assert log_schema == log_schema2
 
     @pytest.mark.ignored_redis
-    def test_mongo_connector_parsed_schema(self):
+    def test_redis_connector_parsed_schema(self):
         sc.set_connector("Redis", url="http://localhost:6379:0")
         client = redis.Redis(host="localhost", port=6379)
         client.flushdb()

@@ -61,10 +61,10 @@ class CoreConfig(BasicConfig):
         ),
     )
     connector_name: str | None = Field(
-        default=None, description="Add a connector in the output schema.",
+        default=None, description="Add a connector to the output schema.",
     )
     connector_url: str | None = Field(
-        default=None, description="Setup the url of the connector in the output schema.",
+        default=None, description="Set up the URL of the connector for the output schema.",
     )
 
 

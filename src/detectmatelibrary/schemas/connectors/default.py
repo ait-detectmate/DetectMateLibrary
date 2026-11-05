@@ -13,7 +13,7 @@ def is_dict(elem: Any) -> bool:
 
 
 def prepare_data(data: dict[str, Any]) -> list[dict[str, Any]]:
-    """Prepare data to send to database."""
+    """Prepare data to be sent to the database."""
     num_dics = 0
     out = []
     for key in list(data.keys()):
@@ -29,7 +29,7 @@ def prepare_data(data: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def recover_data(data: list[dict[str, Any]]) -> dict[str, Any]:
-    """Recover conversion from database."""
+    """Recover data converted for the database."""
     out = data[0]
     for key, value in out.items():
         if isinstance(value, str):
@@ -51,7 +51,7 @@ class DefaultConnector:
 
         logging.debug(str(self))
         if name == "Default":
-            # Optimization when connectors are not use
+            # Optimization when connectors are not used
             self.store_data = self.store_data_empty  # type: ignore[method-assign]
             self.restore_data = self.restore_data_empty  # type: ignore[method-assign]
 
@@ -62,7 +62,7 @@ class DefaultConnector:
         """Implement method."""
         pass
 
-    def from_databse(self, id_: str) -> list[dict[str, Any]]:
+    def from_database(self, id_: str) -> list[dict[str, Any]]:
         """Implement method."""
         return [{}]
 
@@ -70,7 +70,7 @@ class DefaultConnector:
         self.to_database(id_, data=prepare_data(data))
 
     def restore_data(self, id_: str) -> dict[str, Any]:
-        return recover_data(self.from_databse(id_))
+        return recover_data(self.from_database(id_))
 
     def store_data_empty(self, id_: str, data: dict[str, Any]) -> None:
         pass
@@ -82,8 +82,8 @@ class DefaultConnector:
 ver_record: dict[str, list[dict[str, Any]]] = {}
 
 
-class VeficationConnector(DefaultConnector):
-    """Only use to verify the system offline."""
+class VerificationConnector(DefaultConnector):
+    """Only used to verify the system offline."""
 
     def __init__(self, url: str) -> None:
         super().__init__(name="Verification", url=url)
@@ -91,5 +91,5 @@ class VeficationConnector(DefaultConnector):
     def to_database(self, id_: str, data: list[dict[str, Any]]) -> None:
         ver_record[id_] = data
 
-    def from_databse(self, id_: str) -> list[dict[str, Any]]:
+    def from_database(self, id_: str) -> list[dict[str, Any]]:
         return ver_record[id_]

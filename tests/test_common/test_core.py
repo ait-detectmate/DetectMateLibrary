@@ -199,8 +199,8 @@ class TestConfigCore:
         expected = {
             "max_iter": 200,
             "thresholds": 0.9,
-            "data_use_training": None, ''
-            'connector_name': None, ''
+            "data_use_training": None,
+            'connector_name': None,
             'connector_url': None
         }
         expected.update(default_args)

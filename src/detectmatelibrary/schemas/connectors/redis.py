@@ -37,7 +37,7 @@ def insert_data(id_: str, data: list[dict[str, Any]], args: RedisArgs) -> None:
     except (ConnectionError, TimeoutError):
         warnings.warn("Redis server offline, no insertion will be done.")
     except Exception as e:
-        warnings.warn(f"Not control exception found: {e}")
+        warnings.warn(f"Unhandled exception: {e}")
 
 
 def read_data(id_: str, args: RedisArgs) -> list[dict[str, Any]]:
@@ -49,7 +49,7 @@ def read_data(id_: str, args: RedisArgs) -> list[dict[str, Any]]:
             out_[0] = client.hgetall(id_)
 
             if out_ == [{}]:
-                warnings.warn(f"No elemt with {id_} found, return empty.")
+                warnings.warn(f"No element with ID {id_} found, returning empty.")
             else:
                 i = 1
                 while True:
@@ -62,7 +62,7 @@ def read_data(id_: str, args: RedisArgs) -> list[dict[str, Any]]:
         warnings.warn("Redis server offline, no reading will be done.")
 
     except Exception as e:
-        warnings.warn(f"Not control exception found: {e}")
+        warnings.warn(f"Unhandled exception: {e}")
 
     finally:
         return [
@@ -82,9 +82,9 @@ class RedisConnector(DefaultConnector):
         )
 
     def to_database(self, id_: str, data: list[dict[str, Any]]) -> None:
-        logging.info(f"<<RedisConnector>> sending data from {id_}")
+        logging.info(f"<<RedisConnector>> sending data for {id_}")
         insert_data(id_=id_, data=data, args=self.args)
 
-    def from_databse(self, id_: str) -> list[dict[str, Any]]:
-        logging.info(f"<<RedisConnector>> getting data from {id_}")
+    def from_database(self, id_: str) -> list[dict[str, Any]]:
+        logging.info(f"<<RedisConnector>> getting data for {id_}")
         return read_data(id_=id_, args=self.args)

@@ -1,11 +1,11 @@
 # LogBERT Detector [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/detectors/logbert_detector.py)]
 
-It employs a Transformer model \( f_\theta(\cdot) \) to predict event IDs within a sequence. It follows a BERT-style setup in which randomly selected parsed event IDs are masked \(M\), and the model must infer the masked values. If the model fails to do so, it flags the sequence as an anomaly.
+The LogBERT Detector employs a Transformer model \( f_\theta(\cdot) \) to predict event IDs within a sequence. It follows a BERT-style setup in which randomly selected parsed event IDs are masked \(M\), and the model must infer the masked values. If the model fails to do so, it flags the sequence as an anomaly.
 
-Based on the original paper, the model is trained using two losses.
+Following the original paper, the model is trained with two losses:
 
 \[
- \mathcal{L_rec}(x \in M, f_\theta(x \notin M)) + \alpha * \mathcal{L_{sphere}}
+ \mathcal{L}_{rec}(x \in M, f_\theta(x \notin M)) + \alpha * \mathcal{L}_{sphere}
 \]
 
 where \(\alpha \in [0, 1]\). The LogBERT Detector is inspired by the [LogBERT paper](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=9534113).
@@ -69,8 +69,8 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
     | `train_buffer_max_records` | integer | 100000 | shared | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
-    | `connector_name` | string, null | None | shared | Add a connector in the output schema. |
-    | `connector_url` | string, null | None | shared | Setup the url of the connector in the output schema. |
+    | `connector_name` | string, null | None | shared | Add a connector to the output schema. |
+    | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
     | `parser` | string | PARSER | shared | Name of the parser used. |
     | `window_size` | integer | 10 | shared | Number of consecutive events used as one training/detection sequence. |
     | `validation_per` | number | 0.2 | shared | Fraction of data held out for validation during (fine)training. |

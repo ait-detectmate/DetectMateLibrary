@@ -1,5 +1,5 @@
 from detectmatelibrary.schemas.connectors import select_connector, DefaultConnector
-from detectmatelibrary.schemas.connectors.default import ver_record  # noqa: ignore
+from detectmatelibrary.schemas.connectors.default import ver_record
 
 import detectmatelibrary.schemas.protobuf._op as op
 
@@ -85,8 +85,8 @@ def set_connector(
     SCHEMA_URL = url
 
     if reset_ver:
-        global ver_record
-        ver_record = {}
+        # Clear in place: the verification connector holds a reference to this dict.
+        ver_record.clear()
 
 
 class BaseSchema(SchemaVariables):
@@ -99,7 +99,7 @@ class BaseSchema(SchemaVariables):
         url: Optional[str] = None,
     ) -> None:
         super().__init__(schema_class=schema_class, kwargs=kwargs)
-        self._conector: DefaultConnector = select_connector(
+        self._connector: DefaultConnector = select_connector(
             connector if connector is not None else SCHEMA_CONNECTOR
         )(url=url if url is not None else SCHEMA_URL)
         self.primary_key = primary_key
@@ -150,11 +150,11 @@ class BaseSchema(SchemaVariables):
 
     # --------------- Connection methods
     def store(self) -> Self:
-        self._conector.store_data(self[self.primary_key], data=self.as_dict())
+        self._connector.store_data(self[self.primary_key], data=self.as_dict())
         return self
 
     def restore(self) -> Self:
-        self.init_schema(self._conector.restore_data(self[self.primary_key]))
+        self.init_schema(self._connector.restore_data(self[self.primary_key]))
         return self
 
     @classmethod

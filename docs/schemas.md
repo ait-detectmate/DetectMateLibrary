@@ -18,7 +18,7 @@ Schemas are used to transfer data between components. Each schema implements the
 
 ![UML](img/uml_schemas.svg)
 
-All concrete schema classes extend `BaseSchema`. The `Connector` classes make it possible to read and write schema metadata to databases, which can then be used for downstream tasks such as monitoring or data analysis. The diagram below illustrates a use case showing how schemas can be used. The Service sends bytes to the Library as input; these bytes are deserialized and initialized as a Protobuf instance within the schema. This Protobuf object can be handled like a dictionary and manipulated through an instance that inherits from `CoreComponent`. Once processing is complete, the schema can be returned to the Service again as bytes. If a `Connector` is configured, the schema can be automatically stored in a database, and a Python script can simply initialize a new schema and retrieve the information from the database.
+All concrete schema classes extend `BaseSchema`. The `Connector` classes make it possible to read schema metadata from databases and write it to them, which can then be used for downstream tasks such as monitoring or data analysis. The diagram below illustrates a use case showing how schemas can be used. The Service sends bytes to the Library as input; these bytes are deserialized and initialized as a Protobuf instance within the schema. This Protobuf object can be handled like a dictionary and manipulated through an instance that inherits from `CoreComponent`. Once processing is complete, the schema can be returned to the Service as bytes. If a `Connector` is configured, the schema can be automatically stored in a database, and a Python script can simply initialize a new schema and retrieve the information from the database.
 
 
 
@@ -68,14 +68,14 @@ class BaseSchema:
         """Check equality between two schema instances."""
 
     def store(self) -> Self:
-        """Store the schema in the connector framework"""
+        """Store the schema in the connector framework."""
 
     def restore(self) -> Self:
-        """Restore the schema in the connector framework"""
+        """Restore the schema from the connector framework."""
 
     @classmethod
     def from_id(cls, id_: str) -> Self:
-        """Initialize the schema in the connector framework"""
+        """Initialize a schema from the connector framework by its ID."""
 
 ```
 
@@ -183,20 +183,20 @@ The schemas can be linked to external frameworks, making it easy to read from an
 
 Available frameworks:
 
-| Connector | Type | Name | Url example | Dependencies |
+| Connector | Type | Name | URL example | Dependencies |
 |---|---|---|--|--|
-| Default | Nothing is done (Default one) | Default | None | None |
+| Default | Does nothing (default) | Default | None | None |
 | Verification | Uses an internal dict for testing | Verification | None | None |
 | Mongo | Uses [MongoDB](https://www.mongodb.com/) | Mongo | mongodb://localhost:27017/TestDataset/ParsedSchema | `mongo` |
 | Redis | Uses [Redis](https://redis.io/) | Redis | http://localhost:6379:0 | `redis` |
 
-??? note "Url formats"
-    | Url Example | IP | Port | Database | Collection |
+??? note "URL formats"
+    | URL example | IP | Port | Database | Collection |
     |---|---|---|--|--|
     |  mongodb://localhost:27017/TestDataset/ParsedSchema |localhost | 27017 | TestDataset | ParsedSchema |
     |  http://localhost:6379:0 |localhost | 6379 | 0 | None |
 
-To install the optional dependencies follow the [installation instructions](user_guide/installation.md). You can configure all schema connectors in this way:
+To install the optional dependencies, follow the [installation instructions](user_guide/installation.md). You can configure the connector for all schemas like this:
 
 ```python
 --8<-- "docs/examples/others/schemas.py:example_4"

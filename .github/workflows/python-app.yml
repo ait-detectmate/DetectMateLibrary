@@ -48,7 +48,7 @@ jobs:
           docker compose -f tests/test_schemas/compose.yaml logs mongo
           exit 1
 
-      - name: Wait for redis Redis
+      - name: Wait for Redis
         run: |
           for attempt in {1..30}; do
             if [ "$(docker compose -f tests/test_schemas/compose.yaml exec -T redis redis-cli ping 2>/dev/null)" = "PONG" ]; then

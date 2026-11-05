@@ -6,7 +6,7 @@ The Event Count Vector Clustering Detector (ECVC) detects anomalies by calculati
 score = min(\{\frac{\sum_{i=0}^{n-1} |\hat{cv_i} - W_{i,j}|}{\sum_{i=0}^{n-1} max(\hat{cv_i}, W_{i,j})} | j \in \mathbb{N}, j < m\})
 \]
 
-Here, \( \hat{cv_i} \) denotes the incoming vector count, and \( W_{i,j} \) represents the matrix containing all training vector counts. A new \( \hat{cv_i} \) is classified as anomalous if its score exceeds a chosen threshold.
+Here, \( \hat{cv_i} \) denotes the incoming count vector, and \( W_{i,j} \) represents the matrix containing all training count vectors. A new \( \hat{cv_i} \) is classified as anomalous if its score exceeds a chosen threshold.
 
 The method can be found in [this publication](https://dl.acm.org/doi/10.1145/3660768).
 
@@ -23,7 +23,7 @@ The count vector cv is defined as:
 cv_i = \sum_{j=1}^{n} \mathbf{1}(x_j = event\_id_i)
 \]
 
-Where \(event\_id_i\) represents the event id constant value of that position in the vector and \( x_j\) the event id of the sequence in position j.
+where \(event\_id_i\) is the event ID assigned to position \(i\) of the vector, and \( x_j\) is the event ID at position \(j\) of the sequence.
 
 
 ## In/out
@@ -94,8 +94,8 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
     | `train_buffer_max_records` | integer | 100000 | shared | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
-    | `connector_name` | string, null | None | shared | Add a connector in the output schema. |
-    | `connector_url` | string, null | None | shared | Setup the url of the connector in the output schema. |
+    | `connector_name` | string, null | None | shared | Add a connector to the output schema. |
+    | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
     | `parser` | string | PARSER | shared | Name of the parser used. |
     | `allow_fed` | boolean | False | shared | Builds the stores needed to take part in federation. |
 <!-- End arguments -->

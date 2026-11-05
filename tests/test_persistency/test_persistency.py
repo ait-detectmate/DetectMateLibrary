@@ -1,6 +1,6 @@
 """Tests for the persistency module core functionality.
 
-This module tests EventPersistency and data structure backends including
+This module tests EventPersistency and its data structure backends.
 """
 
 
