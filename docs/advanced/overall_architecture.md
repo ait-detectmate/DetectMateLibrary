@@ -21,15 +21,29 @@ The pipeline is strictly directional:
 
 Each arrow represents a stream of Schema objects. Components are designed to run in the same process for lightweight setups or as separate services for scalable deployments.
 
-![Components flow](../img/diagrams_structure.png)
+![Components flow](../img/diagrams_structure.svg)
 
 ## Components architecture
 
-All components inherit from a `CoreComponent` class. This class provides all the essential functionality required for DetectMate to operate (see UML diagram below). Every `Detector` must inherit from `CoreDetector`, every `AlertAggregator` must inherit from `CoreAlertAggregator` and every `Parser` must inherit from `CoreParser` to ensure compatibility with DetectMate.
+All components inherit from the `CoreComponent` class. This class provides all the essential functionality required for DetectMate to operate (see UML diagram below). Every `Detector` must inherit from `CoreDetector`, every `AlertAggregator` must inherit from `CoreAlertAggregator` and every `Parser` must inherit from `CoreParser` to ensure compatibility with DetectMate.
 
 Each component's arguments must be stored in its corresponding configuration class. These config classes follow the same design pattern as their components and must inherit from `CoreConfig`.
 
-![Architecture](../img/uml_structure.png)
+![Architecture](../img/uml_structure.svg)
+
+
+??? note "Main Components"
+
+    | Component | Info | Inherits from |
+    |-----------| ---- | ---- |
+    | [CoreComponent](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/common/core.py) | Main class of DetectMate. | `None` |
+    | [CoreParser](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/common/parser.py) | Main class of all the parsers. | `CoreComponent` |
+    | [CoreDetector](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/common/detector.py) | Main class of all the detectors. | `CoreComponent` |
+    | [CoreAlertAggregator](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/common/alert_aggregator.py) | Main class of all the alert aggregators. | `CoreComponent` |
+    | [DeepLearningDetector](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/base_detectors/deeplearning_detector.py) | Main class used in deep learning detectors. | `CoreDetector` |
+    | [TrackerDetector](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/base_detectors/tracker_detector.py) | Main class used in detectors that use `EventPersistency`. | `CoreDetector` |
+    | [VariableDetector](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/base_detectors/variable_detector.py) | Main class used in detectors that learn variables. | `TrackerDetector` |
+    | [DensityClusteringAggregation](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/base_alert_aggregation/density_clustering.py) | Density aggregators.| `CoreAlertAggregator` |
 
 ## Components methods
 
