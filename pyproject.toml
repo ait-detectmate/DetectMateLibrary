@@ -4,7 +4,7 @@ description = "DetectMate Library for log processing components"
 readme = {file = "README.md", content-type = "text/markdown"}
 dynamic = ["version"]
 authors = [{"name" = "André García Gómez"}, {"name" = "Viktor Beck"}, {"name" = "Thorina Boenke"},
-    {"name" = "Wolfgang Hotwagner"}, {"name" = "Anna Erdi"}, {"name" = "Ernst Leierzopf"}]
+    {"name" = "Wolfgang Hotwagner"}, {"name" = "Anna Erdi"}, {"name" = "Ernst Leierzopf"}, {"name" = "Lukas Karner"}]
 license = "EUPL-1.2"
 requires-python = ">=3.12"
 dependencies = [
@@ -59,6 +59,14 @@ mongo = [
 redis = [
     "redis[hiredis]>=8.1.0",
 ]
+alertbert = [
+    "torch",
+    "tensordict",
+    "scikit-learn",
+]
+scipy = [
+    "scipy",
+]
 # install all optional extras at once:  uv pip install detectmatelibrary[full]
 full = [
     "detectmatelibrary[llm]",
@@ -66,6 +74,8 @@ full = [
     "detectmatelibrary[polars-rtcompat]",
     "detectmatelibrary[mongo]",
     "detectmatelibrary[redis]",
+    "detectmatelibrary[alertbert]",
+    "detectmatelibrary[scipy]",
 ]
 
 [tool.setuptools.dynamic]
@@ -76,7 +86,7 @@ Homepage = "https://ait-detectmate.github.io/DetectMateLibrary/latest"
 Repository = "https://github.com/ait-detectmate/DetectMateLibrary"
 
 [build-system]
-requires = ["setuptools>=82.0.1", "wheel"]
+requires = ["setuptools>=82.0.1", "wheel", "packaging>=24.2"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
@@ -97,3 +107,13 @@ license-files = ["LICENSE.md"]
 detectmatelibrary = [
     "tools/workspace/templates/data/*.json"
 ]
+
+[tool.uv.sources]
+torch = [
+  { index = "torch-cpu", extra = "alertbert" },
+]
+
+[[tool.uv.index]]
+name = "torch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
