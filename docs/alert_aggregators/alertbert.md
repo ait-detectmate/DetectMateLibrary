@@ -1,4 +1,4 @@
-# AlertBERT Alert Aggregation
+# AlertBERT Alert Aggregation [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/alert_aggregation/alertbert.py)]
 
 The AlertBERT alert aggregator implements alert aggregation by grouping alerts according to their time-differences and embeddings of them obtained through masked-language-models, as proposed by [Karner et al.](https://doi.org/10.48550/arXiv.2602.06534).
 
