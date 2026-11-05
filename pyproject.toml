@@ -53,6 +53,12 @@ dataframes = [
 polars-rtcompat = [
     "polars[rtcompat]>=1.38.1",
 ]
+mongo = [
+    "pymongo>=4.19.0",
+]
+redis = [
+    "redis[hiredis]>=8.1.0",
+]
 alertbert = [
     "torch",
     "tensordict",
@@ -66,6 +72,8 @@ full = [
     "detectmatelibrary[llm]",
     "detectmatelibrary[dataframes]",
     "detectmatelibrary[polars-rtcompat]",
+    "detectmatelibrary[mongo]",
+    "detectmatelibrary[redis]",
     "detectmatelibrary[alertbert]",
     "detectmatelibrary[scipy]",
 ]
@@ -88,7 +96,7 @@ where = ["src"]
 mate = "detectmatelibrary.tools.workspace.create_workspace:main"
 
 [[tool.mypy.overrides]]
-module = "detectmatelibrary.schemas.schemas_pb2"
+module = "detectmatelibrary.schemas.protobuf.schemas_pb2"
 ignore_errors = true
 
 [tool.setuptools]

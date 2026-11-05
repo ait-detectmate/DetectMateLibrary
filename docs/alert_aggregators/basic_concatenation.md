@@ -1,4 +1,4 @@
-# Basic Concat Alert Aggregation
+# Basic Concat Alert Aggregation [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/alert_aggregation/basic_concat.py)]
 
 The Basic Concat alert aggregation combines the most recent alerts into one aggregated record by
 concatenating their IDs and timestamps.
@@ -68,4 +68,6 @@ All parameters this alert aggregator accepts, grouped by the YAML block they go 
     | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
     | `train_buffer_max_records` | integer | 100000 | shared | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
+    | `connector_name` | string, null | None | shared | Add a connector to the output schema. |
+    | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
 <!-- End arguments -->
