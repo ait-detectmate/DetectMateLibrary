@@ -1,4 +1,4 @@
-# Select Component
+# Select Component [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/helper/select_component.py)]
 
 Methods that make it easy to choose components solely through configuration settings.
 

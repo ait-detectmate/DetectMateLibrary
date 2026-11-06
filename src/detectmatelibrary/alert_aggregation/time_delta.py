@@ -38,7 +38,7 @@ class TimeDeltaAggregation(DensityClusteringAggregation):
 
     def __init__(
         self,
-        config: TimeDeltaAggregationConfig | dict[str, Any],
+        config: TimeDeltaAggregationConfig | dict[str, Any] = TimeDeltaAggregationConfig(),
         name: str = "TimeDeltaAggregator",
     ) -> None:
         """Initialize the TimeDeltaAggregation class.

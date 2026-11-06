@@ -1,4 +1,4 @@
-# Alert Aggregation
+# Alert Aggregation [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/common/alert_aggregator.py)]
 
 Alert aggregators combine the alerts produced by detectors into aggregated records.
 
@@ -72,6 +72,7 @@ The alert aggregator are numbered from simplest to most complex, and the sidebar
 | 00 | [Basic Concat Aggregator](alert_aggregators/basic_concatenation.md) | Concat a set of alerts. |
 | 01 | [LogID Count Aggregator](alert_aggregators/logid_count.md) | Count the amount of times a logID is in alerts. |
 | 02 | [Time Delta](alert_aggregators/time_delta.md) | Group alerts by their time difference. |
+| 03 | [AlertBERT](alert_aggregators/alertbert.md) | Group alerts based on timestamps and embeddings. |
 
 
 ### Common parameters (all alert aggregators)
@@ -95,11 +96,13 @@ There are some parameters, that **every** alert aggregator inherits from `CoreAl
     | `use_config_data_as_training` | boolean | True | Combine the configured data in the training process if True. |
     | `train_buffer_max_records` | integer | 100000 | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
+    | `connector_name` | string, null | None | Add a connector to the output schema. |
+    | `connector_url` | string, null | None | Set up the URL of the connector for the output schema. |
 <!-- End common_arguments -->
 
 ### Density Clustering Aggregator
 
-The alert aggregators that are based on density clustering ([Time Delta](alert_aggregators/time_delta.md)) accept also the following arguments:
+The alert aggregators that are based on density clustering ([Time Delta](alert_aggregators/time_delta.md), [AlertBERT](alert_aggregators/alertbert.md)) accept also the following arguments:
 
 <!-- Start density_clustering_arguments -->
 ???+ note "params"
