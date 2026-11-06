@@ -2286,7 +2286,7 @@ Optionally, it is possible to add features to alerts in a pre-processing step by
     <span class="p">]</span>
 
 
-<span class="n">aggregator</span> <span class="o">=</span> <span class="n">AlertBERTAggregation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="n">aggregator</span> <span class="o">=</span> <span class="n">AlertBERTAggregation</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
 <span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
 
 <span class="k">for</span> <span class="n">alert</span> <span class="ow">in</span> <span class="n">alert_generator</span><span class="p">(</span><span class="mi">80_000</span><span class="p">):</span>
@@ -2299,7 +2299,7 @@ Optionally, it is possible to add features to alerts in a pre-processing step by
 <h2 id="configuration-file">Configuration file</h2>
 <p>The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see <a href="#configuration-arguments">Configuration arguments</a>).</p>
 <div class="highlight"><pre><span></span><code><span class="nt">alert_aggregators</span><span class="p">:</span>
-<span class="w">    </span><span class="nt">AlertBERTAggregator</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">AlertBERTAggregation</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">AlertBERTAggregation</span>
 <span class="w">        </span><span class="nt">model_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">alertbert-example,</span>
 <span class="w">        </span><span class="nt">delta</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">3.0</span>
@@ -2335,7 +2335,7 @@ Optionally, it is possible to add features to alerts in a pre-processing step by
 <tr>
 <td><code>method_type</code></td>
 <td>string</td>
-<td>AlertBERT_aggregator</td>
+<td>AlertBERTAggregation</td>
 <td>shared</td>
 <td>The type of the aggregation method. Defaults to 'AlertBERT_aggregator'.</td>
 </tr>
@@ -2707,7 +2707,7 @@ Optionally, it is possible to add features to alerts in a pre-processing step by
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.footer"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.footer", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
       <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
