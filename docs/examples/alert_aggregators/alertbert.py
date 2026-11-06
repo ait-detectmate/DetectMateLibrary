@@ -56,7 +56,7 @@ def alert_generator(count: int) -> Iterator[DetectorSchema]:
     ]
 
 
-aggregator = AlertBERTAggregation(config)
+aggregator = AlertBERTAggregation(config=config)
 outputs = []
 
 for alert in alert_generator(80_000):
