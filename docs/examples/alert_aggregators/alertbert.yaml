@@ -1,6 +1,6 @@
 alert_aggregators:
     AlertBERTAggregator:
-        method_type: AlertBERT_aggregator
+        method_type: AlertBERTAggregation
         model_id: alertbert-example,
         delta: 3.0
         theta: 9.0
