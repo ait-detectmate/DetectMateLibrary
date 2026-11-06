@@ -26,12 +26,11 @@ class AlertBERTAggregationConfig(DensityClusteringAggregationConfig):
     obtain the alert embeddings.
     """
     # general
-    _method_type: str = "AlertBERT_aggregator"
-    _model_id: str = f"{_method_type}_{dt.now().isoformat()}"
     method_type: str = Field(
-        default=_method_type,
+        default="AlertBERTAggregation",
         description="The type of the aggregation method. Defaults to 'AlertBERT_aggregator'.",
     )
+    _model_id: str = f"{method_type}_{dt.now().isoformat()}"
     model_id: str = Field(
         default=_model_id,
         description="""The unique identifier of the model.
@@ -206,8 +205,8 @@ class AlertBERTAggregation(DensityClusteringAggregation):
 
     def __init__(
         self,
-        config: AlertBERTAggregationConfig,
-        name: str = "AlertBERTAggregator",
+        name: str = "AlertBERTAggregation",
+        config: AlertBERTAggregationConfig = AlertBERTAggregationConfig(),
     ) -> None:
         """Initialize the AlertBERTAggregation class.
 

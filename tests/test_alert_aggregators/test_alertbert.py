@@ -78,7 +78,7 @@ def test_alertbert_aggregation_training_saving_loading_and_inference(
     second_inference = alerts[13_000:-100]
     third_inference = alerts[-100:]
 
-    aggregator = AlertBERTAggregation(make_config(tmp_path, train_model=True))
+    aggregator = AlertBERTAggregation(config=make_config(tmp_path, train_model=True))
     training_output = AggregateSchema()
     assert aggregator.aggregate_alerts(training_alerts, training_output)
     assert aggregator.config.train_model is False
@@ -97,7 +97,7 @@ def test_alertbert_aggregation_training_saving_loading_and_inference(
         first_output["alertDetails"]
     )
 
-    loaded_aggregator = AlertBERTAggregation(make_config(tmp_path, train_model=False))
+    loaded_aggregator = AlertBERTAggregation(config=make_config(tmp_path, train_model=False))
     second_output = AggregateSchema()
     assert loaded_aggregator.aggregate_alerts(second_inference, second_output)
     assert len(second_output["alertDetails"]) >= len(second_inference)
@@ -138,14 +138,14 @@ def test_alertbert_config_excludes_aggregation_fields(tmp_path: Path) -> None:
 def test_alertbert_training_requires_explicit_datasets(
     tmp_path: Path,
 ) -> None:
-    aggregator = AlertBERTAggregation(make_config(tmp_path, train_model=True))
+    aggregator = AlertBERTAggregation(config=make_config(tmp_path, train_model=True))
 
     with pytest.raises(ValueError, match="train_data and val_data"):
         aggregator._train_mlm(use_gathered_alerts=False)
 
 
 def test_alertbert_discards_alerts_outside_delta(tmp_path: Path) -> None:
-    aggregator = AlertBERTAggregation(make_config(tmp_path, train_model=True))
+    aggregator = AlertBERTAggregation(config=make_config(tmp_path, train_model=True))
     alerts = make_alerts(3)
     alerts[1]["logTimestamps"] = [0]
     alerts[2]["logTimestamps"] = [2]
