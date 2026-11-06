@@ -1,5 +1,5 @@
 alert_aggregators:
-    AlertBERTAggregator:
+    AlertBERTAggregation:
         method_type: AlertBERTAggregation
         model_id: alertbert-example,
         delta: 3.0

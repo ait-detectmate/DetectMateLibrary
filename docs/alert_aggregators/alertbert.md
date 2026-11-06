@@ -52,7 +52,7 @@ All parameters this alert aggregator accepts, grouped by the YAML block they go 
 
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
-    | `method_type` | string | AlertBERT_aggregator | shared | The type of the aggregation method. Defaults to 'AlertBERT_aggregator'. |
+    | `method_type` | string | AlertBERTAggregation | shared | The type of the aggregation method. Defaults to 'AlertBERT_aggregator'. |
     | `auto_config` | boolean | False | shared | Runs the configuration step before the training process. |
 
 ???+ note "params"
