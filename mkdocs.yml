@@ -7,6 +7,7 @@ theme:
   favicon: img/small_logo.svg
   features:
     - navigation.footer   # previous / next page links at the bottom of every page
+    - content.code.copy
   palette:
     # Light mode configuration
     - media: "(prefers-color-scheme: light)"
