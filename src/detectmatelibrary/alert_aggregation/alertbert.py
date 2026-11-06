@@ -215,7 +215,7 @@ class AlertBERTAggregation(DensityClusteringAggregation):
             name (str): The name identifying this aggregation method.
         """
         if isinstance(config, dict):
-            config = AlertBERTAggregationConfig.from_dict(name, config=config)
+            config = AlertBERTAggregationConfig.from_dict(config, name)
         super().__init__(name=name, config=config)
         self.config: AlertBERTAggregationConfig  # ty: ignore[invalid-mutable-override]
         self.description = "Alert aggregation by the AlertBERT method."
