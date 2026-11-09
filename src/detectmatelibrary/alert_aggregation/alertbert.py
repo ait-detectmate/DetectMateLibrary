@@ -172,6 +172,36 @@ class AlertBERTAggregationConfig(DensityClusteringAggregationConfig):
         description="The number of warm-up steps for training the AlertBERT model. Defaults to 100."
     )
 
+    def __init__(self, **data: Any) -> None:
+        """Initialize the AlertBERTAggregationConfig class.
+
+        Args:
+            **data (Any): The data to initialize the configuration with.
+        """
+        super().__init__(**data)
+        if self.theta <= self.delta:
+            logger.warning(
+                f"The parameter theta ({self.theta}) should be larger than delta ({
+                    self.delta
+                }). For theta <= delta, AlertBERT is equivalent to TimeDelta!"
+            )
+        if self.buffer_size > self.train_size + self.val_size:
+            logger.info(
+                f"The buffer size {
+                    self.buffer_size
+                } is larger than the training and validation size ({
+                    self.train_size + self.val_size
+                })."
+            )
+        if self.train_size < self.context_size * self.batch_size:
+            logger.error(
+                f"The training size {self.train_size} is smaller than context size ({
+                    self.context_size
+                }) * batch size ({
+                    self.batch_size
+                }). This will lead to empty batches during training!"
+            )
+
     def _get_mlm_config(self) -> dict[str, Any]:
         return self.model_dump(
             exclude={
