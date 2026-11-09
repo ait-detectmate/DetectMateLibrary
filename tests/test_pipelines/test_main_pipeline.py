@@ -71,7 +71,7 @@ class TestRunPipeline:
         out_ = _run_pipeline(
             config=PipelineConfig(do_parsing=True, do_aggregation=False),
             input_=log_schema,
-            parser=DummyParser(),
+            parsers=[DummyParser()],
             detectors=[AlwayAlert(), AlwayAlert()],
             alert_aggreator=None
         )
@@ -84,7 +84,7 @@ class TestRunPipeline:
         out_ = _run_pipeline(
             config=PipelineConfig(do_parsing=True, do_aggregation=True),
             input_=log_schema,
-            parser=DummyParser(),
+            parsers=[DummyParser()],
             detectors=[AlwayAlert(), AlwayAlert()],
             alert_aggreator=DummyAlertAggregator(
                 config=DummyAlertAggregatorConfig(buffer_size=2)
@@ -99,7 +99,7 @@ class TestRunPipeline:
         out_ = _run_pipeline(
             config=PipelineConfig(do_parsing=False, do_aggregation=False),
             input_=parser_schema,
-            parser=None,
+            parsers=None,
             detectors=[AlwayAlert(), AlwayAlert()],
             alert_aggreator=None
         )
@@ -112,7 +112,7 @@ class TestRunPipeline:
         out_ = _run_pipeline(
             config=PipelineConfig(do_parsing=False, do_aggregation=False),
             input_=parser_schema,
-            parser=None,
+            parsers=None,
             detectors=[AlwayAlert(), AlwayAlert()],
             alert_aggreator=None,
             n_workers=2,
@@ -126,7 +126,7 @@ class TestRunPipeline:
         out_ = _run_pipeline(
             config=PipelineConfig(do_parsing=False, do_aggregation=True),
             input_=parser_schema,
-            parser=None,
+            parsers=None,
             detectors=[AlwayAlert(), AlwayAlert()],
             alert_aggreator=DummyAlertAggregator(
                 config=DummyAlertAggregatorConfig(buffer_size=2)
@@ -145,10 +145,10 @@ class TestPipeline:
             do_parsing=True,
             do_aggregation=True,
             n_workers=1,
-            parser=TemplateCppTreeMatcherConfig(
+            parsers=[TemplateCppTreeMatcherConfig(
                 path_templates=AUDIT_TEMPLATES,
                 log_format="type=<Type> msg=audit(<Time>): <Content>"
-            ),
+            )],
             detectors=[
                 ECVCDetectorConfig(
                     data_use_configure=TRAIN_UNTIL,
@@ -168,7 +168,7 @@ class TestPipeline:
 
         pipeline = Pipeline(config=config)
         alerts = []
-        for parsed_log in From.log(pipeline.parser, in_path=AUDIT_LOG, do_process=False):
+        for parsed_log in From.log(pipeline.parsers, in_path=AUDIT_LOG, do_process=False):
             if (alert := pipeline.process(parsed_log)) is not None:
                 alerts.extend(alert["logIDs"])
 
@@ -181,10 +181,10 @@ class TestPipeline:
             do_parsing=True,
             do_aggregation=True,
             n_workers=3,
-            parser=TemplateCppTreeMatcherConfig(
+            parsers=[TemplateCppTreeMatcherConfig(
                 path_templates=AUDIT_TEMPLATES,
                 log_format="type=<Type> msg=audit(<Time>): <Content>"
-            ),
+            )],
             detectors=[
                 ECVCDetectorConfig(
                     data_use_configure=TRAIN_UNTIL,
@@ -204,7 +204,7 @@ class TestPipeline:
 
         pipeline = Pipeline(config=config)
         alerts = []
-        for parsed_log in From.log(pipeline.parser, in_path=AUDIT_LOG, do_process=False):
+        for parsed_log in From.log(pipeline.parsers, in_path=AUDIT_LOG, do_process=False):
             if (alert := pipeline.process(parsed_log)) is not None:
                 alerts.extend(alert["logIDs"])
 
@@ -225,12 +225,12 @@ class TestPipeline:
             do_parsing=True,
             do_aggregation=True,
             n_workers=1,
-            parser=TemplateCppTreeMatcherConfig(
+            parsers=[TemplateCppTreeMatcherConfig(
                 path_templates=AUDIT_TEMPLATES,
                 log_format="type=<Type> msg=audit(<Time>): <Content>",
                 connector_name="Mongo",
                 connector_url="mongodb://localhost:27017/FullPipeline/Parser",
-            ),
+            )],
             detectors=[
                 ECVCDetectorConfig(
                     data_use_configure=TRAIN_UNTIL,
@@ -257,7 +257,7 @@ class TestPipeline:
         )
 
         pipeline = Pipeline(config=config)
-        for parsed_log in From.log(pipeline.parser, in_path=AUDIT_LOG, do_process=False):
+        for parsed_log in From.log(pipeline.parsers, in_path=AUDIT_LOG, do_process=False):
             if pipeline.process(parsed_log) is not None:
                 break
 
@@ -283,12 +283,12 @@ class TestPipeline:
             do_parsing=True,
             do_aggregation=True,
             n_workers=1,
-            parser=TemplateCppTreeMatcherConfig(
+            parsers=[TemplateCppTreeMatcherConfig(
                 path_templates=AUDIT_TEMPLATES,
                 log_format="type=<Type> msg=audit(<Time>): <Content>",
                 connector_name="Redis",
                 connector_url="http://localhost:6379:0",
-            ),
+            )],
             detectors=[
                 ECVCDetectorConfig(
                     data_use_configure=TRAIN_UNTIL,
@@ -315,7 +315,7 @@ class TestPipeline:
         )
 
         pipeline = Pipeline(config=config)
-        for parsed_log in From.log(pipeline.parser, in_path=AUDIT_LOG, do_process=False):
+        for parsed_log in From.log(pipeline.parsers, in_path=AUDIT_LOG, do_process=False):
             if pipeline.process(parsed_log) is not None:
                 break
 

@@ -24,13 +24,13 @@ class PipelineConfig(CoreConfig):
     do_aggregation: bool = Field(default=True, description="Run aggregator in the pipeline.")
     n_workers: int = Field(default=1, description="Workers use to run the detectors in parallel.")
 
-    parser: CoreParserConfig | dict[str, Any] | None = Field(
+    parsers: Optional[list[CoreParserConfig | dict[str, Any]]] = Field(
         default=None, description="Parser configuration use, if do_parsing=False keep empty."
     )
-    detectors: list[CoreDetectorConfig | dict[str, Any]] | None = Field(
+    detectors: Optional[list[CoreDetectorConfig | dict[str, Any]]] = Field(
         default=None, description="Detectors configuration use."
     )
-    aggregator: CoreAlertAggregatorConfig | dict[str, Any] | None = Field(
+    aggregator: Optional[CoreAlertAggregatorConfig | dict[str, Any]] = Field(
         default=None, description="Aggregator configuration use, if do_aggregation=False keep empty."
     )
 
@@ -62,18 +62,22 @@ def _multiprocess(
 def _run_pipeline(
     config: PipelineConfig,
     input_: sc.ParserSchema | bytes | sc.LogSchema,
-    parser: Optional[CoreParser],
+    parsers: Optional[list[CoreParser]],
     detectors: list[CoreDetector],
     alert_aggreator: Optional[CoreAlertAggregator],
     n_workers: int = 1,
 ) -> list[sc.DetectorSchema] | list[sc.AggregateSchema]:
 
     input_ = input_ if isinstance(input_, list) else [input_]  # type: ignore
-    if config.do_parsing:
+    if config.do_parsing and parsers is not None:
         aux = []
         for in_ in input_:  # type: ignore
-            if (out_ := _check_output(in_, parser)) is not None:  # type: ignore
-                aux.append(out_)
+            if n_workers > 1:
+                aux.extend(_multiprocess(parsers, in_=in_, n_workers=n_workers))  # type: ignore
+            else:
+                for parser in parsers:
+                    if (out_ := _check_output(in_, parser)) is not None:  # type: ignore
+                        aux.append(out_)  # type: ignore
         input_ = aux   # type: ignore
 
     output_ = []
@@ -85,18 +89,18 @@ def _run_pipeline(
                 if (out_ := _check_output(in_, detector)) is not None:  # type: ignore
                     output_.append(out_)  # type: ignore
 
-    if not config.do_aggregation:
+    if not config.do_aggregation or alert_aggreator is None:
         return output_   # type: ignore
 
     last_output_ = []
     for in_ in output_:
-        if (out_ := _check_output(in_, alert_aggreator)) is not None:  # type: ignore
+        if (out_ := _check_output(in_, alert_aggreator)) is not None:
             last_output_.append(out_)
 
     return last_output_  # type: ignore
 
 
-# ------------- Nain pipeline
+# ------------- Main pipeline
 
 class Pipeline(CoreComponent):
     def __init__(
@@ -117,8 +121,8 @@ class Pipeline(CoreComponent):
         )
         self.config: PipelineConfig
 
-        self.parser: CoreParser | None = selc.selectComponent(  # type: ignore
-            self.config.parser, component_type="parsers"
+        self.parsers: list[CoreParser] | None = selc.selectComponents(  # type: ignore
+            self.config.parsers, component_type="parsers"
         ) if self.config.do_parsing else None
 
         self.detectors: list[CoreDetector] = selc.selectComponents(  # type: ignore
@@ -161,7 +165,7 @@ class Pipeline(CoreComponent):
         out_ = _run_pipeline(
             self.config,
             input_=data,
-            parser=self.parser,
+            parsers=self.parsers,
             detectors=self.detectors,
             alert_aggreator=self.alert_aggregator,
             n_workers=self.config.n_workers,

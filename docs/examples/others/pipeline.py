@@ -11,10 +11,10 @@ import detectmatelibrary.schemas as schemas
 config = PipelineConfig(
         do_parsing=True,  # Use the parser
         do_aggregation=True,  # Use the aggregator
-        parser=TemplateCppTreeMatcherConfig(
+        parsers=[TemplateCppTreeMatcherConfig(
             path_templates="docs/examples/data/tutorial_templates.txt",
             log_format="type=<Type> msg=audit(<Time>): <Content>"
-        ),
+        )],
         n_workers=1,  # You can add parallelization for the detectors
         detectors=[
             {
