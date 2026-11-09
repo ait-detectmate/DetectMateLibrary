@@ -64,6 +64,9 @@ class CoreParser(CoreComponent):
         self.time_format_handler = TimeFormatHandler()
         self.config: CoreParserConfig
 
+    def _is_input_eligible(self, data: schemas.LogSchema) -> bool:  # type: ignore
+        return self.config.log_source is None or self.config.log_source == data["logSource"]
+
     def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:  # type: ignore
         var, content = get_format_variables(
             self.config._regex,

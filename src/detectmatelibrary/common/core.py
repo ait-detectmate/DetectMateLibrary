@@ -119,10 +119,10 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
         path: str | None = None,
         storage_options: dict[str, Any] | None = None,
     ) -> bytes | None:
-        """Save this component's state. The base has none, so returns None.
+        """Save this component's state.
 
-        Components with state override this (see
-        base_detectors.TrackerDetector).
+        The base has none, so returns None. Components with state
+        override this (see base_detectors.TrackerDetector).
         """
         return None
 
@@ -149,10 +149,16 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
     def get_window_size(self) -> int:
         return self.data_buffer.get_window_size()
 
+    def _is_input_eligible(self, data: BaseSchema) -> bool:
+        """Check if input should be filtered or not."""
+        return True
+
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
         is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)
         logger.debug(f"<<{self.name}>> received:\n{data}")
 
+        if not self._is_input_eligible(data):
+            return None
         if (data_buffered := self.data_buffer.add(data)) is None:  # type: ignore
             return None
 
