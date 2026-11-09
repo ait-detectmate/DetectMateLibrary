@@ -30,7 +30,7 @@ class AlertBERTAggregationConfig(DensityClusteringAggregationConfig):
         default="AlertBERTAggregation",
         description="The type of the aggregation method. Defaults to 'AlertBERT_aggregator'.",
     )
-    _model_id: str = f"{method_type}_{dt.now().isoformat()}"
+    _model_id: str = f"{method_type.default}_{dt.now().isoformat()}"  # type: ignore[attr-defined]
     model_id: str = Field(
         default=_model_id,
         description="""The unique identifier of the model.
@@ -365,10 +365,10 @@ class AlertBERTAggregation(DensityClusteringAggregation):
         """Set up the MaskedLanguageModel."""
         self.mlm = MaskedLanguageModel(self.config)
         if not self.config.train_model:
-            logger.info("AlertBERT model loaded from disk.")
+            logger.info("Loading AlertBERT model from disk.")
             self._set_up_alertbert()
         else:
-            logger.info("AlertBERT model will be trained ...")
+            logger.debug("AlertBERT model will be trained ...")
 
     def _set_up_alertbert(self) -> None:
         """Set up the AlertBERT model."""

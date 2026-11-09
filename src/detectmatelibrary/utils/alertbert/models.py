@@ -556,10 +556,6 @@ class MaskedLanguageModel(nn.ModuleDict):
         if not self.config["train_model"]:
             self._load_model()
             self._set_up_model()
-        elif self.config["save_model"]:
-            os.makedirs(
-                f"{self.config['path']}/{self.config['model_id']}", exist_ok=True
-            )
 
     def _set_up_model(self) -> None:
         """Sets up the model architecture based on the configuration."""
