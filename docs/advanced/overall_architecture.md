@@ -55,6 +55,7 @@ The `process` method is the primary method used by every component during infere
 The process flow is made up of the following stages:
 
 * **Preprocess**: If the input arrives as bytes, it is deserialized and converted into a schema. If a schema is provided instead, the system creates a copy to prevent modifying the original input.
+* **Eligible**: Verify whether the input qualifies for this component. For example, an input with an invalid logSource will be ignored by a particular parser.
 * **DataBuffer**: Handles the data according to what the component specifies. Additional details are available here.
 * **Configuration**: A step that happens before training, enabling the method to automatically set its hyperparameters.
 * **Train**: The part responsible for fitting/training the method.
