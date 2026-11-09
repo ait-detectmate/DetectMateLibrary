@@ -6,10 +6,10 @@ from detectmatelibrary.common.core import CoreComponent, CoreConfig
 from detectmatelibrary.utils.aux import get_timestamp
 from detectmatelibrary import schemas
 
-from typing import Any, cast
 from pydantic import model_validator
-import re
 from pydantic import Field
+from typing import Any
+import re
 
 
 class CoreParserConfig(CoreConfig):
@@ -26,6 +26,10 @@ class CoreParserConfig(CoreConfig):
     )
 
     _regex: re.Pattern[str] | None = None
+
+    log_source: str | None = Field(
+        default=None, description="Process only inputs of the same log source."
+    )
 
     # generate regex from log_format
     @model_validator(mode="after")
@@ -58,13 +62,13 @@ class CoreParser(CoreComponent):
             output_schema=schemas.ParserSchema,
         )
         self.time_format_handler = TimeFormatHandler()
+        self.config: CoreParserConfig
 
     def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:  # type: ignore
-        config = cast(CoreParserConfig, self.config)
         var, content = get_format_variables(
-            config._regex,
+            self.config._regex,
             log=input_["log"],
-            time_format=config.time_format,
+            time_format=self.config.time_format,
             time_format_handler=self.time_format_handler,
         )
 
