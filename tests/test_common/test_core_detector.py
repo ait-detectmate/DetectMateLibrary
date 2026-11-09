@@ -82,12 +82,33 @@ dummy_schema = {
     "headerVariables": {"Time": "12121.12"},
 }
 
+picky_schema = {
+    "parserType": "a",
+    "eventID": 0,
+    "template": "asd",
+    "variables": [""],
+    "logID": "0",
+    "parsedLogID": "22",
+    "parserID": "A",
+    "log": "This is a parsed log.",
+    "headerVariables": {"Time": "12121.12"},
+}
+
 
 dummy_config = {
     "detectors": {
         "TestDetector": {
             "method_type": "core_detector",
             "auto_config": True,
+        }
+    }
+}
+picky_config = {
+    "detectors": {
+        "TestDetector": {
+            "method_type": "core_detector",
+            "auto_config": True,
+            "parser": "A",
         }
     }
 }
@@ -125,6 +146,19 @@ class TestCoreDetector:
         data = sc.ParserSchema(dummy_schema).serialize()
         result = detector.process(data)  # no error should be produced
         assert isinstance(result, bytes)  # and result should be bytes
+
+    def test_input_eligible_schema(self) -> None:
+        detector = MockupDetector(name="TestDetector", config=picky_config)
+
+        data = sc.ParserSchema(picky_schema)
+        assert detector.process(data) is not None
+
+        data = sc.ParserSchema(dummy_schema)
+        assert detector.process(data) is None
+
+        detector = MockupDetector(name="TestDetector", config=dummy_config)
+        data = sc.ParserSchema(picky_schema)
+        assert detector.process(data) is not None
 
     def test_process_input_schema_not_serialized(self) -> None:
         detector = MockupDetector(name="TestDetector", config=MockupConfig())

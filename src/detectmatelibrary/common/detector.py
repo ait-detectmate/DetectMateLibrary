@@ -35,7 +35,7 @@ def _extract_logIDs(input_: List[ParserSchema] | ParserSchema) -> List[str]:
 class CoreDetectorConfig(CoreConfig):
     component_type: str = Field(default="detectors", description="<$IGNORE$>")
     method_type: str = Field(default="core_detector", description="<$IGNORE$>")
-    parser: str = Field(default="PARSER", description="Name of the parser used.")
+    parser: Optional[str] = Field(default=None, description="Name of the parser used.")
 
     auto_config: bool = Field(
         default=True,
@@ -76,6 +76,7 @@ class CoreDetector(CoreComponent[ParserSchema, DetectorSchema]):
             input_schema=ParserSchema,
             output_schema=DetectorSchema,
         )
+        self.config: CoreDetectorConfig
 
     @override
     def run(
@@ -95,6 +96,9 @@ class CoreDetector(CoreComponent[ParserSchema, DetectorSchema]):
             output_["detectedTimestamp"] = get_timestamp()
 
         return anomaly_detected
+
+    def _is_input_eligible(self, data: ParserSchema) -> bool:  # type: ignore
+        return self.config.parser is None or self.config.parser == data["parserID"]
 
     def detect(
         self,
