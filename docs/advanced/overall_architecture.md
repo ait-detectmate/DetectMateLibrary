@@ -1,5 +1,8 @@
 # Overall architecture
 
+In this section, we outline the overall architecture of the DetectMate Components.
+
+
 ## How things work and where data goes
 
 This document describes the high-level design of the DetectMateLibrary, how components interact, the data contracts they use, and guidance for deploying and extending the system. The library is built around small, composable components that operate on streaming log data and exchange strongly-typed Schema objects.
@@ -44,6 +47,22 @@ Each component's arguments must be stored in its corresponding configuration cla
     | [TrackerDetector](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/base_detectors/tracker_detector.py) | Main class used in detectors that use `EventPersistency`. | `CoreDetector` |
     | [VariableDetector](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/base_detectors/variable_detector.py) | Main class used in detectors that learn variables. | `TrackerDetector` |
     | [DensityClusteringAggregation](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/base_alert_aggregation/density_clustering.py) | Density aggregators.| `CoreAlertAggregator` |
+
+## Process flow
+
+The `process` method is the primary method used by every component during inference. It executes all required steps in the background to ensure the component behaves as expected. The diagram below illustrates the overall structure. This method accepts either a schema or a serialized schema as input and returns an output schema, a serialized schema, or `None`.
+
+The process flow is made up of the following stages:
+
+* **Preprocess**: If the input arrives as bytes, it is deserialized and converted into a schema. If a schema is provided instead, the system creates a copy to prevent modifying the original input.
+* **DataBuffer**: Handles the data according to what the component specifies. Additional details are available here.
+* **Configuration**: A step that happens before training, enabling the method to automatically set its hyperparameters.
+* **Train**: The part responsible for fitting/training the method.
+* **Run**: Executes the primary inference routine for each component.
+* **Postprocessing**: Transforms the output schema back into bytes when the original input was provided as bytes.
+
+![Flow](../img/processFlow.svg)
+
 
 ## Components methods
 
