@@ -1,6 +1,7 @@
 from pathlib import Path
 
 AUDIT_LOG = str(Path(__file__).resolve().parent / "audit.log")
+APACHE_LOG = str(Path(__file__).resolve().parent / "apache.log")
 AUDIT_TEMPLATES = str(Path(__file__).resolve().parent / "audit_templates.txt")
 ANOMALY_LABELS = str(Path(__file__).resolve().parent / "audit_anomaly_labels.log")
 LOG_FORMAT = "type=<Type> msg=audit(<Time>): <Content>"
