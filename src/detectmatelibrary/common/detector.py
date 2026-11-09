@@ -6,8 +6,8 @@ from detectmatelibrary.utils.aux import get_timestamp
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
-from typing_extensions import override
 from typing import Dict, List, Optional, Any
+from typing_extensions import override
 from pydantic import Field
 
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
@@ -97,6 +97,7 @@ class CoreDetector(CoreComponent[ParserSchema, DetectorSchema]):
 
         return anomaly_detected
 
+    @override
     def _is_input_eligible(self, data: ParserSchema) -> bool:  # type: ignore
         return self.config.parser is None or self.config.parser == data["parserID"]
 
@@ -119,12 +120,4 @@ class CoreDetector(CoreComponent[ParserSchema, DetectorSchema]):
         self,
         input_: ParserSchema | list[ParserSchema],
     ) -> None:
-        pass
-
-    @override
-    def set_configuration(self) -> None:
-        pass
-
-    @override
-    def post_train(self) -> None:
         pass

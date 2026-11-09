@@ -8,6 +8,8 @@ from detectmatelibrary import schemas
 
 from pydantic import model_validator
 from pydantic import Field
+
+from typing_extensions import override
 from typing import Any
 import re
 
@@ -64,9 +66,7 @@ class CoreParser(CoreComponent):
         self.time_format_handler = TimeFormatHandler()
         self.config: CoreParserConfig
 
-    def _is_input_eligible(self, data: schemas.LogSchema) -> bool:  # type: ignore
-        return self.config.log_source is None or self.config.log_source == data["logSource"]
-
+    @override
     def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:  # type: ignore
         var, content = get_format_variables(
             self.config._regex,
@@ -89,10 +89,19 @@ class CoreParser(CoreComponent):
 
         return True if use_schema is None else use_schema
 
+    @override
+    def _is_input_eligible(self, data: schemas.LogSchema) -> bool:  # type: ignore
+        return self.config.log_source is None or self.config.log_source == data["logSource"]
+
     def parse(
         self, input_: schemas.LogSchema, output_: schemas.ParserSchema
     ) -> bool | None:
         return True
 
+    @override
     def train(self, input_: schemas.LogSchema) -> None:  # type: ignore
+        pass
+
+    @override
+    def configure(self, input_: schemas.LogSchema,) -> None:  # type: ignore
         pass
