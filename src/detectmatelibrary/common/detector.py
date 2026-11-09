@@ -32,6 +32,10 @@ def _extract_logIDs(input_: List[ParserSchema] | ParserSchema) -> List[str]:
     return [str(i["logID"]) for i in input_]
 
 
+def define_name(name: str, parser: Optional[str]) -> str:
+    return name if parser is None else f"{name}_from_{parser}"
+
+
 class CoreDetectorConfig(CoreConfig):
     component_type: str = Field(default="detectors", description="<$IGNORE$>")
     method_type: str = Field(default="core_detector", description="<$IGNORE$>")
@@ -69,7 +73,7 @@ class CoreDetector(CoreComponent[ParserSchema, DetectorSchema]):
             config = CoreDetectorConfig.from_dict(config, name)
 
         super().__init__(
-            name=name,
+            name=define_name(name, config.parser),
             type_=config.component_type,
             config=config,
             args_buffer=ArgsBuffer(mode=buffer_mode, size=buffer_size),

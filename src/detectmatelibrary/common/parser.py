@@ -9,27 +9,31 @@ from detectmatelibrary import schemas
 from pydantic import model_validator
 from pydantic import Field
 
-from typing_extensions import override
+from typing_extensions import override, Optional
 from typing import Any
 import re
+
+
+def define_name(name: str, log_source: Optional[str]) -> str:
+    return name if log_source is None else f"{name}_from_{log_source}"
 
 
 class CoreParserConfig(CoreConfig):
     component_type: str = Field(default="parsers", description="<$IGNORE$>")
     method_type: str = Field(default="core_parser", description="<$IGNORE$>")
 
-    log_format: str | None = Field(
+    log_format: Optional[str] = Field(
         default=None,
         description=("fitting description yet to find"),
     )
-    time_format: str | None = Field(
+    time_format: Optional[str] = Field(
         default=None,
         description=("fitting description yet to find"),
     )
 
     _regex: re.Pattern[str] | None = None
 
-    log_source: str | None = Field(
+    log_source: Optional[str] = Field(
         default=None, description="Process only inputs of the same log source."
     )
 
@@ -56,7 +60,7 @@ class CoreParser(CoreComponent):
             config = CoreParserConfig.from_dict(config, name)
 
         super().__init__(
-            name=name,
+            name=define_name(name, config.log_source),
             type_=config.method_type,
             config=config,
             args_buffer=ArgsBuffer(mode=BufferMode.NO_BUF, size=None),
