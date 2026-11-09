@@ -22,7 +22,6 @@ Start here if you are new to the library and want a quick overview of what it ca
 * [Installation](user_guide/installation.md)
 * [Basic knowledge](user_guide/basic_knowledge.md)
 * [Quickstart](user_guide/quickstart.md)
-* [Tutorial (end-to-end)](user_guide/tutorial.md)
 
 ## Advanced Guide
 
