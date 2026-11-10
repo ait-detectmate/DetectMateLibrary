@@ -14,7 +14,7 @@ We developed three tutorials that show how to work with DetectMate using a few s
 
 Before starting, follow the next steps in your work directory:
 
-1. Copy the logs from in [here](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/tests/test_data/audit.log) and the matching templates from [here](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/tests/test_data/test_templates.txt).
+1. Copy the logs from in [here](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/tests/test_data/audit.log) and the matching templates from [here](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/tests/test_data/audit_templates.txt).
 
 2. Install DetectMateLibrary dependency:
 
