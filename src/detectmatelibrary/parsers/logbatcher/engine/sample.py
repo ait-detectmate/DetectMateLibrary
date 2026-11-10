@@ -105,10 +105,10 @@ def group_samples_clustering(embed_matrix: np.ndarray, num_in_batch: int) -> Lis
         num = np.dot(v1, v2.T)
         denom = np.linalg.norm(v1, axis=1).reshape(-1, 1) * \
             np.linalg.norm(v2, axis=1)
-        similarity_matrix = num / denom
+        similarity_matrix: np.ndarray = num / denom
         similarity_matrix[np.isneginf(similarity_matrix)] = 0
-        similarity_matrix = 0.5 + 0.5 * similarity_matrix
-        return similarity_matrix
+        similarity_matrix  = 0.5 + 0.5 * similarity_matrix
+        return similarity_matrix 
 
     if embed_matrix.shape[0] % num_in_batch:
         n_clusters = embed_matrix.shape[0] // num_in_batch + 1
