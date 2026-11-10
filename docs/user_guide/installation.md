@@ -35,10 +35,7 @@ extras: you install only what you need.
 | Extra | Installs | When you need it |
 |---|---|---|
 | `llm` | `openai`, `tenacity`, `scipy`, `scikit-learn`, `tiktoken`, `pandas` | Using the `LogBatcherParser` (LLM-based log parsing). |
-| `dataframes` | `pandas`, `polars` | Using `DataNormalizer`. |
-| `polars-rtcompat` | `polars[rtcompat]` | Running on older CPUs without AVX2 support (e.g. some VMs or embedded hardware); not needed for standard deployments. |
-| `mongo` | `pymongo` | Using the `Mongo` schema connector. |
-| `redis` | `redis[hiredis]` | Using the `Redis` schema connector. |
+| `alertbert` | `torch`, `tensordict`, `scikit-learn`, `scipy` | Using the `AlertBERTAggregation`. |
 | `full` | All of the above. | Installing every optional extra at once. |
 
 To have a closer look at all the dependencies, see [Optional dependencies](https://pydevtools.com/handbook/explanation/what-are-optional-dependencies-and-dependency-groups/).
