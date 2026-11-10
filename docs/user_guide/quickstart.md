@@ -7,7 +7,7 @@ This quickstart shows how to process a log dataset (we use data from the [AIT Lo
 We developed three tutorials that show how to work with DetectMate using a few straightforward examples:
 
 * [Run individually](./quickstart.md#run-individually): Execute each component separately within a script.
-* [Run basic pipeline](./quickstart.md#run-all-in-a-pipeline): Execute all types of components together in a simple pipeline.
+* [Run basic pipeline](./quickstart.md##run-basic-pipeline): Execute all types of components together in a simple pipeline.
 * [Run expert pipeline](./quickstart.md#run-expert-pipeline): Execute all types of components using a [Redis](https://redis.io/) connector and multi-source logs as the input.
 
 ## Before you start
