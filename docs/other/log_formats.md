@@ -179,7 +179,7 @@ Apache Spark log. Emitted by driver and executor JVMs.
 
 **log_format:** 
 ```text
-<Date> <Time> <Level> <Component>: <Content>`
+<Date> <Time> <Level> <Component>: <Content>
 ```
 
 **Variable noise patterns:** IP addresses, memory size units (`\b[KGTM]?B\b`), domain-like names (`([\w-]+\.){2,}[\w-]+`).
