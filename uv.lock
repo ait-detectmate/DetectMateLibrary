@@ -698,30 +698,27 @@ dependencies = [
     { name = "msgpack" },
     { name = "numpy" },
     { name = "optax" },
+    { name = "polars", extra = ["rtcompat"] },
     { name = "protobuf" },
     { name = "pyarrow" },
     { name = "pydantic" },
+    { name = "pymongo" },
     { name = "pyyaml" },
+    { name = "redis", extra = ["hiredis"] },
     { name = "regex" },
 ]
 
 [package.optional-dependencies]
 alertbert = [
     { name = "scikit-learn" },
+    { name = "scipy" },
     { name = "tensordict" },
     { name = "torch", version = "2.15.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin'" },
     { name = "torch", version = "2.15.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
 ]
-dataframes = [
-    { name = "pandas" },
-    { name = "polars" },
-]
 full = [
     { name = "openai" },
     { name = "pandas" },
-    { name = "polars", extra = ["rtcompat"] },
-    { name = "pymongo" },
-    { name = "redis", extra = ["hiredis"] },
     { name = "scikit-learn" },
     { name = "scipy" },
     { name = "tenacity" },
@@ -738,18 +735,6 @@ llm = [
     { name = "tenacity" },
     { name = "tiktoken" },
 ]
-mongo = [
-    { name = "pymongo" },
-]
-polars-rtcompat = [
-    { name = "polars", extra = ["rtcompat"] },
-]
-redis = [
-    { name = "redis", extra = ["hiredis"] },
-]
-scipy = [
-    { name = "scipy" },
-]
 
 [package.dev-dependencies]
 dev = [
@@ -765,12 +750,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "detectmatelibrary", extras = ["alertbert"], marker = "extra == 'full'" },
-    { name = "detectmatelibrary", extras = ["dataframes"], marker = "extra == 'full'" },
     { name = "detectmatelibrary", extras = ["llm"], marker = "extra == 'full'" },
-    { name = "detectmatelibrary", extras = ["mongo"], marker = "extra == 'full'" },
-    { name = "detectmatelibrary", extras = ["polars-rtcompat"], marker = "extra == 'full'" },
-    { name = "detectmatelibrary", extras = ["redis"], marker = "extra == 'full'" },
-    { name = "detectmatelibrary", extras = ["scipy"], marker = "extra == 'full'" },
     { name = "detectmateperformance", specifier = ">=0.1.6" },
     { name = "flax", specifier = ">=0.12.8" },
     { name = "fsspec", specifier = ">=2024.1.0" },
@@ -779,27 +759,26 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.3.2" },
     { name = "openai", marker = "extra == 'llm'", specifier = ">=2.26.0" },
     { name = "optax", specifier = ">=0.2.8" },
-    { name = "pandas", marker = "extra == 'dataframes'", specifier = ">=2.3.2" },
     { name = "pandas", marker = "extra == 'llm'", specifier = ">=2.3.2" },
-    { name = "polars", marker = "extra == 'dataframes'", specifier = ">=1.40.1" },
-    { name = "polars", extras = ["rtcompat"], marker = "extra == 'polars-rtcompat'", specifier = ">=1.38.1" },
+    { name = "polars", specifier = ">=1.40.1" },
+    { name = "polars", extras = ["rtcompat"], specifier = ">=1.38.1" },
     { name = "protobuf", specifier = ">=6.32.1" },
     { name = "pyarrow", specifier = ">=24.0.0" },
     { name = "pydantic", specifier = ">=2.13.3" },
-    { name = "pymongo", marker = "extra == 'mongo'", specifier = ">=4.19.0" },
+    { name = "pymongo", specifier = ">=4.19.0" },
     { name = "pyyaml", specifier = ">=6.0.3" },
-    { name = "redis", extras = ["hiredis"], marker = "extra == 'redis'", specifier = ">=8.1.0" },
+    { name = "redis", extras = ["hiredis"], specifier = ">=8.1.0" },
     { name = "regex", specifier = ">=2025.11.3" },
     { name = "scikit-learn", marker = "extra == 'alertbert'" },
     { name = "scikit-learn", marker = "extra == 'llm'", specifier = ">=1.8.0" },
+    { name = "scipy", marker = "extra == 'alertbert'" },
     { name = "scipy", marker = "extra == 'llm'", specifier = ">=1.17.1" },
-    { name = "scipy", marker = "extra == 'scipy'" },
     { name = "tenacity", marker = "extra == 'llm'", specifier = ">=9.1.4" },
     { name = "tensordict", marker = "extra == 'alertbert'" },
     { name = "tiktoken", marker = "extra == 'llm'", specifier = ">=0.12.0" },
     { name = "torch", marker = "extra == 'alertbert'", index = "https://download.pytorch.org/whl/cpu", conflict = { package = "detectmatelibrary", extra = "alertbert" } },
 ]
-provides-extras = ["llm", "dataframes", "polars-rtcompat", "mongo", "redis", "alertbert", "scipy", "full"]
+provides-extras = ["llm", "alertbert", "full"]
 
 [package.metadata.requires-dev]
 dev = [

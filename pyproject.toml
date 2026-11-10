@@ -20,6 +20,10 @@ dependencies = [
     "jax>=0.11.0",
     "flax>=0.12.8",
     "optax>=0.2.8",
+    "polars>=1.40.1",
+    "polars[rtcompat]>=1.38.1",
+    "pymongo>=4.19.0",
+    "redis[hiredis]>=8.1.0",
 ]
 
 [tool.pytest.ini_options]
@@ -46,36 +50,16 @@ llm = [
     "tiktoken>=0.12.0",
     "pandas>=2.3.2",
 ]
-dataframes = [
-    "pandas>=2.3.2",
-    "polars>=1.40.1",
-]
-polars-rtcompat = [
-    "polars[rtcompat]>=1.38.1",
-]
-mongo = [
-    "pymongo>=4.19.0",
-]
-redis = [
-    "redis[hiredis]>=8.1.0",
-]
 alertbert = [
     "torch",
     "tensordict",
     "scikit-learn",
-]
-scipy = [
     "scipy",
 ]
 # install all optional extras at once:  uv pip install detectmatelibrary[full]
 full = [
     "detectmatelibrary[llm]",
-    "detectmatelibrary[dataframes]",
-    "detectmatelibrary[polars-rtcompat]",
-    "detectmatelibrary[mongo]",
-    "detectmatelibrary[redis]",
     "detectmatelibrary[alertbert]",
-    "detectmatelibrary[scipy]",
 ]
 
 [tool.setuptools.dynamic]
