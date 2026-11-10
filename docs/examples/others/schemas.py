@@ -75,8 +75,8 @@ print(parsed_schema == parsed_schema2)  # False
 # A schema with the same override reads back what was stored
 parsed_schema3 = schemas.ParserSchema(
     {"parsedLogID": "ciao"},
-    connector="Verification",
-    url="NewURL",
+    connector="Mongo",
+    url="mongodb://localhost:27017/TestDataset/test",
 ).restore()
 print(parsed_schema == parsed_schema3)  # True
 
