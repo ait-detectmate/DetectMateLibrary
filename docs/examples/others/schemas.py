@@ -42,8 +42,8 @@ print(new_log_schema == log_schema)  # True
 from detectmatelibrary.schemas import set_connector
 
 set_connector(
-    connector="Verification",  # Connector name, e.g. "Mongo" or "Redis"
-    url="None",  # Connector URL
+    connector="Mongo",  # Connector name, e.g. "Mongo" or "Redis"
+    url="mongodb://localhost:27017/TestDataset/test",  # Connector URL
 )
 
 parsed_schema = schemas.ParserSchema({"parsedLogID": "ciao"}).store()
@@ -64,8 +64,8 @@ set_connector(
 # This schema overrides the global setup and uses the verification connector
 parsed_schema = schemas.ParserSchema(
     {"parsedLogID": "ciao"},
-    connector="Verification",  # Override name
-    url="NewURL",  # Override URL
+    connector="Mongo",  # Override name
+    url="mongodb://localhost:27017/TestDataset/test",  # Override URL
 ).store()
 
 # from_id() uses the global (default) connector, which stored nothing

@@ -15,6 +15,7 @@ examples = home / "docs" / "examples"
 example_files = sorted(examples.rglob("*.py"))
 
 
+@pytest.mark.ignored_mongo
 @pytest.mark.ignored_redis
 @pytest.mark.ignored
 @pytest.mark.parametrize("example", example_files)
