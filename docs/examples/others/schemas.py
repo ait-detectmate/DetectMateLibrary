@@ -43,7 +43,7 @@ from detectmatelibrary.schemas import set_connector
 
 set_connector(
     connector="Mongo",  # Connector name, e.g. "Mongo" or "Redis"
-    url="mongodb://localhost:27017/TestDataset/test",  # Connector URL
+    url="mongodb://root:example@localhost:27017/TestDataset/test",  # Connector URL
 )
 
 parsed_schema = schemas.ParserSchema({"parsedLogID": "ciao"}).store()
@@ -61,11 +61,11 @@ set_connector(
     url="None",  # Global URL
 )
 
-# This schema overrides the global setup and uses the verification connector
+# This schema overrides the global setup and uses the Mongo connector
 parsed_schema = schemas.ParserSchema(
     {"parsedLogID": "ciao"},
     connector="Mongo",  # Override name
-    url="mongodb://localhost:27017/TestDataset/test",  # Override URL
+    url="mongodb://root:example@localhost:27017/TestDataset/test",  # Override URL
 ).store()
 
 # from_id() uses the global (default) connector, which stored nothing
@@ -76,7 +76,7 @@ print(parsed_schema == parsed_schema2)  # False
 parsed_schema3 = schemas.ParserSchema(
     {"parsedLogID": "ciao"},
     connector="Mongo",
-    url="mongodb://localhost:27017/TestDataset/test",
+    url="mongodb://root:example@localhost:27017/TestDataset/test",
 ).restore()
 print(parsed_schema == parsed_schema3)  # True
 

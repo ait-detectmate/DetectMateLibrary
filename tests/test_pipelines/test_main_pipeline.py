@@ -444,7 +444,7 @@ class TestPipeline:
         )
 
         pipeline = Pipeline(config=config)
-        for parsed_log in From.log(pipeline.parsers, in_path=AUDIT_LOG, do_process=False):
+        for parsed_log in From.log(pipeline.parsers[0], in_path=AUDIT_LOG, do_process=False):
             if pipeline.process(parsed_log) is not None:
                 break
 
