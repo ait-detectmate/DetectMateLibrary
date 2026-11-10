@@ -4,13 +4,17 @@ alert_aggregators:
         model_id: alertbert-example,
         delta: 3.0
         theta: 9.0
-        train_size: 50000
-        val_size: 10000
-        features:
-            - "description"
-            - "alertDetails:severity"
-            - "alertDetails:hostname"
-        updates:
-            - 200
-            - 240
+        hyperparameters:
+            model:
+                features:
+                    - "description"
+                    - "alertDetails:severity"
+                    - "alertDetails:hostname"
+            data:
+                train_size: 50000
+                val_size: 10000
+            training:
+                updates:
+                    - 200
+                    - 240
         save_model: false
