@@ -30,7 +30,7 @@ class AlertBERTAggregationConfig(DensityClusteringAggregationConfig):
         default="AlertBERTAggregation",
         description="The type of the aggregation method. Defaults to 'AlertBERT_aggregator'.",
     )
-    _model_id: str = f"{method_type}_{dt.now().isoformat()}"
+    _model_id: str = f"{method_type.default}_{dt.now().isoformat()}"  # type: ignore[attr-defined]
     model_id: str = Field(
         default=_model_id,
         description="""The unique identifier of the model.
@@ -171,6 +171,36 @@ class AlertBERTAggregationConfig(DensityClusteringAggregationConfig):
         default=20,
         description="The number of warm-up steps for training the AlertBERT model. Defaults to 100."
     )
+
+    def __init__(self, **data: Any) -> None:
+        """Initialize the AlertBERTAggregationConfig class.
+
+        Args:
+            **data (Any): The data to initialize the configuration with.
+        """
+        super().__init__(**data)
+        if self.theta <= self.delta:
+            logger.warning(
+                f"The parameter theta ({self.theta}) should be larger than delta ({
+                    self.delta
+                }). For theta <= delta, AlertBERT is equivalent to TimeDelta!"
+            )
+        if self.buffer_size > self.train_size + self.val_size:
+            logger.info(
+                f"The buffer size {
+                    self.buffer_size
+                } is larger than the training and validation size ({
+                    self.train_size + self.val_size
+                })."
+            )
+        if self.train_size < self.context_size * self.batch_size:
+            logger.error(
+                f"The training size {self.train_size} is smaller than context size ({
+                    self.context_size
+                }) * batch size ({
+                    self.batch_size
+                }). This will lead to empty batches during training!"
+            )
 
     def _get_mlm_config(self) -> dict[str, Any]:
         return self.model_dump(
@@ -365,10 +395,10 @@ class AlertBERTAggregation(DensityClusteringAggregation):
         """Set up the MaskedLanguageModel."""
         self.mlm = MaskedLanguageModel(self.config)
         if not self.config.train_model:
-            logger.info("AlertBERT model loaded from disk.")
+            logger.info("Loading AlertBERT model from disk.")
             self._set_up_alertbert()
         else:
-            logger.info("AlertBERT model will be trained ...")
+            logger.debug("AlertBERT model will be trained ...")
 
     def _set_up_alertbert(self) -> None:
         """Set up the AlertBERT model."""
