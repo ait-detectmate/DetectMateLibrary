@@ -32,7 +32,7 @@ def _extract_logIDs(input_: List[ParserSchema] | ParserSchema) -> List[str]:
     return [str(i["logID"]) for i in input_]
 
 
-def define_name(name: str, parser: Optional[str]) -> str:
+def define_detector_id(name: str, parser: Optional[str]) -> str:
     return name if parser is None else f"{name}_from_{parser}"
 
 
@@ -73,7 +73,7 @@ class CoreDetector(CoreComponent[ParserSchema, DetectorSchema]):
             config = CoreDetectorConfig.from_dict(config, name)
 
         super().__init__(
-            name=define_name(name, config.parser),
+            name=name,
             type_=config.component_type,
             config=config,
             args_buffer=ArgsBuffer(mode=buffer_mode, size=buffer_size),
@@ -82,6 +82,8 @@ class CoreDetector(CoreComponent[ParserSchema, DetectorSchema]):
         )
         self.config: CoreDetectorConfig
 
+        self._detector_id = define_detector_id(name, config.parser)
+
     @override
     def run(
         self,
@@ -89,7 +91,7 @@ class CoreDetector(CoreComponent[ParserSchema, DetectorSchema]):
         output_: DetectorSchema,
     ) -> bool:
 
-        output_["detectorID"] = self.name
+        output_["detectorID"] = self._detector_id
         output_["detectorType"] = self.config.method_type
         output_["logIDs"] = _extract_logIDs(input_)
         output_["logTimestamps"] = _extract_timestamp(input_)
@@ -106,22 +108,20 @@ class CoreDetector(CoreComponent[ParserSchema, DetectorSchema]):
         return self.config.parser is None or self.config.parser == data["parserID"]
 
     def detect(
-        self,
-        input_: List[ParserSchema] | ParserSchema,
-        output_: DetectorSchema,
+        self, input_: List[ParserSchema] | ParserSchema, output_: DetectorSchema,
     ) -> bool:
         return True
 
     @override
-    def train(
-        self,
-        input_: ParserSchema | list[ParserSchema],
-    ) -> None:
+    def train(self, input_: ParserSchema | list[ParserSchema]) -> None:
         pass
 
     @override
-    def configure(
-        self,
-        input_: ParserSchema | list[ParserSchema],
-    ) -> None:
+    def configure(self, input_: ParserSchema | list[ParserSchema]) -> None:
         pass
+
+    @override
+    def from_binary(self, binary: bytes) -> "CoreDetector":
+        new = type(self)(name=self.name, config=self.config)
+        new.load_binary(binary)
+        return new

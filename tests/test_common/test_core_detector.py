@@ -228,3 +228,12 @@ class TestCoreDetector:
 
         assert detector.process(data) is None
         assert detector.process(data) is not None
+
+    def test_detector_to_binary_and_back(self) -> None:
+        detector = NoneMockupDetector(name="TestDetector", config=MockupConfig(
+            parser="Hello"
+        ))
+        detector: NoneMockupDetector = detector.from_binary(detector.to_binary())
+
+        assert detector.config.parser == "Hello"
+        assert detector.name == "TestDetector"
