@@ -1,4 +1,4 @@
-# Schemas
+# Schemas [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/schemas/_classes.py)]
 
 Schemas are the typed message objects used to transmit data between components (Parser → Detector). Each schema class wraps a Protobuf message and provides a small, convenient Python API for creation, inspection, (de)serialization and validation.
 
@@ -16,9 +16,15 @@ This document summarizes the available schema classes, the BaseSchema API and co
 
 Schemas are used to transfer data between components. Each schema implements the methods defined in `BaseSchema`. This class acts as a wrapper around the underlying Protobuf classes (`op.SchemaT`).
 
-![UML](img/uml_schemas.png)
+![UML](img/uml_schemas.svg)
 
-All concrete schema classes inherit from `BaseSchema`. Key utility methods:
+All concrete schema classes extend `BaseSchema`. The `Connector` classes make it possible to read schema metadata from databases and write it to them, which can then be used for downstream tasks such as monitoring or data analysis. The diagram below illustrates a use case showing how schemas can be used. The Service sends bytes to the Library as input; these bytes are deserialized and initialized as a Protobuf instance within the schema. This Protobuf object can be handled like a dictionary and manipulated through an instance that inherits from `CoreComponent`. Once processing is complete, the schema can be returned to the Service as bytes. If a `Connector` is configured, the schema can be automatically stored in a database, and a Python script can simply initialize a new schema and retrieve the information from the database.
+
+
+
+![Schema](img/schema_architecture.svg)
+
+Key utility methods:
 
 ```python
 class BaseSchema:
@@ -60,6 +66,17 @@ class BaseSchema:
 
     def __eq__(self, other: object) -> bool:
         """Check equality between two schema instances."""
+
+    def store(self) -> Self:
+        """Store the schema in the connector framework."""
+
+    def restore(self) -> Self:
+        """Restore the schema from the connector framework."""
+
+    @classmethod
+    def from_id(cls, id_: str) -> Self:
+        """Initialize a schema from the connector framework by its ID."""
+
 ```
 
 The exceptions these methods raise can be imported from `detectmatelibrary.schemas`:
@@ -158,4 +175,35 @@ Short examples of working with the schemas.
 
 ```python
 --8<-- "docs/examples/others/schemas.py:example_3"
+```
+
+## Connectors
+
+The schemas can be linked to external frameworks, making it easy to read from and write to schemas across different servers or scripts.
+
+Available frameworks:
+
+| Connector | Type | Name | URL example | Dependencies |
+|---|---|---|--|--|
+| Default | Does nothing (default) | Default | None | None |
+| Verification | Uses an internal dict for testing | Verification | None | None |
+| Mongo | Uses [MongoDB](https://www.mongodb.com/) | Mongo | mongodb://localhost:27017/TestDataset/ParsedSchema | `mongo` |
+| Redis | Uses [Redis](https://redis.io/) | Redis | http://localhost:6379:0 | `redis` |
+
+??? note "URL formats"
+    | URL example | IP | Port | Database | Collection |
+    |---|---|---|--|--|
+    |  mongodb://localhost:27017/TestDataset/ParsedSchema |localhost | 27017 | TestDataset | ParsedSchema |
+    |  http://localhost:6379:0 |localhost | 6379 | 0 | None |
+
+To install the optional dependencies, follow the [installation instructions](user_guide/installation.md). You can configure the connector for all schemas like this:
+
+```python
+--8<-- "docs/examples/others/schemas.py:example_4"
+```
+
+Optionally, you can configure the connector separately for each schema. Keep in mind that a schema-specific configuration will override the general setup for that particular schema.
+
+```python
+--8<-- "docs/examples/others/schemas.py:example_5"
 ```
