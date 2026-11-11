@@ -281,7 +281,7 @@ class LogBert(DeepModel):
         if self.model is None or self.mask is None or self._scorer is None:
             return False
 
-        # One mask draw per uncached call, from the counter training left.
+        # One mask draw per uncached call, counting from 0 after training.
         return int(self._scorer(self.params, jnp.array([seq]), self.mask.next_draw(), top_k))
 
     def _prepare_data(self, seqs: list[tuple[int]], var_per: float) -> tuple[jnp.ndarray]:
@@ -306,6 +306,8 @@ class LogBert(DeepModel):
         )
         self._scorer = _compile_scorer(self.model, self.mask)
         stats["top_k"] = self.get_best_k(val_seqs)
+        # Detection masks must not depend on how many epochs ran before early stopping.
+        self.mask.i = 0
 
         return stats
     
