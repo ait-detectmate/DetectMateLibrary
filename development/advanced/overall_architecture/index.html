@@ -11,7 +11,7 @@
         <link rel="canonical" href="https://ait-detectmate.github.io/DetectMateLibrary/development/advanced/overall_architecture/">
       
       
-        <link rel="prev" href="../../user_guide/tutorial/">
+        <link rel="prev" href="../../user_guide/quickstart/">
       
       
         <link rel="next" href="../../schemas/">
@@ -415,34 +415,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../user_guide/tutorial/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Tutorial (end-to-end)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -592,6 +564,17 @@
     <span class="md-ellipsis">
       
         Components architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#process-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Process flow
       
     </span>
   </a>
@@ -2104,6 +2087,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#process-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Process flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#components-methods" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2132,6 +2126,7 @@
 
 
 <h1 id="overall-architecture">Overall architecture</h1>
+<p>In this section, we outline the overall architecture of the DetectMate Components.</p>
 <h2 id="how-things-work-and-where-data-goes">How things work and where data goes</h2>
 <p>This document describes the high-level design of the DetectMateLibrary, how components interact, the data contracts they use, and guidance for deploying and extending the system. The library is built around small, composable components that operate on streaming log data and exchange strongly-typed Schema objects.</p>
 <p>Key goals:</p>
@@ -2208,6 +2203,19 @@
 </tbody>
 </table>
 </details>
+<h2 id="process-flow">Process flow</h2>
+<p>The <code>process</code> method is the primary method used by every component during inference. It executes all required steps in the background to ensure the component behaves as expected. The diagram below illustrates the overall structure. This method accepts either a schema or a serialized schema as input and returns an output schema, a serialized schema, or <code>None</code>.</p>
+<p>The process flow is made up of the following stages:</p>
+<ul>
+<li><strong>Preprocess</strong>: If the input arrives as bytes, it is deserialized and converted into a schema. If a schema is provided instead, the system creates a copy to prevent modifying the original input.</li>
+<li><strong>Eligible</strong>: Verify whether the input qualifies for this component. For example, an input with an invalid logSource will be ignored by a particular parser.</li>
+<li><strong>DataBuffer</strong>: Handles the data according to what the component specifies. Additional details are available here.</li>
+<li><strong>Configuration</strong>: A step that happens before training, enabling the method to automatically set its hyperparameters.</li>
+<li><strong>Train</strong>: The part responsible for fitting/training the method.</li>
+<li><strong>Run</strong>: Executes the primary inference routine for each component.</li>
+<li><strong>Postprocessing</strong>: Transforms the output schema back into bytes when the original input was provided as bytes.</li>
+</ul>
+<p><img alt="Flow" src="../../img/processFlow.svg" /></p>
 <h2 id="components-methods">Components methods</h2>
 <p>Each Core* base class exposes a small, stable API that implementations must implement or may override.</p>
 <div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">ConfigComponent</span><span class="p">(</span><span class="n">CoreConfig</span><span class="p">):</span>
@@ -2328,7 +2336,7 @@
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
           
-          <a href="../../user_guide/tutorial/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Tutorial (end-to-end)">
+          <a href="../../user_guide/quickstart/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Quickstart">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2338,7 +2346,7 @@
                 Previous
               </span>
               <div class="md-ellipsis">
-                Tutorial (end-to-end)
+                Quickstart
               </div>
             </div>
           </a>

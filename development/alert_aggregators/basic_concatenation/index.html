@@ -415,34 +415,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../user_guide/tutorial/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Tutorial (end-to-end)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -2230,8 +2202,7 @@ concatenating their IDs and timestamps.</p>
 <p>The aggregator keeps a sliding window of the last <code>buffer_size</code> alerts. The first aggregated record
 is emitted once the window is full, and then one record for every new alert, so consecutive records
 overlap. Alerts are combined in the order they arrive, not grouped by log, and the alerts' own
-messages are not carried over (see <a href="../../alert_aggregator/#what-run-fills-in-for-you">What <code>run()</code> fills in for you</a>).
-The <a href="../../user_guide/tutorial/#4-add-an-alert-aggregator">tutorial</a> shows the overlapping output.</p>
+messages are not carried over (see <a href="../../alert_aggregator/#what-run-fills-in-for-you">What <code>run()</code> fills in for you</a>).</p>
 <h2 id="at-a-glance">At a glance</h2>
 <table>
 <thead>

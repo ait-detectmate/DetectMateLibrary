@@ -415,34 +415,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../user_guide/tutorial/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Tutorial (end-to-end)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -2689,7 +2661,7 @@
 <td>Mongo</td>
 <td>Uses <a href="https://www.mongodb.com/">MongoDB</a></td>
 <td>Mongo</td>
-<td>mongodb://localhost:27017/TestDataset/ParsedSchema</td>
+<td>mongodb://root:example@localhost:27017/TestDataset/ParsedSchema</td>
 <td><code>mongo</code></td>
 </tr>
 <tr>
@@ -2735,8 +2707,8 @@
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.schemas</span><span class="w"> </span><span class="kn">import</span> <span class="n">set_connector</span>
 
 <span class="n">set_connector</span><span class="p">(</span>
-    <span class="n">connector</span><span class="o">=</span><span class="s2">"Verification"</span><span class="p">,</span>  <span class="c1"># Connector name, e.g. "Mongo" or "Redis"</span>
-    <span class="n">url</span><span class="o">=</span><span class="s2">"None"</span><span class="p">,</span>  <span class="c1"># Connector URL</span>
+    <span class="n">connector</span><span class="o">=</span><span class="s2">"Mongo"</span><span class="p">,</span>  <span class="c1"># Connector name, e.g. "Mongo" or "Redis"</span>
+    <span class="n">url</span><span class="o">=</span><span class="s2">"mongodb://root:example@localhost:27017/TestDataset/test"</span><span class="p">,</span>  <span class="c1"># Connector URL</span>
 <span class="p">)</span>
 
 <span class="n">parsed_schema</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">ParserSchema</span><span class="p">({</span><span class="s2">"parsedLogID"</span><span class="p">:</span> <span class="s2">"ciao"</span><span class="p">})</span><span class="o">.</span><span class="n">store</span><span class="p">()</span>
@@ -2750,11 +2722,11 @@
     <span class="n">url</span><span class="o">=</span><span class="s2">"None"</span><span class="p">,</span>  <span class="c1"># Global URL</span>
 <span class="p">)</span>
 
-<span class="c1"># This schema overrides the global setup and uses the verification connector</span>
+<span class="c1"># This schema overrides the global setup and uses the Mongo connector</span>
 <span class="n">parsed_schema</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">ParserSchema</span><span class="p">(</span>
     <span class="p">{</span><span class="s2">"parsedLogID"</span><span class="p">:</span> <span class="s2">"ciao"</span><span class="p">},</span>
-    <span class="n">connector</span><span class="o">=</span><span class="s2">"Verification"</span><span class="p">,</span>  <span class="c1"># Override name</span>
-    <span class="n">url</span><span class="o">=</span><span class="s2">"NewURL"</span><span class="p">,</span>  <span class="c1"># Override URL</span>
+    <span class="n">connector</span><span class="o">=</span><span class="s2">"Mongo"</span><span class="p">,</span>  <span class="c1"># Override name</span>
+    <span class="n">url</span><span class="o">=</span><span class="s2">"mongodb://root:example@localhost:27017/TestDataset/test"</span><span class="p">,</span>  <span class="c1"># Override URL</span>
 <span class="p">)</span><span class="o">.</span><span class="n">store</span><span class="p">()</span>
 
 <span class="c1"># from_id() uses the global (default) connector, which stored nothing</span>
@@ -2764,8 +2736,8 @@
 <span class="c1"># A schema with the same override reads back what was stored</span>
 <span class="n">parsed_schema3</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">ParserSchema</span><span class="p">(</span>
     <span class="p">{</span><span class="s2">"parsedLogID"</span><span class="p">:</span> <span class="s2">"ciao"</span><span class="p">},</span>
-    <span class="n">connector</span><span class="o">=</span><span class="s2">"Verification"</span><span class="p">,</span>
-    <span class="n">url</span><span class="o">=</span><span class="s2">"NewURL"</span><span class="p">,</span>
+    <span class="n">connector</span><span class="o">=</span><span class="s2">"Mongo"</span><span class="p">,</span>
+    <span class="n">url</span><span class="o">=</span><span class="s2">"mongodb://root:example@localhost:27017/TestDataset/test"</span><span class="p">,</span>
 <span class="p">)</span><span class="o">.</span><span class="n">restore</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">parsed_schema</span> <span class="o">==</span> <span class="n">parsed_schema3</span><span class="p">)</span>  <span class="c1"># True</span>
 </code></pre></div>
