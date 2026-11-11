@@ -63,6 +63,7 @@ class CoreAlertAggregator(CoreComponent):
             input_schema=DetectorSchema,
             output_schema=AggregateSchema,
         )
+        self.config: CoreAlertAggregatorConfig
 
     @override
     def run(
@@ -108,3 +109,9 @@ class CoreAlertAggregator(CoreComponent):
     @override
     def post_train(self) -> None:
         pass
+
+    @override
+    def from_binary(self, binary: bytes) -> "CoreAlertAggregator":
+        new = type(self)(name=self.name, config=self.config)
+        new.load_binary(binary)
+        return new
