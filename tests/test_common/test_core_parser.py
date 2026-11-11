@@ -153,6 +153,15 @@ class TestCoreParser:
         assert parser.process(data) is None
         assert parser.process(data) is not None
 
+    def test_parser_to_binary_and_back(self) -> None:
+        parser = NoneMockupParser(name="TestParser", config=MockupConfig(
+            log_source="Hello"
+        ))
+        parser: NoneMockupParser = parser.from_binary(parser.to_binary())
+
+        assert parser.config.log_source == "Hello"
+        assert parser.name == "TestParser"
+
 
 class TestGetFormatVariables:
     def test_no_pattern(self) -> None:

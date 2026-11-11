@@ -4,7 +4,7 @@ from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 from detectmatelibrary.common.core import CoreComponent, CoreConfig
 from detectmatelibrary.utils.aux import get_timestamp
-from detectmatelibrary import schemas
+from detectmatelibrary import schemas as sc
 
 from pydantic import model_validator
 from pydantic import Field
@@ -14,7 +14,7 @@ from typing import Any
 import re
 
 
-def define_name(name: str, log_source: Optional[str]) -> str:
+def define_parser_id(name: str, log_source: Optional[str]) -> str:
     return name if log_source is None else f"{name}_from_{log_source}"
 
 
@@ -50,7 +50,7 @@ class CoreParserConfig(CoreConfig):
         return self
 
 
-class CoreParser(CoreComponent):
+class CoreParser(CoreComponent[sc.LogSchema, sc.ParserSchema]):
     def __init__(
         self,
         name: str = "CoreParser",
@@ -60,18 +60,20 @@ class CoreParser(CoreComponent):
             config = CoreParserConfig.from_dict(config, name)
 
         super().__init__(
-            name=define_name(name, config.log_source),
+            name=name,
             type_=config.method_type,
             config=config,
             args_buffer=ArgsBuffer(mode=BufferMode.NO_BUF, size=None),
-            input_schema=schemas.LogSchema,
-            output_schema=schemas.ParserSchema,
+            input_schema=sc.LogSchema,
+            output_schema=sc.ParserSchema,
         )
         self.time_format_handler = TimeFormatHandler()
         self.config: CoreParserConfig
 
+        self.__parser_id = define_parser_id(self.name, config.log_source)
+
     @override
-    def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:  # type: ignore
+    def run(self, input_: sc.LogSchema, output_: sc.ParserSchema) -> bool:  # type: ignore
         var, content = get_format_variables(
             self.config._regex,
             log=input_["log"],
@@ -79,7 +81,7 @@ class CoreParser(CoreComponent):
             time_format_handler=self.time_format_handler,
         )
 
-        output_["parserID"] = self.name
+        output_["parserID"] = self.__parser_id
         output_["parsedLogID"] = str(self.id_generator())
         output_["parserType"] = self.config.method_type
         output_["logID"] = input_["logID"]
@@ -94,18 +96,22 @@ class CoreParser(CoreComponent):
         return True if use_schema is None else use_schema
 
     @override
-    def _is_input_eligible(self, data: schemas.LogSchema) -> bool:  # type: ignore
+    def _is_input_eligible(self, data: sc.LogSchema) -> bool:  # type: ignore
         return self.config.log_source is None or self.config.log_source == data["logSource"]
 
-    def parse(
-        self, input_: schemas.LogSchema, output_: schemas.ParserSchema
-    ) -> bool | None:
+    def parse(self, input_: sc.LogSchema, output_: sc.ParserSchema) -> bool | None:
         return True
 
     @override
-    def train(self, input_: schemas.LogSchema) -> None:  # type: ignore
+    def train(self, input_: sc.LogSchema) -> None:  # type: ignore
         pass
 
     @override
-    def configure(self, input_: schemas.LogSchema,) -> None:  # type: ignore
+    def configure(self, input_: sc.LogSchema,) -> None:  # type: ignore
         pass
+
+    @override
+    def from_binary(self, binary: bytes) -> "CoreParser":
+        new = type(self)(name=self.name, config=self.config)
+        new.load_binary(binary)
+        return new
