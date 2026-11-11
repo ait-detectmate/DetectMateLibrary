@@ -1,4 +1,11 @@
-# DeepLog Detector
+# DeepLog Detector [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/detectors/deeplog_detector.py)]
+
+The DeepLog Detector employs an LSTM deep learning model \(f_\theta(\cdot)\) to predict the event ID \(e_i\) of the next parsed log. The model outputs the top \(K\) candidate event IDs for \(e_i\). If \(e_i\) is not among these candidates, the detector flags it as an anomaly. After training, it sets \(K\) (`top_k`) to the smallest value at which at most `alert_rate` (a `Train` hyperparameter) of the validation windows alert.
+
+\[
+    candidates = topK(f_\theta(e_i | i \in [0...n-1])) 
+\]
+
 
 The DeepLog Detector is inspired by the [DeepLog paper](https://dl.acm.org/doi/10.1145/3133956.3134015).
 
@@ -17,9 +24,6 @@ Input and output schemas in the pipeline
 |---|---|---|---|
 | ✅ | ✅ fine-tunes the model | ❌ | ❌ |
 
-## Description
-
-Deep learning method that looks at the event ID sequence. After training it sets `top_k`, how many of its guesses for an event count as normal, to the smallest value at which at most `alert_rate` (a `Train` hyperparameter) of the validation windows alert.
 
 ## Example
 
@@ -64,6 +68,8 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
     | `train_buffer_max_records` | integer | 100000 | shared | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
+    | `connector_name` | string, null | None | shared | Add a connector to the output schema. |
+    | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
     | `parser` | string | PARSER | shared | Name of the parser used. |
     | `window_size` | integer | 10 | shared | Number of consecutive events used as one training/detection sequence. |
     | `validation_per` | number | 0.2 | shared | Fraction of data held out for validation during (fine)training. |

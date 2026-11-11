@@ -24,7 +24,7 @@
 
 from __future__ import annotations
 
-from typing import Any, List, Tuple
+from typing import Any, List, Set, Tuple
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -39,7 +39,7 @@ def dpp_sample(S: np.ndarray, k: int) -> List[int]:
     n = S.shape[0]
 
     # Initialize empty set Y
-    Y = set()
+    Y: Set[int] = set()
     for _ in range(k):
         best_i = -1
         best_p = -1
@@ -66,10 +66,10 @@ def sample_from_clusters(clusters: List[Any], shot: int = 32) -> List[Tuple[str,
     clusters = sorted(clusters, key=lambda cluster: len(cluster.indexs), reverse=True)
     # form a random list
     random.seed(0)
-    random_int_list = [random.randint(0, 1000) for _ in range(10)]
+    random_int_list = [random.randint(0, 1000) for _ in range(10)]  # nosec B311
 
-    sample_clusters = []
-    sample_pairs = []
+    sample_clusters: List[Tuple[Any, str]] = []
+    sample_pairs: List[Tuple[str, str]] = []
     for cluster in clusters:
         if len(sample_clusters) >= shot:
             break
@@ -84,7 +84,7 @@ def sample_from_clusters(clusters: List[Any], shot: int = 32) -> List[Tuple[str,
             if len(sample_pairs) >= shot:
                 break
             else:
-                sample_pairs.append((item[0].logs[random_int%length], item[1]))
+                sample_pairs.append((item[0].logs[random_int % length], item[1]))
     return sample_pairs
 
 
@@ -100,16 +100,15 @@ def nearest_k_pairs_from_log(
     return nearest_k_pairs
 
 
-
 def group_samples_clustering(embed_matrix: np.ndarray, num_in_batch: int) -> List[List[int]]:
     def _calculate_cos_similarities(v1: np.ndarray, v2: np.ndarray) -> np.ndarray:
         num = np.dot(v1, v2.T)
         denom = np.linalg.norm(v1, axis=1).reshape(-1, 1) * \
             np.linalg.norm(v2, axis=1)
-        similarity_matrix = num / denom
+        similarity_matrix: np.ndarray = num / denom
         similarity_matrix[np.isneginf(similarity_matrix)] = 0
-        similarity_matrix = 0.5 + 0.5 * similarity_matrix
-        return similarity_matrix
+        similarity_matrix  = 0.5 + 0.5 * similarity_matrix
+        return similarity_matrix 
 
     if embed_matrix.shape[0] % num_in_batch:
         n_clusters = embed_matrix.shape[0] // num_in_batch + 1
@@ -122,7 +121,7 @@ def group_samples_clustering(embed_matrix: np.ndarray, num_in_batch: int) -> Lis
     similarity_matrix = _calculate_cos_similarities(
         embed_matrix, kmeans.cluster_centers_)  # [n_samples, n_clusters]
     similarity_rankings = np.argsort(-similarity_matrix, axis=1)
-    groups = [[] for _ in range(n_clusters)]
+    groups: List[List[int]] = [[] for _ in range(n_clusters)]
     for sample_idx, label in enumerate(kmeans.labels_):
         groups[label].append(sample_idx)
     # Reassign to equalize the number of samples in each cluster

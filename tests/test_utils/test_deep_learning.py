@@ -117,6 +117,13 @@ def validation_stats(monkeypatch: pytest.MonkeyPatch, eval_batch: int, model: An
     return {"Loss Val": [float(v) for v in stats["Loss Val"]], "top_k": stats["top_k"], "passes": passes}
 
 
+def assert_same_stats(in_batches: dict, one_pass: dict) -> None:
+    # Another batch shape can round a loss differently in its last float32 digit, depending on the CPU.
+    assert in_batches["Loss Val"] == pytest.approx(one_pass["Loss Val"], rel=1e-6)
+    assert in_batches["top_k"] == one_pass["top_k"]
+    assert in_batches["passes"] == one_pass["passes"]
+
+
 class TestDeeplog:
     def test_validation_in_batches_matches_one_pass(self, monkeypatch: pytest.MonkeyPatch) -> None:
         config = {
@@ -125,7 +132,7 @@ class TestDeeplog:
         }
         one_pass = validation_stats(monkeypatch, 1000, deeplog.DeepLog(config=config))
         assert one_pass["passes"] == [30, 30, 30]  # the loss after each epoch, then top_k
-        assert validation_stats(monkeypatch, 7, deeplog.DeepLog(config=config)) == one_pass
+        assert_same_stats(validation_stats(monkeypatch, 7, deeplog.DeepLog(config=config)), one_pass)
 
     def test_top_k_keeps_validation_alerts_within_alert_rate(self) -> None:
         config = {
@@ -201,7 +208,7 @@ class TestLogBert:
         }
         one_pass = validation_stats(monkeypatch, 1000, logbert.LogBert(config=config))
         assert one_pass["passes"] == [30, 30, 30]  # the loss after each epoch, then top_k
-        assert validation_stats(monkeypatch, 7, logbert.LogBert(config=config)) == one_pass
+        assert_same_stats(validation_stats(monkeypatch, 7, logbert.LogBert(config=config)), one_pass)
 
     def test_top_k_keeps_validation_alerts_within_alert_rate(self) -> None:
         # mask_per 1.0 masks every event, so each mask draw is the same and check_anomaly

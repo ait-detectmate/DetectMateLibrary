@@ -1,4 +1,4 @@
-# Persistency
+# Persistency [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/utils/persistency/event_persistency.py)]
 
 The persistency module gives a detector a place to remember things about the
 events it sees. State is keyed by `eventID` and survives across training, the
@@ -19,16 +19,14 @@ but have their own variable values. Persistency stores **one independent state
 object per event ID**, so an `EventStabilityTracker` for `eventID=4733` does
 not interfere with one for `eventID=4624`.
 
-### 2. Backends (`EventDataStructure`)
+### 2. Backends
 
 A backend is the thing that actually stores the per-event state. Persistency
 owns the dict `{event_id: backend}`; the backend itself decides *how* data is
 kept.
 
-Two families ship today:
+One family ships today:
 
-- **DataFrame backends** (`EventDataFrame`, `ChunkedEventDataFrame`) keeps the
-  raw rows. Very storage heavy and *not recommended* for production-ready detectors.
 - **Tracker backends** (`EventStabilityTracker`) keep only derived features
   (e.g. "this variable has been constant for the last 10k events") that are relevant for the detector. Use these
   when you only need a summary or a subset of the log's information, not the raw history: they cost a fraction of

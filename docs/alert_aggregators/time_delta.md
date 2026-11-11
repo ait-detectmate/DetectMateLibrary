@@ -1,4 +1,4 @@
-# Time Delta Alert Aggregation
+# Time Delta Alert Aggregation [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/alert_aggregation/time_delta.py)]
 
 The time-delta alert aggregator implements alert aggregation by grouping alerts according their time-difference as proposed by [Landauer et al.](https://dl.acm.org/doi/pdf/10.1145/3510581).
 
@@ -64,4 +64,6 @@ All parameters this alert aggregator accepts, grouped by the YAML block they go 
     | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
     | `train_buffer_max_records` | integer | 100000 | shared | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
+    | `connector_name` | string, null | None | shared | Add a connector to the output schema. |
+    | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
 <!-- End arguments -->

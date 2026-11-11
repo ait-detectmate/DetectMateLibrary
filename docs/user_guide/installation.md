@@ -34,10 +34,9 @@ extras: you install only what you need.
 
 | Extra | Installs | When you need it |
 |---|---|---|
-| `llm` | `openai`, `tenacity`, `scipy`, `scikit-learn`, `tiktoken`, `pandas` | Using the `LogBatcherParser` (LLM-based log parsing) |
-| `dataframes` | `pandas`, `polars` | Using `EventDataFrame`, `ChunkedEventDataFrame`, or `DataNormalizer` |
-| `polars-rtcompat` | `polars[rtcompat]` | Running on older CPUs without AVX2 support (e.g. some VMs or embedded hardware); not needed for standard deployments |
-| `full` | `llm` + `dataframes` + `polars-rtcompat` | Installing every optional extra at once |
+| `llm` | `openai`, `tenacity`, `scipy`, `scikit-learn`, `tiktoken`, `pandas` | Using the `LogBatcherParser` (LLM-based log parsing). |
+| `alertbert` | `torch`, `tensordict`, `scikit-learn`, `scipy` | Using the `AlertBERTAggregation`. |
+| `full` | All of the above. | Installing every optional extra at once. |
 
 To have a closer look at all the dependencies, see [Optional dependencies](https://pydevtools.com/handbook/explanation/what-are-optional-dependencies-and-dependency-groups/).
 
@@ -70,6 +69,9 @@ uv pip install "detectmatelibrary[full]"
 ```
 
 ## Developer setup
+
+!!! warning "Only needed for development"
+    Only follow these steps if you are contributing to DetectMate.
 
 ### Step 1: Install Python development dependencies & pre-commit hooks
 
@@ -106,20 +108,33 @@ protoc --version
 
 ```bash
 protoc \
-  --proto_path=src/detectmatelibrary/schemas/ \
-  --python_out=src/detectmatelibrary/schemas/ \
-  src/detectmatelibrary/schemas/schemas.proto
+  --proto_path=src/detectmatelibrary/schemas/protobuf/ \
+  --python_out=src/detectmatelibrary/schemas/protobuf/ \
+  src/detectmatelibrary/schemas/protobuf/schemas.proto
 ```
 
-**Result:** generated Python modules appear under `src/detectmatelibrary/schemas/`. If you edit proto files, re-run this command and commit generated code if required by your workflow.
+**Result:** generated Python modules appear under `src/detectmatelibrary/schemas/protobuf/`. If you edit proto files, re-run this command and commit generated code if required by your workflow.
 
 ### Step 3: Run unit tests
 
-The full test suite covers dataframe and LLM-parser code, so all extras must be present. Since `uv sync --dev` already installs the `full` extra, run all tests with:
+The full test suite covers dataframe and LLM-parser code, so all extras must be present. Since `uv sync --dev` already installs the `full` extra, run the fast tests with:
 
 ```bash
 uv run --dev pytest -s
 ```
+
+To run all unit tests, first start the database containers:
+
+```bash
+docker compose -f tests/test_schemas/compose.yaml up -d
+```
+
+and then run:
+
+```bash
+uv run pytest --run-ignored --run-ignored-mongo --run-ignored-redis
+```
+
 
 * Run tests with coverage (terminal summary):
 
