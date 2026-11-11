@@ -187,7 +187,7 @@ Available frameworks:
 |---|---|---|--|--|
 | Default | Does nothing (default) | Default | None | None |
 | Verification | Uses an internal dict for testing | Verification | None | None |
-| Mongo | Uses [MongoDB](https://www.mongodb.com/) | Mongo | mongodb://localhost:27017/TestDataset/ParsedSchema | `mongo` |
+| Mongo | Uses [MongoDB](https://www.mongodb.com/) | Mongo | mongodb://root:example@localhost:27017/TestDataset/ParsedSchema | `mongo` |
 | Redis | Uses [Redis](https://redis.io/) | Redis | http://localhost:6379:0 | `redis` |
 
 ??? note "URL formats"

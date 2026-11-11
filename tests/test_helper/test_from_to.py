@@ -138,6 +138,12 @@ class TestCaseFrom:
         assert log.log == expected_log
         assert isinstance(log, sc.ParserSchema)
 
+        log = next(From.log(
+            parser, in_path=AUDIT_TEMPLATES, do_process=True, constant_fields={"logID": "hi"}
+        ))
+
+        assert log.logID == "hi"
+
     @remove_files
     def test_frombinary(self):
         parser = DummyParser()
@@ -147,6 +153,12 @@ class TestCaseFrom:
         log2 = next(From.binary_file(parser, DUMMY_TXT_PATH, do_process=False))
 
         assert log1 == log2.serialize()
+
+        log = next(From.binary_file(
+            parser, DUMMY_TXT_PATH, do_process=False, constant_fields={"logID": "hi"}
+        ))
+
+        assert log.logID == "hi"
 
     @remove_files
     def test_fromjson(self):
@@ -158,6 +170,12 @@ class TestCaseFrom:
 
         assert log1 == log2
 
+        log = next(From.json(
+            parser, DUMMY_JSON_PATH, do_process=False, constant_fields={"logID": "hi"}
+        ))
+
+        assert log.logID == "hi"
+
     @remove_files
     def test_fromyaml(self):
         parser = DummyParser()
@@ -167,6 +185,12 @@ class TestCaseFrom:
         log2 = next(From.yaml(parser, DUMMY_YAML_PATH, do_process=False))
 
         assert log1 == log2
+
+        log = next(From.yaml(
+            parser, DUMMY_YAML_PATH, do_process=False, constant_fields={"logID": "hi"}
+        ))
+
+        assert log.logID == "hi"
 
     def test_frompolars(self):
         table = pl.DataFrame({
@@ -202,6 +226,11 @@ class TestCaseFrom:
             assert parsed2[field] == schema2[field], field
         assert parsed2["logID"] == "1"
 
+        gen = From.polars(
+            DummyDetector(), df=table, do_process=False, constant_fields={"template": "hi"}
+        )
+        assert list(gen)[-1]["template"] == "hi"
+
     def test_frompolars_lazy(self):
         table = pl.LazyFrame({
             "Type": ["A", "B"],
@@ -235,6 +264,12 @@ class TestCaseFrom:
         for field in ["log", "variables", "template", "eventID", "headerVariables"]:
             assert parsed2[field] == schema2[field], field
         assert parsed2["logID"] == "1"
+
+        gen = From.polars(
+            DummyDetector(), df=table, do_process=False, constant_fields={"template": "hi"}
+        )
+        parsed = next(gen)
+        assert parsed["template"] == "hi"
 
     def test_frompolars_rename(self):
         table = pl.DataFrame({

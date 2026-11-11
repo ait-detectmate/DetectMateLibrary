@@ -71,7 +71,7 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
     | `connector_name` | string, null | None | shared | Add a connector to the output schema. |
     | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
-    | `parser` | string | PARSER | shared | Name of the parser used. |
+    | `parser` | string, null | None | shared | Name of the parser used. |
     | `window_size` | integer | 10 | shared | Number of consecutive events used as one training/detection sequence. |
     | `validation_per` | number | 0.2 | shared | Fraction of data held out for validation during (fine)training. |
     | `finetune_epochs` | integer | 2 | shared | Number of epochs used when finetuning during the configuration phase. |
