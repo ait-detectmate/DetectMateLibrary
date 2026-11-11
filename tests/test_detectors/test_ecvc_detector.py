@@ -57,6 +57,17 @@ class TestECVCOP:
 
         assert 0.0 == ECVCOp.calculate_score(y, matrix=input_)
 
+    def test_calculate_score_matches_the_row_loop(self):
+        rng = np.random.default_rng(0)
+        for rows, cols, extra in [(1, 3, 0), (5, 4, 2), (200, 30, 0), (200, 30, 5)]:
+            matrix = rng.integers(0, 4, (rows, cols)).astype(float)
+            for _ in range(20):
+                y = rng.integers(0, 4, cols + extra).astype(float)
+                assert ECVCOp.calculate_score(y, matrix) == _row_loop_score(y, matrix)
+
+    def test_calculate_score_without_rows_is_inf(self):
+        assert ECVCOp.calculate_score(np.array([1., 2.]), matrix=np.zeros((0, 2))) == np.inf
+
     def test_calculate_threshol(self):
         matrix = np.array([
             [1, 0, 2, 1], [1, 2, 1, 0], [0, 1, 4, 0]
@@ -116,6 +127,47 @@ class TestECVC:
         assert ecvc.config.method_type == "ecvc_detector"
         assert ecvc.config.window_size == 3
         assert "ecvc_detector_detector" in str(config)  # caller's dict is left untouched
+
+    def test_window_seen_in_training_skips_the_scan(self, monkeypatch):
+        ecvc = ECVCDetector(config=ECVCDetectorConfig(window_size=3, validation_per=0.))
+        ecvc.train(_window([0, 1, 4]))
+        ecvc.post_train()
+        scored = []
+        monkeypatch.setattr(ECVCOp, "calculate_score", staticmethod(lambda y, matrix: scored.append(y) or 1.))
+
+        assert not ecvc.detect(_window([4, 0, 1]), schemas.DetectorSchema())  # same counts
+        assert scored == []
+        assert ecvc.detect(_window([4, 4, 4]), schemas.DetectorSchema())
+        assert len(scored) == 1
+
+    def test_detect_matches_the_full_scan(self):
+        """The shortcut changes no decision: not for validation vectors, not for eventID -1."""
+        rng = np.random.default_rng(0)
+        windows = [_window(rng.integers(-1, 6, 4).tolist()) for _ in range(300)]
+        ecvc = ECVCDetector(config=ECVCDetectorConfig(window_size=4, validation_per=0.5))
+        for window in windows[:150]:
+            ecvc.train(window)
+        ecvc.post_train()
+        assert ecvc.count_vecs is not None
+
+        for window in windows:
+            y = ECVCOp.build_one_vec(window, ecvc.count_vecs.shape[1])
+            expected = _row_loop_score(y, ecvc.count_vecs) > ecvc.threshold
+            assert ecvc.detect(window, schemas.DetectorSchema()) == expected
+
+
+def _row_loop_score(y, matrix):
+    """calculate_score before vectorising: one row of matrix at a time."""
+    pad = np.zeros((matrix.shape[0], y.shape[0] - matrix.shape[1]))
+    matrix_ = np.concat([matrix, pad], axis=1)
+
+    score = np.inf
+    for m in matrix_:
+        dif = np.sum(np.abs(m - y))
+        div = np.sum(np.max(np.concat([m[np.newaxis], y[np.newaxis]]).T, axis=1))
+        score = score if score < (s := (dif / div)) else s
+
+    return float(score)
 
 
 PIPELINE_CONFIG = {

@@ -31,6 +31,7 @@ from detectmatelibrary.base_alert_aggregation.density_clustering import DensityC
 from detectmatelibrary.alert_aggregation.basic_concat import BasicConcatAggregationConfig
 from detectmatelibrary.alert_aggregation.time_delta import TimeDeltaAggregationConfig
 from detectmatelibrary.alert_aggregation.logid_count import LogIDCountAggegationConfig
+from detectmatelibrary.alert_aggregation.alertbert import AlertBERTAggregationConfig
 from detectmatelibrary.base_detectors import TrackerDetectorConfig
 from detectmatelibrary.base_detectors import VariableDetectorConfig
 from detectmatelibrary.base_detectors import DeepLearningDetectorConfig
@@ -295,6 +296,11 @@ AGGREGATOR_DOCS: list[tuple[CoreConfig, type[CoreConfig], str]] = [
         TimeDeltaAggregationConfig(),
         CoreAlertAggregatorConfig,
         "docs/alert_aggregators/time_delta.md"
+    ),
+    (
+        AlertBERTAggregationConfig(model_id="AlertBERT_aggregator"),
+        CoreAlertAggregatorConfig,
+        "docs/alert_aggregators/alertbert.md"
     )
 ]
 

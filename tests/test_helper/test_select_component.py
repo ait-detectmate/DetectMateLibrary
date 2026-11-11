@@ -25,11 +25,11 @@ class TestPickComponets:
     def test_pick_component_dict(self):
         config = {
             "detectors": {
-                "TestDetector": {"method_type": "random_detector"}
+                "RandomDetector": {"method_type": "random_detector"}
             }
         }
         comp = selc.selectComponent(
-            name="TestDetector", config=config, component_type="detectors"
+            name="RandomDetector", config=config, component_type="detectors"
         )
 
         assert isinstance(comp, RandomDetector)
@@ -37,7 +37,7 @@ class TestPickComponets:
     def test_pick_component_dict_no_name(self):
         config = {
             "detectors": {
-                "TestDetector": {"method_type": "random_detector"}
+                "RandomDetector": {"method_type": "random_detector"}
             }
         }
         comp = selc.selectComponent(config=config, component_type="detectors")
@@ -62,12 +62,12 @@ class TestPickComponets:
         configs = [
             {
                 "detectors": {
-                    "a": {"method_type": "random_detector"}
+                    "RandomDetector": {"method_type": "random_detector"}
                 }
             },
             RandomDetectorConfig(),
         ]
-        names = ["a", "b"]
+        names = ["RandomDetector", "RandomDetector"]
 
         for component in selc.selectComponents(
             configs=configs, names=names, component_type="detectors"
@@ -78,7 +78,7 @@ class TestPickComponets:
         configs = [
             {
                 "detectors": {
-                    "a": {"method_type": "random_detector"}
+                    "RandomDetector": {"method_type": "random_detector"}
                 }
             },
             RandomDetectorConfig(),

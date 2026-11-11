@@ -25,8 +25,9 @@
 from __future__ import annotations
 
 from collections import OrderedDict
+import random
 import re
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 import numpy as np
 from scipy.sparse import spmatrix
@@ -35,7 +36,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.cluster import DBSCAN
 from .sample import group_samples_clustering, dpp_sample
 from .util import not_varibility
-import random
+
+
 class Cluster:
     def __init__(self) -> None:
         self.logs: List[str] = []
@@ -43,7 +45,6 @@ class Cluster:
         self.indexs: List[int] = []
         self.size: int = 0
         self.sample_log: str = ''
-        
 
     def append_log(self, log: str, index: int) -> None:
         self.logs.append(log)
@@ -51,7 +52,8 @@ class Cluster:
         self.size += 1
 
     def varaible_sampling(self, batch_size: int = 5, sample_method: str = "dpp") -> None:
-        self.batch_logs = list(OrderedDict.fromkeys(self.logs)) # remove duplicates
+        self.batch_logs = list(OrderedDict.fromkeys(self.logs))  # remove duplicates
+
         def _replacer(match: re.Match[str]) -> str:
             char = match.group()
             return '0' if char.isdigit() else 'a'
@@ -68,13 +70,13 @@ class Cluster:
 
         # sample
         if len(self.batch_logs) <= batch_size:
-            result = range(len(self.batch_logs))
+            result = list(range(len(self.batch_logs)))
         elif sample_method == "dpp":
             similarity_matrix = cosine_similarity(tfidf_matrix)
             result = dpp_sample(similarity_matrix, batch_size)
         elif sample_method == "random":
             random.seed(0)
-            result = random.sample(range(0, len(self.batch_logs)), batch_size)
+            result = random.sample(range(0, len(self.batch_logs)), batch_size)  # nosec B311
         elif sample_method == "similar":
             result = group_samples_clustering(tfidf_matrix, batch_size)[0]
         else:
@@ -82,14 +84,14 @@ class Cluster:
         self.batch_logs = [self.batch_logs[i] for i in result]
 
     def batching(self, batch_size: int = 10, min_size: int = 3, sample_method: str = "dpp") -> None:
-        self.batch_logs = list(OrderedDict.fromkeys(self.logs)) # remove duplicates
+        self.batch_logs = list(OrderedDict.fromkeys(self.logs))  # remove duplicates
         if len(self.batch_logs) > batch_size:
             self.sample(batch_size, sample_method)
-        if type(self.batch_logs) == str:
-            self.batch_logs = [self.batch_logs]
         self.sample_log = self.batch_logs[0]
         if not_varibility(self.batch_logs):
-            self.batch_logs = self.batch_logs[:min_size] if len(self.batch_logs) > min_size else self.batch_logs
+            self.batch_logs = (
+                self.batch_logs[:min_size] if len(self.batch_logs) > min_size else self.batch_logs
+            )
 
     def sample(self, batch_size: int, sample_method: str) -> None:
         # vetorize logs
@@ -103,13 +105,14 @@ class Cluster:
             result = dpp_sample(similarity_matrix, batch_size)
         elif sample_method == "random":
             random.seed(0)
-            result = random.sample(range(0, len(self.batch_logs)), batch_size)
+            result = random.sample(range(0, len(self.batch_logs)), batch_size)  # nosec B311
         elif sample_method == "similar":
             result = group_samples_clustering(tfidf_matrix, batch_size)[0]
         else:
             raise ValueError("Invalid sample method")
         self.batch_logs = [self.batch_logs[i] for i in result]
         return
+
 
 def tokenize(log_content: str, tokenize_pattern: str = r'[ ,|]', removeDight: bool = True) -> List[str]:
     words = re.split(tokenize_pattern, log_content)
@@ -120,8 +123,8 @@ def tokenize(log_content: str, tokenize_pattern: str = r'[ ,|]', removeDight: bo
             if len(ws) <= 2:
                 new_words.append(ws[0])
             else:
-                # might be some parameters of a URL 
-                pass 
+                # might be some parameters of a URL
+                pass
 
         elif removeDight and re.search(r'\d', word):
             pass
@@ -147,7 +150,7 @@ def cluster(vectorized_logs: spmatrix, eps: float = 0.5) -> Tuple[np.ndarray, in
     labels = cluster.labels_
     cluster_nums = max(labels) + 1
     return labels, cluster_nums
-    
+
 
 def reassign_clusters(
     labels: np.ndarray, cluster_nums: int, tokenized_logs: List[List[str]]
@@ -165,8 +168,9 @@ def reassign_clusters(
             cluster_nums += 1
     return labels, cluster_nums
 
+
 def process_new_cluster(
-    new_cluster: Cluster, clusters: List[Optional[Cluster]], batch_size: int, min_size: int = 3
+    new_cluster: Cluster, clusters: List[Cluster], batch_size: int, min_size: int = 3
 ) -> int:
     if new_cluster.size != 0:
         new_cluster.batching(batch_size, min_size)

@@ -29,13 +29,9 @@ import heapq
 from collections import Counter
 from typing import Any, Dict, FrozenSet, List, Optional, Tuple
 
-import time
 import calendar
-import random
-import os
 from sklearn.cluster import MeanShift
 from sklearn.feature_extraction.text import TfidfVectorizer
-
 
 
 class Vocab:
@@ -56,13 +52,13 @@ class Vocab:
           + list(calendar.month_name) + list(calendar.month_abbr)
         self.token_counter: Counter[str] = Counter()
         self.stopwords: FrozenSet[str] = frozenset(set(stopwords))
-        #print(self.__filter_stopwords(['LDAP', 'Built', 'with']))
+        # print(self.__filter_stopwords(['LDAP', 'Built', 'with']))
 
     def build(self, sequences: List[List[str]]) -> None:
         print("Build vocab with examples: ", len(sequences))
         for sequence in sequences:
             sequence = self.__filter_stopwords(sequence)
-            #print(sequence)
+            # print(sequence)
             self.update(sequence)
 
     def update(self, sequence: List[str]) -> None:
@@ -100,16 +96,13 @@ def clean(s: str) -> Tuple[str, str]:
 def h_clustering(
     contents: Dict[int, Tuple[str, str]],
 ) -> Tuple[Dict[Tuple[str, ...], Dict[str, Any]], int, int]:
-    t1 = time.time()
     vocab = Vocab()
     vocab.build([v[0].split() for v in contents.values()])
-    t2 = time.time()
-    # print("Build time: ", t2 - t1)
 
     # hierichical clustering
-    hierichical_clusters = {}
+    hierichical_clusters: Dict[Tuple[str, ...], Dict[str, Any]] = {}
     for k, v in contents.items():
-        frequent_token = tuple(sorted(vocab.topk_tokens(v[0].split(), 3))) 
+        frequent_token = tuple(sorted(vocab.topk_tokens(v[0].split(), 3)))
         log_format = v[1]
         if frequent_token not in hierichical_clusters:
             hierichical_clusters[frequent_token] = {"size": 1, "cluster": {log_format: [k]}}
@@ -122,8 +115,8 @@ def h_clustering(
     print("Number of coarse-grained clusters: ", len(hierichical_clusters.keys()))
     total_coarse_clusters = len(hierichical_clusters.keys())
     total_fine_clusters = 0
-    for k, v in hierichical_clusters.items():
-        total_fine_clusters += len(hierichical_clusters[k]["cluster"])
+    for cluster_info in hierichical_clusters.values():
+        total_fine_clusters += len(cluster_info["cluster"])
     print("Number of fine-grained clusters: ", total_fine_clusters)
     return hierichical_clusters, total_coarse_clusters, total_fine_clusters
 
@@ -152,6 +145,7 @@ def assign_labels(
 
     return labels
 
+
 def hierichical_clustering(
     logs: List[str], granularity: str = "fine"
 ) -> Tuple[List[int], int]:
@@ -167,12 +161,13 @@ def hierichical_clustering(
     else:
         return labels, b
 
+
 def replace_numbers_with_zero(text: str) -> str:
     return re.sub(r'\d+(\.\d+)?', '0', text)
 
 
 def meanshift_clustering(logs: List[str]) -> Tuple[List[int], int]:
-    
+
     text_column = [replace_numbers_with_zero(log) for log in logs]
 
     # Text preprocessing and vectorization

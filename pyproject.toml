@@ -4,7 +4,7 @@ description = "DetectMate Library for log processing components"
 readme = {file = "README.md", content-type = "text/markdown"}
 dynamic = ["version"]
 authors = [{"name" = "André García Gómez"}, {"name" = "Viktor Beck"}, {"name" = "Thorina Boenke"},
-    {"name" = "Wolfgang Hotwagner"}, {"name" = "Anna Erdi"}, {"name" = "Ernst Leierzopf"}]
+    {"name" = "Wolfgang Hotwagner"}, {"name" = "Anna Erdi"}, {"name" = "Ernst Leierzopf"}, {"name" = "Lukas Karner"}]
 license = "EUPL-1.2"
 requires-python = ">=3.12"
 dependencies = [
@@ -20,6 +20,10 @@ dependencies = [
     "jax>=0.11.0",
     "flax>=0.12.8",
     "optax>=0.2.8",
+    "polars>=1.40.1",
+    "polars[rtcompat]>=1.38.1",
+    "pymongo>=4.19.0",
+    "redis[hiredis]>=8.1.0",
 ]
 
 [tool.pytest.ini_options]
@@ -46,18 +50,16 @@ llm = [
     "tiktoken>=0.12.0",
     "pandas>=2.3.2",
 ]
-dataframes = [
-    "pandas>=2.3.2",
-    "polars>=1.40.1",
-]
-polars-rtcompat = [
-    "polars[rtcompat]>=1.38.1",
+alertbert = [
+    "torch",
+    "tensordict",
+    "scikit-learn",
+    "scipy",
 ]
 # install all optional extras at once:  uv pip install detectmatelibrary[full]
 full = [
     "detectmatelibrary[llm]",
-    "detectmatelibrary[dataframes]",
-    "detectmatelibrary[polars-rtcompat]",
+    "detectmatelibrary[alertbert]",
 ]
 
 [tool.setuptools.dynamic]
@@ -68,7 +70,7 @@ Homepage = "https://ait-detectmate.github.io/DetectMateLibrary/latest"
 Repository = "https://github.com/ait-detectmate/DetectMateLibrary"
 
 [build-system]
-requires = ["setuptools>=82.0.1", "wheel"]
+requires = ["setuptools>=84.1.0", "wheel", "packaging>=24.2"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
@@ -78,7 +80,7 @@ where = ["src"]
 mate = "detectmatelibrary.tools.workspace.create_workspace:main"
 
 [[tool.mypy.overrides]]
-module = "detectmatelibrary.schemas.schemas_pb2"
+module = "detectmatelibrary.schemas.protobuf.schemas_pb2"
 ignore_errors = true
 
 [tool.setuptools]
@@ -89,3 +91,13 @@ license-files = ["LICENSE.md"]
 detectmatelibrary = [
     "tools/workspace/templates/data/*.json"
 ]
+
+[tool.uv.sources]
+torch = [
+  { index = "torch-cpu", extra = "alertbert" },
+]
+
+[[tool.uv.index]]
+name = "torch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true

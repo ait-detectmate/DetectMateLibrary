@@ -44,16 +44,18 @@ class ECVCOp:
 
     @staticmethod
     def calculate_score(y: np.ndarray, matrix: np.ndarray) -> float:
-        pad = np.zeros((matrix.shape[0], y.shape[0] - matrix.shape[1]))
-        matrix_ = np.concat([matrix, pad], axis=1)
+        """Lowest of sum |m - y| / sum max(m, y) over the rows m of matrix."""
+        if y.shape[0] != matrix.shape[1]:
+            matrix = np.pad(matrix, ((0, 0), (0, y.shape[0] - matrix.shape[1])))
 
-        score = np.inf
-        for m in matrix_:
-            dif = np.sum(np.abs(m - y))
-            div = np.sum(np.max(np.concat([m[np.newaxis], y[np.newaxis]]).T, axis=1))
-            score = score if score < (s := (dif / div)) else s
+        dif = np.abs(matrix - y).sum(axis=1)
+        div = np.maximum(matrix, y).sum(axis=1)
+        return float(np.min(dif / div, initial=np.inf))
 
-        return float(score)
+    @staticmethod
+    def vec_key(vec: np.ndarray) -> bytes:
+        """Hashable key of a count vector, blind to trailing zeros."""
+        return bytes(np.trim_zeros(vec, "b").tobytes())
 
     @staticmethod
     def threshold_cal(y_s: np.ndarray, matrix: np.ndarray, method: str) -> float:
@@ -116,6 +118,7 @@ class ECVCDetectorConfig(TrackerDetectorConfig):
 class ECVCDetector(TrackerDetector):
     # Class-level defaults: _sync_from_state runs inside TrackerDetector.__init__.
     count_vecs: np.ndarray | None = None
+    known_vecs: frozenset[bytes] = frozenset()  # vec_key of each row of count_vecs
     threshold: float = 0.0
 
     def __init__(
@@ -157,6 +160,7 @@ class ECVCDetector(TrackerDetector):
         matrix = ECVCOp.init_count_matrix(seqs)[np.random.permutation(len(seqs))]
 
         self.count_vecs, val = matrix[:train_idx], matrix[train_idx:]
+        self.known_vecs = frozenset(ECVCOp.vec_key(vec) for vec in self.count_vecs)
         if len(val) > 0:
             self.threshold = ECVCOp.threshold_cal(
                 y_s=val, matrix=self.count_vecs, method=self.config.threshold_method
@@ -172,9 +176,12 @@ class ECVCDetector(TrackerDetector):
         if self.count_vecs is None:
             return False
 
-        score = ECVCOp.calculate_score(ECVCOp.build_one_vec(
-            input_, self.count_vecs.shape[1]), matrix=self.count_vecs
-        )
+        y = ECVCOp.build_one_vec(input_, self.count_vecs.shape[1])
+        # A window equal to a learned vector scores 0, which never exceeds the threshold.
+        if ECVCOp.vec_key(y) in self.known_vecs:
+            return False
+
+        score = ECVCOp.calculate_score(y, matrix=self.count_vecs)
         if score > self.threshold:
             output_["score"] = score
             output_["description"] = "ECVC found an anominal sequence"

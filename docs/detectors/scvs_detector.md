@@ -1,6 +1,24 @@
-# SCVS Detector
+# SCVS Detector [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/detectors/scvs_detector.py)]
 
 The Sequence Count Vector Set Detector (SCVS) detects anomalies by finding count vectors that were not present in the training dataset.
+
+
+### Count Vector
+
+To build a count vector, we first collect the event IDs and arrange them into sequences. Each fixed-size sequence is then processed to produce a count vector that records how many times each event ID occurs in total. If an event ID does not appear, its count is set to 0.
+
+
+![Image](../img/CountVector.svg)
+
+
+The count vector cv is defined as:
+
+\[
+cv_i = \sum_{j=1}^{n} \mathbf{1}(x_j = event\_id_i)
+\]
+
+where \(event\_id_i\) is the event ID assigned to position \(i\) of the vector, and \( x_j\) is the event ID at position \(j\) of the sequence.
+
 
 ## In/out
 
@@ -18,8 +36,6 @@ Input and output schemas in the pipeline
 | ✅ | ❌ | ❌ | ✅  |
 
 ## Description
-
-A count vector is formed by counting the number of appearances of each event ID in a sequence of a specific window size.
 
 Count vectors learned during training are stored via [persistency](../auxiliar/persistency.md), so a trained model can be saved and restored with a `persist:` block. A count vector is only comparable within the window it was counted over, so restoring state at a different `window_size` logs a warning, because the restored vectors cannot match and every window would alert.
 
@@ -68,6 +84,8 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
     | `train_buffer_max_records` | integer | 100000 | shared | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
+    | `connector_name` | string, null | None | shared | Add a connector to the output schema. |
+    | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
     | `parser` | string | PARSER | shared | Name of the parser used. |
     | `allow_fed` | boolean | False | shared | Builds the stores needed to take part in federation. |
 <!-- End arguments -->
