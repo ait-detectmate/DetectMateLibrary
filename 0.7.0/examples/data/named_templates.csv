@@ -1,0 +1,3 @@
+EventId,EventTemplate
+login_ok,Accepted password for <user> from <ip> port <port>
+login_failure,Failed password for <user> from <ip> port <port>
