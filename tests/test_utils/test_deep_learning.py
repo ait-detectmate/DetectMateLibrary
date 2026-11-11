@@ -209,7 +209,31 @@ class TestDeeplog:
         assert deeplog_.config != config
 
 
+def logbert_detection_draws(epochs: int) -> list[int]:
+    """Detection mask draws for three windows after ``epochs`` epochs."""
+    config = {
+        "Model": {"hidden": 4, "n_layers": 1, "num_heads": 1, "dropout": 0.0, "max_len": 10},
+        "Train": {"batch_size": 8, "learning_rate": 0.01, "epochs": epochs, "patience": 10},
+    }
+    model = logbert.LogBert(config=config)
+    model.train(random_windows(60, 5), var_per=0.5)
+    scorer, draws = model._scorer, []
+
+    def spy(params: dict[str, Any], x: jnp.ndarray, i: int, top_k: int) -> jnp.ndarray:
+        draws.append(int(i))
+        return scorer(params, x, i, top_k)
+
+    model._scorer = spy
+    for seq in [(0, 1, 2, 3, 4), (1, 2, 3, 4, 5), (2, 3, 4, 5, 0)]:
+        model.check_anomaly(seq, 1)
+    return draws
+
+
 class TestLogBert:
+    def test_detection_masks_do_not_depend_on_training_length(self) -> None:
+        # Otherwise where early stopping lands, which can differ across CPUs, changes the alerts.
+        assert logbert_detection_draws(epochs=1) == logbert_detection_draws(epochs=3) == [0, 1, 2]
+
     def test_validation_in_batches_matches_one_pass(self, monkeypatch: pytest.MonkeyPatch) -> None:
         config = {
             "Model": {"hidden": 4, "n_layers": 1, "num_heads": 1, "dropout": 0.0, "max_len": 10},
@@ -277,6 +301,7 @@ class TestLogBert:
 
     @pytest.mark.ignored
     def test_logbert_train(self) -> None:
+        # mask_per 1.0 masks every event, so the anomalous one is always checked.
         config = {
             "Model": {
                 "hidden": 4,
@@ -289,6 +314,7 @@ class TestLogBert:
                 "batch_size": 3,
                 "learning_rate": 0.01,
                 "epochs": 2,
+                "mask_per": 1.0,
             },
         }
         logbert_ = logbert.LogBert(config=config)
