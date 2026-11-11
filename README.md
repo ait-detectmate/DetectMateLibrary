@@ -1,7 +1,7 @@
 
 # DetectMateLibrary
 
-![UML](docs/img/logo.png)
+![UML](docs/img/logo.svg)
 
 DetectMate is a flexible, component-based library for parsing and log anomaly detection.
 

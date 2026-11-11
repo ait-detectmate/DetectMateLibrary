@@ -31,10 +31,11 @@ from typing import Dict, List, Tuple
 import pandas as pd
 import tiktoken
 
+
 def data_loader(file_name: str, dataset_format: str, file_format: str) -> List[str]:
     if file_format == 'structured':
         df = pd.read_csv(file_name)
-        contents = df['Content'].tolist()
+        contents: List[str] = df['Content'].tolist()
     elif file_format == 'raw':
         with open(file_name, 'r') as f:
             log_raws = f.readlines()
@@ -84,54 +85,53 @@ def count_message_tokens(messages: List[Dict[str, str]], model_name: str = "gpt-
     return token_count
 
 
-def generate_logformat_regex(logformat: str) -> Tuple[List[str], str]:
-        """ 
-        Function to generate regular expression to split log messages
-        Args:
-            logformat: log format, a string
-        Returns:
-            headers: headers of log messages
-            regex: regular expression to split log messages
-        """
-        headers = []
-        splitters = re.split(r'(<[^<>]+>)', logformat)
-        regex = ''
-        for k in range(len(splitters)):
-            if k % 2 == 0:
-                splitter = re.sub(' +', r'\\s+', splitters[k])
-                regex += splitter
-            else:
-                header = splitters[k].strip('<').strip('>')
-                regex += '(?P<%s>.*?)' % header
-                headers.append(header)
-        pattern = '^' + regex + '$'
-        return headers, pattern
+def generate_logformat_regex(logformat: str) -> Tuple[List[str], re.Pattern[str]]:
+    """
+    Function to generate regular expression to split log messages
+    Args:
+        logformat: log format, a string
+    Returns:
+        headers: headers of log messages
+        regex: regular expression to split log messages
+    """
+    headers = []
+    splitters = re.split(r'(<[^<>]+>)', logformat)
+    regex = ''
+    for k in range(len(splitters)):
+        if k % 2 == 0:
+            splitter = re.sub(' +', r'\\s+', splitters[k])
+            regex += splitter
+        else:
+            header = splitters[k].strip('<').strip('>')
+            regex += '(?P<%s>.*?)' % header
+            headers.append(header)
+    pattern = re.compile('^' + regex + '$')
+    return headers, pattern
 
 
-def log_to_dataframe(log_file: str, regex: str, headers: List[str], size: int) -> List[str]:
-        """ 
-        Function to transform log file to contents
-        Args:
-            log_file: log file path
-            regex: regular expression to split log messages
-            headers: headers of log messages
-            size: number of log messages to read
-        Returns:
-            log_messages: list of log contents
-        """
-        log_contents = []
-        with open(log_file, 'r') as file:
-            for line in [next(file) for _ in range(size)]:
-                try:
-                    if not headers:  # If no headers are defined
-                        log_contents.append(line.strip())
-                        continue
-                    match = regex.search(line.strip())
-                    message = [match.group(header) for header in headers]
-                    log_contents.append(message[-1])
-                except Exception as e:
-                    pass
-        return log_contents
+def log_to_dataframe(log_file: str, regex: re.Pattern[str], headers: List[str], size: int) -> List[str]:
+    """
+    Function to transform log file to contents
+    Args:
+        log_file: log file path
+        regex: regular expression to split log messages
+        headers: headers of log messages
+        size: number of log messages to read
+    Returns:
+        log_messages: list of log contents
+    """
+    log_contents = []
+    with open(log_file, 'r') as file:
+        for line in [next(file) for _ in range(size)]:
+            if not headers:  # If no headers are defined
+                log_contents.append(line.strip())
+                continue
+            match = regex.search(line.strip())
+            if match is None:  # skip lines that do not fit the log format
+                continue
+            message = [match.group(header) for header in headers]
+            log_contents.append(message[-1])
+    return log_contents
 
 
 def not_varibility(logs: List[str]) -> bool:
@@ -140,10 +140,12 @@ def not_varibility(logs: List[str]) -> bool:
         return True
     return False
 
+
 def verify_template(template: str) -> bool:
     template = template.replace("<*>", "")
     template = template.replace(" ", "")
     return any(char not in string.punctuation for char in template)
+
 
 if __name__ == "__main__":
     import json
@@ -153,7 +155,10 @@ if __name__ == "__main__":
     with open('/root/LogBatcher/messages.json', 'r') as file:
         messages_dict = json.load(file)
     data = []
-    datasets = ['BGL', 'HDFS', 'OpenStack', 'OpenSSH', 'HPC', 'Zookeeper', 'Spark', 'Proxifier', 'HealthApp', 'Mac', 'Hadoop', 'Apache', 'Linux', 'Thunderbird']
+    datasets = [
+        'BGL', 'HDFS', 'OpenStack', 'OpenSSH', 'HPC', 'Zookeeper', 'Spark', 'Proxifier',
+        'HealthApp', 'Mac', 'Hadoop', 'Apache', 'Linux', 'Thunderbird',
+    ]
     all = 0
     for dataset in datasets:
         messages = messages_dict[dataset]

@@ -26,20 +26,21 @@ from __future__ import annotations
 
 from hashlib import sha256
 import re
+import signal
 import sys
 from types import FrameType
 from typing import Any, Dict, List, Match, Optional, Tuple
 
 sys.setrecursionlimit(1000000)
 
-import re
-import signal
 
 class TimeoutException(Exception):
     pass
 
+
 def timeout_handler(_signum: int, _frame: Optional[FrameType]) -> None:
     raise TimeoutException()
+
 
 def safe_search(pattern: str, string: str, timeout: int = 1) -> Optional[Match[str]]:
     signal.signal(signal.SIGALRM, timeout_handler)
@@ -52,6 +53,7 @@ def safe_search(pattern: str, string: str, timeout: int = 1) -> Optional[Match[s
         signal.alarm(0)
     return result
 
+
 # _PATTERN = re.compile(r'(?:<\*>|\b\d+\b|[\s\/,:._-]+)')
 # def old_standardize(log: str) -> str:
 #     return _PATTERN.sub('', log)
@@ -62,12 +64,14 @@ _PATTERN2 = re.compile(r'\d')               # digit
 _PATTERN3 = re.compile(r'[\/:,._-]+')        # : , . _ -
 _PATTERN4 = re.compile(r'\s')           # space
 
+
 def standardize(input_string: str) -> str:
     result = _PATTERN1.sub('', input_string)
     result = _PATTERN2.sub('', result)
     result = _PATTERN3.sub('', result)
     result = _PATTERN4.sub('', result)
     return result
+
 
 def print_tree(move_tree: Dict[str, Any], indent: str = ' ') -> None:
     for key, value in move_tree.items():
@@ -108,12 +112,12 @@ class ParsingCache:
         refer_log: str = '',
     ) -> Tuple[int, Optional[str], Optional[bool]]:
 
-            # if "<*>" not in event_template:
-            #     self.template_tree["$CONSTANT_TEMPLATE$"][event_template] = event_template
-            #     continue
-            # original_template = event_template
-            # event_template = self._preprocess_template(event_template)
-            #print("event template after preprocess: ", event_template)
+        # if "<*>" not in event_template:
+        #     self.template_tree["$CONSTANT_TEMPLATE$"][event_template] = event_template
+        #     continue
+        # original_template = event_template
+        # event_template = self._preprocess_template(event_template)
+        # print("event template after preprocess: ", event_template)
         if relevant_templates is None:
             relevant_templates = []
         template_tokens = message_split(event_template)
@@ -122,19 +126,19 @@ class ParsingCache:
         if insert or len(relevant_templates) == 0:
             id = self.insert(event_template, template_tokens, len(self.template_list), refer_log)
             self.template_list.append(event_template)
-            return id,None,None
+            return id, None, None
         # print("relevant templates: ", relevant_templates)
-        max_similarity = 0
+        max_similarity = 0.0
         similar_template = None
         for rt in relevant_templates:
             splited_template1, splited_template2 = rt.split(), event_template.split()
             if len(splited_template1) != len(splited_template2):
-                continue 
+                continue
             similarity = lcs_similarity(splited_template1, splited_template2)
             if similarity > max_similarity:
                 max_similarity = similarity
                 similar_template = rt
-        if max_similarity > 0.8:
+        if similar_template is not None and max_similarity > 0.8:
             success, id = self.modify(similar_template, event_template, refer_log)
             if not success:
                 id = self.insert(event_template, template_tokens, len(self.template_list), refer_log)
@@ -143,10 +147,12 @@ class ParsingCache:
         else:
             id = self.insert(event_template, template_tokens, len(self.template_list), refer_log)
             self.template_list.append(event_template)
-            return id,None,None
-            #print("template tokens: ", template_tokens)
-            
-    def insert(self, event_template: str, template_tokens: List[str], template_id: int, refer_log: str = '') -> int:
+            return id, None, None
+            # print("template tokens: ", template_tokens)
+
+    def insert(
+        self, event_template: str, template_tokens: List[str], template_id: int, refer_log: str = ''
+    ) -> int:
 
         standardized = standardize(event_template)
         hash_key = sha256(standardized.encode()).hexdigest()
@@ -175,43 +181,41 @@ class ParsingCache:
         return template_id
 
     def modify(self, similar_template: str, event_template: str, refer_log: str) -> Tuple[bool, int]:
-        merged_template = []
+        merged_tokens = []
         similar_tokens = similar_template.split()
         event_tokens = event_template.split()
         i = 0
         for token in similar_tokens:
             if token == event_tokens[i]:
-                merged_template.append(token)
+                merged_tokens.append(token)
             else:
-                merged_template.append("<*>")
+                merged_tokens.append("<*>")
             i += 1
-        merged_template = " ".join(merged_template)
+        merged_template = " ".join(merged_tokens)
         success, old_ids = self.delete(similar_template)
         if not success:
             return False, -1
         self.insert(merged_template, message_split(merged_template), old_ids, refer_log)
         self.template_list[old_ids] = merged_template
         return True, old_ids
-        
-    
-    def delete(self, event_template: str) -> Tuple[bool, int | List[Any]]:
+
+    def delete(self, event_template: str) -> Tuple[bool, int]:
         template_tokens = message_split(event_template)
         start_token = template_tokens[0]
         if start_token not in self.template_tree:
-            return False, []
+            return False, -1
         move_tree = self.template_tree[start_token]
 
         tidx = 1
         while tidx < len(template_tokens):
             token = template_tokens[tidx]
             if token not in move_tree:
-                return False, []
+                return False, -1
             move_tree = move_tree[token]
             tidx += 1
-        old_id = move_tree["".join(template_tokens)][3]
+        old_id: int = move_tree["".join(template_tokens)][3]
         del move_tree["".join(template_tokens)]
         return True, old_id
-
 
     def match_event(self, log: str) -> Tuple[str, Any, List[str]]:
         standardized = standardize(log)
@@ -227,7 +231,6 @@ class ParsingCache:
             hash_key = sha256(standardized.encode()).hexdigest()
             self.hashing_cache[hash_key] = (standardized, results[0], results[1])
         return results
-
 
     def _preprocess_template(self, template: str) -> str:
         return template
@@ -254,25 +257,26 @@ def message_split(message: str) -> List[str]:
     tokens = re.split(splitter_regex, message)
 
     tokens = list(filter(lambda x: x != "", tokens))
-    
-    #print("tokens: ", tokens)
+
+    # print("tokens: ", tokens)
     tokens = post_process_tokens(tokens, punc)
 
     tokens = [
         token.strip()
         for token in tokens
-        if token != "" and token != ' ' 
+        if token != "" and token != ' '  # nosec B105
     ]
     tokens = [
         token
         for idx, token in enumerate(tokens)
-        if not (token == "<*>" and idx > 0 and tokens[idx - 1] == "<*>")
+        if not (token == "<*>" and idx > 0 and tokens[idx - 1] == "<*>")  # nosec B105
     ]
     return tokens
 
 
-
-def tree_match(match_tree: Dict[str, Any], template_list: List[str], log_content: str) -> Tuple[str, Any, List[str]]:
+def tree_match(
+    match_tree: Dict[str, Any], template_list: List[str], log_content: str
+) -> Tuple[str, Any, List[str]]:
     log_tokens = message_split(log_content)
     template, template_id, refer_log, relevant_templates = match_template(match_tree, log_tokens)
     # length matters
@@ -284,22 +288,24 @@ def tree_match(match_tree: Dict[str, Any], template_list: List[str], log_content
             return (relevant_templates[0], template_list.index(relevant_templates[0]), relevant_templates)
     return ("NoMatch", "NoMatch", relevant_templates)
 
+
 def match_log(log: str, template: str) -> bool:
     pattern_parts = template.split("<*>")
     pattern_parts_escaped = [re.escape(part) for part in pattern_parts]
     regex_pattern = "(.*?)".join(pattern_parts_escaped)
-    regex = "^" + regex_pattern + "$"  
+    regex = "^" + regex_pattern + "$"
     matches = safe_search(regex, log)
 
-    if matches == None:
+    if matches is None:
         return False
     else:
-        return True #all(len(var.split()) == 1 for var in matches.groups())
+        return True  # all(len(var.split()) == 1 for var in matches.groups())
+
 
 def match_template(
     match_tree: Dict[str, Any], log_tokens: List[str]
 ) -> Tuple[Any, Any, str, List[str]]:
-    results = []
+    results: List[Tuple[Any, ...]] = []
     find_results = find_template(match_tree, log_tokens, results, [], 1)
     relevant_templates = find_results[1]
     if len(results) > 1:
@@ -333,34 +339,34 @@ def find_template(
     parameter_list: List[str],
     depth: int,
 ) -> Tuple[bool, List[str]]:
-    flag = 0 # no futher find
+    flag = 0  # no futher find
     if len(log_tokens) == 0:
         for key, value in move_tree.items():
             if isinstance(value, tuple):
                 result.append((key, value, tuple(parameter_list)))
-                flag = 2 # match
+                flag = 2  # match
         if "<*>" in move_tree:
             parameter_list.append("")
             move_tree = move_tree["<*>"]
             if isinstance(move_tree, tuple):
                 result.append(("<*>", None, None))
-                flag = 2 # match
+                flag = 2  # match
             else:
                 for key, value in move_tree.items():
                     if isinstance(value, tuple):
                         result.append((key, value, tuple(parameter_list)))
-                        flag = 2 # match
+                        flag = 2  # match
         # return (True, [])
     else:
         token = log_tokens[0]
 
-        relevant_templates = []
+        relevant_templates: List[str] = []
         if token in move_tree:
-            find_result = find_template(move_tree[token], log_tokens[1:], result, parameter_list,depth+1)
+            find_result = find_template(move_tree[token], log_tokens[1:], result, parameter_list, depth + 1)
             if find_result[0]:
-                flag = 2 # match
+                flag = 2  # match
             elif flag != 2:
-                flag = 1 # futher find but no match
+                flag = 1  # futher find but no match
                 relevant_templates = relevant_templates + find_result[1]
         if "<*>" in move_tree:
             if isinstance(move_tree["<*>"], dict):
@@ -380,12 +386,12 @@ def find_template(
                         parameter_list.append("".join(log_tokens[0:idx]))
                         # print("End at", idx, parameter_list)
                         find_result = find_template(
-                            move_tree["<*>"], log_tokens[idx:], result, parameter_list,depth+1
+                            move_tree["<*>"], log_tokens[idx:], result, parameter_list, depth + 1
                         )
                         if find_result[0]:
-                            flag = 2 # match
+                            flag = 2  # match
                         elif flag != 2:
-                            flag = 1 # futher find but no match
+                            flag = 1  # futher find but no match
                             relevant_templates = relevant_templates + find_result[1]
                         if parameter_list:
                             parameter_list.pop()
@@ -394,10 +400,10 @@ def find_template(
                 if idx == len(log_tokens):
                     parameter_list.append("".join(log_tokens[0:idx]))
                     find_result = find_template(
-                        move_tree["<*>"], log_tokens[idx + 1 :], result, parameter_list,depth+1
+                        move_tree["<*>"], log_tokens[idx + 1:], result, parameter_list, depth + 1
                     )
                     if find_result[0]:
-                        flag = 2 # match
+                        flag = 2  # match
                     else:
                         if flag != 2:
                             flag = 1
@@ -408,9 +414,9 @@ def find_template(
         return (True, [])
     if flag == 1:
         return (False, relevant_templates)
-    if flag == 0:
-        # print(log_tokens, flag)
-        if depth >= 2:
-            return (False, get_all_templates(move_tree))
-        else:
-            return (False, [])
+    # flag == 0
+    # print(log_tokens, flag)
+    if depth >= 2:
+        return (False, get_all_templates(move_tree))
+    else:
+        return (False, [])
