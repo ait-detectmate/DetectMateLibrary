@@ -69,6 +69,6 @@ The process flow is made up of the following stages:
 
 Each Core* base class exposes a small, stable API that implementations must implement or may override.
 
-```python
+```python title="Component methods"
 --8<-- "docs/examples/others/components_methods.py:read"
 ```
