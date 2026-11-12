@@ -159,7 +159,7 @@ valid configuration. The "Configuration arguments" tables are generated from the
 config classes. After adding or changing a config field, regenerate them from the
 repo root:
 
-```console title="Update dos"
+```console title="Update docs"
 uv run python docs/examples/config/update.py
 ```
 
