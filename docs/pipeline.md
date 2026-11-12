@@ -11,8 +11,18 @@ If `do_parsing=False`, the pipeline will take already-parsed logs as input, and 
 
 The pipeline allows you to pass either a Config class instance or the dictionary used to initialize that Config class as arguments to the various components. For the detectors list, both methods can be combined, as shown in the example.
 
-### Example
+### Example 1
+
+Run a pipeline with only one log source.
 
 ```python
 --8<-- "docs/examples/others/pipeline.py:example_1"
+```
+
+### Example 2
+
+Run a pipeline with multiple log sources.
+
+```python
+--8<-- "docs/examples/others/pipeline.py:example_2"
 ```

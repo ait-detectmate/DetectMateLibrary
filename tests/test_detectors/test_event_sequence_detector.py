@@ -55,7 +55,7 @@ def _make_schema(event_id, template="test template", log_id="1", log_format_vari
         "variables": ["adsasd", "asdasd"],
         "logID": log_id,
         "parsedLogID": log_id,
-        "parserID": "test_parser",
+        "parserID": "MySequenceParser",
         "log": "test log message",
         "headerVariables": log_format_variables or {"level": "INFO"}
     })

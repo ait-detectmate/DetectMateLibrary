@@ -4,28 +4,38 @@ from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 from detectmatelibrary.common.core import CoreComponent, CoreConfig
 from detectmatelibrary.utils.aux import get_timestamp
-from detectmatelibrary import schemas
+from detectmatelibrary import schemas as sc
 
-from typing import Any, cast
 from pydantic import model_validator
-import re
 from pydantic import Field
+
+from typing_extensions import override, Optional
+from typing import Any
+import re
+
+
+def define_parser_id(name: str, log_source: Optional[str]) -> str:
+    return name if log_source is None else f"{name}_from_{log_source}"
 
 
 class CoreParserConfig(CoreConfig):
     component_type: str = Field(default="parsers", description="<$IGNORE$>")
     method_type: str = Field(default="core_parser", description="<$IGNORE$>")
 
-    log_format: str | None = Field(
+    log_format: Optional[str] = Field(
         default=None,
         description=("fitting description yet to find"),
     )
-    time_format: str | None = Field(
+    time_format: Optional[str] = Field(
         default=None,
         description=("fitting description yet to find"),
     )
 
     _regex: re.Pattern[str] | None = None
+
+    log_source: Optional[str] = Field(
+        default=None, description="Process only inputs of the same log source."
+    )
 
     # generate regex from log_format
     @model_validator(mode="after")
@@ -40,7 +50,7 @@ class CoreParserConfig(CoreConfig):
         return self
 
 
-class CoreParser(CoreComponent):
+class CoreParser(CoreComponent[sc.LogSchema, sc.ParserSchema]):
     def __init__(
         self,
         name: str = "CoreParser",
@@ -54,21 +64,24 @@ class CoreParser(CoreComponent):
             type_=config.method_type,
             config=config,
             args_buffer=ArgsBuffer(mode=BufferMode.NO_BUF, size=None),
-            input_schema=schemas.LogSchema,
-            output_schema=schemas.ParserSchema,
+            input_schema=sc.LogSchema,
+            output_schema=sc.ParserSchema,
         )
         self.time_format_handler = TimeFormatHandler()
+        self.config: CoreParserConfig
 
-    def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:  # type: ignore
-        config = cast(CoreParserConfig, self.config)
+        self.__parser_id = define_parser_id(self.name, config.log_source)
+
+    @override
+    def run(self, input_: sc.LogSchema, output_: sc.ParserSchema) -> bool:  # type: ignore
         var, content = get_format_variables(
-            config._regex,
+            self.config._regex,
             log=input_["log"],
-            time_format=config.time_format,
+            time_format=self.config.time_format,
             time_format_handler=self.time_format_handler,
         )
 
-        output_["parserID"] = self.name
+        output_["parserID"] = self.__parser_id
         output_["parsedLogID"] = str(self.id_generator())
         output_["parserType"] = self.config.method_type
         output_["logID"] = input_["logID"]
@@ -82,10 +95,23 @@ class CoreParser(CoreComponent):
 
         return True if use_schema is None else use_schema
 
-    def parse(
-        self, input_: schemas.LogSchema, output_: schemas.ParserSchema
-    ) -> bool | None:
+    @override
+    def _is_input_eligible(self, data: sc.LogSchema) -> bool:  # type: ignore
+        return self.config.log_source is None or self.config.log_source == data["logSource"]
+
+    def parse(self, input_: sc.LogSchema, output_: sc.ParserSchema) -> bool | None:
         return True
 
-    def train(self, input_: schemas.LogSchema) -> None:  # type: ignore
+    @override
+    def train(self, input_: sc.LogSchema) -> None:  # type: ignore
         pass
+
+    @override
+    def configure(self, input_: sc.LogSchema,) -> None:  # type: ignore
+        pass
+
+    @override
+    def from_binary(self, binary: bytes) -> "CoreParser":
+        new = type(self)(name=self.name, config=self.config)
+        new.load_binary(binary)
+        return new

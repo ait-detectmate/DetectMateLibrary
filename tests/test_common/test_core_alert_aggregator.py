@@ -227,3 +227,9 @@ class TestCoreAlertAggregator:
 
         assert alert_aggregator.process(data) is None
         assert alert_aggregator.process(data) is not None
+
+    def test_detector_to_binary_and_back(self) -> None:
+        agg = NoneMockupAlertAggregator(name="TestAgg", config=MockupConfig())
+        agg: NoneMockupAlertAggregator = agg.from_binary(agg.to_binary())
+
+        assert agg.name == "TestAgg"

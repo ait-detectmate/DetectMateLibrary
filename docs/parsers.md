@@ -152,4 +152,5 @@ There are some parameters, that **every** parser inherits from `CoreParserConfig
     | `connector_url` | string, null | None | Set up the URL of the connector for the output schema. |
     | `log_format` | string, null | None | fitting description yet to find |
     | `time_format` | string, null | None | fitting description yet to find |
+    | `log_source` | string, null | None | Process only inputs of the same log source. |
 <!-- End common_arguments -->

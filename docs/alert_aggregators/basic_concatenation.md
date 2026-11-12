@@ -20,7 +20,6 @@ The aggregator keeps a sliding window of the last `buffer_size` alerts. The firs
 is emitted once the window is full, and then one record for every new alert, so consecutive records
 overlap. Alerts are combined in the order they arrive, not grouped by log, and the alerts' own
 messages are not carried over (see [What `run()` fills in for you](../alert_aggregator.md#what-run-fills-in-for-you)).
-The [tutorial](../user_guide/tutorial.md#4-add-an-alert-aggregator) shows the overlapping output.
 
 ## At a glance
 
