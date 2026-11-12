@@ -5,14 +5,14 @@ import jax
 import flax.linen as nn
 import optax
 
-from functools import lru_cache
+from functools import lru_cache, partial
 
 from dataclasses import dataclass
 from typing import Any, Callable
 from tqdm import tqdm
 from math import ceil
 
-from detectmatelibrary.utils.deep_learning._op import CheckPoint, Mask
+from detectmatelibrary.utils.deep_learning._op import CheckPoint, Mask, batched
 from detectmatelibrary.utils.deep_learning.imodel import DeepModel
 from detectmatelibrary.utils.finetune import Combinations
 
@@ -121,16 +121,30 @@ class TrainConfig:
     patience: int = 3
 
 
-def loss_(
-    model: nn.Module, params: dict[str, Any], x: jnp.ndarray, m: jnp.ndarray, alpha: float
-) -> jnp.ndarray:
-    
+def window_losses(
+    model: nn.Module, params: dict[str, Any], x: jnp.ndarray, m: jnp.ndarray
+) -> tuple[jnp.ndarray, jnp.ndarray]:
     logist, h_dist = model.apply({"params": params}, x * m, training=True)
     loss_mlkp = ((1 - m) * optax.softmax_cross_entropy_with_integer_labels(
         logits=logist, labels=x
     ))
     loss_vhm = jnp.linalg.norm(h_dist - h_dist.mean(axis=1)[..., None], axis=1) ** 2
 
+    return loss_mlkp, loss_vhm
+
+
+def loss_(
+    model: nn.Module, params: dict[str, Any], x: jnp.ndarray, m: jnp.ndarray, alpha: float
+) -> jnp.ndarray:
+    loss_mlkp, loss_vhm = window_losses(model=model, params=params, x=x, m=m)
+    return loss_mlkp.mean() + alpha * loss_vhm.mean()
+
+
+def val_loss(
+    model: nn.Module, params: dict[str, Any], x: jnp.ndarray, m: jnp.ndarray, alpha: float
+) -> jnp.ndarray:
+    """loss_ over the validation set, its window losses taken in batches."""
+    loss_mlkp, loss_vhm = batched(partial(window_losses, model, params), x, m)
     return loss_mlkp.mean() + alpha * loss_vhm.mean()
 
 
@@ -169,7 +183,7 @@ def train(
             losses_step.append(loss)
 
         m = mask(x_val.shape[0])
-        loss_val.append(loss_(model=model, params=params, x=x_val, m=m, alpha=alpha))
+        loss_val.append(val_loss(model=model, params=params, x=x_val, m=m, alpha=alpha))
         losses_epoch.append(step_loss / n_steps)
         idx = jax.random.permutation(jax.random.key(epoch), idx)
         if checkpoint(loss=loss_val[-1], epoch=epoch, param=params):
@@ -239,8 +253,7 @@ class LogBert(DeepModel):
     def __str__(self) -> str:
         return str(self.model) + "\n" + str(self.config_train)
     
-    def top_pred(self, x: jnp.ndarray) -> tuple[jnp.ndarray]:
-        m = self.mask(x.shape[0])
+    def top_pred(self, x: jnp.ndarray, m: jnp.ndarray) -> tuple[jnp.ndarray]:
         y, _ = self.model.apply({"params": self.params}, x * m, training=False)
 
         idx = jnp.nonzero(m == 0)
@@ -251,9 +264,12 @@ class LogBert(DeepModel):
         if seq.shape[0] == 0:
             return 0
 
-        pred, y = self.top_pred(seq)
+        def ranks(x: jnp.ndarray, m: jnp.ndarray) -> jnp.ndarray:
+            pred, y = self.top_pred(x, m)
+            return ((y[..., None] == pred) * jnp.arange(pred.shape[1])[None, ...]).sum(1)
+
         return int(jax.scipy.stats.mode(
-            ((y[..., None] == pred) * jnp.arange(pred.shape[1])[None, ...]).sum(1)
+            batched(ranks, seq, self.mask(seq.shape[0]))
         ).mode + 2)
 
     @lru_cache

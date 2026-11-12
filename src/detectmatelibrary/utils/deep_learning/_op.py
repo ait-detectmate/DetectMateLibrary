@@ -1,7 +1,22 @@
 import jax
 import jax.numpy as jnp
 
-from typing import Any
+from typing import Any, Callable
+
+
+EVAL_BATCH = 2048
+
+
+def batched(f: Callable[..., Any], *xs: jnp.ndarray) -> Any:
+    """Apply ``f`` to the rows of ``xs`` in batches of ``EVAL_BATCH`` and
+    concatenate its outputs (an array or a tuple of arrays).
+
+    For a row-wise ``f`` this gives the values of ``f(*xs)`` without
+    holding the model's activations for all rows at once, which for a
+    large validation set takes gigabytes.
+    """
+    outs = [f(*(x[i:i + EVAL_BATCH] for x in xs)) for i in range(0, max(xs[0].shape[0], 1), EVAL_BATCH)]
+    return jax.tree.map(lambda *parts: jnp.concatenate(parts), *outs)
 
 
 class CheckPoint:
