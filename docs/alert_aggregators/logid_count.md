@@ -22,7 +22,7 @@ A log ID counter stores, in a fixed-size table, the counts for different log IDs
 The fixed-size table operates as a FIFO: once it is full, it removes the oldest entry and inserts the new log ID.
 ## Example
 
-```python
+```python title="Example"
 --8<-- "docs/examples/alert_aggregators/logid_count.py:example_1"
 ```
 
@@ -30,7 +30,7 @@ The fixed-size table operates as a FIFO: once it is full, it removes the oldest 
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/alert_aggregators/logid_count.yaml"
 ```
 

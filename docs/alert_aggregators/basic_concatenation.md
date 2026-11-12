@@ -30,7 +30,7 @@ messages are not carried over (see [What `run()` fills in for you](../alert_aggr
 
 ## Example
 
-```python
+```python title="Example"
 --8<-- "docs/examples/alert_aggregators/basic_concat.py:example_1"
 ```
 
@@ -38,7 +38,7 @@ messages are not carried over (see [What `run()` fills in for you](../alert_aggr
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/alert_aggregators/basic_concat.yaml"
 ```
 
