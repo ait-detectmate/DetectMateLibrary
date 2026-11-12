@@ -96,11 +96,15 @@ markdown_extensions:
   - pymdownx.arithmatex:
       generic: true
   - attr_list
+  - pymdownx.highlight:
+      pygments_lang_class: true
+
+extra_css:
+  - stylesheets/extra.css
 
 extra_javascript:
   - javascripts/mathjax.js
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
-
 
 extra:
   version:
