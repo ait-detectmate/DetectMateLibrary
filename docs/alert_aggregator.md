@@ -22,7 +22,7 @@ This document explains the expected API and how to implement an alert aggregator
 
 ## CoreAlertAggregator: minimal API
 
-```python
+```python title="Alert Aggreagor API"
 class CoreAlertAggregator(CoreComponent):
     def __init__(
         self,
