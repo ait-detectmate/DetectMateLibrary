@@ -2130,7 +2130,7 @@
 
 
 <h1 id="logbert-detector-code">LogBERT Detector [<a href="https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/detectors/logbert_detector.py">Code</a>]</h1>
-<p>The LogBERT Detector employs a Transformer model <span class="arithmatex">\( f_\theta(\cdot) \)</span> to predict event IDs within a sequence. It follows a BERT-style setup in which randomly selected parsed event IDs are masked <span class="arithmatex">\(M\)</span>, and the model must infer the masked values. If the model fails to do so, it flags the sequence as an anomaly.</p>
+<p>The LogBERT Detector employs a Transformer model <span class="arithmatex">\( f_\theta(\cdot) \)</span> to predict event IDs within a sequence. It follows a BERT-style setup in which randomly selected parsed event IDs are masked <span class="arithmatex">\(M\)</span>, and the model must infer the masked values. If the model fails to do so, it flags the sequence as an anomaly. A masked event counts as inferred when it is among the model's <code>top_k</code> best guesses. After training, the detector sets <code>top_k</code> to the smallest value at which at most <code>alert_rate</code> (a <code>Train</code> hyperparameter) of the validation windows alert.</p>
 <p>Following the original paper, the model is trained with two losses:</p>
 <div class="arithmatex">\[
  \mathcal{L}_{rec}(x \in M, f_\theta(x \notin M)) + \alpha * \mathcal{L}_{sphere}
@@ -2365,7 +2365,7 @@
 <tr>
 <td><code>hyperparameters</code></td>
 <td>object</td>
-<td>{'Model': {'n_embed': 10, 'hidden': 32, 'num_heads': 2, 'n_layers': 1, 'dropout': 0.0, 'max_len': 1000}, 'Train': {'seed': 0, 'batch_size': 256, 'learning_rate': 0.01, 'epochs': 10, 'mask_per': 0.4, 'alpha': 0.0, 'patience': 3}, 'Finetune': [['Model', 'hidden', [64, 128, 256]], ['Model', 'n_layers', [1, 2, 3]], ['Train', 'learning_rate', [0.002, 0.001, 0.005]]]}</td>
+<td>{'Model': {'n_embed': 10, 'hidden': 32, 'num_heads': 2, 'n_layers': 1, 'dropout': 0.0, 'max_len': 1000}, 'Train': {'seed': 0, 'batch_size': 256, 'learning_rate': 0.01, 'epochs': 10, 'mask_per': 0.4, 'alpha': 0.0, 'patience': 3, 'alert_rate': 0.001}, 'Finetune': [['Model', 'hidden', [64, 128, 256]], ['Model', 'n_layers', [1, 2, 3]], ['Train', 'learning_rate', [0.002, 0.001, 0.005]]]}</td>
 <td>shared</td>
 <td>Model, training and hyperparameter-search settings for the LogBERT model.</td>
 </tr>

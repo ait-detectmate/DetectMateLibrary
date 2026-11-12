@@ -2130,7 +2130,7 @@
 
 
 <h1 id="deeplog-detector-code">DeepLog Detector [<a href="https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/detectors/deeplog_detector.py">Code</a>]</h1>
-<p>The DeepLog Detector employs an LSTM deep learning model <span class="arithmatex">\(f_\theta(\cdot)\)</span> to predict the event ID <span class="arithmatex">\(e_i\)</span> of the next parsed log. The model outputs the top <span class="arithmatex">\(K\)</span> candidate event IDs for <span class="arithmatex">\(e_i\)</span>. If <span class="arithmatex">\(e_i\)</span> is not among these candidates, the detector flags it as an anomaly.</p>
+<p>The DeepLog Detector employs an LSTM deep learning model <span class="arithmatex">\(f_\theta(\cdot)\)</span> to predict the event ID <span class="arithmatex">\(e_i\)</span> of the next parsed log. The model outputs the top <span class="arithmatex">\(K\)</span> candidate event IDs for <span class="arithmatex">\(e_i\)</span>. If <span class="arithmatex">\(e_i\)</span> is not among these candidates, the detector flags it as an anomaly. After training, it sets <span class="arithmatex">\(K\)</span> (<code>top_k</code>) to the smallest value at which at most <code>alert_rate</code> (a <code>Train</code> hyperparameter) of the validation windows alert.</p>
 <div class="arithmatex">\[
     candidates = topK(f_\theta(e_i | i \in [0...n-1])) 
 \]</div>
@@ -2362,7 +2362,7 @@
 <tr>
 <td><code>hyperparameters</code></td>
 <td>object</td>
-<td>{'Model': {'hidden_dim': 64, 'n_layers': 2}, 'Train': {'seed': 0, 'batch_size': 2048, 'learning_rate': 0.01, 'epochs': 10, 'patience': 3}, 'Finetune': [['Model', 'hidden_dim', [128, 256, 512]], ['Model', 'n_layers', [1, 2, 3]], ['Train', 'learning_rate', [0.01, 0.02, 0.03]]]}</td>
+<td>{'Model': {'hidden_dim': 64, 'n_layers': 2}, 'Train': {'seed': 0, 'batch_size': 2048, 'learning_rate': 0.01, 'epochs': 10, 'patience': 3, 'alert_rate': 0.001}, 'Finetune': [['Model', 'hidden_dim', [128, 256, 512]], ['Model', 'n_layers', [1, 2, 3]], ['Train', 'learning_rate', [0.01, 0.02, 0.03]]]}</td>
 <td>shared</td>
 <td>Model, training and hyperparameter-search settings for the DeepLog model.</td>
 </tr>
