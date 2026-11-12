@@ -1,6 +1,6 @@
 # LogBERT Detector [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/detectors/logbert_detector.py)]
 
-The LogBERT Detector employs a Transformer model \( f_\theta(\cdot) \) to predict event IDs within a sequence. It follows a BERT-style setup in which randomly selected parsed event IDs are masked \(M\), and the model must infer the masked values. If the model fails to do so, it flags the sequence as an anomaly.
+The LogBERT Detector employs a Transformer model \( f_\theta(\cdot) \) to predict event IDs within a sequence. It follows a BERT-style setup in which randomly selected parsed event IDs are masked \(M\), and the model must infer the masked values. If the model fails to do so, it flags the sequence as an anomaly. A masked event counts as inferred when it is among the model's `top_k` best guesses. After training, the detector sets `top_k` to the smallest value at which at most `alert_rate` (a `Train` hyperparameter) of the validation windows alert.
 
 Following the original paper, the model is trained with two losses:
 
@@ -75,5 +75,5 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `window_size` | integer | 10 | shared | Number of consecutive events used as one training/detection sequence. |
     | `validation_per` | number | 0.2 | shared | Fraction of data held out for validation during (fine)training. |
     | `finetune_epochs` | integer | 2 | shared | Number of epochs used when finetuning during the configuration phase. |
-    | `hyperparameters` | object | {'Model': {'n_embed': 10, 'hidden': 32, 'num_heads': 2, 'n_layers': 1, 'dropout': 0.0, 'max_len': 1000}, 'Train': {'seed': 0, 'batch_size': 256, 'learning_rate': 0.01, 'epochs': 10, 'mask_per': 0.4, 'alpha': 0.0, 'patience': 3}, 'Finetune': [['Model', 'hidden', [64, 128, 256]], ['Model', 'n_layers', [1, 2, 3]], ['Train', 'learning_rate', [0.002, 0.001, 0.005]]]} | shared | Model, training and hyperparameter-search settings for the LogBERT model. |
+    | `hyperparameters` | object | {'Model': {'n_embed': 10, 'hidden': 32, 'num_heads': 2, 'n_layers': 1, 'dropout': 0.0, 'max_len': 1000}, 'Train': {'seed': 0, 'batch_size': 256, 'learning_rate': 0.01, 'epochs': 10, 'mask_per': 0.4, 'alpha': 0.0, 'patience': 3, 'alert_rate': 0.001}, 'Finetune': [['Model', 'hidden', [64, 128, 256]], ['Model', 'n_layers', [1, 2, 3]], ['Train', 'learning_rate', [0.002, 0.001, 0.005]]]} | shared | Model, training and hyperparameter-search settings for the LogBERT model. |
 <!-- End arguments -->

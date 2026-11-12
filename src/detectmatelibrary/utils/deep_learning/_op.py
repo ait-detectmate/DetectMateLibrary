@@ -19,6 +19,20 @@ def batched(f: Callable[..., Any], *xs: jnp.ndarray) -> Any:
     return jax.tree.map(lambda *parts: jnp.concatenate(parts), *outs)
 
 
+def smallest_top_k(scores: jnp.ndarray, alert_rate: float) -> int:
+    """Return the smallest ``top_k`` at which at most ``alert_rate`` of the
+    windows alert.
+
+    ``scores`` holds one rank per window, 0 being the model's first
+    guess. A window alerts at ``top_k`` when its rank is ``top_k`` or
+    more.
+    """
+    allowed = int(alert_rate * scores.shape[0])
+    if allowed >= scores.shape[0]:
+        return 1
+    return int(jnp.sort(scores)[::-1][allowed]) + 1
+
+
 class CheckPoint:
     def __init__(self, patience: int) -> None:
         self.last_loss = jnp.inf
