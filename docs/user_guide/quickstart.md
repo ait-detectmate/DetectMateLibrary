@@ -18,7 +18,7 @@ Before starting, follow the next steps in your work directory:
 
 2. Install DetectMateLibrary dependency:
 
-```bash
+```console title="Install DetectMate"
 pip install detectmatelibrary
 ```
 
@@ -31,13 +31,13 @@ In the first example, we will execute the components one by one to better unders
 
 First, we need to set up all the variables, such as the paths and the parameters used by the `DetectMate` methods. As shown below, all the methods can be initialized within the same dictionary. We will explain all the steps bellow.
 
-```python
+```python title="Example configuration"
 --8<-- "docs/examples/others/quickstart.py:config"
 ```
 
 In this example, we will work with audit log data. The code below shows what the logs look like before they are processed.
 
-```python
+```python title="Print the logs"
 --8<-- "docs/examples/others/quickstart.py:other"
 ```
 
@@ -45,7 +45,7 @@ In this example, we will work with audit log data. The code below shows what the
 
 By default, the logs are not parsed. To parse them, we first initialize a parser and then process the log lines.
 
-```python
+```python title="Parse the logs"
 --8<-- "docs/examples/others/quickstart.py:parse"
 ```
 Documentation of the [TemplateCppTreeMatcher](../parsers/template_tree_matcher.md).
@@ -53,7 +53,7 @@ Documentation of the [TemplateCppTreeMatcher](../parsers/template_tree_matcher.m
 ### 2. Run the detectors
 After parsing the logs, we can run the detectors to identify anomalies. In this example, we’ll use two detectors.
 
-```python
+```python title="Look for anomalies"
 --8<-- "docs/examples/others/quickstart.py:detectors"
 ```
 Documentation of the [CharsetDetector](../detectors/charset.md) and [NewValueDetector](../detectors/new_value.md).
@@ -62,7 +62,7 @@ Documentation of the [CharsetDetector](../detectors/charset.md) and [NewValueDet
 
 Finally, to combine all the alerts collected from the various detectors, an alert aggregation method is executed. This is the final output of `DetectMate`.
 
-```python
+```python title="Aggregate alerts"
 --8<-- "docs/examples/others/quickstart.py:aggregator"
 ```
 
@@ -74,7 +74,7 @@ Although you can run each method separately to gain more control over the indivi
 
 First, we initialze the pipeline.
 
-```python
+```python title="Initialize pipeline"
 --8<-- "docs/examples/others/quickstart.py:pipeline"
 ```
 Documentation of the [Pipeline](../pipeline.md).
@@ -83,7 +83,7 @@ Documentation of the [Pipeline](../pipeline.md).
 
 Finally, we run the pipeline.
 
-```python
+```python title="Run pipeline"
 --8<-- "docs/examples/others/quickstart.py:pipeline_run"
 ```
 
@@ -97,7 +97,7 @@ For this use case, we also need to download other types of logs, including downl
 
 First, we will prepare the data. In this example, we will simply upload the Audit and Apache datasets and ensure they have distinct log sources.
 
-```python
+```python title="Prepare logs"
 --8<-- "docs/examples/others/quickstart_2.py:prepare"
 ```
 
@@ -105,7 +105,7 @@ First, we will prepare the data. In this example, we will simply upload the Audi
 
 In this example, we’ll set up a Redis service using Docker Compose. Create a Docker Compose file named `compose.yaml` and add the following services.
 
-```yaml
+```yaml title="Configure Redis service"
 services:
   redis:
     image: redis:7-alpine
@@ -153,13 +153,13 @@ volumes:
 
 Run it using the command below. After it starts up, you’ll be able to access the Redis dataset and the dashboard.
 
-```bash
+```console title="Run service"
 docker compose up -d
 ```
 
 To reach the dashboard, launch your preferred web browser and navigate to the following URL:
 
-```text
+```console title="Access dashboard"
 http://localhost:5540/
 ```
 
@@ -171,7 +171,7 @@ To link where the data should go, we first use the `log_source` argument in the 
 
 We will store the alert data so that dataset 0 contains Audit alerts, dataset 1 contains Apache alerts, and dataset 2 contains all aggregated alerts.
 
-```python
+```python title="Initialize pipeline"
 --8<-- "docs/examples/others/quickstart_2.py:initialize"
 ```
 
@@ -179,7 +179,7 @@ We will store the alert data so that dataset 0 contains Audit alerts, dataset 1 
 
 Let’s execute the full pipeline to retrieve the data.
 
-```python
+```python title="Run pipeline"
 --8<-- "docs/examples/others/quickstart_2.py:run"
 ```
 
@@ -187,13 +187,13 @@ Let’s execute the full pipeline to retrieve the data.
 
 To retrieve the data, we can simply initialize the schemas using the various IDs.
 
-```python
+```python title="Get data from Schema"
 --8<-- "docs/examples/others/quickstart_2.py:get_data"
 ```
 Documentation of the [Schemas](../schemas.md).
 
 Or check the dashboard:
 
-```text
+```console title="Access dashboard"
 http://localhost:5540/
 ```
