@@ -85,9 +85,10 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
     | `window_size` | integer | 10 | specific | Length of the event-ID window a count vector is built over. |
-    | `validation_per` | number | 0.2 | specific | Fraction of the learned count vectors held out as a validation split and used to derive the anomaly threshold. |
+    | `validation_per` | number | 0.2 | specific | Fraction of the learned count vectors held out as a validation split and used to derive the anomaly threshold. Detection still matches them: a window seen in training never alerts. |
     | `seed` | integer | 0 | specific | Random seed used to shuffle count vectors into train/validation splits. |
     | `threshold_method` | string | mean | specific | Method used to derive the anomaly threshold from the validation split: 'mean' averages the distance scores, 'default' uses a fixed threshold of 0. |
+    | `session_variable` | string, null | None | specific | Header variable that names the session of each event (HDFS: block_id). When set, an event's window holds the last window_size events of its own session, fewer at the session start, so windows never mix sessions and every event is checked. |
     | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
     | `data_use_training` | integer, null | None | shared | Number of logs used for training. None skips training. |
     | `data_use_configure` | integer, null | None | shared | Number of logs used for the configuration step. None skips it. |
