@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -98,7 +100,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -221,7 +223,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     DetectMate Library
@@ -2041,7 +2043,7 @@
 
 <h1 id="select-component-code">Select Component [<a href="https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/helper/select_component.py">Code</a>]</h1>
 <p>Methods that make it easy to choose components solely through configuration settings.</p>
-<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">selectComponent</span><span class="p">(</span>
+<div class="language-python highlight"><span class="filename">Methods</span><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">selectComponent</span><span class="p">(</span>
     <span class="n">config</span><span class="p">:</span> <span class="n">CoreConfig</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
     <span class="n">component_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
@@ -2057,7 +2059,7 @@
 <span class="w">    </span><span class="sd">"""Select multiple components"""</span>
 </code></pre></div>
 <h2 id="usage">Usage</h2>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.detectors.random_detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">RandomDetectorConfig</span>
+<div class="language-python highlight"><span class="filename">Example</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.detectors.random_detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">RandomDetectorConfig</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">detectmatelibrary.helper.select_component</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">selc</span>
 

@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -98,7 +100,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href=".." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../img/small_logo.svg" alt="logo">
+  <img src="../img/logo_library.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -221,7 +223,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href=".." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../img/small_logo.svg" alt="logo">
+  <img src="../img/logo_library.png" alt="logo">
 
     </a>
     DetectMate Library
@@ -2215,7 +2217,7 @@
 </ul>
 <h2 id="coreparser-minimal-api">CoreParser: minimal API</h2>
 <p>Recommended signatures and behavior:</p>
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">CoreParser</span><span class="p">:</span>
+<div class="language-python highlight"><span class="filename">Parser main methods</span><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">CoreParser</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">:</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">,</span> <span class="n">output_</span><span class="p">:</span> <span class="n">schemas</span><span class="o">.</span><span class="n">ParserSchema</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Top-level runner. Calls parse() and performs pre/post processing.</span>
 <span class="sd">        Return True when a parsed output was produced, False otherwise.</span>
@@ -2257,7 +2259,7 @@ returns, so a value set there is overwritten.</p>
 <li>Add unit tests for <code>parse()</code> behavior.</li>
 </ol>
 <p>Example:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># filepath: src/detectmatelibrary/parsers/my_parser.py</span>
+<div class="language-python highlight"><span class="filename">Example of a Dummy parser</span><pre><span></span><code><span class="c1"># filepath: src/detectmatelibrary/parsers/my_parser.py</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.common.parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreParser</span><span class="p">,</span> <span class="n">CoreParserConfig</span>
@@ -2291,10 +2293,11 @@ returns, so a value set there is overwritten.</p>
 </code></pre></div>
 <h2 id="testing-parsers">Testing parsers</h2>
 <p>Unit test <code>parse()</code> directly using <code>ParserSchema</code> objects:</p>
-<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">test_my_parser_parse</span><span class="p">():</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.my_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">MyParser</span>
-    <span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary</span><span class="w"> </span><span class="kn">import</span> <span class="n">schemas</span>
+<div class="language-python highlight"><span class="filename">Testing parser</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.my_parser</span><span class="w"> </span><span class="kn">import</span> <span class="n">MyParser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary</span><span class="w"> </span><span class="kn">import</span> <span class="n">schemas</span>
 
+
+<span class="k">def</span><span class="w"> </span><span class="nf">test_my_parser_parse</span><span class="p">():</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">MyParser</span><span class="p">()</span>
     <span class="n">raw</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">({</span><span class="s2">"log"</span><span class="p">:</span> <span class="s2">"a b c"</span><span class="p">,</span> <span class="s2">"logID"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">})</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">ParserSchema</span><span class="p">()</span>

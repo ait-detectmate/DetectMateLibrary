@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -98,7 +100,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href=".." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../img/small_logo.svg" alt="logo">
+  <img src="../img/logo_library.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -221,7 +223,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href=".." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../img/small_logo.svg" alt="logo">
+  <img src="../img/logo_library.png" alt="logo">
 
     </a>
     DetectMate Library
@@ -2189,26 +2191,26 @@
 </div>
 <h2 id="setup-a-development-environment">Setup a development environment</h2>
 <p>For development we recommend using <a href="https://docs.astral.sh/uv/">uv</a>. You can install all optional dependencies:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync<span class="w"> </span>--dev
+<div class="language-console highlight"><span class="filename">Get dependencies</span><pre><span></span><code><span class="go">uv sync --dev</span>
 </code></pre></div>
 <p><em>Please note that this step is not necessary. <code>uv run --dev</code> will automatically download all dependencies.</em></p>
 <h2 id="use-prek-to-run-code-checks">Use prek to run code checks</h2>
 <p>Every code contributor must use <a href="https://github.com/j178/prek"><code>prek</code></a> to run basic checks at commit time.
 <code>prek</code> is configured via the existing <code>.pre-commit-config.yaml</code>
 and is installed with the <code>dev</code> dependency group. To ensure pre-commit hooks run before each commit, run:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>prek<span class="w"> </span>install
+<div class="language-console highlight"><span class="filename">Install prek</span><pre><span></span><code><span class="go">uv run prek install</span>
 </code></pre></div>
 <p>To run the checks manually, you can execute:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>prek<span class="w"> </span>run<span class="w"> </span>-a
+<div class="language-console highlight"><span class="filename">Run prek</span><pre><span></span><code><span class="go">uv run prek run -a</span>
 </code></pre></div>
 <h2 id="add-tests-and-run-pytest">Add tests and run pytest</h2>
 <p>In order to run the tests run the following command. The <code>dev</code> group already includes the <code>full</code> extra, so all optional dependencies are installed automatically:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--dev<span class="w"> </span>pytest
+<div class="language-console highlight"><span class="filename">Run unit tests</span><pre><span></span><code><span class="go">uv run --dev pytest</span>
 </code></pre></div>
 <h2 id="implement-auto-configuration-in-a-detector">Implement auto-configuration in a detector</h2>
 <p>The user-facing side of auto-configuration is described in the <a href="../detectors/#auto-configuration-optional">Detectors overview</a>. This section covers what a detector has to implement to support it.</p>
 <p>A detector that supports auto-configuration subclasses <code>base_detectors.TrackerDetector</code>, which builds two stores: <code>self.persistency</code> for training and detection, and a separate <code>self.auto_conf_persistency</code> for auto-configuration. Detectors never build stores from <code>utils.persistency</code> themselves:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.base_detectors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrackerDetector</span><span class="p">,</span> <span class="n">TrackerDetectorConfig</span>
+<div class="language-python highlight"><span class="filename">Implement method</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.base_detectors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrackerDetector</span><span class="p">,</span> <span class="n">TrackerDetectorConfig</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MyDetectorConfig</span><span class="p">(</span><span class="n">TrackerDetectorConfig</span><span class="p">):</span>
@@ -2220,7 +2222,7 @@ and is installed with the <code>dev</code> dependency group. To ensure pre-commi
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
 </code></pre></div>
 <p>The <code>configure()</code> method ingests all available variables (not just configured ones) so the tracker can assess each one:</p>
-<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">):</span>
+<div class="language-python highlight"><span class="filename">Implment configure</span><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">configure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_</span><span class="p">):</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">auto_conf_persistency</span><span class="o">.</span><span class="n">ingest_event</span><span class="p">(</span>
         <span class="n">event_id</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">"eventID"</span><span class="p">],</span>
         <span class="n">event_template</span><span class="o">=</span><span class="n">input_</span><span class="p">[</span><span class="s2">"template"</span><span class="p">],</span>
@@ -2232,7 +2234,7 @@ and is installed with the <code>dev</code> dependency group. To ensure pre-commi
 final <code>events</code> block. It touches nothing else on the config: everything the
 operator set under <code>params</code> or <code>auto_config_params</code> must survive untouched, so
 <code>set_configuration</code> never rebuilds the config from scratch:</p>
-<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">set_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="language-python highlight"><span class="filename">Implement set configure</span><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">set_configuration</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="n">variables</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">event_id</span><span class="p">,</span> <span class="n">tracker</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">auto_conf_persistency</span><span class="o">.</span><span class="n">get_events_data</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="n">stable_vars</span> <span class="o">=</span> <span class="n">tracker</span><span class="o">.</span><span class="n">get_features_by_classification</span><span class="p">(</span><span class="s2">"STABLE"</span><span class="p">)</span>
@@ -2262,16 +2264,16 @@ the test suite in CI, so a broken example fails CI instead of silently shipping.
 By convention the filename matches its documentation page (<code>charset.md</code> →
 <code>docs/examples/detectors/charset.py</code>). Wrap the part you want to show in section
 markers:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># --8&lt;-- [start:basic]</span>
+<div class="language-python highlight"><span class="filename">Add code</span><pre><span></span><code><span class="c1"># --8&lt;-- [start:basic]</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.logbatcher</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogBatcherParser</span><span class="p">,</span> <span class="n">LogBatcherParserConfig</span>
 <span class="c1"># ...</span>
 <span class="c1"># --8&lt;-- [end:basic]</span>
 </code></pre></div>
 <p><strong>2. Include it in the <code>.md</code> page.</strong> Paths are relative to the repo root
 (<code>base_path</code> is set to <code>.</code>). Reference the section by name:</p>
-<div class="highlight"><pre><span></span><code><span class="sb">```python</span>
-<span class="o">--</span><span class="mi">8</span><span class="o">&lt;--</span> <span class="s2">"docs/examples/parsers/logbatcher_parser.py:basic"</span>
-<span class="sb">```</span>
+<div class="language-console highlight"><span class="filename">Example insert code</span><pre><span></span><code><span class="go">```python</span>
+<span class="go">--8&lt;-- "docs/examples/parsers/logbatcher_parser.py:basic"</span>
+<span class="go">```</span>
 </code></pre></div>
 <p>You can also include the whole file by dropping the <code>:section</code> suffix
 (<code>--8&lt;-- "docs/examples/parsers/template_tree_matcher.py"</code>), but section markers
@@ -2284,8 +2286,8 @@ requirement: a snippet passes as long as it runs standalone without raising. If
 your example needs something unavailable in CI (e.g. an API key), comment out
 those calls rather than letting them fail. The test is marked <code>ignored</code>, so a
 plain <code>pytest</code> run skips it; pass <code>--run-ignored</code> (as CI does) to include it:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--dev<span class="w"> </span>pytest<span class="w"> </span>--run-ignored<span class="w">                    </span><span class="c1"># whole suite, snippets included</span>
-uv<span class="w"> </span>run<span class="w"> </span>--dev<span class="w"> </span>pytest<span class="w"> </span>tests/test_docs<span class="w"> </span>--run-ignored<span class="w">    </span><span class="c1"># snippets only</span>
+<div class="language-console highlight"><span class="filename">Run different unit tests</span><pre><span></span><code><span class="go">uv run --dev pytest --run-ignored                    # whole suite, snippets included</span>
+<span class="go">uv run --dev pytest tests/test_docs --run-ignored    # snippets only</span>
 </code></pre></div>
 <p><strong>4. Component pages: a YAML file, and generated argument tables.</strong> Each parser and
 detector page shows a configuration file next to its example
@@ -2295,14 +2297,14 @@ loads it with <code>yaml.safe_load</code>, so the snippet test also checks that 
 valid configuration. The "Configuration arguments" tables are generated from the
 config classes. After adding or changing a config field, regenerate them from the
 repo root:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>docs/examples/config/update.py
+<div class="language-console highlight"><span class="filename">Update docs</span><pre><span></span><code><span class="go">uv run python docs/examples/config/update.py</span>
 </code></pre></div>
 <h2 id="render-and-verify-the-documentation">Render and verify the documentation</h2>
 <p>Build the static site:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--dev<span class="w"> </span>mkdocs<span class="w"> </span>build
+<div class="language-console highlight"><span class="filename">Generate docs</span><pre><span></span><code><span class="go">uv run --dev mkdocs build</span>
 </code></pre></div>
 <p>For a live local preview while editing:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--dev<span class="w"> </span>mkdocs<span class="w"> </span>serve
+<div class="language-console highlight"><span class="filename">Run docs</span><pre><span></span><code><span class="go">uv run --dev mkdocs serve</span>
 </code></pre></div>
 <p><code>mkdocs</code> comes in via <code>mkdocs-material</code> (a direct dependency of the <code>dev</code> group),
 so <code>--dev</code> is required. There is no <code>--strict</code> mode configured; the hard check on the docs is

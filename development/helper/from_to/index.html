@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -98,7 +100,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -221,7 +223,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     DetectMate Library
@@ -2195,7 +2197,7 @@
 </ul>
 <h2 id="from">From</h2>
 <p>The <code>From</code> class is responsible for loading different input formats.</p>
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">From</span><span class="p">:</span>
+<div class="language-python highlight"><span class="filename">From methods</span><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">From</span><span class="p">:</span>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">log</span><span class="p">(</span>
         <span class="n">component</span><span class="p">:</span> <span class="n">CoreComponent</span><span class="p">,</span> <span class="n">in_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">do_process</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">constant_fields</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -2235,7 +2237,7 @@
 <span class="sd">        """</span>
 </code></pre></div>
 <h3 id="usage">Usage</h3>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.tree_matcher</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplateCppTreeMatcher</span>
+<div class="language-python highlight"><span class="filename">From example</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.tree_matcher</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplateCppTreeMatcher</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.helper.from_to</span><span class="w"> </span><span class="kn">import</span> <span class="n">From</span>
 
 <span class="n">parser</span> <span class="o">=</span> <span class="n">TemplateCppTreeMatcher</span><span class="p">()</span>
@@ -2245,7 +2247,7 @@
 </code></pre></div>
 <h2 id="to">To</h2>
 <p>The <code>To</code> class is responsible for saving schema objects to files.</p>
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">To</span><span class="p">:</span>
+<div class="language-python highlight"><span class="filename">To methods</span><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">To</span><span class="p">:</span>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">binary_file</span><span class="p">(</span><span class="n">out_</span><span class="p">:</span> <span class="n">BaseSchema</span> <span class="o">|</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span> <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Save output schema to a binary file."""</span>
@@ -2271,14 +2273,14 @@
 <span class="w">        </span><span class="sd">"""Save a list of output schemas to a YAML file."""</span>
 </code></pre></div>
 <h3 id="usage_1">Usage</h3>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.helper.from_to</span><span class="w"> </span><span class="kn">import</span> <span class="n">To</span>
+<div class="language-python highlight"><span class="filename">To example</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.helper.from_to</span><span class="w"> </span><span class="kn">import</span> <span class="n">To</span>
 
 <span class="n">parser</span> <span class="o">=</span> <span class="n">TemplateCppTreeMatcher</span><span class="p">()</span>
 <span class="k">for</span> <span class="n">log</span> <span class="ow">in</span> <span class="n">From</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">in_path</span><span class="o">=</span><span class="n">log_path</span><span class="p">,</span> <span class="n">do_process</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="n">To</span><span class="o">.</span><span class="n">json</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">output_path</span><span class="p">)</span>
 </code></pre></div>
 <p>Example JSON save file format:</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<div class="language-json highlight"><span class="filename">Output</span><pre><span></span><code><span class="p">{</span>
 <span class="w">    </span><span class="nt">"0"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="nt">"logID"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span>
 <span class="w">        </span><span class="nt">"hostname"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span>
@@ -2297,7 +2299,7 @@
 </code></pre></div>
 <h2 id="fromto">FromTo</h2>
 <p>The <code>FromTo</code> class loads and saves inputs and outputs in a single operation.</p>
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">FromTo</span><span class="p">:</span>
+<div class="language-python highlight"><span class="filename">FromTo methods</span><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">FromTo</span><span class="p">:</span>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">log2binary_file</span><span class="p">(</span>
         <span class="n">component</span><span class="p">:</span> <span class="n">CoreComponent</span><span class="p">,</span> <span class="n">in_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">out_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">constant_fields</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
@@ -2401,14 +2403,14 @@
 <span class="w">        </span><span class="sd">"""Load DetectMatePerformance Dataframe to yaml"""</span>
 </code></pre></div>
 <h3 id="usage_2">Usage</h3>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.helper.from_to</span><span class="w"> </span><span class="kn">import</span> <span class="n">FromTo</span>
+<div class="language-python highlight"><span class="filename">FromTo example</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.helper.from_to</span><span class="w"> </span><span class="kn">import</span> <span class="n">FromTo</span>
 
 <span class="n">parser</span> <span class="o">=</span> <span class="n">TemplateCppTreeMatcher</span><span class="p">()</span>
 <span class="k">for</span> <span class="n">parsed_log</span> <span class="ow">in</span> <span class="n">FromTo</span><span class="o">.</span><span class="n">log2json</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">log_path</span><span class="p">,</span> <span class="n">output_path</span><span class="p">):</span>
     <span class="k">pass</span>
 </code></pre></div>
 <p>Example input data:</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<div class="language-json highlight"><span class="filename">Input</span><pre><span></span><code><span class="p">{</span>
 <span class="w">    </span><span class="nt">"0"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="nt">"logID"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span>
 <span class="w">        </span><span class="nt">"hostname"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span>
@@ -2426,7 +2428,7 @@
 <span class="p">}</span>
 </code></pre></div>
 <p>Example output data after parsing:</p>
-<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<div class="language-json highlight"><span class="filename">Output</span><pre><span></span><code><span class="p">{</span>
 <span class="w">    </span><span class="nt">"0"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">        </span><span class="nt">"template"</span><span class="p">:</span><span class="w"> </span><span class="s2">"This is a dummy template"</span><span class="p">,</span>
 <span class="w">        </span><span class="nt">"parsedTimestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1771336089</span><span class="p">,</span>

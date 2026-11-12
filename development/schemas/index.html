@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -98,7 +100,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href=".." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../img/small_logo.svg" alt="logo">
+  <img src="../img/logo_library.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -221,7 +223,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href=".." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../img/small_logo.svg" alt="logo">
+  <img src="../img/logo_library.png" alt="logo">
 
     </a>
     DetectMate Library
@@ -2321,7 +2323,7 @@
 <p>All concrete schema classes extend <code>BaseSchema</code>. The <code>Connector</code> classes make it possible to read schema metadata from databases and write it to them, which can then be used for downstream tasks such as monitoring or data analysis. The diagram below illustrates a use case showing how schemas can be used. The Service sends bytes to the Library as input; these bytes are deserialized and initialized as a Protobuf instance within the schema. This Protobuf object can be handled like a dictionary and manipulated through an instance that inherits from <code>CoreComponent</code>. Once processing is complete, the schema can be returned to the Service as bytes. If a <code>Connector</code> is configured, the schema can be automatically stored in a database, and a Python script can simply initialize a new schema and retrieve the information from the database.</p>
 <p><img alt="Schema" src="../img/schema_architecture.svg" /></p>
 <p>Key utility methods:</p>
-<div class="highlight"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">BaseSchema</span><span class="p">:</span>
+<div class="language-python highlight"><span class="filename">Schema methods</span><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">BaseSchema</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Return if a variable is in the schema"""</span>
 
@@ -2372,7 +2374,7 @@
 <span class="w">        </span><span class="sd">"""Initialize a schema from the connector framework by its ID."""</span>
 </code></pre></div>
 <p>The exceptions these methods raise can be imported from <code>detectmatelibrary.schemas</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.schemas</span><span class="w"> </span><span class="kn">import</span> <span class="n">IncorrectSchema</span><span class="p">,</span> <span class="n">NotSupportedSchema</span>
+<div class="language-python highlight"><span class="filename">Schema exceptions</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.schemas</span><span class="w"> </span><span class="kn">import</span> <span class="n">IncorrectSchema</span><span class="p">,</span> <span class="n">NotSupportedSchema</span>
 </code></pre></div>
 <h2 id="schema-classes">Schema Classes</h2>
 <p>Below are the primary schema classes and their main fields. All fields are optional at the Protobuf level; components should document which fields they require.</p>
@@ -2600,7 +2602,7 @@
 <h2 id="examples">Examples</h2>
 <p>Short examples of working with the schemas.</p>
 <h3 id="initialize-a-schema">Initialize a schema</h3>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary</span><span class="w"> </span><span class="kn">import</span> <span class="n">schemas</span>
+<div class="language-python highlight"><span class="filename">Initialize schema</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary</span><span class="w"> </span><span class="kn">import</span> <span class="n">schemas</span>
 
 
 <span class="n">log_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"log"</span><span class="p">:</span> <span class="s2">"Test log"</span><span class="p">}</span>
@@ -2609,7 +2611,7 @@
 <span class="nb">print</span><span class="p">(</span><span class="n">log_schema</span><span class="o">.</span><span class="n">log</span> <span class="o">==</span> <span class="s2">"Test log"</span><span class="p">)</span>  <span class="c1"># True</span>
 </code></pre></div>
 <h3 id="assign-values">Assign values</h3>
-<div class="highlight"><pre><span></span><code><span class="n">log_schema</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">()</span>
+<div class="language-python highlight"><span class="filename">Assign values to schema</span><pre><span></span><code><span class="n">log_schema</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">()</span>
 <span class="n">log_schema</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="s2">"Test log"</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">log_schema</span><span class="p">[</span><span class="s2">"log"</span><span class="p">]</span> <span class="o">==</span> <span class="n">log_schema</span><span class="o">.</span><span class="n">log</span><span class="p">)</span>  <span class="c1"># True</span>
 
@@ -2620,7 +2622,7 @@
 <span class="nb">print</span><span class="p">(</span><span class="n">log_schema</span> <span class="o">==</span> <span class="n">log_schema2</span><span class="p">)</span>  <span class="c1"># True</span>
 </code></pre></div>
 <h3 id="serialization">Serialization</h3>
-<div class="highlight"><pre><span></span><code><span class="n">log_schema</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">()</span>
+<div class="language-python highlight"><span class="filename">Serialize schema</span><pre><span></span><code><span class="n">log_schema</span> <span class="o">=</span> <span class="n">schemas</span><span class="o">.</span><span class="n">LogSchema</span><span class="p">()</span>
 <span class="n">log_schema</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="s2">"Test log"</span>
 <span class="n">serialized</span> <span class="o">=</span> <span class="n">log_schema</span><span class="o">.</span><span class="n">serialize</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">serialized</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">))</span>  <span class="c1"># True</span>
@@ -2704,7 +2706,7 @@
 </table>
 </details>
 <p>To install the optional dependencies, follow the <a href="../user_guide/installation/">installation instructions</a>. You can configure the connector for all schemas like this:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.schemas</span><span class="w"> </span><span class="kn">import</span> <span class="n">set_connector</span>
+<div class="language-python highlight"><span class="filename">Connect Schema with MongoDB</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.schemas</span><span class="w"> </span><span class="kn">import</span> <span class="n">set_connector</span>
 
 <span class="n">set_connector</span><span class="p">(</span>
     <span class="n">connector</span><span class="o">=</span><span class="s2">"Mongo"</span><span class="p">,</span>  <span class="c1"># Connector name, e.g. "Mongo" or "Redis"</span>
@@ -2717,7 +2719,7 @@
 <span class="nb">print</span><span class="p">(</span><span class="n">parsed_schema</span> <span class="o">==</span> <span class="n">parsed_schema2</span><span class="p">)</span>  <span class="c1"># True</span>
 </code></pre></div>
 <p>Optionally, you can configure the connector separately for each schema. Keep in mind that a schema-specific configuration will override the general setup for that particular schema.</p>
-<div class="highlight"><pre><span></span><code><span class="n">set_connector</span><span class="p">(</span>
+<div class="language-python highlight"><span class="filename">Connect Schema with MongoDB</span><pre><span></span><code><span class="n">set_connector</span><span class="p">(</span>
     <span class="n">connector</span><span class="o">=</span><span class="s2">"Default"</span><span class="p">,</span>  <span class="c1"># Global connector: stores nothing</span>
     <span class="n">url</span><span class="o">=</span><span class="s2">"None"</span><span class="p">,</span>  <span class="c1"># Global URL</span>
 <span class="p">)</span>

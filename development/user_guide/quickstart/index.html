@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -98,7 +100,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -221,7 +223,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     DetectMate Library
@@ -2422,13 +2424,13 @@
 <p>Install DetectMateLibrary dependency:</p>
 </li>
 </ol>
-<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>detectmatelibrary
+<div class="language-console highlight"><span class="filename">Install DetectMate</span><pre><span></span><code><span class="go">pip install detectmatelibrary</span>
 </code></pre></div>
 <h2 id="run-individually">Run individually</h2>
 <p>In the first example, we will execute the components one by one to better understand their functionality. You can follow the tutorial by copying and pasting the different code sections into your script.</p>
 <h3 id="0-define-configuration">0. Define configuration</h3>
 <p>First, we need to set up all the variables, such as the paths and the parameters used by the <code>DetectMate</code> methods. As shown below, all the methods can be initialized within the same dictionary. We will explain all the steps bellow.</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Define your PATH to get the data</span>
+<div class="language-python highlight"><span class="filename">Example configuration</span><pre><span></span><code><span class="c1"># Define your PATH to get the data</span>
 <span class="n">template_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">PATH</span><span class="si">}</span><span class="s2">audit_templates.txt"</span>
 <span class="n">log_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">PATH</span><span class="si">}</span><span class="s2">audit.log"</span>
 
@@ -2471,7 +2473,7 @@
 <span class="p">}</span>
 </code></pre></div>
 <p>In this example, we will work with audit log data. The code below shows what the logs look like before they are processed.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.helper.from_to</span><span class="w"> </span><span class="kn">import</span> <span class="n">From</span>
+<div class="language-python highlight"><span class="filename">Print the logs</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.helper.from_to</span><span class="w"> </span><span class="kn">import</span> <span class="n">From</span>
 
 <span class="n">print_one</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># just print one time the output</span>
 
@@ -2481,7 +2483,7 @@
 </code></pre></div>
 <h3 id="1-parse-the-logs">1. Parse the logs</h3>
 <p>By default, the logs are not parsed. To parse them, we first initialize a parser and then process the log lines.</p>
-<p><div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.tree_matcher</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplateCppTreeMatcher</span>
+<p><div class="language-python highlight"><span class="filename">Parse the logs</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.tree_matcher</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplateCppTreeMatcher</span>
 
 
 <span class="nb">print</span><span class="p">(</span><span class="n">parser</span> <span class="o">:=</span> <span class="n">TemplateCppTreeMatcher</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"TreeMatcher"</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config_dict</span><span class="p">))</span>
@@ -2499,7 +2501,7 @@
 Documentation of the <a href="../../parsers/template_tree_matcher/">TemplateCppTreeMatcher</a>.</p>
 <h3 id="2-run-the-detectors">2. Run the detectors</h3>
 <p>After parsing the logs, we can run the detectors to identify anomalies. In this example, we’ll use two detectors.</p>
-<p><div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.detectors.charset_detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">CharsetDetector</span>
+<p><div class="language-python highlight"><span class="filename">Look for anomalies</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.detectors.charset_detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">CharsetDetector</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.detectors.new_value_detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">NewValueDetector</span>
 
 
@@ -2524,7 +2526,7 @@ Documentation of the <a href="../../parsers/template_tree_matcher/">TemplateCppT
 Documentation of the <a href="../../detectors/charset/">CharsetDetector</a> and <a href="../../detectors/new_value/">NewValueDetector</a>.</p>
 <h3 id="3-run-the-alert-aggregation">3. Run the alert aggregation</h3>
 <p>Finally, to combine all the alerts collected from the various detectors, an alert aggregation method is executed. This is the final output of <code>DetectMate</code>.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.alert_aggregation.time_delta</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimeDeltaAggregation</span>
+<div class="language-python highlight"><span class="filename">Aggregate alerts</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.alert_aggregation.time_delta</span><span class="w"> </span><span class="kn">import</span> <span class="n">TimeDeltaAggregation</span>
 
 <span class="nb">print</span><span class="p">(</span>
     <span class="n">agg</span> <span class="o">:=</span> <span class="n">TimeDeltaAggregation</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"TimeDeltaAggregator"</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config_dict</span><span class="p">)</span>
@@ -2542,7 +2544,7 @@ Documentation of the <a href="../../detectors/charset/">CharsetDetector</a> and 
 <p>Although you can run each method separately to gain more control over the individual steps, it isn’t required. You can also execute everything together as a single pipeline. Next, we will run the methods described earlier using the generic DetectMateLibray pipeline.</p>
 <h3 id="1-initialize-the-pipeline">1. Initialize the pipeline</h3>
 <p>First, we initialze the pipeline.</p>
-<p><div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">PipelineConfig</span><span class="p">,</span> <span class="n">Pipeline</span>
+<p><div class="language-python highlight"><span class="filename">Initialize pipeline</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">PipelineConfig</span><span class="p">,</span> <span class="n">Pipeline</span>
 
 <span class="n">config</span> <span class="o">=</span> <span class="n">PipelineConfig</span><span class="p">(</span>
         <span class="n">do_parsing</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>  <span class="c1"># Use the parser</span>
@@ -2600,7 +2602,7 @@ Documentation of the <a href="../../detectors/charset/">CharsetDetector</a> and 
 Documentation of the <a href="../../pipeline/">Pipeline</a>.</p>
 <h3 id="2-run-the-pipeline">2. Run the pipeline</h3>
 <p>Finally, we run the pipeline.</p>
-<div class="highlight"><pre><span></span><code><span class="n">print_one</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># just print one time the output</span>
+<div class="language-python highlight"><span class="filename">Run pipeline</span><pre><span></span><code><span class="n">print_one</span> <span class="o">=</span> <span class="kc">True</span>  <span class="c1"># just print one time the output</span>
 
 <span class="k">for</span> <span class="n">agg_alert</span> <span class="ow">in</span> <span class="n">From</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">pipeline</span><span class="p">,</span> <span class="n">log_path</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">agg_alert</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">print_one</span><span class="p">:</span>
@@ -2612,7 +2614,7 @@ Documentation of the <a href="../../pipeline/">Pipeline</a>.</p>
 <p>For this use case, we also need to download other types of logs, including downloading and adding these <a href="https://github.com/ait-detectmate/DetectMateLibrary/blob/main/tests/test_data/apache.log">Apache logs</a>.</p>
 <h3 id="0-prepare-logs">0. Prepare logs</h3>
 <p>First, we will prepare the data. In this example, we will simply upload the Audit and Apache datasets and ensure they have distinct log sources.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.helper.from_to</span><span class="w"> </span><span class="kn">import</span> <span class="n">From</span>
+<div class="language-python highlight"><span class="filename">Prepare logs</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.helper.from_to</span><span class="w"> </span><span class="kn">import</span> <span class="n">From</span>
 
 
 <span class="c1"># Define your PATH to get the data</span>
@@ -2633,7 +2635,7 @@ Documentation of the <a href="../../pipeline/">Pipeline</a>.</p>
 </code></pre></div>
 <h3 id="1-prepare-redis">1. Prepare Redis</h3>
 <p>In this example, we’ll set up a Redis service using Docker Compose. Create a Docker Compose file named <code>compose.yaml</code> and add the following services.</p>
-<div class="highlight"><pre><span></span><code><span class="nt">services</span><span class="p">:</span>
+<div class="language-yaml highlight"><span class="filename">Configure Redis service</span><pre><span></span><code><span class="nt">services</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">redis</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">redis:7-alpine</span>
 <span class="w">    </span><span class="nt">container_name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">redis</span>
@@ -2678,16 +2680,16 @@ Documentation of the <a href="../../pipeline/">Pipeline</a>.</p>
 <span class="w">  </span><span class="nt">redisinsight_data</span><span class="p">:</span>
 </code></pre></div>
 <p>Run it using the command below. After it starts up, you’ll be able to access the Redis dataset and the dashboard.</p>
-<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>compose<span class="w"> </span>up<span class="w"> </span>-d
+<div class="language-console highlight"><span class="filename">Run service</span><pre><span></span><code><span class="go">docker compose up -d</span>
 </code></pre></div>
 <p>To reach the dashboard, launch your preferred web browser and navigate to the following URL:</p>
-<div class="highlight"><pre><span></span><code>http://localhost:5540/
+<div class="language-console highlight"><span class="filename">Access dashboard</span><pre><span></span><code><span class="go">http://localhost:5540/</span>
 </code></pre></div>
 <h3 id="3-initialize-the-pipeline">3. Initialize the pipeline</h3>
 <p>Now that the data and services are in place, we can return to our script and implement our pipeline. Previously, we relied on a dictionary to initialize the methods within the pipeline. In this case, we’ll use the Config classes instead. We will run two parsers—one for each log source—and four detectors, again two per source.</p>
 <p>To link where the data should go, we first use the <code>log_source</code> argument in the parsers to specify which type of logs to process. For detectors, the <code>parser</code> argument is used to indicate which parser to pull data from.</p>
 <p>We will store the alert data so that dataset 0 contains Audit alerts, dataset 1 contains Apache alerts, and dataset 2 contains all aggregated alerts.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.tree_matcher</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplateCppTreeMatcherConfig</span>
+<div class="language-python highlight"><span class="filename">Initialize pipeline</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.tree_matcher</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplateCppTreeMatcherConfig</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.autoparser</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoParserConfig</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.detectors.new_value_detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">NewValueDetectorConfig</span>
@@ -2759,14 +2761,14 @@ Documentation of the <a href="../../pipeline/">Pipeline</a>.</p>
 </code></pre></div>
 <h3 id="4-run-pipeline">4. Run pipeline</h3>
 <p>Let’s execute the full pipeline to retrieve the data.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
+<div class="language-python highlight"><span class="filename">Run pipeline</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 
 <span class="k">for</span> <span class="n">log</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">all_logs</span><span class="p">):</span>
     <span class="n">pipeline</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">log</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="5-get-the-data">5. Get the data</h3>
 <p>To retrieve the data, we can simply initialize the schemas using the various IDs.</p>
-<p><div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">detectmatelibrary.schemas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sc</span>
+<p><div class="language-python highlight"><span class="filename">Get data from Schema</span><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">detectmatelibrary.schemas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sc</span>
 
 <span class="c1"># Get an alert from Audit</span>
 <span class="n">sc</span><span class="o">.</span><span class="n">set_connector</span><span class="p">(</span><span class="n">connector</span><span class="o">=</span><span class="s2">"Redis"</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="s2">"http://localhost:6379:0"</span><span class="p">)</span>
@@ -2784,7 +2786,7 @@ Documentation of the <a href="../../pipeline/">Pipeline</a>.</p>
 </code></pre></div>
 Documentation of the <a href="../../schemas/">Schemas</a>.</p>
 <p>Or check the dashboard:</p>
-<div class="highlight"><pre><span></span><code>http://localhost:5540/
+<div class="language-console highlight"><span class="filename">Access dashboard</span><pre><span></span><code><span class="go">http://localhost:5540/</span>
 </code></pre></div>
 
 

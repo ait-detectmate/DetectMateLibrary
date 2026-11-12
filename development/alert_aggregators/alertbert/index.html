@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -98,7 +100,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -221,7 +223,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     DetectMate Library
@@ -2201,7 +2203,7 @@ Important: It is assumed that the alerts arrive in order of their timestamps!</p
 <p>To obtain the embeddings, in the configuration one can either specify the path of a saved masked-language-model, or one can specify the number of alerts to use as training data and the features of the alerts to use as input to the model.
 Optionally, it is possible to add features to alerts in a pre-processing step by assigning them to the field <code>alert['alertDetails']['&lt;feature-name&gt;']</code>, which can then be specified in the configuration as <code>'alertDetails:&lt;feature-name&gt;</code>.</p>
 <h2 id="example">Example</h2>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span>
+<div class="language-python highlight"><span class="filename">Example</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Iterator</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
@@ -2270,7 +2272,7 @@ Optionally, it is possible to add features to alerts in a pre-processing step by
 </code></pre></div>
 <h2 id="configuration-file">Configuration file</h2>
 <p>The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see <a href="#configuration-arguments">Configuration arguments</a>).</p>
-<div class="highlight"><pre><span></span><code><span class="nt">alert_aggregators</span><span class="p">:</span>
+<div class="language-yaml highlight"><span class="filename">Configuration</span><pre><span></span><code><span class="nt">alert_aggregators</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">AlertBERTAggregation</span><span class="p">:</span>
 <span class="w">        </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">AlertBERTAggregation</span>
 <span class="w">        </span><span class="nt">model_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">alertbert-example,</span>

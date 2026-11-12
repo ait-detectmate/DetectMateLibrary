@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -98,7 +100,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -221,7 +223,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     DetectMate Library
@@ -2214,14 +2216,14 @@
 <h2 id="install-from-source">Install from source</h2>
 <p>It is recommended to use <a href="https://docs.astral.sh/uv/">uv</a> for installation. Clone
 the repository and install it from the project root:</p>
-<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ait-detectmate/DetectMateLibrary.git
-<span class="nb">cd</span><span class="w"> </span>DetectMateLibrary
-uv<span class="w"> </span>sync
+<div class="language-console highlight"><span class="filename">Install from source</span><pre><span></span><code><span class="go">git clone https://github.com/ait-detectmate/DetectMateLibrary.git</span>
+<span class="go">cd DetectMateLibrary</span>
+<span class="go">uv sync</span>
 </code></pre></div>
 <p>(If you prefer pip/venv, create a virtualenv first.)</p>
 <p>Changes to the source tree are then reflected immediately. To install DetectMate
 as a library into a different environment instead:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span>&lt;directory_detectmatelibrary&gt;
+<div class="language-console highlight"><span class="filename">Install from PIP</span><pre><span></span><code><span class="go">uv pip install --no-cache-dir &lt;directory_detectmatelibrary&gt;</span>
 </code></pre></div>
 <h2 id="optional-dependencies">Optional dependencies</h2>
 <p>Not every feature needs the same dependencies, so DetectMate uses optional
@@ -2254,20 +2256,16 @@ extras: you install only what you need.</p>
 </table>
 <p>To have a closer look at all the dependencies, see <a href="https://pydevtools.com/handbook/explanation/what-are-optional-dependencies-and-dependency-groups/">Optional dependencies</a>.</p>
 <p>Install an extra with <code>uv sync</code>:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>dataframes
+<div class="language-console highlight"><span class="filename">Install optional dependencies</span><pre><span></span><code><span class="go">uv sync --extra dataframes</span>
 </code></pre></div>
 <p>Or with <code>uv pip install</code> / <code>pip</code> when installing as a library:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"detectmatelibrary[dataframes]"</span>
-<span class="c1"># or</span>
-pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"detectmatelibrary[dataframes]"</span>
+<div class="language-console highlight"><span class="filename">Install optional dependencies with PIP</span><pre><span></span><code><span class="go">uv pip install "detectmatelibrary[llm]"</span>
 </code></pre></div>
 <p>Combine multiple extras if needed:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>dataframes<span class="w"> </span>--extra<span class="w"> </span>polars-rtcompat
+<div class="language-console highlight"><span class="filename">Install multiple optional dependencies</span><pre><span></span><code><span class="go">uv sync --extra llm --extra palertbert</span>
 </code></pre></div>
 <p>Or install everything at once with the <code>full</code> extra:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>full
-<span class="c1"># or</span>
-uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"detectmatelibrary[full]"</span>
+<div class="language-console highlight"><span class="filename">Install all dependencies</span><pre><span></span><code><span class="go">uv pip install "detectmatelibrary[full]"</span>
 </code></pre></div>
 <h2 id="developer-setup">Developer setup</h2>
 <div class="admonition warning">
@@ -2278,12 +2276,12 @@ uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </s
 <ul>
 <li>Install dev dependencies (testing, linters, formatters). The <code>dev</code> group also pulls in the <code>full</code> extra, so every optional dependency (LLM, dataframes, polars-rtcompat) is installed too:</li>
 </ul>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>sync<span class="w"> </span>--dev
+<div class="language-console highlight"><span class="filename">Install development dependencies</span><pre><span></span><code><span class="go">uv sync --dev</span>
 </code></pre></div>
 <ul>
 <li>Install pre-commit hooks (this repository uses <code>prek</code> to run pre-commit tooling):</li>
 </ul>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--dev<span class="w"> </span>prek<span class="w"> </span>install
+<div class="language-text highlight"><span class="filename">Install precommit</span><pre><span></span><code>uv run --dev prek install
 </code></pre></div>
 <p><strong>Notes:</strong></p>
 <ul>
@@ -2295,33 +2293,33 @@ uv<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </s
 <ul>
 <li>Install <code>protoc</code> on Debian/Ubuntu:</li>
 </ul>
-<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt-get<span class="w"> </span>update
-sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>protobuf-compiler
-protoc<span class="w"> </span>--version
+<div class="language-console highlight"><span class="filename">Install ProtoBuff in Linux</span><pre><span></span><code><span class="go">sudo apt-get update</span>
+<span class="go">sudo apt-get install -y protobuf-compiler</span>
+<span class="go">protoc --version</span>
 </code></pre></div>
 <ul>
 <li>Compile the project proto:</li>
 </ul>
-<div class="highlight"><pre><span></span><code>protoc<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--proto_path<span class="o">=</span>src/detectmatelibrary/schemas/protobuf/<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--python_out<span class="o">=</span>src/detectmatelibrary/schemas/protobuf/<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>src/detectmatelibrary/schemas/protobuf/schemas.proto
+<div class="language-console highlight"><span class="filename">Compile ProtoBuff</span><pre><span></span><code><span class="go">protoc \</span>
+<span class="go">  --proto_path=src/detectmatelibrary/schemas/protobuf/ \</span>
+<span class="go">  --python_out=src/detectmatelibrary/schemas/protobuf/ \</span>
+<span class="go">  src/detectmatelibrary/schemas/protobuf/schemas.proto</span>
 </code></pre></div>
 <p><strong>Result:</strong> generated Python modules appear under <code>src/detectmatelibrary/schemas/protobuf/</code>. If you edit proto files, re-run this command and commit generated code if required by your workflow.</p>
 <h3 id="step-3-run-unit-tests">Step 3: Run unit tests</h3>
 <p>The full test suite covers dataframe and LLM-parser code, so all extras must be present. Since <code>uv sync --dev</code> already installs the <code>full</code> extra, run the fast tests with:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--dev<span class="w"> </span>pytest<span class="w"> </span>-s
+<div class="language-console highlight"><span class="filename">Run unit tests</span><pre><span></span><code><span class="go">uv run --dev pytest -s</span>
 </code></pre></div>
 <p>To run all unit tests, first start the database containers:</p>
-<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>tests/test_schemas/compose.yaml<span class="w"> </span>up<span class="w"> </span>-d
+<div class="language-console highlight"><span class="filename">Start datasets</span><pre><span></span><code><span class="go">docker compose -f tests/test_schemas/compose.yaml up -d</span>
 </code></pre></div>
 <p>and then run:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>--run-ignored<span class="w"> </span>--run-ignored-mongo<span class="w"> </span>--run-ignored-redis
+<div class="language-console highlight"><span class="filename">Run all the unit tests</span><pre><span></span><code><span class="go">uv run pytest --run-ignored --run-ignored-mongo --run-ignored-redis</span>
 </code></pre></div>
 <ul>
 <li>Run tests with coverage (terminal summary):</li>
 </ul>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--dev<span class="w"> </span>pytest<span class="w"> </span>--cov<span class="o">=</span>.<span class="w"> </span>--cov-report<span class="o">=</span>term-missing
+<div class="language-console highlight"><span class="filename">Run unit tests with coverage</span><pre><span></span><code><span class="go">uv run --dev pytest --cov=. --cov-report=term-missing</span>
 </code></pre></div>
 <p><strong>Tips:</strong></p>
 <ul>

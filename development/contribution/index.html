@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -98,7 +100,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href=".." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../img/small_logo.svg" alt="logo">
+  <img src="../img/logo_library.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -221,7 +223,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href=".." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../img/small_logo.svg" alt="logo">
+  <img src="../img/logo_library.png" alt="logo">
 
     </a>
     DetectMate Library
@@ -2294,7 +2296,7 @@ at least the following information in a bug report:</p>
 <p>Go to <a href="https://github.com/ait-detectmate/DetectMateLibrary.git">https://github.com/ait-detectmate/DetectMateLibrary.git</a> and click on fork. Please note that you must login first to GitHub.</p>
 <h3 id="2-clone">2. Clone</h3>
 <p>After forking the repository into your own workspace, clone the development branch of that repository.</p>
-<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>-b<span class="w"> </span>development<span class="w"> </span>git@github.com:YOURUSERNAME/DetectMateLibrary.git
+<div class="language-console highlight"><span class="filename">Clone repository</span><pre><span></span><code><span class="go">git clone -b development git@github.com:YOURUSERNAME/DetectMateLibrary.git</span>
 </code></pre></div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -2302,15 +2304,15 @@ at least the following information in a bug report:</p>
 </div>
 <h3 id="3-create-a-feature-branch">3. Create a feature branch</h3>
 <p>Every single workpackage should be developed in its own feature-branch. Use a name that describes the feature:</p>
-<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>DetectMateLibrary
-git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature-some_important_work
+<div class="language-console highlight"><span class="filename">Create branch</span><pre><span></span><code><span class="go">cd DetectMateLibrary</span>
+<span class="go">git checkout -b feature-some_important_work</span>
 </code></pre></div>
 <h3 id="4-develop-your-feature-and-improvements-in-the-feature-branch">4. Develop your feature and improvements in the feature-branch</h3>
 <p>Please make sure that you commit only improvements that are related to the workpackage you created the feature-branch for.</p>
 <h3 id="5-fetch-and-merge-from-the-upstream">5. Fetch and merge from the upstream</h3>
 <p>If your work on this feature-branch is done, make sure that you are in sync with the branch of the upstream:</p>
-<div class="highlight"><pre><span></span><code>git<span class="w"> </span>remote<span class="w"> </span>add<span class="w"> </span>upstream<span class="w"> </span>git@github.com:ait-detectmate/DetectMateLibrary.git
-git<span class="w"> </span>pull<span class="w"> </span>upstream<span class="w"> </span>development
+<div class="language-console highlight"><span class="filename">Fetch and merge</span><pre><span></span><code><span class="go">git remote add upstream git@github.com:ait-detectmate/DetectMateLibrary.git</span>
+<span class="go">git pull upstream development</span>
 </code></pre></div>
 <p>If any conflicts occur, fix them and add them using <code>git add</code> and continue with the merge or fast-forward.</p>
 <p>Additional infos:</p>
@@ -2321,13 +2323,13 @@ git<span class="w"> </span>pull<span class="w"> </span>upstream<span class="w"> 
 </ul>
 <h3 id="6-push-the-changes-to-your-github-repository">6. Push the changes to your GitHub-repository</h3>
 <p>Before we can push our changes, we have to make sure that we don't have unnecessary commits. First checkout our commits:</p>
-<div class="highlight"><pre><span></span><code>git<span class="w"> </span>log
+<div class="language-console highlight"><span class="filename">Get logs</span><pre><span></span><code><span class="go">git log</span>
 </code></pre></div>
 <p>After that we can squash the last n commits together:</p>
-<div class="highlight"><pre><span></span><code>git<span class="w"> </span>rebase<span class="w"> </span>-i<span class="w"> </span>HEAD~n
+<div class="language-console highlight"><span class="filename">Rebase</span><pre><span></span><code><span class="go">git rebase -i HEAD~n</span>
 </code></pre></div>
 <p>Finally you can push the changes to YOUR github-repository:</p>
-<div class="highlight"><pre><span></span><code>git<span class="w"> </span>push
+<div class="language-console highlight"><span class="filename">Push</span><pre><span></span><code><span class="go">git push</span>
 </code></pre></div>
 <p>Additional documentation:</p>
 <ul>
@@ -2336,14 +2338,14 @@ git<span class="w"> </span>pull<span class="w"> </span>upstream<span class="w"> 
 <h3 id="7-submit-your-pull-request">7. Submit your pull-request</h3>
 <p>Use the GitHub-Webinterface to create a pull-request. Make sure that the target-repository is <code>ait-detectmate/DetectMateLibrary</code>.</p>
 <p>If your pull-request was accepted and merged into the development branch continue with "8. Update your local development branch". If it wasn't accepted, read the comments and fix the problems. Before pushing the changes make sure that you squashed them with your last commit:</p>
-<div class="highlight"><pre><span></span><code>git<span class="w"> </span>rebase<span class="w"> </span>-i<span class="w"> </span>HEAD~2
+<div class="language-console highlight"><span class="filename">Rebase head again</span><pre><span></span><code><span class="go">git rebase -i HEAD~2</span>
 </code></pre></div>
 <p>Delete your local feature-branch after the pull-request was merged into the development branch.</p>
 <h3 id="8-update-your-local-development-branch">8. Update your local development branch</h3>
 <p>Update your local development branch:</p>
-<div class="highlight"><pre><span></span><code>git<span class="w"> </span>fetch<span class="w"> </span>upstream<span class="w"> </span>development
-git<span class="w"> </span>checkout<span class="w"> </span>development
-git<span class="w"> </span>rebase<span class="w"> </span>upstream/development
+<div class="language-console highlight"><span class="filename">Update branch</span><pre><span></span><code><span class="go">git fetch upstream development</span>
+<span class="go">git checkout development</span>
+<span class="go">git rebase upstream/development</span>
 </code></pre></div>
 <p>Additional infos:</p>
 <ul>
@@ -2351,7 +2353,7 @@ git<span class="w"> </span>rebase<span class="w"> </span>upstream/development
 </ul>
 <h3 id="9-update-the-development-branch-in-your-github-repository">9. Update the development branch in your GitHub repository</h3>
 <p>Please make sure that you updated your local development branch as described in section 8. above. After that push the changes to your github-repository to keep it up to date:</p>
-<div class="highlight"><pre><span></span><code>git<span class="w"> </span>push
+<div class="language-console highlight"><span class="filename">Push again</span><pre><span></span><code><span class="go">git push</span>
 </code></pre></div>
 
 

@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -98,7 +100,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -221,7 +223,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     DetectMate Library
@@ -2641,7 +2643,7 @@
 <p>This catalog covers 18 common log formats and provides ready-to-use <code>log_format</code> patterns for the DetectMate parsers, such as the <a href="../../parsers/template_matcher/">MatcherParser</a>.</p>
 <p><strong>Key concept:</strong> <code>log_format</code> splits a raw log line into structured header fields that become entries in <code>ParserSchema.headerVariables</code>. The special <code>&lt;Content&gt;</code> token captures the variable message body, which is then matched against your template file to produce <code>eventID</code> and <code>variables</code>. Formats without <code>&lt;Content&gt;</code> are fully structured, so no template file is needed.</p>
 <p><strong>Generic configuration:</strong></p>
-<div class="highlight"><pre><span></span><code><span class="nt">parsers</span><span class="p">:</span>
+<div class="language-yaml highlight"><span class="filename">Configuration Parser Matcher</span><pre><span></span><code><span class="nt">parsers</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">MyParser</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">matcher_parser</span>
 <span class="w">    </span><span class="nt">auto_config</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
@@ -2775,29 +2777,29 @@
 <h2 id="security">Security</h2>
 <h3 id="audit">audit</h3>
 <p>Linux auditd log. Produced by the kernel audit subsystem; records system calls, authentication, and policy events.</p>
-<div class="highlight"><pre><span></span><code>type=USER_ACCT msg=audit(1642723741.072:375): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct="root" exe="/usr/sbin/cron" hostname=? addr=? terminal=cron res=success'
+<div class="language-console highlight"><span class="filename">Log example</span><pre><span></span><code><span class="go">type=USER_ACCT msg=audit(1642723741.072:375): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct="root" exe="/usr/sbin/cron" hostname=? addr=? terminal=cron res=success'</span>
 </code></pre></div>
 <p><strong>log_format:</strong> 
-<div class="highlight"><pre><span></span><code>type=&lt;Type&gt; msg=audit(&lt;Time&gt;:&lt;Serial&gt;): &lt;Content&gt;
+<div class="language-console highlight"><span class="filename">Log format</span><pre><span></span><code><span class="go">type=&lt;Type&gt; msg=audit(&lt;Time&gt;:&lt;Serial&gt;): &lt;Content&gt;</span>
 </code></pre></div></p>
 <p><strong>Variable noise patterns:</strong> Numeric field values (<code>=\d+</code>), IP addresses (<code>(\d+\.){3}\d+</code>).</p>
 <hr />
 <h3 id="openssh">OpenSSH</h3>
 <p>OpenSSH <code>sshd</code> authentication log. Records login attempts, key exchanges, and session events.</p>
-<div class="highlight"><pre><span></span><code>Dec 10 07:07:38 LabSZ sshd[24206]: Failed password for invalid user test9 from 192.168.1.1 port 20992 ssh2
+<div class="language-console highlight"><span class="filename">Log example</span><pre><span></span><code><span class="go">Dec 10 07:07:38 LabSZ sshd[24206]: Failed password for invalid user test9 from 192.168.1.1 port 20992 ssh2</span>
 </code></pre></div>
 <p><strong>log_format:</strong> 
-<div class="highlight"><pre><span></span><code>&lt;Date&gt; &lt;Day&gt; &lt;Time&gt; &lt;Component&gt; sshd[&lt;Pid&gt;]: &lt;Content&gt;
+<div class="language-console highlight"><span class="filename">Log format</span><pre><span></span><code><span class="go">&lt;Date&gt; &lt;Day&gt; &lt;Time&gt; &lt;Component&gt; sshd[&lt;Pid&gt;]: &lt;Content&gt;</span>
 </code></pre></div></p>
 <p><strong>Variable noise patterns:</strong> IP addresses (<code>(\d+\.){3}\d+</code>), hostnames (<code>([\w-]+\.){2,}[\w-]+</code>).</p>
 <hr />
 <h2 id="web-network">Web &amp; Network</h2>
 <h3 id="apacheaccess">ApacheAccess</h3>
 <p>Apache httpd access log (Combined Log Format). Each line is fully structured, so no template file is required.</p>
-<div class="highlight"><pre><span></span><code>64.242.88.10 - - [07/Mar/2004:16:10:02 -0800] "GET /twiki/bin/edit/Main/Double_bounce_sender?topicparent=Main.ConfigurationVariables HTTP/1.1" 401 12846 "-" "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.2) Gecko/20021202"
+<div class="language-console highlight"><span class="filename">Log example</span><pre><span></span><code><span class="go">64.242.88.10 - - [07/Mar/2004:16:10:02 -0800] "GET /twiki/bin/edit/Main/Double_bounce_sender?topicparent=Main.ConfigurationVariables HTTP/1.1" 401 12846 "-" "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.2) Gecko/20021202"</span>
 </code></pre></div>
 <p><strong>log_format:</strong> 
-<div class="highlight"><pre><span></span><code>&lt;IP&gt; - - [&lt;Time&gt;] "&lt;RequestType&gt; &lt;Request&gt; &lt;Version&gt;" &lt;Status&gt; &lt;ResponseSize&gt; "&lt;Referer&gt;" "&lt;UserAgent&gt;"
+<div class="language-console highlight"><span class="filename">Log format</span><pre><span></span><code><span class="go">&lt;IP&gt; - - [&lt;Time&gt;] "&lt;RequestType&gt; &lt;Request&gt; &lt;Version&gt;" &lt;Status&gt; &lt;ResponseSize&gt; "&lt;Referer&gt;" "&lt;UserAgent&gt;"</span>
 </code></pre></div></p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -2806,103 +2808,103 @@
 <hr />
 <h3 id="apache">Apache</h3>
 <p>Apache httpd error log. Records server errors, warnings, and informational notices.</p>
-<div class="highlight"><pre><span></span><code>[Sun Dec 04 04:47:44 2005] [notice] workerEnv.init() ok /etc/httpd/conf/workers2.properties
+<div class="language-console highlight"><span class="filename">Log example</span><pre><span></span><code><span class="go">[Sun Dec 04 04:47:44 2005] [notice] workerEnv.init() ok /etc/httpd/conf/workers2.properties</span>
 </code></pre></div>
 <p><strong>log_format:</strong>
-<div class="highlight"><pre><span></span><code>[&lt;Time&gt;] [&lt;Level&gt;] &lt;Content&gt;
+<div class="language-console highlight"><span class="filename">Log format</span><pre><span></span><code><span class="go">[&lt;Time&gt;] [&lt;Level&gt;] &lt;Content&gt;</span>
 </code></pre></div></p>
 <p><strong>Variable noise patterns:</strong> IP addresses (<code>(\d+\.){3}\d+</code>).</p>
 <hr />
 <h3 id="proxifier">Proxifier</h3>
 <p>Proxifier proxy client log. Records connection open/close events with traffic statistics.</p>
-<div class="highlight"><pre><span></span><code>[10:39:55] Skype.exe - www.bing.com:443 open through proxy 1.2.3.4:8080 OK
+<div class="language-console highlight"><span class="filename">Log example</span><pre><span></span><code><span class="go">[10:39:55] Skype.exe - www.bing.com:443 open through proxy 1.2.3.4:8080 OK</span>
 </code></pre></div>
 <p><strong>log_format:</strong> 
-<div class="highlight"><pre><span></span><code>[&lt;Time&gt;] &lt;Program&gt; - &lt;Content&gt;
+<div class="language-console highlight"><span class="filename">Log format</span><pre><span></span><code><span class="go">[&lt;Time&gt;] &lt;Program&gt; - &lt;Content&gt;</span>
 </code></pre></div></p>
 <p><strong>Variable noise patterns:</strong> Duration values (<code>&lt;\d+\ssec</code>), domain:port pairs (<code>([\w-]+\.)+[\w-]+(:\d+)?</code>), transfer sizes (<code>[KGTM]B</code>).</p>
 <hr />
 <h2 id="distributed-systems">Distributed Systems</h2>
 <h3 id="hdfs">HDFS</h3>
 <p>Hadoop Distributed File System daemon log. Emitted by DataNodes, NameNodes, and other HDFS services.</p>
-<div class="highlight"><pre><span></span><code>081109 203518 148 INFO dfs.DataNode$DataXceiver: Receiving block blk_-1608999687919862906 src: /10.251.73.220:54106 dest: /10.251.73.220:50010
+<div class="language-console highlight"><span class="filename">Log example</span><pre><span></span><code><span class="go">081109 203518 148 INFO dfs.DataNode$DataXceiver: Receiving block blk_-1608999687919862906 src: /10.251.73.220:54106 dest: /10.251.73.220:50010</span>
 </code></pre></div>
 <p><strong>log_format:</strong> 
-<div class="highlight"><pre><span></span><code>&lt;Date&gt; &lt;Time&gt; &lt;Pid&gt; &lt;Level&gt; &lt;Component&gt;: &lt;Content&gt;
+<div class="language-console highlight"><span class="filename">Log format</span><pre><span></span><code><span class="go">&lt;Date&gt; &lt;Time&gt; &lt;Pid&gt; &lt;Level&gt; &lt;Component&gt;: &lt;Content&gt;</span>
 </code></pre></div></p>
 <p><strong>Variable noise patterns:</strong> HDFS block IDs (<code>blk_-?\d+</code>), IP addresses with optional port (<code>(\d+\.){3}\d+(:\d+)?</code>).</p>
 <hr />
 <h3 id="hadoop">Hadoop</h3>
 <p>Hadoop MapReduce / YARN log. Produced by the ResourceManager, NodeManager, and application containers.</p>
-<div class="highlight"><pre><span></span><code>2015-10-17 15:37:15,811 INFO [main] org.apache.hadoop.mapreduce.v2.app.MRAppMaster: Created MRAppMaster for application appattempt_1443144491176_0001_000001
+<div class="language-console highlight"><span class="filename">Log example</span><pre><span></span><code><span class="go">2015-10-17 15:37:15,811 INFO [main] org.apache.hadoop.mapreduce.v2.app.MRAppMaster: Created MRAppMaster for application appattempt_1443144491176_0001_000001</span>
 </code></pre></div>
 <p><strong>log_format:</strong> 
-<div class="highlight"><pre><span></span><code>&lt;Date&gt; &lt;Time&gt; &lt;Level&gt; [&lt;Process&gt;] &lt;Component&gt;: &lt;Content&gt;
+<div class="language-console highlight"><span class="filename">Log format</span><pre><span></span><code><span class="go">&lt;Date&gt; &lt;Time&gt; &lt;Level&gt; [&lt;Process&gt;] &lt;Component&gt;: &lt;Content&gt;</span>
 </code></pre></div></p>
 <p><strong>Variable noise patterns:</strong> IP addresses (<code>(\d+\.){3}\d+</code>).</p>
 <hr />
 <h3 id="spark">Spark</h3>
 <p>Apache Spark log. Emitted by driver and executor JVMs.</p>
-<div class="highlight"><pre><span></span><code>15/10/16 03:35:11 INFO storage.BlockManagerMasterActor: Registering block manager 192.168.1.1:61698 with 896.4 MB RAM, BlockManagerId(1, 192.168.1.1, 61698)
+<div class="language-console highlight"><span class="filename">Log example</span><pre><span></span><code><span class="go">15/10/16 03:35:11 INFO storage.BlockManagerMasterActor: Registering block manager 192.168.1.1:61698 with 896.4 MB RAM, BlockManagerId(1, 192.168.1.1, 61698)</span>
 </code></pre></div>
 <p><strong>log_format:</strong> 
-<div class="highlight"><pre><span></span><code>&lt;Date&gt; &lt;Time&gt; &lt;Level&gt; &lt;Component&gt;: &lt;Content&gt;
+<div class="language-console highlight"><span class="filename">Log format</span><pre><span></span><code><span class="go">&lt;Date&gt; &lt;Time&gt; &lt;Level&gt; &lt;Component&gt;: &lt;Content&gt;</span>
 </code></pre></div></p>
 <p><strong>Variable noise patterns:</strong> IP addresses, memory size units (<code>\b[KGTM]?B\b</code>), domain-like names (<code>([\w-]+\.){2,}[\w-]+</code>).</p>
 <hr />
 <h3 id="zookeeper">Zookeeper</h3>
 <p>Apache Zookeeper log. Produced by quorum peers and server threads.</p>
-<div class="highlight"><pre><span></span><code>2015-07-29 17:37:13,090 - INFO  [QuorumPeer:NIOServerCnxn@943] - Closed socket connection for client /192.168.1.8:56613 which had sessionid 0x14eb8e0aac70006
+<div class="language-console highlight"><span class="filename">Log example</span><pre><span></span><code><span class="go">2015-07-29 17:37:13,090 - INFO  [QuorumPeer:NIOServerCnxn@943] - Closed socket connection for client /192.168.1.8:56613 which had sessionid 0x14eb8e0aac70006</span>
 </code></pre></div>
 <p><strong>log_format:</strong> 
-<div class="highlight"><pre><span></span><code>&lt;Date&gt; &lt;Time&gt; - &lt;Level&gt;  [&lt;Node&gt;:&lt;Component&gt;@&lt;Id&gt;] - &lt;Content&gt;
+<div class="language-console highlight"><span class="filename">Log format</span><pre><span></span><code><span class="go">&lt;Date&gt; &lt;Time&gt; - &lt;Level&gt;  [&lt;Node&gt;:&lt;Component&gt;@&lt;Id&gt;] - &lt;Content&gt;</span>
 </code></pre></div></p>
 <p><strong>Variable noise patterns:</strong> IP addresses with optional port (<code>(/|)(\d+\.){3}\d+(:\d+)?</code>).</p>
 <hr />
 <h3 id="openstack">OpenStack</h3>
 <p>OpenStack service log (Nova, Neutron, etc.). Structured with a request context field.</p>
-<div class="highlight"><pre><span></span><code>nova-manage.log 2016-09-28 03:51:11.899 25746 INFO nova.metadata.handler [req-5a1f3f8a-fd7a-4dc5-bb32-f642b2de2e74 - - - - -] 127.0.0.1 "GET /openstack/2012-08-10/meta-data/local-ipv4" status: 200 len: 14 time: 0.007720
+<div class="language-console highlight"><span class="filename">Log example</span><pre><span></span><code><span class="go">nova-manage.log 2016-09-28 03:51:11.899 25746 INFO nova.metadata.handler [req-5a1f3f8a-fd7a-4dc5-bb32-f642b2de2e74 - - - - -] 127.0.0.1 "GET /openstack/2012-08-10/meta-data/local-ipv4" status: 200 len: 14 time: 0.007720</span>
 </code></pre></div>
 <p><strong>log_format:</strong> 
-<div class="highlight"><pre><span></span><code>&lt;Logrecord&gt; &lt;Date&gt; &lt;Time&gt; &lt;Pid&gt; &lt;Level&gt; &lt;Component&gt; [&lt;ADDR&gt;] &lt;Content&gt;
+<div class="language-console highlight"><span class="filename">Log format</span><pre><span></span><code><span class="go">&lt;Logrecord&gt; &lt;Date&gt; &lt;Time&gt; &lt;Pid&gt; &lt;Level&gt; &lt;Component&gt; [&lt;ADDR&gt;] &lt;Content&gt;</span>
 </code></pre></div></p>
 <p><strong>Variable noise patterns:</strong> IP addresses (<code>((\d+\.){3}\d+,?)+</code>), file paths (<code>/.+?\s</code>), numeric values (<code>\d+</code>).</p>
 <hr />
 <h2 id="hpc-supercomputers">HPC / Supercomputers</h2>
 <h3 id="bgl">BGL</h3>
 <p>IBM BlueGene/L supercomputer log. Contains hardware-level diagnostic messages with node location identifiers.</p>
-<div class="highlight"><pre><span></span><code>- 1117838570 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.42.50.363779 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected
+<div class="language-console highlight"><span class="filename">Log example</span><pre><span></span><code><span class="go">- 1117838570 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.42.50.363779 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected</span>
 </code></pre></div>
 <p><strong>log_format:</strong> 
-<div class="highlight"><pre><span></span><code>&lt;Label&gt; &lt;Timestamp&gt; &lt;Date&gt; &lt;Node&gt; &lt;Time&gt; &lt;NodeRepeat&gt; &lt;Type&gt; &lt;Component&gt; &lt;Level&gt; &lt;Content&gt;
+<div class="language-console highlight"><span class="filename">Log format</span><pre><span></span><code><span class="go">&lt;Label&gt; &lt;Timestamp&gt; &lt;Date&gt; &lt;Node&gt; &lt;Time&gt; &lt;NodeRepeat&gt; &lt;Type&gt; &lt;Component&gt; &lt;Level&gt; &lt;Content&gt;</span>
 </code></pre></div></p>
 <p><strong>Variable noise patterns:</strong> Core dump references (<code>core\.\d+</code>).</p>
 <hr />
 <h3 id="hpc">HPC</h3>
 <p>Generic HPC cluster log. Produced by batch schedulers and system daemons on compute nodes.</p>
-<div class="highlight"><pre><span></span><code>5 hpc-lnx-node11 afs RUNNING 1169880007 OK File transfer: 23 files copied 0 bytes in 0.000 secs
+<div class="language-console highlight"><span class="filename">Log example</span><pre><span></span><code><span class="go">5 hpc-lnx-node11 afs RUNNING 1169880007 OK File transfer: 23 files copied 0 bytes in 0.000 secs</span>
 </code></pre></div>
 <p><strong>log_format:</strong> 
-<div class="highlight"><pre><span></span><code>&lt;LogId&gt; &lt;Node&gt; &lt;Component&gt; &lt;State&gt; &lt;Time&gt; &lt;Flag&gt; &lt;Content&gt;
+<div class="language-console highlight"><span class="filename">Log format</span><pre><span></span><code><span class="go">&lt;LogId&gt; &lt;Node&gt; &lt;Component&gt; &lt;State&gt; &lt;Time&gt; &lt;Flag&gt; &lt;Content&gt;</span>
 </code></pre></div></p>
 <p><strong>Variable noise patterns:</strong> Numeric assignments (<code>=\d+</code>).</p>
 <hr />
 <h3 id="thunderbird">Thunderbird</h3>
 <p>Thunderbird supercomputer log. Similar to BGL but from a different cluster; includes user and location fields.</p>
-<div class="highlight"><pre><span></span><code>- 1131566401 2005.11.09 admin Nov 9 21:00:01 tbird1 crond[3049]: (root) CMD (/usr/lib/sa/sa1 1 1)
+<div class="language-console highlight"><span class="filename">Log example</span><pre><span></span><code><span class="go">- 1131566401 2005.11.09 admin Nov 9 21:00:01 tbird1 crond[3049]: (root) CMD (/usr/lib/sa/sa1 1 1)</span>
 </code></pre></div>
 <p><strong>log_format:</strong> 
-<div class="highlight"><pre><span></span><code>&lt;Label&gt; &lt;Timestamp&gt; &lt;Date&gt; &lt;User&gt; &lt;Month&gt; &lt;Day&gt; &lt;Time&gt; &lt;Location&gt; &lt;Component&gt;([&lt;PID&gt;])?: &lt;Content&gt;
+<div class="language-console highlight"><span class="filename">Log format</span><pre><span></span><code><span class="go">&lt;Label&gt; &lt;Timestamp&gt; &lt;Date&gt; &lt;User&gt; &lt;Month&gt; &lt;Day&gt; &lt;Time&gt; &lt;Location&gt; &lt;Component&gt;([&lt;PID&gt;])?: &lt;Content&gt;</span>
 </code></pre></div></p>
 <p><strong>Variable noise patterns:</strong> IP addresses (<code>(\d+\.){3}\d+</code>).</p>
 <hr />
 <h2 id="operating-systems">Operating Systems</h2>
 <h3 id="linux">Linux</h3>
 <p>Linux syslog format (RFC 3164). Produced by <code>syslog</code>, <code>rsyslog</code>, and <code>syslog-ng</code>; covers auth, cron, kernel messages, and more.</p>
-<div class="highlight"><pre><span></span><code>Jun 14 15:16:02 combo sshd(pam_unix)[19939]: authentication failure; logname= uid=0 euid=0 tty=NODEVssh ruser= rhost=218.188.2.4
+<div class="language-console highlight"><span class="filename">Log example</span><pre><span></span><code><span class="go">Jun 14 15:16:02 combo sshd(pam_unix)[19939]: authentication failure; logname= uid=0 euid=0 tty=NODEVssh ruser= rhost=218.188.2.4</span>
 </code></pre></div>
 <p><strong>log_format:</strong> 
-<div class="highlight"><pre><span></span><code>&lt;Month&gt; &lt;Date&gt; &lt;Time&gt; &lt;Level&gt; &lt;Component&gt;([&lt;PID&gt;])?: &lt;Content&gt;
+<div class="language-text highlight"><pre><span></span><code>&lt;Month&gt; &lt;Date&gt; &lt;Time&gt; &lt;Level&gt; &lt;Component&gt;([&lt;PID&gt;])?: &lt;Content&gt;
 </code></pre></div></p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -2912,10 +2914,10 @@
 <hr />
 <h3 id="windows">Windows</h3>
 <p>Windows Component-Based Servicing (CBS) / Setup log. Fixed-width columns with variable spacing.</p>
-<div class="highlight"><pre><span></span><code>2016-09-28 04:30:22, Info                  CBS    Loaded Servicing Stack v6.1.7601.23505 with Core: C:\Windows\winsxs\amd64_microsoft-windows-servicingstack_31bf3856ad364e35_6.1.7601.23505_none_681aa442f6fed7f0\cbscore.dll
+<div class="language-console highlight"><span class="filename">Log example</span><pre><span></span><code><span class="go">2016-09-28 04:30:22, Info                  CBS    Loaded Servicing Stack v6.1.7601.23505 with Core: C:\Windows\winsxs\amd64_microsoft-windows-servicingstack_31bf3856ad364e35_6.1.7601.23505_none_681aa442f6fed7f0\cbscore.dll</span>
 </code></pre></div>
 <p><strong>log_format:</strong> 
-<div class="highlight"><pre><span></span><code>&lt;Date&gt; &lt;Time&gt;, &lt;Level&gt;                  &lt;Component&gt;    &lt;Content&gt;
+<div class="language-console highlight"><span class="filename">Log format</span><pre><span></span><code><span class="go">&lt;Date&gt; &lt;Time&gt;, &lt;Level&gt;                  &lt;Component&gt;    &lt;Content&gt;</span>
 </code></pre></div></p>
 <blockquote>
 <p>Note: The multiple spaces between fields are <strong>literal</strong> and must be preserved in the pattern.</p>
@@ -2924,10 +2926,10 @@
 <hr />
 <h3 id="mac">Mac</h3>
 <p>macOS unified system log (pre-Unified Logging). Produced by system daemons and user-space processes.</p>
-<div class="highlight"><pre><span></span><code>Jul  9 00:17:03 calvisitor-10-105-160-95 com.apple.backupd[12396] (Error): VSDBUtil: Failed to change_attributes for volume "/Volumes/SanDisk USB Drive"
+<div class="language-console highlight"><span class="filename">Log example</span><pre><span></span><code><span class="go">Jul  9 00:17:03 calvisitor-10-105-160-95 com.apple.backupd[12396] (Error): VSDBUtil: Failed to change_attributes for volume "/Volumes/SanDisk USB Drive"</span>
 </code></pre></div>
 <p><strong>log_format:</strong> 
-<div class="highlight"><pre><span></span><code>&lt;Month&gt;  &lt;Date&gt; &lt;Time&gt; &lt;User&gt; &lt;Component&gt;[&lt;PID&gt;]( (&lt;Address&gt;))?: &lt;Content&gt;
+<div class="language-console highlight"><span class="filename">Log format</span><pre><span></span><code><span class="go">&lt;Month&gt;  &lt;Date&gt; &lt;Time&gt; &lt;User&gt; &lt;Component&gt;[&lt;PID&gt;]( (&lt;Address&gt;))?: &lt;Content&gt;</span>
 </code></pre></div></p>
 <blockquote>
 <p>Note: Double space between <code>&lt;Month&gt;</code> and <code>&lt;Date&gt;</code> occurs when the day is single-digit (standard macOS padding).</p>
@@ -2936,20 +2938,20 @@
 <hr />
 <h3 id="android">Android</h3>
 <p>Android logcat output. Produced by the Android logging system across all framework and app components.</p>
-<div class="highlight"><pre><span></span><code>01-02 12:23:42.768  1632  2044 E ActivityManager: mDVFSHelper is null
+<div class="language-console highlight"><span class="filename">Log example</span><pre><span></span><code><span class="go">01-02 12:23:42.768  1632  2044 E ActivityManager: mDVFSHelper is null</span>
 </code></pre></div>
 <p><strong>log_format:</strong> 
-<div class="highlight"><pre><span></span><code>&lt;Date&gt; &lt;Time&gt;  &lt;Pid&gt;  &lt;Tid&gt; &lt;Level&gt; &lt;Component&gt;: &lt;Content&gt;
+<div class="language-console highlight"><span class="filename">Log format</span><pre><span></span><code><span class="go">&lt;Date&gt; &lt;Time&gt;  &lt;Pid&gt;  &lt;Tid&gt; &lt;Level&gt; &lt;Component&gt;: &lt;Content&gt;</span>
 </code></pre></div></p>
 <p><strong>Variable noise patterns:</strong> File system paths (<code>(/[\w-]+)+</code>), domain names, hex/numeric values (<code>\b(\-?\+?\d+)\b|\b0[Xx][a-fA-F\d]+\b|\b[a-fA-F\d]{4,}\b</code>).</p>
 <hr />
 <h2 id="application">Application</h2>
 <h3 id="healthapp">HealthApp</h3>
 <p>Mobile health application log. Pipe-delimited format from a step-counter app.</p>
-<div class="highlight"><pre><span></span><code>20170201-01:15:35:631|Step_StandCounter|4243|step counts since boot=76149; goal=6000; active=0; distance=45
+<div class="language-console highlight"><span class="filename">Log example</span><pre><span></span><code><span class="go">20170201-01:15:35:631|Step_StandCounter|4243|step counts since boot=76149; goal=6000; active=0; distance=45</span>
 </code></pre></div>
 <p><strong>log_format:</strong> 
-<div class="highlight"><pre><span></span><code>&lt;Time&gt;|&lt;Component&gt;|&lt;Pid&gt;|&lt;Content&gt;
+<div class="language-console highlight"><span class="filename">Log format</span><pre><span></span><code><span class="go">&lt;Time&gt;|&lt;Component&gt;|&lt;Pid&gt;|&lt;Content&gt;</span>
 </code></pre></div></p>
 
 

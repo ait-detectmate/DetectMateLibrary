@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -98,7 +100,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href=".." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../img/small_logo.svg" alt="logo">
+  <img src="../img/logo_library.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -221,7 +223,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href=".." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../img/small_logo.svg" alt="logo">
+  <img src="../img/logo_library.png" alt="logo">
 
     </a>
     DetectMate Library
@@ -2103,7 +2105,7 @@
 <p>The pipeline allows you to pass either a Config class instance or the dictionary used to initialize that Config class as arguments to the various components. For the detectors list, both methods can be combined, as shown in the example.</p>
 <h3 id="example-1">Example 1</h3>
 <p>Run a pipeline with only one log source.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.alert_aggregation.logid_count</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogIDCountAggegationConfig</span>
+<div class="language-python highlight"><span class="filename">One source example</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.alert_aggregation.logid_count</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogIDCountAggegationConfig</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.tree_matcher</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplateCppTreeMatcherConfig</span>
 
@@ -2150,7 +2152,7 @@
 </code></pre></div>
 <h3 id="example-2">Example 2</h3>
 <p>Run a pipeline with multiple log sources.</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.tree_matcher</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplateCppTreeMatcherConfig</span>
+<div class="language-python highlight"><span class="filename">Multiple source example</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.tree_matcher</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplateCppTreeMatcherConfig</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.autoparser</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoParserConfig</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.detectors.charset_detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">CharsetDetectorConfig</span>

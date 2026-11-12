@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -98,7 +100,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -221,7 +223,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     DetectMate Library
@@ -2098,7 +2100,7 @@
 <h2 id="what-is-a-log">What is a log?</h2>
 <p>Logs are messages produced by logging statements in code that describe events or
 states during execution. For example:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<div class="language-python highlight"><span class="filename">Log example</span><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"</span><span class="si">%(message)s</span><span class="s2">"</span><span class="p">)</span>  <span class="c1"># show INFO messages, without a prefix</span>
 
@@ -2107,17 +2109,17 @@ states during execution. For example:</p>
 <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"hello I am a log about </span><span class="si">{</span><span class="n">var1</span><span class="si">}</span><span class="s2"> and about </span><span class="si">{</span><span class="n">var2</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </code></pre></div>
 <p>produces the message:</p>
-<div class="highlight"><pre><span></span><code>hello I am a log about DetectMate getting started and about what is a log
+<div class="language-console highlight"><span class="filename">Log produced</span><pre><span></span><code><span class="go">hello I am a log about DetectMate getting started and about what is a log</span>
 </code></pre></div>
 <p>A log message can be split into two parts: a <strong>static part</strong> that stays the same
 every time the message is logged, and a <strong>variable part</strong> that changes from one
 log to the next.</p>
 <p>Take this log line (from now on we refer to log messages as <em>lines</em>):</p>
-<div class="highlight"><pre><span></span><code>User alice logged in from 192.168.0.5
+<div class="language-console highlight"><span class="filename">Log example</span><pre><span></span><code><span class="go">User alice logged in from 192.168.0.5</span>
 </code></pre></div>
 <p>The static parts here are <code>User</code> and <code>logged in from</code>, because they don't change across logging statements.
 <code>alice</code> and <code>192.168.0.5</code> do change, as you can see in the next one:</p>
-<div class="highlight"><pre><span></span><code>User bob logged in from 10.0.0.2
+<div class="language-console highlight"><span class="filename">Log example</span><pre><span></span><code><span class="go">User bob logged in from 10.0.0.2</span>
 </code></pre></div>
 <p>Now the name <code>alice</code> changed to <code>bob</code> for example.</p>
 <p>In DetectMate the static part is called the <strong>template</strong>, and the placeholders
@@ -2131,7 +2133,7 @@ happened, how important it is, which machine sent it) rather than the message
 itself. Think of it like the sender and date stamped on an envelope: useful to
 know, but not the letter inside.
 For example:</p>
-<div class="highlight"><pre><span></span><code>INFO [18-05-2005] hello I am a log about DetectMate getting started and about what is a log
+<div class="language-console highlight"><span class="filename">Log example with metadata</span><pre><span></span><code><span class="go">INFO [18-05-2005] hello I am a log about DetectMate getting started and about what is a log</span>
 </code></pre></div>
 <p>This line has three parts:</p>
 <ul>
@@ -2158,10 +2160,10 @@ which is the actual message content.</p>
 <p>The term <code>log_format</code> is common in the log-parsing literature and is used by
 tools such as the <strong><a href="../../parsers/drain_parser/">Drain parser</a></strong>, among many others.</p>
 <p>Based on the example above:</p>
-<pre><code>log_format: &lt;Level&gt; [&lt;Time&gt;] &lt;Content&gt;
-template:   hello I am a log about &lt;*&gt; and about &lt;*&gt;
-</code></pre>
-<p>A parsed log would contain fields like:</p>
+<p><div class="language-console highlight"><span class="filename">Parser arguments</span><pre><span></span><code><span class="go">log_format: &lt;Level&gt; [&lt;Time&gt;] &lt;Content&gt;</span>
+<span class="go">template:   hello I am a log about &lt;*&gt; and about &lt;*&gt;</span>
+</code></pre></div>
+A parsed log would contain fields like:</p>
 <table>
 <thead>
 <tr>

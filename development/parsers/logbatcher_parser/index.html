@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -98,7 +100,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -221,7 +223,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     DetectMate Library
@@ -2176,9 +2178,9 @@
 </table>
 <h2 id="installation">Installation</h2>
 <p><code>LogBatcherParser</code> requires the <code>llm</code> optional extra:</p>
-<div class="highlight"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"detectmatelibrary[llm]"</span>
-<span class="c1"># or with uv</span>
-uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>llm
+<div class="language-console highlight"><span class="filename">Install optional dependencies</span><pre><span></span><code><span class="go">pip install "detectmatelibrary[llm]"</span>
+<span class="gp">% </span>or<span class="w"> </span>with<span class="w"> </span>uv
+<span class="go">uv sync --extra llm</span>
 </code></pre></div>
 <h2 id="overview">Overview</h2>
 <p><code>LogBatcherParser</code> wraps the <a href="https://github.com/LogIntelligence/LogBatcher">LogBatcher</a> engine (MIT, LogIntelligence 2024) as a <code>CoreParser</code>. Parsing proceeds in two phases:</p>
@@ -2189,7 +2191,7 @@ uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </
 <p>Variable slots in templates use the <code>&lt;*&gt;</code> wildcard notation (e.g. <code>User &lt;*&gt; logged in from &lt;*&gt;</code>). Extracted variables are written to <code>output_["variables"]</code> in order of appearance.</p>
 <h2 id="examples">Examples</h2>
 <p>Set up the parser (parsing requires a valid API key):</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<div class="language-python highlight"><span class="filename">Example 1</span><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.logbatcher</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogBatcherParser</span>
 
 <span class="c1"># LogBatcher sends logs to an LLM: put a real api_key in the YAML to parse.</span>
@@ -2203,7 +2205,7 @@ uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </
 <span class="c1">#   print(output["template"])   # e.g. "User &lt;*&gt; logged in from &lt;*&gt;"</span>
 </code></pre></div>
 <p>Using a local Ollama instance:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.logbatcher</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogBatcherParser</span><span class="p">,</span> <span class="n">LogBatcherParserConfig</span>  <span class="c1"># noqa: E402</span>
+<div class="language-python highlight"><span class="filename">Example 2</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.logbatcher</span><span class="w"> </span><span class="kn">import</span> <span class="n">LogBatcherParser</span><span class="p">,</span> <span class="n">LogBatcherParserConfig</span>  <span class="c1"># noqa: E402</span>
 
 <span class="c1"># a local Ollama instance speaks the same API; here the config is built in Python</span>
 <span class="n">config</span> <span class="o">=</span> <span class="n">LogBatcherParserConfig</span><span class="p">(</span>
@@ -2218,7 +2220,7 @@ uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </
 </code></pre></div>
 <h2 id="configuration-file">Configuration file</h2>
 <p>The configuration used by the first example above (the Ollama example builds its configuration in Python instead). It sets only what this use case needs; every other parameter keeps its default (see <a href="#configuration-arguments">Configuration arguments</a>).</p>
-<div class="highlight"><pre><span></span><code><span class="nt">parsers</span><span class="p">:</span>
+<div class="language-yaml highlight"><span class="filename">Configuration</span><pre><span></span><code><span class="nt">parsers</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">LogBatcherParser</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">logbatcher_parser</span>
 <span class="w">    </span><span class="nt">params</span><span class="p">:</span>

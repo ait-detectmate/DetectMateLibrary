@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -98,7 +100,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -221,7 +223,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     DetectMate Library
@@ -2231,7 +2233,7 @@ cv_i = \sum_{j=1}^{n} \mathbf{1}(x_j = event\_id_i)
 <h2 id="description">Description</h2>
 <p>Count vectors learned during training are stored via <a href="../../auxiliar/persistency/">persistency</a>, so a trained model can be saved and restored with a <code>persist:</code> block. A count vector is only comparable within the window it was counted over, so restoring state at a different <code>window_size</code> logs a warning, because the restored vectors cannot match and every window would alert.</p>
 <h2 id="example">Example</h2>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<div class="language-python highlight"><span class="filename">Example</span><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary</span><span class="w"> </span><span class="kn">import</span> <span class="n">schemas</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.detectors.ecvc_detector</span><span class="w"> </span><span class="kn">import</span> <span class="n">ECVCDetector</span>
 
@@ -2256,7 +2258,7 @@ cv_i = \sum_{j=1}^{n} \mathbf{1}(x_j = event\_id_i)
 </code></pre></div>
 <h2 id="configuration-file">Configuration file</h2>
 <p>The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see <a href="#configuration-arguments">Configuration arguments</a>).</p>
-<div class="highlight"><pre><span></span><code><span class="nt">detectors</span><span class="p">:</span>
+<div class="language-yaml highlight"><span class="filename">Configuration</span><pre><span></span><code><span class="nt">detectors</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">ECVCDetector</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ecvc_detector</span>
 <span class="w">    </span><span class="nt">params</span><span class="p">:</span>

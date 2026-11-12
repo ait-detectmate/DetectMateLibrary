@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -98,7 +100,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href=".." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../img/small_logo.svg" alt="logo">
+  <img src="../img/logo_library.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -221,7 +223,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href=".." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../img/small_logo.svg" alt="logo">
+  <img src="../img/logo_library.png" alt="logo">
 
     </a>
     DetectMate Library
@@ -2085,7 +2087,7 @@
 
 <h1 id="federation-code">Federation [<a href="https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/common/_core_op/_fed_component.py">Code</a>]</h1>
 <p>This section explains how to use the federation setup. For a component to support federation, it must implement the following methods:</p>
-<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">to_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<div class="language-python highlight"><span class="filename">Federation methods</span><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">to_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""(Federation only) Serialize to bytes for federation operations."""</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">load_binary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binary</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -2107,7 +2109,7 @@
 </ul>
 <h2 id="example-class">Example class</h2>
 <p>For all the examples below, we will use this code:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.common.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreComponent</span>
+<div class="language-python highlight"><span class="filename">Component with federation implemented</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.common.core</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoreComponent</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">struct</span>
 
 
@@ -2137,7 +2139,7 @@
 <p>The diagram below shows the workflow:</p>
 <p><img alt="combine" src="../img/fed_combine_first.svg" /></p>
 <p>Example 1:</p>
-<div class="highlight"><pre><span></span><code><span class="n">detector1</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<div class="language-python highlight"><span class="filename">Combine first example</span><pre><span></span><code><span class="n">detector1</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
 <span class="n">detector2</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
 <span class="n">detector3</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">6</span><span class="p">])</span>
 
@@ -2148,7 +2150,7 @@
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Detector 3"</span><span class="p">,</span> <span class="n">detector3</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># All detectors have been updated</span>
 </code></pre></div>
 <p>Example 2:</p>
-<div class="highlight"><pre><span></span><code><span class="n">detector1</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<div class="language-python highlight"><span class="filename">Combine first example</span><pre><span></span><code><span class="n">detector1</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
 <span class="n">detector2</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
 <span class="n">detector3</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">6</span><span class="p">])</span>
 
@@ -2162,7 +2164,7 @@
 <p>The diagram below shows the workflow:</p>
 <p><img alt="stack" src="../img/fed_stack_later.svg" /></p>
 <p>Example 1:</p>
-<div class="highlight"><pre><span></span><code><span class="n">detector1</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<div class="language-python highlight"><span class="filename">Stack later example</span><pre><span></span><code><span class="n">detector1</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
 <span class="n">detector2</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
 <span class="n">detector3</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">6</span><span class="p">])</span>
 
@@ -2175,7 +2177,7 @@
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Detector 3"</span><span class="p">,</span> <span class="n">detector3</span><span class="o">.</span><span class="n">elems</span><span class="p">)</span>  <span class="c1"># Now it will work</span>
 </code></pre></div>
 <p>Example 2:</p>
-<div class="highlight"><pre><span></span><code><span class="n">detector1</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+<div class="language-python highlight"><span class="filename">Stack later example</span><pre><span></span><code><span class="n">detector1</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
 
 <span class="n">binary2</span> <span class="o">=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span><span class="o">.</span><span class="n">to_binary</span><span class="p">()</span>
 <span class="n">binary3</span> <span class="o">=</span> <span class="p">(</span><span class="n">detector3</span> <span class="o">:=</span> <span class="n">NewComponent</span><span class="p">([</span><span class="mi">6</span><span class="p">]))</span><span class="o">.</span><span class="n">to_binary</span><span class="p">()</span>

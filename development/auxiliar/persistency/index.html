@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -98,7 +100,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -221,7 +223,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     DetectMate Library
@@ -2406,7 +2408,7 @@ tracker detector (a subclass of <code>base_detectors.TrackerDetector</code>) tak
 block in its config and <code>TrackerDetector</code> starts the saver.</p>
 <hr />
 <h2 id="quick-start">Quick start</h2>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">persistency</span>
+<div class="language-python highlight"><span class="filename">Quick start</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">persistency</span>
 
 <span class="n">ep</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">EventPersistency</span><span class="p">()</span>
 
@@ -2442,7 +2444,7 @@ events, query state.</p>
 </tbody>
 </table>
 <p>Common methods:</p>
-<div class="highlight"><pre><span></span><code><span class="n">ep</span><span class="o">.</span><span class="n">ingest_event</span><span class="p">(</span><span class="n">event_id</span><span class="p">,</span> <span class="n">event_template</span><span class="p">,</span> <span class="n">variables</span><span class="o">=...</span><span class="p">,</span> <span class="n">named_variables</span><span class="o">=...</span><span class="p">)</span>
+<div class="language-python highlight"><span class="filename">Quick start</span><pre><span></span><code><span class="n">ep</span><span class="o">.</span><span class="n">ingest_event</span><span class="p">(</span><span class="n">event_id</span><span class="p">,</span> <span class="n">event_template</span><span class="p">,</span> <span class="n">variables</span><span class="o">=...</span><span class="p">,</span> <span class="n">named_variables</span><span class="o">=...</span><span class="p">)</span>
 
 <span class="n">ep</span><span class="o">.</span><span class="n">get_event_data</span><span class="p">(</span><span class="n">event_id</span><span class="p">)</span>        <span class="c1"># backend for a single event</span>
 <span class="n">ep</span><span class="o">.</span><span class="n">get_events_data</span><span class="p">()</span>               <span class="c1"># dict[event_id -&gt; backend]</span>
@@ -2469,7 +2471,7 @@ events, query state.</p>
 <p>All three are re-exported from the top of the package: <code>persistency.X</code> is the
 canonical import; the deeply nested submodules are an implementation detail.</p>
 <h3 id="persisting-to-disk">Persisting to disk</h3>
-<div class="highlight"><pre><span></span><code><span class="n">saver</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">PersistencySaver</span><span class="p">(</span>
+<div class="language-python highlight"><span class="filename">Persistency to disk</span><pre><span></span><code><span class="n">saver</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">PersistencySaver</span><span class="p">(</span>
     <span class="n">ep</span><span class="p">,</span>
     <span class="n">persistency</span><span class="o">.</span><span class="n">PersistencySaverConfig</span><span class="p">(</span>
         <span class="n">path</span><span class="o">=</span><span class="s2">"./state/my-detector"</span><span class="p">,</span>
@@ -2493,7 +2495,7 @@ triggers cannot raise to a caller, so they log the failure at <code>ERROR</code>
 the timer keeps running, and after a failed save the event-count trigger waits
 another <code>events_until_save</code> events before retrying.</p>
 <h4 id="restoring-state">Restoring state</h4>
-<div class="highlight"><pre><span></span><code><span class="n">saver</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">PersistencySaver</span><span class="p">(</span>
+<div class="language-python highlight"><span class="filename">Restoring state</span><pre><span></span><code><span class="n">saver</span> <span class="o">=</span> <span class="n">persistency</span><span class="o">.</span><span class="n">PersistencySaver</span><span class="p">(</span>
     <span class="n">ep</span><span class="p">,</span>
     <span class="n">persistency</span><span class="o">.</span><span class="n">PersistencySaverConfig</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">"./state/my-detector"</span><span class="p">,</span> <span class="n">auto_load</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
 <span class="p">)</span>
@@ -2505,7 +2507,7 @@ silently starting empty.</p>
 <h4 id="exporting-and-importing-state-on-demand">Exporting and importing state on demand</h4>
 <p>For one-shot transfers (e.g. moving trained state to a new environment, or
 taking a manual snapshot), use the standalone functions directly:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">persistency</span>
+<div class="language-python highlight"><span class="filename">Export and importint states</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">persistency</span>
 
 <span class="c1"># Export to a file URI</span>
 <span class="n">persistency</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">ep</span><span class="p">,</span> <span class="s2">"./snapshots/trained-state"</span><span class="p">)</span>
@@ -2532,7 +2534,7 @@ when a saver is active.</p>
 <p>When working through a detector (the typical path for DetectMateService), use
 the methods on the detector object directly, with no need to access
 <code>EventPersistency</code> internals:</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># Export to a file URI</span>
+<div class="language-python highlight"><span class="filename">Detector export-import</span><pre><span></span><code><span class="c1"># Export to a file URI</span>
 <span class="n">detector</span><span class="o">.</span><span class="n">export_state</span><span class="p">(</span><span class="s2">"./snapshots/my-detector"</span><span class="p">)</span>
 
 <span class="c1"># Export to bytes (e.g. for an API response)</span>
@@ -2561,7 +2563,7 @@ Charset, Event Sequence, Bigram Frequency, SCVS and ECVC; only they accept a
 <code>persist:</code> block. See <a href="../../detectors/#saving-state-persist">Saving state (persist)</a>
 for the config schema.</p>
 <p>In detector code, the pattern is:</p>
-<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.base_detectors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrackerDetector</span><span class="p">,</span> <span class="n">TrackerDetectorConfig</span>
+<div class="language-python highlight"><span class="filename">Detector with persistency</span><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.base_detectors</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrackerDetector</span><span class="p">,</span> <span class="n">TrackerDetectorConfig</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">MyDetectorConfig</span><span class="p">(</span><span class="n">TrackerDetectorConfig</span><span class="p">):</span>
     <span class="n">method_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"my_detector"</span>

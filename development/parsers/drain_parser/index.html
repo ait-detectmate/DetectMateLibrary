@@ -51,6 +51,8 @@
       
     
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -98,7 +100,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -221,7 +223,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../../img/small_logo.svg" alt="logo">
+  <img src="../../img/logo_library.png" alt="logo">
 
     </a>
     DetectMate Library
@@ -2131,9 +2133,13 @@
 </tr>
 </tbody>
 </table>
+<div class="admonition warning">
+<p class="admonition-title">Not yet stable</p>
+<p>This parser is not yet in a stable release and may behave differently across platforms or hardware.</p>
+</div>
 <h2 id="examples">Examples</h2>
 <p>Templates are kept when training resumes (default):</p>
-<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<div class="language-python highlight"><span class="filename">Example</span><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary.parsers.drain</span><span class="w"> </span><span class="kn">import</span> <span class="n">DrainParser</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">detectmatelibrary</span><span class="w"> </span><span class="kn">import</span> <span class="n">schemas</span>
 
@@ -2160,7 +2166,7 @@
 <span class="nb">print</span><span class="p">(</span><span class="n">parser</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">log</span><span class="p">(</span><span class="s2">"hello there, sargent kenobi!"</span><span class="p">))[</span><span class="s2">"template"</span><span class="p">])</span>  <span class="c1"># hello there &lt;*&gt; kenobi</span>
 </code></pre></div>
 <p>Templates are reset after each training round (<code>reset_in_post_train: true</code>):</p>
-<div class="highlight"><pre><span></span><code><span class="c1"># the same configuration, but the parser forgets its templates after each training round</span>
+<div class="language-python highlight"><span class="filename">Reset example</span><pre><span></span><code><span class="c1"># the same configuration, but the parser forgets its templates after each training round</span>
 <span class="n">config</span><span class="p">[</span><span class="s2">"parsers"</span><span class="p">][</span><span class="s2">"DrainParser"</span><span class="p">][</span><span class="s2">"params"</span><span class="p">][</span><span class="s2">"reset_in_post_train"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="n">parser</span> <span class="o">=</span> <span class="n">DrainParser</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">"DrainParser"</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">)</span>
 
@@ -2177,7 +2183,7 @@
 </code></pre></div>
 <h2 id="configuration-file">Configuration file</h2>
 <p>The configuration used by the examples above. It sets only what this use case needs; every other parameter keeps its default (see <a href="#configuration-arguments">Configuration arguments</a>).</p>
-<div class="highlight"><pre><span></span><code><span class="nt">parsers</span><span class="p">:</span>
+<div class="language-yaml highlight"><span class="filename">Configuration</span><pre><span></span><code><span class="nt">parsers</span><span class="p">:</span>
 <span class="w">  </span><span class="nt">DrainParser</span><span class="p">:</span>
 <span class="w">    </span><span class="nt">method_type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">drain_parser</span>
 <span class="w">    </span><span class="nt">params</span><span class="p">:</span>

@@ -49,6 +49,8 @@
       
     
     
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -96,7 +98,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href=".." title="DetectMate Library" class="md-header__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../img/small_logo.svg" alt="logo">
+  <img src="../img/logo_library.png" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -219,7 +221,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href=".." title="DetectMate Library" class="md-nav__button md-logo" aria-label="DetectMate Library" data-md-component="logo">
       
-  <img src="../img/small_logo.svg" alt="logo">
+  <img src="../img/logo_library.png" alt="logo">
 
     </a>
     DetectMate Library
@@ -2254,11 +2256,11 @@
 </ul>
 <h3 id="4-bump-the-version-number">4. Bump the version number</h3>
 <p>Create a new branch from <code>main</code> and update the version string in <code>src/detectmatelibrary/metadata.py</code>:</p>
-<div class="highlight"><pre><span></span><code><span class="n">__version__</span> <span class="o">=</span> <span class="s2">"0.X.Y"</span>  <span class="c1"># set to the new release version</span>
+<div class="language-python highlight"><span class="filename">Library version</span><pre><span></span><code><span class="n">__version__</span> <span class="o">=</span> <span class="s2">"0.X.Y"</span>  <span class="c1"># set to the new release version</span>
 </code></pre></div>
 <p>The version here must match the tag you will create in step 5 (e.g. version <code>0.4.0</code> corresponds to tag <code>v0.4.0</code>).</p>
 <p>Also make sure <code>uv.lock</code> is up to date:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>lock
+<div class="language-console highlight"><span class="filename">Generate dependency file</span><pre><span></span><code><span class="go">uv lock</span>
 </code></pre></div>
 <p>Commit any changes, push the branch, and open a pull request against <code>main</code>. Once CI passes, merge it.</p>
 <h3 id="5-create-a-github-release">5. Create a GitHub release</h3>
