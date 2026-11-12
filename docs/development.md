@@ -11,7 +11,7 @@ This section describes how to setup a development environment and how to contrib
 
 For development we recommend using [uv](https://docs.astral.sh/uv/). You can install all optional dependencies:
 
-```bash
+```console title="Get dependencies"
 uv sync --dev
 ```
 
@@ -24,13 +24,13 @@ Every code contributor must use [`prek`](https://github.com/j178/prek) to run ba
 `prek` is configured via the existing `.pre-commit-config.yaml`
 and is installed with the `dev` dependency group. To ensure pre-commit hooks run before each commit, run:
 
-```bash
+```console title="Install prek"
 uv run prek install
 ```
 
 To run the checks manually, you can execute:
 
-```bash
+```console title="Run prek"
 uv run prek run -a
 ```
 
@@ -38,7 +38,7 @@ uv run prek run -a
 
 In order to run the tests run the following command. The `dev` group already includes the `full` extra, so all optional dependencies are installed automatically:
 
-```bash
+```console title="Run unit tests"
 uv run --dev pytest
 ```
 
@@ -48,7 +48,7 @@ The user-facing side of auto-configuration is described in the [Detectors overvi
 
 A detector that supports auto-configuration subclasses `base_detectors.TrackerDetector`, which builds two stores: `self.persistency` for training and detection, and a separate `self.auto_conf_persistency` for auto-configuration. Detectors never build stores from `utils.persistency` themselves:
 
-```python
+```python title="Implement method"
 from detectmatelibrary.base_detectors import TrackerDetector, TrackerDetectorConfig
 
 
@@ -63,7 +63,7 @@ class MyDetector(TrackerDetector):
 
 The `configure()` method ingests all available variables (not just configured ones) so the tracker can assess each one:
 
-```python
+```python title="Implment configure"
 def configure(self, input_):
     self.auto_conf_persistency.ingest_event(
         event_id=input_["eventID"],
@@ -78,7 +78,7 @@ final `events` block. It touches nothing else on the config: everything the
 operator set under `params` or `auto_config_params` must survive untouched, so
 `set_configuration` never rebuilds the config from scratch:
 
-```python
+```python title="Implement set configure"
 def set_configuration(self):
     variables = {}
     for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
@@ -116,7 +116,7 @@ By convention the filename matches its documentation page (`charset.md` →
 `docs/examples/detectors/charset.py`). Wrap the part you want to show in section
 markers:
 
-```python
+```python title="Add code"
 # ;--8<-- [start:basic]
 from detectmatelibrary.parsers.logbatcher import LogBatcherParser, LogBatcherParserConfig
 # ...
@@ -126,7 +126,7 @@ from detectmatelibrary.parsers.logbatcher import LogBatcherParser, LogBatcherPar
 **2. Include it in the `.md` page.** Paths are relative to the repo root
 (`base_path` is set to `.`). Reference the section by name:
 
-````markdown
+````console title="Example insert code"
 ```python
 ;--8<-- "docs/examples/parsers/logbatcher_parser.py:basic"
 ```
@@ -145,7 +145,7 @@ your example needs something unavailable in CI (e.g. an API key), comment out
 those calls rather than letting them fail. The test is marked `ignored`, so a
 plain `pytest` run skips it; pass `--run-ignored` (as CI does) to include it:
 
-```bash
+```console title="Run different unit tests"
 uv run --dev pytest --run-ignored                    # whole suite, snippets included
 uv run --dev pytest tests/test_docs --run-ignored    # snippets only
 ```
@@ -159,7 +159,7 @@ valid configuration. The "Configuration arguments" tables are generated from the
 config classes. After adding or changing a config field, regenerate them from the
 repo root:
 
-```bash
+```console title="Update dos"
 uv run python docs/examples/config/update.py
 ```
 
@@ -168,13 +168,13 @@ uv run python docs/examples/config/update.py
 
 Build the static site:
 
-```bash
+```console title="Generate docs"
 uv run --dev mkdocs build
 ```
 
 For a live local preview while editing:
 
-```bash
+```console title="Run docs"
 uv run --dev mkdocs serve
 ```
 
