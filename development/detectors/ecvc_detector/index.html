@@ -2349,7 +2349,7 @@ cv_i = \sum_{j=1}^{n} \mathbf{1}(x_j = event\_id_i)
 <td>number</td>
 <td>0.2</td>
 <td>specific</td>
-<td>Fraction of the learned count vectors held out as a validation split and used to derive the anomaly threshold.</td>
+<td>Fraction of the learned count vectors held out as a validation split and used to derive the anomaly threshold. Detection still matches them: a window seen in training never alerts.</td>
 </tr>
 <tr>
 <td><code>seed</code></td>
@@ -2364,6 +2364,13 @@ cv_i = \sum_{j=1}^{n} \mathbf{1}(x_j = event\_id_i)
 <td>mean</td>
 <td>specific</td>
 <td>Method used to derive the anomaly threshold from the validation split: 'mean' averages the distance scores, 'default' uses a fixed threshold of 0.</td>
+</tr>
+<tr>
+<td><code>session_variable</code></td>
+<td>string, null</td>
+<td>None</td>
+<td>specific</td>
+<td>Header variable that names the session of each event (HDFS: block_id). When set, an event's window holds the last window_size events of its own session, fewer at the session start, so windows never mix sessions and every event is checked.</td>
 </tr>
 <tr>
 <td><code>start_id</code></td>
