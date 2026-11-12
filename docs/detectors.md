@@ -595,7 +595,7 @@ persist:
 
 **Azure Blob Storage**:
 
-```yaml title="Persistency SAzure"
+```yaml title="Persistency Azure"
 persist:
   path: az://my-container/detector-state
   storage_options:
