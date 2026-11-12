@@ -23,6 +23,6 @@ Run a pipeline with only one log source.
 
 Run a pipeline with multiple log sources.
 
-```python title="Multiple sourc example"
+```python title="Multiple source example"
 --8<-- "docs/examples/others/pipeline.py:example_2"
 ```
