@@ -1,5 +1,6 @@
 
-from detectmatelibrary.detectors.ecvc_detector import ECVCOp, ECVCDetectorConfig, ECVCDetector
+from detectmatelibrary.detectors.ecvc_detector import ECVCOp, ECVCDetectorConfig, ECVCDetector, SessionWindows
+from detectmatelibrary.utils.sequence_encoding import count_events, encode_count_vec
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 from detectmatelibrary import schemas
@@ -20,6 +21,10 @@ class TestECVCOP:
         expected = tuple([2, 1, 0, 0, 1])
 
         assert ECVCOp.build_count_vec(input_) == expected
+
+    def test_count_events(self):
+        assert count_events([0, 1, 4, 0]) == (2, 1, 0, 0, 1)
+        assert count_events([3]) == (0, 0, 0, 1)
 
     def test_build_one_vec(self):
         input_ = [
@@ -139,6 +144,18 @@ class TestECVC:
         assert scored == []
         assert ecvc.detect(_window([4, 4, 4]), schemas.DetectorSchema())
         assert len(scored) == 1
+
+    def test_window_held_out_for_the_threshold_never_alerts(self):
+        """validation_per only sets the threshold: every window seen in training stays known."""
+        rng = np.random.default_rng(0)
+        windows = [_window(rng.integers(0, 10, 4).tolist()) for _ in range(40)]
+        ecvc = ECVCDetector(config=ECVCDetectorConfig(window_size=4, validation_per=0.5))
+        for window in windows:
+            ecvc.train(window)
+        ecvc.post_train()
+
+        assert ecvc.threshold > 0  # the held-out half did set it
+        assert not any(ecvc.detect(window, schemas.DetectorSchema()) for window in windows)
 
     def test_detect_matches_the_full_scan(self):
         """The shortcut changes no decision: not for validation vectors, not for eventID -1."""
@@ -304,3 +321,63 @@ class TestECVCDetectorRestoredState:
         detector.finalize_federation()
 
         assert not (tmp_path / ".temp").exists()
+
+
+def _record(event, session):
+    return schemas.ParserSchema({"eventID": event, "headerVariables": {"blk": session}})
+
+
+def _counts(*windows):
+    """The persistency keys of the count vectors of these windows (window_size
+    2)."""
+    return {encode_count_vec(2, count_events(w)) for w in windows}
+
+
+# Two interleaved sessions, a: 1 3 5 and b: 2 4, and the window (size 2) ending at each event.
+STREAM = [("a", 1), ("b", 2), ("a", 3), ("b", 4), ("a", 5)]
+WINDOWS = [(1,), (2,), (1, 3), (2, 4), (3, 5)]
+
+
+def _session_detector(**config):
+    return ECVCDetector(config=ECVCDetectorConfig(
+        window_size=2, session_variable="blk", validation_per=0., **config
+    ))
+
+
+class TestECVCSessionWindows:
+    """With session_variable, an event's window holds the events before it in
+    its own session."""
+
+    def test_windows_never_mix_sessions(self):
+        windows = SessionWindows(size=2)
+        assert [windows.add(s, e) for s, e in STREAM] == WINDOWS
+
+    def test_training_counts_the_windows_of_each_session(self):
+        detector = _session_detector(data_use_training=len(STREAM))
+        for s, e in STREAM:
+            detector.process(_record(e, s))
+        assert set(detector.persistency.get_events_seen()) == _counts(*WINDOWS)
+
+    def test_each_phase_sees_each_event_once(self):
+        # Configure records are replayed into train() after the configure phase: the windows
+        # must not count an event twice or lose one.
+        detector = _session_detector(data_use_configure=2, data_use_training=1)
+        for s, e in STREAM:
+            detector.process(_record(e, s))
+        assert set(detector.persistency.get_events_seen()) == _counts(*WINDOWS[:3])
+
+    def test_detection_scores_the_window_of_the_events_own_session(self):
+        # Training sees one session alternating 1 and 2. Two sessions doing the same, interleaved,
+        # raise nothing (a stream window would count 1 1 and 2 2); a session starting with 2 does.
+        detector = _session_detector(data_use_training=6)
+        alerts = [detector.process(_record(e, "t")) for e in (1, 2, 1, 2, 1, 2)]
+        for s, e in [("a", 1), ("b", 1), ("a", 2), ("b", 2), ("a", 1), ("b", 1)]:
+            alerts.append(detector.process(_record(e, s)))
+        alerts.append(detector.process(_record(2, "c")))
+        assert [a is not None for a in alerts] == [False] * 12 + [True]
+        assert alerts[-1]["logIDs"] == [str(_record(2, "c")["logID"])]
+
+    def test_missing_session_variable_raises(self):
+        detector = _session_detector(data_use_training=1)
+        with pytest.raises(ValueError, match="blk"):
+            detector.process(schemas.ParserSchema({"eventID": 1}))
