@@ -48,7 +48,7 @@ Count vectors learned during training are stored via [persistency](../auxiliar/p
 
 ## Example
 
-```python
+```python title="Example"
 --8<-- "docs/examples/detectors/ecvc_detector.py:example"
 ```
 
@@ -56,7 +56,7 @@ Count vectors learned during training are stored via [persistency](../auxiliar/p
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/detectors/ecvc_detector.yaml"
 ```
 

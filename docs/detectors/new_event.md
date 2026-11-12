@@ -23,7 +23,7 @@ This detector keeps the set of event IDs observed during training and emits an a
 
 ## Example
 
-```python
+```python title="Example"
 --8<-- "docs/examples/detectors/new_event.py:example"
 ```
 
@@ -31,7 +31,7 @@ This detector keeps the set of event IDs observed during training and emits an a
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/detectors/new_event.yaml"
 ```
 

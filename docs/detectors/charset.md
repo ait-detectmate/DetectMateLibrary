@@ -23,7 +23,7 @@ This detector keeps the set of characters observed during training for each moni
 
 ## Example
 
-```python
+```python title="Example"
 --8<-- "docs/examples/detectors/charset.py:example"
 ```
 
@@ -31,7 +31,7 @@ This detector keeps the set of characters observed during training for each moni
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/detectors/charset.yaml"
 ```
 

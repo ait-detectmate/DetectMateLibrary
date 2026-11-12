@@ -37,7 +37,7 @@ Longer windows are more specific and therefore alert more readily; if the auto-c
 
 To let the detector pick the window length, give it a configure phase instead of a `fixed_window_size`:
 
-```yaml
+```yaml title="Configuration"
 detectors:
   LoginSequenceDetector:
     method_type: event_sequence_detector
@@ -49,7 +49,7 @@ detectors:
 
 ## Example
 
-```python
+```python title="Example"
 --8<-- "docs/examples/detectors/event_sequence.py:example"
 ```
 
@@ -59,7 +59,7 @@ The sequences learned so far are available via `detector.get_known_sequences()`,
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/detectors/event_sequence.yaml"
 ```
 

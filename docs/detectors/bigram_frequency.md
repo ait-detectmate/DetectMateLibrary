@@ -23,7 +23,7 @@ For each configured variable, the detector walks every observed value character-
 
 ## Example
 
-```python
+```python title="Example"
 --8<-- "docs/examples/detectors/bigram_frequency.py:example"
 ```
 
@@ -31,7 +31,7 @@ For each configured variable, the detector walks every observed value character-
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/detectors/bigram_frequency.yaml"
 ```
 
