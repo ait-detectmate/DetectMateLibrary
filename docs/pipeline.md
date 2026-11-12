@@ -15,7 +15,7 @@ The pipeline allows you to pass either a Config class instance or the dictionary
 
 Run a pipeline with only one log source.
 
-```python
+```python title="One source example"
 --8<-- "docs/examples/others/pipeline.py:example_1"
 ```
 
@@ -23,6 +23,6 @@ Run a pipeline with only one log source.
 
 Run a pipeline with multiple log sources.
 
-```python
+```python title="Multiple sourc example"
 --8<-- "docs/examples/others/pipeline.py:example_2"
 ```
