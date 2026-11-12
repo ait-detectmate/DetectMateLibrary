@@ -57,7 +57,7 @@ block in its config and `TrackerDetector` starts the saver.
 
 ## Quick start
 
-```python
+```python title="Quick start"
 from detectmatelibrary.utils import persistency
 
 ep = persistency.EventPersistency()
@@ -87,7 +87,7 @@ events, query state.
 
 Common methods:
 
-```python
+```python title="Quick start"
 ep.ingest_event(event_id, event_template, variables=..., named_variables=...)
 
 ep.get_event_data(event_id)        # backend for a single event
@@ -109,7 +109,7 @@ canonical import; the deeply nested submodules are an implementation detail.
 
 ### Persisting to disk
 
-```python
+```python title="Persistency to disk"
 saver = persistency.PersistencySaver(
     ep,
     persistency.PersistencySaverConfig(
@@ -138,7 +138,7 @@ another `events_until_save` events before retrying.
 
 #### Restoring state
 
-```python
+```python title="Restoring state"
 saver = persistency.PersistencySaver(
     ep,
     persistency.PersistencySaverConfig(path="./state/my-detector", auto_load=True),
@@ -155,7 +155,7 @@ silently starting empty.
 For one-shot transfers (e.g. moving trained state to a new environment, or
 taking a manual snapshot), use the standalone functions directly:
 
-```python
+```python title="Export and importint states"
 from detectmatelibrary.utils import persistency
 
 # Export to a file URI
@@ -188,7 +188,7 @@ When working through a detector (the typical path for DetectMateService), use
 the methods on the detector object directly, with no need to access
 `EventPersistency` internals:
 
-```python
+```python title="Detector export-import"
 # Export to a file URI
 detector.export_state("./snapshots/my-detector")
 
@@ -226,7 +226,7 @@ for the config schema.
 
 In detector code, the pattern is:
 
-```python
+```python title="Detector with persistency"
 from detectmatelibrary.base_detectors import TrackerDetector, TrackerDetectorConfig
 
 class MyDetectorConfig(TrackerDetectorConfig):

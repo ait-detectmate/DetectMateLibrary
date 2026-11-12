@@ -11,7 +11,7 @@ Utility methods to help developers load and save different schema objects. Suppo
 
 The `From` class is responsible for loading different input formats.
 
-```python
+```python title="From methods"
 class From:
     @staticmethod
     def log(
@@ -54,7 +54,7 @@ class From:
 
 ### Usage
 
-```python
+```python title="From example"
 --8<-- "docs/examples/others/from_to.py:example_1"
 ```
 
@@ -62,7 +62,7 @@ class From:
 
 The `To` class is responsible for saving schema objects to files.
 
-```python
+```python title="To methods"
 class To:
     @staticmethod
     def binary_file(out_: BaseSchema | bytes | None, out_path: str) -> bytes | None:
@@ -91,13 +91,13 @@ class To:
 
 ### Usage
 
-```python
+```python title="To example"
 --8<-- "docs/examples/others/from_to.py:example_2"
 ```
 
 Example JSON save file format:
 
-```json
+```json title="Output"
 {
     "0": {
         "logID": "0",
@@ -120,7 +120,7 @@ Example JSON save file format:
 
 The `FromTo` class loads and saves inputs and outputs in a single operation.
 
-```python
+```python title="FromTo methods"
 class FromTo:
     @staticmethod
     def log2binary_file(
@@ -227,13 +227,13 @@ class FromTo:
 
 ### Usage
 
-```python
+```python title="FromTo example"
 --8<-- "docs/examples/others/from_to.py:example_3"
 ```
 
 Example input data:
 
-```json
+```json title="Input"
 {
     "0": {
         "logID": "0",
@@ -254,7 +254,7 @@ Example input data:
 
 Example output data after parsing:
 
-```json
+```json title="Output"
 {
     "0": {
         "template": "This is a dummy template",
