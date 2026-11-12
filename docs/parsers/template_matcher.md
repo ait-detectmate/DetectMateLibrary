@@ -55,7 +55,7 @@ these names instead of numbers; see
 
 Load the templates and match a log:
 
-```python
+```python title="Example"
 --8<-- "docs/examples/parsers/template_matcher.py:example"
 ```
 
@@ -63,7 +63,7 @@ Load the templates and match a log:
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/parsers/template_matcher.yaml"
 ```
 

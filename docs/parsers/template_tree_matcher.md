@@ -22,14 +22,15 @@ Input and output schemas in the pipeline
 - Use the token `<*>` to mark wildcard slots.
 
 Example template file (templates.txt):
-```text
+
+```console title="Templates"
 pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>
 login success: user=<*> source=<*>
 ```
 
 ## Example
 
-```python
+```python title="Example"
 --8<-- "docs/examples/parsers/template_tree_matcher.py:example"
 ```
 
@@ -37,7 +38,7 @@ login success: user=<*> source=<*>
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/parsers/template_tree_matcher.yaml"
 ```
 
