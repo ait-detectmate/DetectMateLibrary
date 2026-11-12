@@ -251,6 +251,7 @@ The two neural detectors ([DeepLog](detectors/deeplog.md), [LogBERT](detectors/l
     | `window_size` | integer | 10 | Number of consecutive events used as one training/detection sequence. |
     | `validation_per` | number | 0.2 | Fraction of data held out for validation during (fine)training. |
     | `finetune_epochs` | integer | 2 | Number of epochs used when finetuning during the configuration phase. |
+    | `session_variable` | string, null | None | Header variable that names the session of each event (HDFS: block_id). When set, an event's window holds the events before it in its own session, padded at the session start, so windows never mix sessions and every event is checked. |
     | `hyperparameters` | object | {'Model': {}, 'Train': {}, 'Finetune': []} | Model, training and hyperparameter-search settings passed to the underlying deep learning model. |
 <!-- End deeplearning_arguments -->
 

@@ -5,6 +5,9 @@ from typing import Any, Callable
 
 
 EVAL_BATCH = 2048
+# Event id that fills a window before its session's first event. -1 is taken: a log that matches
+# no template.
+PAD = -2
 
 
 def batched(f: Callable[..., Any], *xs: jnp.ndarray) -> Any:
