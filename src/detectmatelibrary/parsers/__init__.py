@@ -1,24 +1,36 @@
 # mypy: ignore-errors
+# flake8: noqa
 
-from .drain import DrainParser, DrainConfig
-from .autoparser import AutoParser, AutoParserConfig
+__all__ = []
+
+try:
+    from .drain import DrainParser, DrainConfig
+except ImportError:
+    pass
+else:
+    __all__.extend(["DrainParser", "DrainConfig"])
+
+try:
+    from .autoparser import AutoParser, AutoParserConfig
+except ImportError:
+    pass
+else:
+    __all__.extend(["AutoParser", "AutoParserConfig"])
+
 from .json_parser import JsonParser, JsonParserConfig
-from .tree_matcher import TemplateCppTreeMatcher, TemplateCppTreeMatcherConfig
+
+__all__.extend(["JsonParser", "JsonParserConfig"])
+
+try:
+    from .tree_matcher import TemplateCppTreeMatcher, TemplateCppTreeMatcherConfig
+except ImportError:
+    pass
+else:
+    __all__.extend(["TemplateCppTreeMatcher", "TemplateCppTreeMatcherConfig"])
+
 from .template_matcher import MatcherParser, MatcherParserConfig
 
-
-__all__ = [
-    "DrainParser",
-    "DrainConfig",
-    "AutoParser",
-    "AutoParserConfig",
-    "JsonParser",
-    "JsonParserConfig",
-    "TemplateCppTreeMatcher",
-    "TemplateCppTreeMatcherConfig",
-    "MatcherParser",
-    "MatcherParserConfig",
-]
+__all__.extend(["MatcherParser", "MatcherParserConfig"])
 
 
 def __getattr__(name):
