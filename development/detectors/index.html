@@ -3020,6 +3020,12 @@ example configurations set <code>auto_config: false</code> anyway, to make this 
 <td>Number of epochs used when finetuning during the configuration phase.</td>
 </tr>
 <tr>
+<td><code>session_variable</code></td>
+<td>string, null</td>
+<td>None</td>
+<td>Header variable that names the session of each event (HDFS: block_id). When set, an event's window holds the events before it in its own session, padded at the session start, so windows never mix sessions and every event is checked.</td>
+</tr>
+<tr>
 <td><code>hyperparameters</code></td>
 <td>object</td>
 <td>{'Model': {}, 'Train': {}, 'Finetune': []}</td>
