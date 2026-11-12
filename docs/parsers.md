@@ -19,7 +19,7 @@ This document explains expected APIs, how to implement a parser, testing tips an
 
 Recommended signatures and behavior:
 
-```python
+```python title="Parser main methods"
 class CoreParser:
     def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:
         """Top-level runner. Calls parse() and performs pre/post processing.
@@ -66,7 +66,7 @@ returns, so a value set there is overwritten.
 
 Example:
 
-```python
+```python title="Example of a Dummy parser"
 # filepath: src/detectmatelibrary/parsers/my_parser.py
 from typing import Any
 
@@ -104,11 +104,12 @@ class MyParser(CoreParser):
 
 Unit test `parse()` directly using `ParserSchema` objects:
 
-```python
-def test_my_parser_parse():
-    from detectmatelibrary.parsers.my_parser import MyParser
-    from detectmatelibrary import schemas
+```python title="Testing parser"
+from detectmatelibrary.parsers.my_parser import MyParser
+from detectmatelibrary import schemas
 
+
+def test_my_parser_parse():
     parser = MyParser()
     raw = schemas.LogSchema({"log": "a b c", "logID": "1"})
     out = schemas.ParserSchema()

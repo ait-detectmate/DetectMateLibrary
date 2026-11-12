@@ -7,7 +7,7 @@ This page introduces the basic concepts you need before using DetectMate for log
 Logs are messages produced by logging statements in code that describe events or
 states during execution. For example:
 
-```python
+```python title="Log example"
 import logging
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")  # show INFO messages, without a prefix
@@ -19,7 +19,7 @@ logging.info(f"hello I am a log about {var1} and about {var2}")
 
 produces the message:
 
-```text
+```console title="Log produced"
 hello I am a log about DetectMate getting started and about what is a log
 ```
 
@@ -29,14 +29,14 @@ log to the next.
 
 Take this log line (from now on we refer to log messages as *lines*):
 
-```text
+```console title="Log example"
 User alice logged in from 192.168.0.5
 ```
 
 The static parts here are `User` and `logged in from`, because they don't change across logging statements.
 `alice` and `192.168.0.5` do change, as you can see in the next one:
 
-```text
+```console title="Log example"
 User bob logged in from 10.0.0.2
 ```
 
@@ -56,7 +56,7 @@ itself. Think of it like the sender and date stamped on an envelope: useful to
 know, but not the letter inside.
 For example:
 
-```text
+```console title="Log example with metadata"
 INFO [18-05-2005] hello I am a log about DetectMate getting started and about what is a log
 ```
 
@@ -87,9 +87,10 @@ tools such as the **[Drain parser](../parsers/drain_parser.md)**, among many oth
 
 Based on the example above:
 
-    log_format: <Level> [<Time>] <Content>
-    template:   hello I am a log about <*> and about <*>
-
+```console title="Parser arguments"
+log_format: <Level> [<Time>] <Content>
+template:   hello I am a log about <*> and about <*>
+```
 A parsed log would contain fields like:
 
 | Field                | Value                                                  |

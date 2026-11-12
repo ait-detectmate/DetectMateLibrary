@@ -27,7 +27,7 @@ Each instance of an event is one combination. An event with several instances mo
 
 ## Example
 
-```python
+```python title="Example"
 --8<-- "docs/examples/detectors/combo.py:example"
 ```
 
@@ -35,7 +35,7 @@ Each instance of an event is one combination. An event with several instances mo
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/detectors/combo.yaml"
 ```
 

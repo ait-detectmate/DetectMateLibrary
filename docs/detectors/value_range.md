@@ -23,7 +23,7 @@ This detector keeps only the minimum and maximum value seen during training for 
 
 ## Example
 
-```python
+```python title="Example"
 --8<-- "docs/examples/detectors/value_range.py:example"
 ```
 
@@ -31,7 +31,7 @@ This detector keeps only the minimum and maximum value seen during training for 
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/detectors/value_range.yaml"
 ```
 

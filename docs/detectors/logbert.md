@@ -28,7 +28,7 @@ Input and output schemas in the pipeline
 
 ## Example
 
-```python
+```python title="Example"
 --8<-- "docs/examples/detectors/logbert.py:example"
 ```
 
@@ -36,7 +36,7 @@ Input and output schemas in the pipeline
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/detectors/logbert.yaml"
 ```
 

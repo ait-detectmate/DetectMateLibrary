@@ -2,7 +2,7 @@
 
 Methods that make it easy to choose components solely through configuration settings.
 
-```python
+```python title="Methods"
 def selectComponent(
     config: CoreConfig | dict[str, Any],
     component_type: str,
@@ -21,6 +21,6 @@ def selectComponents(
 
 ## Usage
 
-```python
+```python title="Example"
 --8<-- "docs/examples/others/select_component.py:pickyou"
 ```
