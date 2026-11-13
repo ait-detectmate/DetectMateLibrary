@@ -1,0 +1,6 @@
+detectors:
+  SCVSDetector:
+    method_type: scvs_detector
+    params:
+      data_use_training: 6      # learn count vectors from the first 6 windows, then detect
+      window_size: 3            # count EventIDs over windows of 3 consecutive logs
