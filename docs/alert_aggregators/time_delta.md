@@ -25,7 +25,7 @@ Important: It is assumed that the alerts arrive in order of their timestamps!
 
 ## Example
 
-```python
+```python title="Example"
 --8<-- "docs/examples/alert_aggregators/time_delta.py:example_1"
 ```
 
@@ -33,7 +33,7 @@ Important: It is assumed that the alerts arrive in order of their timestamps!
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/alert_aggregators/time_delta.yaml"
 ```
 

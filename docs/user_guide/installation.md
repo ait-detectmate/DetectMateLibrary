@@ -12,7 +12,7 @@
 It is recommended to use [uv](https://docs.astral.sh/uv/) for installation. Clone
 the repository and install it from the project root:
 
-```bash
+```console title="Install from source"
 git clone https://github.com/ait-detectmate/DetectMateLibrary.git
 cd DetectMateLibrary
 uv sync
@@ -23,7 +23,7 @@ uv sync
 Changes to the source tree are then reflected immediately. To install DetectMate
 as a library into a different environment instead:
 
-```bash
+```console  title="Install from PIP"
 uv pip install --no-cache-dir <directory_detectmatelibrary>
 ```
 
@@ -42,29 +42,25 @@ To have a closer look at all the dependencies, see [Optional dependencies](https
 
 Install an extra with `uv sync`:
 
-```bash
+```console  title="Install optional dependencies"
 uv sync --extra dataframes
 ```
 
 Or with `uv pip install` / `pip` when installing as a library:
 
-```bash
-uv pip install "detectmatelibrary[dataframes]"
-# or
-pip install "detectmatelibrary[dataframes]"
+```console title="Install optional dependencies with PIP"
+uv pip install "detectmatelibrary[llm]"
 ```
 
 Combine multiple extras if needed:
 
-```bash
-uv sync --extra dataframes --extra polars-rtcompat
+```console title="Install multiple optional dependencies"
+uv sync --extra llm --extra palertbert
 ```
 
 Or install everything at once with the `full` extra:
 
-```bash
-uv sync --extra full
-# or
+```console title="Install all dependencies"
 uv pip install "detectmatelibrary[full]"
 ```
 
@@ -77,13 +73,13 @@ uv pip install "detectmatelibrary[full]"
 
 * Install dev dependencies (testing, linters, formatters). The `dev` group also pulls in the `full` extra, so every optional dependency (LLM, dataframes, polars-rtcompat) is installed too:
 
-```bash
+```console title="Install development dependencies"
 uv sync --dev
 ```
 
 * Install pre-commit hooks (this repository uses `prek` to run pre-commit tooling):
 
-```bash
+```bashconsole title="Install precommit"
 uv run --dev prek install
 ```
 
@@ -98,7 +94,7 @@ uv run --dev prek install
 
 * Install `protoc` on Debian/Ubuntu:
 
-```bash
+```console title="Install ProtoBuff in Linux"
 sudo apt-get update
 sudo apt-get install -y protobuf-compiler
 protoc --version
@@ -106,7 +102,7 @@ protoc --version
 
 * Compile the project proto:
 
-```bash
+```console  title="Compile ProtoBuff"
 protoc \
   --proto_path=src/detectmatelibrary/schemas/protobuf/ \
   --python_out=src/detectmatelibrary/schemas/protobuf/ \
@@ -119,26 +115,26 @@ protoc \
 
 The full test suite covers dataframe and LLM-parser code, so all extras must be present. Since `uv sync --dev` already installs the `full` extra, run the fast tests with:
 
-```bash
+```console  title="Run unit tests"
 uv run --dev pytest -s
 ```
 
 To run all unit tests, first start the database containers:
 
-```bash
+```console  title="Start datasets"
 docker compose -f tests/test_schemas/compose.yaml up -d
 ```
 
 and then run:
 
-```bash
+```console title="Run all the unit tests"
 uv run pytest --run-ignored --run-ignored-mongo --run-ignored-redis
 ```
 
 
 * Run tests with coverage (terminal summary):
 
-````bash
+````console title="Run unit tests with coverage"
 uv run --dev pytest --cov=. --cov-report=term-missing
 ````
 

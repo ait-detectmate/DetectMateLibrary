@@ -22,14 +22,15 @@ Input and output schemas in the pipeline
 - Use the token `<*>` to mark wildcard slots.
 
 Example template file (templates.txt):
-```text
+
+```console title="Templates"
 pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>
 login success: user=<*> source=<*>
 ```
 
 ## Example
 
-```python
+```python title="Example"
 --8<-- "docs/examples/parsers/template_tree_matcher.py:example"
 ```
 
@@ -37,7 +38,7 @@ login success: user=<*> source=<*>
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/parsers/template_tree_matcher.yaml"
 ```
 
@@ -73,6 +74,7 @@ All parameters this parser accepts, grouped by the YAML block they go in. **Scop
     | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
     | `log_format` | string, null | None | shared | fitting description yet to find |
     | `time_format` | string, null | None | shared | fitting description yet to find |
+    | `log_source` | string, null | None | shared | Process only inputs of the same log source. |
 <!-- End arguments -->
 
 !!! note

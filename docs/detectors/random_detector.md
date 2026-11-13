@@ -23,7 +23,7 @@ For every variable configured under `events`, the detector draws a random number
 
 ## Example
 
-```python
+```python title="Example"
 --8<-- "docs/examples/detectors/random_detector.py:example"
 ```
 
@@ -31,7 +31,7 @@ For every variable configured under `events`, the detector draws a random number
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/detectors/random_detector.yaml"
 ```
 
@@ -66,5 +66,5 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
     | `connector_name` | string, null | None | shared | Add a connector to the output schema. |
     | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
-    | `parser` | string | PARSER | shared | Name of the parser used. |
+    | `parser` | string, null | None | shared | Name of the parser used. |
 <!-- End arguments -->

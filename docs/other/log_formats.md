@@ -6,7 +6,7 @@ This catalog covers 18 common log formats and provides ready-to-use `log_format`
 
 **Generic configuration:**
 
-```yaml
+```yaml title="Configuration Parser Matcher"
 parsers:
   MyParser:
     method_type: matcher_parser
@@ -49,11 +49,14 @@ parsers:
 
 Linux auditd log. Produced by the kernel audit subsystem; records system calls, authentication, and policy events.
 
-```text
+```console  title="Log example"
 type=USER_ACCT msg=audit(1642723741.072:375): pid=10125 uid=0 auid=4294967295 ses=4294967295 msg='op=PAM:accounting acct="root" exe="/usr/sbin/cron" hostname=? addr=? terminal=cron res=success'
 ```
 
-**`log_format`:** `type=<Type> msg=audit(<Time>:<Serial>): <Content>`
+**log_format:** 
+```console title="Log format"
+type=<Type> msg=audit(<Time>:<Serial>): <Content>
+```
 
 **Variable noise patterns:** Numeric field values (`=\d+`), IP addresses (`(\d+\.){3}\d+`).
 
@@ -63,11 +66,14 @@ type=USER_ACCT msg=audit(1642723741.072:375): pid=10125 uid=0 auid=4294967295 se
 
 OpenSSH `sshd` authentication log. Records login attempts, key exchanges, and session events.
 
-```text
+```console  title="Log example"
 Dec 10 07:07:38 LabSZ sshd[24206]: Failed password for invalid user test9 from 192.168.1.1 port 20992 ssh2
 ```
 
-**`log_format`:** `<Date> <Day> <Time> <Component> sshd[<Pid>]: <Content>`
+**log_format:** 
+```console title="Log format"
+<Date> <Day> <Time> <Component> sshd[<Pid>]: <Content>
+```
 
 **Variable noise patterns:** IP addresses (`(\d+\.){3}\d+`), hostnames (`([\w-]+\.){2,}[\w-]+`).
 
@@ -79,11 +85,14 @@ Dec 10 07:07:38 LabSZ sshd[24206]: Failed password for invalid user test9 from 1
 
 Apache httpd access log (Combined Log Format). Each line is fully structured, so no template file is required.
 
-```text
+```console  title="Log example"
 64.242.88.10 - - [07/Mar/2004:16:10:02 -0800] "GET /twiki/bin/edit/Main/Double_bounce_sender?topicparent=Main.ConfigurationVariables HTTP/1.1" 401 12846 "-" "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.2) Gecko/20021202"
 ```
 
-**`log_format`:** `<IP> - - [<Time>] "<RequestType> <Request> <Version>" <Status> <ResponseSize> "<Referer>" "<UserAgent>"`
+**log_format:** 
+```console title="Log format"
+<IP> - - [<Time>] "<RequestType> <Request> <Version>" <Status> <ResponseSize> "<Referer>" "<UserAgent>"
+```
 
 !!! note
     All fields land directly in `headerVariables`. Use `header_variables` in your detector config to track e.g. `Status`, `IP`, or `RequestType`.
@@ -94,11 +103,14 @@ Apache httpd access log (Combined Log Format). Each line is fully structured, so
 
 Apache httpd error log. Records server errors, warnings, and informational notices.
 
-```text
+```console  title="Log example"
 [Sun Dec 04 04:47:44 2005] [notice] workerEnv.init() ok /etc/httpd/conf/workers2.properties
 ```
 
-**`log_format`:** `[<Time>] [<Level>] <Content>`
+**log_format:**
+```console title="Log format"
+[<Time>] [<Level>] <Content>
+```
 
 **Variable noise patterns:** IP addresses (`(\d+\.){3}\d+`).
 
@@ -108,11 +120,14 @@ Apache httpd error log. Records server errors, warnings, and informational notic
 
 Proxifier proxy client log. Records connection open/close events with traffic statistics.
 
-```text
+```console  title="Log example"
 [10:39:55] Skype.exe - www.bing.com:443 open through proxy 1.2.3.4:8080 OK
 ```
 
-**`log_format`:** `[<Time>] <Program> - <Content>`
+**log_format:** 
+```console title="Log format"
+[<Time>] <Program> - <Content>
+```
 
 **Variable noise patterns:** Duration values (`<\d+\ssec`), domain:port pairs (`([\w-]+\.)+[\w-]+(:\d+)?`), transfer sizes (`[KGTM]B`).
 
@@ -124,11 +139,14 @@ Proxifier proxy client log. Records connection open/close events with traffic st
 
 Hadoop Distributed File System daemon log. Emitted by DataNodes, NameNodes, and other HDFS services.
 
-```text
+```console  title="Log example"
 081109 203518 148 INFO dfs.DataNode$DataXceiver: Receiving block blk_-1608999687919862906 src: /10.251.73.220:54106 dest: /10.251.73.220:50010
 ```
 
-**`log_format`:** `<Date> <Time> <Pid> <Level> <Component>: <Content>`
+**log_format:** 
+```console title="Log format"
+<Date> <Time> <Pid> <Level> <Component>: <Content>
+```
 
 **Variable noise patterns:** HDFS block IDs (`blk_-?\d+`), IP addresses with optional port (`(\d+\.){3}\d+(:\d+)?`).
 
@@ -138,11 +156,14 @@ Hadoop Distributed File System daemon log. Emitted by DataNodes, NameNodes, and 
 
 Hadoop MapReduce / YARN log. Produced by the ResourceManager, NodeManager, and application containers.
 
-```text
+```console  title="Log example"
 2015-10-17 15:37:15,811 INFO [main] org.apache.hadoop.mapreduce.v2.app.MRAppMaster: Created MRAppMaster for application appattempt_1443144491176_0001_000001
 ```
 
-**`log_format`:** `<Date> <Time> <Level> [<Process>] <Component>: <Content>`
+**log_format:** 
+```console title="Log format"
+<Date> <Time> <Level> [<Process>] <Component>: <Content>
+```
 
 **Variable noise patterns:** IP addresses (`(\d+\.){3}\d+`).
 
@@ -152,11 +173,14 @@ Hadoop MapReduce / YARN log. Produced by the ResourceManager, NodeManager, and a
 
 Apache Spark log. Emitted by driver and executor JVMs.
 
-```text
+```console  title="Log example"
 15/10/16 03:35:11 INFO storage.BlockManagerMasterActor: Registering block manager 192.168.1.1:61698 with 896.4 MB RAM, BlockManagerId(1, 192.168.1.1, 61698)
 ```
 
-**`log_format`:** `<Date> <Time> <Level> <Component>: <Content>`
+**log_format:** 
+```console title="Log format"
+<Date> <Time> <Level> <Component>: <Content>
+```
 
 **Variable noise patterns:** IP addresses, memory size units (`\b[KGTM]?B\b`), domain-like names (`([\w-]+\.){2,}[\w-]+`).
 
@@ -166,11 +190,14 @@ Apache Spark log. Emitted by driver and executor JVMs.
 
 Apache Zookeeper log. Produced by quorum peers and server threads.
 
-```text
+```console  title="Log example"
 2015-07-29 17:37:13,090 - INFO  [QuorumPeer:NIOServerCnxn@943] - Closed socket connection for client /192.168.1.8:56613 which had sessionid 0x14eb8e0aac70006
 ```
 
-**`log_format`:** `<Date> <Time> - <Level>  [<Node>:<Component>@<Id>] - <Content>`
+**log_format:** 
+```console title="Log format"
+<Date> <Time> - <Level>  [<Node>:<Component>@<Id>] - <Content>
+```
 
 **Variable noise patterns:** IP addresses with optional port (`(/|)(\d+\.){3}\d+(:\d+)?`).
 
@@ -180,11 +207,14 @@ Apache Zookeeper log. Produced by quorum peers and server threads.
 
 OpenStack service log (Nova, Neutron, etc.). Structured with a request context field.
 
-```text
+```console  title="Log example"
 nova-manage.log 2016-09-28 03:51:11.899 25746 INFO nova.metadata.handler [req-5a1f3f8a-fd7a-4dc5-bb32-f642b2de2e74 - - - - -] 127.0.0.1 "GET /openstack/2012-08-10/meta-data/local-ipv4" status: 200 len: 14 time: 0.007720
 ```
 
-**`log_format`:** `<Logrecord> <Date> <Time> <Pid> <Level> <Component> [<ADDR>] <Content>`
+**log_format:** 
+```console title="Log format"
+<Logrecord> <Date> <Time> <Pid> <Level> <Component> [<ADDR>] <Content>
+```
 
 **Variable noise patterns:** IP addresses (`((\d+\.){3}\d+,?)+`), file paths (`/.+?\s`), numeric values (`\d+`).
 
@@ -196,11 +226,14 @@ nova-manage.log 2016-09-28 03:51:11.899 25746 INFO nova.metadata.handler [req-5a
 
 IBM BlueGene/L supercomputer log. Contains hardware-level diagnostic messages with node location identifiers.
 
-```text
+```console  title="Log example"
 - 1117838570 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.42.50.363779 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected
 ```
 
-**`log_format`:** `<Label> <Timestamp> <Date> <Node> <Time> <NodeRepeat> <Type> <Component> <Level> <Content>`
+**log_format:** 
+```console title="Log format"
+<Label> <Timestamp> <Date> <Node> <Time> <NodeRepeat> <Type> <Component> <Level> <Content>
+```
 
 **Variable noise patterns:** Core dump references (`core\.\d+`).
 
@@ -210,11 +243,14 @@ IBM BlueGene/L supercomputer log. Contains hardware-level diagnostic messages wi
 
 Generic HPC cluster log. Produced by batch schedulers and system daemons on compute nodes.
 
-```text
+```console  title="Log example"
 5 hpc-lnx-node11 afs RUNNING 1169880007 OK File transfer: 23 files copied 0 bytes in 0.000 secs
 ```
 
-**`log_format`:** `<LogId> <Node> <Component> <State> <Time> <Flag> <Content>`
+**log_format:** 
+```console title="Log format"
+<LogId> <Node> <Component> <State> <Time> <Flag> <Content>
+```
 
 **Variable noise patterns:** Numeric assignments (`=\d+`).
 
@@ -224,11 +260,14 @@ Generic HPC cluster log. Produced by batch schedulers and system daemons on comp
 
 Thunderbird supercomputer log. Similar to BGL but from a different cluster; includes user and location fields.
 
-```text
+```console  title="Log example"
 - 1131566401 2005.11.09 admin Nov 9 21:00:01 tbird1 crond[3049]: (root) CMD (/usr/lib/sa/sa1 1 1)
 ```
 
-**`log_format`:** `<Label> <Timestamp> <Date> <User> <Month> <Day> <Time> <Location> <Component>([<PID>])?: <Content>`
+**log_format:** 
+```console title="Log format"
+<Label> <Timestamp> <Date> <User> <Month> <Day> <Time> <Location> <Component>([<PID>])?: <Content>
+```
 
 **Variable noise patterns:** IP addresses (`(\d+\.){3}\d+`).
 
@@ -240,11 +279,14 @@ Thunderbird supercomputer log. Similar to BGL but from a different cluster; incl
 
 Linux syslog format (RFC 3164). Produced by `syslog`, `rsyslog`, and `syslog-ng`; covers auth, cron, kernel messages, and more.
 
-```text
+```console  title="Log example"
 Jun 14 15:16:02 combo sshd(pam_unix)[19939]: authentication failure; logname= uid=0 euid=0 tty=NODEVssh ruser= rhost=218.188.2.4
 ```
 
-**`log_format`:** `<Month> <Date> <Time> <Level> <Component>([<PID>])?: <Content>`
+**log_format:** 
+```text
+<Month> <Date> <Time> <Level> <Component>([<PID>])?: <Content>
+```
 
 !!! note
     `<Level>` captures the **hostname** in standard syslog (the field name follows benchmark convention).
@@ -257,11 +299,14 @@ Jun 14 15:16:02 combo sshd(pam_unix)[19939]: authentication failure; logname= ui
 
 Windows Component-Based Servicing (CBS) / Setup log. Fixed-width columns with variable spacing.
 
-```text
+```console  title="Log example"
 2016-09-28 04:30:22, Info                  CBS    Loaded Servicing Stack v6.1.7601.23505 with Core: C:\Windows\winsxs\amd64_microsoft-windows-servicingstack_31bf3856ad364e35_6.1.7601.23505_none_681aa442f6fed7f0\cbscore.dll
 ```
 
-**`log_format`:** `<Date> <Time>, <Level>                  <Component>    <Content>`
+**log_format:** 
+```console title="Log format"
+<Date> <Time>, <Level>                  <Component>    <Content>
+```
 
 > Note: The multiple spaces between fields are **literal** and must be preserved in the pattern.
 
@@ -273,11 +318,14 @@ Windows Component-Based Servicing (CBS) / Setup log. Fixed-width columns with va
 
 macOS unified system log (pre-Unified Logging). Produced by system daemons and user-space processes.
 
-```text
+```console  title="Log example"
 Jul  9 00:17:03 calvisitor-10-105-160-95 com.apple.backupd[12396] (Error): VSDBUtil: Failed to change_attributes for volume "/Volumes/SanDisk USB Drive"
 ```
 
-**`log_format`:** `<Month>  <Date> <Time> <User> <Component>[<PID>]( (<Address>))?: <Content>`
+**log_format:** 
+```console title="Log format"
+<Month>  <Date> <Time> <User> <Component>[<PID>]( (<Address>))?: <Content>
+```
 
 > Note: Double space between `<Month>` and `<Date>` occurs when the day is single-digit (standard macOS padding).
 
@@ -289,11 +337,14 @@ Jul  9 00:17:03 calvisitor-10-105-160-95 com.apple.backupd[12396] (Error): VSDBU
 
 Android logcat output. Produced by the Android logging system across all framework and app components.
 
-```text
+```console  title="Log example"
 01-02 12:23:42.768  1632  2044 E ActivityManager: mDVFSHelper is null
 ```
 
-**`log_format`:** `<Date> <Time>  <Pid>  <Tid> <Level> <Component>: <Content>`
+**log_format:** 
+```console title="Log format"
+<Date> <Time>  <Pid>  <Tid> <Level> <Component>: <Content>
+```
 
 **Variable noise patterns:** File system paths (`(/[\w-]+)+`), domain names, hex/numeric values (`\b(\-?\+?\d+)\b|\b0[Xx][a-fA-F\d]+\b|\b[a-fA-F\d]{4,}\b`).
 
@@ -305,8 +356,11 @@ Android logcat output. Produced by the Android logging system across all framewo
 
 Mobile health application log. Pipe-delimited format from a step-counter app.
 
-```text
+```console  title="Log example"
 20170201-01:15:35:631|Step_StandCounter|4243|step counts since boot=76149; goal=6000; active=0; distance=45
 ```
 
-**`log_format`:** `<Time>|<Component>|<Pid>|<Content>`
+**log_format:** 
+```console title="Log format"
+<Time>|<Component>|<Pid>|<Content>
+```

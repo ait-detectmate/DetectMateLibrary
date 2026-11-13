@@ -1,8 +1,8 @@
-from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
+from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL, APACHE_LOG
 
 from detectmatelibrary.pipeline import PipelineConfig, _run_pipeline, Pipeline
 
-from detectmatelibrary._testutils.dummy_parser import DummyParser
+from detectmatelibrary._testutils.dummy_parser import DummyParser, DummyParserConfig
 from detectmatelibrary._testutils.dummy_detector import DummyDetectorConfig
 from detectmatelibrary._testutils.dummy_alert_aggregator import (
     DummyAlertAggregator, DummyAlertAggregatorConfig
@@ -13,10 +13,11 @@ import detectmatelibrary.schemas as sc
 
 from detectmatelibrary.common.detector import CoreDetector
 
-from detectmatelibrary.detectors.ecvc_detector import ECVCDetectorConfig
 from detectmatelibrary.detectors.charset_detector import CharsetDetectorConfig
+from detectmatelibrary.detectors.ecvc_detector import ECVCDetectorConfig
 
 from detectmatelibrary.parsers.tree_matcher import TemplateCppTreeMatcherConfig
+from detectmatelibrary.parsers.autoparser import AutoParserConfig
 
 from detectmatelibrary.alert_aggregation.logid_count import LogIDCountAggegationConfig
 
@@ -50,7 +51,8 @@ class AlwayAlert(CoreDetector):
         return True
 
 
-log_schema = sc.LogSchema({"logID": "1", "log": "hello"})
+log_schema = sc.LogSchema({"logID": "1", "log": "hello", "logSource": "A"})
+log_schema_2 = sc.LogSchema({"logID": "2", "log": "ciao", "logSource": "B"})
 
 parser_schema = sc.ParserSchema({
     "parserType": "a",
@@ -71,7 +73,7 @@ class TestRunPipeline:
         out_ = _run_pipeline(
             config=PipelineConfig(do_parsing=True, do_aggregation=False),
             input_=log_schema,
-            parser=DummyParser(),
+            parsers=[DummyParser()],
             detectors=[AlwayAlert(), AlwayAlert()],
             alert_aggreator=None
         )
@@ -80,11 +82,46 @@ class TestRunPipeline:
         assert isinstance(out_[0], sc.DetectorSchema)
         assert len(out_) == 2
 
+    def test_run_parsers2detectors(self) -> None:
+        out_ = _run_pipeline(
+            config=PipelineConfig(do_parsing=True, do_aggregation=False),
+            input_=log_schema,
+            parsers=[
+                DummyParser(config=DummyParserConfig(log_source="A")),
+                DummyParser(config=DummyParserConfig(log_source="B"))
+            ],
+            detectors=[
+                AlwayAlert(config=DummyDetectorConfig(parser="DummyParser_from_A")),
+                AlwayAlert(config=DummyDetectorConfig(parser="DummyParser_from_B"))
+            ],
+            alert_aggreator=None
+        )
+        assert out_[0]["logIDs"] == ["1"]
+        assert out_[0]["detectorID"] == "DummyDetector_from_DummyParser_from_A"
+        assert len(out_) == 1
+
+        out_ = _run_pipeline(
+            config=PipelineConfig(do_parsing=True, do_aggregation=False),
+            input_=log_schema_2,
+            parsers=[
+                DummyParser(config=DummyParserConfig(log_source="A")),
+                DummyParser(config=DummyParserConfig(log_source="B"))
+            ],
+            detectors=[
+                AlwayAlert(config=DummyDetectorConfig(parser="DummyParser_from_A")),
+                AlwayAlert(config=DummyDetectorConfig(parser="DummyParser_from_B"))
+            ],
+            alert_aggreator=None
+        )
+        assert out_[0]["logIDs"] == ["2"]
+        assert out_[0]["detectorID"] == "DummyDetector_from_DummyParser_from_B"
+        assert len(out_) == 1
+
     def test_run_parser2aggregator(self) -> None:
         out_ = _run_pipeline(
             config=PipelineConfig(do_parsing=True, do_aggregation=True),
             input_=log_schema,
-            parser=DummyParser(),
+            parsers=[DummyParser()],
             detectors=[AlwayAlert(), AlwayAlert()],
             alert_aggreator=DummyAlertAggregator(
                 config=DummyAlertAggregatorConfig(buffer_size=2)
@@ -95,11 +132,47 @@ class TestRunPipeline:
         assert isinstance(out_[0], sc.AggregateSchema)
         assert len(out_) == 1
 
+    def test_run_parsers2aggregator(self) -> None:
+        alert_aggregator = DummyAlertAggregator(
+            config=DummyAlertAggregatorConfig(buffer_size=2)
+        )
+
+        out_ = _run_pipeline(
+            config=PipelineConfig(do_parsing=True, do_aggregation=True),
+            input_=log_schema,
+            parsers=[
+                DummyParser(config=DummyParserConfig(log_source="A")),
+                DummyParser(config=DummyParserConfig(log_source="B"))
+            ],
+            detectors=[
+                AlwayAlert(config=DummyDetectorConfig(parser="DummyParser_from_A")),
+                AlwayAlert(config=DummyDetectorConfig(parser="DummyParser_from_B"))
+            ],
+            alert_aggreator=alert_aggregator
+        )
+        assert out_ == []
+
+        out_ = _run_pipeline(
+            config=PipelineConfig(do_parsing=True, do_aggregation=True),
+            input_=log_schema_2,
+            parsers=[
+                DummyParser(config=DummyParserConfig(log_source="A")),
+                DummyParser(config=DummyParserConfig(log_source="B"))
+            ],
+            detectors=[
+                AlwayAlert(config=DummyDetectorConfig(parser="DummyParser_from_A")),
+                AlwayAlert(config=DummyDetectorConfig(parser="DummyParser_from_B"))
+            ],
+            alert_aggreator=alert_aggregator
+        )
+        assert len(out_) == 1
+        assert set(out_[0]["logIDs"]) == {"1", "2"}
+
     def test_run_detectors_only(self) -> None:
         out_ = _run_pipeline(
             config=PipelineConfig(do_parsing=False, do_aggregation=False),
             input_=parser_schema,
-            parser=None,
+            parsers=None,
             detectors=[AlwayAlert(), AlwayAlert()],
             alert_aggreator=None
         )
@@ -112,7 +185,7 @@ class TestRunPipeline:
         out_ = _run_pipeline(
             config=PipelineConfig(do_parsing=False, do_aggregation=False),
             input_=parser_schema,
-            parser=None,
+            parsers=None,
             detectors=[AlwayAlert(), AlwayAlert()],
             alert_aggreator=None,
             n_workers=2,
@@ -126,7 +199,7 @@ class TestRunPipeline:
         out_ = _run_pipeline(
             config=PipelineConfig(do_parsing=False, do_aggregation=True),
             input_=parser_schema,
-            parser=None,
+            parsers=None,
             detectors=[AlwayAlert(), AlwayAlert()],
             alert_aggreator=DummyAlertAggregator(
                 config=DummyAlertAggregatorConfig(buffer_size=2)
@@ -145,10 +218,10 @@ class TestPipeline:
             do_parsing=True,
             do_aggregation=True,
             n_workers=1,
-            parser=TemplateCppTreeMatcherConfig(
+            parsers=[TemplateCppTreeMatcherConfig(
                 path_templates=AUDIT_TEMPLATES,
                 log_format="type=<Type> msg=audit(<Time>): <Content>"
-            ),
+            )],
             detectors=[
                 ECVCDetectorConfig(
                     data_use_configure=TRAIN_UNTIL,
@@ -168,7 +241,7 @@ class TestPipeline:
 
         pipeline = Pipeline(config=config)
         alerts = []
-        for parsed_log in From.log(pipeline.parser, in_path=AUDIT_LOG, do_process=False):
+        for parsed_log in From.log(pipeline.parsers[0], in_path=AUDIT_LOG, do_process=False):
             if (alert := pipeline.process(parsed_log)) is not None:
                 alerts.extend(alert["logIDs"])
 
@@ -176,15 +249,71 @@ class TestPipeline:
         assert set(alerts) == set(expected)
 
     @pytest.mark.ignored
+    def test_full_pipeline_two_sources(self) -> None:
+        config = PipelineConfig(
+            do_parsing=True,
+            do_aggregation=True,
+            n_workers=1,
+            parsers=[
+                TemplateCppTreeMatcherConfig(
+                    path_templates=AUDIT_TEMPLATES,
+                    log_format="type=<Type> msg=audit(<Time>): <Content>",
+                    log_source="Audit_logs",
+                ),
+                AutoParserConfig(
+                    fix_type="Apache",
+                    log_source="Apache_logs",
+                    data_use_training=1,
+                ),
+            ],
+            detectors=[
+                CharsetDetectorConfig(
+                    data_use_configure=TRAIN_UNTIL,
+                    data_use_training=1,
+                    auto_config=True,
+                    parser="TreeMatcher_from_Audit_logs"
+                ),
+                CharsetDetectorConfig(
+                    data_use_configure=10,
+                    data_use_training=1,
+                    auto_config=True,
+                    parser="AutoParser_from_Apache_logs",
+                )
+            ],
+            aggregator=LogIDCountAggegationConfig(max_count=1)
+        )
+        pipeline = Pipeline(config=config)
+
+        all_logs = []
+        for apache_log in From.log(pipeline.parsers[0], APACHE_LOG, do_process=False):
+            apache_log["logID"] = "Apache_" + apache_log["logID"]
+            apache_log["logSource"] = "Apache_logs"
+            all_logs.append(apache_log)
+
+        for audit_log in From.log(pipeline.parsers[0], AUDIT_LOG, do_process=False):
+            audit_log["logID"] = "Audit_" + audit_log["logID"]
+            audit_log["logSource"] = "Audit_logs"
+            all_logs.append(audit_log)
+
+        alerts_audit, alerts_apache = False, False
+        for logs in all_logs:
+            if (alert := pipeline.process(logs)) is not None:
+                alerts_audit = alerts_audit if alerts_audit else "Audit" in alert["logIDs"][0]
+                alerts_apache = alerts_apache if alerts_apache else "Apache" in alert["logIDs"][0]
+
+        assert alerts_audit
+        assert alerts_apache
+
+    @pytest.mark.ignored
     def test_full_pipeline_parallel(self) -> None:
         config = PipelineConfig(
             do_parsing=True,
             do_aggregation=True,
             n_workers=3,
-            parser=TemplateCppTreeMatcherConfig(
+            parsers=[TemplateCppTreeMatcherConfig(
                 path_templates=AUDIT_TEMPLATES,
                 log_format="type=<Type> msg=audit(<Time>): <Content>"
-            ),
+            )],
             detectors=[
                 ECVCDetectorConfig(
                     data_use_configure=TRAIN_UNTIL,
@@ -204,7 +333,7 @@ class TestPipeline:
 
         pipeline = Pipeline(config=config)
         alerts = []
-        for parsed_log in From.log(pipeline.parser, in_path=AUDIT_LOG, do_process=False):
+        for parsed_log in From.log(pipeline.parsers[0], in_path=AUDIT_LOG, do_process=False):
             if (alert := pipeline.process(parsed_log)) is not None:
                 alerts.extend(alert["logIDs"])
 
@@ -225,12 +354,12 @@ class TestPipeline:
             do_parsing=True,
             do_aggregation=True,
             n_workers=1,
-            parser=TemplateCppTreeMatcherConfig(
+            parsers=[TemplateCppTreeMatcherConfig(
                 path_templates=AUDIT_TEMPLATES,
                 log_format="type=<Type> msg=audit(<Time>): <Content>",
                 connector_name="Mongo",
                 connector_url="mongodb://localhost:27017/FullPipeline/Parser",
-            ),
+            )],
             detectors=[
                 ECVCDetectorConfig(
                     data_use_configure=TRAIN_UNTIL,
@@ -257,7 +386,7 @@ class TestPipeline:
         )
 
         pipeline = Pipeline(config=config)
-        for parsed_log in From.log(pipeline.parser, in_path=AUDIT_LOG, do_process=False):
+        for parsed_log in From.log(pipeline.parsers[0], in_path=AUDIT_LOG, do_process=False):
             if pipeline.process(parsed_log) is not None:
                 break
 
@@ -283,12 +412,12 @@ class TestPipeline:
             do_parsing=True,
             do_aggregation=True,
             n_workers=1,
-            parser=TemplateCppTreeMatcherConfig(
+            parsers=[TemplateCppTreeMatcherConfig(
                 path_templates=AUDIT_TEMPLATES,
                 log_format="type=<Type> msg=audit(<Time>): <Content>",
                 connector_name="Redis",
                 connector_url="http://localhost:6379:0",
-            ),
+            )],
             detectors=[
                 ECVCDetectorConfig(
                     data_use_configure=TRAIN_UNTIL,
@@ -315,7 +444,7 @@ class TestPipeline:
         )
 
         pipeline = Pipeline(config=config)
-        for parsed_log in From.log(pipeline.parser, in_path=AUDIT_LOG, do_process=False):
+        for parsed_log in From.log(pipeline.parsers[0], in_path=AUDIT_LOG, do_process=False):
             if pipeline.process(parsed_log) is not None:
                 break
 

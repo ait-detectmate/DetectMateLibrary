@@ -55,7 +55,7 @@ def _make_schema(event_id, template="test template", log_id="1", log_format_vari
         "variables": ["adsasd", "asdasd"],
         "logID": log_id,
         "parsedLogID": log_id,
-        "parserID": "test_parser",
+        "parserID": "MySequenceParser",
         "log": "test log message",
         "headerVariables": log_format_variables or {"level": "INFO"}
     })
@@ -893,3 +893,141 @@ class TestEventSequenceDetectorClassification:
         assert tracker.classification.enabled == ("index", "time", "slope_index")
         assert tracker.classification.decision == "majority"
         assert len(tracker.timestamps) == len(tracker.change_series)
+
+
+def _session_schema(session, event_id, log_id="1"):
+    return _make_schema(event_id, log_id=log_id, log_format_variables={"block_id": session})
+
+
+def _session_detector(name, **kwargs):
+    return EventSequenceDetector(
+        name=name,
+        config=EventSequenceDetectorConfig(session_variable="block_id", **kwargs),
+    )
+
+
+# Two interleaved sessions: a runs 1 -> 2 -> 3, b runs 7 -> 8.
+_INTERLEAVED = [("a", 1), ("b", 7), ("a", 2), ("b", 8), ("a", 3)]
+_INTERLEAVED_2_GRAMS = {(1,), (1, 2), (2, 3), (7,), (7, 8)}
+
+
+class TestEventSequenceDetectorSessions:
+    """With session_variable set, an event's window holds the last
+    fixed_window_size events of its own session, fewer at the session start."""
+
+    def test_session_variable_defaults_to_none(self):
+        assert EventSequenceDetectorConfig().session_variable is None
+
+    def test_train_learns_windows_within_each_session(self):
+        detector = _session_detector("SessionTrain", auto_config=False, fixed_window_size=2)
+
+        for session, event_id in _INTERLEAVED:
+            detector.train(_session_schema(session, event_id))
+
+        assert detector.get_known_sequences() == _INTERLEAVED_2_GRAMS
+
+    def test_interleaved_known_sessions_do_not_alert(self):
+        """A stream window would mix the two sessions, e.g. (7, 1)."""
+        detector = _session_detector(
+            "SessionDetect", auto_config=False, fixed_window_size=2, data_use_training=5,
+        )
+        for i, (session, event_id) in enumerate(_INTERLEAVED):
+            detector.process(_session_schema(session, event_id, log_id=str(i)))
+
+        replay = [("c", 7), ("d", 1), ("c", 8), ("d", 2), ("d", 3)]
+        alerts = [
+            detector.process(_session_schema(session, event_id, log_id=str(10 + i)))
+            for i, (session, event_id) in enumerate(replay)
+        ]
+
+        assert all(alert is None for alert in alerts)
+
+    def test_unseen_window_in_a_session_alerts(self):
+        detector = _session_detector(
+            "SessionNovel", auto_config=False, fixed_window_size=2, data_use_training=5,
+        )
+        for i, (session, event_id) in enumerate(_INTERLEAVED):
+            detector.process(_session_schema(session, event_id, log_id=str(i)))
+
+        assert detector.process(_session_schema("c", 7, log_id="10")) is None
+        assert detector.process(_session_schema("c", 3, log_id="11")) is not None  # (7, 3)
+
+    def test_unseen_session_start_alerts(self):
+        """No learned session starts with 2, so the window (2,) is unseen."""
+        detector = _session_detector(
+            "SessionStart", auto_config=False, fixed_window_size=2, data_use_training=5,
+        )
+        for i, (session, event_id) in enumerate(_INTERLEAVED):
+            detector.process(_session_schema(session, event_id, log_id=str(i)))
+
+        assert detector.process(_session_schema("c", 2, log_id="10")) is not None
+
+    def test_detection_windows_include_configure_records(self):
+        """Configure records never reach detect(), but a session that starts in
+        the configure phase must still carry them into its window."""
+        detector = _session_detector(
+            "SessionPhases", auto_config=False, fixed_window_size=2,
+            data_use_configure=2, data_use_training=2,
+        )
+        # configure: a1, b1 (replayed into training); train: b2, c1
+        for i, (session, event_id) in enumerate([("a", 1), ("b", 1), ("b", 2), ("c", 1)]):
+            detector.process(_session_schema(session, event_id, log_id=str(i)))
+        assert detector.get_known_sequences() == {(1,), (1, 2)}
+
+        # a's window is (1, 2), learned from b; without its configure record it would be (2,)
+        assert detector.process(_session_schema("a", 2, log_id="4")) is None
+
+    def test_configure_windows_stay_within_each_session(self):
+        """Each candidate length sees the windows detection would use at that
+        length."""
+        detector = _session_detector(
+            "SessionConfigure",
+            auto_config_params=SequenceAutoConfigParams(min_window_size=2, max_window_size=3),
+        )
+
+        for i, (session, event_id) in enumerate(_INTERLEAVED):
+            detector.configure(_session_schema(session, event_id, log_id=str(i)))
+
+        data = detector.auto_conf_persistency.get_events_data()
+        assert data[2].get_data()["seq"].unique_set == _INTERLEAVED_2_GRAMS
+        assert data[3].get_data()["seq"].unique_set == {(1,), (1, 2), (1, 2, 3), (7,), (7, 8)}
+
+    def test_missing_session_variable_raises(self):
+        detector = _session_detector("SessionMissing", auto_config=False, fixed_window_size=2)
+
+        with pytest.raises(ValueError, match="block_id"):
+            detector.train(_make_schema(1))
+
+    def test_reload_takes_the_longest_learned_sequence(self):
+        """Session starts store shorter windows, so the restored length is that
+        of the longest learned sequence."""
+        base_path = "memory://nsd_sessions/state"
+        det1 = _session_detector(
+            "NSD_Sessions", auto_config=False, fixed_window_size=2,
+            persist=PersistConfig(path=base_path),
+        )
+        for session, event_id in _INTERLEAVED:
+            det1.train(_session_schema(session, event_id))
+        det1.saver.save()
+        det1.saver.stop()
+
+        det2 = _session_detector(
+            "NSD_Sessions", auto_config=False, fixed_window_size=2,
+            persist=PersistConfig(path=base_path, auto_load=True),
+        )
+        det2.saver.stop()
+
+        assert det2.config.fixed_window_size == 2
+        assert det2.get_known_sequences() == _INTERLEAVED_2_GRAMS
+
+    def test_reset_window_clears_session_windows(self):
+        detector = _session_detector(
+            "SessionReset", auto_config=False, fixed_window_size=2, data_use_training=1,
+        )
+        detector.process(_session_schema("a", 1))
+
+        detector.reset_window()
+
+        assert detector._train_sessions.windows == {}
+        assert detector._detect_sessions.windows == {}
+        assert detector._session_window == ()

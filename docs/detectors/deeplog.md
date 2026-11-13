@@ -1,6 +1,6 @@
 # DeepLog Detector [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/detectors/deeplog_detector.py)]
 
-The DeepLog Detector employs an LSTM deep learning model \(f_\theta(\cdot)\) to predict the event ID \(e_i\) of the next parsed log. The model outputs the top \(K\) candidate event IDs for \(e_i\). If \(e_i\) is not among these candidates, the detector flags it as an anomaly.
+The DeepLog Detector employs an LSTM deep learning model \(f_\theta(\cdot)\) to predict the event ID \(e_i\) of the next parsed log. The model outputs the top \(K\) candidate event IDs for \(e_i\). If \(e_i\) is not among these candidates, the detector flags it as an anomaly. After training, it sets \(K\) (`top_k`) to the smallest value at which at most `alert_rate` (a `Train` hyperparameter) of the validation windows alert.
 
 \[
     candidates = topK(f_\theta(e_i | i \in [0...n-1])) 
@@ -27,7 +27,7 @@ Input and output schemas in the pipeline
 
 ## Example
 
-```python
+```python title="Example"
 --8<-- "docs/examples/detectors/deeplog.py:example"
 ```
 
@@ -35,7 +35,7 @@ Input and output schemas in the pipeline
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/detectors/deeplog.yaml"
 ```
 
@@ -70,9 +70,10 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
     | `connector_name` | string, null | None | shared | Add a connector to the output schema. |
     | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
-    | `parser` | string | PARSER | shared | Name of the parser used. |
+    | `parser` | string, null | None | shared | Name of the parser used. |
     | `window_size` | integer | 10 | shared | Number of consecutive events used as one training/detection sequence. |
     | `validation_per` | number | 0.2 | shared | Fraction of data held out for validation during (fine)training. |
     | `finetune_epochs` | integer | 2 | shared | Number of epochs used when finetuning during the configuration phase. |
-    | `hyperparameters` | object | {'Model': {'hidden_dim': 64, 'n_layers': 2}, 'Train': {'seed': 0, 'batch_size': 2048, 'learning_rate': 0.01, 'epochs': 10, 'patience': 3}, 'Finetune': [['Model', 'hidden_dim', [128, 256, 512]], ['Model', 'n_layers', [1, 2, 3]], ['Train', 'learning_rate', [0.01, 0.02, 0.03]]]} | shared | Model, training and hyperparameter-search settings for the DeepLog model. |
+    | `session_variable` | string, null | None | shared | Header variable that names the session of each event (HDFS: block_id). When set, an event's window holds the events before it in its own session, padded at the session start, so windows never mix sessions and every event is checked. |
+    | `hyperparameters` | object | {'Model': {'hidden_dim': 64, 'n_layers': 2}, 'Train': {'seed': 0, 'batch_size': 2048, 'learning_rate': 0.01, 'epochs': 10, 'patience': 3, 'alert_rate': 0.001}, 'Finetune': [['Model', 'hidden_dim', [128, 256, 512]], ['Model', 'n_layers', [1, 2, 3]], ['Train', 'learning_rate', [0.01, 0.02, 0.03]]]} | shared | Model, training and hyperparameter-search settings for the DeepLog model. |
 <!-- End arguments -->

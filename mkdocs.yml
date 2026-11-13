@@ -3,7 +3,7 @@ site_url: https://ait-detectmate.github.io/DetectMateLibrary/
 
 theme:
   name: material # windmill is auch cool
-  logo: img/small_logo.svg
+  logo: img/logo_library.png
   favicon: img/small_logo.svg
   features:
     - navigation.footer   # previous / next page links at the bottom of every page
@@ -36,7 +36,6 @@ nav:
     - Installation: user_guide/installation.md
     - Basic knowledge: user_guide/basic_knowledge.md
     - Quickstart: user_guide/quickstart.md
-    - Tutorial (end-to-end): user_guide/tutorial.md
 
   - Advanced Guide:
     - Overall architecture: advanced/overall_architecture.md
@@ -96,11 +95,15 @@ markdown_extensions:
   - pymdownx.arithmatex:
       generic: true
   - attr_list
+  - pymdownx.highlight:
+      pygments_lang_class: true
+
+extra_css:
+  - stylesheets/extra.css
 
 extra_javascript:
   - javascripts/mathjax.js
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
-
 
 extra:
   version:

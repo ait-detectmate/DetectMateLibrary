@@ -15,9 +15,9 @@ Input and output schemas in the pipeline
 
 `LogBatcherParser` requires the `llm` optional extra:
 
-```bash
+```console title="Install optional dependencies"
 pip install "detectmatelibrary[llm]"
-# or with uv
+% or with uv
 uv sync --extra llm
 ```
 
@@ -34,13 +34,13 @@ Variable slots in templates use the `<*>` wildcard notation (e.g. `User <*> logg
 
 Set up the parser (parsing requires a valid API key):
 
-```python
+```python title="Example 1"
 --8<-- "docs/examples/parsers/logbatcher_parser.py:basic"
 ```
 
 Using a local Ollama instance:
 
-```python
+```python title="Example 2"
 --8<-- "docs/examples/parsers/logbatcher_parser.py:ollama"
 ```
 
@@ -48,7 +48,7 @@ Using a local Ollama instance:
 
 The configuration used by the first example above (the Ollama example builds its configuration in Python instead). It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/parsers/logbatcher_parser.yaml"
 ```
 
@@ -87,4 +87,5 @@ All parameters this parser accepts, grouped by the YAML block they go in. **Scop
     | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
     | `log_format` | string, null | None | shared | fitting description yet to find |
     | `time_format` | string, null | None | shared | fitting description yet to find |
+    | `log_source` | string, null | None | shared | Process only inputs of the same log source. |
 <!-- End arguments -->

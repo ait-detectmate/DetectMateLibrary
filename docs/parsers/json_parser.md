@@ -13,13 +13,13 @@ Input and output schemas in the pipeline
 
 ## Examples
 
-```python
+```python title="Example 1"
 --8<-- "docs/examples/parsers/json_parser.py:basic"
 ```
 
 With the configuration file below, the `message` field is also matched against templates:
 
-```python
+```python title="Example 2"
 --8<-- "docs/examples/parsers/json_parser.py:dict-based"
 ```
 
@@ -37,7 +37,7 @@ If the content parser has no templates (for example with the defaults, as in the
 
 The configuration used by the second example above (the first one runs with all defaults). It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/parsers/json_parser.yaml"
 ```
 
@@ -75,6 +75,7 @@ All parameters this parser accepts, grouped by the YAML block they go in. **Scop
     | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
     | `log_format` | string, null | None | shared | fitting description yet to find |
     | `time_format` | string, null | None | shared | fitting description yet to find |
+    | `log_source` | string, null | None | shared | Process only inputs of the same log source. |
 <!-- End arguments -->
 
 The `content_parser` value is a **name**, not an inline config. The referenced parser must be defined as a separate sibling entry at the same level as `JsonParser`.

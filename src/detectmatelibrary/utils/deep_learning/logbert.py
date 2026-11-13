@@ -5,14 +5,14 @@ import jax
 import flax.linen as nn
 import optax
 
-from functools import lru_cache
+from functools import lru_cache, partial
 
 from dataclasses import dataclass
 from typing import Any, Callable
 from tqdm import tqdm
 from math import ceil
 
-from detectmatelibrary.utils.deep_learning._op import CheckPoint, Mask
+from detectmatelibrary.utils.deep_learning._op import PAD, CheckPoint, Mask, batched, smallest_top_k
 from detectmatelibrary.utils.deep_learning.imodel import DeepModel
 from detectmatelibrary.utils.finetune import Combinations
 
@@ -119,18 +119,39 @@ class TrainConfig:
     mask_per: float = 0.4
     alpha: float = 0.0
     patience: int = 3
+    alert_rate: float = 0.001  # share of validation windows allowed to alert; sets top_k
+
+
+def unmask_padding(x: jnp.ndarray, m: jnp.ndarray) -> jnp.ndarray:
+    """``m`` with the padding of ``x`` left visible: padding is never predicted nor scored."""
+    return jnp.where(x == PAD, 1, m)
+
+
+def window_losses(
+    model: nn.Module, params: dict[str, Any], x: jnp.ndarray, m: jnp.ndarray
+) -> tuple[jnp.ndarray, jnp.ndarray]:
+    m = unmask_padding(x, m)
+    logist, h_dist = model.apply({"params": params}, x * m, training=True)
+    loss_mlkp = ((1 - m) * optax.softmax_cross_entropy_with_integer_labels(
+        logits=logist, labels=jnp.where(x == PAD, 0, x)
+    ))
+    loss_vhm = jnp.linalg.norm(h_dist - h_dist.mean(axis=1)[..., None], axis=1) ** 2
+
+    return loss_mlkp, loss_vhm
 
 
 def loss_(
     model: nn.Module, params: dict[str, Any], x: jnp.ndarray, m: jnp.ndarray, alpha: float
 ) -> jnp.ndarray:
-    
-    logist, h_dist = model.apply({"params": params}, x * m, training=True)
-    loss_mlkp = ((1 - m) * optax.softmax_cross_entropy_with_integer_labels(
-        logits=logist, labels=x
-    ))
-    loss_vhm = jnp.linalg.norm(h_dist - h_dist.mean(axis=1)[..., None], axis=1) ** 2
+    loss_mlkp, loss_vhm = window_losses(model=model, params=params, x=x, m=m)
+    return loss_mlkp.mean() + alpha * loss_vhm.mean()
 
+
+def val_loss(
+    model: nn.Module, params: dict[str, Any], x: jnp.ndarray, m: jnp.ndarray, alpha: float
+) -> jnp.ndarray:
+    """loss_ over the validation set, its window losses taken in batches."""
+    loss_mlkp, loss_vhm = batched(partial(window_losses, model, params), x, m)
     return loss_mlkp.mean() + alpha * loss_vhm.mean()
 
 
@@ -169,7 +190,7 @@ def train(
             losses_step.append(loss)
 
         m = mask(x_val.shape[0])
-        loss_val.append(loss_(model=model, params=params, x=x_val, m=m, alpha=alpha))
+        loss_val.append(val_loss(model=model, params=params, x=x_val, m=m, alpha=alpha))
         losses_epoch.append(step_loss / n_steps)
         idx = jax.random.permutation(jax.random.key(epoch), idx)
         if checkpoint(loss=loss_val[-1], epoch=epoch, param=params):
@@ -195,12 +216,11 @@ def _compile_scorer(model: LogBertModel, mask: Mask) -> Scorer:
     are not among the model's ``top_k`` predictions for their position.
     """
     def score(params: dict[str, Any], x: jnp.ndarray, i: int, top_k: int) -> jnp.ndarray:
-        m = mask.at(i, x.shape[0])
+        m = unmask_padding(x, mask.at(i, x.shape[0]))
         y, _ = model.apply({"params": params}, x * m, training=False)
 
-        idx = jnp.nonzero(m[0] == 0, size=mask.s0)[0]
-        pred = jnp.argsort(y[0, idx], axis=1, descending=True)[:, :top_k]
-        return jnp.sum(~jnp.any(pred == x[0, idx][:, None], axis=1))
+        pred = jnp.argsort(y[0], axis=1, descending=True)[:, :top_k]
+        return jnp.sum((m[0] == 0) & ~jnp.any(pred == x[0][:, None], axis=1))
 
     compiled: Scorer = jax.jit(score, static_argnums=3)
     return compiled
@@ -223,6 +243,7 @@ default_config = {
         "mask_per": 0.4,
         "alpha": 0.0,
         "patience": 3,
+        "alert_rate": 0.001,
     },
 }
 
@@ -239,32 +260,34 @@ class LogBert(DeepModel):
     def __str__(self) -> str:
         return str(self.model) + "\n" + str(self.config_train)
     
-    def top_pred(self, x: jnp.ndarray) -> tuple[jnp.ndarray]:
-        m = self.mask(x.shape[0])
+    def ranks(self, x: jnp.ndarray, m: jnp.ndarray) -> jnp.ndarray:
+        """The worst rank of the masked events of each window, 0 being the model's first guess.
+
+        A window alerts when one of its masked events misses, so it counts its worst rank.
+        """
+        m = unmask_padding(x, m)
         y, _ = self.model.apply({"params": self.params}, x * m, training=False)
 
-        idx = jnp.nonzero(m == 0)
-        pred = jnp.argsort(y[idx], axis=1, descending=True)
-        return pred, x[idx]
+        r = (jnp.argsort(y, axis=-1, descending=True) == x[..., None]).argmax(-1)
+        return jnp.where(m == 0, r, 0).max(1)
 
     def get_best_k(self, seq: jnp.ndarray) -> int:
         if seq.shape[0] == 0:
             return 0
 
-        pred, y = self.top_pred(seq)
-        return int(jax.scipy.stats.mode(
-            ((y[..., None] == pred) * jnp.arange(pred.shape[1])[None, ...]).sum(1)
-        ).mode + 2)
+        return smallest_top_k(
+            batched(self.ranks, seq, self.mask(seq.shape[0])), self.config_train.alert_rate
+        )
 
     @lru_cache
-    def check_anomaly(self, seq: tuple[int], top_k: int) -> int:
+    def check_anomaly(self, seq: tuple[int, ...], top_k: int) -> int:
         if self.model is None or self.mask is None or self._scorer is None:
             return False
 
-        # One mask draw per uncached call, from the counter training left.
+        # One mask draw per uncached call, counting from 0 after training.
         return int(self._scorer(self.params, jnp.array([seq]), self.mask.next_draw(), top_k))
 
-    def _prepare_data(self, seqs: list[tuple[int]], var_per: float) -> tuple[jnp.ndarray]:
+    def _prepare_data(self, seqs: list[tuple[int, ...]], var_per: float) -> tuple[jnp.ndarray]:
         seed = jax.random.key(self.config_train.seed)
         idx = jax.random.permutation(seed, len(seqs))
         seqs = jnp.array(seqs)[idx]
@@ -272,7 +295,7 @@ class LogBert(DeepModel):
         val_seqs = seqs[ceil(len(seqs) * (1 - var_per)):]
         return train_seqs, val_seqs
 
-    def train(self, seqs: list[tuple[int]], var_per: float) -> dict[str, int | float]:
+    def train(self, seqs: list[tuple[int, ...]], var_per: float) -> dict[str, int | float]:
         train_seqs, val_seqs = self._prepare_data(seqs=seqs, var_per=var_per)
 
         self.config_train = TrainConfig(**self.config["Train"])
@@ -286,10 +309,12 @@ class LogBert(DeepModel):
         )
         self._scorer = _compile_scorer(self.model, self.mask)
         stats["top_k"] = self.get_best_k(val_seqs)
+        # Detection masks must not depend on how many epochs ran before early stopping.
+        self.mask.i = 0
 
         return stats
     
-    def finetune(self, seqs: list[tuple[int]], var_per: float, epochs: int = 2) -> None:
+    def finetune(self, seqs: list[tuple[int, ...]], var_per: float, epochs: int = 2) -> None:
         train_seqs, val_seqs = self._prepare_data(seqs=seqs, var_per=var_per)
         combos = Combinations(config=self.config)
 

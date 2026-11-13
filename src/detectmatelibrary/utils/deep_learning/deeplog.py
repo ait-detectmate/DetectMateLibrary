@@ -4,7 +4,7 @@ import jax
 import flax.linen as nn
 import optax
 
-from functools import lru_cache
+from functools import lru_cache, partial
 
 from dataclasses import dataclass
 from typing import Any, Callable
@@ -12,7 +12,7 @@ from tqdm import tqdm
 from math import ceil
 
 from detectmatelibrary.utils.deep_learning.imodel import DeepModel
-from detectmatelibrary.utils.deep_learning._op import CheckPoint
+from detectmatelibrary.utils.deep_learning._op import CheckPoint, batched, smallest_top_k
 from detectmatelibrary.utils.finetune import Combinations
 
 import logging
@@ -42,12 +42,19 @@ class TrainConfig:
     learning_rate: float = 0.05
     batch_size: int = 2
     patience: int = 3
+    alert_rate: float = 0.001  # share of validation windows allowed to alert; sets top_k
+
+
+def window_losses(
+    model: nn.Module, params: dict[str, Any], x: jnp.ndarray, y: jnp.ndarray
+) -> jnp.ndarray:
+    return optax.softmax_cross_entropy_with_integer_labels(
+            logits=model.apply({'params': params}, x), labels=y
+        )
 
 
 def loss_f(model: nn.Module, params: dict[str, Any], x: jnp.ndarray, y: jnp.ndarray) -> jnp.ndarray:
-    return optax.softmax_cross_entropy_with_integer_labels(
-            logits=model.apply({'params': params}, x), labels=y
-        ).mean()
+    return window_losses(model=model, params=params, x=x, y=y).mean()
 
 
 def train(
@@ -69,7 +76,11 @@ def train(
         updates, opt_state = optimizer.update(grads, opt_state)
         params = optax.apply_updates(params, updates)
         return params, opt_state, loss
-        
+
+    # Compiled once: an eager call traces the LSTM scan anew and caches one more program,
+    # so a validation pass in batches would add a program per batch.
+    window_losses_jit = jax.jit(partial(window_losses, model))
+
     key = jax.random.PRNGKey(trainConfig.seed)
     n_steps = ceil(x.shape[0] / trainConfig.batch_size)
 
@@ -92,7 +103,7 @@ def train(
             step_loss += loss
             losses_step.append(loss)
         losses_epoch.append(step_loss / n_steps)
-        loss_val.append(loss_f(model=model, params=params, x=x_val, y=y_val))
+        loss_val.append(batched(partial(window_losses_jit, params), x_val, y_val).mean())
         idx = jax.random.permutation(jax.random.key(epoch), idx)
         if checkpoint(loss=loss_val[-1], epoch=epoch, param=params):
             logging.info("Early stop")
@@ -153,6 +164,7 @@ default_config = {
         "learning_rate": 0.01,
         "epochs": 10,
         "patience": 3,
+        "alert_rate": 0.001,
     },
 }
 
@@ -173,23 +185,24 @@ class DeepLog(DeepModel):
         if seq.shape[0] == 0:
             return 0
 
-        x_s, y_s = seq[:, :-1, :], seq[:, -1]
-        x_s = jnp.argsort(
-            self.model.apply({"params": self.params}, x_s), descending=True
+        def ranks(x_s: jnp.ndarray, y_s: jnp.ndarray) -> jnp.ndarray:
+            x_s = jnp.argsort(
+                self.model.apply({"params": self.params}, x_s), descending=True
+            )
+            return (jnp.arange(x_s.shape[1]) * (x_s == y_s)).sum(1)
+
+        return smallest_top_k(
+            batched(ranks, seq[:, :-1, :], seq[:, -1]), self.config_train.alert_rate
         )
 
-        return int(jax.scipy.stats.mode(
-            (jnp.arange(x_s.shape[1]) * (x_s == y_s)).sum(1)
-        ).mode + 2)  # give a little space for variation
-
     @lru_cache
-    def check_anomaly(self, seq: tuple[int], top_k: int) -> bool:
+    def check_anomaly(self, seq: tuple[int, ...], top_k: int) -> bool:
         if not self.model_trained or self._scorer is None:
             return False
 
         return bool(self._scorer(self.params, jnp.array(seq), top_k))
 
-    def _prepare_data(self, seqs: list[tuple[int]], var_per: float) -> tuple[jnp.ndarray]:
+    def _prepare_data(self, seqs: list[tuple[int, ...]], var_per: float) -> tuple[jnp.ndarray]:
         seed = jax.random.key(self.config_train.seed)
         idx = jax.random.permutation(seed, len(seqs))
         seqs = jnp.array(seqs)[..., None][idx]
@@ -197,7 +210,7 @@ class DeepLog(DeepModel):
         val_seqs = seqs[ceil(len(seqs) * (1 - var_per)):]
         return train_seqs, val_seqs
 
-    def train(self, seqs: list[tuple[int]], var_per: float) -> dict[str, int | float]:
+    def train(self, seqs: list[tuple[int, ...]], var_per: float) -> dict[str, int | float]:
         train_seqs, val_seqs = self._prepare_data(seqs=seqs, var_per=var_per)
 
         self.config_train = TrainConfig(**self.config["Train"])
@@ -214,7 +227,7 @@ class DeepLog(DeepModel):
 
         return stats
  
-    def finetune(self, seqs: list[tuple[int]], var_per: float, epochs: int = 2) -> None:
+    def finetune(self, seqs: list[tuple[int, ...]], var_per: float, epochs: int = 2) -> None:
         train_seqs, val_seqs = self._prepare_data(seqs=seqs, var_per=var_per)
         combos = Combinations(config=self.config)
 

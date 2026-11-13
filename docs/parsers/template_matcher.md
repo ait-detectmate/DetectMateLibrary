@@ -55,7 +55,7 @@ these names instead of numbers; see
 
 Load the templates and match a log:
 
-```python
+```python title="Example"
 --8<-- "docs/examples/parsers/template_matcher.py:example"
 ```
 
@@ -63,7 +63,7 @@ Load the templates and match a log:
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/parsers/template_matcher.yaml"
 ```
 
@@ -102,4 +102,5 @@ All parameters this parser accepts, grouped by the YAML block they go in. **Scop
     | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
     | `log_format` | string, null | None | shared | fitting description yet to find |
     | `time_format` | string, null | None | shared | fitting description yet to find |
+    | `log_source` | string, null | None | shared | Process only inputs of the same log source. |
 <!-- End arguments -->

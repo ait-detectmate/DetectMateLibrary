@@ -29,7 +29,7 @@ Optionally, it is possible to add features to alerts in a pre-processing step by
 
 ## Example
 
-```python
+```python title="Example"
 --8<-- "docs/examples/alert_aggregators/alertbert.py:example_1"
 ```
 
@@ -37,7 +37,7 @@ Optionally, it is possible to add features to alerts in a pre-processing step by
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/alert_aggregators/alertbert.yaml"
 ```
 

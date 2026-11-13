@@ -26,7 +26,7 @@ All concrete schema classes extend `BaseSchema`. The `Connector` classes make it
 
 Key utility methods:
 
-```python
+```python title="Schema methods"
 class BaseSchema:
     def __contains__(self, idx: str) -> bool:
         """Return if a variable is in the schema"""
@@ -81,7 +81,7 @@ class BaseSchema:
 
 The exceptions these methods raise can be imported from `detectmatelibrary.schemas`:
 
-```python
+```python title="Schema exceptions"
 from detectmatelibrary.schemas import IncorrectSchema, NotSupportedSchema
 ```
 
@@ -160,20 +160,20 @@ Short examples of working with the schemas.
 
 ### Initialize a schema
 
-```python
+```python title="Initialize schema"
 --8<-- "docs/examples/others/schemas.py:example_1"
 ```
 
 
 ### Assign values
 
-```python
+```python title="Assign values to schema"
 --8<-- "docs/examples/others/schemas.py:example_2"
 ```
 
 ### Serialization
 
-```python
+```python title="Serialize schema"
 --8<-- "docs/examples/others/schemas.py:example_3"
 ```
 
@@ -187,7 +187,7 @@ Available frameworks:
 |---|---|---|--|--|
 | Default | Does nothing (default) | Default | None | None |
 | Verification | Uses an internal dict for testing | Verification | None | None |
-| Mongo | Uses [MongoDB](https://www.mongodb.com/) | Mongo | mongodb://localhost:27017/TestDataset/ParsedSchema | `mongo` |
+| Mongo | Uses [MongoDB](https://www.mongodb.com/) | Mongo | mongodb://root:example@localhost:27017/TestDataset/ParsedSchema | `mongo` |
 | Redis | Uses [Redis](https://redis.io/) | Redis | http://localhost:6379:0 | `redis` |
 
 ??? note "URL formats"
@@ -198,12 +198,12 @@ Available frameworks:
 
 To install the optional dependencies, follow the [installation instructions](user_guide/installation.md). You can configure the connector for all schemas like this:
 
-```python
+```python title="Connect Schema with MongoDB"
 --8<-- "docs/examples/others/schemas.py:example_4"
 ```
 
 Optionally, you can configure the connector separately for each schema. Keep in mind that a schema-specific configuration will override the general setup for that particular schema.
 
-```python
+```python title="Connect Schema with MongoDB"
 --8<-- "docs/examples/others/schemas.py:example_5"
 ```

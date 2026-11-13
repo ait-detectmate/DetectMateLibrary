@@ -1,0 +1,112 @@
+/* Terminal, YAML, Bash, and Python blocks. Requires pygments_lang_class: true. */
+/* Light mode (Material's default scheme). */
+.highlight.language-console,
+.highlight.language-yaml,
+.highlight.language-yml,
+.highlight.language-bash,
+.highlight.language-sh,
+.highlight.language-shell,
+.highlight.language-python,
+.highlight.language-py,
+.highlight.language-python3,
+.highlight.language-json {
+  --md-code-bg-color: #f1f5f9;
+  --md-code-fg-color: #1e293b;
+  --md-code-hl-string-color: #0a3069;
+  --md-code-hl-number-color: #8250df;
+  --md-code-hl-keyword-color: #cf222e;
+  --md-code-hl-function-color: #8250df;
+  --md-code-hl-name-color: #1e293b;
+  --md-code-hl-operator-color: #0550ae;
+  --md-code-hl-punctuation-color: #1e293b;
+  --md-code-hl-comment-color: #57606a;
+  --terminal-prompt-color: #16713b;
+  --terminal-output-color: #475569;
+}
+
+/* Dark mode. */
+[data-md-color-scheme="slate"] .highlight.language-console,
+[data-md-color-scheme="slate"] .highlight.language-yaml,
+[data-md-color-scheme="slate"] .highlight.language-yml,
+[data-md-color-scheme="slate"] .highlight.language-bash,
+[data-md-color-scheme="slate"] .highlight.language-sh,
+[data-md-color-scheme="slate"] .highlight.language-shell,
+[data-md-color-scheme="slate"] .highlight.language-python,
+[data-md-color-scheme="slate"] .highlight.language-py,
+[data-md-color-scheme="slate"] .highlight.language-python3,
+[data-md-color-scheme="slate"] .highlight.language-json {
+  --md-code-bg-color: #0d1117;
+  --md-code-fg-color: #e6edf3;
+  --md-code-hl-string-color: #a5d6ff;
+  --md-code-hl-number-color: #d2a8ff;
+  --md-code-hl-keyword-color: #ff7b72;
+  --md-code-hl-function-color: #d2a8ff;
+  --md-code-hl-name-color: #e6edf3;
+  --md-code-hl-operator-color: #79c0ff;
+  --md-code-hl-punctuation-color: #e6edf3;
+  --md-code-hl-comment-color: #8b949e;
+  --terminal-prompt-color: #3fb950;
+  --terminal-output-color: #b1bac4;
+}
+
+.highlight.language-console .gp {
+  color: var(--terminal-prompt-color);
+  font-weight: 700;
+}
+
+.highlight.language-console .go {
+  color: var(--terminal-output-color);
+}
+/* Tables: light-mode palette. */
+.md-typeset {
+  --table-bg: #ffffff;
+  --table-header-bg: #e8eef5;
+  --table-stripe-bg: #f8fafc;
+  --table-hover-bg: #eaf2fc;
+  --table-border: #d5dee9;
+  --table-text: #1e293b;
+}
+
+/* Tables: dark-mode palette. */
+[data-md-color-scheme="slate"] .md-typeset {
+  --table-bg: #3b384e;
+  --table-header-bg: #1c2633;
+  --table-stripe-bg: #131b25;
+  --table-hover-bg: #203047;
+  --table-border: #303d4f;
+  --table-text: #e6edf3;
+}
+
+/* Preserve Material's horizontal scrolling on narrow screens. */
+.md-typeset table:not([class]) {
+  background-color: var(--table-bg);
+  border: 1px solid var(--table-border);
+  border-radius: 0.5rem;
+  border-spacing: 0;
+  color: var(--table-text);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 6%);
+}
+
+.md-typeset table:not([class]) th {
+  background-color: var(--table-header-bg);
+  color: var(--table-text);
+  font-weight: 700;
+  padding: 0.8em 1.1em;
+}
+
+.md-typeset table:not([class]) td {
+  border-top: 1px solid var(--table-border);
+  padding: 0.75em 1.1em;
+  vertical-align: top;
+}
+
+.md-typeset table:not([class]) tbody tr:nth-child(even) {
+  background-color: var(--table-stripe-bg);
+}
+
+.md-typeset table:not([class]) tbody tr:hover,
+.md-typeset table:not([class]) tbody tr:focus-within {
+  background-color: var(--table-hover-bg);
+  box-shadow: none;
+}

@@ -751,7 +751,7 @@ dev = [
 requires-dist = [
     { name = "detectmatelibrary", extras = ["alertbert"], marker = "extra == 'full'" },
     { name = "detectmatelibrary", extras = ["llm"], marker = "extra == 'full'" },
-    { name = "detectmateperformance", specifier = ">=0.1.6" },
+    { name = "detectmateperformance", specifier = ">=0.2.0" },
     { name = "flax", specifier = ">=0.12.8" },
     { name = "fsspec", specifier = ">=2024.1.0" },
     { name = "jax", specifier = ">=0.11.0" },
@@ -793,7 +793,7 @@ dev = [
 
 [[package]]
 name = "detectmateperformance"
-version = "0.1.10"
+version = "0.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "levenshtein" },
@@ -803,9 +803,9 @@ dependencies = [
     { name = "setuptools" },
     { name = "tqdm" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/19/6a/806c87c3e4d4043e2c79d29137b6b68627a7847ce330a2e656174bc06f29/detectmateperformance-0.1.10.tar.gz", hash = "sha256:19052f4e8bd11c7c4eaa7e26aaa7de22f06768a3c1381d552116800c5deb0673", size = 880975, upload-time = "2026-09-07T12:10:11.047Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ee/95/aa35f43a7dab13a886336ab42162e2bc878f8e32bdf87c93cc7f976a2b72/detectmateperformance-0.2.0.tar.gz", hash = "sha256:2ae868befea586eaf2831d69da7ee48ac07fc367fdcea4c6ad91acacd4505614", size = 1740261, upload-time = "2026-11-12T14:21:00.998Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/96/d2/d48136fe825b95b5f08076d0ed372eeb99e50413e77f391330fc09f8ac1a/detectmateperformance-0.1.10-py3-none-any.whl", hash = "sha256:c81552944415f6c5e685041a3ae2d5cb1dea83f82955bf23f29824e5d7b5c748", size = 893042, upload-time = "2026-09-07T12:10:09.432Z" },
+    { url = "https://files.pythonhosted.org/packages/64/2a/dff7e482b4cf249e6981b9f1dc2a14ffac7db86fdadaedc27500f2df438b/detectmateperformance-0.2.0-py3-none-any.whl", hash = "sha256:7d6502170740b6e2a5010f949ce0c91b3216493293d569298d5dd60da2e64aaa", size = 1745599, upload-time = "2026-11-12T14:20:59.27Z" },
 ]
 
 [[package]]

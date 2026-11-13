@@ -51,7 +51,17 @@ default_args = {
     "parsers": {
         "TestParser": {
             "auto_config": True,
-            "method_type": "core_parser"
+            "method_type": "core_parser",
+        }
+    }
+}
+
+picky_args = {
+    "parsers": {
+        "TestParser": {
+            "auto_config": True,
+            "method_type": "core_parser",
+            "log_source": "A",
         }
     }
 }
@@ -85,6 +95,20 @@ class TestCoreParser:
         data = sc.LogSchema({"logID": "1", "log": "This is a log."}).serialize()
         result = parser.process(data)  # no error should be produced
         assert isinstance(result, bytes)  # and result should be bytes
+
+    def test_process_not_eligeble_input_schema(self) -> None:
+        parser = MockupParser(name="TestParser", config=picky_args)
+
+        data = sc.LogSchema({"logID": "1", "log": "This is a log.", "logSource": "A"})
+        assert parser.process(data) is not None
+
+        data = sc.LogSchema({"logID": "1", "log": "This is a log.", "logSource": "B"})
+        assert parser.process(data) is None
+
+        parser = MockupParser(name="TestParser", config=default_args)
+
+        data = sc.LogSchema({"logID": "1", "log": "This is a log.", "logSource": "B"})
+        assert parser.process(data) is not None
 
     def test_process_correct_input_schema_not_serialize(self) -> None:
         parser = MockupParser(name="TestParser", config=MockupConfig())
@@ -128,6 +152,15 @@ class TestCoreParser:
 
         assert parser.process(data) is None
         assert parser.process(data) is not None
+
+    def test_parser_to_binary_and_back(self) -> None:
+        parser = NoneMockupParser(name="TestParser", config=MockupConfig(
+            log_source="Hello"
+        ))
+        parser: NoneMockupParser = parser.from_binary(parser.to_binary())
+
+        assert parser.config.log_source == "Hello"
+        assert parser.name == "TestParser"
 
 
 class TestGetFormatVariables:

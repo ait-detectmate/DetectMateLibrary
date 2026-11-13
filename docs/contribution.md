@@ -33,7 +33,7 @@ Go to [https://github.com/ait-detectmate/DetectMateLibrary.git](https://github.c
 
 After forking the repository into your own workspace, clone the development branch of that repository.
 
-```bash
+```console title="Clone repository"
 git clone -b development git@github.com:YOURUSERNAME/DetectMateLibrary.git
 ```
 
@@ -45,7 +45,7 @@ git clone -b development git@github.com:YOURUSERNAME/DetectMateLibrary.git
 
 Every single workpackage should be developed in its own feature-branch. Use a name that describes the feature:
 
-```bash
+```console title="Create branch"
 cd DetectMateLibrary
 git checkout -b feature-some_important_work
 ```
@@ -58,7 +58,7 @@ Please make sure that you commit only improvements that are related to the workp
 
 If your work on this feature-branch is done, make sure that you are in sync with the branch of the upstream:
 
-```bash
+```console title="Fetch and merge"
 git remote add upstream git@github.com:ait-detectmate/DetectMateLibrary.git
 git pull upstream development
 ```
@@ -75,19 +75,19 @@ Additional infos:
 
 Before we can push our changes, we have to make sure that we don't have unnecessary commits. First checkout our commits:
 
-```bash
+```console title="Get logs"
 git log
 ```
 
 After that we can squash the last n commits together:
 
-```bash
+```console title="Rebase"
 git rebase -i HEAD~n
 ```
 
 Finally you can push the changes to YOUR github-repository:
 
-```bash
+```console title="Push"
 git push
 ```
 
@@ -101,7 +101,7 @@ Use the GitHub-Webinterface to create a pull-request. Make sure that the target-
 
 If your pull-request was accepted and merged into the development branch continue with "8. Update your local development branch". If it wasn't accepted, read the comments and fix the problems. Before pushing the changes make sure that you squashed them with your last commit:
 
-```bash
+```console title="Rebase head again"
 git rebase -i HEAD~2
 ```
 
@@ -111,7 +111,7 @@ Delete your local feature-branch after the pull-request was merged into the deve
 
 Update your local development branch:
 
-```bash
+```console title="Update branch"
 git fetch upstream development
 git checkout development
 git rebase upstream/development
@@ -125,6 +125,6 @@ Additional infos:
 
 Please make sure that you updated your local development branch as described in section 8. above. After that push the changes to your github-repository to keep it up to date:
 
-```bash
+```console title="Push again"
 git push
 ```

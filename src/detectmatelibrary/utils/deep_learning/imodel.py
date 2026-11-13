@@ -7,13 +7,13 @@ class DeepModel(ABC):
         pass
 
     @abstractmethod
-    def check_anomaly(self, seq: tuple[int], top_k: int) -> bool:
+    def check_anomaly(self, seq: tuple[int, ...], top_k: int) -> bool:
         pass
 
     @abstractmethod
-    def train(self, seqs: list[tuple[int]], var_per: float) -> dict[str, int | float]:
+    def train(self, seqs: list[tuple[int, ...]], var_per: float) -> dict[str, int | float]:
         pass
 
     @abstractmethod
-    def finetune(self, seqs: list[tuple[int]], var_per: float, epochs: int = 2) -> None:
+    def finetune(self, seqs: list[tuple[int, ...]], var_per: float, epochs: int = 2) -> None:
         pass

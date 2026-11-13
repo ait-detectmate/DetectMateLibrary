@@ -17,17 +17,20 @@ Input and output schemas in the pipeline
 | **Input**  | [LogSchema](../schemas.md) | Unstructured log   |
 | **Output** | [ParserSchema](../schemas.md) | Structured log   |
 
+!!! warning "Not yet stable"
+    This parser is not yet in a stable release and may behave differently across platforms or hardware.
+
 ## Examples
 
 Without fixing log type:
 
-```python
+```python title="Example 1"
 --8<-- "docs/examples/parsers/auto_parser.py:example_1"
 ```
 
 With fixing log type:
 
-```python
+```python title="Example 2"
 --8<-- "docs/examples/parsers/auto_parser.py:example_2"
 ```
 
@@ -35,7 +38,7 @@ With fixing log type:
 
 The configuration used by the examples above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/parsers/auto_parser.yaml"
 ```
 
@@ -71,4 +74,5 @@ All parameters this parser accepts, grouped by the YAML block they go in. **Scop
     | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
     | `log_format` | string, null | None | shared | fitting description yet to find |
     | `time_format` | string, null | None | shared | fitting description yet to find |
+    | `log_source` | string, null | None | shared | Process only inputs of the same log source. |
 <!-- End arguments -->

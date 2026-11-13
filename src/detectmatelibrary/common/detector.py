@@ -6,8 +6,8 @@ from detectmatelibrary.utils.aux import get_timestamp
 
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
-from typing_extensions import override
 from typing import Dict, List, Optional, Any
+from typing_extensions import override
 from pydantic import Field
 
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
@@ -32,10 +32,14 @@ def _extract_logIDs(input_: List[ParserSchema] | ParserSchema) -> List[str]:
     return [str(i["logID"]) for i in input_]
 
 
+def define_detector_id(name: str, parser: Optional[str]) -> str:
+    return name if parser is None else f"{name}_from_{parser}"
+
+
 class CoreDetectorConfig(CoreConfig):
     component_type: str = Field(default="detectors", description="<$IGNORE$>")
     method_type: str = Field(default="core_detector", description="<$IGNORE$>")
-    parser: str = Field(default="PARSER", description="Name of the parser used.")
+    parser: Optional[str] = Field(default=None, description="Name of the parser used.")
 
     auto_config: bool = Field(
         default=True,
@@ -76,6 +80,9 @@ class CoreDetector(CoreComponent[ParserSchema, DetectorSchema]):
             input_schema=ParserSchema,
             output_schema=DetectorSchema,
         )
+        self.config: CoreDetectorConfig
+
+        self._detector_id = define_detector_id(name, config.parser)
 
     @override
     def run(
@@ -84,7 +91,7 @@ class CoreDetector(CoreComponent[ParserSchema, DetectorSchema]):
         output_: DetectorSchema,
     ) -> bool:
 
-        output_["detectorID"] = self.name
+        output_["detectorID"] = self._detector_id
         output_["detectorType"] = self.config.method_type
         output_["logIDs"] = _extract_logIDs(input_)
         output_["logTimestamps"] = _extract_timestamp(input_)
@@ -96,31 +103,25 @@ class CoreDetector(CoreComponent[ParserSchema, DetectorSchema]):
 
         return anomaly_detected
 
+    @override
+    def _is_input_eligible(self, data: ParserSchema) -> bool:  # type: ignore
+        return self.config.parser is None or self.config.parser == data["parserID"]
+
     def detect(
-        self,
-        input_: List[ParserSchema] | ParserSchema,
-        output_: DetectorSchema,
+        self, input_: List[ParserSchema] | ParserSchema, output_: DetectorSchema,
     ) -> bool:
         return True
 
     @override
-    def train(
-        self,
-        input_: ParserSchema | list[ParserSchema],
-    ) -> None:
+    def train(self, input_: ParserSchema | list[ParserSchema]) -> None:
         pass
 
     @override
-    def configure(
-        self,
-        input_: ParserSchema | list[ParserSchema],
-    ) -> None:
+    def configure(self, input_: ParserSchema | list[ParserSchema]) -> None:
         pass
 
     @override
-    def set_configuration(self) -> None:
-        pass
-
-    @override
-    def post_train(self) -> None:
-        pass
+    def from_binary(self, binary: bytes) -> "CoreDetector":
+        new = type(self)(name=self.name, config=self.config)
+        new.load_binary(binary)
+        return new

@@ -13,8 +13,7 @@ This document describes the minimal API, implementation guidance and a short exa
 ## CoreDetector: minimal API
 
 
-
-```python
+```python title="Detector API"
 class CoreDetectorConfig(CoreConfig):
     component_type: str = "detectors"
     method_type: str = "core_detector"
@@ -55,7 +54,7 @@ class CoreDetector(CoreComponent):
 
 Simple detector that raises an alert when a numeric variable exceeds a threshold.
 
-```python
+```python title="Detector Example"
 class SimpleThresholdConfig(CoreDetectorConfig):
     method_type: str = "simple_threshold"
     threshold: float = 0.0
@@ -147,7 +146,7 @@ example configurations set `auto_config: false` anyway, to make this explicit. I
 
 When `auto_config` is set to `False`, the detector expects an explicit `events` or `global` block that specifies exactly which variables to monitor. `events` refers to event-specific variables while `global` refers to variables that are not bound to events (`header_variables` can but don't have to be event bound):
 
-```yaml
+```yaml title="Detector Configuration"
 detectors:
   NewValueDetector:
     method_type: new_value_detector
@@ -195,7 +194,7 @@ Some parameters are inherited by **every** detector from `CoreDetectorConfig`/`C
     | `train_buffer_dir` | string, null | None | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
     | `connector_name` | string, null | None | Add a connector to the output schema. |
     | `connector_url` | string, null | None | Set up the URL of the connector for the output schema. |
-    | `parser` | string | PARSER | Name of the parser used. |
+    | `parser` | string, null | None | Name of the parser used. |
 <!-- End common_arguments -->
 
 Beyond the common parameters, detectors inherit the parameters of the group they belong to.
@@ -252,6 +251,7 @@ The two neural detectors ([DeepLog](detectors/deeplog.md), [LogBERT](detectors/l
     | `window_size` | integer | 10 | Number of consecutive events used as one training/detection sequence. |
     | `validation_per` | number | 0.2 | Fraction of data held out for validation during (fine)training. |
     | `finetune_epochs` | integer | 2 | Number of epochs used when finetuning during the configuration phase. |
+    | `session_variable` | string, null | None | Header variable that names the session of each event (HDFS: block_id). When set, an event's window holds the events before it in its own session, padded at the session start, so windows never mix sessions and every event is checked. |
     | `hyperparameters` | object | {'Model': {}, 'Train': {}, 'Finetune': []} | Model, training and hyperparameter-search settings passed to the underlying deep learning model. |
 <!-- End deeplearning_arguments -->
 
@@ -293,7 +293,7 @@ after creating both components, with `compile_detector_config()`. **Without this
 the detector monitors nothing**; it only logs a warning that the named `eventID` was
 never observed in training.
 
-```python
+```python title="Detector Examples"
 --8<-- "docs/examples/detectors/named_events.py:example"
 ```
 
@@ -304,7 +304,7 @@ Detectors can optionally support **auto-configuration**: a process where the det
 
 Auto-configuration is controlled by the `auto_config` flag in the pipeline config (e.g. `config/pipeline_config_default.yaml`):
 
-```yaml
+```yaml title="Detector Autoconfiguration"
 detectors:
   NewValueDetector:
     method_type: new_value_detector
@@ -330,7 +330,7 @@ To support auto-configuration in your own detector, see [Development](developmen
 
 ### Full lifecycle with auto-configuration
 
-```python
+```python title="Full cycle"
 1. configure(input_)         # call for each event in the dataset
 2. set_configuration()       # finalize which variables to monitor
 3. train(input_)             # call for each event in the dataset
@@ -357,6 +357,9 @@ for `EventSequenceDetector`, into `fixed_window_size`) and then sets
 be rerun with `auto_config: False` and reproduce the same detector.
 
 ### Stability classification (optional)
+
+!!! warning "Not compatible with all detectors"
+
 
 Stability classification decides whether a variable's change history counts as
 `STABLE` by running one or more classification methods against it and combining
@@ -392,7 +395,7 @@ and go in the detector's `auto_config_params` block: they are inputs to the
 auto-configuration phase, read only while `auto_config` is `True`, and never
 consulted at detection time.
 
-```yaml
+```yaml title="Detector configuration"
 detectors:
   NewValueDetector:
     method_type: new_value_detector
@@ -505,11 +508,14 @@ matters: the index pass keeps every segment populated.
 
 ### Saving state (persist)
 
+!!! warning "Not compatible with all detectors"
+
+
 [Tracker detectors](#tracker-detectors) can persist their training state to disk
 (or cloud storage) so it can be restored in a later session. Configure this with a
 top-level `persist:` block in the detector config:
 
-```yaml
+```yaml title="Detector configuration"
 detectors:
   NewValueDetector:
     method_type: new_value_detector
@@ -539,7 +545,7 @@ this, set `StateDirectory=` in your unit file: systemd creates `/var/lib/<dir>`
 with the right ownership and exports `$STATE_DIRECTORY`, which the default `path`
 reads automatically. No explicit `path:` needed:
 
-```ini
+```yaml title="Running under systemd"
 [Service]
 User=detectmate
 StateDirectory=detectmate     # → state at /var/lib/detectmate/<detector>/
@@ -561,14 +567,14 @@ Setting `path:` explicitly (e.g. an `s3://` URL) always overrides `$STATE_DIRECT
 
 **Local filesystem** (no `storage_options` needed):
 
-```yaml
+```yaml title="Define persistency"
 persist:
   path: ./state
 ```
 
 **S3**:
 
-```yaml
+```yaml title="Persistency S3 bucket"
 persist:
   path: s3://my-bucket/detector-state
   storage_options:
@@ -579,7 +585,7 @@ persist:
 
 S3-compatible storage (MinIO, etc.):
 
-```yaml
+```yaml title="Persistency S3 bucket"
 persist:
   path: s3://my-bucket/detector-state
   storage_options:
@@ -590,7 +596,7 @@ persist:
 
 **Azure Blob Storage**:
 
-```yaml
+```yaml title="Persistency Azure"
 persist:
   path: az://my-container/detector-state
   storage_options:
@@ -600,7 +606,7 @@ persist:
 
 **GCS**:
 
-```yaml
+```yaml title="Persistency GCS"
 persist:
   path: gs://my-bucket/detector-state
   storage_options:

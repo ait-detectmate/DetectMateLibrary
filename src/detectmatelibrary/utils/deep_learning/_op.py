@@ -1,7 +1,39 @@
 import jax
 import jax.numpy as jnp
 
-from typing import Any
+from typing import Any, Callable
+
+
+EVAL_BATCH = 2048
+# Event id that fills a window before its session's first event. -1 is taken: a log that matches
+# no template.
+PAD = -2
+
+
+def batched(f: Callable[..., Any], *xs: jnp.ndarray) -> Any:
+    """Apply ``f`` to the rows of ``xs`` in batches of ``EVAL_BATCH`` and
+    concatenate its outputs (an array or a tuple of arrays).
+
+    For a row-wise ``f`` this gives the values of ``f(*xs)`` without
+    holding the model's activations for all rows at once, which for a
+    large validation set takes gigabytes.
+    """
+    outs = [f(*(x[i:i + EVAL_BATCH] for x in xs)) for i in range(0, max(xs[0].shape[0], 1), EVAL_BATCH)]
+    return jax.tree.map(lambda *parts: jnp.concatenate(parts), *outs)
+
+
+def smallest_top_k(scores: jnp.ndarray, alert_rate: float) -> int:
+    """Return the smallest ``top_k`` at which at most ``alert_rate`` of the
+    windows alert.
+
+    ``scores`` holds one rank per window, 0 being the model's first
+    guess. A window alerts at ``top_k`` when its rank is ``top_k`` or
+    more.
+    """
+    allowed = int(alert_rate * scores.shape[0])
+    if allowed >= scores.shape[0]:
+        return 1
+    return int(jnp.sort(scores)[::-1][allowed]) + 1
 
 
 class CheckPoint:

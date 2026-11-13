@@ -11,29 +11,29 @@ Utility methods to help developers load and save different schema objects. Suppo
 
 The `From` class is responsible for loading different input formats.
 
-```python
+```python title="From methods"
 class From:
     @staticmethod
     def log(
-        component: CoreComponent, in_path: str, do_process: bool = True
+        component: CoreComponent, in_path: str, do_process: bool = True, constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
         """Load logs as input schemas."""
 
     @staticmethod
     def binary_file(
-        component: CoreComponent, in_path: str, do_process: bool = True
+        component: CoreComponent, in_path: str, do_process: bool = True, constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
         """Load binary files as input schemas."""
 
     @staticmethod
     def json(
-        component: CoreComponent, in_path: str, do_process: bool = True
+        component: CoreComponent, in_path: str, do_process: bool = True, constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
         """Load JSON files as input schemas."""
 
     @staticmethod
     def yaml(
-        component: CoreComponent, in_path: str, do_process: bool = True
+        component: CoreComponent, in_path: str, do_process: bool = True, constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
         """Load YAML files as input schemas."""
 
@@ -42,6 +42,7 @@ class From:
         component: CoreComponent,
         df: DataFrame | LazyFrame,
         do_process: bool = True,
+        constant_fields: dict[str, Any] = {},
         renames: dict[str, str] | None = None,
     ) -> Iterator[BaseSchema]:
         """
@@ -53,7 +54,7 @@ class From:
 
 ### Usage
 
-```python
+```python title="From example"
 --8<-- "docs/examples/others/from_to.py:example_1"
 ```
 
@@ -61,7 +62,7 @@ class From:
 
 The `To` class is responsible for saving schema objects to files.
 
-```python
+```python title="To methods"
 class To:
     @staticmethod
     def binary_file(out_: BaseSchema | bytes | None, out_path: str) -> bytes | None:
@@ -90,13 +91,13 @@ class To:
 
 ### Usage
 
-```python
+```python title="To example"
 --8<-- "docs/examples/others/from_to.py:example_2"
 ```
 
 Example JSON save file format:
 
-```json
+```json title="Output"
 {
     "0": {
         "logID": "0",
@@ -119,77 +120,77 @@ Example JSON save file format:
 
 The `FromTo` class loads and saves inputs and outputs in a single operation.
 
-```python
+```python title="FromTo methods"
 class FromTo:
     @staticmethod
     def log2binary_file(
-        component: CoreComponent, in_path: str, out_path: str
+        component: CoreComponent, in_path: str, out_path: str, constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
         """Load a log file and save it to a binary file."""
 
     @staticmethod
     def log2json(
-        component: CoreComponent, in_path: str, out_path: str
+        component: CoreComponent, in_path: str, out_path: str, constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
         """Load a log file and save it to a JSON file."""
 
     @staticmethod
     def log2yaml(
-        component: CoreComponent, in_path: str, out_path: str
+        component: CoreComponent, in_path: str, out_path: str, constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
         """Load a log file and save it to a YAML file."""
 
     @staticmethod
     def binary_file2binary_file(
-        component: CoreComponent, in_path: str, out_path: str
+        component: CoreComponent, in_path: str, out_path: str, constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
         """Load a binary file and save it to a binary file."""
 
     @staticmethod
     def binary_file2json(
-        component: CoreComponent, in_path: str, out_path: str
+        component: CoreComponent, in_path: str, out_path: str, constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
         """Load a binary file and save it to a JSON file."""
 
     @staticmethod
     def binary_file2yaml(
-        component: CoreComponent, in_path: str, out_path: str
+        component: CoreComponent, in_path: str, out_path: str, constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
         """Load a binary file and save it to a YAML file."""
 
     @staticmethod
     def json2binary_file(
-        component: CoreComponent, in_path: str, out_path: str
+        component: CoreComponent, in_path: str, out_path: str, constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
         """Load a JSON file and save it to a binary file."""
 
     @staticmethod
     def json2json(
-        component: CoreComponent, in_path: str, out_path: str
+        component: CoreComponent, in_path: str, out_path: str, constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
         """Load a JSON file and save it to a JSON file."""
 
     @staticmethod
     def json2yaml(
-        component: CoreComponent, in_path: str, out_path: str
+        component: CoreComponent, in_path: str, out_path: str, constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
         """Load a JSON file and save it to a YAML file."""
 
     @staticmethod
     def yaml2binary_file(
-        component: CoreComponent, in_path: str, out_path: str
+        component: CoreComponent, in_path: str, out_path: str, constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
         """Load a YAML file and save it to a binary file."""
 
     @staticmethod
     def yaml2json(
-        component: CoreComponent, in_path: str, out_path: str
+        component: CoreComponent, in_path: str, out_path: str, constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
         """Load a YAML file and save it to a JSON file."""
 
     @staticmethod
     def yaml2yaml(
-        component: CoreComponent, in_path: str, out_path: str
+        component: CoreComponent, in_path: str, out_path: str, constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
         """Load a YAML file and save it to a YAML file."""
 
@@ -198,6 +199,7 @@ class FromTo:
         component: CoreComponent,
         df: DataFrame | LazyFrame,
         out_path: str,
+        constant_fields: dict[str, Any] = {},
         renames: dict[str, str] | None = None,
     ) -> Iterator[BaseSchema]:
         """Load DetectMatePerformance Dataframe to binary file"""
@@ -207,6 +209,7 @@ class FromTo:
         component: CoreComponent,
         df: DataFrame | LazyFrame,
         out_path: str,
+        constant_fields: dict[str, Any] = {},
         renames: dict[str, str] | None = None,
     ) -> Iterator[BaseSchema]:
         """Load DetectMatePerformance Dataframe to json"""
@@ -216,6 +219,7 @@ class FromTo:
         component: CoreComponent,
         df: DataFrame | LazyFrame,
         out_path: str,
+        constant_fields: dict[str, Any] = {},
         renames: dict[str, str] | None = None,
     ) -> Iterator[BaseSchema]:
         """Load DetectMatePerformance Dataframe to yaml"""
@@ -223,13 +227,13 @@ class FromTo:
 
 ### Usage
 
-```python
+```python title="FromTo example"
 --8<-- "docs/examples/others/from_to.py:example_3"
 ```
 
 Example input data:
 
-```json
+```json title="Input"
 {
     "0": {
         "logID": "0",
@@ -250,7 +254,7 @@ Example input data:
 
 Example output data after parsing:
 
-```json
+```json title="Output"
 {
     "0": {
         "template": "This is a dummy template",

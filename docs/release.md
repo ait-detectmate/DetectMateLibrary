@@ -43,7 +43,7 @@ Open a pull request to merge the `development` branch into `main`. Once CI passe
 
 Create a new branch from `main` and update the version string in `src/detectmatelibrary/metadata.py`:
 
-```python
+```python title="Library version"
 __version__ = "0.X.Y"  # set to the new release version
 ```
 
@@ -51,7 +51,7 @@ The version here must match the tag you will create in step 5 (e.g. version `0.4
 
 Also make sure `uv.lock` is up to date:
 
-```bash
+```console title="Generate dependency file"
 uv lock
 ```
 
