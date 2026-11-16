@@ -46,6 +46,7 @@ Each component's arguments must be stored in its corresponding configuration cla
     | [DeepLearningDetector](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/base_detectors/deeplearning_detector.py) | Main class used in deep learning detectors. | `CoreDetector` |
     | [TrackerDetector](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/base_detectors/tracker_detector.py) | Main class used in detectors that use `EventPersistency`. | `CoreDetector` |
     | [VariableDetector](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/base_detectors/variable_detector.py) | Main class used in detectors that learn variables. | `TrackerDetector` |
+    | [CountVectorDetector](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/base_detectors/count_vector_detector.py) | Main class used in detectors that turn sliding windows of events into count vectors (ECVC, SCVS). | `TrackerDetector` |
     | [DensityClusteringAggregation](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/base_alert_aggregation/density_clustering.py) | Density aggregators.| `CoreAlertAggregator` |
 
 ## Process flow
