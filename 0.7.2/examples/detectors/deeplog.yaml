@@ -1,0 +1,6 @@
+detectors:
+  DeeplogDetector:
+    method_type: deeplog_detector
+    params:
+      data_use_training: 60     # train the model on the first 60 windows, then detect
+      window_size: 4            # length of the EventID sequences the model learns

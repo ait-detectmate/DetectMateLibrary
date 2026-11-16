@@ -1,0 +1,6 @@
+detectors:
+  LogBertDetector:
+    method_type: logbert_detector
+    params:
+      data_use_training: 60     # train the model on the first 60 windows, then detect
+      window_size: 4            # length of the EventID sequences the model learns

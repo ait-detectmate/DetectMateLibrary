@@ -1,0 +1,5 @@
+parsers:
+  DrainParser:
+    method_type: drain_parser
+    params:
+      data_use_training: 2    # the first 2 logs are used to mine templates

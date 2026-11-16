@@ -1,0 +1,5 @@
+parsers:
+  AutoParser:
+    method_type: auto_parser
+    params:
+      data_use_training: 10   # the first 10 logs are used to recognise the log type

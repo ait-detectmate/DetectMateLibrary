@@ -1,0 +1,14 @@
+detectors:
+  UserIpComboDetector:
+    method_type: new_value_combo_detector
+    auto_config: false          # we pick the variables ourselves (see `events`)
+    params:
+      data_use_training: 3      # learn from the first 3 logs, then detect
+    events:
+      0:                        # EventID: "Accepted password for <*> from <*> port <*>"
+        user_and_ip:            # all variables of one instance form one combination
+          variables:
+            - pos: 0
+              name: user
+            - pos: 1
+              name: src_ip
