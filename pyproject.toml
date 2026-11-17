@@ -27,7 +27,13 @@ dependencies = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--ignore=local"
+# The only pytest configuration: there is no pytest.ini (it would shadow this table).
+testpaths = ["tests"]
+addopts = "--strict-markers --strict-config --ignore=local"
+xfail_strict = true
+markers = [
+    "ignored: tests that should only run on demand (--run-ignored)",
+]
 
 [dependency-groups]
 # install with all the dev dependencies:  uv pip install --group dev
