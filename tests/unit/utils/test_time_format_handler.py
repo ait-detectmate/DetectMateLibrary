@@ -4,6 +4,7 @@ from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 
 tfh = TimeFormatHandler()
 
+
 def test_iso_z():
     s = "2023-01-02T03:04:05Z"
     expected = int(datetime.fromisoformat("2023-01-02T03:04:05+00:00").timestamp())
