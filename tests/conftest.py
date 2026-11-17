@@ -42,7 +42,7 @@ from detectmatelibrary.utils.persistency.persistency_saver import _SaveTimer
 
 _MONGO_URL = "mongodb://localhost:27017"
 _REDIS_HOST, _REDIS_PORT = "localhost", 6379
-_START_SERVICES = "start them with: docker compose -f tests/test_schemas/compose.yaml up -d"
+_START_SERVICES = "start them with: docker compose -f tests/compose.yaml up -d"
 
 
 @functools.cache

@@ -122,7 +122,7 @@ uv run --dev pytest -s
 To run all unit tests, first start the database containers:
 
 ```console  title="Start datasets"
-docker compose -f tests/test_schemas/compose.yaml up -d
+docker compose -f tests/compose.yaml up -d
 ```
 
 and then run:

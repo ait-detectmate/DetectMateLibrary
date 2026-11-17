@@ -37,8 +37,8 @@ markers = [
     "cli: runs the installed `mate` console script in a subprocess; opt-in locally, always run in CI",
     "docs: runs a file from docs/examples/; opt-in locally, always run in CI",
     "needs_cxx: needs a C++ compiler for torch.compile; skipped locally without one, fails in CI",
-    "needs_mongo: needs MongoDB (docker compose -f tests/test_schemas/compose.yaml up -d); skipped locally if unreachable, fails in CI",
-    "needs_redis: needs Redis (docker compose -f tests/test_schemas/compose.yaml up -d); skipped locally if unreachable, fails in CI",
+    "needs_mongo: needs MongoDB (docker compose -f tests/compose.yaml up -d); skipped locally if unreachable, fails in CI",
+    "needs_redis: needs Redis (docker compose -f tests/compose.yaml up -d); skipped locally if unreachable, fails in CI",
 ]
 
 [dependency-groups]
