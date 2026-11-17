@@ -93,7 +93,7 @@ PIPELINE_CONFIG = {
 class TestSCVSDetectorEndToEnd:
     """Regression test: full configure/train/detect pipeline on audit.log."""
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalies(self):
         parser = MatcherParser(config=PIPELINE_CONFIG)
         detector = SCVSDetector(config=PIPELINE_CONFIG)
@@ -107,7 +107,7 @@ class TestSCVSDetectorEndToEnd:
         for log_id in {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}:
             assert log_id in detected_ids
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalie_binary(self):
         parser = MatcherParser(config=PIPELINE_CONFIG)
         detector1 = SCVSDetector("SCVSDetector_fed", config=PIPELINE_CONFIG)
@@ -123,7 +123,7 @@ class TestSCVSDetectorEndToEnd:
         assert detector2.persistency.events_seen == detector1.persistency.events_seen
         assert len(detector2.persistency.events_seen) > 0
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalie_fed(self):
         parser = MatcherParser(config=PIPELINE_CONFIG)
         detector1 = SCVSDetector("SCVSDetector_fed", config=PIPELINE_CONFIG)

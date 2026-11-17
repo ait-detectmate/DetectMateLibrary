@@ -142,12 +142,12 @@ globs every `.py` under `docs/examples/` and runs each one as a script via
 `runpy.run_path(..., run_name="__main__")`. There is no plugin and no assert
 requirement: a snippet passes as long as it runs standalone without raising. If
 your example needs something unavailable in CI (e.g. an API key), comment out
-those calls rather than letting them fail. The test is marked `ignored`, so a
-plain `pytest` run skips it; pass `--run-ignored` (as CI does) to include it:
+those calls rather than letting them fail. The test is marked `docs`, so a
+plain `pytest` run leaves it out; select it with `-m` (CI runs everything with `-m ""`):
 
 ```console title="Run different unit tests"
-uv run --dev pytest --run-ignored                    # whole suite, snippets included
-uv run --dev pytest tests/test_docs --run-ignored    # snippets only
+uv run --dev pytest -m ""                      # whole suite, snippets included
+uv run --dev pytest tests/test_docs -m docs    # snippets only
 ```
 
 **4. Component pages: a YAML file, and generated argument tables.** Each parser and

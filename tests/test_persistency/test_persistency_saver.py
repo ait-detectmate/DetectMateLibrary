@@ -564,7 +564,6 @@ class TestStandaloneSaveLoad:
 
 
 class TestPersistencySaverThreadSafety:
-    @pytest.mark.ignored
     def test_load_with_running_timer_does_not_raise(self):
         p = _make_persistency_with_data()
         path = "memory://threadsafe_test/state"

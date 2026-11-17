@@ -16,7 +16,7 @@ class TestTimestamp:
         time_test_mode(False)
         assert get_timestamp() != 0
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_get_timestamp(self) -> None:
         time = get_timestamp()
         sleep(1)

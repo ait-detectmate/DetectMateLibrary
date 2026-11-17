@@ -16,7 +16,7 @@ def temp_dir(tmp_path: Path) -> Path:
     return tmp_path
 
 
-@pytest.mark.ignored
+@pytest.mark.cli
 def test_create_parser_workspace(temp_dir: Path):
     ws_name = "myParser"
     workspace_root = temp_dir
@@ -56,7 +56,7 @@ def test_create_parser_workspace(temp_dir: Path):
     assert (tests_dir / f"test_{ws_name}.py").exists()
 
 
-@pytest.mark.ignored
+@pytest.mark.cli
 def test_create_detector_workspace(temp_dir: Path):
     ws_name = "myDetector"
     workspace_root = temp_dir
@@ -89,7 +89,7 @@ def test_create_detector_workspace(temp_dir: Path):
     assert (tests_dir / f"test_{ws_name}.py").exists()
 
 
-@pytest.mark.ignored
+@pytest.mark.cli
 def test_create_alert_aggregator_workspace(temp_dir: Path):
     ws_name = "myAlertAggregator"
     workspace_root = temp_dir
@@ -122,7 +122,7 @@ def test_create_alert_aggregator_workspace(temp_dir: Path):
     assert (tests_dir / f"test_{ws_name}.py").exists()
 
 
-@pytest.mark.ignored
+@pytest.mark.cli
 def test_create_workspace_with_dash_name(temp_dir: Path):
     ws_name = "custom-parser"
     workspace_root = temp_dir
@@ -152,6 +152,7 @@ def test_create_workspace_with_dash_name(temp_dir: Path):
     assert f"from {pkg_name}.{module_name} import " in content
 
 
+@pytest.mark.cli
 def test_fail_if_dir_exists(temp_dir: Path):
     ws_name = "existing"
     workspace_root = temp_dir
@@ -173,7 +174,7 @@ def test_fail_if_dir_exists(temp_dir: Path):
     assert "already exists" in result.stderr
 
 
-@pytest.mark.ignored
+@pytest.mark.cli
 def test_generated_detector_tests_pass(temp_dir: Path):
     """Run pytest inside the generated workspace on the generated detector test
     file."""
@@ -211,7 +212,7 @@ def test_generated_detector_tests_pass(temp_dir: Path):
         sys.path[:] = old_sys_path
 
 
-@pytest.mark.ignored
+@pytest.mark.cli
 def test_generated_parser_tests_pass(temp_dir: Path):
     ws_name = "MyCoolParser"
     workspace_root = temp_dir
@@ -244,7 +245,7 @@ def test_generated_parser_tests_pass(temp_dir: Path):
         sys.path[:] = old_sys_path
 
 
-@pytest.mark.ignored
+@pytest.mark.cli
 def test_generated_alert_aggregator_tests_pass(temp_dir: Path):
     """Run pytest inside the generated workspace on the generated detector test
     file."""

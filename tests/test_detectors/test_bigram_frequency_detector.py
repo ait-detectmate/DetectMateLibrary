@@ -250,7 +250,7 @@ _PARSER_CONFIG = {
 class TestBigramFrequencyDetectorEndToEnd:
     """Regression test: full configure/train/detect pipeline on audit.log."""
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalies(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = BigramFrequencyDetector(
@@ -276,7 +276,7 @@ class TestBigramFrequencyDetectorEndToEnd:
 
         assert detected_ids == {'1859', '1860', '1861', '1862'}
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalie_fed(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector1 = BigramFrequencyDetector(
@@ -324,7 +324,7 @@ class TestBigramFrequencyDetectorAutoConfig:
     """Test that process() drives configure/set_configuration/train/detect
     automatically."""
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalies_via_process(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = BigramFrequencyDetector(config=_AUTO_SKIP_REPETITIONS_CONFIG, name="MultipleDetector")

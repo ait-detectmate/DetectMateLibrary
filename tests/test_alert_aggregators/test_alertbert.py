@@ -68,7 +68,8 @@ def make_config(path: Path, train_model: bool) -> AlertBERTAggregationConfig:
     )
 
 
-@pytest.mark.ignored
+@pytest.mark.slow
+@pytest.mark.needs_cxx
 def test_alertbert_aggregation_training_saving_loading_and_inference(
     tmp_path: Path,
 ) -> None:

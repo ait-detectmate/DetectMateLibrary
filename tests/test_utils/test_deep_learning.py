@@ -134,6 +134,7 @@ def assert_same_stats(in_batches: dict, one_pass: dict) -> None:
 
 
 class TestDeeplog:
+    @pytest.mark.slow
     def test_validation_in_batches_matches_one_pass(self, monkeypatch: pytest.MonkeyPatch) -> None:
         config = {
             "Model": {"hidden_dim": 4, "n_layers": 1},
@@ -143,6 +144,7 @@ class TestDeeplog:
         assert one_pass["passes"] == [30, 30, 30]  # the loss after each epoch, then top_k
         assert_same_stats(validation_stats(monkeypatch, 7, deeplog.DeepLog(config=config)), one_pass)
 
+    @pytest.mark.slow
     def test_top_k_keeps_validation_alerts_within_alert_rate(self) -> None:
         config = {
             "Model": {"hidden_dim": 4, "n_layers": 1},
@@ -150,7 +152,7 @@ class TestDeeplog:
         }
         assert_smallest_top_k_within_alert_rate(deeplog.DeepLog(config=config), alert_rate=0.1)
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_deeplog_model(self) -> None:
         model = deeplog.DeepLogModel(hidden_dim=4, n_layers=1, output_size=1)
 
@@ -160,7 +162,7 @@ class TestDeeplog:
         y = model.apply({"params": params}, x)
         assert y.shape == (3, 1)
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_deeplog_train(self) -> None:
         config = {
             "Model": {
@@ -183,7 +185,7 @@ class TestDeeplog:
         assert not deeplog_.check_anomaly((1, 2, 0, 1), stats["top_k"])
         assert deeplog_.check_anomaly((1, 2, 2, 0), stats["top_k"])
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_deeplog_finetune(self) -> None:
         config = {
             "Model": {
@@ -230,10 +232,12 @@ def logbert_detection_draws(epochs: int) -> list[int]:
 
 
 class TestLogBert:
+    @pytest.mark.slow
     def test_detection_masks_do_not_depend_on_training_length(self) -> None:
         # Otherwise where early stopping lands, which can differ across CPUs, changes the alerts.
         assert logbert_detection_draws(epochs=1) == logbert_detection_draws(epochs=3) == [0, 1, 2]
 
+    @pytest.mark.slow
     def test_validation_in_batches_matches_one_pass(self, monkeypatch: pytest.MonkeyPatch) -> None:
         config = {
             "Model": {"hidden": 4, "n_layers": 1, "num_heads": 1, "dropout": 0.0, "max_len": 10},
@@ -243,6 +247,7 @@ class TestLogBert:
         assert one_pass["passes"] == [30, 30, 30]  # the loss after each epoch, then top_k
         assert_same_stats(validation_stats(monkeypatch, 7, logbert.LogBert(config=config)), one_pass)
 
+    @pytest.mark.slow
     def test_top_k_keeps_validation_alerts_within_alert_rate(self) -> None:
         # mask_per 1.0 masks every event, so each mask draw is the same and check_anomaly
         # sees the masks that picked top_k.
@@ -254,6 +259,7 @@ class TestLogBert:
         }
         assert_smallest_top_k_within_alert_rate(logbert.LogBert(config=config), alert_rate=0.1)
 
+    @pytest.mark.slow
     def test_padding_adds_no_loss(self) -> None:
         model = logbert.LogBertModel(n_embed=6, hidden=4, num_heads=1, n_layers=1, dropout=0.0, max_len=10)
         x = jnp.array(padded_windows(10, 5))
@@ -263,6 +269,7 @@ class TestLogBert:
         assert jnp.isfinite(loss_mlkp).all()
         assert (loss_mlkp[x == op.PAD] == 0).all() and (loss_mlkp[x != op.PAD] > 0).all()
 
+    @pytest.mark.slow
     def test_padding_is_not_scored(self) -> None:
         # At top_k = n_embed every event is among the predictions, so only padding could miss.
         config = {
@@ -275,6 +282,7 @@ class TestLogBert:
 
         assert [model.check_anomaly(w, n_embed) for w in padded_windows(10, 5)] == [0] * 10
 
+    @pytest.mark.slow
     def test_top_k_keeps_padded_validation_alerts_within_alert_rate(self) -> None:
         config = {
             "Model": {"hidden": 4, "n_layers": 1, "num_heads": 1, "dropout": 0.0, "max_len": 10},
@@ -286,7 +294,7 @@ class TestLogBert:
             logbert.LogBert(config=config), alert_rate=0.1, windows=padded_windows(60, 5)
         )
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_logbert_model(self) -> None:
         model = logbert.LogBertModel(
             n_embed=3, hidden=8, num_heads=1, n_layers=1, dropout=0.0, max_len=10
@@ -299,7 +307,7 @@ class TestLogBert:
         assert y.shape == (3, 10, 3)
         assert dist.shape == (3, 8)
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_logbert_train(self) -> None:
         # mask_per 1.0 masks every event, so the anomalous one is always checked.
         config = {
@@ -327,7 +335,7 @@ class TestLogBert:
         assert not logbert_.check_anomaly((1, 2, 0, 1), stats["top_k"])
         assert logbert_.check_anomaly((1, 2, 3, 0), stats["top_k"])
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_logbert_finetune(self) -> None:
         config = {
             "Model": {

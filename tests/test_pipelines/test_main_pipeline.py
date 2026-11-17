@@ -212,7 +212,7 @@ class TestRunPipeline:
 
 
 class TestPipeline:
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_full_pipeline(self) -> None:
         config = PipelineConfig(
             do_parsing=True,
@@ -248,7 +248,7 @@ class TestPipeline:
         expected = ['1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867']
         assert set(alerts) == set(expected)
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_full_pipeline_two_sources(self) -> None:
         config = PipelineConfig(
             do_parsing=True,
@@ -304,7 +304,7 @@ class TestPipeline:
         assert alerts_audit
         assert alerts_apache
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_full_pipeline_parallel(self) -> None:
         config = PipelineConfig(
             do_parsing=True,
@@ -340,8 +340,8 @@ class TestPipeline:
         expected = ['1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867']
         assert set(alerts) == set(expected)
 
-    @pytest.mark.ignored_mongo
-    @pytest.mark.ignored
+    @pytest.mark.needs_mongo
+    @pytest.mark.slow
     def test_full_pipeline_mongo(self) -> None:
         logging.getLogger().setLevel(logging.CRITICAL)
         client = pymongo.MongoClient("mongodb://localhost:27017")
@@ -399,8 +399,8 @@ class TestPipeline:
         sc.set_connector("Mongo", url="mongodb://localhost:27017/FullPipeline/Aggregator")
         assert sc.AggregateSchema.from_id("LogIDCountAggregator_10")["logIDs"] != ""
 
-    @pytest.mark.ignored_redis
-    @pytest.mark.ignored
+    @pytest.mark.needs_redis
+    @pytest.mark.slow
     def test_full_pipeline_redis(self) -> None:
         logging.getLogger().setLevel(logging.CRITICAL)
         for i in range(3):

@@ -207,7 +207,7 @@ _PARSER_CONFIG = {
 class TestEventSequenceDetectorEndToEnd:
     """Regression test: full train/detect pipeline on audit.log."""
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalies(self):
         pars = MatcherParser(config=_PARSER_CONFIG)
         detector = EventSequenceDetector(
@@ -230,7 +230,7 @@ class TestEventSequenceDetectorEndToEnd:
         # fixed_window_size=3 that is three consecutive log IDs.
         assert detected_ids == {"1863", "1864", "1865"}
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalie_fed(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector1 = EventSequenceDetector(
@@ -271,7 +271,7 @@ class TestEventSequenceDetectorEndToEnd:
 
         assert detected_ids == {"1863", "1864", "1865"}
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalie_binary(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector1 = EventSequenceDetector(
@@ -310,7 +310,7 @@ class TestEventSequenceDetectorEndToEnd:
 
         assert detected_ids == {"1863", "1864", "1865"}
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalies_via_process(self):
         """Same regression, driven through process() so the configure ->
         set_configuration -> train -> detect lifecycle is exercised."""

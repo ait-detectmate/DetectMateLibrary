@@ -227,7 +227,7 @@ PIPELINE_CONFIG = {
 class TestECVCDetectorEndToEnd:
     """Regression test: full configure/train/detect pipeline on audit.log."""
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalies(self):
         parser = MatcherParser(config=PIPELINE_CONFIG)
         detector = ECVCDetector(config=PIPELINE_CONFIG)
@@ -241,7 +241,7 @@ class TestECVCDetectorEndToEnd:
         for log_id in {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}:
             assert log_id in detected_ids
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalies_to_binary(self):
         parser = MatcherParser(config=PIPELINE_CONFIG)
         detector1 = ECVCDetector(name="ECVCDetector_fed", config=PIPELINE_CONFIG)
@@ -259,7 +259,7 @@ class TestECVCDetectorEndToEnd:
         assert (detector2.count_vecs == detector1.count_vecs).all()
         assert detector2.threshold == thress
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalie_fed(self):
         parser = MatcherParser(config=PIPELINE_CONFIG)
         detector1 = ECVCDetector(name="ECVCDetector_fed", config=PIPELINE_CONFIG)

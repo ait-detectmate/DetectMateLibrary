@@ -154,7 +154,7 @@ _PARSER_CONFIG = {
 class TestNewEventDetectorEndToEnd:
     """Regression test: full configure/train/detect pipeline on audit.log."""
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalies(self):
         pars = MatcherParser(config=_PARSER_CONFIG)
         detector = NewEventDetector(config=config, name="NewEventDetector")
@@ -176,7 +176,7 @@ class TestNewEventDetectorEndToEnd:
 
         assert detected_ids == {"1863"}
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalie_fed(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector1 = NewEventDetector(config=NewEventDetectorConfig(allow_fed=True))
@@ -209,7 +209,7 @@ class TestNewEventDetectorEndToEnd:
 
         assert detected_ids == {"1863"}
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalie_binary(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector1 = NewEventDetector(config=NewEventDetectorConfig(allow_fed=True))
@@ -239,7 +239,7 @@ class TestNewEventDetectorAutoConfig:
     """Test that process() drives configure/set_configuration/train/detect
     automatically."""
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalies_via_process(self):
         pars = MatcherParser(config=_PARSER_CONFIG)
         detector = NewEventDetector()

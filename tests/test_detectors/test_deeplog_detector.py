@@ -16,7 +16,7 @@ import pytest
 
 
 class TestDeeplog:
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_end2end_autoconfig(self) -> None:
         config = {
             "detectors": {
@@ -47,7 +47,7 @@ class TestDeeplog:
                 deeplog.process(sc.ParserSchema({"eventID": i}))
         assert deeplog.get_state() == "Default"
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_end2end_no_autoconfig(self) -> None:
         config = {
             "detectors": {
@@ -129,7 +129,7 @@ PIPELINE_CONFIG = {
 class TestDeeplogDetectorEndToEnd:
     """Regression test: full configure/train/detect pipeline on audit.log."""
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalies(self):
         parser = MatcherParser(config=PIPELINE_CONFIG)
         detector = DeeplogDetector(config=PIPELINE_CONFIG)

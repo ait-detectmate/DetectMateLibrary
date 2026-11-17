@@ -128,8 +128,10 @@ docker compose -f tests/test_schemas/compose.yaml up -d
 and then run:
 
 ```console title="Run all the unit tests"
-uv run pytest --run-ignored --run-ignored-mongo --run-ignored-redis
+uv run pytest -m ""
 ```
+
+Without the containers, the tests that need MongoDB or Redis are skipped with a hint.
 
 
 * Run tests with coverage (terminal summary):

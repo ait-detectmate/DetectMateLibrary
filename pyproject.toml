@@ -29,10 +29,16 @@ dependencies = [
 [tool.pytest.ini_options]
 # The only pytest configuration: there is no pytest.ini (it would shadow this table).
 testpaths = ["tests"]
-addopts = "--strict-markers --strict-config --ignore=local"
+# Default run: everything except the opt-in groups below. `-m ""` runs everything (what CI does).
+addopts = "--strict-markers --strict-config --ignore=local -ra -m 'not slow and not cli and not docs'"
 xfail_strict = true
 markers = [
-    "ignored: tests that should only run on demand (--run-ignored)",
+    "slow: takes more than 2 s; opt-in locally (-m slow), always run in CI",
+    "cli: runs the installed `mate` console script in a subprocess; opt-in locally, always run in CI",
+    "docs: runs a file from docs/examples/; opt-in locally, always run in CI",
+    "needs_cxx: needs a C++ compiler for torch.compile; skipped locally without one, fails in CI",
+    "needs_mongo: needs MongoDB (docker compose -f tests/test_schemas/compose.yaml up -d); skipped locally if unreachable, fails in CI",
+    "needs_redis: needs Redis (docker compose -f tests/test_schemas/compose.yaml up -d); skipped locally if unreachable, fails in CI",
 ]
 
 [dependency-groups]

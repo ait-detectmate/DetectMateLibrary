@@ -28,7 +28,7 @@ parser_config = {
 
 class TestConfigurationEngineManual:
     """Mirrors the manual flow in 05_configuration_engine/detect.py."""
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_configure_train_detect(self) -> None:
         parser = MatcherParser(config=parser_config)
         detector = NewValueDetector()
@@ -54,7 +54,7 @@ class TestConfigurationEngineManual:
 
 class TestConfigurationEngineAutomatic:
     """Tests the automated configure phase via process()."""
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_process_configure_train_detect(self) -> None:
         parser = MatcherParser(config=parser_config)
         config = NewValueDetectorConfig(data_use_configure=TRAIN_UNTIL)

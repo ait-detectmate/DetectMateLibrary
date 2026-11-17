@@ -1,18 +1,30 @@
 """Shared pytest configuration for the whole test suite.
 
+Markers (registered in pyproject.toml): `slow`, `cli` and `docs` are left out
+of the default run by `addopts`; `-m ""` runs everything. `needs_cxx`,
+`needs_mongo` and `needs_redis` skip a test locally when the dependency is
+missing and fail it in CI (see "Required dependencies" below).
+
 Global-state isolation: every piece of process-wide state that a test can
 change is restored after each test, whatever the test does. See the
 fixtures in the "Isolation" section below.
 """
 import copy
+import functools
 import logging
+import os
+import shutil
 import threading
-from typing import Any, Iterator
+from typing import Any, Callable, Iterator
 
 import fsspec
 import numpy as np
+import pymongo
 import pytest
+import redis
 from pydantic import BaseModel
+from redis.backoff import NoBackoff
+from redis.retry import Retry
 
 import detectmatelibrary.schemas._classes as schema_classes
 from detectmatelibrary.common.core import CoreComponent
@@ -22,50 +34,69 @@ from detectmatelibrary.utils.persistency.persistency_saver import _SaveTimer
 from detectmatelibrary.utils.persistency.slow_persistency import clean_generated_path
 
 
-def pytest_addoption(parser):
-    # These flags opt into test groups that are skipped by default.
-    parser.addoption(
-        "--run-ignored",
-        action="store_true",
-        default=False
-    )
-    parser.addoption(
-        "--run-ignored-mongo",
-        action="store_true",
-        default=False,
-        help="Run tests marked ignored_mongo",
-    )
-    parser.addoption(
-        "--run-ignored-redis",
-        action="store_true",
-        default=False,
-        help="Run tests marked ignored_redis",
-    )
-
-
-def pytest_configure(config):
-    config.addinivalue_line("markers", "ignored: skipped unless --run-ignored is passed")
-    config.addinivalue_line(
-        "markers", "ignored_mongo: skipped unless --run-ignored-mongo is passed"
-    )
-    config.addinivalue_line(
-        "markers", "ignored_redis: skipped unless --run-ignored-redis is passed"
-    )
-
-
-def pytest_collection_modifyitems(config, items):
-    """Skip ignored test groups unless their corresponding flag is passed."""
-    for item in items:
-        if "ignored" in item.keywords and not config.getoption("--run-ignored"):
-            item.add_marker(pytest.mark.skip(reason="Skipped: requires --run-ignored flag"))
-        if "ignored_mongo" in item.keywords and not config.getoption("--run-ignored-mongo"):
-            item.add_marker(pytest.mark.skip(reason="Skipped: requires --run-ignored-mongo flag"))
-        if "ignored_redis" in item.keywords and not config.getoption("--run-ignored-redis"):
-            item.add_marker(pytest.mark.skip(reason="Skipped: requires --run-ignored-redis flag"))
-
-
 def pytest_sessionfinish(session, exitstatus):
     clean_generated_path()
+
+
+# ---- Required dependencies ---------------------------------------------------
+#
+# A test marked needs_cxx / needs_mongo / needs_redis is skipped locally when
+# the dependency is missing, and fails in CI (where the CI environment
+# variable is set), so a broken runner cannot hide these tests.
+
+_MONGO_URL = "mongodb://localhost:27017"
+_REDIS_HOST, _REDIS_PORT = "localhost", 6379
+_START_SERVICES = "start them with: docker compose -f tests/test_schemas/compose.yaml up -d"
+
+
+@functools.cache
+def _cxx_available() -> bool:
+    return shutil.which(os.environ.get("CXX", "g++")) is not None
+
+
+@functools.cache
+def _mongo_available() -> bool:
+    try:
+        with pymongo.MongoClient(_MONGO_URL, serverSelectionTimeoutMS=500) as client:
+            client.admin.command("ping")
+        return True
+    except pymongo.errors.PyMongoError:
+        return False
+
+
+@functools.cache
+def _redis_available() -> bool:
+    # retry=Retry(NoBackoff(), 0): redis-py retries by default, which turns
+    # the 0.5 s timeout into several seconds.
+    client = redis.Redis(
+        host=_REDIS_HOST, port=_REDIS_PORT, socket_connect_timeout=0.5, socket_timeout=0.5,
+        retry=Retry(NoBackoff(), 0),
+    )
+    try:
+        return bool(client.ping())
+    except redis.exceptions.RedisError:
+        return False
+    finally:
+        client.close()
+
+
+_REQUIRED: dict[str, tuple[Callable[[], bool], str]] = {
+    "needs_cxx": (_cxx_available, "needs a C++ compiler (g++) for torch.compile"),
+    "needs_mongo": (_mongo_available, f"needs MongoDB at {_MONGO_URL}; {_START_SERVICES}"),
+    "needs_redis": (_redis_available, f"needs Redis at {_REDIS_HOST}:{_REDIS_PORT}; {_START_SERVICES}"),
+}
+
+
+def _in_ci() -> bool:
+    return os.environ.get("CI", "").lower() in ("1", "true", "yes")
+
+
+def pytest_runtest_setup(item: pytest.Item) -> None:
+    for marker, (available, reason) in _REQUIRED.items():
+        if item.get_closest_marker(marker) is not None and not available():
+            if _in_ci():
+                pytest.fail(f"{reason} (missing on this CI runner)", pytrace=False)
+            pytest.skip(reason)
 
 
 # ---- Isolation --------------------------------------------------------------

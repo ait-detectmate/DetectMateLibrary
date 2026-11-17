@@ -354,7 +354,7 @@ _PARSER_CONFIG = {
 class TestValueRangeDetectorEndToEnd:
     """Regression test: full configure/train/detect pipeline on audit.log."""
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalies(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = ValueRangeDetector()
@@ -379,7 +379,7 @@ class TestValueRangeDetectorEndToEnd:
         # uid is not always 0 for event id 0. uid=1002 in line 1864 is a different event id.
         assert detected_ids == {'1859', '1860', '1861', '1862'}
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalies_to_binary(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = ValueRangeDetector(config=ValueRangeDetectorConfig(allow_fed=True))
@@ -408,7 +408,7 @@ class TestValueRangeDetectorEndToEnd:
 
         assert detected_ids == {'1859', '1860', '1861', '1862'}
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalie_fed(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector1 = ValueRangeDetector(config=ValueRangeDetectorConfig(allow_fed=True))
@@ -447,7 +447,7 @@ class TestValueRangeDetectorAutoConfig:
     """Test that process() drives configure/set_configuration/train/detect
     automatically."""
 
-    @pytest.mark.ignored
+    @pytest.mark.slow
     def test_audit_log_anomalies_via_process(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = ValueRangeDetector()

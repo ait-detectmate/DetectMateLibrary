@@ -108,7 +108,7 @@ class TestConnectors:
 
 
 class TestMongoConnector:
-    @pytest.mark.ignored_mongo
+    @pytest.mark.needs_mongo
     def test_insert_data(self):
         args = mongo_c.MongoArgs(
             url="mongodb://localhost:27017",
@@ -137,7 +137,7 @@ class TestMongoConnector:
 
         client.close()
 
-    @pytest.mark.ignored_mongo
+    @pytest.mark.needs_mongo
     def test_insert_multiple_data(self):
         args = mongo_c.MongoArgs(
             url="mongodb://localhost:27017",
@@ -166,7 +166,7 @@ class TestMongoConnector:
 
         client.close()
 
-    @pytest.mark.ignored_mongo
+    @pytest.mark.needs_mongo
     def test_read_data(self):
         args = mongo_c.MongoArgs(
             url="mongodb://localhost:27017",
@@ -195,7 +195,7 @@ class TestMongoConnector:
 
         client.close()
 
-    @pytest.mark.ignored_mongo
+    @pytest.mark.needs_mongo
     def test_mongo_connector_log_schema(self):
         sc.set_connector(
             "Mongo", url="mongodb://localhost:27017/TestDataset/LogSchema"
@@ -217,7 +217,7 @@ class TestMongoConnector:
 
         assert log_schema == log_schema2
 
-    @pytest.mark.ignored_mongo
+    @pytest.mark.needs_mongo
     def test_mongo_connector_parsed_schema(self):
         sc.set_connector(
             "Mongo", url="mongodb://localhost:27017/TestDataset/ParsedSchema"
@@ -241,7 +241,7 @@ class TestMongoConnector:
 
 
 class TestRedisConnector:
-    @pytest.mark.ignored_redis
+    @pytest.mark.needs_redis
     def test_insert_data(self):
         client = redis.Redis(host="localhost", port=6379)
         client.flushdb()
@@ -258,7 +258,7 @@ class TestRedisConnector:
 
         client.close()
 
-    @pytest.mark.ignored_redis
+    @pytest.mark.needs_redis
     def test_read_data(self):
         client = redis.Redis(host="localhost", port=6379)
         client.flushdb()
@@ -277,7 +277,7 @@ class TestRedisConnector:
 
         assert redis_c.read_data("b", args) == [{"b": "test"}, {"d": "time"}]
 
-    @pytest.mark.ignored_redis
+    @pytest.mark.needs_redis
     def test_redis_connector_log_schema(self):
         sc.set_connector("Redis", url="http://localhost:6379:0")
         client = redis.Redis(host="localhost", port=6379)
@@ -291,7 +291,7 @@ class TestRedisConnector:
 
         assert log_schema == log_schema2
 
-    @pytest.mark.ignored_redis
+    @pytest.mark.needs_redis
     def test_redis_connector_parsed_schema(self):
         sc.set_connector("Redis", url="http://localhost:6379:0")
         client = redis.Redis(host="localhost", port=6379)
