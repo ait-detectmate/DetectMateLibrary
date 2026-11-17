@@ -1,5 +1,4 @@
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig, get_format_variables
-from detectmatelibrary.utils.aux import time_test_mode
 import detectmatelibrary.schemas as sc
 
 import pydantic
@@ -45,7 +44,7 @@ class NoneMockupParser(CoreParser):
         return self.value
 
 
-time_test_mode()
+pytestmark = pytest.mark.usefixtures("frozen_timestamps")
 
 default_args = {
     "parsers": {

@@ -1,6 +1,5 @@
 from detectmatelibrary.common.detector import CoreDetectorConfig, BufferMode
 from detectmatelibrary.common.detector import CoreDetector
-from detectmatelibrary.utils.aux import time_test_mode
 import detectmatelibrary.schemas as sc
 
 import pydantic
@@ -114,7 +113,7 @@ picky_config = {
 }
 
 
-time_test_mode()
+pytestmark = pytest.mark.usefixtures("frozen_timestamps")
 
 
 class TestCoreDetector:

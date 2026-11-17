@@ -11,9 +11,8 @@ import pytest
 import detectmatelibrary.schemas as sc
 from detectmatelibrary.common.parser import CoreParser
 from detectmatelibrary.parsers.logbatcher import LogBatcherParser, LogBatcherParserConfig
-from detectmatelibrary.utils.aux import time_test_mode
 
-time_test_mode()
+pytestmark = pytest.mark.usefixtures("frozen_timestamps")
 
 LOG = "Connection from 192.168.1.1 port 22"
 # LLM response format: wrapped in backticks, with {{placeholder}} variables

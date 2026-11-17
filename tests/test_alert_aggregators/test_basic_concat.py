@@ -1,12 +1,12 @@
 from detectmatelibrary.alert_aggregation.basic_concat import BasicConcatAggregation
 
 
-from detectmatelibrary.utils.aux import time_test_mode
+import pytest
 
 import detectmatelibrary.schemas as schemas
 
 
-time_test_mode()
+pytestmark = pytest.mark.usefixtures("frozen_timestamps")
 
 aggregations_config = {
     "alert_aggregators": {

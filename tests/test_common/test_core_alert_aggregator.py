@@ -2,7 +2,6 @@ from detectmatelibrary.common.alert_aggregator import (
     CoreAlertAggregatorConfig, CoreAlertAggregator, BufferMode, _extract_field, _extract_list_fields
 )
 
-from detectmatelibrary.utils.aux import time_test_mode
 import detectmatelibrary.schemas as sc
 
 import pydantic
@@ -71,7 +70,7 @@ dummy_config = {
     }
 }
 
-time_test_mode()
+pytestmark = pytest.mark.usefixtures("frozen_timestamps")
 
 
 class TestAuxiliar:

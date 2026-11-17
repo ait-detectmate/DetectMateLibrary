@@ -1,10 +1,10 @@
 from detectmatelibrary.detectors.random_detector import RandomDetector
 import detectmatelibrary.schemas as sc
-from detectmatelibrary.utils.aux import time_test_mode
+import pytest
 
 from copy import deepcopy
 
-time_test_mode()
+pytestmark = pytest.mark.usefixtures("frozen_timestamps")
 
 config = {
     "detectors": {

@@ -15,7 +15,6 @@ from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
-from detectmatelibrary.utils.aux import time_test_mode
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
 
 from copy import deepcopy
@@ -23,7 +22,7 @@ from copy import deepcopy
 import pytest
 
 # Set time test mode for consistent timestamps
-time_test_mode()
+pytestmark = pytest.mark.usefixtures("frozen_timestamps")
 
 
 config = {
