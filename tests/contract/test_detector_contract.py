@@ -90,6 +90,11 @@ class TestAlerts:
         assert _alerts(detector, records) == []
 
 
+@pytest.mark.parametrize("case", cases([case for case in DETECTORS if "window_size" in case.params]))
+def test_window_size_follows_the_config(case):
+    assert case.build(window_size=7).get_window_size() == 7
+
+
 @pytest.mark.parametrize("case", cases([case for case in DETECTORS if case.window > 1]))
 def test_no_output_until_the_window_is_full(case):
     detector = case.build()
@@ -106,15 +111,20 @@ def test_raw_logs_are_rejected(case):
 
 
 @pytest.mark.parametrize("case", cases([case for case in DETECTORS if case.train()], trains=True))
-def test_training_phase_ends_after_data_use_training(case):
+def test_phases_follow_the_data_use_settings(case):
+    """Configuring for data_use_configure windows, Training for
+    data_use_training windows, then Default (detection)."""
     train = case.train()
-    detector = case.build(data_use_training=len(train) - case.window + 1)
-    for record in train:
-        detector.process(record)
-    assert detector.get_state() == "Training"
+    windows = len(train) - case.window + 1
+    detector = case.build(data_use_configure=1, data_use_training=windows - 1)
 
-    detector.process(train[-1])
-    assert detector.get_state() == "Default"
+    states = []
+    for record in [*train, train[-1]]:
+        detector.process(record)
+        states.append(detector.get_state())
+
+    # the first window - 1 records only fill the buffer
+    assert states[case.window - 1:] == ["Configuring"] + ["Training"] * (windows - 1) + ["Default"]
 
 
 @pytest.mark.parametrize("case", cases([case for case in DETECTORS if not case.tracker]))

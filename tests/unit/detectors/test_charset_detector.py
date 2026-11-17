@@ -10,7 +10,6 @@ This module tests the CharsetDetector implementation including:
 
 from detectmatelibrary.base_detectors import PersistConfig
 from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig
-from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
@@ -64,27 +63,8 @@ config = {
 }
 
 
-class TestCharsetDetectorInitialization:
-    """Test CharsetDetector initialization and configuration."""
-
-    def test_default_initialization(self):
-        """Test detector initialization with default parameters."""
-        detector = CharsetDetector()
-
-        assert detector.name == "CharsetDetector"
-        assert hasattr(detector, 'config')
-        assert detector.data_buffer.mode == BufferMode.NO_BUF
-        assert detector.input_schema == sc.ParserSchema
-        assert detector.output_schema == sc.DetectorSchema
-        assert hasattr(detector, 'persistency')
-
-    def test_custom_config_initialization(self):
-        """Test detector initialization with custom configuration."""
-        detector = CharsetDetector(name="CustomInit", config=config)
-
-        assert detector.name == "CustomInit"
-        assert hasattr(detector, 'persistency')
-        assert isinstance(detector.persistency.event_struct.fast_persistency, dict)
+class TestCharsetDetectorStores:
+    """What the detector keeps in its stores."""
 
     def test_persistency_uses_custom_add_value(self):
         """Main persistency must accumulate characters; auto_conf must not."""

@@ -135,7 +135,6 @@ class DummyComponentWithBuffer(CoreComponent):
 
 
 class TestGetWindowSize:
-
     def test_get_window(self) -> None:
         assert DummyComponentWithBuffer("test_1", 2).get_window_size() == 2
         assert DummyComponentWithBuffer("test_2", 3).get_window_size() == 3
@@ -539,11 +538,6 @@ class TestCaseState:
 
 
 class TestCoreComponentContextManager:
-    def test_can_be_used_as_context_manager(self):
-        component = CoreComponent(name="test", config=CoreConfig(), args_buffer=ArgsBuffer(BufferMode.NO_BUF))
-        with component as c:
-            assert c is component
-
     def test_has_no_saver(self):
         """Periodic saving belongs to TrackerDetector, not to every
         component."""

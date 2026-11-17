@@ -3,7 +3,6 @@ from detectmatelibrary.common.detector import CoreDetectorConfig, BufferMode
 from detectmatelibrary.common.detector import CoreDetector
 import detectmatelibrary.schemas as sc
 
-import pydantic
 import pytest
 
 
@@ -118,35 +117,6 @@ pytestmark = pytest.mark.usefixtures("frozen_timestamps")
 
 
 class TestCoreDetector:
-    def test_initialize_default(self) -> None:
-        detector = MockupDetector(name="TestDetector", config=dummy_config)
-
-        assert isinstance(detector, CoreDetector)
-        assert detector.name == "TestDetector"
-        assert isinstance(detector.config, CoreDetectorConfig)
-        assert detector.input_schema == sc.ParserSchema
-        assert detector.output_schema == sc.DetectorSchema
-
-    def test_incorrect_config_type(self) -> None:
-        dummy_config2 = {
-            "detectors": {
-                "TestDetector": {
-                    "method_type": "core_detector",
-                    "auto_config": True,
-                    "incorrect_field": 4
-                }
-            }
-        }
-
-        with pytest.raises(pydantic.ValidationError):
-            MockupDetector(name="TestDetector", config=dummy_config2)
-
-    def test_process_correct_input_schema(self) -> None:
-        detector = MockupDetector(name="TestDetector", config=dummy_config)
-        data = sc.ParserSchema(dummy_schema).serialize()
-        result = detector.process(data)  # no error should be produced
-        assert isinstance(result, bytes)  # and result should be bytes
-
     def test_input_eligible_schema(self) -> None:
         detector = MockupDetector(name="TestDetector", config=picky_config)
 
@@ -228,12 +198,3 @@ class TestCoreDetector:
 
         assert detector.process(data) is None
         assert detector.process(data) is not None
-
-    def test_detector_to_binary_and_back(self) -> None:
-        detector = NoneMockupDetector(name="TestDetector", config=MockupConfig(
-            parser="Hello"
-        ))
-        detector: NoneMockupDetector = detector.from_binary(detector.to_binary())
-
-        assert detector.config.parser == "Hello"
-        assert detector.name == "TestDetector"

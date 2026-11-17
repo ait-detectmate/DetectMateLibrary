@@ -15,14 +15,6 @@ import pytest
 
 
 class TestSCVSDetector:
-
-    def test_window_size(self):
-        ecvc = SCVSDetector(config=SCVSDetectorConfig(window_size=10))
-        assert ecvc.get_window_size() == 10
-
-        ecvc = SCVSDetector(config=SCVSDetectorConfig(window_size=7))
-        assert ecvc.get_window_size() == 7
-
     def test_scvs(self):
         config = {
             "detectors": {

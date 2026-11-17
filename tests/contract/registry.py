@@ -78,6 +78,7 @@ class Case:
     events: dict[Any, Any] | None = None
     # further entries of the same YAML section that the component reads (JsonParser's content parser)
     extra_yaml: dict[str, Any] = field(default_factory=dict)
+    binary: bool = True  # to_binary() / from_binary() work (False: disabled upstream)
 
     @property
     def name(self) -> str:
@@ -183,8 +184,9 @@ DETECTORS = [
                  train=lambda: [parsed_log(0, 1, ("10",)), parsed_log(1, 1, ("20",))],
                  normal=lambda: [parsed_log(10, 1, ("15",))],
                  anomalous=lambda: [parsed_log(11, 1, ("1000",))]),
+    # Bigram's to_binary() / from_binary() are disabled upstream ("Diasbale for now"; question Q-E)
     DetectorCase(detectors.BigramFrequencyDetector, events=_variable_events("level"), tracker=True,
-                 auto_config=True,
+                 auto_config=True, binary=False,
                  train=lambda: [parsed_log(0, 1, ("INFO",)), parsed_log(1, 1, ("INFO",))],
                  normal=lambda: [parsed_log(10, 1, ("INFO",))],
                  anomalous=lambda: [parsed_log(11, 1, ("CRITICAL",))]),

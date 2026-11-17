@@ -12,7 +12,6 @@ from detectmatelibrary.base_detectors import PersistConfig
 from detectmatelibrary.detectors.bigram_frequency_detector import (
     BigramFrequencyDetector, BigramFrequencyDetectorConfig
 )
-from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
@@ -95,29 +94,6 @@ config = {
         }
     }
 }
-
-
-class TestBigramFrequencyDetectorInitialization:
-    """Test BigramFrequencyDetector initialization and configuration."""
-
-    def test_default_initialization(self):
-        """Test detector initialization with default parameters."""
-        detector = BigramFrequencyDetector()
-
-        assert detector.name == "BigramFrequencyDetector"
-        assert hasattr(detector, 'config')
-        assert detector.data_buffer.mode == BufferMode.NO_BUF
-        assert detector.input_schema == sc.ParserSchema
-        assert detector.output_schema == sc.DetectorSchema
-        assert hasattr(detector, 'persistency')
-
-    def test_custom_config_initialization(self):
-        """Test detector initialization with custom configuration."""
-        detector = BigramFrequencyDetector(name="CustomInit", config=config)
-
-        assert detector.name == "CustomInit"
-        assert hasattr(detector, 'persistency')
-        assert isinstance(detector.persistency.event_struct.fast_persistency, dict)
 
 
 class TestBigramFrequencyDetectorTraining:

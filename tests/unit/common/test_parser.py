@@ -2,7 +2,6 @@
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
 import detectmatelibrary.schemas as sc
 
-import pydantic
 import pytest
 
 
@@ -67,34 +66,6 @@ picky_args = {
 
 
 class TestCoreParser:
-    def test_initialize_default(self) -> None:
-        parser = MockupParser(name="TestParser", config=default_args)
-
-        assert isinstance(parser, CoreParser)
-        assert parser.name == "TestParser"
-        assert isinstance(parser.config, CoreParserConfig)
-        assert parser.input_schema == sc.LogSchema
-        assert parser.output_schema == sc.ParserSchema
-
-    def test_incorrect_config_type(self) -> None:
-        invalid_args = {
-            "parsers": {
-                "TestParser": {
-                    "auto_config": True,
-                    "method_type": "core_parser",
-                    "invalid": 1
-                }
-            }
-        }
-        with pytest.raises(pydantic.ValidationError):
-            MockupParser(name="TestParser", config=invalid_args)
-
-    def test_process_correct_input_schema(self) -> None:
-        parser = MockupParser(name="TestParser", config=default_args)
-        data = sc.LogSchema({"logID": "1", "log": "This is a log."}).serialize()
-        result = parser.process(data)  # no error should be produced
-        assert isinstance(result, bytes)  # and result should be bytes
-
     def test_process_not_eligeble_input_schema(self) -> None:
         parser = MockupParser(name="TestParser", config=picky_args)
 
@@ -151,12 +122,3 @@ class TestCoreParser:
 
         assert parser.process(data) is None
         assert parser.process(data) is not None
-
-    def test_parser_to_binary_and_back(self) -> None:
-        parser = NoneMockupParser(name="TestParser", config=MockupConfig(
-            log_source="Hello"
-        ))
-        parser: NoneMockupParser = parser.from_binary(parser.to_binary())
-
-        assert parser.config.log_source == "Hello"
-        assert parser.name == "TestParser"

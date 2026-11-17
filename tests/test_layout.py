@@ -42,9 +42,6 @@ NO_UNIT_TEST_FILE = {
     "parsers/logbatcher/engine": "vendored LogBatcher engine (MIT), needs an LLM; out of scope",
     "tools/workspace/templates": "copied into generated workspaces; run by tests/e2e/test_workspace_cli.py",
     # gaps: no own unit test file yet (covered only indirectly); see TEST_PLAN.md
-    "_testutils/dummy_alert_aggregator.py": "gap: tested in tests/unit/_testutils/test_dummies.py",
-    "_testutils/dummy_detector.py": "gap: tested in tests/unit/_testutils/test_dummies.py",
-    "_testutils/dummy_parser.py": "gap: tested in tests/unit/_testutils/test_dummies.py",
     "base_detectors/_variable_hooks.py": "gap: covered through VariableDetector subclasses",
     "common/_config/_formats.py": "gap: covered through config parsing in test_config.py / test_compile.py",
     "common/_core_op/_basic_component.py": "gap: covered through CoreComponent",
@@ -58,9 +55,7 @@ NO_UNIT_TEST_FILE = {
 }
 
 # Unit test files that don't follow the mirror rule yet, and why.
-NOT_MIRRORED = {
-    "_testutils/test_dummies.py": "tests all three dummies; split per dummy with the contract suites",
-}
+NOT_MIRRORED: dict[str, str] = {}
 
 
 def _src_modules() -> list[Path]:

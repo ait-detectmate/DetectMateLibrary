@@ -15,7 +15,6 @@ from detectmatelibrary.detectors.value_range_detector import ValueRangeDetector,
 from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
     SingleStabilityTracker,
 )
-from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
@@ -64,27 +63,8 @@ config = {
 }
 
 
-class TestValueRangeDetectorInitialization:
-    """Test ValueRangeDetector initialization and configuration."""
-
-    def test_default_initialization(self):
-        """Test detector initialization with default parameters."""
-        detector = ValueRangeDetector()
-
-        assert detector.name == "ValueRangeDetector"
-        assert hasattr(detector, 'config')
-        assert detector.data_buffer.mode == BufferMode.NO_BUF
-        assert detector.input_schema == sc.ParserSchema
-        assert detector.output_schema == sc.DetectorSchema
-        assert hasattr(detector, 'persistency')
-
-    def test_custom_config_initialization(self):
-        """Test detector initialization with custom configuration."""
-        detector = ValueRangeDetector(name="CustomInit", config=config)
-
-        assert detector.name == "CustomInit"
-        assert hasattr(detector, 'persistency')
-        assert isinstance(detector.persistency.event_struct.fast_persistency, dict)
+class TestValueRangeDetectorAddValue:
+    """add_value() applies range semantics to the trackers."""
 
     def test_add_value_updates_tracker(self):
         """add_value (now a method) applies range semantics to a tracker."""

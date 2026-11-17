@@ -2,25 +2,8 @@
 from detectmatelibrary.common._config import BasicConfig
 from detectmatelibrary.common._config import AutoConfigParams
 from detectmatelibrary.base_detectors import VariableDetectorConfig
-from detectmatelibrary.detectors.bigram_frequency_detector import BigramFrequencyDetectorConfig
-from detectmatelibrary.detectors.charset_detector import CharsetDetectorConfig
-from detectmatelibrary.detectors.deeplog_detector import DeeplogDetectorConfig
-from detectmatelibrary.detectors.ecvc_detector import ECVCDetectorConfig
-from detectmatelibrary.detectors.event_sequence_detector import EventSequenceDetectorConfig
-from detectmatelibrary.detectors.logbert_detector import LogBertDetectorConfig
-from detectmatelibrary.detectors.new_event_detector import NewEventDetectorConfig
 from detectmatelibrary.detectors.new_value_combo_detector import NewValueComboDetectorConfig
 from detectmatelibrary.detectors.new_value_detector import NewValueDetectorConfig
-from detectmatelibrary.detectors.random_detector import RandomDetectorConfig
-from detectmatelibrary.detectors.rule_detector import RuleDetectorConfig
-from detectmatelibrary.detectors.scvs_detector import SCVSDetectorConfig
-from detectmatelibrary.detectors.value_range_detector import ValueRangeDetectorConfig
-from detectmatelibrary.parsers.autoparser import AutoParserConfig
-from detectmatelibrary.parsers.drain import DrainConfig
-from detectmatelibrary.parsers.json_parser import JsonParserConfig
-from detectmatelibrary.parsers.logbatcher import LogBatcherParserConfig
-from detectmatelibrary.parsers.template_matcher import MatcherParserConfig
-from detectmatelibrary.parsers.tree_matcher import TemplateCppTreeMatcherConfig
 from pydantic import BaseModel, Field
 from tests.support.paths import TEST_CONFIG
 import pytest
@@ -38,16 +21,6 @@ def load_test_config() -> dict:
 
 
 config_test = load_test_config()
-
-# Every config with a generated doc page (see docs/examples/config/update.py).
-DOCUMENTED_CONFIGS = [
-    BigramFrequencyDetectorConfig(), CharsetDetectorConfig(), DeeplogDetectorConfig(),
-    ECVCDetectorConfig(), EventSequenceDetectorConfig(), LogBertDetectorConfig(),
-    NewEventDetectorConfig(), NewValueComboDetectorConfig(), NewValueDetectorConfig(),
-    RandomDetectorConfig(), RuleDetectorConfig(), SCVSDetectorConfig(), ValueRangeDetectorConfig(),
-    AutoParserConfig(), DrainConfig(), JsonParserConfig(), LogBatcherParserConfig(),
-    MatcherParserConfig(), TemplateCppTreeMatcherConfig(),
-]
 
 
 class DummyConfigDoc(BasicConfig):
@@ -155,11 +128,6 @@ class TestConfigDocs:
         assert _row(docs, "start_id")["Block"] == "params"
         # method_type differs on every detector -- not flagged as a changed default
         assert not _row(docs, "method_type")["Default changed"]
-
-    @pytest.mark.parametrize("config", DOCUMENTED_CONFIGS, ids=lambda c: type(c).__name__)
-    def test_every_documented_field_has_a_description(self, config):
-        missing = [r["Name"] for r in config.get_docs() if r["Description"] == "No description provided."]
-        assert missing == []
 
 
 class MockupParserConfig(BasicConfig):

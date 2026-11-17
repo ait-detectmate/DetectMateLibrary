@@ -11,6 +11,8 @@ from pydantic import ValidationError
 from detectmatelibrary import detectors
 from detectmatelibrary.common._config._compile import MethodTypeNotMatch
 from detectmatelibrary.helper.select_component import selectComponent
+# from the submodule: `parsers.LogBatcherParserConfig` would cache LogBatcher in the package (bug B8)
+from detectmatelibrary.parsers.logbatcher import LogBatcherParserConfig
 from tests.contract.registry import COMPONENTS, DETECTORS, TEST_HELPERS, cases
 
 PACKAGE_COMPONENTS = [case for case in COMPONENTS if case.cls not in TEST_HELPERS]
@@ -77,12 +79,35 @@ class TestRuntimeApi:
                 component.import_state(b"not a state archive")
 
 
+@pytest.mark.filterwarnings("ignore:To binary not implemented", "ignore:Load binary not implemented")
+@pytest.mark.parametrize("case", cases([case for case in COMPONENTS if case.binary]))
+def test_binary_round_trip_keeps_name_and_config(case):
+    """Federation rebuilds components with from_binary() (trackers need
+    allow_fed for it); the copy keeps name and config."""
+    component = case.build(name="custom_name", **({"allow_fed": True} if case.cls in TRACKERS else {}))
+    copy = component.from_binary(component.to_binary())
+
+    assert type(copy) is case.cls
+    assert copy.name == "custom_name"
+    assert copy.config == component.config
+
+
+def _undocumented(config) -> list[str]:
+    rows = config.get_docs()
+    return [row["Name"] for row in rows if row["Description"] in ("", "No description provided.")]
+
+
 @pytest.mark.parametrize("case", cases(PACKAGE_COMPONENTS))
 def test_every_setting_is_documented(case):
     """Each YAML setting has a description: the documentation pages are
     generated from these rows."""
-    rows = case.cls().config.get_docs()
-    assert [row["Name"] for row in rows if row["Description"] in ("", "No description provided.")] == []
+    assert _undocumented(case.cls().config) == []
+
+
+def test_every_logbatcher_setting_is_documented():
+    """LogBatcherParser has no registry case (it needs an LLM) but has a
+    documentation page."""
+    assert _undocumented(LogBatcherParserConfig()) == []
 
 
 # detectors/__init__.py imports these on first access only, so dir(detectors) doesn't list them

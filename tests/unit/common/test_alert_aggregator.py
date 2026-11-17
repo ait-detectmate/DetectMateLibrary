@@ -5,7 +5,6 @@ from detectmatelibrary.common.alert_aggregator import (
 
 import detectmatelibrary.schemas as sc
 
-import pydantic
 import pytest
 
 
@@ -128,35 +127,6 @@ class TestAuxiliar:
 
 
 class TestCoreAlertAggregator:
-    def test_initialize_default(self) -> None:
-        detector = MockupAlertAggregator(name="TestAAG", config=dummy_config)
-
-        assert isinstance(detector, CoreAlertAggregator)
-        assert detector.name == "TestAAG"
-        assert isinstance(detector.config, CoreAlertAggregatorConfig)
-        assert detector.input_schema == sc.DetectorSchema
-        assert detector.output_schema == sc.AggregateSchema
-
-    def test_incorrect_config_type(self) -> None:
-        dummy_config2 = {
-            "alert_aggregators": {
-                "TestAAG": {
-                    "method_type": "core_alert_aggregator",
-                    "auto_config": True,
-                    "incorrect_field": 4
-                }
-            }
-        }
-
-        with pytest.raises(pydantic.ValidationError):
-            MockupAlertAggregator(name="TestAAG", config=dummy_config2)
-
-    def test_process_correct_input_schema(self) -> None:
-        detector = MockupAlertAggregator(name="TestAAG", config=dummy_config)
-        data = sc.DetectorSchema(dummy_schema).serialize()
-        result = detector.process(data)  # no error should be produced
-        assert isinstance(result, bytes)  # and result should be bytes
-
     def test_process_input_schema_not_serialized(self) -> None:
         alert_aggregator = MockupAlertAggregator(name="TestAAG", config=MockupConfig())
         expected_result = sc.AggregateSchema({
@@ -227,9 +197,3 @@ class TestCoreAlertAggregator:
 
         assert alert_aggregator.process(data) is None
         assert alert_aggregator.process(data) is not None
-
-    def test_detector_to_binary_and_back(self) -> None:
-        agg = NoneMockupAlertAggregator(name="TestAgg", config=MockupConfig())
-        agg: NoneMockupAlertAggregator = agg.from_binary(agg.to_binary())
-
-        assert agg.name == "TestAgg"

@@ -10,8 +10,9 @@ This module tests the EventSequenceDetector implementation including:
 import pytest
 from pydantic import ValidationError
 
-from detectmatelibrary.detectors.event_sequence_detector import EventSequenceDetector, \
-    EventSequenceDetectorConfig, SequenceAutoConfigParams, BufferMode
+from detectmatelibrary.detectors.event_sequence_detector import (
+    EventSequenceDetector, EventSequenceDetectorConfig, SequenceAutoConfigParams,
+)
 from detectmatelibrary.utils.persistency.data_structures.trackers import (
     ClassificationMethods,
 )
@@ -61,32 +62,15 @@ def _make_schema(event_id, template="test template", log_id="1", log_format_vari
     })
 
 
-class TestEventSequenceDetectorInitialization:
-    """Test EventSequenceDetector initialization and configuration."""
+class TestEventSequenceDetectorDefaults:
+    def test_window_length_is_left_to_auto_config(self):
+        """Unconfigured, the window length is unset; auto-config picks one
+        between 2 and 10."""
+        config = EventSequenceDetector().config
 
-    def test_default_initialization(self):
-        detector = EventSequenceDetector()
-
-        assert detector.name == "EventSequenceDetector"
-        assert hasattr(detector, "config")
-        assert detector.data_buffer.mode == BufferMode.NO_BUF
-        assert detector.input_schema == sc.ParserSchema
-        assert detector.output_schema == sc.DetectorSchema
-        assert hasattr(detector, "persistency")
-        # unconfigured until auto-config picks a length
-        assert detector.config.fixed_window_size is None
-        assert (
-            detector.config.auto_config_params.min_window_size,
-            detector.config.auto_config_params.max_window_size,
-        ) == (2, 10)
-
-    def test_custom_config_initialization(self):
-        detector = EventSequenceDetector(name="CustomInit", config=config)
-
-        assert detector.name == "CustomInit"
-        assert detector.config.fixed_window_size == 2
-        assert hasattr(detector, "persistency")
-        assert isinstance(detector.persistency.event_struct.fast_persistency, dict)
+        assert config.fixed_window_size is None
+        assert config.auto_config_params.min_window_size == 2
+        assert config.auto_config_params.max_window_size == 10
 
 
 class TestEventSequenceDetectorTraining:

@@ -7,7 +7,6 @@ from detectmatelibrary.detectors.new_value_combo_detector import (
 from detectmatelibrary.utils.persistency.data_structures.trackers import (
     ClassificationMethods,
 )
-from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
@@ -63,25 +62,7 @@ config = {
 }
 
 
-class TestNewValueComboDetectorInitialization:
-
-    def test_default_initialization(self):
-        detector = NewValueComboDetector()
-
-        assert detector.name == "NewValueComboDetector"
-        assert detector.data_buffer.mode == BufferMode.NO_BUF
-        assert detector.input_schema == sc.ParserSchema
-        assert detector.output_schema == sc.DetectorSchema
-
-    def test_custom_config_initialization(self):
-        detector = NewValueComboDetector(name="CustomInit", config=config)
-
-        assert detector.name == "CustomInit"
-        assert detector.config.auto_config_params.max_combo_size == 4
-
-
 class TestNewValueComboDetectorTraining:
-
     def test_train_multiple_values(self):
         detector = NewValueComboDetector(config=config, name="MultipleDetector")
 

@@ -32,18 +32,6 @@ config = {
 }
 
 
-class TestRandomDetectorIntegration:
-    """Integration tests for RandomDetector with full pipeline."""
-
-    def test_full_process_pipeline(self):
-
-        detector = RandomDetector(name="TestDetector", config=deepcopy(config))
-
-        assert detector is not None
-        assert detector.name == "TestDetector"
-        assert detector.config.events[1].variables[0].name == "process"
-
-
 class TestRandomDetectorEdgeCases:
     """Test edge cases and error handling."""
 

@@ -9,7 +9,6 @@ This module tests the NewValueDetector implementation including:
 """
 
 from detectmatelibrary.detectors.new_value_detector import NewValueDetector, NewValueDetectorConfig
-from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
@@ -63,29 +62,6 @@ config = {
         }
     }
 }
-
-
-class TestNewValueDetectorInitialization:
-    """Test NewValueDetector initialization and configuration."""
-
-    def test_default_initialization(self):
-        """Test detector initialization with default parameters."""
-        detector = NewValueDetector()
-
-        assert detector.name == "NewValueDetector"
-        assert hasattr(detector, 'config')
-        assert detector.data_buffer.mode == BufferMode.NO_BUF
-        assert detector.input_schema == sc.ParserSchema
-        assert detector.output_schema == sc.DetectorSchema
-        assert hasattr(detector, 'persistency')
-
-    def test_custom_config_initialization(self):
-        """Test detector initialization with custom configuration."""
-        detector = NewValueDetector(name="CustomInit", config=config)
-
-        assert detector.name == "CustomInit"
-        assert hasattr(detector, 'persistency')
-        assert isinstance(detector.persistency.event_struct.fast_persistency, dict)
 
 
 class TestNewValueDetectorTraining:

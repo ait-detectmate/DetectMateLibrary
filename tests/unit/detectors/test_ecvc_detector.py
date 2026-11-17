@@ -90,13 +90,6 @@ class TestECVCOP:
 
 
 class TestECVC:
-    def test_window_size(self):
-        ecvc = ECVCDetector(config=ECVCDetectorConfig(window_size=10))
-        assert ecvc.get_window_size() == 10
-
-        ecvc = ECVCDetector(config=ECVCDetectorConfig(window_size=7))
-        assert ecvc.get_window_size() == 7
-
     def test_ecvc(self):
         config = {
             "detectors": {

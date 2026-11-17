@@ -8,8 +8,7 @@ This module tests the NewEventDetector implementation including:
 - Input/output schema validation
 """
 
-from detectmatelibrary.detectors.new_event_detector import NewEventDetector, NewEventDetectorConfig, \
-    BufferMode
+from detectmatelibrary.detectors.new_event_detector import NewEventDetector, NewEventDetectorConfig
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
@@ -43,29 +42,6 @@ config = {
         }
     }
 }
-
-
-class TestNewEventDetectorInitialization:
-    """Test NewEventDetector initialization and configuration."""
-
-    def test_default_initialization(self):
-        """Test detector initialization with default parameters."""
-        detector = NewEventDetector()
-
-        assert detector.name == "NewEventDetector"
-        assert hasattr(detector, 'config')
-        assert detector.data_buffer.mode == BufferMode.NO_BUF
-        assert detector.input_schema == sc.ParserSchema
-        assert detector.output_schema == sc.DetectorSchema
-        assert hasattr(detector, 'persistency')
-
-    def test_custom_config_initialization(self):
-        """Test detector initialization with custom configuration."""
-        detector = NewEventDetector(name="CustomInit", config=config)
-
-        assert detector.name == "CustomInit"
-        assert hasattr(detector, 'persistency')
-        assert isinstance(detector.persistency.event_struct.fast_persistency, dict)
 
 
 class TestNewEventDetectorTraining:
