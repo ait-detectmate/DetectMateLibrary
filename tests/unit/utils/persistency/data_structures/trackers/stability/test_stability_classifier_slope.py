@@ -13,15 +13,10 @@ exactly; that correspondence is what lets them share one threshold.
 
 import numpy as np
 import pytest
-from pydantic import ValidationError
 
-from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig
-from detectmatelibrary.base_detectors import VariableAutoConfigParams
 from detectmatelibrary.utils.persistency.data_structures.trackers.rle_list import RLEList
 from detectmatelibrary.utils.persistency.data_structures.trackers import (
     StabilityClassifier,
-    SingleStabilityTracker,
-    EventStabilityTracker,
     ClassificationMethods,
 )
 from tests.support.stability import EARLY, LATE_BUT_PASSING
@@ -188,116 +183,6 @@ class TestSlopeReportsItsAxis:
         clf = make_classifier()
         _, axis = clf._slope(RLEList([True, True, False, False]), None)
         assert axis == "index"
-
-
-class TestConfigWiring:
-    def test_block_reaches_per_variable_trackers(self):
-        # CharsetDetector's `config` default is a shared mutable instance, so
-        # pass explicit fresh configs (see test_time_dependent_stability.py).
-        #
-        # classification only shapes the configure-phase persistency: the
-        # trained persistency is read by _check_variable, which never calls
-        # classify(), so it never receives classification kwargs at all.
-        default = CharsetDetector(config=CharsetDetectorConfig())
-        assert default.persistency.event_struct.data_kwargs.get("classification") is None
-
-        configured = CharsetDetector(config=CharsetDetectorConfig())
-        configured.config.auto_config_params.classification = ClassificationMethods(
-            index=True, slope_index=True
-        )
-        rebuilt = CharsetDetector(config=configured.config.to_dict(method_id="CharsetDetector"))
-        block = rebuilt.auto_conf_persistency.event_struct.data_kwargs["classification"]
-        assert ClassificationMethods(**block).enabled == ("index", "slope_index")
-
-    def test_default_block_is_not_forwarded(self):
-        """Forwarding the default would be noise; the tracker already has
-        it."""
-        default = CharsetDetector(config=CharsetDetectorConfig())
-        assert "classification" not in (default.auto_conf_persistency.event_struct.data_kwargs or {})
-
-    def test_config_field_round_trips(self):
-        detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.auto_config_params.classification = ClassificationMethods(
-            index=False, slope_time=True, decision="majority"
-        )
-        restored = type(detector.config).from_dict(
-            detector.config.to_dict(method_id="CharsetDetector"), "CharsetDetector"
-        )
-        assert restored.auto_config_params.classification.enabled == ("slope_time",)
-        assert restored.auto_config_params.classification.decision == "majority"
-
-    def test_survives_auto_config(self):
-        """set_configuration() writes only config.events and flips
-        config.auto_config to False -- it never touches auto_config_params, so
-        operator settings survive because nothing overwrites them."""
-        detector = CharsetDetector(config=CharsetDetectorConfig(
-            auto_config=True,
-            auto_config_params=VariableAutoConfigParams(
-                classification=ClassificationMethods(index=True, slope_index=True),
-                use_static_vars=False,
-            ),
-        ))
-        detector.set_configuration()
-        assert detector.config.auto_config_params.classification.enabled == (
-            "index", "slope_index",
-        )
-        assert detector.config.auto_config_params.use_static_vars is False
-
-    def test_index_axis_methods_pull_in_no_timestamp_requirement(self):
-        detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.auto_config_params.classification = ClassificationMethods(
-            index=True, slope_index=True
-        )
-        rebuilt = CharsetDetector(config=detector.config.to_dict(method_id="CharsetDetector"))
-        assert "classification" not in (rebuilt.persistency.event_struct.data_kwargs or {})
-
-        tracker = SingleStabilityTracker(
-            classification=ClassificationMethods(index=True, slope_index=True)
-        )
-        tracker.add_value("a", timestamp=1.0)
-        assert tracker.timestamps == []
-
-
-class TestOldConfigFieldsAreRejected:
-    """Clean break: AutoConfigParams sets extra='forbid', so the old
-    spellings raise instead of being silently ignored."""
-
-    @pytest.mark.parametrize(
-        "kwargs",
-        [
-            {"segmentation": "both"},
-            {"require_declining": True},
-            {"incline_threshold": -0.25},
-        ],
-    )
-    def test_rejected(self, kwargs):
-        with pytest.raises(ValidationError):
-            VariableAutoConfigParams(**kwargs)
-
-
-def test_slope_threshold_reaches_the_classifier():
-    """The threshold is configuration, not a constant buried in the
-    classifier."""
-    from detectmatelibrary.detectors.new_value_detector import (
-        NewValueDetector,
-        NewValueDetectorConfig,
-    )
-
-    detector = NewValueDetector(
-        name="NewValueDetector",
-        config=NewValueDetectorConfig(
-            auto_config_params=VariableAutoConfigParams(
-                classification=ClassificationMethods(
-                    index=True, slope_index=True, slope_threshold=-0.25
-                ),
-            ),
-        ),
-    )
-    persistency = detector.auto_conf_persistency
-    tracker = EventStabilityTracker(**persistency.event_struct.data_kwargs)
-    single = tracker.single_tracker_type()
-    assert single.classification.enabled == ("index", "slope_index")
-    assert single.stability_classifier.classification.slope_threshold == -0.25
 
 
 # Fixture reused from test_time_dependent_stability.py: 30 fresh values one

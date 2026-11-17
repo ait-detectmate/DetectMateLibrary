@@ -3,6 +3,9 @@ from detectmatelibrary.base_detectors import VariableDetector
 import detectmatelibrary.schemas as sc
 
 import os
+import pytest
+from pydantic import ValidationError
+from detectmatelibrary.base_detectors import VariableAutoConfigParams
 
 
 CONFIG = {
@@ -105,3 +108,20 @@ class TestFederation:
 
         detector1.finalize_federation()
         assert not os.path.exists(".temp")
+
+
+class TestOldConfigFieldsAreRejected:
+    """Clean break: AutoConfigParams sets extra='forbid', so the old
+    spellings raise instead of being silently ignored."""
+
+    @pytest.mark.parametrize(
+        "kwargs",
+        [
+            {"segmentation": "both"},
+            {"require_declining": True},
+            {"incline_threshold": -0.25},
+        ],
+    )
+    def test_rejected(self, kwargs):
+        with pytest.raises(ValidationError):
+            VariableAutoConfigParams(**kwargs)

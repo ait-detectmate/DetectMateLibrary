@@ -12,7 +12,6 @@ import random
 import pytest
 from detectmatelibrary.base_detectors import PersistConfig
 from detectmatelibrary.detectors.value_range_detector import ValueRangeDetector, ValueRangeDetectorConfig
-from detectmatelibrary.utils.persistency import PersistencySaver
 from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
     SingleStabilityTracker,
 )
@@ -556,28 +555,3 @@ class TestValueRangeDetectorPersistFixes:
 
         assert detector.config.persist is not None
         assert detector.config.persist.path == "memory://value_range_persist_flag/state"
-
-    def test_tracker_reconstruction_does_not_start_saver(self, monkeypatch):
-        """A tracker reconstructs a throwaway detector by name to recover its
-        add_value closure; that throwaway must not start a PersistencySaver
-        even when the serialized detector_config carries a persist section (it
-        would leak a saver thread per variable and clobber the real state
-        file)."""
-        starts: list = []
-        monkeypatch.setattr(PersistencySaver, "start", lambda self: starts.append(self))
-
-        detector_config = ValueRangeDetectorConfig(
-            auto_config=False,
-            persist=PersistConfig(path="memory://value_range_recon_no_leak/state"),
-        ).to_dict(method_id="ValueRangeDetector")
-        # precondition: the serialized config carries a persist section
-        assert "persist" in detector_config["detectors"]["ValueRangeDetector"]
-
-        tracker = SingleStabilityTracker(
-            add_value_fn="ValueRangeDetector", detector_config=detector_config
-        )
-        # reconstruction recovered the range-semantics add_value closure...
-        tracker.add_value(5)
-        assert 5 in tracker.unique_set
-        # ...but started NO saver (the throwaway instance must not persist)
-        assert starts == []

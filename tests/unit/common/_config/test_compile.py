@@ -12,6 +12,7 @@ from tests.support.paths import TEST_CONFIG
 import pytest
 import warnings
 import yaml
+from detectmatelibrary.common._config import generate_detector_config
 
 
 def load_test_config() -> dict:
@@ -185,3 +186,41 @@ class TestParamsFormat:
                     component_type="detectors",
                 )
             )
+
+
+class TestGenerateDetectorConfig:
+    def test_generate_detector_config_basic(self):
+        """Test basic config generation with single event."""
+        variable_selection = {
+            1: ["var_0", "var_1"]
+        }
+
+        config_dict = generate_detector_config(
+            variable_selection=variable_selection,
+            detector_name="TestDetector",
+            method_type="new_value_combo_detector",
+            max_combo_size=2
+        )
+
+        assert "detectors" in config_dict
+        assert "TestDetector" in config_dict["detectors"]
+        detector_config = config_dict["detectors"]["TestDetector"]
+        assert detector_config["method_type"] == "new_value_combo_detector"
+        assert detector_config["params"]["max_combo_size"] == 2
+        assert len(detector_config["events"]) == 1
+
+    def test_generate_detector_config_multiple_events(self):
+        """Test config generation with multiple events."""
+        variable_selection = {
+            1: ["var_0", "var_1"],
+            2: ["var_0", "var_2", "var_3"],
+            3: ["level"]
+        }
+
+        config_dict = generate_detector_config(
+            variable_selection=variable_selection,
+            detector_name="MultiEventDetector",
+            method_type="new_value_combo_detector"
+        )
+
+        assert len(config_dict["detectors"]["MultiEventDetector"]["events"]) == 3

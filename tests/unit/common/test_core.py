@@ -1,7 +1,6 @@
 from detectmatelibrary.common._core_op._fit_logic import FitLogicState
 
 from detectmatelibrary.common.core import CoreConfig, CoreComponent
-from detectmatelibrary.common._config import BasicConfig
 
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 
@@ -134,87 +133,11 @@ class DummyComponentWithBuffer(CoreComponent):
         )
 
 
-class TestConfigCore:
-    def test_initialize(self) -> None:
-        config = MockConfig(thresholds=0.5, max_iter=100)
-        expected = {"thresholds": 0.5, "max_iter": 100, 'connector_name': None, 'connector_url': None}
-        expected.update(default_args)
-
-        assert isinstance(config, BasicConfig)
-        assert config.get_config() == expected
+class TestGetWindowSize:
 
     def test_get_window(self) -> None:
         assert DummyComponentWithBuffer("test_1", 2).get_window_size() == 2
         assert DummyComponentWithBuffer("test_2", 3).get_window_size() == 3
-
-    def test_initialize_dict(self) -> None:
-        config = MockConfig.from_dict(
-            {
-                "default_type": {
-                    "test_id": {
-                        "method_type": "default_method_type",
-                        "auto_config": False,
-                        "data_use_training": 10,
-                        "params": {"thresholds": 0.8, "max_iter": 30, "start_id": 10}
-                    }
-                }
-            },
-            "test_id"
-        )
-        expected = {"thresholds": 0.8, "max_iter": 30, 'connector_name': None, 'connector_url': None}
-        expected.update(default_args)
-        expected["data_use_training"] = 10
-
-        assert isinstance(config, BasicConfig)
-        assert config.get_config() == expected
-
-    def test_incorect_type(self) -> None:
-        with pytest.raises(pydantic.ValidationError):
-            MockConfig(thresholds="high", max_iter="many")
-
-    def test_update_config(self) -> None:
-        config = MockConfig()
-
-        expected = {
-            "thresholds": 0.7,
-            "max_iter": 50,
-            "data_use_training": None,
-            'connector_name': None,
-            'connector_url': None
-        }
-        expected.update(default_args)
-        assert config.get_config() == expected
-
-        expected = {
-            "thresholds": 0.9,
-            "max_iter": 50,
-            "data_use_training": None,
-            'connector_name': None,
-            'connector_url': None
-        }
-        expected.update(default_args)
-        config.update_config({"thresholds": 0.9})
-        assert config.get_config() == expected
-
-        expected = {
-            "max_iter": 200,
-            "thresholds": 0.9,
-            "data_use_training": None,
-            'connector_name': None,
-            'connector_url': None
-        }
-        expected.update(default_args)
-        config.update_config({"max_iter": 200})
-        assert config.get_config() == expected
-
-    def test_add_new_parameter(self) -> None:
-        config = MockConfig()
-        with pytest.raises(ValueError):
-            config.update_config({"new_param": 123})
-
-    def test_add_new_parameter_initialization(self) -> None:
-        with pytest.raises(pydantic.ValidationError):
-            MockConfig(new_param=123)
 
 
 class TestCoreComponent:

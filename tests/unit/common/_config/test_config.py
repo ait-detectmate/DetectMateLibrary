@@ -24,6 +24,11 @@ from pydantic import BaseModel, Field
 from tests.support.paths import TEST_CONFIG
 import pytest
 import yaml
+from detectmatelibrary.common.core import CoreConfig
+import pydantic
+import warnings
+from detectmatelibrary.common._config._compile import MissingParamsWarning
+from detectmatelibrary.base_detectors import PersistConfig
 
 
 def load_test_config() -> dict:
@@ -188,3 +193,168 @@ class TestBasicConfig:
 
         assert config.auto_config
         assert config.parser == "example_parser_1"
+
+
+class MockConfig(CoreConfig):
+    thresholds: float = 0.7
+    max_iter: int = 50
+
+
+default_args = {
+    "method_type": "default_method_type",
+    "component_type": "default_type",
+    "auto_config": False,
+    "auto_config_params": {},
+    "start_id": 10,
+    "data_use_training": None,
+    "data_use_configure": None,
+    "use_config_data_as_training": True,
+    "train_buffer_max_records": 100_000,
+    "train_buffer_dir": None,
+    'connector_name': None,
+    'connector_url': None
+}
+
+
+class TestConfigCore:
+    def test_initialize(self) -> None:
+        config = MockConfig(thresholds=0.5, max_iter=100)
+        expected = {"thresholds": 0.5, "max_iter": 100, 'connector_name': None, 'connector_url': None}
+        expected.update(default_args)
+
+        assert isinstance(config, BasicConfig)
+        assert config.get_config() == expected
+
+    def test_initialize_dict(self) -> None:
+        config = MockConfig.from_dict(
+            {
+                "default_type": {
+                    "test_id": {
+                        "method_type": "default_method_type",
+                        "auto_config": False,
+                        "data_use_training": 10,
+                        "params": {"thresholds": 0.8, "max_iter": 30, "start_id": 10}
+                    }
+                }
+            },
+            "test_id"
+        )
+        expected = {"thresholds": 0.8, "max_iter": 30, 'connector_name': None, 'connector_url': None}
+        expected.update(default_args)
+        expected["data_use_training"] = 10
+
+        assert isinstance(config, BasicConfig)
+        assert config.get_config() == expected
+
+    def test_incorect_type(self) -> None:
+        with pytest.raises(pydantic.ValidationError):
+            MockConfig(thresholds="high", max_iter="many")
+
+    def test_update_config(self) -> None:
+        config = MockConfig()
+
+        expected = {
+            "thresholds": 0.7,
+            "max_iter": 50,
+            "data_use_training": None,
+            'connector_name': None,
+            'connector_url': None
+        }
+        expected.update(default_args)
+        assert config.get_config() == expected
+
+        expected = {
+            "thresholds": 0.9,
+            "max_iter": 50,
+            "data_use_training": None,
+            'connector_name': None,
+            'connector_url': None
+        }
+        expected.update(default_args)
+        config.update_config({"thresholds": 0.9})
+        assert config.get_config() == expected
+
+        expected = {
+            "max_iter": 200,
+            "thresholds": 0.9,
+            "data_use_training": None,
+            'connector_name': None,
+            'connector_url': None
+        }
+        expected.update(default_args)
+        config.update_config({"max_iter": 200})
+        assert config.get_config() == expected
+
+    def test_add_new_parameter(self) -> None:
+        config = MockConfig()
+        with pytest.raises(ValueError):
+            config.update_config({"new_param": 123})
+
+    def test_add_new_parameter_initialization(self) -> None:
+        with pytest.raises(pydantic.ValidationError):
+            MockConfig(new_param=123)
+
+
+class TestPersistConfigSerialization:
+    def test_to_dict_places_persist_at_top_level(self):
+        config = NewValueDetectorConfig(
+            auto_config=True,
+            persist=PersistConfig(path="./my-state", interval_seconds=60),
+        )
+        result = config.to_dict("MyDet")
+        inner = result["detectors"]["MyDet"]
+        assert "persist" in inner
+        assert inner["persist"]["path"] == "./my-state"
+        assert inner["persist"]["interval_seconds"] == 60
+        assert "persist" not in inner.get("params", {})
+
+    def test_to_dict_omits_persist_when_none(self):
+        config = NewValueDetectorConfig(auto_config=True)
+        result = config.to_dict("MyDet")
+        inner = result["detectors"]["MyDet"]
+        assert "persist" not in inner
+
+    def test_from_dict_loads_persist_block(self):
+        config_dict = {
+            "detectors": {
+                "MyDet": {
+                    "method_type": "new_value_detector",
+                    "auto_config": True,
+                    "persist": {"path": "./my-state", "interval_seconds": 60},
+                }
+            }
+        }
+        config = NewValueDetectorConfig.from_dict(config_dict, "MyDet")
+        assert config.persist is not None
+        assert config.persist.path == "./my-state"
+        assert config.persist.interval_seconds == 60
+
+    def test_roundtrip_yaml_to_pydantic_to_yaml(self):
+        config_dict = {
+            "detectors": {
+                "MyDet": {
+                    "method_type": "new_value_detector",
+                    "auto_config": True,
+                    "persist": {"path": "./my-state"},
+                }
+            }
+        }
+        config = NewValueDetectorConfig.from_dict(config_dict, "MyDet")
+        result = config.to_dict("MyDet")
+        assert result["detectors"]["MyDet"]["persist"]["path"] == "./my-state"
+
+    def test_no_missing_params_warning_with_persist_only(self):
+        config_dict = {
+            "detectors": {
+                "MyDet": {
+                    "method_type": "new_value_detector",
+                    "auto_config": False,
+                    "persist": {"path": "./state"},
+                }
+            }
+        }
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            NewValueDetectorConfig.from_dict(config_dict, "MyDet")
+        missing_params_warnings = [x for x in w if issubclass(x.category, MissingParamsWarning)]
+        assert len(missing_params_warnings) == 0

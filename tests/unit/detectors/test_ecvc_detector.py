@@ -12,6 +12,11 @@ import logging
 
 import numpy as np
 import pytest
+from detectmatelibrary.base_detectors import PersistConfig
+from detectmatelibrary.utils.persistency.persistency_saver import PersistencySaver
+from detectmatelibrary.base_detectors import CountVectorDetector, CountVectorDetectorConfig
+from detectmatelibrary.base_detectors import count_vector_detector
+from detectmatelibrary.detectors import ecvc_detector
 
 
 class TestECVCOP:
@@ -382,3 +387,94 @@ class TestECVCSessionWindows:
         detector = _session_detector(data_use_training=1)
         with pytest.raises(ValueError, match="blk"):
             detector.process(schemas.ParserSchema({"eventID": 1}))
+
+
+WINDOW_SIZE = 4
+
+
+# Distinct count vectors over EventIDs 0/1/4, each WINDOW_SIZE events long.
+TRAIN_WINDOWS = [[0, 1, 4, 0], [1, 1, 0, 0], [4, 0, 1, 1], [0, 0, 4, 4]]
+
+
+UNSEEN_WINDOW = [4, 4, 4, 4]
+
+
+class TestECVCDetectorPersist:
+    def test_save_and_reload_rebuilds_model(self):
+        """A reloaded ECVC must derive the same matrix and threshold.
+
+        post_train() splits train from validation by iteration order
+        over the learned vectors, so a restored model only equals a
+        freshly trained one because _derive() sorts them first.
+        """
+        base_path = "memory://ecvc_reload/state"
+        det_name = "ECVC_Reload"
+        config_args = dict(
+            auto_config=False,
+            window_size=WINDOW_SIZE,
+            validation_per=0.5,
+            seed=0,
+            threshold_method="mean",
+        )
+
+        det1 = ECVCDetector(
+            name=det_name,
+            config=ECVCDetectorConfig(
+                persist=PersistConfig(path=base_path), **config_args
+            ),
+        )
+        for window in TRAIN_WINDOWS:
+            det1.train(_window(window))
+        det1.post_train()
+        assert det1.count_vecs is not None
+        assert isinstance(det1.saver, PersistencySaver)
+        det1.saver.save()
+        det1.saver.stop()
+
+        det2 = ECVCDetector(
+            name=det_name,
+            config=ECVCDetectorConfig(
+                persist=PersistConfig(path=base_path, auto_load=True), **config_args
+            ),
+        )
+        assert det2.count_vecs is not None
+        assert np.array_equal(det2.count_vecs, det1.count_vecs)
+        assert det2.threshold == det1.threshold
+        det2.saver.stop()
+
+    def test_import_state_rebuilds_model(self):
+        config_args = dict(
+            auto_config=False, window_size=WINDOW_SIZE, validation_per=0.5, seed=0
+        )
+        det1 = ECVCDetector(name="ECVC_ImpSrc", config=ECVCDetectorConfig(**config_args))
+        for window in TRAIN_WINDOWS:
+            det1.train(_window(window))
+        det1.post_train()
+        state = det1.export_state()
+
+        det2 = ECVCDetector(name="ECVC_ImpDst", config=ECVCDetectorConfig(**config_args))
+        assert det2.count_vecs is None  # nothing learned yet
+        det2.import_state(state)
+        assert det2.count_vecs is not None
+        assert np.array_equal(det2.count_vecs, det1.count_vecs)
+
+    def test_untrained_detector_stays_silent(self):
+        det = ECVCDetector(name="ECVC_Empty", config=ECVCDetectorConfig(auto_config=False))
+        assert det.detect(_window(UNSEEN_WINDOW), schemas.DetectorSchema()) is False
+
+
+def test_ecvc_is_a_count_vector_detector():
+    assert issubclass(ECVCDetector, CountVectorDetector)
+    assert issubclass(ECVCDetectorConfig, CountVectorDetectorConfig)
+
+
+def test_session_windows_still_importable_from_ecvc():
+    assert ecvc_detector.SessionWindows is count_vector_detector.SessionWindows
+
+
+def test_ecvc_config_surface_unchanged():
+    fields = ECVCDetectorConfig.model_fields
+    names = ("method_type", "window_size", "validation_per", "seed", "threshold_method", "session_variable")
+    assert {k: fields[k].default for k in names} == {
+        "method_type": "ecvc_detector", "window_size": 10, "validation_per": 0.2, "seed": 0,
+        "threshold_method": "mean", "session_variable": None}

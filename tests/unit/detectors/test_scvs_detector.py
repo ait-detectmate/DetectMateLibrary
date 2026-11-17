@@ -1,7 +1,7 @@
 
 from detectmatelibrary.detectors.scvs_detector import SCVSDetector, SCVSDetectorConfig
 from detectmatelibrary.base_detectors import CountVectorDetector, SessionWindows
-from detectmatelibrary.utils.sequence_encoding import build_count_vec, count_events, encode_count_vec
+from detectmatelibrary.utils.sequence_encoding import count_events, encode_count_vec
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 from detectmatelibrary import schemas
@@ -15,13 +15,6 @@ import pytest
 
 
 class TestSCVSDetector:
-    def test_build_count_vec(self):
-        input_ = [
-            schemas.ParserSchema({"eventID": i}) for i in [0, 1, 4, 0]
-        ]
-        expected = tuple([2, 1, 0, 0, 1])
-
-        assert build_count_vec(input_) == expected
 
     def test_window_size(self):
         ecvc = SCVSDetector(config=SCVSDetectorConfig(window_size=10))
@@ -243,3 +236,31 @@ class TestSCVSSessionWindows:
         detector = _session_detector(data_use_training=1)
         with pytest.raises(ValueError, match="blk"):
             detector.process(schemas.ParserSchema({"eventID": 1}))
+
+
+WINDOW_SIZE = 4
+
+
+# Distinct count vectors over EventIDs 0/1/4, each WINDOW_SIZE events long.
+TRAIN_WINDOWS = [[0, 1, 4, 0], [1, 1, 0, 0], [4, 0, 1, 1], [0, 0, 4, 4]]
+
+
+class TestSCVSDetectorPersist:
+    def test_import_state_warns_on_window_size_mismatch(
+        self, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        det1 = SCVSDetector(
+            name="SCVS_WSSrc",
+            config=SCVSDetectorConfig(auto_config=False, window_size=WINDOW_SIZE),
+        )
+        for window in TRAIN_WINDOWS:
+            det1.train(_window(window))
+        state = det1.export_state()
+
+        det2 = SCVSDetector(
+            name="SCVS_WSDst",
+            config=SCVSDetectorConfig(auto_config=False, window_size=WINDOW_SIZE + 2),
+        )
+        with caplog.at_level(logging.WARNING):
+            det2.import_state(state)
+        assert any("window_size" in r.message for r in caplog.records)

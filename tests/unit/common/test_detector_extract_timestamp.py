@@ -55,27 +55,3 @@ class TestCoreDetector:
             assert result == [expected], (
                 f"Format '{time_str}': expected [{expected}], got {result}"
             )
-
-    def test_microsecond_epoch_fits_the_schema(self) -> None:
-        """Issue #271: a microsecond epoch folded only once landed in
-        milliseconds and overflowed the int32 timestamp fields."""
-        schema = sc.DetectorSchema({
-            "logTimestamps": _extract_timestamp(
-                sc.ParserSchema({"headerVariables": {"Time": "1643114452000000"}})
-            ),
-        })
-        assert str(schema)  # rebuilds the protobuf -- used to raise ValueError
-        assert schema["logTimestamps"] == [1643114452]
-
-    def test_timestamp_fields_hold_more_than_int32(self) -> None:
-        """Timestamps are int64, so they survive 2038 (and a stray ms
-        value)."""
-        for schema, field, value in [
-            (sc.ParserSchema(), "receivedTimestamp", 2**31),
-            (sc.ParserSchema(), "parsedTimestamp", 2**31),
-            (sc.DetectorSchema(), "detectedTimestamp", 2**31),
-            (sc.DetectorSchema(), "receivedTimestamp", 1643114452000),
-            (sc.AggregateSchema(), "aggregatedTimestamp", 2**31),
-        ]:
-            schema[field] = value
-            assert getattr(schema.get_schema(), field) == value

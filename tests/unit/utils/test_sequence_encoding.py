@@ -3,6 +3,9 @@ import logging
 import pytest
 
 from detectmatelibrary.utils.sequence_encoding import encode_count_vec, warn_on_window_size_mismatch
+from detectmatelibrary.utils.sequence_encoding import build_count_vec
+from detectmatelibrary import schemas
+from detectmatelibrary.utils.sequence_encoding import decode_count_vec
 
 
 class TestWarnOnWindowSizeMismatch:
@@ -20,3 +23,22 @@ class TestWarnOnWindowSizeMismatch:
         with caplog.at_level(logging.WARNING):
             warn_on_window_size_mismatch("Det", set(), window_size=4)
         assert not caplog.records
+
+
+class TestBuildCountVec:
+    def test_build_count_vec(self):
+        input_ = [
+            schemas.ParserSchema({"eventID": i}) for i in [0, 1, 4, 0]
+        ]
+        expected = tuple([2, 1, 0, 0, 1])
+
+        assert build_count_vec(input_) == expected
+
+
+class TestCountVecCodec:
+    def test_round_trip(self):
+        assert decode_count_vec(encode_count_vec(10, (2, 1, 0, 0, 1))) == (10, (2, 1, 0, 0, 1))
+
+    def test_window_size_distinguishes_identical_vectors(self):
+        # The same count vector learned at another window size must not match.
+        assert encode_count_vec(4, (1, 1)) != encode_count_vec(8, (1, 1))

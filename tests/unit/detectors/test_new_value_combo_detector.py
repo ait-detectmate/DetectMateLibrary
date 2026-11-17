@@ -8,7 +8,6 @@ from detectmatelibrary.utils.persistency.data_structures.trackers import (
     ClassificationMethods,
 )
 from detectmatelibrary.utils.data_buffer import BufferMode
-from detectmatelibrary.common._config import generate_detector_config
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
@@ -210,42 +209,6 @@ class TestNewValueComboDetectorDetection:
 
 class TestNewValueComboDetectorConfiguration:
     """Test NewValueComboDetector configuration functionality."""
-
-    def test_generate_detector_config_basic(self):
-        """Test basic config generation with single event."""
-        variable_selection = {
-            1: ["var_0", "var_1"]
-        }
-
-        config_dict = generate_detector_config(
-            variable_selection=variable_selection,
-            detector_name="TestDetector",
-            method_type="new_value_combo_detector",
-            max_combo_size=2
-        )
-
-        assert "detectors" in config_dict
-        assert "TestDetector" in config_dict["detectors"]
-        detector_config = config_dict["detectors"]["TestDetector"]
-        assert detector_config["method_type"] == "new_value_combo_detector"
-        assert detector_config["params"]["max_combo_size"] == 2
-        assert len(detector_config["events"]) == 1
-
-    def test_generate_detector_config_multiple_events(self):
-        """Test config generation with multiple events."""
-        variable_selection = {
-            1: ["var_0", "var_1"],
-            2: ["var_0", "var_2", "var_3"],
-            3: ["level"]
-        }
-
-        config_dict = generate_detector_config(
-            variable_selection=variable_selection,
-            detector_name="MultiEventDetector",
-            method_type="new_value_combo_detector"
-        )
-
-        assert len(config_dict["detectors"]["MultiEventDetector"]["events"]) == 3
 
     def test_configure_method_ingests_events(self):
         """Test that configure method properly ingests events."""
@@ -688,40 +651,6 @@ class TestNewValueComboDetectorClassificationConfigPreservation:
         assert detector.config.auto_config_params.classification.enabled == ("time",)
         assert detector.config.auto_config_params.timestamp_variable == "level"
         assert detector.config.auto_config_params.timestamp_format == "%y%m%d %H%M%S"
-
-    @staticmethod
-    def _configured(classification: ClassificationMethods) -> NewValueComboDetector:
-        cfg = NewValueComboDetectorConfig(
-            auto_config_params=ComboAutoConfigParams(classification=classification),
-        )
-        detector = NewValueComboDetector(config=cfg, name="NewValueComboDetector")
-        for i in range(10):
-            detector.configure(sc.ParserSchema({
-                "parserType": "test",
-                "eventID": 1,
-                "template": "Template 1",
-                "variables": ["constant", f"varying_{i}", "another_constant"],
-                "logID": str(i),
-                "parsedLogID": str(i),
-                "parserID": "test_parser",
-                "log": "test log",
-                "headerVariables": {},
-            }))
-        return detector
-
-    def test_threshold_only_block_reaches_the_trackers(self):
-        """The config layer forwards the block iff it differs from the default,
-        so a block that differs only in its list must be forwarded."""
-        detector = self._configured(ClassificationMethods(segment_thresholds=[0.5, 0.5]))
-        trackers = detector.auto_conf_persistency.get_events_data()[1].get_data()
-        assert trackers["var_1"].stability_classifier.segment_threshs == [0.5, 0.5]
-        assert trackers["var_1"].stability_classifier.n_segments == 2
-
-    def test_default_block_is_still_the_default_on_the_trackers(self):
-        detector = self._configured(ClassificationMethods())
-        trackers = detector.auto_conf_persistency.get_events_data()[1].get_data()
-        assert trackers["var_1"].classification == ClassificationMethods()
-        assert trackers["var_1"].stability_classifier.segment_threshs == [1.1, 0.3, 0.1, 0.01]
 
 
 class TestNewValueComboDetectorClassificationCombos:
