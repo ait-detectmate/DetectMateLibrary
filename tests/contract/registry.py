@@ -54,6 +54,13 @@ def event_stream(event_ids: list[int], start: int = 0) -> list[sc.ParserSchema]:
     return [parsed_log(start + k, event_id) for k, event_id in enumerate(event_ids)]
 
 
+def session_log(i: int, session: str, event_id: int) -> sc.ParserSchema:
+    """A parsed log of session `session` (header variable `blk`)."""
+    record = parsed_log(i, event_id)
+    record["headerVariables"]["blk"] = session
+    return record
+
+
 def alert(i: int) -> sc.DetectorSchema:
     return sc.DetectorSchema({
         "detectorID": "detector", "detectorType": "test_detector", "alertID": f"a{i}", "logIDs": [str(i)],
@@ -84,8 +91,10 @@ class Case:
     def name(self) -> str:
         return self.cls().name  # the default name; DetectMateService keys the YAML by it
 
-    def yaml(self, name: str | None = None, **params: Any) -> dict[str, Any]:
-        """The YAML config of this case, keyed by `name`, with extra params."""
+    def yaml(self, name: str | None = None, persist: dict[str, Any] | None = None,
+             **params: Any) -> dict[str, Any]:
+        """The YAML config of this case, keyed by `name`, with extra params and
+        an optional `persist:` block."""
         component = self.cls()
         entry: dict[str, Any] = {
             "method_type": component.config.method_type,
@@ -94,10 +103,12 @@ class Case:
         }
         if self.events is not None:
             entry["events"] = self.events
+        if persist is not None:
+            entry["persist"] = persist
         return {component.config.component_type: {name or self.name: entry, **self.extra_yaml}}
 
-    def build(self, name: str | None = None, **params: Any) -> Any:
-        return self.cls(name=name or self.name, config=self.yaml(name, **params))
+    def build(self, name: str | None = None, persist: dict[str, Any] | None = None, **params: Any) -> Any:
+        return self.cls(name=name or self.name, config=self.yaml(name, persist, **params))
 
 
 @dataclass(frozen=True)
