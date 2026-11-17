@@ -1,41 +1,50 @@
 """Tests for detectmatelibrary.utils.time_format_handler."""
 from datetime import datetime, timezone
 
+import pytest
+
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 
 tfh = TimeFormatHandler()
 
 
-def test_iso_z():
-    s = "2023-01-02T03:04:05Z"
-    expected = int(datetime.fromisoformat("2023-01-02T03:04:05+00:00").timestamp())
-    assert tfh.parse_timestamp(s) == str(expected)
+MARCH_4_2026_1418_UTC = 1772633880
 
 
-def test_iso_ms_z():
-    s = "2023-01-02T03:04:05.123Z"
-    expected = int(datetime.fromisoformat("2023-01-02T03:04:05.123000+00:00").timestamp())
-    assert tfh.parse_timestamp(s) == str(expected)
-
-
-def test_comma_millis():
-    s = "2023-01-02 03:04:05,123"
-    dt = datetime.strptime(s, "%Y-%m-%d %H:%M:%S,%f")
-    dt = dt.replace(tzinfo=timezone.utc)
-    assert tfh.parse_timestamp(s) == str(int(dt.timestamp()))
-
-
-def test_apache_format():
-    s = "10/Oct/2000:13:55:36 -0700"
-    dt = datetime.strptime(s, "%d/%b/%Y:%H:%M:%S %z")
-    assert tfh.parse_timestamp(s) == str(int(dt.timestamp()))
-
-
-def test_epoch_seconds_and_millis():
-    s_sec = "1600000000"
-    s_millis = "1600000000000"
-    assert tfh.parse_timestamp(s_sec) == "1600000000"
-    assert tfh.parse_timestamp(s_millis) == "1600000000"
+@pytest.mark.parametrize("text, expected", [
+    # epochs: seconds, fractions, and ms / us / ns folded down to seconds
+    ("0", 0),
+    ("1772812294", 1772812294),
+    ("1772812294.5", 1772812294),
+    ("1772812294000", 1772812294),
+    ("1772812294000000", 1772812294),
+    ("1772812294000000000", 1772812294),
+    ("1772812294000.5", 1772812294),
+    ("1600000000000", 1600000000),
+    # Apache / nginx
+    ("04/Mar/2026:14:18:00 +0000", MARCH_4_2026_1418_UTC),
+    ("04/Mar/2026:14:18:00", MARCH_4_2026_1418_UTC),
+    ("10/Oct/2000:13:55:36 -0700", 971211336),
+    # ISO 8601
+    ("2026-03-04T14:18:00+00:00", MARCH_4_2026_1418_UTC),
+    ("2026-03-04T14:18:00Z", MARCH_4_2026_1418_UTC),
+    ("2026-03-04T14:18:00.000Z", MARCH_4_2026_1418_UTC),
+    ("2026-03-04T14:18:00.123Z", MARCH_4_2026_1418_UTC),
+    ("2026-03-04T14:18:00", MARCH_4_2026_1418_UTC),
+    ("2026-03-04T15:18:00+01:00", MARCH_4_2026_1418_UTC),
+    ("2026-03-04T13:18:00-01:00", MARCH_4_2026_1418_UTC),
+    # space-separated, with fractions after "." or ","
+    ("2026-03-04 14:18:00", MARCH_4_2026_1418_UTC),
+    ("2026-03-04 14:18:00.000", MARCH_4_2026_1418_UTC),
+    ("2026-03-04 14:18:00,000", MARCH_4_2026_1418_UTC),
+    ("2023-01-02 03:04:05,123", 1672628645),
+    ("2026/03/04 14:18:00", MARCH_4_2026_1418_UTC),
+    # human-readable
+    ("Wednesday, March 4, 2026 14:18:00", MARCH_4_2026_1418_UTC),
+])
+def test_parses_to_epoch_seconds(text, expected):
+    """Timezone-less times are read as UTC."""
+    assert tfh.parse_timestamp(text) == str(expected)
 
 
 def test_syslog_without_year_assumes_current_year():

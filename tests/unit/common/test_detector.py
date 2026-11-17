@@ -1,6 +1,6 @@
 """Tests for detectmatelibrary.common.detector."""
 from detectmatelibrary.common.detector import CoreDetectorConfig, BufferMode
-from detectmatelibrary.common.detector import CoreDetector
+from detectmatelibrary.common.detector import CoreDetector, _extract_timestamp
 import detectmatelibrary.schemas as sc
 
 import pytest
@@ -198,3 +198,15 @@ class TestCoreDetector:
 
         assert detector.process(data) is None
         assert detector.process(data) is not None
+
+
+def test_extract_timestamp_gives_one_epoch_second_per_record():
+    """The detector wrapper around TimeFormatHandler (formats:
+
+    unit/utils/test_time_format_handler.py).
+    """
+    records = [sc.ParserSchema({"headerVariables": {"Time": time}})
+               for time in ("1772812294.5", "2026-03-04T14:18:00Z")]
+
+    assert _extract_timestamp(records) == [1772812294, 1772633880]
+    assert _extract_timestamp(records[0]) == [1772812294]

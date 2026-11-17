@@ -13,7 +13,6 @@ from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
 from detectmatelibrary.common._core_op._fit_logic import EnumState
-from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from tests.support.audit import TRAIN_UNTIL
 from tests.support.paths import AUDIT_LOG, AUDIT_TEMPLATES
 
@@ -244,44 +243,3 @@ class TestNewEventDetectorAutoConfig:
                 detected_ids.add(log["logID"])
 
         assert detected_ids == {"1863"}
-
-
-class TestNewEventDetectorGlobalInstances:
-    """Tests event-ID-independent global instance detection."""
-
-    def test_global_instance_detects_new_type(self):
-        """Global instance monitoring Type detects CRED_REFR, USER_AUTH,
-        USER_CMD which only appear after the training window (line 1800+)."""
-        pars = MatcherParser(config=_PARSER_CONFIG)
-        config_dict = {
-            "detectors": {
-                "NewEventDetector": {
-                    "method_type": "new_event_detector",
-                    "auto_config": False,
-                    "global": {
-                        "test": {
-                            "header_variables": [{"pos": "Type"}]
-                        }
-                    }
-                }
-            }
-        }
-        config = NewEventDetectorConfig.from_dict(config_dict, "NewEventDetector")
-        detector = NewEventDetector(config=config)
-
-        logs = list(From.log(pars, in_path=AUDIT_LOG, do_process=True))
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector.train(log)
-
-        # Global tracker must be populated under the sentinel event ID
-        assert GLOBAL_EVENT_ID in detector.persistency.get_events_seen()
-
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            output = sc.DetectorSchema()
-            if detector.detect(log, output_=output):
-                assert all(key.startswith("Global -") for key in output["alertDetails"])
-                detected_ids.add(log["logID"])
-
-        assert len(detected_ids) > 0

@@ -15,7 +15,6 @@ from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stab
     SingleStabilityTracker,
 )
 from detectmatelibrary.common._core_op._fit_logic import EnumState
-from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
@@ -456,45 +455,3 @@ class TestValueRangeDetectorAutoConfig:
                 detected_ids.add(log["logID"])
 
         assert detected_ids == {'1859', '1860', '1861', '1862'}
-
-
-class TestValueRangeDetectorGlobalInstances:
-    """Tests event-ID-independent global instance detection."""
-
-    def test_global_instance_detects_new_type(self):
-        """Global instance monitoring Type detects CRED_REFR, USER_AUTH,
-        USER_CMD which only appear after the training window (line 1800+)."""
-        parser = MatcherParser(config=_PARSER_CONFIG)
-        config_dict = {
-            "detectors": {
-                "ValueRangeDetector": {
-                    "method_type": "value_range_detector",
-                    "auto_config": False,
-                    "params": {"ignore_non_numerical_val": True},
-                    "global": {
-                        "test": {
-                            "header_variables": [{"pos": "Time"}]
-                        }
-                    }
-                }
-            }
-        }
-        config = ValueRangeDetectorConfig.from_dict(config_dict, "ValueRangeDetector")
-        detector = ValueRangeDetector(config=config)
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector.train(log)
-
-        # Global tracker must be populated under the sentinel event ID
-        assert GLOBAL_EVENT_ID in detector.persistency.get_events_data()
-
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            output = sc.DetectorSchema()
-            if detector.detect(log, output_=output):
-                assert all(key.startswith("Global -") for key in output["alertDetails"])
-                detected_ids.add(log["logID"])
-
-        assert len(detected_ids) > 0

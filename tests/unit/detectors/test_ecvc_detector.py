@@ -20,18 +20,6 @@ from detectmatelibrary.detectors import ecvc_detector
 
 
 class TestECVCOP:
-    def test_build_count_vec(self):
-        input_ = [
-            schemas.ParserSchema({"eventID": i}) for i in [0, 1, 4, 0]
-        ]
-        expected = tuple([2, 1, 0, 0, 1])
-
-        assert ECVCOp.build_count_vec(input_) == expected
-
-    def test_count_events(self):
-        assert count_events([0, 1, 4, 0]) == (2, 1, 0, 0, 1)
-        assert count_events([3]) == (0, 0, 0, 1)
-
     def test_build_one_vec(self):
         input_ = [
             schemas.ParserSchema({"eventID": i}) for i in [0, 1, 4, 0]

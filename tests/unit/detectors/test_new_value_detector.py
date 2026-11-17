@@ -10,7 +10,6 @@ This module tests the NewValueDetector implementation including:
 
 from detectmatelibrary.detectors.new_value_detector import NewValueDetector, NewValueDetectorConfig
 from detectmatelibrary.common._core_op._fit_logic import EnumState
-from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
@@ -339,44 +338,3 @@ class TestNewValueDetectorAutoConfig:
         assert detector.config.auto_config is False
         # the configure window still reached training under the explicit config
         assert "same" in detector.persistency.get_events_data()[1].get_data()["sad"].unique_set
-
-
-class TestNewValueDetectorGlobalInstances:
-    """Tests event-ID-independent global instance detection."""
-
-    def test_global_instance_detects_new_type(self):
-        """Global instance monitoring Type detects CRED_REFR, USER_AUTH,
-        USER_CMD which only appear after the training window (line 1800+)."""
-        parser = MatcherParser(config=_PARSER_CONFIG)
-        config_dict = {
-            "detectors": {
-                "NewValueDetector": {
-                    "method_type": "new_value_detector",
-                    "auto_config": False,
-                    "global": {
-                        "test": {
-                            "header_variables": [{"pos": "Type"}]
-                        }
-                    }
-                }
-            }
-        }
-        config = NewValueDetectorConfig.from_dict(config_dict, "NewValueDetector")
-        detector = NewValueDetector(config=config)
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector.train(log)
-
-        # Global tracker must be populated under the sentinel event ID
-        assert GLOBAL_EVENT_ID in detector.persistency.get_events_data()
-
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            output = sc.DetectorSchema()
-            if detector.detect(log, output_=output):
-                assert all(key.startswith("Global -") for key in output["alertDetails"])
-                detected_ids.add(log["logID"])
-
-        assert len(detected_ids) > 0

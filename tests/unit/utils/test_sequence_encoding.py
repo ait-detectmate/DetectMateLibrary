@@ -4,7 +4,7 @@ import logging
 import pytest
 
 from detectmatelibrary.utils.sequence_encoding import encode_count_vec, warn_on_window_size_mismatch
-from detectmatelibrary.utils.sequence_encoding import build_count_vec
+from detectmatelibrary.utils.sequence_encoding import build_count_vec, count_events
 from detectmatelibrary import schemas
 from detectmatelibrary.utils.sequence_encoding import decode_count_vec
 
@@ -27,6 +27,10 @@ class TestWarnOnWindowSizeMismatch:
 
 
 class TestBuildCountVec:
+    def test_count_events(self):
+        assert count_events([0, 1, 4, 0]) == (2, 1, 0, 0, 1)
+        assert count_events([3]) == (0, 0, 0, 1)
+
     def test_build_count_vec(self):
         input_ = [
             schemas.ParserSchema({"eventID": i}) for i in [0, 1, 4, 0]

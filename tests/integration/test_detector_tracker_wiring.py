@@ -1,5 +1,7 @@
 """A detector's classification config reaches the stability trackers of its
 stores."""
+import pytest
+
 from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig
 from detectmatelibrary.base_detectors import VariableAutoConfigParams
 from detectmatelibrary.utils.persistency.data_structures.trackers import (
@@ -19,40 +21,39 @@ from detectmatelibrary.utils.persistency import PersistencySaver
 
 
 class TestConfigWiring:
-    def test_block_reaches_per_variable_trackers(self):
-        # CharsetDetector's `config` default is a shared mutable instance, so
-        # pass explicit fresh configs (see test_time_dependent_stability.py).
-        #
-        # classification only shapes the configure-phase persistency: the
-        # trained persistency is read by _check_variable, which never calls
-        # classify(), so it never receives classification kwargs at all.
-        default = CharsetDetector(config=CharsetDetectorConfig())
-        assert default.persistency.event_struct.data_kwargs.get("classification") is None
+    @pytest.mark.parametrize("methods, enabled", [
+        ({"index": True, "slope_index": True}, ("index", "slope_index")),
+        ({"index": False, "time": True}, ("time",)),
+    ], ids=["index_axis", "time_axis"])
+    def test_block_reaches_the_configure_trackers_only(self, methods, enabled):
+        """The classification block shapes the configure-phase persistency
+        only: the trained one is read by _check_variable, which never calls
+        classify()."""
+        config = CharsetDetectorConfig()
+        config.auto_config_params.classification = ClassificationMethods(**methods)
 
-        configured = CharsetDetector(config=CharsetDetectorConfig())
-        configured.config.auto_config_params.classification = ClassificationMethods(
-            index=True, slope_index=True
-        )
-        rebuilt = CharsetDetector(config=configured.config.to_dict(method_id="CharsetDetector"))
+        rebuilt = CharsetDetector(config=config.to_dict(method_id="CharsetDetector"))
+
         block = rebuilt.auto_conf_persistency.event_struct.data_kwargs["classification"]
-        assert ClassificationMethods(**block).enabled == ("index", "slope_index")
+        assert ClassificationMethods(**block).enabled == enabled
+        assert rebuilt.persistency.event_struct.data_kwargs.get("classification") is None
+
+    @pytest.mark.parametrize("auto_params", [
+        {"classification": {"index": False, "slope_time": True, "decision": "majority"}},
+        {"classification": {"index": False, "time": True},
+         "timestamp_variable": "ts", "timestamp_format": "%y%m%d %H%M%S"},
+    ], ids=["slope_time_majority", "time_axis_with_timestamps"])
+    def test_auto_config_params_round_trip_through_yaml(self, auto_params):
+        config = CharsetDetectorConfig(auto_config_params=VariableAutoConfigParams(**auto_params))
+        yaml = config.to_dict(method_id="CharsetDetector")
+        restored = CharsetDetectorConfig.from_dict(yaml, "CharsetDetector")
+        assert restored.auto_config_params == config.auto_config_params
 
     def test_default_block_is_not_forwarded(self):
         """Forwarding the default would be noise; the tracker already has
         it."""
         default = CharsetDetector(config=CharsetDetectorConfig())
         assert "classification" not in (default.auto_conf_persistency.event_struct.data_kwargs or {})
-
-    def test_config_field_round_trips(self):
-        detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.auto_config_params.classification = ClassificationMethods(
-            index=False, slope_time=True, decision="majority"
-        )
-        restored = type(detector.config).from_dict(
-            detector.config.to_dict(method_id="CharsetDetector"), "CharsetDetector"
-        )
-        assert restored.auto_config_params.classification.enabled == ("slope_time",)
-        assert restored.auto_config_params.classification.decision == "majority"
 
     def test_index_axis_methods_pull_in_no_timestamp_requirement(self):
         detector = CharsetDetector(config=CharsetDetectorConfig())
@@ -154,41 +155,6 @@ class TestSegmentationWithDetectorAddValueFn:
 
 
 class TestClassificationConfigWiring:
-    def test_flag_reaches_per_variable_trackers(self):
-        # CharsetDetector's `config` parameter default is a single shared
-        # CharsetDetectorConfig() instance (pre-existing mutable-default-arg
-        # pitfall, unrelated to classification). Other tests in this
-        # module mutate `detector.config.*` in place on a bare
-        # CharsetDetector(), so we pass explicit fresh configs here to stay
-        # isolated from that.
-        # classification only shapes the configure-phase persistency: the
-        # trained persistency is read by _check_variable, which never calls
-        # classify(), so it never receives classification kwargs at all.
-        detector = CharsetDetector(config=CharsetDetectorConfig())
-        assert detector.persistency.event_struct.data_kwargs.get("classification") is None
-
-        configured = CharsetDetector(config=CharsetDetectorConfig())
-        configured.config.auto_config_params.classification = ClassificationMethods(
-            index=False, time=True
-        )
-        rebuilt = CharsetDetector(config=configured.config.to_dict(method_id="CharsetDetector"))
-        block = rebuilt.auto_conf_persistency.event_struct.data_kwargs["classification"]
-        assert ClassificationMethods(**block).enabled == ("time",)
-
-    def test_config_fields_round_trip(self):
-        detector = CharsetDetector(config=CharsetDetectorConfig())
-        detector.config.auto_config_params.classification = ClassificationMethods(
-            index=False, time=True
-        )
-        detector.config.auto_config_params.timestamp_variable = "ts"
-        detector.config.auto_config_params.timestamp_format = "%y%m%d %H%M%S"
-        restored = type(detector.config).from_dict(
-            detector.config.to_dict(method_id="CharsetDetector"), "CharsetDetector"
-        )
-        assert restored.auto_config_params.classification.enabled == ("time",)
-        assert restored.auto_config_params.timestamp_variable == "ts"
-        assert restored.auto_config_params.timestamp_format == "%y%m%d %H%M%S"
-
     def test_configure_populates_timestamps_end_to_end(self):
         """The classification block reaches the configure-phase persistency's
         trackers end-to-end.

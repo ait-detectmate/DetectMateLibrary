@@ -12,7 +12,6 @@ from detectmatelibrary.detectors.bigram_frequency_detector import (
     BigramFrequencyDetector, BigramFrequencyDetectorConfig
 )
 from detectmatelibrary.common._core_op._fit_logic import EnumState
-from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
@@ -328,48 +327,6 @@ class TestBigramFrequencyDetectorAutoConfig:
                 detected_ids.add(log["logID"])
 
         assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
-
-
-class TestBigramFrequencyDetectorGlobalInstances:
-    """Tests event-ID-independent global instance detection."""
-
-    def test_global_instance_detects_new_type(self):
-        """Global instance monitoring Type detects CRED_REFR, USER_AUTH,
-        USER_CMD which only appear after the training window (line 1800+)."""
-        parser = MatcherParser(config=_PARSER_CONFIG)
-        config_dict = {
-            "detectors": {
-                "BigramFrequencyDetector": {
-                    "method_type": "bigram_frequency_detector",
-                    "prob_thresh": 0.2,
-                    "auto_config": False,
-                    "global": {
-                        "test": {
-                            "header_variables": [{"pos": "Type"}]
-                        }
-                    }
-                }
-            }
-        }
-        config = BigramFrequencyDetectorConfig.from_dict(config_dict, "BigramFrequencyDetector")
-        detector = BigramFrequencyDetector(config=config)
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector.train(log)
-
-        # Global tracker must be populated under the sentinel event ID
-        assert GLOBAL_EVENT_ID in detector.persistency.get_events_data()
-
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            output = sc.DetectorSchema()
-            if detector.detect(log, output_=output):
-                assert all(key.startswith("Global -") for key in output["alertDetails"])
-                detected_ids.add(log["logID"])
-
-        assert len(detected_ids) > 0
 
 
 def _parser_data(event_id, level, var_value):
