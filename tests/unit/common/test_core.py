@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.common.core."""
 from detectmatelibrary.common._core_op._fit_logic import FitLogicState
 
 from detectmatelibrary.common.core import CoreConfig, CoreComponent

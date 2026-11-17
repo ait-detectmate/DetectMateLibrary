@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.common.alert_aggregator."""
 from detectmatelibrary.common.alert_aggregator import (
     CoreAlertAggregatorConfig, CoreAlertAggregator, BufferMode, _extract_field, _extract_list_fields
 )

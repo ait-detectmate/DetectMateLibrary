@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.helper.from_to."""
 from detectmatelibrary.helper.from_to import From, To, FromTo
 from detectmatelibrary._testutils.dummy_detector import DummyDetector
 from detectmatelibrary._testutils.dummy_parser import DummyParser

@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.schemas.protobuf._op."""
 import detectmatelibrary.schemas.protobuf._op as op_schemas
 
 import pytest

@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.tools.logging."""
 import logging
 import io
 from contextlib import redirect_stdout, redirect_stderr

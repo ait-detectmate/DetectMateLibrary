@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.base_alert_aggregation.density_clustering."""
 from detectmatelibrary.base_alert_aggregation.density_clustering import (
     DensityClusteringAggregation,
     DensityClusteringAggregationConfig,

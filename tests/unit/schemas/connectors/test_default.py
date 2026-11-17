@@ -1,4 +1,4 @@
-
+"""Tests for detectmatelibrary.schemas.connectors.default."""
 from detectmatelibrary.schemas.connectors.default import ver_record
 
 import detectmatelibrary.schemas as sc

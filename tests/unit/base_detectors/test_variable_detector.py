@@ -1,4 +1,4 @@
-
+"""Tests for detectmatelibrary.base_detectors.variable_detector."""
 from detectmatelibrary.base_detectors import VariableDetector
 import detectmatelibrary.schemas as sc
 

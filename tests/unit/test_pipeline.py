@@ -1,4 +1,4 @@
-
+"""Tests for detectmatelibrary.pipeline."""
 from detectmatelibrary.pipeline import PipelineConfig, _run_pipeline
 
 from detectmatelibrary._testutils.dummy_parser import DummyParser, DummyParserConfig

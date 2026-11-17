@@ -1,3 +1,5 @@
+"""Dummy parser -> detector -> aggregator chained in NO_BUF, WINDOW and BATCH
+buffer modes."""
 from detectmatelibrary._testutils.dummy_parser import DummyParser
 from detectmatelibrary._testutils.dummy_detector import DummyDetector
 from detectmatelibrary._testutils.dummy_alert_aggregator import DummyAlertAggregator

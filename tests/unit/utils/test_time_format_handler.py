@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.utils.time_format_handler."""
 from datetime import datetime, timezone
 
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler

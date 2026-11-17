@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.schemas.protobuf._op: default values."""
 import detectmatelibrary.schemas.protobuf._op as op_schemas
 
 

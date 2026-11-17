@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.utils.sequence_encoding."""
 import logging
 
 import pytest

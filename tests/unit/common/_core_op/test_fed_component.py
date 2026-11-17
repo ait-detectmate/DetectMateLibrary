@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.common._core_op._fed_component."""
 from detectmatelibrary.common._core_op._fed_component import IncompatibleFed
 from detectmatelibrary.common.core import CoreComponent
 

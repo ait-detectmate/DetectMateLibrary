@@ -1,4 +1,4 @@
-
+"""Tests for detectmatelibrary.detectors.scvs_detector."""
 from detectmatelibrary.detectors.scvs_detector import SCVSDetector, SCVSDetectorConfig
 from detectmatelibrary.base_detectors import CountVectorDetector, SessionWindows
 from detectmatelibrary.utils.sequence_encoding import count_events, encode_count_vec

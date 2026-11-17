@@ -1,4 +1,4 @@
-
+"""Tests for detectmatelibrary.alert_aggregation.logid_count."""
 from detectmatelibrary.alert_aggregation.logid_count import (
     Counter, LogIDCountAggegation, LogIDCountAggegationConfig
 )

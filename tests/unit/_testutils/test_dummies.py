@@ -1,4 +1,4 @@
-
+"""Tests for the dummy components in detectmatelibrary._testutils."""
 from detectmatelibrary._testutils.dummy_detector import DummyDetector, DummyDetectorConfig
 from detectmatelibrary._testutils.dummy_parser import DummyParser, DummyParserConfig
 import detectmatelibrary.schemas as sc

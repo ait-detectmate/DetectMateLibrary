@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.tools.workspace.utils."""
 import pytest
 from detectmatelibrary.tools.workspace.utils import normalize_package_name
 

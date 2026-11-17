@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.detectors.random_detector."""
 from detectmatelibrary.detectors.random_detector import RandomDetector
 import detectmatelibrary.schemas as sc
 import pytest

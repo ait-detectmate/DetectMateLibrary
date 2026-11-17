@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.common.parser."""
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
 import detectmatelibrary.schemas as sc
 

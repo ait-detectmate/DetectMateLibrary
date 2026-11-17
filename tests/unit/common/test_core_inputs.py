@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.common.core: how process() treats its input."""
 from detectmatelibrary.common.detector import CoreDetector, BufferMode
 from detectmatelibrary.common.parser import CoreParser
 import detectmatelibrary.schemas._classes as schema_classes

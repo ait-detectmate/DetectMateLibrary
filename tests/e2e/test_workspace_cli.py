@@ -1,3 +1,5 @@
+"""The `mate create` CLI, run as a subprocess, and the tests of the workspaces
+it creates."""
 import os
 import sys
 import subprocess

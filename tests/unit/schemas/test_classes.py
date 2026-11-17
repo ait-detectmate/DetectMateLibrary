@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.schemas._classes."""
 from detectmatelibrary.schemas._classes import (
     SchemaVariables, BaseSchema, LogSchema, ParserSchema, DetectorSchema, FieldNotFound
 )

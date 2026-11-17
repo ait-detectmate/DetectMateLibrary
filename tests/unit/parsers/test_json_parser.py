@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.parsers.json_parser."""
 import json
 import logging
 from detectmatelibrary.parsers.json_parser import (

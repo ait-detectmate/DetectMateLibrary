@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.alert_aggregation.basic_concat."""
 from detectmatelibrary.alert_aggregation.basic_concat import BasicConcatAggregation
 
 

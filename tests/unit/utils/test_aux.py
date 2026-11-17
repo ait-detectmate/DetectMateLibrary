@@ -1,4 +1,4 @@
-
+"""Tests for detectmatelibrary.utils.aux."""
 from detectmatelibrary.utils.aux import get_timestamp, time_test_mode
 
 from datetime import datetime

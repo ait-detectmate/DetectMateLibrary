@@ -1,3 +1,5 @@
+"""Persistence and state-API tests of the tracker detectors (becomes the
+parametrized tracker contract)."""
 import threading
 
 import fsspec

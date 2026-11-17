@@ -1,4 +1,4 @@
-
+"""Tests for detectmatelibrary.base_detectors.deeplearning_detector."""
 from detectmatelibrary.base_detectors import (
     DeepLearningDetector, DeepLearningDetectorConfig
 )

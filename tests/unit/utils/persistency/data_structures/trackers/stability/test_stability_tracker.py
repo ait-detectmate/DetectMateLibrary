@@ -1,3 +1,5 @@
+"""Tests for detectmatelibrary.utils.persistency.data_structures.trackers.stabi
+lity.stability_tracker."""
 from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
     EventStabilityTracker,
     SingleStabilityTracker,

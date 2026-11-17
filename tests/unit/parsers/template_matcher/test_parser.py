@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.parsers.template_matcher._parser."""
 import pytest
 from detectmatelibrary.parsers.template_matcher import MatcherParser, MatcherParserConfig, \
     TemplatesNotFoundError

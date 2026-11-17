@@ -1,4 +1,4 @@
-
+"""Tests for detectmatelibrary.base_detectors._persist."""
 import fsspec
 import pytest
 from pydantic import ValidationError

@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.utils.data_buffer."""
 from detectmatelibrary.utils.data_buffer import DataBuffer, ArgsBuffer, BufferMode
 
 import pytest

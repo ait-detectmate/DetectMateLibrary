@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.common.detector."""
 from detectmatelibrary.common.detector import CoreDetectorConfig, BufferMode
 from detectmatelibrary.common.detector import CoreDetector
 import detectmatelibrary.schemas as sc

@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.base_detectors.count_vector_detector."""
 from detectmatelibrary.base_detectors import CountVectorDetectorConfig
 from detectmatelibrary.detectors.ecvc_detector import ECVCDetector, ECVCDetectorConfig
 

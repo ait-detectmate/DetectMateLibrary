@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.common._config."""
 from detectmatelibrary.common._config import BasicConfig
 from detectmatelibrary.common._config import AutoConfigParams
 from detectmatelibrary.base_detectors import VariableDetectorConfig

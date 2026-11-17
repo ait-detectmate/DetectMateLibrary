@@ -1,4 +1,4 @@
-
+"""Tests for detectmatelibrary.detectors.ecvc_detector."""
 from detectmatelibrary.detectors.ecvc_detector import ECVCOp, ECVCDetectorConfig, ECVCDetector, SessionWindows
 from detectmatelibrary.utils.sequence_encoding import count_events, encode_count_vec
 from detectmatelibrary.parsers.template_matcher import MatcherParser

@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.helper.select_component."""
 from detectmatelibrary.alert_aggregation.basic_concat import BasicConcatAggregation
 from detectmatelibrary.detectors.random_detector import RandomDetector, RandomDetectorConfig
 from detectmatelibrary.parsers.drain import DrainParser, DrainConfig

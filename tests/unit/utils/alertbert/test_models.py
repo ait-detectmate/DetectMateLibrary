@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.utils.alertbert.models."""
 from pathlib import Path
 
 import numpy as np

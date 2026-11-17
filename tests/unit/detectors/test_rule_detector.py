@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.detectors.rule_detector."""
 import detectmatelibrary.detectors.rule_detector as rd
 import detectmatelibrary.schemas as sc
 

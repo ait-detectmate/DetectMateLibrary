@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.alert_aggregation.time_delta."""
 from detectmatelibrary.alert_aggregation.time_delta import (
     TimeDeltaAggregation,
     TimeDeltaAggregationConfig,

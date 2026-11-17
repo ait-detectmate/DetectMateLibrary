@@ -1,3 +1,4 @@
+"""Tests for detectmatelibrary.common.detector: _extract_timestamp."""
 from detectmatelibrary.common.detector import _extract_timestamp
 import detectmatelibrary.schemas as sc
 
