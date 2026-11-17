@@ -33,6 +33,10 @@ testpaths = ["tests"]
 addopts = "--strict-markers --strict-config --ignore=local -ra -m 'not slow and not cli and not docs'"
 xfail_strict = true
 markers = [
+    "unit: tests one source module (applied automatically to tests/unit/)",
+    "contract: shared-interface suite over all implementations (applied automatically to tests/contract/)",
+    "integration: several real components together (applied automatically to tests/integration/)",
+    "e2e: raw logs to alerts through public entry points (applied automatically to tests/e2e/)",
     "slow: takes more than 2 s; opt-in locally (-m slow), always run in CI",
     "cli: runs the installed `mate` console script in a subprocess; opt-in locally, always run in CI",
     "docs: runs a file from docs/examples/; opt-in locally, always run in CI",

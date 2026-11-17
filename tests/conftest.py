@@ -1,6 +1,7 @@
 """Shared pytest configuration for the whole test suite.
 
-Markers (registered in pyproject.toml): `slow`, `cli` and `docs` are left out
+Markers (registered in pyproject.toml): `unit`, `contract`, `integration` and
+`e2e` come from the test's directory. `slow`, `cli` and `docs` are left out
 of the default run by `addopts`; `-m ""` runs everything. `needs_cxx`,
 `needs_mongo` and `needs_redis` skip a test locally when the dependency is
 missing and fail it in CI (see "Required dependencies" below).
@@ -16,6 +17,7 @@ import logging
 import os
 import shutil
 import threading
+from pathlib import Path
 from typing import Any, Callable, Iterator
 
 import fsspec
@@ -32,6 +34,26 @@ from detectmatelibrary.common.core import CoreComponent
 from detectmatelibrary.schemas.connectors.default import ver_record
 from detectmatelibrary.utils import aux
 from detectmatelibrary.utils.persistency.persistency_saver import _SaveTimer
+
+
+# ---- Levels -------------------------------------------------------------------
+#
+# The level marker of a test comes from its directory, so nobody writes it by
+# hand: `-m unit`, `-m contract`, `-m integration`, `-m e2e`.
+
+_TESTS_DIR = Path(__file__).resolve().parent
+_LEVELS = ("unit", "contract", "integration", "e2e")
+
+
+@pytest.hookimpl(tryfirst=True)  # before -m deselects by marker
+def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
+    for item in items:
+        try:
+            level = item.path.relative_to(_TESTS_DIR).parts[0]
+        except ValueError:
+            continue
+        if level in _LEVELS:
+            item.add_marker(getattr(pytest.mark, level))
 
 
 # ---- Required dependencies ---------------------------------------------------
