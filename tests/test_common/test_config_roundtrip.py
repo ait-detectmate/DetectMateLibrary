@@ -2,7 +2,7 @@
 from detectmatelibrary.common._config import BasicConfig
 from detectmatelibrary.common._config._formats import EventsConfig, _EventInstance
 from typing import Dict
-from tests.test_data import TEST_CONFIG
+from tests.support.paths import TEST_CONFIG
 import yaml
 
 

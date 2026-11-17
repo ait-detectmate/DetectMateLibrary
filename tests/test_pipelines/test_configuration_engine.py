@@ -1,7 +1,8 @@
 from detectmatelibrary.detectors.new_value_detector import NewValueDetector, NewValueDetectorConfig
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
-from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, ANOMALY_LABELS, LOG_FORMAT, TRAIN_UNTIL
+from tests.support.audit import LOG_FORMAT, TRAIN_UNTIL
+from tests.support.paths import AUDIT_LOG, AUDIT_TEMPLATES, ANOMALY_LABELS
 
 import pytest
 import json

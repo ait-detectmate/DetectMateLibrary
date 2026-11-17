@@ -1,5 +1,6 @@
 """Most of the functionality is test it in DetectMatePerformance."""
 from detectmatelibrary.parsers.autoparser import AutoParser
+from tests.support.paths import AUDIT_LOG
 
 from detectmatelibrary.helper.from_to import From
 import pytest
@@ -18,7 +19,7 @@ class TestAutoParserParser:
             }
         }
         parser = AutoParser(config=config_dict)
-        path = "tests/test_data/audit.log"
+        path = AUDIT_LOG
 
         for j, parsed_log in enumerate(From.log(parser, path)):
             if j == 15:
@@ -39,7 +40,7 @@ class TestAutoParserParser:
             }
         }
         parser = AutoParser(config=config_dict)
-        path = "tests/test_data/audit.log"
+        path = AUDIT_LOG
 
         for j, parsed_log in enumerate(From.log(parser, path)):
             if j == 15:
@@ -60,7 +61,7 @@ class TestAutoParserParser:
             }
         }
         parser = AutoParser(config=config_dict)
-        path = "tests/test_data/audit.log"
+        path = AUDIT_LOG
 
         next(From.log(parser, path))
         with pytest.warns():

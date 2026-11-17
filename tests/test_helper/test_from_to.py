@@ -1,48 +1,37 @@
 from detectmatelibrary.helper.from_to import From, To, FromTo
 from detectmatelibrary._testutils.dummy_detector import DummyDetector
 from detectmatelibrary._testutils.dummy_parser import DummyParser
-from tests.test_data import AUDIT_TEMPLATES, DUMMY_TXT_PATH, DUMMY_TXT_PATH2, DUMMY_JSON_PATH, \
-    DUMMY_JSON_PATH2, DUMMY_YAML_PATH, DUMMY_YAML_PATH2
+from tests.support.paths import AUDIT_TEMPLATES
 import detectmatelibrary.schemas as sc
 import detectmateperformance as dmp
 import polars as pl
 import json
+import pytest
 import yaml
 import os
 
 
 expected_log = "pid=<*> uid=<*> auid=<*> ses=<*> msg='op=<*> "
 expected_log += "acct=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'"
-log_path = "tests/test_data/audit_templates.txt"
+log_path = AUDIT_TEMPLATES
 
-binary_path = "tests/test_data/dummy.txt"
-binary_path2 = "tests/test_data/dummy2.txt"
-json_path = "tests/test_data/dummy.json"
-json_path2 = "tests/test_data/dummy2.json"
-yaml_path = "tests/test_data/dummy.yaml"
-yaml_path2 = "tests/test_data/dummy2.yaml"
+# Output files, relative to the test's working directory: every test here runs in
+# its own temporary directory (_work_in_tmp_path), so nothing is written next to
+# the test data and nothing has to be cleaned up.
+DUMMY_TXT_PATH, DUMMY_TXT_PATH2 = "dummy.txt", "dummy2.txt"
+DUMMY_JSON_PATH, DUMMY_JSON_PATH2 = "dummy.json", "dummy2.json"
+DUMMY_YAML_PATH, DUMMY_YAML_PATH2 = "dummy.yaml", "dummy2.yaml"
+binary_path, binary_path2 = DUMMY_TXT_PATH, DUMMY_TXT_PATH2
+json_path, json_path2 = DUMMY_JSON_PATH, DUMMY_JSON_PATH2
+yaml_path, yaml_path2 = DUMMY_YAML_PATH, DUMMY_YAML_PATH2
 
 
-def remove_files(func):
-    def remove():
-        files = [
-            DUMMY_TXT_PATH, DUMMY_TXT_PATH2, DUMMY_JSON_PATH, DUMMY_JSON_PATH2, DUMMY_YAML_PATH,
-            DUMMY_YAML_PATH2
-        ]
-        for f in files:
-            if os.path.exists(f):
-                os.remove(f)
-
-    def do(*args, **kwargs):
-        remove()
-        func(*args, **kwargs)
-        remove()
-
-    return do
+@pytest.fixture(autouse=True)
+def _work_in_tmp_path(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
 
 
 class TestCaseTo:
-    @remove_files
     def test_tobinary(self):
         parser = DummyParser()
         gen = From.log(parser, in_path=AUDIT_TEMPLATES, do_process=False)
@@ -58,7 +47,6 @@ class TestCaseTo:
         with open(DUMMY_TXT_PATH, "r") as f:
             assert len(f.readlines()) == 2
 
-    @remove_files
     def test_tobinary_as_list(self):
         parser = DummyParser()
         gen = From.log(parser, in_path=log_path, do_process=False)
@@ -68,7 +56,6 @@ class TestCaseTo:
         with open(binary_path, "r") as f:
             assert len(f.readlines()) == 9
 
-    @remove_files
     def test_tojson(self):
         parser = DummyParser()
         gen = From.log(parser, in_path=AUDIT_TEMPLATES, do_process=False)
@@ -84,7 +71,6 @@ class TestCaseTo:
         with open(DUMMY_JSON_PATH, "r") as f:
             assert len(json.load(f)) == 2
 
-    @remove_files
     def test_tojson_list(self):
         parser = DummyParser()
         gen = From.log(parser, in_path=log_path, do_process=False)
@@ -94,7 +80,6 @@ class TestCaseTo:
         with open(json_path, "r") as f:
             assert len(json.load(f)) == 9
 
-    @remove_files
     def test_toyaml(self):
         parser = DummyParser()
         gen = From.log(parser, in_path=AUDIT_TEMPLATES, do_process=False)
@@ -110,7 +95,6 @@ class TestCaseTo:
         with open(DUMMY_YAML_PATH, "r") as f:
             assert len(yaml.safe_load(f)) == 2
 
-    @remove_files
     def test_toyaml_list(self):
         parser = DummyParser()
         gen = From.log(parser, in_path=log_path, do_process=False)
@@ -144,7 +128,6 @@ class TestCaseFrom:
 
         assert log.logID == "hi"
 
-    @remove_files
     def test_frombinary(self):
         parser = DummyParser()
         gen = From.log(parser, in_path=AUDIT_TEMPLATES, do_process=False)
@@ -160,7 +143,6 @@ class TestCaseFrom:
 
         assert log.logID == "hi"
 
-    @remove_files
     def test_fromjson(self):
         parser = DummyParser()
         gen = From.log(parser, in_path=AUDIT_TEMPLATES, do_process=False)
@@ -176,7 +158,6 @@ class TestCaseFrom:
 
         assert log.logID == "hi"
 
-    @remove_files
     def test_fromyaml(self):
         parser = DummyParser()
         gen = From.log(parser, in_path=AUDIT_TEMPLATES, do_process=False)
@@ -321,7 +302,6 @@ class TestCaseFrom:
 
 
 class TestCaseFromTo:
-    @remove_files
     def test_log2binary(self):
         parser = DummyParser()
         gen = FromTo.log2binary_file(parser, AUDIT_TEMPLATES, DUMMY_TXT_PATH)
@@ -333,7 +313,6 @@ class TestCaseFromTo:
         with open(DUMMY_TXT_PATH) as f:
             assert 5 == len(f.readlines())
 
-    @remove_files
     def test_log2json(self):
         parser = DummyParser()
         gen = FromTo.log2json(parser, AUDIT_TEMPLATES, DUMMY_JSON_PATH)
@@ -345,7 +324,6 @@ class TestCaseFromTo:
         with open(DUMMY_JSON_PATH) as f:
             assert 5 == len(json.load(f))
 
-    @remove_files
     def test_log2yaml(self):
         parser = DummyParser()
         gen = FromTo.log2yaml(parser, AUDIT_TEMPLATES, DUMMY_YAML_PATH)
@@ -357,7 +335,6 @@ class TestCaseFromTo:
         with open(DUMMY_YAML_PATH) as f:
             assert 5 == len(yaml.safe_load(f))
 
-    @remove_files
     def test_binary2binary(self):
         parser = DummyParser()
         gen = From.log(parser, AUDIT_TEMPLATES, do_process=False)
@@ -372,7 +349,6 @@ class TestCaseFromTo:
         with open(DUMMY_TXT_PATH2) as f:
             assert 5 == len(f.readlines())
 
-    @remove_files
     def test_binary2json(self):
         parser = DummyParser()
         gen = From.log(parser, AUDIT_TEMPLATES, do_process=False)
@@ -387,7 +363,6 @@ class TestCaseFromTo:
         with open(DUMMY_JSON_PATH) as f:
             assert 5 == len(json.load(f))
 
-    @remove_files
     def test_binary2yaml(self):
         parser = DummyParser()
         gen = From.log(parser, AUDIT_TEMPLATES, do_process=False)
@@ -402,7 +377,6 @@ class TestCaseFromTo:
         with open(DUMMY_YAML_PATH) as f:
             assert 5 == len(yaml.safe_load(f))
 
-    @remove_files
     def test_json2binary(self):
         parser = DummyParser()
         gen = From.log(parser, AUDIT_TEMPLATES, do_process=False)
@@ -417,7 +391,6 @@ class TestCaseFromTo:
         with open(DUMMY_TXT_PATH) as f:
             assert 5 == len(f.readlines())
 
-    @remove_files
     def test_json2json(self):
         parser = DummyParser()
         gen = From.log(parser, AUDIT_TEMPLATES, do_process=False)
@@ -432,7 +405,6 @@ class TestCaseFromTo:
         with open(DUMMY_JSON_PATH) as f:
             assert 5 == len(json.load(f))
 
-    @remove_files
     def test_json2yaml(self):
         parser = DummyParser()
         gen = From.log(parser, AUDIT_TEMPLATES, do_process=False)
@@ -447,7 +419,6 @@ class TestCaseFromTo:
         with open(DUMMY_YAML_PATH) as f:
             assert 5 == len(yaml.safe_load(f))
 
-    @remove_files
     def test_yaml2binary(self):
         parser = DummyParser()
         gen = From.log(parser, AUDIT_TEMPLATES, do_process=False)
@@ -462,7 +433,6 @@ class TestCaseFromTo:
         with open(DUMMY_TXT_PATH) as f:
             assert 5 == len(f.readlines())
 
-    @remove_files
     def test_yaml2json(self):
         parser = DummyParser()
         gen = From.log(parser, AUDIT_TEMPLATES, do_process=False)
@@ -477,7 +447,6 @@ class TestCaseFromTo:
         with open(DUMMY_JSON_PATH) as f:
             assert 5 == len(json.load(f))
 
-    @remove_files
     def test_yaml2yaml(self):
         parser = DummyParser()
         gen = From.log(parser, AUDIT_TEMPLATES, do_process=False)
@@ -492,7 +461,6 @@ class TestCaseFromTo:
         with open(DUMMY_YAML_PATH2) as f:
             assert 5 == len(yaml.safe_load(f))
 
-    @remove_files
     def test_polars2binary(self):
         detector = DummyDetector()
         table = pl.DataFrame({
@@ -509,7 +477,6 @@ class TestCaseFromTo:
         with open(DUMMY_TXT_PATH) as f:
             assert 1 == len(f.readlines())
 
-    @remove_files
     def test_polars2json(self):
         detector = DummyDetector()
         table = pl.DataFrame({
@@ -526,7 +493,6 @@ class TestCaseFromTo:
         with open(DUMMY_JSON_PATH) as f:
             assert 1 == len(json.load(f))
 
-    @remove_files
     def test_polars2yaml(self):
         detector = DummyDetector()
         table = pl.DataFrame({
@@ -546,6 +512,7 @@ class TestCaseFromTo:
 
 class TestUseCase:
     # The idea of these tests is to check that they do not crash in normal use
+
     def test_case1(self):
         detector = DummyDetector()
         parser = DummyParser()
@@ -560,7 +527,6 @@ class TestUseCase:
 
         assert len(alerts) == 6
 
-    @remove_files
     def test_case2(self):
         detector = DummyDetector()
         parser = DummyParser()
@@ -580,7 +546,6 @@ class TestUseCase:
 
         assert os.path.exists(DUMMY_JSON_PATH)
 
-    @remove_files
     def test_case3(self):
         detector = DummyDetector()
         parser = DummyParser()
@@ -601,7 +566,6 @@ class TestUseCase:
         assert os.path.exists(DUMMY_JSON_PATH)
         assert os.path.exists(DUMMY_JSON_PATH2)
 
-    @remove_files
     def test_case4(self):
         matcher = dmp.match_tree.TreeMatcher(
             templates=dmp.types_.LogTemplates(["hello <*>"])

@@ -29,7 +29,7 @@ from detectmatelibrary.parsers.logbatcher import LogBatcherParserConfig
 from detectmatelibrary.parsers.template_matcher import MatcherParserConfig
 from detectmatelibrary.parsers.tree_matcher import TemplateCppTreeMatcherConfig
 from pydantic import BaseModel, ValidationError, Field
-from tests.test_data import TEST_CONFIG
+from tests.support.paths import TEST_CONFIG
 import pytest
 import warnings
 import yaml

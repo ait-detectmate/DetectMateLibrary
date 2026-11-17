@@ -20,7 +20,8 @@ from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
 from detectmatelibrary.base_detectors import PersistConfig
 from detectmatelibrary.common._core_op._fit_logic import EnumState
-from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
+from tests.support.audit import TRAIN_UNTIL
+from tests.support.paths import AUDIT_LOG, AUDIT_TEMPLATES
 
 # Set time test mode for consistent timestamps
 pytestmark = pytest.mark.usefixtures("frozen_timestamps")

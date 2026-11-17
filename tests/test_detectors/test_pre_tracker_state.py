@@ -7,11 +7,11 @@ code: their whole point is to be old. Users upgrade with ``persist:``
 directories written by that code, and the refactor must not change the
 format.
 """
-from pathlib import Path
 
 import numpy as np
 
 from detectmatelibrary import schemas
+from tests.support.paths import PRE_TRACKER_STATE
 from detectmatelibrary.detectors.charset_detector import CharsetDetector
 from detectmatelibrary.detectors.ecvc_detector import ECVCDetector, ECVCDetectorConfig
 from detectmatelibrary.detectors.event_sequence_detector import (
@@ -19,7 +19,7 @@ from detectmatelibrary.detectors.event_sequence_detector import (
     EventSequenceDetectorConfig,
 )
 
-FIXTURES = Path(__file__).parent.parent / "test_data" / "pre_tracker_state"
+FIXTURES = PRE_TRACKER_STATE
 
 _CHARSET_CONFIG = {
     "detectors": {

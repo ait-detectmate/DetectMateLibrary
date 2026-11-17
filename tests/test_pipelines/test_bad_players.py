@@ -3,7 +3,7 @@ from detectmatelibrary.common.parser import CoreParser
 import detectmatelibrary.schemas._classes as schema_classes
 from detectmatelibrary.helper.from_to import From
 import pytest
-from tests.test_data import LOG_PATH
+from tests.support.paths import LOG_PATH
 
 
 config = {

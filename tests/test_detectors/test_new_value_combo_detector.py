@@ -12,7 +12,8 @@ from detectmatelibrary.common._config import generate_detector_config
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
-from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
+from tests.support.audit import TRAIN_UNTIL
+from tests.support.paths import AUDIT_LOG, AUDIT_TEMPLATES
 
 import pytest
 

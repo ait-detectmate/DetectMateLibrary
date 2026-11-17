@@ -15,7 +15,8 @@ from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
 from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
-from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
+from tests.support.audit import TRAIN_UNTIL
+from tests.support.paths import AUDIT_LOG, AUDIT_TEMPLATES
 
 import pytest
 

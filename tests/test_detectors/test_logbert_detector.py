@@ -8,7 +8,8 @@ from detectmatelibrary.detectors.logbert_detector import LogBertDetector
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 
-from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
+from tests.support.audit import TRAIN_UNTIL
+from tests.support.paths import AUDIT_LOG, AUDIT_TEMPLATES
 
 import detectmatelibrary.schemas as sc
 

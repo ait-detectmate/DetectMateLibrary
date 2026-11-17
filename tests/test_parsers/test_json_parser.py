@@ -6,7 +6,7 @@ from detectmatelibrary.parsers.json_parser import (
     flatten_dict
 )
 import detectmatelibrary.schemas as sc
-from tests.test_data import TEST_TEMPLATES
+from tests.support.paths import TEST_TEMPLATES
 
 
 class TestFlattenDict:

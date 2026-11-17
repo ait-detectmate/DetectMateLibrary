@@ -23,7 +23,8 @@ from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
 from detectmatelibrary.tools.logging import logger
-from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
+from tests.support.audit import TRAIN_UNTIL
+from tests.support.paths import AUDIT_LOG, AUDIT_TEMPLATES
 # Set time test mode for consistent timestamps
 pytestmark = pytest.mark.usefixtures("frozen_timestamps")
 

@@ -6,7 +6,7 @@ from detectmatelibrary.parsers.template_matcher._matcher_op import Preprocess
 
 from detectmatelibrary.common._config._formats import EventsConfig
 from detectmatelibrary import schemas
-from tests.test_data import NAMED_TEMPLATES_TXT, NAMED_TEMPLATES_CSV, TEST_TEMPLATES
+from tests.support.paths import NAMED_TEMPLATES_TXT, NAMED_TEMPLATES_CSV, TEST_TEMPLATES
 
 
 test_template = ["pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>"]

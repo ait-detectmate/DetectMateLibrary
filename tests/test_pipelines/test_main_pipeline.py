@@ -1,4 +1,5 @@
-from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL, APACHE_LOG
+from tests.support.audit import TRAIN_UNTIL
+from tests.support.paths import AUDIT_LOG, AUDIT_TEMPLATES, APACHE_LOG
 
 from detectmatelibrary.pipeline import PipelineConfig, _run_pipeline, Pipeline
 

@@ -7,7 +7,7 @@ from detectmatelibrary.detectors.new_value_detector import NewValueDetector
 from detectmatelibrary.detectors.random_detector import RandomDetector
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
-from tests.test_data import LOG_PATH, TEST_CONFIG
+from tests.support.paths import LOG_PATH, TEST_CONFIG
 import yaml
 
 
