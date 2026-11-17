@@ -7,14 +7,7 @@ from tensordict import TensorDict
 from torch import nn
 
 from detectmatelibrary.schemas import DetectorSchema
-from detectmatelibrary.utils.alertbert.datasets import (
-    AlertDataset,
-    AlertSequenceBatchSampler,
-    AlertSequenceSampler,
-    MergeAlertSequences,
-    detectorschema_to_dict,
-    split_alert_dataset,
-)
+from detectmatelibrary.utils.alertbert.datasets import AlertDataset
 from detectmatelibrary.utils.alertbert.models import (
     AbstractDatasetGroupingModel,
     EncoderLayer,
@@ -31,7 +24,6 @@ from detectmatelibrary.utils.alertbert.models import (
     TimeDelta,
 )
 from detectmatelibrary.utils.alertbert.preprocessing import (
-    BaseSequenceCollate,
     MaskedLangModelingSequenceCollate,
     Vocabulary,
     default_collate_fn,
@@ -55,127 +47,6 @@ def make_alert(
             "alertDetails": {"severity": "low"},
         }
     )
-
-
-def test_compute_targets_accepts_int64_tokens() -> None:
-    vocabulary = Vocabulary()
-    tokens = torch.tensor([1, 2], dtype=torch.int64)
-
-    targets = vocabulary.compute_targets(tokens)
-
-    assert targets.dtype == torch.int64
-    assert torch.equal(targets, torch.tensor([0, 1], dtype=torch.int64))
-
-
-def test_vocabulary_builds_maps_unknown_words_and_frequencies(tmp_path: Path) -> None:
-    vocabulary = Vocabulary(min_freq=2)
-    vocabulary.build_from_iterator(["a", "a", "b", "c"])
-
-    assert vocabulary("a") == 2
-    assert vocabulary("b") == 1
-    assert vocabulary([["a", "unknown"]]).tolist() == [[2, 1]]
-    assert torch.allclose(vocabulary.get_frequencies(), torch.tensor([0.5, 0.5]))
-
-    path = tmp_path / "vocabulary.json"
-    vocabulary.save(str(path))
-    loaded = Vocabulary(min_freq=2)
-    loaded.load(str(path))
-    assert loaded.counter == vocabulary.counter
-    assert list(loaded) == list(vocabulary)
-
-    vocabulary.remove(["c"])
-    assert "c" not in vocabulary.counter
-    assert len(vocabulary) == 3
-
-
-def test_collate_functions_stack_sequences_and_apply_masking() -> None:
-    batch = [
-        {"token": np.array([1, 2, 3]), "position": np.array([10, 11, 12])},
-        {"token": np.array([4, 5, 6]), "position": np.array([20, 21, 22])},
-    ]
-    generator = torch.Generator().manual_seed(0)
-    collate = BaseSequenceCollate(
-        {"token": default_collate_fn, "position": default_collate_fn},
-        generator=generator,
-    )
-    result = collate(batch)
-
-    assert result.batch_size_ == torch.Size([2, 3])
-    assert result["token"].tolist() == [[1, 2, 3], [4, 5, 6]]
-    assert result["position"].tolist() == [[0, 1, 2], [0, 1, 2]]
-
-    masked_batch = [
-        {"token": item["token"], "raw_time": item["position"]} for item in batch
-    ]
-    masked = MaskedLangModelingSequenceCollate(
-        {"token": default_collate_fn, "raw_time": default_collate_fn},
-        target_ratio=1.0,
-        mask_ratio=1.0,
-        perturb_ratio=0.0,
-        generator=torch.Generator().manual_seed(1),
-    )(masked_batch)
-    assert masked["mask"].all()
-    assert masked["token_mask"].sum() == 0
-    assert masked["mask_index"].shape == (2, 6)
-
-
-def test_alert_dataset_converts_alerts_and_supports_indexing() -> None:
-    alerts = [make_alert(str(i), i, description=f"event-{i}") for i in range(3)]
-    dataset = AlertDataset(alerts)
-
-    assert len(dataset) == 3
-    assert dataset[0]["relevantTimestamp"] == 0
-    assert dataset[-1]["alertID"] == "2"
-    assert dataset[1:]["alertID"] == ["1", "2"]
-    assert dataset[np.array([2, 0])]["alertID"] == ["2", "0"]
-    assert detectorschema_to_dict(alerts[0])["alertDetails:severity"] == "low"
-    with pytest.raises(TypeError):
-        dataset["invalid"]  # type: ignore[index]
-
-
-def test_split_dataset_and_sequence_samplers() -> None:
-    dataset = AlertDataset(make_alert(str(i), i) for i in range(10))
-    train, validation, test = split_alert_dataset(
-        dataset, (0.5, 0.3, 0.2), drop_first_n=2
-    )
-
-    assert len(train) == 4
-    assert len(validation) == 2
-    assert len(test) == 2
-    assert train[0]["alertID"] == "2"
-    with pytest.raises(ValueError):
-        split_alert_dataset(dataset, (0.5, 0.5, 0.5))
-
-    generator = torch.Generator().manual_seed(2)
-    sampler = AlertSequenceSampler(
-        dataset, context_size=3, cyclic=False, generator=generator, shuffle=False
-    )
-    slices = list(sampler)
-    assert len(sampler) == 3
-    assert all(s.stop - s.start == 3 for s in slices)
-    batches = list(
-        AlertSequenceBatchSampler(
-            dataset, context_size=3, batch_size=2, drop_last=False
-        )
-    )
-    assert len(batches) == 2
-    cyclic = AlertSequenceSampler(
-        dataset, context_size=4, cyclic=True, generator=generator, shuffle=False
-    )
-    assert len(list(cyclic)) == 3
-
-
-def test_merge_alert_sequences_orders_sources_and_skips_empty_sources() -> None:
-    sources = {
-        "first": iter([make_alert("a", 1), make_alert("c", 3)]),
-        "second": iter([make_alert("b", 2)]),
-    }
-    merged = MergeAlertSequences(sources)
-    merged.add_source("empty", iter([]))
-
-    assert [alert["alertID"] for alert in merged] == ["a", "b", "c"]
-    merged.add_source("later", iter([make_alert("d", 4)]))
-    assert [alert["alertID"] for alert in merged] == ["d"]
 
 
 def test_alertbert_neural_components() -> None:

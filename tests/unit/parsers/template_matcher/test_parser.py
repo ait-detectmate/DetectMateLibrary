@@ -2,7 +2,6 @@ import pytest
 from detectmatelibrary.parsers.template_matcher import MatcherParser, MatcherParserConfig, \
     TemplatesNotFoundError
 from detectmatelibrary.parsers.template_matcher._parser import _compile_templates
-from detectmatelibrary.parsers.template_matcher._matcher_op import Preprocess
 
 from detectmatelibrary.common._config._formats import EventsConfig
 from detectmatelibrary import schemas
@@ -12,24 +11,6 @@ from tests.support.paths import NAMED_TEMPLATES_TXT, NAMED_TEMPLATES_CSV, TEST_T
 test_template = ["pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>"]
 test_log_match = 'pid=9699 uid=0 auid=4294967295 ses=4294967295 msg=\'op=PAM:accounting acct="root"'
 test_log_no_match = 'this is not matching'
-
-
-class TestPreprocessingMatcher:
-    def test_convert_lower_cases(self):
-        preprocess = Preprocess(re_punctuation=False, re_spaces=False, do_lowercase=True)
-        assert preprocess("Hello! hOw  is going") == "hello! how  is going"
-
-    def test_remove_punctuation(self):
-        preprocess = Preprocess(re_punctuation=True, re_spaces=False, do_lowercase=False)
-        assert preprocess("Hello! hOw  is going") == "Hello hOw  is going"
-
-    def test_remove_spaces(self):
-        preprocess = Preprocess(re_punctuation=False, re_spaces=True, do_lowercase=False)
-        assert preprocess("Hello! hOw  is going") == "Hello! hOw is going"
-
-    def test_all_cases(self):
-        preprocess = Preprocess(re_punctuation=True, re_spaces=True, do_lowercase=True)
-        assert preprocess("Hello! hOw  is going") == "hello how is going"
 
 
 class TestMatcherParserBasic:

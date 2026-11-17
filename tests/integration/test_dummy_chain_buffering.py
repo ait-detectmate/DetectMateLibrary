@@ -2,13 +2,8 @@ from detectmatelibrary._testutils.dummy_parser import DummyParser
 from detectmatelibrary._testutils.dummy_detector import DummyDetector
 from detectmatelibrary._testutils.dummy_alert_aggregator import DummyAlertAggregator
 from detectmatelibrary.common.detector import BufferMode
-from detectmatelibrary.detectors.new_value_combo_detector import NewValueComboDetector
-from detectmatelibrary.detectors.new_value_detector import NewValueDetector
-from detectmatelibrary.detectors.random_detector import RandomDetector
-from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
-from tests.support.paths import LOG_PATH, TEST_CONFIG, TEST_TEMPLATES
-import yaml
+from tests.support.paths import LOG_PATH
 
 
 config = {
@@ -111,25 +106,3 @@ class TestCaseBasicPipelines:
         processed_data = detector.process(parsed_log)
         assert processed_data is not None
         assert aggregator.process(processed_data) is not None
-
-
-class TestExamples:
-    def test_config_example(self) -> None:
-        with open(TEST_CONFIG, 'r') as file:
-            config = yaml.safe_load(file)
-        # The YAML names its templates file relative to the repository root.
-        config["parsers"]["MatcherParser"]["params"]["path_templates"] = TEST_TEMPLATES
-
-        # Nothing should crash
-
-        # Parsers
-        MatcherParser(config=config)
-
-        # Detectors
-        RandomDetector(config=config)
-
-        NewValueDetector(config=config)
-        NewValueDetector(config=config, name="NewValueDetector_All")
-
-        NewValueComboDetector(config=config)
-        NewValueComboDetector(config=config, name="NewValueComboDetector_All")

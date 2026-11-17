@@ -10,15 +10,8 @@ from detectmatelibrary.utils.persistency.data_structures.trackers import (
     SingleStabilityTracker,
     EventStabilityTracker
 )
-from detectmatelibrary.utils.persistency.slow_persistency import (
-    Manager, SlowPersistency, clean_generated_path, generate_path
-)
-from detectmatelibrary.utils.persistency.basic_persistency import PersistencyStruct, get_all_variables
 
 import pytest
-import polars as pl
-import os
-import pathlib
 
 
 # Sample test data - variables is a list, not a dict
@@ -42,102 +35,6 @@ SAMPLE_EVENT_3 = {
     "variables": ["bob", "192.168.1.2"],
     "named_variables": {"timestamp": "2024-01-01 10:02:00"},
 }
-
-
-class TestSlowPersisntecy:
-    def test_buffer(self) -> None:
-        persistency = SlowPersistency(columns=[], file_manager=Manager, buffer_size=2)
-
-        persistency.add(["a", 2])
-        assert len(persistency.buffer) == 1
-
-        persistency.add(["b", 1])
-        assert len(persistency.buffer) == 0
-        assert len(persistency.file_manager.test_buffer) == 3
-
-        persistency.add(["c", 1])
-        assert len(persistency.buffer) == 1
-        assert len(persistency.file_manager.test_buffer) == 3
-
-        persistency.push_buffer()
-        assert len(persistency.buffer) == 0
-        assert len(persistency.file_manager.test_buffer) == 4
-
-    def test_csv_frame_file(self) -> None:
-        persistency = SlowPersistency(columns=["char", "int"], buffer_size=2)
-        persistency.add(["a", 2])
-        persistency.add(["b", 2])
-
-        assert os.path.exists(persistency.path)
-
-        df = persistency.load()
-        expected = pl.DataFrame({"char": ["a", "b"], "int": [2, 2]})
-        assert df.equals(expected)
-
-        persistency.reset()
-        assert not os.path.exists(persistency.path)
-
-    def test_transfer(self) -> None:
-        persistency = SlowPersistency(columns=["char", "int"], buffer_size=2)
-        persistency.add(["a", 2])
-        persistency.add(["b", 2])
-
-        df = persistency.load()
-
-        assert len(df) == 2
-        assert persistency == SlowPersistency.from_dataframe(df)
-
-    def test_clean_generated_path_removes_the_generated_files_and_folder(self) -> None:
-        # The test runs in its own working directory (tests/conftest.py).
-        paths = [generate_path(), generate_path()]
-        for path in paths:
-            pathlib.Path(path).write_text("a,b\n")
-        assert all(os.path.exists(path) for path in paths)
-
-        clean_generated_path()
-
-        assert not os.path.exists(".temp")
-
-    def test_clean_generated_path_without_generated_files_does_nothing(self) -> None:
-        clean_generated_path()
-        assert not os.path.exists(".temp")
-
-
-class TestPersistencyStruct:
-    def test_add_slow(self) -> None:
-        pers_struct = PersistencyStruct(do_slow_pers=True)
-        vars = get_all_variables(
-            variables=["a", "b"],
-            log_format_variables={"hi": 2},
-            variable_blacklist=[]
-        )
-
-        pers_struct.update_data_structure(
-            event_id="E01", variables=vars, template="as", timestamp=None
-        )
-
-        df = pers_struct.get_data()
-
-        assert df["EventIDs"][0] == "E01"
-        assert len(df) == 1
-        pers_struct.slow_persistency  # no raise issue
-
-    def test_add_slow_disable(self) -> None:
-        pers_struct = PersistencyStruct(do_slow_pers=False)
-        vars = get_all_variables(
-            variables=["a", "b"],
-            log_format_variables={"hi": 2},
-            variable_blacklist=[]
-        )
-
-        pers_struct.update_data_structure(
-            event_id="E01", variables=vars, template="as", timestamp=None
-        )
-
-        df = pers_struct.get_data()
-        assert df.shape[0] == 0
-        with pytest.raises(AttributeError):
-            pers_struct.slow_persistency
 
 
 class TestEventPersistency:

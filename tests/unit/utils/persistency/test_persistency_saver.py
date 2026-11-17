@@ -578,3 +578,9 @@ class TestPersistencySaverThreadSafety:
         PersistencySaver(p2, PersistencySaverConfig(path=path)).load()
         saver.stop()
         assert "E1" in p2.get_events_seen()
+
+
+def test_persistency_load_error_is_exception():
+    err = PersistencyLoadError("test error")
+    assert isinstance(err, Exception)
+    assert str(err) == "test error"
