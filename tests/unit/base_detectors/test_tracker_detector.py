@@ -170,10 +170,17 @@ class TestFinalizeFederation:
     def test_does_not_raise_when_allow_fed_is_set_after_construction(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
+        """The store was built without a slow table; finalize_federation()
+        leaves it and the learned state alone."""
         monkeypatch.chdir(tmp_path)
         det = _Recorder(config=TrackerDetectorConfig(allow_fed=False))
+        det.train(_event(1))
         det.config.allow_fed = True
+
         det.finalize_federation()
+
+        assert det.persistency.get_events_seen() == {1}
+        assert not (tmp_path / ".temp").exists()
 
     def test_removes_the_slow_table_when_allow_fed_is_cleared_after_construction(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch

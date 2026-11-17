@@ -487,55 +487,6 @@ class TestCaseState:
         component.process(_make_log(0))
         assert component.get_state() == FitLogicState.NOTHING.describe()
 
-    def test_change_state(self) -> None:
-        config = CoreConfig(use_config_data_as_training=True)
-        component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
-
-        assert component.get_state() == FitLogicState.NOTHING.describe()
-
-        component.update_state("keep_configuring")
-        component.process(_make_log(0))
-        assert component.get_state() == FitLogicState.DO_CONFIG.describe()
-
-        component.update_state("stop_configuring")
-        component.process(_make_log(0))
-        assert component.get_state() == FitLogicState.NOTHING.describe()
-
-        component.update_state("keep_training")
-        component.process(_make_log(0))
-        assert component.get_state() == FitLogicState.DO_TRAIN.describe()
-
-        component.update_state("stop_training")
-        component.process(_make_log(0))
-        assert component.get_state() == FitLogicState.NOTHING.describe()
-
-    def test_change_state_weird_cases(self) -> None:
-        config = CoreConfig(use_config_data_as_training=True)
-        component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
-
-        assert component.get_state() == FitLogicState.NOTHING.describe()
-
-        component.update_state("keep_configuring")
-        component.process(_make_log(0))
-        assert component.get_state() == FitLogicState.DO_CONFIG.describe()
-
-        component.update_state("stop_training")
-        component.process(_make_log(0))
-        assert component.get_state() == FitLogicState.DO_CONFIG.describe()
-
-        component.update_state("keep_training")
-        component.process(_make_log(0))
-        assert component.get_state() == FitLogicState.DO_CONFIG.describe()
-
-        component.update_state("stop_configuring")
-        component.update_state("keep_training")
-        component.process(_make_log(0))
-        assert component.get_state() == FitLogicState.DO_TRAIN.describe()
-
-        component.update_state("keep_configuring")
-        component.process(_make_log(0))
-        assert component.get_state() == FitLogicState.DO_CONFIG.describe()
-
 
 class TestCoreComponentContextManager:
     def test_has_no_saver(self):
@@ -575,11 +526,6 @@ class TestTrainBufferSpill:
     def test_rejects_non_positive_max_records(self) -> None:
         with pytest.raises(pydantic.ValidationError):
             CoreConfig(train_buffer_max_records=0)
-
-    def test_core_still_exports_train_buffer(self) -> None:
-        from detectmatelibrary.common.core import TrainBuffer
-        from detectmatelibrary.common._core_op._train_buffer import TrainBuffer as Moved
-        assert TrainBuffer is Moved
 
     def test_spilled_configure_data_trains_in_order(self, tmp_path) -> None:
         config = MockConfigWithTraining(

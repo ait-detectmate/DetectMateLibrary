@@ -63,6 +63,14 @@ config = {
 }
 
 
+def _event_1_record(log_id: str, value: str) -> sc.ParserSchema:
+    return sc.ParserSchema({
+        "parserType": "test", "eventID": 1, "template": "test template", "variables": ["adsasd", value],
+        "logID": log_id, "parsedLogID": log_id, "parserID": "test_parser", "log": "test log message",
+        "headerVariables": {"level": "INFO"},
+    })
+
+
 class TestNewValueDetectorTraining:
     """Test NewValueDetector training functionality."""
 
@@ -100,7 +108,7 @@ class TestNewValueDetectorTraining:
 class TestNewValueDetectorDetection:
     """Test NewValueDetector detection functionality."""
 
-    def test_detect_known_value_no_alert(self):
+    def test_detect_ignores_unconfigured_event(self):
         detector = NewValueDetector(config=config, name="MultipleDetector")
 
         # Train with a value
@@ -117,7 +125,7 @@ class TestNewValueDetectorDetection:
         })
         detector.train(train_data)
 
-        # Detect with the same value
+        # EventID 12 is not in the config, so nothing is checked
         test_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 12,
@@ -135,6 +143,14 @@ class TestNewValueDetectorDetection:
 
         assert not result
         assert output.score == 0.0
+
+    def test_detect_known_value_no_alert(self):
+        """Event 1 checks variable 1 and the header `level` (module config)."""
+        detector = NewValueDetector(config=config, name="MultipleDetector")
+        detector.train(_event_1_record("1", "asdasd"))
+
+        assert detector.detect(_event_1_record("2", "asdasd"), sc.DetectorSchema()) is False
+        assert detector.detect(_event_1_record("3", "qwqwqw"), sc.DetectorSchema()) is True
 
     def test_detect_known_value_alert(self):
         detector = NewValueDetector(config=config, name="MultipleDetector")

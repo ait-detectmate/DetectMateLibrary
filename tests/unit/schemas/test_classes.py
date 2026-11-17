@@ -72,10 +72,14 @@ class TestBaseSchema:
         assert base_schema.schema_class == BASE_SCHEMA
         assert base_schema.get_schema().__version__ == "2.0.0"
 
-    def test_all_initialize(self):
-        LogSchema()
-        ParserSchema()
-        DetectorSchema()
+    @pytest.mark.parametrize("schema_cls, primary_key", [
+        (sc.LogSchema, "logID"), (sc.ParserSchema, "parsedLogID"),
+        (sc.DetectorSchema, "alertID"), (sc.AggregateSchema, "aggregateID"),
+    ])
+    def test_initializes_empty_with_its_primary_key(self, schema_cls, primary_key):
+        schema = schema_cls()
+        assert schema.primary_key == primary_key
+        assert schema[primary_key] == ""
 
     def test_copy(self):
         log_schema = LogSchema()

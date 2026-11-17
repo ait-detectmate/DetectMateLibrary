@@ -8,7 +8,6 @@ This module tests the ValueRangeDetector implementation including:
 - Input/output schema validation
 """
 import logging
-import random
 import pytest
 from detectmatelibrary.detectors.value_range_detector import ValueRangeDetector, ValueRangeDetectorConfig
 from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
@@ -61,6 +60,15 @@ config = {
 }
 
 
+def _record(value: str, event_id: int = 1) -> sc.ParserSchema:
+    """A log of `event_id` whose variable 1 (named "test") is `value`."""
+    return sc.ParserSchema({
+        "parserType": "test", "eventID": event_id, "template": "test template",
+        "variables": ["val0", value, "val2", "val3", "val4"], "logID": "1", "parsedLogID": "1",
+        "parserID": "test_parser", "log": "test log message", "headerVariables": {},
+    })
+
+
 class TestValueRangeDetectorAddValue:
     """add_value() applies range semantics to the trackers."""
 
@@ -96,122 +104,37 @@ class TestValueRangeDetectorTraining:
     """Test ValueRangeDetector training functionality."""
 
     def test_train_multiple_values(self):
-        """Test training with multiple different values."""
+        """Only event 1 is configured; its variable keeps the minimum and
+        maximum of ints and floats."""
         detector = ValueRangeDetector(config=config, name="MultipleDetector")
-        # Train with multiple values (the minimum and maximum value should be captured)
-        min_val = 100000
-        max_val = 0
         for event in range(3):
-            for _ in range(300):
-                value = random.randint(0, 300)
-                if event == 1:
-                    min_val = min(min_val, value)
-                    max_val = max(max_val, value)
-                parser_data = sc.ParserSchema({
-                    "parserType": "test",
-                    "eventID": event,
-                    "template": "test template",
-                    "variables": ["val0", str(value), "val2", "val3", "val4"],
-                    "logID": "1",
-                    "parsedLogID": "1",
-                    "parserID": "test_parser",
-                    "log": "test log message",
-                    "headerVariables": {}
-                })
-                detector.train(parser_data)
+            for value in ["17", "250", "3", "300", "0.5", "299.75"]:
+                detector.train(_record(value, event))
 
-            for _ in range(300):
-                value = random.uniform(0, 300)
-                if event == 1:
-                    min_val = min(min_val, value)
-                    max_val = max(max_val, value)
-                parser_data = sc.ParserSchema({
-                    "parserType": "test",
-                    "eventID": event,
-                    "template": "test template",
-                    "variables": ["val0", str(value), "val2", "val3", "val4"],
-                    "logID": "1",
-                    "parsedLogID": "1",
-                    "parserID": "test_parser",
-                    "log": "test log message",
-                    "headerVariables": {}
-                })
-                detector.train(parser_data)
-
-        # Only event 1 should be tracked (based on events config)
         assert len(detector.persistency) == 1
-        event_data = detector.persistency.get_event_data(1)
-        assert event_data is not None
-        # Check the variable at position 1 (named "test")
-        assert min(event_data["test"].unique_set) == min_val
-        assert max(event_data["test"].unique_set) == max_val
+        assert detector.persistency.get_event_data(1)["test"].unique_set == {0.5, 300}
 
     def test_train_detect_non_numeric_raises(self):
         """Non-numeric values raise ValueError when ignore_non_numerical_val is
         False."""
-
         detector = ValueRangeDetector(config=config, name="CustomInit")
-        # Train with multiple values (the minimum and maximum value should be captured)
-        parser_data = sc.ParserSchema({
-            "parserType": "test",
-            "eventID": 1,
-            "template": "test template",
-            "variables": ["val0", f"val{random.randint(0, 300)}", "val2", "val3", "val4"],
-            "logID": "1",
-            "parsedLogID": "1",
-            "parserID": "test_parser",
-            "log": "test log message",
-            "headerVariables": {}
-        })
         with pytest.raises(ValueError):
-            detector.train(parser_data)
-        normal_data = sc.ParserSchema({
-            "parserType": "test",
-            "eventID": 1,
-            "template": "test template",
-            "variables": ["val0", f"{random.randint(0, 300)}", "val2", "val3", "val4"],
-            "logID": "1",
-            "parsedLogID": "1",
-            "parserID": "test_parser",
-            "log": "test log message",
-            "headerVariables": {}
-        })
-        detector.train(normal_data)
+            detector.train(_record("val17"))
+
+        detector.train(_record("17"))
         with pytest.raises(ValueError):
-            output = sc.DetectorSchema()
-            detector.detect(parser_data, output)
+            detector.detect(_record("val17"), sc.DetectorSchema())
 
     def test_train_detect_non_numeric_ignore(self):
-        """Test training with non-numeric values and ignoring them."""
-
+        """With ignore_non_numerical_val, non-numeric values are neither
+        learned nor alerted on."""
         detector = ValueRangeDetector(config=config, name="MultipleDetector")
-        # Train with multiple values (the minimum and maximum value should be captured)
-        parser_data = sc.ParserSchema({
-            "parserType": "test",
-            "eventID": 1,
-            "template": "test template",
-            "variables": ["val0", f"val{random.randint(0, 300)}", "val2", "val3", "val4"],
-            "logID": "1",
-            "parsedLogID": "1",
-            "parserID": "test_parser",
-            "log": "test log message",
-            "headerVariables": {}
-        })
-        detector.train(parser_data)
-        normal_data = sc.ParserSchema({
-            "parserType": "test",
-            "eventID": 1,
-            "template": "test template",
-            "variables": ["val0", f"{random.randint(0, 300)}", "val2", "val3", "val4"],
-            "logID": "1",
-            "parsedLogID": "1",
-            "parserID": "test_parser",
-            "log": "test log message",
-            "headerVariables": {}
-        })
-        detector.train(normal_data)
-        output = sc.DetectorSchema()
-        detector.detect(parser_data, output)
+        detector.train(_record("val17"))
+        detector.train(_record("17"))
+
+        assert detector.persistency.get_event_data(1)["test"].unique_set == {17}
+        assert detector.detect(_record("val17"), sc.DetectorSchema()) is False
+        assert detector.detect(_record("18"), sc.DetectorSchema()) is True
 
 
 class TestValueRangeDetectorDetection:

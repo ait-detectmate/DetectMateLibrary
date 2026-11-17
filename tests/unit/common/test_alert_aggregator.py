@@ -148,7 +148,7 @@ class TestCoreAlertAggregator:
     def test_process_input_schema_not_serialized_window_3(self) -> None:
         alert_aggregator = MockupAlertAggregator(name="TestDetector", config=MockupConfig(), buffer_size=3)
         expected_result = sc.AggregateSchema({
-            "__version__": "1.0.0",
+            "__version__": "2.0.0",
             "detectorIDs": ["1"],
             "detectorTypes": ["dummy"],
             "alertIDs": ["2"],
@@ -172,7 +172,7 @@ class TestCoreAlertAggregator:
             name="TestDetector", config=MockupConfig(), buffer_size=3
         )
         expected_result = sc.AggregateSchema({
-            "__version__": "1.0.0",
+            "__version__": "2.0.0",
             "detectorIDs": ["1"],
             "detectorTypes": ["dummy"],
             "alertIDs": ["2"],

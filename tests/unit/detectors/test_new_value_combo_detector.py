@@ -10,6 +10,7 @@ from detectmatelibrary.utils.persistency.data_structures.trackers import (
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
+import logging
 from tests.support.audit import TRAIN_UNTIL
 from tests.support.paths import AUDIT_LOG, AUDIT_TEMPLATES
 
@@ -64,26 +65,20 @@ config = {
 
 class TestNewValueComboDetectorTraining:
     def test_train_multiple_values(self):
+        """Only event 1 is configured; it learns the combinations of variable 1
+        and the header `level`."""
         detector = NewValueComboDetector(config=config, name="MultipleDetector")
-
-        # Train with multiple values
         for event in range(3):
             for level in ["INFO", "WARNING", "ERROR"]:
-                parser_data = sc.ParserSchema({
-                    "parserType": "test",
-                    "eventID": event,
-                    "template": "test template",
-                    "variables": ["0", "assa"],
-                    "logID": "1",
-                    "parsedLogID": "1",
-                    "parserID": "test_parser",
-                    "log": "test log message",
-                    "headerVariables": {"level": level}
-                })
-                detector.train(parser_data)
+                detector.train(sc.ParserSchema({
+                    "parserType": "test", "eventID": event, "template": "test template",
+                    "variables": ["0", "assa"], "logID": "1", "parsedLogID": "1", "parserID": "test_parser",
+                    "log": "test log message", "headerVariables": {"level": level},
+                }))
 
-        # Only event 1 should be tracked (based on events config)
         assert len(detector.persistency) == 1
+        combos = detector.persistency.get_event_data(1)[("test", "level")].unique_set
+        assert combos == {("assa", "INFO"), ("assa", "WARNING"), ("assa", "ERROR")}
 
 
 class TestNewValueComboDetectorDetection:
@@ -244,51 +239,41 @@ class TestNewValueComboDetectorConfiguration:
         assert detector.config.auto_config_params.max_combo_size == 2
 
     def test_configuration_workflow(self):
-        """Test complete configuration workflow like in notebook."""
-        detector = NewValueComboDetector()
+        """Configure, set_configuration, train, detect.
 
-        # Step 1: Configure phase - ingest events
-        training_data = []
-        for i in range(20):
-            for event_id in [1, 2]:
-                parser_data = sc.ParserSchema({
-                    "parserType": "test",
-                    "eventID": event_id,
-                    "template": f"Template {event_id}",
-                    "variables": ["stable_val", f"var_{i % 3}", "another_stable"],
-                    "logID": str(len(training_data)),
-                    "parsedLogID": str(len(training_data)),
-                    "parserID": "test_parser",
-                    "log": "test log",
-                    "headerVariables": {"level": "INFO"}
-                })
-                training_data.append(parser_data)
-                detector.configure(parser_data)
+        Two variables cycle through a few values (STABLE) and one never
+        changes (STATIC, left out by default), so each event gets one
+        instance over positions 1 and 2.
+        """
+        detector = NewValueComboDetector(config=NewValueComboDetectorConfig())
+        records = [
+            sc.ParserSchema({
+                "parserType": "test", "eventID": event_id, "template": f"Template {event_id}",
+                "variables": ["static_val", f"var_{i % 3}", f"host_{i % 2}"], "logID": str(2 * i + event_id),
+                "parsedLogID": str(2 * i + event_id), "parserID": "test_parser", "log": "test log",
+                "headerVariables": {"level": "INFO"},
+            })
+            for i in range(20) for event_id in [1, 2]
+        ]
+        for record in records:
+            detector.configure(record)
 
-        # Step 2: Set configuration based on stable variables
         detector.set_configuration(max_combo_size=3)
+        for record in records:
+            detector.train(record)
 
-        # Step 3: Train detector with configuration
-        for data in training_data:
-            detector.train(data)
+        instance = {"params": {}, "variables": [{"pos": 1, "name": "var_1"}, {"pos": 2, "name": "var_2"}]}
+        expected = {event_id: {"NewValueComboDetector_var_1_var_2": instance} for event_id in [1, 2]}
+        assert detector.config.events.to_dict() == expected
 
-        # Step 4: Verify detector can detect anomalies
-        test_data = sc.ParserSchema({
-            "parserType": "test",
-            "eventID": 1,
-            "template": "Template 1",
-            "variables": ["stable_val", "new_value", "another_stable"],
-            "logID": "999",
-            "parsedLogID": "999",
-            "parserID": "test_parser",
-            "log": "test log",
-            "headerVariables": {"level": "INFO"}
-        })
-        output = sc.DetectorSchema()
+        def detect(variables):
+            record = records[0].copy()
+            record["variables"].clear()
+            record["variables"].extend(variables)
+            return detector.detect(record, sc.DetectorSchema())
 
-        # Should detect anomaly due to new combination
-        result = detector.detect(test_data, output)
-        assert isinstance(result, bool)
+        assert detect(["static_val", "var_9", "host_0"]) is True   # new value in the combination
+        assert detect(["static_val", "var_1", "host_1"]) is False  # combination seen in training
 
     def test_set_configuration_with_combo_size(self):
         """Test set_configuration respects max_combo_size parameter."""
@@ -315,33 +300,25 @@ class TestNewValueComboDetectorConfiguration:
         # Verify max_combo_size was updated
         assert detector.config.auto_config_params.max_combo_size == 4
 
-    def test_configuration_with_no_stable_variables(self):
-        """Test configuration when no stable variables are found."""
-        detector = NewValueComboDetector()
-
-        # Configure with highly variable data
+    def test_configuration_with_no_stable_variables(self, caplog):
+        """Every value is new each time: nothing is stable, the configuration
+        stays empty and a warning says the detector will not alert."""
+        detector = NewValueComboDetector(config=NewValueComboDetectorConfig())
         for i in range(10):
-            parser_data = sc.ParserSchema({
-                "parserType": "test",
-                "eventID": 1,
-                "template": "Variable template",
-                "variables": [f"val_{i}_0", f"val_{i}_1"],
-                "logID": str(i),
-                "parsedLogID": str(i),
-                "parserID": "test_parser",
-                "log": "test log",
-                "headerVariables": {}
-            })
-            detector.configure(parser_data)
+            detector.configure(sc.ParserSchema({
+                "parserType": "test", "eventID": 1, "template": "Variable template",
+                "variables": [f"val_{i}_0", f"val_{i}_1"], "logID": str(i), "parsedLogID": str(i),
+                "parserID": "test_parser", "log": "test log", "headerVariables": {},
+            }))
 
-        # Set configuration
-        detector.set_configuration()
+        with caplog.at_level(logging.WARNING):
+            detector.set_configuration()
 
-        # Should handle gracefully without stable variables
-        assert detector.config is not None
+        assert detector.config.events.to_dict() == {}
+        assert any("empty configuration" in record.message for record in caplog.records)
 
 
-class TestNewValueComboDetectorEndToEnd:
+class TestConfigureTrainDetect:
     """Test the full configure → set_configuration → train → detect workflow as
     demonstrated in the commented-out example in
     new_value_combo_detector.py."""

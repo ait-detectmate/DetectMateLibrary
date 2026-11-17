@@ -94,6 +94,14 @@ config = {
 }
 
 
+def _event_1_record(log_id: str, value: str) -> sc.ParserSchema:
+    return sc.ParserSchema({
+        "parserType": "test", "eventID": 1, "template": "test template", "variables": ["adsasd", value],
+        "logID": log_id, "parsedLogID": log_id, "parserID": "test_parser", "log": "test log message",
+        "headerVariables": {"level": "INFO"},
+    })
+
+
 class TestBigramFrequencyDetectorTraining:
     """Test BigramFrequencyDetector training functionality."""
 
@@ -131,7 +139,7 @@ class TestBigramFrequencyDetectorTraining:
 class TestBigramFrequencyDetectorDetection:
     """Test BigramFrequencyDetector detection functionality."""
 
-    def test_detect_known_value_no_alert(self):
+    def test_detect_ignores_unconfigured_event(self):
         detector = BigramFrequencyDetector(config=config, name="MultipleDetector")
 
         # Train with a value
@@ -148,7 +156,7 @@ class TestBigramFrequencyDetectorDetection:
         })
         detector.train(train_data)
 
-        # Detect with the same value
+        # EventID 12 is not in the config, so nothing is checked
         test_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 12,
@@ -166,6 +174,14 @@ class TestBigramFrequencyDetectorDetection:
 
         assert not result
         assert output.score == 0.0
+
+    def test_detect_known_value_no_alert(self):
+        """Event 1 checks variable 1 and the header `level` (module config)."""
+        detector = BigramFrequencyDetector(config=config, name="MultipleDetector")
+        detector.train(_event_1_record("1", "asdasd"))
+
+        assert detector.detect(_event_1_record("2", "asdasd"), sc.DetectorSchema()) is False
+        assert detector.detect(_event_1_record("3", "qwqwqw"), sc.DetectorSchema()) is True
 
     def test_detect_known_value_alert(self):
         detector = BigramFrequencyDetector(config=config, name="MultipleDetector")
@@ -403,9 +419,8 @@ class TestBigramFrequencyDetectorDetectFixes:
             "headerVariables": {"level": "INFO"},
         })
         output = sc.DetectorSchema()
-        # Must not raise TypeError
-        result = detector.detect(test_data, output)
-        assert isinstance(result, bool)
+        # a missing variable is skipped: no TypeError and no alert
+        assert detector.detect(test_data, output) is False
 
     def test_default_freqs_false_does_not_consult_fallback(self):
         """default_freqs=False (the default): no fallback consultation."""

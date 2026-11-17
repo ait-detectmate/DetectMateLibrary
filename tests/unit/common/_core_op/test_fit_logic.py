@@ -1,4 +1,5 @@
 """Tests for FitLogic training lifecycle hooks."""
+import pytest
 
 from detectmatelibrary.common._core_op._fit_logic import (
     FitLogic, FitLogicState, EnumState
@@ -90,3 +91,28 @@ class TestFinishTraining:
         assert not logic.finish_training()
         logic.update_state("stop_training")
         assert logic.finish_training()
+
+
+CONFIGURING, TRAINING, DETECTING = FitLogicState.DO_CONFIG, FitLogicState.DO_TRAIN, FitLogicState.NOTHING
+
+
+@pytest.mark.parametrize("commands, expected", [
+    # with no data_use_* settings a component only detects, until told otherwise
+    ([None], [DETECTING]),
+    (["keep_configuring", "stop_configuring"], [CONFIGURING, DETECTING]),
+    (["keep_training", "stop_training"], [TRAINING, DETECTING]),
+    # the configure phase wins: training commands wait until it is stopped
+    (["keep_configuring", "stop_training", "keep_training"], [CONFIGURING, CONFIGURING, CONFIGURING]),
+    (["keep_configuring", "keep_training", "stop_configuring"], [CONFIGURING, CONFIGURING, TRAINING]),
+    # a stopped configure phase can be started again
+    (["keep_configuring", "stop_configuring", "keep_configuring"], [CONFIGURING, DETECTING, CONFIGURING]),
+], ids=["no_phases", "configure", "train", "configure_first", "train_after_configure", "configure_again"])
+def test_state_commands(commands, expected):
+    """update_state() commands, one per record: the phase each record ends up in."""
+    logic = FitLogic(data_use_configure=None, data_use_training=None)
+    states = []
+    for command in commands:
+        if command is not None:
+            logic.update_state(command)
+        states.append(logic.run())
+    assert states == expected

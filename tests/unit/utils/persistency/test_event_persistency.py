@@ -5,11 +5,7 @@ This module tests EventPersistency and its data structure backends.
 
 
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
-from detectmatelibrary.utils.persistency.data_structures.trackers import (
-    EventTracker,
-    SingleStabilityTracker,
-    EventStabilityTracker
-)
+from detectmatelibrary.utils.persistency.data_structures.trackers import EventTracker, EventStabilityTracker
 
 import pytest
 
@@ -39,13 +35,6 @@ SAMPLE_EVENT_3 = {
 
 class TestEventPersistency:
     """Test suite for EventPersistency orchestrator class."""
-
-    def test_initialization_with_tracker_backend(self):
-        """Test initialization with EventVariableTrackerData backend."""
-        persistency = EventPersistency(
-            event_data_kwargs={"tracker_type": SingleStabilityTracker},
-        )
-        assert persistency is not None
 
     def test_ingest_multiple_events_same_id(self):
         """Test ingesting multiple events with the same ID."""

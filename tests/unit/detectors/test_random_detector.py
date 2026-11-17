@@ -1,61 +1,46 @@
 """Tests for detectmatelibrary.detectors.random_detector."""
-from detectmatelibrary.detectors.random_detector import RandomDetector
-import detectmatelibrary.schemas as sc
+import numpy as np
 import pytest
 
-from copy import deepcopy
+import detectmatelibrary.schemas as sc
+from detectmatelibrary.detectors.random_detector import RandomDetector
 
 pytestmark = pytest.mark.usefixtures("frozen_timestamps")
 
-config = {
-    "detectors": {
-        "TestDetector": {
-            "auto_config": False,
-            "method_type": "random_detector",
-            "params": {},
-            "events": {
-                1: {
-                    "test": {
-                        "params": {},
-                        "variables": [{
-                            "pos": 0,
-                            "name": "process",
-                            "params": {
-                                "threshold": 0.
-                            }
-                        }]
-                    }
-                }
-            }
-        }
-    }
-}
+
+def _detector(threshold: float) -> RandomDetector:
+    return RandomDetector(name="TestDetector", config={"detectors": {"TestDetector": {
+        "method_type": "random_detector",
+        "auto_config": False,
+        "events": {1: {"test": {"variables": [
+            {"pos": 0, "name": "process", "params": {"threshold": threshold}},
+        ]}}},
+    }}})
 
 
-class TestRandomDetectorEdgeCases:
-    """Test edge cases and error handling."""
+def _record(event_id: int = 1) -> sc.ParserSchema:
+    return sc.ParserSchema({"eventID": event_id, "variables": ["var1"], "logID": "1", "headerVariables": {}})
 
-    def test_random_seed_consistency(self):
 
-        detector = RandomDetector(name="TestDetector", config=deepcopy(config))
-        parser_data = sc.ParserSchema({
-            "parserType": "test",
-            "eventID": 1,
-            "template": "test template",
-            "variables": ["var1"],
-            "logID": "1",
-            "parsedLogID": "1",
-            "parserID": "test_parser",
-            "log": "test log message",
-            "headerVariables": {"timestamp": "123456"}
-        })
-        detector_output = sc.DetectorSchema()
+def test_alerts_when_the_draw_exceeds_the_threshold():
+    """Each configured variable draws np.random.rand() and alerts above its
+    threshold; with seed 0 the draws are .549 .715 .603 .545 .424 .646."""
+    detector = _detector(threshold=0.5)
+    np.random.seed(0)
+    assert [detector.detect(_record(), sc.DetectorSchema()) for _ in range(6)] == [True] * 4 + [False, True]
 
-        # Multiple calls should return consistent results when mocked
-        result1 = detector.detect(parser_data, detector_output)
 
-        # Reset output for second call
-        detector_output = sc.DetectorSchema()
-        result2 = detector.detect(parser_data, detector_output)
+def test_threshold_zero_always_alerts_and_names_the_variable():
+    alert = sc.DetectorSchema()
+    assert _detector(threshold=0.0).detect(_record(), alert) is True
+    assert alert["score"] == 1.0
+    assert dict(alert["alertDetails"]) == {"process": "1.0"}
 
-        assert result1 == result2
+
+def test_threshold_one_never_alerts():
+    detector = _detector(threshold=1.0)
+    assert not any(detector.detect(_record(), sc.DetectorSchema()) for _ in range(50))
+
+
+def test_unconfigured_event_never_alerts():
+    assert _detector(threshold=0.0).detect(_record(event_id=2), sc.DetectorSchema()) is False
