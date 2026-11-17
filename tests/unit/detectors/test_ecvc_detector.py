@@ -433,3 +433,17 @@ def test_ecvc_config_surface_unchanged():
     assert {k: fields[k].default for k in names} == {
         "method_type": "ecvc_detector", "window_size": 10, "validation_per": 0.2, "seed": 0,
         "threshold_method": "mean", "session_variable": None}
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError,
+                   reason="B4: ECVC training reseeds NumPy's global random generator")
+def test_training_leaves_the_global_numpy_rng_alone():
+    def next_draw_after_training(caller_seed: int) -> float:
+        np.random.seed(caller_seed)  # the application's own seed
+        detector = ECVCDetector(config=ECVCDetectorConfig(window_size=3))
+        for window in ([1, 2, 3], [1, 1, 2], [2, 3, 3]):
+            detector.train([schemas.ParserSchema({"eventID": e}) for e in window])
+        detector.post_train()
+        return np.random.rand()  # the application's next random number
+
+    assert next_draw_after_training(1) != next_draw_after_training(2)

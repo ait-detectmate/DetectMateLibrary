@@ -26,7 +26,8 @@ PARSER_CONFIG = {"parsers": {"MatcherParser": {
 }}}
 
 NEW_TYPES = {"1859", "1863", "1864"}
-_B9 = pytest.mark.xfail(strict=True, reason="B9: NewEventDetector with a global instance alerts on every log")
+_B9 = pytest.mark.xfail(strict=True, raises=AssertionError,
+                        reason="B9: NewEventDetector with a global instance alerts on every log")
 
 CASES = [
     pytest.param(detectors.NewValueDetector, "Type", {}, NEW_TYPES, id="NewValueDetector"),

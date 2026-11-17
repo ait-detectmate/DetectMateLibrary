@@ -1,5 +1,7 @@
 """Tests for detectmatelibrary.pipeline."""
-from detectmatelibrary.pipeline import PipelineConfig, _run_pipeline
+from detectmatelibrary.pipeline import Pipeline, PipelineConfig, _run_pipeline
+from detectmatelibrary.alert_aggregation.basic_concat import BasicConcatAggregationConfig
+from detectmatelibrary.detectors.random_detector import RandomDetectorConfig
 
 from detectmatelibrary._testutils.dummy_parser import DummyParser, DummyParserConfig
 from detectmatelibrary._testutils.dummy_detector import DummyDetectorConfig
@@ -8,6 +10,7 @@ from detectmatelibrary._testutils.dummy_alert_aggregator import (
 )
 
 import detectmatelibrary.schemas as sc
+import pytest
 
 from detectmatelibrary.common.detector import CoreDetector
 
@@ -193,3 +196,17 @@ class TestRunPipeline:
         assert isinstance(out_, list)
         assert isinstance(out_[0], sc.AggregateSchema)
         assert len(out_) == 1
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError,
+                   reason="B2: Pipeline.output_schema is DetectorSchema with aggregation and vice versa")
+@pytest.mark.parametrize("do_aggregation, expected", [
+    (True, sc.AggregateSchema), (False, sc.DetectorSchema),
+], ids=["True", "False"])
+def test_output_schema_matches_aggregation(do_aggregation, expected):
+    # Pipeline builds its components with selectComponent, which only finds package classes
+    config = PipelineConfig(
+        do_parsing=False, do_aggregation=do_aggregation, detectors=[RandomDetectorConfig()],
+        aggregator=BasicConcatAggregationConfig() if do_aggregation else None,
+    )
+    assert Pipeline(config=config).output_schema is expected

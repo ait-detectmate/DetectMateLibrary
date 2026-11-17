@@ -145,6 +145,19 @@ class TestFinalizeFederation:
         det.finalize_federation()
         assert not (tmp_path / ".temp").exists()
 
+    @pytest.mark.xfail(strict=True, raises=FileNotFoundError,
+                       reason="B7: finalize_federation() deletes every detector's slow table")
+    def test_leaves_other_detectors_tables_alone(self) -> None:
+        finished = _Recorder(config=TrackerDetectorConfig(allow_fed=True))
+        finished.train(_event(1))
+        other = _Recorder(config=TrackerDetectorConfig(allow_fed=True))
+        other.train(_event(2))
+
+        finished.finalize_federation()
+
+        restored = other.from_binary(other.to_binary())
+        assert 2 in restored.persistency.get_events_seen()
+
     def test_is_a_no_op_without_allow_fed(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:

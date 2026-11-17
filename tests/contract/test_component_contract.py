@@ -123,3 +123,10 @@ _B3 = pytest.mark.xfail(strict=True, raises=ValueError,
 def test_select_component_finds_the_class(case):
     component_type = case.cls().config.component_type
     assert type(selectComponent(case.yaml(), component_type)) is case.cls
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError,
+                   reason="B1: every component class shares one default config instance")
+@pytest.mark.parametrize("case", cases(COMPONENTS))
+def test_default_config_is_not_shared(case):
+    assert case.cls().config is not case.cls().config

@@ -75,7 +75,7 @@ def test_log_format_fills_the_header_variables(case):
     assert parsed["log"] == log["log"]  # the output keeps the whole line
 
 
-_B6 = pytest.mark.xfail(strict=True,
+_B6 = pytest.mark.xfail(strict=True, raises=AssertionError,
                         reason="B6: TemplateCppTreeMatcher keeps the variables of a partial match")
 TEMPLATE_PARSERS = [
     pytest.param(case, id=case.cls.__name__, marks=_B6 if case.cls is parsers.TemplateCppTreeMatcher else ())

@@ -96,3 +96,11 @@ def test_empty_configure_phase_warns(case, caplog):
 
     assert any("empty configuration" in record.message for record in caplog.records)
     assert detector.config.auto_config is False
+
+
+@pytest.mark.xfail(strict=True, raises=AssertionError,
+                   reason="B1: set_configuration() changes the default config all new detectors share")
+@pytest.mark.parametrize("case", cases(AUTO_CONFIG_DETECTORS))
+def test_configuring_one_detector_leaves_new_ones_unconfigured(case):
+    case.cls().set_configuration()
+    assert case.cls().config.auto_config is True
