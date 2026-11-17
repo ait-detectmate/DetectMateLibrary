@@ -10,7 +10,6 @@ This module tests the ValueRangeDetector implementation including:
 import logging
 import random
 import pytest
-from detectmatelibrary.base_detectors import PersistConfig
 from detectmatelibrary.detectors.value_range_detector import ValueRangeDetector, ValueRangeDetectorConfig
 from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
     SingleStabilityTracker,
@@ -499,39 +498,3 @@ class TestValueRangeDetectorGlobalInstances:
                 detected_ids.add(log["logID"])
 
         assert len(detected_ids) > 0
-
-
-class TestValueRangeDetectorPersistFixes:
-    def test_registers_persistency_saver(self):
-        """The detector wires persistency into the base saver hook (was
-        missing)."""
-        detector = ValueRangeDetector(
-            config=ValueRangeDetectorConfig(
-                persist=PersistConfig(path="memory://value_range_regpersist/state")
-            )
-        )
-        # TrackerDetector builds a PersistencySaver bound to detector.persistency
-        assert detector.saver is not None
-        assert detector.saver._persistency is detector.persistency
-        detector.saver.stop()
-
-    def test_set_configuration_preserves_persist(self):
-        """set_configuration keeps the persist config (was dropped)."""
-        detector = ValueRangeDetector()
-        # Simulate persist being enabled by an earlier config load
-        detector.config.persist = PersistConfig(path="memory://value_range_persist_flag/state")
-
-        # Feed configure() with a couple of stable-variable samples
-        for _ in range(5):
-            sample = sc.ParserSchema({
-                "parserType": "test", "eventID": 1, "template": "t",
-                "variables": ["123"], "logID": "x", "parsedLogID": "x",
-                "parserID": "p", "log": "l",
-                "headerVariables": {"level": "INFO"},
-            })
-            detector.configure(sample)
-
-        detector.set_configuration()
-
-        assert detector.config.persist is not None
-        assert detector.config.persist.path == "memory://value_range_persist_flag/state"

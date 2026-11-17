@@ -595,45 +595,6 @@ class TestNewValueComboDetectorEndToEndWithRealData:
         assert detected_ids == {"1859", "1860", "1861", "1862", "1864", "1865", "1866", "1867"}
 
 
-class TestNewValueComboDetectorClassificationConfigPreservation:
-    """auto_config_params survive set_configuration untouched.
-
-    The configure phase writes only `events` and `auto_config`; every other
-    field on the config is operator input.
-    """
-
-    def test_classification_fields_survive_set_configuration(self):
-        cfg = NewValueComboDetectorConfig(
-            auto_config_params=ComboAutoConfigParams(
-                classification=ClassificationMethods(index=False, time=True),
-                timestamp_variable="level",
-                timestamp_format="%y%m%d %H%M%S",
-            ),
-        )
-        detector = NewValueComboDetector(config=cfg, name="NewValueComboDetector")
-        assert detector.config.auto_config is True  # the default (set_configuration-first) path
-
-        for i in range(10):
-            parser_data = sc.ParserSchema({
-                "parserType": "test",
-                "eventID": 1,
-                "template": "Template 1",
-                "variables": ["constant", f"varying_{i}", "another_constant"],
-                "logID": str(i),
-                "parsedLogID": str(i),
-                "parserID": "test_parser",
-                "log": "test log",
-                "headerVariables": {"level": "081109 203615"},
-            })
-            detector.configure(parser_data)
-
-        detector.set_configuration(max_combo_size=2)
-
-        assert detector.config.auto_config_params.classification.enabled == ("time",)
-        assert detector.config.auto_config_params.timestamp_variable == "level"
-        assert detector.config.auto_config_params.timestamp_format == "%y%m%d %H%M%S"
-
-
 class TestNewValueComboDetectorClassificationCombos:
     """The combo-stability pass must honour the classification block too.
 

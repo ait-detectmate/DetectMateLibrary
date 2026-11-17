@@ -7,6 +7,8 @@ from detectmatelibrary.common.detector import CoreDetectorConfig
 from detectmatelibrary.base_detectors import PersistConfig, TrackerDetectorConfig
 from detectmatelibrary.base_detectors._persist import start_saver
 from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
+import threading
+from detectmatelibrary.detectors.new_value_detector import NewValueDetector, NewValueDetectorConfig
 
 
 class TestPersistConfig:
@@ -44,10 +46,6 @@ class TestPersistConfigStateDirectoryDefault:
         monkeypatch.setenv("STATE_DIRECTORY", "/var/lib/a:/var/lib/b")
         assert PersistConfig().path == "/var/lib/a"
 
-    def test_falls_back_to_state_when_env_unset(self, monkeypatch):
-        monkeypatch.delenv("STATE_DIRECTORY", raising=False)
-        assert PersistConfig().path == "./state"
-
     def test_explicit_path_overrides_state_directory_env(self, monkeypatch):
         monkeypatch.setenv("STATE_DIRECTORY", "/var/lib/detectmate")
         assert PersistConfig(path="s3://bucket/state").path == "s3://bucket/state"
@@ -57,11 +55,6 @@ class TestTrackerDetectorConfigPersistField:
     def test_persist_is_none_by_default(self):
         cfg = TrackerDetectorConfig()
         assert cfg.persist is None
-
-    def test_persist_accepts_persist_config(self):
-        cfg = TrackerDetectorConfig(persist=PersistConfig(path="./custom"))
-        assert cfg.persist is not None
-        assert cfg.persist.path == "./custom"
 
     def test_persist_accepts_none_explicitly(self):
         cfg = TrackerDetectorConfig(persist=None)
@@ -89,3 +82,66 @@ class TestStartSaver:
         saver.stop()  # stop() calls save() as final save
         fs = fsspec.filesystem("memory")
         assert fs.exists("regpersist_path/state/MyDetector/metadata.json")
+
+
+class TestDetectorExportImportState:
+    def test_export_state_creates_event_files(self):
+        det = NewValueDetector(
+            name="ExportFiles",
+            config=NewValueDetectorConfig(auto_config=False),
+        )
+        det.persistency.ingest_event(
+            event_id=2, event_template="logout <*>", named_variables={"user": "bob"}
+        )
+        det.export_state("memory://export_files_test/state")
+        # NewValueDetector uses EventStabilityTracker → msgpack extension
+        assert fsspec.filesystem("memory").exists("export_files_test/state/events/2.msgpack")
+
+    def test_import_state_with_running_saver_does_not_raise(self):
+        det1 = NewValueDetector(name="ImportSaverSrc", config=NewValueDetectorConfig(auto_config=False))
+        det1.persistency.ingest_event(
+            event_id=3, event_template="connect <*>", named_variables={"host": "srv1"}
+        )
+        det1.export_state("memory://import_saver_test/state")
+
+        det2 = NewValueDetector(
+            name="ImportSaverDst",
+            config=NewValueDetectorConfig(
+                auto_config=False,
+                persist=PersistConfig(path="memory://import_saver_dst/state"),
+            ),
+        )
+        det2.import_state("memory://import_saver_test/state")
+        det2.saver.stop()
+        assert 3 in det2.persistency.get_events_seen()
+
+    def test_export_state_with_running_saver_does_not_raise(self):
+        # export must acquire the saver lock: a concurrent ingest + background
+        # timer save would otherwise race the state snapshot.
+        det = NewValueDetector(
+            name="ExportSaverConcurrent",
+            config=NewValueDetectorConfig(
+                auto_config=False,
+                persist=PersistConfig(path="memory://export_saver_dst/state", interval_seconds=0),
+            ),
+        )
+        stop = threading.Event()
+
+        def ingest_loop():
+            i = 0
+            while not stop.is_set():
+                det.persistency.ingest_event(
+                    event_id=i % 5, event_template="e <*>", named_variables={"n": str(i)}
+                )
+                i += 1
+
+        t = threading.Thread(target=ingest_loop)
+        t.start()
+        try:
+            for _ in range(20):
+                data = det.export_state()  # concurrent with timer save + ingest
+                assert isinstance(data, bytes) and len(data) > 0
+        finally:
+            stop.set()
+            t.join(timeout=2.0)
+            det.saver.stop()

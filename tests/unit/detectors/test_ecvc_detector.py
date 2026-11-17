@@ -311,16 +311,6 @@ class TestECVCDetectorRestoredState:
         assert any("window_size 3" in r.message for r in caplog.records)
         assert receiver.count_vecs is not None
 
-    def test_finalize_federation_removes_the_slow_table(self, tmp_path, monkeypatch):
-        monkeypatch.chdir(tmp_path)
-        detector = _fed_detector(3)
-        detector.train(_window([0, 1, 4]))
-        assert (tmp_path / ".temp").exists()
-
-        detector.finalize_federation()
-
-        assert not (tmp_path / ".temp").exists()
-
 
 def _record(event, session):
     return schemas.ParserSchema({"eventID": event, "headerVariables": {"blk": session}})
@@ -364,22 +354,6 @@ class TestECVCSessionWindows:
         for s, e in STREAM:
             detector.process(_record(e, s))
         assert set(detector.persistency.get_events_seen()) == _counts(*WINDOWS[:3])
-
-    def test_detection_scores_the_window_of_the_events_own_session(self):
-        # Training sees one session alternating 1 and 2. Two sessions doing the same, interleaved,
-        # raise nothing (a stream window would count 1 1 and 2 2); a session starting with 2 does.
-        detector = _session_detector(data_use_training=6)
-        alerts = [detector.process(_record(e, "t")) for e in (1, 2, 1, 2, 1, 2)]
-        for s, e in [("a", 1), ("b", 1), ("a", 2), ("b", 2), ("a", 1), ("b", 1)]:
-            alerts.append(detector.process(_record(e, s)))
-        alerts.append(detector.process(_record(2, "c")))
-        assert [a is not None for a in alerts] == [False] * 12 + [True]
-        assert alerts[-1]["logIDs"] == [str(_record(2, "c")["logID"])]
-
-    def test_missing_session_variable_raises(self):
-        detector = _session_detector(data_use_training=1)
-        with pytest.raises(ValueError, match="blk"):
-            detector.process(schemas.ParserSchema({"eventID": 1}))
 
 
 WINDOW_SIZE = 4

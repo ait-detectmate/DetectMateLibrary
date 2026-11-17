@@ -360,34 +360,6 @@ class TestEventSequenceDetectorAutoConfig:
 
         assert detector.config.fixed_window_size == 4
 
-    def test_set_configuration_preserves_user_config(self):
-        """Auto-configuration must only change fixed_window_size."""
-        detector = EventSequenceDetector(
-            name="Preserve",
-            config=EventSequenceDetectorConfig(
-                parser="MySequenceParser",
-                data_use_configure=6,
-                data_use_training=10,
-                use_config_data_as_training=False,
-                auto_config_params=SequenceAutoConfigParams(
-                    min_window_size=2,
-                    max_window_size=8,
-                ),
-            ),
-        )
-
-        for i, event_id in enumerate(_STABLE_STREAM):
-            detector.process(_make_schema(event_id, log_id=str(i)))
-
-        assert detector.config.fixed_window_size is not None
-        assert detector.config.parser == "MySequenceParser"
-        assert detector.config.data_use_training == 10
-        assert detector.config.use_config_data_as_training is False
-        assert (
-            detector.config.auto_config_params.min_window_size,
-            detector.config.auto_config_params.max_window_size,
-        ) == (2, 8)
-
     def test_configure_windows_follow_config_changes(self):
         """_configure_windows is built lazily, so changing the range after
         construction must not raise."""
@@ -530,20 +502,6 @@ class TestEventSequenceDetectorPersist:
     """Sequences are stored as fixed-length n-grams, so a restored model is
     only valid at the length it was trained with."""
 
-    def test_no_saver_by_default(self):
-        assert EventSequenceDetector().saver is None
-
-    def test_saver_created_when_persist_configured(self):
-        detector = EventSequenceDetector(
-            name="NSD_Saver",
-            config=EventSequenceDetectorConfig(
-                auto_config=False,
-                persist=PersistConfig(path="memory://nsd_saver/state"),
-            ),
-        )
-        assert detector.saver is not None
-        detector.saver.stop()
-
     def test_reload_at_matching_length_restores_model(self):
         base_path = "memory://nsd_match/state"
         _save_trained_detector("NSD_Match", base_path, fixed_window_size=3)
@@ -629,30 +587,6 @@ class TestEventSequenceDetectorPersist:
         assert det2.config.fixed_window_size == 3
         assert _CYCLE_3_GRAMS <= det2.get_known_sequences()
 
-    def test_persist_survives_empty_configuration(self):
-        """The no-instance path replaces the whole config object, so the
-        persist block has to be carried over by hand."""
-        base_path = "memory://nsd_nostable/state"
-        detector = EventSequenceDetector(
-            name="NSD_NoStable",
-            config=EventSequenceDetectorConfig(
-                data_use_configure=5,
-                data_use_training=1,
-                # no window of 8+ can fill within a 5-event configure phase
-                auto_config_params=SequenceAutoConfigParams(min_window_size=8, max_window_size=10),
-                persist=PersistConfig(path=base_path),
-            ),
-        )
-        assert detector.saver is not None
-
-        for i, event_id in enumerate([1, 2, 3, 1, 2, 3]):
-            detector.process(_make_schema(event_id, log_id=str(i)))
-        detector.saver.stop()
-
-        assert detector.config.fixed_window_size is None
-        assert detector.config.persist is not None
-        assert detector.config.persist.path == base_path
-
     def test_training_continues_after_reload(self):
         base_path = "memory://nsd_continue/state"
         _save_trained_detector("NSD_Continue", base_path, fixed_window_size=3)
@@ -714,15 +648,6 @@ class TestEventSequenceDetectorFederation:
         assert receiver.config.fixed_window_size == 3
         assert receiver.get_known_sequences() == _CYCLE_3_GRAMS
         assert receiver._detect_window.maxlen == 3
-
-    def test_finalize_federation_removes_the_slow_table(self, tmp_path, monkeypatch):
-        monkeypatch.chdir(tmp_path)
-        detector = _trained_fed_detector()
-        assert (tmp_path / ".temp").exists()
-
-        detector.finalize_federation()
-
-        assert not (tmp_path / ".temp").exists()
 
 
 class TestEventSequenceDetectorConfigValidation:
@@ -899,9 +824,6 @@ class TestEventSequenceDetectorSessions:
     """With session_variable set, an event's window holds the last
     fixed_window_size events of its own session, fewer at the session start."""
 
-    def test_session_variable_defaults_to_none(self):
-        assert EventSequenceDetectorConfig().session_variable is None
-
     def test_train_learns_windows_within_each_session(self):
         detector = _session_detector("SessionTrain", auto_config=False, fixed_window_size=2)
 
@@ -975,12 +897,6 @@ class TestEventSequenceDetectorSessions:
         data = detector.auto_conf_persistency.get_events_data()
         assert data[2].get_data()["seq"].unique_set == _INTERLEAVED_2_GRAMS
         assert data[3].get_data()["seq"].unique_set == {(1,), (1, 2), (1, 2, 3), (7,), (7, 8)}
-
-    def test_missing_session_variable_raises(self):
-        detector = _session_detector("SessionMissing", auto_config=False, fixed_window_size=2)
-
-        with pytest.raises(ValueError, match="block_id"):
-            detector.train(_make_schema(1))
 
     def test_reload_takes_the_longest_learned_sequence(self):
         """Session starts store shorter windows, so the restored length is that

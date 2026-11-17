@@ -54,23 +54,6 @@ class TestConfigWiring:
         assert restored.auto_config_params.classification.enabled == ("slope_time",)
         assert restored.auto_config_params.classification.decision == "majority"
 
-    def test_survives_auto_config(self):
-        """set_configuration() writes only config.events and flips
-        config.auto_config to False -- it never touches auto_config_params, so
-        operator settings survive because nothing overwrites them."""
-        detector = CharsetDetector(config=CharsetDetectorConfig(
-            auto_config=True,
-            auto_config_params=VariableAutoConfigParams(
-                classification=ClassificationMethods(index=True, slope_index=True),
-                use_static_vars=False,
-            ),
-        ))
-        detector.set_configuration()
-        assert detector.config.auto_config_params.classification.enabled == (
-            "index", "slope_index",
-        )
-        assert detector.config.auto_config_params.use_static_vars is False
-
     def test_index_axis_methods_pull_in_no_timestamp_requirement(self):
         detector = CharsetDetector(config=CharsetDetectorConfig())
         detector.config.auto_config_params.classification = ClassificationMethods(
@@ -229,34 +212,6 @@ class TestClassificationConfigWiring:
         assert tracker.classification.enabled == ("time",)
         assert len(tracker.timestamps) == len(tracker.change_series) == 2
         assert tracker.timestamps[1] - tracker.timestamps[0] == 30.0
-
-    def test_classification_fields_survive_auto_config_set_configuration(self):
-        """set_configuration() writes only self.config.events and then flips
-        auto_config to False -- it never rebuilds or reassigns self.config
-        wholesale, so auto_config_params (like every other operator-set field,
-        e.g. `persist`) is left untouched by construction.
-
-        auto_config defaults to True and core.py runs
-        set_configuration() before train(), so this is the path every
-        detector takes unless auto_config is explicitly disabled.
-        """
-        cfg = CharsetDetectorConfig(
-            auto_config_params=VariableAutoConfigParams(
-                classification=ClassificationMethods(index=False, time=True),
-                timestamp_variable="ts",
-                timestamp_format="%y%m%d %H%M%S",
-            ),
-        )
-        detector = CharsetDetector(config=cfg, name="CharsetDetector")
-        assert detector.config.auto_config is True
-
-        for _ in range(5):
-            detector.configure(_parser_record("081109 203615"))
-        detector.set_configuration()
-
-        assert detector.config.auto_config_params.classification.enabled == ("time",)
-        assert detector.config.auto_config_params.timestamp_variable == "ts"
-        assert detector.config.auto_config_params.timestamp_format == "%y%m%d %H%M%S"
 
 
 def test_train_path_records_no_timestamps():

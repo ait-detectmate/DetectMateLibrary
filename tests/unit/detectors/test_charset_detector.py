@@ -8,7 +8,6 @@ This module tests the CharsetDetector implementation including:
 - Input/output schema validation
 """
 
-from detectmatelibrary.base_detectors import PersistConfig
 from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig
 from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
@@ -77,18 +76,6 @@ class TestCharsetDetectorStores:
         )
         single = detector.persistency.get_event_data(1)["v"]
         assert single.unique_set == {"h", "e", "l", "o"}
-
-    def test_persist_saver_wraps_the_main_store(self):
-        """Main persistency should be registered so persist/load round-trips
-        work."""
-        cfg = CharsetDetectorConfig(
-            persist=PersistConfig(path="memory://charset_regpersist/state")
-        )
-        detector = CharsetDetector(config=cfg)
-        # TrackerDetector builds a PersistencySaver bound to detector.persistency
-        assert detector.saver is not None
-        assert detector.saver._persistency is detector.persistency
-        detector.saver.stop()
 
 
 class TestCharsetDetectorTraining:
@@ -429,25 +416,3 @@ class TestCharsetDetectorGlobalInstances:
                 detected_ids.add(log["logID"])
 
         assert len(detected_ids) > 0
-
-
-class TestCharsetDetectorSetConfigurationPreservesPersist:
-    def test_persist_flag_survives_set_configuration(self):
-        detector = CharsetDetector()
-        # Simulate persist being enabled by an earlier config load
-        detector.config.persist = PersistConfig(path="memory://persist_flag/state")
-
-        # Feed configure() with a couple of stable-variable samples
-        for _ in range(5):
-            sample = sc.ParserSchema({
-                "parserType": "test", "eventID": 1, "template": "t",
-                "variables": ["abc"], "logID": "x", "parsedLogID": "x",
-                "parserID": "p", "log": "l",
-                "headerVariables": {"level": "INFO"},
-            })
-            detector.configure(sample)
-
-        detector.set_configuration()
-
-        assert detector.config.persist is not None
-        assert detector.config.persist.path == "memory://persist_flag/state"

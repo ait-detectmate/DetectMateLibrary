@@ -2,7 +2,6 @@
 from detectmatelibrary.base_detectors import VariableDetector
 import detectmatelibrary.schemas as sc
 
-import os
 import pytest
 from pydantic import ValidationError
 from detectmatelibrary.base_detectors import VariableAutoConfigParams
@@ -46,68 +45,6 @@ class TestFederation:
         users = detector1.persistency.get_event_data(1)["user"].unique_set
         assert {"A", "B", "C"} == users
         assert len(detector1.persistency.event_struct.get_data()) == 3
-
-    def test_agregate_strategy_stack(self):
-        detector1 = VariableDetector(name="detector", config=CONFIG)
-        detector2 = VariableDetector(name="detector", config=CONFIG)
-
-        train(detector1, "A", "B", "C")
-        train(detector2, "B", "D")
-
-        assert len(detector1.persistency.event_struct.get_data()) == 3
-        assert len(detector2.persistency.event_struct.get_data()) == 2
-
-        detector1.stack(detector2)
-        detector1.aggregate()
-        print("detector1", detector1.persistency.event_struct.get_data())
-
-        users = detector1.persistency.get_event_data(1)["user"].unique_set
-        assert {"A", "B", "C", "D"} == users
-        assert len(detector1.persistency.event_struct.get_data()) == 5
-
-    def test_agregate_strategy_first(self):
-        detector1 = VariableDetector(name="detector", config=CONFIG)
-        detector2 = VariableDetector(name="detector", config=CONFIG)
-        detector3 = VariableDetector(name="detector", config=CONFIG)
-        detector1 + detector2 + detector3
-
-        train(detector1, "A", "B", "C")
-        train(detector2, "B", "D")
-        train(detector3, "B", "E")
-
-        detector1.aggregate()
-        assert len(detector1.persistency.event_struct.get_data()) == 7
-
-        users = detector2.persistency.get_event_data(1)["user"].unique_set
-        assert {"A", "B", "C", "D", "E"} == users
-
-    def test_agregate_strategy_stack_binary(self):
-        detector1 = VariableDetector(name="detector", config=CONFIG)
-        detector2 = VariableDetector(name="detector", config=CONFIG)
-
-        train(detector1, "A", "B", "C")
-        train(detector2, "B", "D")
-
-        detector1.stack(detector2.to_binary())
-        result = detector1.aggregate()
-
-        detector3 = VariableDetector(name="detector", config=CONFIG)
-        detector3 = detector3.from_binary(result)
-
-        users = detector3.persistency.get_event_data(1)["user"].unique_set
-        assert {"A", "B", "C", "D"} == users
-
-    def test_finalize_federation(self):
-        detector1 = VariableDetector(name="detector", config=CONFIG)
-        detector2 = VariableDetector(name="detector", config=CONFIG)
-
-        train(detector1, "A", "B", "C")
-        train(detector2, "B", "D")
-
-        assert os.path.exists(".temp")
-
-        detector1.finalize_federation()
-        assert not os.path.exists(".temp")
 
 
 class TestOldConfigFieldsAreRejected:

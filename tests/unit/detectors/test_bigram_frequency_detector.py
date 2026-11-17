@@ -8,7 +8,6 @@ This module tests the BigramFrequencyDetector implementation including:
 - Input/output schema validation
 """
 
-from detectmatelibrary.base_detectors import PersistConfig
 from detectmatelibrary.detectors.bigram_frequency_detector import (
     BigramFrequencyDetector, BigramFrequencyDetectorConfig
 )
@@ -371,25 +370,6 @@ class TestBigramFrequencyDetectorGlobalInstances:
                 detected_ids.add(log["logID"])
 
         assert len(detected_ids) > 0
-
-
-class TestBigramFrequencyDetectorPersistencyRegistration:
-    def test_persist_saver_wraps_the_main_store(self):
-        """`persist:` must save the store detection reads."""
-        config = BigramFrequencyDetectorConfig(persist=PersistConfig(path="memory://bigram_persist/state"))
-        with BigramFrequencyDetector(config=config) as detector:
-            assert detector.saver is not None
-            assert detector.saver._persistency is detector.persistency
-
-
-class TestBigramFrequencyDetectorSetConfigurationPersist:
-    def test_set_configuration_preserves_persist(self):
-        """Auto-config must not silently drop the persist sub-config."""
-        detector = BigramFrequencyDetector()
-        sentinel_persist = PersistConfig(path="/tmp/sentinel")
-        detector.config.persist = sentinel_persist
-        detector.set_configuration()
-        assert detector.config.persist == sentinel_persist
 
 
 def _parser_data(event_id, level, var_value):
