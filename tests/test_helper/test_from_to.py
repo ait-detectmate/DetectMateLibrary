@@ -6,7 +6,6 @@ import detectmatelibrary.schemas as sc
 import detectmateperformance as dmp
 import polars as pl
 import json
-import pytest
 import yaml
 import os
 
@@ -15,20 +14,15 @@ expected_log = "pid=<*> uid=<*> auid=<*> ses=<*> msg='op=<*> "
 expected_log += "acct=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'"
 log_path = AUDIT_TEMPLATES
 
-# Output files, relative to the test's working directory: every test here runs in
-# its own temporary directory (_work_in_tmp_path), so nothing is written next to
-# the test data and nothing has to be cleaned up.
+# Output files, relative to the test's working directory: every test runs in its
+# own temporary directory (tests/conftest.py), so nothing is written next to the
+# test data and nothing has to be cleaned up.
 DUMMY_TXT_PATH, DUMMY_TXT_PATH2 = "dummy.txt", "dummy2.txt"
 DUMMY_JSON_PATH, DUMMY_JSON_PATH2 = "dummy.json", "dummy2.json"
 DUMMY_YAML_PATH, DUMMY_YAML_PATH2 = "dummy.yaml", "dummy2.yaml"
 binary_path, binary_path2 = DUMMY_TXT_PATH, DUMMY_TXT_PATH2
 json_path, json_path2 = DUMMY_JSON_PATH, DUMMY_JSON_PATH2
 yaml_path, yaml_path2 = DUMMY_YAML_PATH, DUMMY_YAML_PATH2
-
-
-@pytest.fixture(autouse=True)
-def _work_in_tmp_path(tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
 
 
 class TestCaseTo:

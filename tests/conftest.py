@@ -5,9 +5,10 @@ of the default run by `addopts`; `-m ""` runs everything. `needs_cxx`,
 `needs_mongo` and `needs_redis` skip a test locally when the dependency is
 missing and fail it in CI (see "Required dependencies" below).
 
-Global-state isolation: every piece of process-wide state that a test can
-change is restored after each test, whatever the test does. See the
-fixtures in the "Isolation" section below.
+Global-state isolation: every test runs in its own working directory, and
+every piece of process-wide state that a test can change is restored after
+each test, whatever the test does. See the fixtures in the "Isolation"
+section below.
 """
 import copy
 import functools
@@ -31,11 +32,6 @@ from detectmatelibrary.common.core import CoreComponent
 from detectmatelibrary.schemas.connectors.default import ver_record
 from detectmatelibrary.utils import aux
 from detectmatelibrary.utils.persistency.persistency_saver import _SaveTimer
-from detectmatelibrary.utils.persistency.slow_persistency import clean_generated_path
-
-
-def pytest_sessionfinish(session, exitstatus):
-    clean_generated_path()
 
 
 # ---- Required dependencies ---------------------------------------------------
@@ -108,6 +104,19 @@ def frozen_timestamps() -> Iterator[None]:
     test."""
     aux.time_test_mode(True)
     yield
+
+
+@pytest.fixture(autouse=True)
+def _isolated_working_directory(tmp_path: Any, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Every test runs in its own empty working directory.
+
+    Anything written to a relative path (the slow store's .temp/ CSVs, a
+    persist path such as ./state, output files) lands there and
+    disappears with the test, instead of in the repository. Tests that
+    need the repository root as working directory (doc examples) change
+    to it explicitly.
+    """
+    monkeypatch.chdir(tmp_path)
 
 
 @pytest.fixture(autouse=True)

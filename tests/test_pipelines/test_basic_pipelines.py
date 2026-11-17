@@ -7,7 +7,7 @@ from detectmatelibrary.detectors.new_value_detector import NewValueDetector
 from detectmatelibrary.detectors.random_detector import RandomDetector
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
-from tests.support.paths import LOG_PATH, TEST_CONFIG
+from tests.support.paths import LOG_PATH, TEST_CONFIG, TEST_TEMPLATES
 import yaml
 
 
@@ -117,6 +117,8 @@ class TestExamples:
     def test_config_example(self) -> None:
         with open(TEST_CONFIG, 'r') as file:
             config = yaml.safe_load(file)
+        # The YAML names its templates file relative to the repository root.
+        config["parsers"]["MatcherParser"]["params"]["path_templates"] = TEST_TEMPLATES
 
         # Nothing should crash
 

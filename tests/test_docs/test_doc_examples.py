@@ -27,6 +27,13 @@ example_files = [
 ]
 
 
+@pytest.fixture(autouse=True)
+def _run_from_repository_root(monkeypatch):
+    """The examples use paths relative to the repository root, as the docs show
+    them."""
+    monkeypatch.chdir(home)
+
+
 @pytest.mark.docs
 @pytest.mark.parametrize("example", example_files)
 def test_doc_example_runs(example):

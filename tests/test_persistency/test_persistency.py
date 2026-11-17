@@ -10,12 +10,15 @@ from detectmatelibrary.utils.persistency.data_structures.trackers import (
     SingleStabilityTracker,
     EventStabilityTracker
 )
-from detectmatelibrary.utils.persistency.slow_persistency import SlowPersistency, Manager
+from detectmatelibrary.utils.persistency.slow_persistency import (
+    Manager, SlowPersistency, clean_generated_path, generate_path
+)
 from detectmatelibrary.utils.persistency.basic_persistency import PersistencyStruct, get_all_variables
 
 import pytest
 import polars as pl
 import os
+import pathlib
 
 
 # Sample test data - variables is a list, not a dict
@@ -83,6 +86,21 @@ class TestSlowPersisntecy:
 
         assert len(df) == 2
         assert persistency == SlowPersistency.from_dataframe(df)
+
+    def test_clean_generated_path_removes_the_generated_files_and_folder(self) -> None:
+        # The test runs in its own working directory (tests/conftest.py).
+        paths = [generate_path(), generate_path()]
+        for path in paths:
+            pathlib.Path(path).write_text("a,b\n")
+        assert all(os.path.exists(path) for path in paths)
+
+        clean_generated_path()
+
+        assert not os.path.exists(".temp")
+
+    def test_clean_generated_path_without_generated_files_does_nothing(self) -> None:
+        clean_generated_path()
+        assert not os.path.exists(".temp")
 
 
 class TestPersistencyStruct:
