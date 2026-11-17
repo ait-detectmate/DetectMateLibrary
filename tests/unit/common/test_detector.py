@@ -47,16 +47,6 @@ class MockupDetector_buffer(CoreDetector):
         return True
 
 
-class IncompleteMockupDetector(CoreDetector):
-    def __init__(self, name: str, config: CoreDetectorConfig) -> None:
-        super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
-
-    def detect(self, input_, output_):
-        output_.description = "hii"
-
-        return True
-
-
 class NoneMockupDetector(CoreDetector):
     def __init__(self, name: str, config: CoreDetectorConfig) -> None:
         super().__init__(name=name, buffer_mode=BufferMode.NO_BUF, config=config)
@@ -170,27 +160,17 @@ class TestCoreDetector:
         result = detector.process(data)
         assert result == expected_result, f"result -> {expected_result} and {result}"
 
-    def test_process_input_schema_not_serialized_buffer_3(self) -> None:
-        detector = MockupDetector_window(name="TestDetector01", config=MockupConfig())
-        expected_result = sc.DetectorSchema({
-            "__version__": "2.0.0",
-            "detectorID": "TestDetector01",
-            "detectorType": "core_detector",
-            "alertID": "TestDetector01_10",
-            "detectedTimestamp": 0,
-            "logIDs": ["0", "0", "0"],
-            "score": 0.9,
-            "description": "hii",
-            "logTimestamps": [12121, 12121, 12121],
-            "receivedTimestamp": 0,
-        })
-        data = sc.ParserSchema(dummy_schema)
+    def test_batch_mode_outputs_once_per_full_batch(self) -> None:
+        """BATCH hands detect() three records at a time, then starts over
+        (WINDOW, above, slides by one)."""
+        detector = MockupDetector_buffer(name="TestDetector", config=MockupConfig())
+        records = [sc.ParserSchema({**dummy_schema, "logID": str(i)}) for i in range(6)]
 
-        assert detector.process(data) is None
-        assert detector.process(data) is None
+        outputs = [detector.process(record) for record in records]
 
-        result = detector.process(data)
-        assert result == expected_result, f"result -> {expected_result} and {result}"
+        assert [output is not None for output in outputs] == [False, False, True, False, False, True]
+        assert list(outputs[2]["logIDs"]) == ["0", "1", "2"]
+        assert list(outputs[5]["logIDs"]) == ["3", "4", "5"]
 
     def test_none_detector(self) -> None:
         detector = NoneMockupDetector(name="TestDetector", config=MockupConfig())

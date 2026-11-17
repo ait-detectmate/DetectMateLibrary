@@ -19,15 +19,6 @@ class MockupParser(CoreParser):
         output_.variables = ["a", "b"]
 
 
-class IncompleteMockupParser(CoreParser):
-    def __init__(self, name: str, config: CoreParserConfig) -> None:
-        super().__init__(name=name, config=config)
-
-    def parse(self, input_, output_):
-        output_.eventID = 1
-        output_.variables = ["a", "b"]
-
-
 class NoneMockupParser(CoreParser):
     def __init__(self, name: str, config: CoreParserConfig) -> None:
         super().__init__(name=name, config=config)
