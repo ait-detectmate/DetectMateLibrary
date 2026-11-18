@@ -10,9 +10,8 @@ from detectmatelibrary.parsers.tree_matcher import TemplateCppTreeMatcherConfig
 from detectmatelibrary.parsers.autoparser import AutoParserConfig
 from detectmatelibrary.alert_aggregation.logid_count import LogIDCountAggegationConfig
 import logging
-import pymongo
-import redis
 import pytest
+from tests.support.databases import MongoDatabase, RedisDatabases
 
 
 class TestPipeline:
@@ -146,13 +145,8 @@ class TestPipeline:
 
     @pytest.mark.needs_mongo
     @pytest.mark.slow
-    def test_full_pipeline_mongo(self) -> None:
+    def test_full_pipeline_mongo(self, mongo_db: MongoDatabase) -> None:
         logging.getLogger().setLevel(logging.CRITICAL)
-        client = pymongo.MongoClient("mongodb://localhost:27017")
-        for col_n in ["Parser", "Detector", "Aggregator"]:
-            col = client["FullPipeline"][col_n]
-            col.delete_many({})
-        client.close()
 
         config = PipelineConfig(
             do_parsing=True,
@@ -162,7 +156,7 @@ class TestPipeline:
                 path_templates=AUDIT_TEMPLATES,
                 log_format="type=<Type> msg=audit(<Time>): <Content>",
                 connector_name="Mongo",
-                connector_url="mongodb://localhost:27017/FullPipeline/Parser",
+                connector_url=mongo_db.url("Parser"),
             )],
             detectors=[
                 ECVCDetectorConfig(
@@ -172,20 +166,20 @@ class TestPipeline:
                     validation_per=0.,
                     threshold_method="mean",
                     connector_name="Mongo",
-                    connector_url="mongodb://localhost:27017/FullPipeline/Detector",
+                    connector_url=mongo_db.url("Detector"),
                 ),
                 CharsetDetectorConfig(
                     data_use_configure=TRAIN_UNTIL,
                     data_use_training=1,
                     auto_config=True,
                     connector_name="Mongo",
-                    connector_url="mongodb://localhost:27017/FullPipeline/Detector",
+                    connector_url=mongo_db.url("Detector"),
                 )
             ],
             aggregator=LogIDCountAggegationConfig(
                 max_count=1,
                 connector_name="Mongo",
-                connector_url="mongodb://localhost:27017/FullPipeline/Aggregator",
+                connector_url=mongo_db.url("Aggregator"),
             )
         )
 
@@ -194,23 +188,19 @@ class TestPipeline:
             if pipeline.process(parsed_log) is not None:
                 break
 
-        sc.set_connector("Mongo", url="mongodb://localhost:27017/FullPipeline/Parser")
+        sc.set_connector("Mongo", url=mongo_db.url("Parser"))
         assert sc.ParserSchema.from_id("TreeMatcher_10")["log"] != ""
 
-        sc.set_connector("Mongo", url="mongodb://localhost:27017/FullPipeline/Detector")
+        sc.set_connector("Mongo", url=mongo_db.url("Detector"))
         assert sc.DetectorSchema.from_id("CharsetDetector_10")["score"] != 0.0
 
-        sc.set_connector("Mongo", url="mongodb://localhost:27017/FullPipeline/Aggregator")
+        sc.set_connector("Mongo", url=mongo_db.url("Aggregator"))
         assert sc.AggregateSchema.from_id("LogIDCountAggregator_10")["logIDs"] != ""
 
     @pytest.mark.needs_redis
     @pytest.mark.slow
-    def test_full_pipeline_redis(self) -> None:
+    def test_full_pipeline_redis(self, redis_dbs: RedisDatabases) -> None:
         logging.getLogger().setLevel(logging.CRITICAL)
-        for i in range(3):
-            client = redis.Redis(host="localhost", port=6379, db=i)
-            client.flushdb()
-            client.close()
 
         config = PipelineConfig(
             do_parsing=True,
@@ -220,7 +210,7 @@ class TestPipeline:
                 path_templates=AUDIT_TEMPLATES,
                 log_format="type=<Type> msg=audit(<Time>): <Content>",
                 connector_name="Redis",
-                connector_url="http://localhost:6379:0",
+                connector_url=redis_dbs.url(0),
             )],
             detectors=[
                 ECVCDetectorConfig(
@@ -230,20 +220,20 @@ class TestPipeline:
                     validation_per=0.,
                     threshold_method="mean",
                     connector_name="Redis",
-                    connector_url="http://localhost:6379:1",
+                    connector_url=redis_dbs.url(1),
                 ),
                 CharsetDetectorConfig(
                     data_use_configure=TRAIN_UNTIL,
                     data_use_training=1,
                     auto_config=True,
                     connector_name="Redis",
-                    connector_url="http://localhost:6379:1",
+                    connector_url=redis_dbs.url(1),
                 )
             ],
             aggregator=LogIDCountAggegationConfig(
                 max_count=1,
                 connector_name="Redis",
-                connector_url="http://localhost:6379:2",
+                connector_url=redis_dbs.url(2),
             )
         )
 
@@ -252,11 +242,11 @@ class TestPipeline:
             if pipeline.process(parsed_log) is not None:
                 break
 
-        sc.set_connector("Redis", url="http://localhost:6379:0")
+        sc.set_connector("Redis", url=redis_dbs.url(0))
         assert sc.ParserSchema.from_id("TreeMatcher_10")["log"] != ""
 
-        sc.set_connector("Redis", url="http://localhost:6379:1")
+        sc.set_connector("Redis", url=redis_dbs.url(1))
         assert sc.DetectorSchema.from_id("CharsetDetector_10")["score"] != 0.0
 
-        sc.set_connector("Redis", url="http://localhost:6379:2")
+        sc.set_connector("Redis", url=redis_dbs.url(2))
         assert sc.AggregateSchema.from_id("LogIDCountAggregator_10")["logIDs"] != ""

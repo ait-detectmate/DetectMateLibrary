@@ -33,16 +33,11 @@ dummy_parser_schema = {
 
 class TestMongoConnector:
     @pytest.mark.needs_mongo
-    def test_insert_data(self):
-        args = mongo_c.MongoArgs(
-            url="mongodb://localhost:27017",
-            database="TestDataset",
-            collection="TestCollection"
-        )
+    def test_insert_data(self, mongo_db):
+        args = mongo_c.MongoArgs(url=mongo_db.server, database=mongo_db.name, collection="TestCollection")
 
         client = pymongo.MongoClient(args.url)
         col = client[args.database][args.collection]
-        col.delete_many({})
 
         assert col.count_documents({}) == 0
 
@@ -62,19 +57,13 @@ class TestMongoConnector:
         client.close()
 
     @pytest.mark.needs_mongo
-    def test_insert_multiple_data(self):
-        args = mongo_c.MongoArgs(
-            url="mongodb://localhost:27017",
-            database="TestDataset",
-            collection="TestCollection"
-        )
+    def test_insert_multiple_data(self, mongo_db):
+        args = mongo_c.MongoArgs(url=mongo_db.server, database=mongo_db.name, collection="TestCollection")
 
         client = pymongo.MongoClient(args.url)
         col = client[args.database][args.collection]
-        col.delete_many({})
 
         col1 = client[args.database][args.collection + "_1"]
-        col1.delete_many({})
 
         mongo_c.insert_data("a", [{"d": "test"}, {"c": "hello"}], args=args)
         assert col.count_documents({}) == 1
@@ -91,19 +80,8 @@ class TestMongoConnector:
         client.close()
 
     @pytest.mark.needs_mongo
-    def test_read_data(self):
-        args = mongo_c.MongoArgs(
-            url="mongodb://localhost:27017",
-            database="TestDataset",
-            collection="TestCollection"
-        )
-
-        client = pymongo.MongoClient(args.url)
-        col = client[args.database][args.collection]
-        col.delete_many({})
-
-        col1 = client[args.database][args.collection + "_1"]
-        col1.delete_many({})
+    def test_read_data(self, mongo_db):
+        args = mongo_c.MongoArgs(url=mongo_db.server, database=mongo_db.name, collection="TestCollection")
 
         mongo_c.insert_data("a", [{"d": "test2"}], args=args)
         mongo_c.insert_data("b", [{"d": "test"}, {"c": "hello"}], args=args)
@@ -117,48 +95,20 @@ class TestMongoConnector:
 
         assert mongo_c.read_data("b", args) == [{"d": "test"}, {"c": "hello"}]
 
-        client.close()
-
     @pytest.mark.needs_mongo
-    def test_mongo_connector_log_schema(self):
-        sc.set_connector(
-            "Mongo", url="mongodb://localhost:27017/TestDataset/LogSchema"
-        )
-        args = mongo_c.MongoArgs(
-            url="mongodb://localhost:27017",
-            database="TestDataset",
-            collection="LogSchema"
-        )
-
-        client = pymongo.MongoClient(args.url)
-        col = client[args.database][args.collection]
-        col.delete_many({})
+    def test_mongo_connector_log_schema(self, mongo_db):
+        sc.set_connector("Mongo", url=mongo_db.url("LogSchema"))
 
         log_schema = sc.LogSchema(dummy_log_schema).store()
         log_schema2 = sc.LogSchema.from_id(log_schema["logID"])
 
-        client.close()
-
         assert log_schema == log_schema2
 
     @pytest.mark.needs_mongo
-    def test_mongo_connector_parsed_schema(self):
-        sc.set_connector(
-            "Mongo", url="mongodb://localhost:27017/TestDataset/ParsedSchema"
-        )
-        args = mongo_c.MongoArgs(
-            url="mongodb://localhost:27017",
-            database="TestDataset",
-            collection="ParsedSchema"
-        )
-
-        client = pymongo.MongoClient(args.url)
-        col = client[args.database][args.collection]
-        col.delete_many({})
+    def test_mongo_connector_parsed_schema(self, mongo_db):
+        sc.set_connector("Mongo", url=mongo_db.url("ParsedSchema"))
 
         parsed_schema = sc.ParserSchema(dummy_parser_schema).store()
         parsed_schema2 = sc.ParserSchema.from_id(parsed_schema["parsedLogID"])
-
-        client.close()
 
         assert parsed_schema == parsed_schema2

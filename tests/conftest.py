@@ -34,6 +34,7 @@ from detectmatelibrary.common.core import CoreComponent
 from detectmatelibrary.schemas.connectors.default import ver_record
 from detectmatelibrary.utils import aux
 from detectmatelibrary.utils.persistency.persistency_saver import _SaveTimer
+from tests.support.databases import MONGO_URL, REDIS_HOST, REDIS_PORT, MongoDatabase, RedisDatabases
 
 
 # ---- Levels -------------------------------------------------------------------
@@ -62,8 +63,6 @@ def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
 # the dependency is missing, and fails in CI (where the CI environment
 # variable is set), so a broken runner cannot hide these tests.
 
-_MONGO_URL = "mongodb://localhost:27017"
-_REDIS_HOST, _REDIS_PORT = "localhost", 6379
 _START_SERVICES = "start them with: docker compose -f tests/compose.yaml up -d"
 
 
@@ -75,7 +74,7 @@ def _cxx_available() -> bool:
 @functools.cache
 def _mongo_available() -> bool:
     try:
-        with pymongo.MongoClient(_MONGO_URL, serverSelectionTimeoutMS=500) as client:
+        with pymongo.MongoClient(MONGO_URL, serverSelectionTimeoutMS=500) as client:
             client.admin.command("ping")
         return True
     except pymongo.errors.PyMongoError:
@@ -87,7 +86,7 @@ def _redis_available() -> bool:
     # retry=Retry(NoBackoff(), 0): redis-py retries by default, which turns
     # the 0.5 s timeout into several seconds.
     client = redis.Redis(
-        host=_REDIS_HOST, port=_REDIS_PORT, socket_connect_timeout=0.5, socket_timeout=0.5,
+        host=REDIS_HOST, port=REDIS_PORT, socket_connect_timeout=0.5, socket_timeout=0.5,
         retry=Retry(NoBackoff(), 0),
     )
     try:
@@ -100,8 +99,8 @@ def _redis_available() -> bool:
 
 _REQUIRED: dict[str, tuple[Callable[[], bool], str]] = {
     "needs_cxx": (_cxx_available, "needs a C++ compiler (g++) for torch.compile"),
-    "needs_mongo": (_mongo_available, f"needs MongoDB at {_MONGO_URL}; {_START_SERVICES}"),
-    "needs_redis": (_redis_available, f"needs Redis at {_REDIS_HOST}:{_REDIS_PORT}; {_START_SERVICES}"),
+    "needs_mongo": (_mongo_available, f"needs MongoDB at {MONGO_URL}; {_START_SERVICES}"),
+    "needs_redis": (_redis_available, f"needs Redis at {REDIS_HOST}:{REDIS_PORT}; {_START_SERVICES}"),
 }
 
 
@@ -115,6 +114,32 @@ def pytest_runtest_setup(item: pytest.Item) -> None:
             if _in_ci():
                 pytest.fail(f"{reason} (missing on this CI runner)", pytrace=False)
             pytest.skip(reason)
+
+
+# ---- Databases --------------------------------------------------------------
+#
+# Fixed database names on a shared server let two runs (two branches on one
+# machine, a re-run in the same CI job) see each other's data. Every database
+# test takes its database from one of these fixtures instead. The skip above
+# runs before fixtures are set up, so neither touches a missing server.
+
+
+@pytest.fixture
+def mongo_db() -> Iterator[MongoDatabase]:
+    """A fresh MongoDB database, dropped after the test."""
+    database = MongoDatabase()
+    yield database
+    with pymongo.MongoClient(database.server, serverSelectionTimeoutMS=2000) as client:
+        client.drop_database(database.name)
+
+
+@pytest.fixture
+def redis_dbs() -> Iterator[RedisDatabases]:
+    """The Redis test databases, flushed before and after the test."""
+    databases = RedisDatabases()
+    databases.flush()
+    yield databases
+    databases.flush()
 
 
 # ---- Isolation --------------------------------------------------------------
