@@ -5,8 +5,11 @@ from detectmatelibrary.common._config._compile import (
     MissingParamsWarning,
     TypeNotFoundError,
     MethodTypeNotMatch,
+    get_configured_variables,
+    get_global_variables,
 )
 from detectmatelibrary.common._config._formats import EventsConfig, _EventConfig
+from detectmatelibrary.schemas import ParserSchema
 from pydantic import ValidationError
 from tests.support.paths import TEST_CONFIG
 import pytest
@@ -224,3 +227,28 @@ class TestGenerateDetectorConfig:
         )
 
         assert len(config_dict["detectors"]["MultiEventDetector"]["events"]) == 3
+
+
+class TestVariableExtraction:
+    """get_configured_variables / get_global_variables take what the config
+    names from a parsed log, and skip what the log lacks."""
+
+    log = ParserSchema({"eventID": 1, "variables": ["alice", "10.0.0.1"],
+                        "headerVariables": {"Level": "INFO"}})
+
+    def test_configured_variables_by_position_and_header_name(self):
+        events = EventsConfig._init({1: {"inst": {
+            "variables": [{"pos": 0, "name": "user"}, {"pos": 5, "name": "beyond"}],
+            "header_variables": [{"pos": "Level"}, {"pos": "Missing"}]}}})
+        assert get_configured_variables(self.log, events) == {"user": "alice", "Level": "INFO"}
+
+    def test_an_unconfigured_event_gives_nothing(self):
+        assert get_configured_variables(self.log, EventsConfig._init({2: {"inst": {}}})) == {}
+
+    def test_a_plain_dict_entry_names_no_variables(self):
+        assert get_configured_variables(self.log, {1: {}}) == {}
+
+    def test_global_variables_skip_headers_the_log_lacks(self):
+        instances = EventsConfig._init({"*": {"global": {
+            "header_variables": [{"pos": "Level"}, {"pos": "Hostname"}]}}})["*"].instances
+        assert get_global_variables(self.log, instances) == {"Level": "INFO"}

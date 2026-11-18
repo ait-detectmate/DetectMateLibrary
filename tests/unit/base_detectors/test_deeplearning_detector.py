@@ -134,3 +134,31 @@ class TestSessionWindows:
         )
         with pytest.raises(ValueError, match="blk"):
             detector.process(schemas.ParserSchema({"eventID": 1}))
+
+
+class TopKModel(RecordingModel):
+    def train(self, seqs, var_per):
+        self.trained, self.var_per = list(seqs), var_per
+        return {"top_k": 4.0}
+
+
+class TestPostTrain:
+    def test_post_train_trains_the_model_on_the_collected_sequences(self):
+        detector = DeepLearningDetector(
+            model_cls=TopKModel, config=DeepLearningDetectorConfig(window_size=1, validation_per=0.3))
+        for event in (1, 2, 3):
+            detector.train([schemas.ParserSchema({"eventID": event})])
+
+        detector.post_train()
+
+        assert detector.model.trained == [(1,), (2,), (3,)]
+        assert detector.model.var_per == 0.3
+        assert detector.top_k == 4
+        assert detector.train_seqs == []
+
+    def test_a_dict_config_is_read_under_the_detector_name(self):
+        entry = {"method_type": DeepLearningDetectorConfig().method_type, "auto_config": False,
+                 "params": {"window_size": 3}}
+        detector = DeepLearningDetector(
+            model_cls=RecordingModel, name="MyDL", config={"detectors": {"MyDL": entry}})
+        assert detector.config.window_size == 3

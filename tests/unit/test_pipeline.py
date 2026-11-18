@@ -2,6 +2,7 @@
 from detectmatelibrary.pipeline import Pipeline, PipelineConfig, _run_pipeline
 from detectmatelibrary.alert_aggregation.basic_concat import BasicConcatAggregationConfig
 from detectmatelibrary.detectors.random_detector import RandomDetectorConfig
+from detectmatelibrary.detectors.rule_detector import RuleDetectorConfig
 
 from detectmatelibrary._testutils.dummy_parser import DummyParser, DummyParserConfig
 from detectmatelibrary._testutils.dummy_detector import DummyDetectorConfig
@@ -210,3 +211,41 @@ def test_output_schema_matches_aggregation(do_aggregation, expected):
         aggregator=BasicConcatAggregationConfig() if do_aggregation else None,
     )
     assert Pipeline(config=config).output_schema is expected
+
+
+# RuleDetector's default rules alert on a log whose template was not found. Loading it
+# changes RuleDetector's shared default config (bug B1, through selectComponent); the
+# guard in tests/conftest.py restores it and lists these tests at the end of the run.
+NOT_FOUND = sc.ParserSchema({"logID": "1", "eventID": -1, "template": "<Not Found>", "log": "x"})
+FOUND = sc.ParserSchema({"logID": "2", "eventID": 1, "template": "a <*>", "log": "a b"})
+
+
+def _rule_pipeline(n_detectors: int) -> Pipeline:
+    return Pipeline(config=PipelineConfig(
+        do_parsing=False, do_aggregation=False, detectors=[RuleDetectorConfig() for _ in range(n_detectors)]))
+
+
+class TestPipelineProcess:
+    def test_no_alert_gives_none(self):
+        assert _rule_pipeline(1).process(FOUND) is None
+
+    def test_one_alert_gives_the_alert_itself(self):
+        assert isinstance(_rule_pipeline(1).process(NOT_FOUND), sc.DetectorSchema)
+
+    def test_several_alerts_give_a_list(self):
+        alerts = _rule_pipeline(2).process(NOT_FOUND)
+        assert [type(alert) for alert in alerts] == [sc.DetectorSchema, sc.DetectorSchema]
+
+    def test_bytes_in_give_bytes_out(self):
+        output = _rule_pipeline(1).process(NOT_FOUND.serialize())
+        alert = sc.DetectorSchema()
+        alert.deserialize(output)
+        assert list(alert["logIDs"]) == ["1"]
+
+    def test_a_yaml_dict_is_read_under_the_pipeline_name(self):
+        pipeline = Pipeline(name="Rules", config={"main_pipeline": {"Rules": {
+            "method_type": "pipeline",
+            "params": {"do_parsing": False, "do_aggregation": False,
+                       "detectors": [{"detectors": {"RuleDetector": {"method_type": "rule_detector"}}}]},
+        }}})
+        assert isinstance(pipeline.process(NOT_FOUND), sc.DetectorSchema)
