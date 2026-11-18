@@ -1,0 +1,83 @@
+{
+  "chain": "C2",
+  "dataset": "audit.log",
+  "setup": {
+    "parser": {
+      "TemplateCppTreeMatcher": {
+        "templates": "audit_templates.txt",
+        "log_format": "type=<Type> msg=audit(<Time>): <Content>"
+      }
+    },
+    "detectors": {
+      "ECVCDetector": {
+        "data_use_configure": 1800,
+        "window_size": 10,
+        "seed": 0,
+        "validation_per": 0.0,
+        "threshold_method": "mean"
+      },
+      "CharsetDetector": {
+        "data_use_configure": 1800,
+        "data_use_training": 1,
+        "auto_config": true
+      }
+    },
+    "aggregator": {
+      "LogIDCountAggregator": {
+        "max_count": 1
+      }
+    }
+  },
+  "aggregated": true,
+  "outputs": [
+    {
+      "type": "AggregateSchema",
+      "logIDs": [
+        "1859"
+      ]
+    },
+    {
+      "type": "AggregateSchema",
+      "logIDs": [
+        "1860"
+      ]
+    },
+    {
+      "type": "AggregateSchema",
+      "logIDs": [
+        "1861"
+      ]
+    },
+    {
+      "type": "AggregateSchema",
+      "logIDs": [
+        "1862"
+      ]
+    },
+    {
+      "type": "AggregateSchema",
+      "logIDs": [
+        "1864"
+      ]
+    },
+    {
+      "type": "AggregateSchema",
+      "logIDs": [
+        "1865"
+      ]
+    },
+    {
+      "type": "AggregateSchema",
+      "logIDs": [
+        "1866"
+      ]
+    },
+    {
+      "type": "AggregateSchema",
+      "logIDs": [
+        "1867"
+      ]
+    }
+  ],
+  "regenerate": "uv run pytest tests/e2e -m '' --update-golden"
+}

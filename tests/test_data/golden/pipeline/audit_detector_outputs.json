@@ -1,0 +1,91 @@
+{
+  "chain": "C2",
+  "dataset": "audit.log",
+  "setup": {
+    "parser": {
+      "TemplateCppTreeMatcher": {
+        "templates": "audit_templates.txt",
+        "log_format": "type=<Type> msg=audit(<Time>): <Content>"
+      }
+    },
+    "detectors": {
+      "ECVCDetector": {
+        "data_use_configure": 1800,
+        "window_size": 10,
+        "seed": 0,
+        "validation_per": 0.0,
+        "threshold_method": "mean"
+      },
+      "CharsetDetector": {
+        "data_use_configure": 1800,
+        "data_use_training": 1,
+        "auto_config": true
+      }
+    },
+    "aggregator": {
+      "LogIDCountAggregator": {
+        "max_count": 1
+      }
+    }
+  },
+  "aggregated": false,
+  "outputs": [
+    {
+      "type": "DetectorSchema",
+      "logIDs": [
+        "1859"
+      ],
+      "detectorID": "CharsetDetector"
+    },
+    {
+      "type": "DetectorSchema",
+      "logIDs": [
+        "1860"
+      ],
+      "detectorID": "CharsetDetector"
+    },
+    {
+      "type": "DetectorSchema",
+      "logIDs": [
+        "1861"
+      ],
+      "detectorID": "CharsetDetector"
+    },
+    {
+      "type": "DetectorSchema",
+      "logIDs": [
+        "1862"
+      ],
+      "detectorID": "CharsetDetector"
+    },
+    {
+      "type": "DetectorSchema",
+      "logIDs": [
+        "1864"
+      ],
+      "detectorID": "CharsetDetector"
+    },
+    {
+      "type": "DetectorSchema",
+      "logIDs": [
+        "1865"
+      ],
+      "detectorID": "CharsetDetector"
+    },
+    {
+      "type": "DetectorSchema",
+      "logIDs": [
+        "1866"
+      ],
+      "detectorID": "CharsetDetector"
+    },
+    {
+      "type": "DetectorSchema",
+      "logIDs": [
+        "1867"
+      ],
+      "detectorID": "CharsetDetector"
+    }
+  ],
+  "regenerate": "uv run pytest tests/e2e -m '' --update-golden"
+}

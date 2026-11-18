@@ -423,9 +423,10 @@ class MockComponentWithPostTrain(CoreComponent):
             name=name, type_="Dummy", config=config, input_schema=sc.LogSchema
         )
         self.post_train_called: int = 0
+        self.trained: list = []
 
     def train(self, input_) -> None:
-        pass
+        self.trained.append(input_)
 
     def post_train(self) -> None:
         self.post_train_called += 1
@@ -458,6 +459,21 @@ class TestPostTrain:
         assert component.post_train_called == 1
         # subsequent items don't re-trigger it
         component.process(_make_log(4))
+        assert component.post_train_called == 1
+
+    @pytest.mark.xfail(strict=True, raises=AssertionError,
+                       reason="B10: configure records replayed into train() never reach post_train() "
+                              "when data_use_training is None")
+    def test_post_train_follows_the_replayed_configure_records(self) -> None:
+        """Without a training phase the configure records are still replayed
+        into train() (use_config_data_as_training); post_train() must
+        follow."""
+        config = CoreConfig(data_use_configure=2, use_config_data_as_training=True)
+        component = MockComponentWithPostTrain(name="PostTrain4", config=config)
+        for i in range(5):
+            component.process(_make_log(i))
+
+        assert len(component.trained) == 2
         assert component.post_train_called == 1
 
 
