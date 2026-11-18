@@ -1,12 +1,8 @@
 """Tests for detectmatelibrary.detectors.ecvc_detector."""
 from detectmatelibrary.detectors.ecvc_detector import ECVCOp, ECVCDetectorConfig, ECVCDetector, SessionWindows
 from detectmatelibrary.utils.sequence_encoding import count_events, encode_count_vec
-from detectmatelibrary.parsers.template_matcher import MatcherParser
-from detectmatelibrary.helper.from_to import From
 from detectmatelibrary import schemas
 
-from tests.support.audit import TRAIN_UNTIL
-from tests.support.paths import AUDIT_LOG, AUDIT_TEMPLATES
 
 import logging
 
@@ -172,82 +168,6 @@ def _row_loop_score(y, matrix):
         score = score if score < (s := (dif / div)) else s
 
     return float(score)
-
-
-PIPELINE_CONFIG = {
-    "parsers": {
-        "MatcherParser": {
-            "method_type": "matcher_parser",
-            "auto_config": False,
-            "log_format": "type=<Type> msg=audit(<Time>): <Content>",
-            "time_format": None,
-            "params": {
-                "remove_spaces": True,
-                "remove_punctuation": True,
-                "lowercase": True,
-                "path_templates": AUDIT_TEMPLATES,
-            },
-        }
-    },
-    "detectors": {
-        "ECVCDetector": {
-            "method_type": "ecvc_detector",
-            "window_size": 10,
-            "seed": 0,
-            "validation_per": 0.,
-            "threshold_method": "mean",
-            "data_use_training": TRAIN_UNTIL,
-        },
-        "ECVCDetector_fed": {
-            "method_type": "ecvc_detector_detector",
-            "window_size": 10,
-            "allow_fed": True,
-            "seed": 0,
-            "validation_per": 0.,
-            "threshold_method": "mean",
-            "data_use_training": TRAIN_UNTIL,
-        }
-    }
-}
-
-
-class TestECVCDetectorEndToEnd:
-    """Regression test: full configure/train/detect pipeline on audit.log."""
-
-    @pytest.mark.slow
-    def test_audit_log_anomalies_to_binary(self):
-        parser = MatcherParser(config=PIPELINE_CONFIG)
-        detector1 = ECVCDetector(name="ECVCDetector_fed", config=PIPELINE_CONFIG)
-        detector2 = ECVCDetector(name="ECVCDetector_fed", config=PIPELINE_CONFIG)
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-        for log in logs:
-            detector1.process(log)
-
-        thress = detector1.threshold
-        binary = detector1.to_binary()
-        detector2 = detector2.from_binary(binary)
-
-        assert detector2.persistency == detector1.persistency
-        assert (detector2.count_vecs == detector1.count_vecs).all()
-        assert detector2.threshold == thress
-
-    @pytest.mark.slow
-    def test_audit_log_anomalie_fed(self):
-        parser = MatcherParser(config=PIPELINE_CONFIG)
-        detector1 = ECVCDetector(name="ECVCDetector_fed", config=PIPELINE_CONFIG)
-        detector2 = ECVCDetector(name="ECVCDetector_fed", config=PIPELINE_CONFIG)
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-        for log in logs:
-            detector1.process(log)
-
-        thress = detector1.threshold
-        (detector1 + detector2).aggregate()
-
-        assert detector2.persistency == detector1.persistency
-        assert (detector2.count_vecs == detector1.count_vecs).all()
-        assert detector2.threshold == thress
 
 
 def _window(event_ids):

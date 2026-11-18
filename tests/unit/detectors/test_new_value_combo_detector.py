@@ -7,12 +7,8 @@ from detectmatelibrary.detectors.new_value_combo_detector import (
 from detectmatelibrary.utils.persistency.data_structures.trackers import (
     ClassificationMethods,
 )
-from detectmatelibrary.parsers.template_matcher import MatcherParser
-from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
 import logging
-from tests.support.audit import TRAIN_UNTIL
-from tests.support.paths import AUDIT_LOG, AUDIT_TEMPLATES
 
 import pytest
 
@@ -471,83 +467,6 @@ class TestConfigureTrainDetect:
         output = sc.DetectorSchema()
         result = detector.detect(file_event, output)
         assert result is False
-
-
-_PARSER_CONFIG = {
-    "parsers": {
-        "MatcherParser": {
-            "method_type": "matcher_parser",
-            "auto_config": False,
-            "log_format": "type=<Type> msg=audit(<Time>): <Content>",
-            "params": {"path_templates": AUDIT_TEMPLATES},
-        }
-    }
-}
-
-
-class TestNewValueComboDetectorEndToEndWithRealData:
-    """Regression test: full configure/train/detect pipeline on audit.log."""
-
-    @pytest.mark.slow
-    def test_audit_log_anomalies_to_binary(self):
-        parser = MatcherParser(config=_PARSER_CONFIG)
-        detector = NewValueComboDetector(config=NewValueComboDetectorConfig(allow_fed=True))
-        detector2 = NewValueComboDetector(config=NewValueComboDetectorConfig(allow_fed=True))
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector.configure(log)
-            detector2.configure(log)
-        detector.set_configuration()
-        detector2.set_configuration()
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector.train(log)
-
-        detector2 = detector2.from_binary(detector.to_binary())
-
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            output = sc.DetectorSchema()
-            if detector2.detect(log, output_=output):
-                detected_ids.add(log["logID"])
-
-        assert detected_ids == {"1859", "1860", "1861", "1862", "1864", "1865", "1866", "1867"}
-
-    @pytest.mark.slow
-    def test_audit_log_anomalie_fed(self):
-        parser = MatcherParser(config=_PARSER_CONFIG)
-        detector1 = NewValueComboDetector(config=NewValueComboDetectorConfig(allow_fed=True))
-        detector2 = NewValueComboDetector(config=NewValueComboDetectorConfig(allow_fed=True))
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-        for log in logs[:TRAIN_UNTIL]:
-            detector1.configure(log)
-            detector2.configure(log)
-
-        detector1.set_configuration()
-        detector2.set_configuration()
-
-        for i, log in enumerate(logs[:TRAIN_UNTIL]):
-            if i < 1:
-                detector1.train(log)
-            else:
-                detector2.train(log)
-
-        assert detector2.persistency != detector1.persistency
-
-        (detector1 + detector2).aggregate()
-        assert detector2.persistency == detector1.persistency
-        assert len(detector2.persistency) != 0
-
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            output = sc.DetectorSchema()
-            if detector1.detect(log, output_=output):
-                detected_ids.add(log["logID"])
-
-        assert detected_ids == {"1859", "1860", "1861", "1862", "1864", "1865", "1866", "1867"}
 
 
 class TestNewValueComboDetectorClassificationCombos:

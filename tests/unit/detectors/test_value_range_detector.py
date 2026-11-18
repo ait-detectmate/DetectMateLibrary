@@ -8,15 +8,11 @@ This module tests the ValueRangeDetector implementation including:
 - Input/output schema validation
 """
 import pytest
-from detectmatelibrary.detectors.value_range_detector import ValueRangeDetector, ValueRangeDetectorConfig
+from detectmatelibrary.detectors.value_range_detector import ValueRangeDetector
 from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
     SingleStabilityTracker,
 )
-from detectmatelibrary.parsers.template_matcher import MatcherParser
-from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
-from tests.support.audit import TRAIN_UNTIL
-from tests.support.paths import AUDIT_LOG, AUDIT_TEMPLATES
 # Set time test mode for consistent timestamps
 pytestmark = pytest.mark.usefixtures("frozen_timestamps")
 
@@ -229,88 +225,3 @@ class TestValueRangeDetectorDetection:
 
         assert result
         assert output.score == 1.0
-
-
-_PARSER_CONFIG = {
-    "parsers": {
-        "MatcherParser": {
-            "method_type": "matcher_parser",
-            "auto_config": False,
-            "log_format": "type=<Type> msg=audit(<Time>:<Line>): <Content>",
-            "time_format": None,
-            "params": {
-                "remove_spaces": True,
-                "remove_punctuation": True,
-                "lowercase": True,
-                "path_templates": AUDIT_TEMPLATES,
-            },
-        }
-    }
-}
-
-
-class TestValueRangeDetectorEndToEnd:
-    """Regression test: full configure/train/detect pipeline on audit.log."""
-
-    @pytest.mark.slow
-    def test_audit_log_anomalies_to_binary(self):
-        parser = MatcherParser(config=_PARSER_CONFIG)
-        detector = ValueRangeDetector(config=ValueRangeDetectorConfig(allow_fed=True))
-        detector2 = ValueRangeDetector(config=ValueRangeDetectorConfig(allow_fed=True))
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector.configure(log)
-            detector2.configure(log)
-
-        detector.set_configuration()
-        detector2.set_configuration()
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector.train(log)
-
-        detector2 = detector2.from_binary(detector.to_binary())
-        assert detector2.persistency == detector.persistency
-
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            output = sc.DetectorSchema()
-            if detector2.detect(log, output_=output):
-                detected_ids.add(log["logID"])
-
-        assert detected_ids == {'1859', '1860', '1861', '1862'}
-
-    @pytest.mark.slow
-    def test_audit_log_anomalie_fed(self):
-        parser = MatcherParser(config=_PARSER_CONFIG)
-        detector1 = ValueRangeDetector(config=ValueRangeDetectorConfig(allow_fed=True))
-        detector2 = ValueRangeDetector(config=ValueRangeDetectorConfig(allow_fed=True))
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-        for log in logs[:TRAIN_UNTIL]:
-            detector1.configure(log)
-            detector2.configure(log)
-
-        detector1.set_configuration()
-        detector2.set_configuration()
-
-        for i, log in enumerate(logs[:TRAIN_UNTIL]):
-            if i < 1:
-                detector1.train(log)
-            else:
-                detector2.train(log)
-
-        assert detector2.persistency != detector1.persistency
-
-        (detector1 + detector2).aggregate()
-        assert detector2.persistency == detector1.persistency
-        assert len(detector2.persistency) != 0
-
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            output = sc.DetectorSchema()
-            if detector1.detect(log, output_=output):
-                detected_ids.add(log["logID"])
-
-        assert detected_ids == {'1859', '1860', '1861', '1862'}

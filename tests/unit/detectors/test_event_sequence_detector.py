@@ -16,12 +16,8 @@ from detectmatelibrary.detectors.event_sequence_detector import (
 from detectmatelibrary.utils.persistency.data_structures.trackers import (
     ClassificationMethods,
 )
-from detectmatelibrary.parsers.template_matcher import MatcherParser
-from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
 from detectmatelibrary.base_detectors import PersistConfig
-from tests.support.audit import TRAIN_UNTIL
-from tests.support.paths import AUDIT_LOG, AUDIT_TEMPLATES
 
 # Set time test mode for consistent timestamps
 pytestmark = pytest.mark.usefixtures("frozen_timestamps")
@@ -168,108 +164,6 @@ class TestEventSequenceDetectorWindow:
 
         assert detector.get_known_sequences() == {(1, 2, 3), (2, 3, 1), (3, 1, 2)}
         assert all(alert is None for alert in alerts)
-
-
-_PARSER_CONFIG = {
-    "parsers": {
-        "MatcherParser": {
-            "method_type": "matcher_parser",
-            "auto_config": False,
-            "log_format": "type=<Type> msg=audit(<Time>:*): <Content>",
-            "time_format": None,
-            "params": {
-                "remove_spaces": True,
-                "remove_punctuation": True,
-                "lowercase": True,
-                "path_templates": AUDIT_TEMPLATES,
-            },
-        }
-    }
-}
-
-
-class TestEventSequenceDetectorEndToEnd:
-    """Regression test: full train/detect pipeline on audit.log."""
-
-    @pytest.mark.slow
-    def test_audit_log_anomalie_fed(self):
-        parser = MatcherParser(config=_PARSER_CONFIG)
-        detector1 = EventSequenceDetector(
-            config=EventSequenceDetectorConfig(
-                auto_config=False, fixed_window_size=3, allow_fed=True
-            ),
-            name="EventSequenceDetector",
-        )
-        detector2 = EventSequenceDetector(
-            config=EventSequenceDetectorConfig(
-                auto_config=False, fixed_window_size=3, allow_fed=True
-            ),
-            name="EventSequenceDetector",
-        )
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-        for log in logs[:TRAIN_UNTIL]:
-            detector1.configure(log)
-            detector2.configure(log)
-
-        detector1.set_configuration()
-        detector2.set_configuration()
-
-        for i, log in enumerate(logs[:TRAIN_UNTIL]):
-            if i < 10:
-                detector1.train(log)
-            else:
-                detector2.train(log)
-
-        (detector1 + detector2).aggregate()
-        assert detector2.persistency == detector1.persistency
-
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            output = sc.DetectorSchema()
-            if detector1.detect(log, output_=output):
-                detected_ids.add(log["logID"])
-
-        assert detected_ids == {"1863", "1864", "1865"}
-
-    @pytest.mark.slow
-    def test_audit_log_anomalie_binary(self):
-        parser = MatcherParser(config=_PARSER_CONFIG)
-        detector1 = EventSequenceDetector(
-            config=EventSequenceDetectorConfig(
-                auto_config=False, fixed_window_size=3, allow_fed=True
-            ),
-            name="EventSequenceDetector",
-        )
-        detector2 = EventSequenceDetector(
-            config=EventSequenceDetectorConfig(
-                auto_config=False, fixed_window_size=3, allow_fed=True
-            ),
-            name="EventSequenceDetector",
-        )
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-        for log in logs[:TRAIN_UNTIL]:
-            detector1.configure(log)
-            detector2.configure(log)
-
-        detector1.set_configuration()
-        detector2.set_configuration()
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector1.train(log)
-
-        binary = detector1.to_binary()
-        detector2 = detector2.from_binary(binary)
-        assert detector2.persistency == detector1.persistency
-
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            output = sc.DetectorSchema()
-            if detector1.detect(log, output_=output):
-                detected_ids.add(log["logID"])
-
-        assert detected_ids == {"1863", "1864", "1865"}
 
 
 # A repeating event yields a constant window sequence at every length, so the

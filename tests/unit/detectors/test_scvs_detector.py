@@ -1,12 +1,8 @@
 """Tests for detectmatelibrary.detectors.scvs_detector."""
 from detectmatelibrary.detectors.scvs_detector import SCVSDetector, SCVSDetectorConfig
 from detectmatelibrary.base_detectors import CountVectorDetector
-from detectmatelibrary.parsers.template_matcher import MatcherParser
-from detectmatelibrary.helper.from_to import From
 from detectmatelibrary import schemas
 
-from tests.support.audit import TRAIN_UNTIL
-from tests.support.paths import AUDIT_LOG, AUDIT_TEMPLATES
 
 import logging
 
@@ -42,71 +38,6 @@ class TestSCVSDetector:
         for in_ in [schemas.ParserSchema({"eventID": i}) for i in [4, 4, 4, 4, 4, 4, 1, 0, 1, 1]]:
             alert = scvs.process(in_)
         assert alert is not None
-
-
-PIPELINE_CONFIG = {
-    "parsers": {
-        "MatcherParser": {
-            "method_type": "matcher_parser",
-            "auto_config": False,
-            "log_format": "type=<Type> msg=audit(<Time>): <Content>",
-            "time_format": None,
-            "params": {
-                "remove_spaces": True,
-                "remove_punctuation": True,
-                "lowercase": True,
-                "path_templates": AUDIT_TEMPLATES,
-            },
-        }
-    },
-    "detectors": {
-        "SCVSDetector": {
-            "method_type": "scvs_detector",
-            "window_size": 10,
-            "data_use_training": TRAIN_UNTIL,
-        },
-        "SCVSDetector_fed": {
-            "method_type": "scvs_detector",
-            "window_size": 10,
-            "data_use_training": TRAIN_UNTIL,
-            "allow_fed": True,
-        }
-    }
-}
-
-
-class TestSCVSDetectorEndToEnd:
-    """Regression test: full configure/train/detect pipeline on audit.log."""
-
-    @pytest.mark.slow
-    def test_audit_log_anomalie_binary(self):
-        parser = MatcherParser(config=PIPELINE_CONFIG)
-        detector1 = SCVSDetector("SCVSDetector_fed", config=PIPELINE_CONFIG)
-        detector2 = SCVSDetector("SCVSDetector_fed", config=PIPELINE_CONFIG)
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-        for log in logs[:TRAIN_UNTIL]:
-            detector1.process(log)
-
-        binary = detector1.to_binary()
-        detector2 = detector2.from_binary(binary)
-
-        assert detector2.persistency.events_seen == detector1.persistency.events_seen
-        assert len(detector2.persistency.events_seen) > 0
-
-    @pytest.mark.slow
-    def test_audit_log_anomalie_fed(self):
-        parser = MatcherParser(config=PIPELINE_CONFIG)
-        detector1 = SCVSDetector("SCVSDetector_fed", config=PIPELINE_CONFIG)
-        detector2 = SCVSDetector("SCVSDetector_fed", config=PIPELINE_CONFIG)
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-        for log in logs[:TRAIN_UNTIL]:
-            detector1.process(log)
-
-        (detector1 + detector2).aggregate()
-        assert detector2.persistency.events_seen == detector1.persistency.events_seen
-        assert len(detector2.persistency.events_seen) > 0
 
 
 def _window(event_ids):

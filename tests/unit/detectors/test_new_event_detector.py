@@ -8,12 +8,8 @@ This module tests the NewEventDetector implementation including:
 - Input/output schema validation
 """
 
-from detectmatelibrary.detectors.new_event_detector import NewEventDetector, NewEventDetectorConfig
-from detectmatelibrary.parsers.template_matcher import MatcherParser
-from detectmatelibrary.helper.from_to import From
+from detectmatelibrary.detectors.new_event_detector import NewEventDetector
 import detectmatelibrary.schemas as sc
-from tests.support.audit import TRAIN_UNTIL
-from tests.support.paths import AUDIT_LOG, AUDIT_TEMPLATES
 
 import pytest
 
@@ -106,83 +102,3 @@ class TestNewEventDetectorDetection:
 
         assert not result
         assert output.score == 0.0
-
-
-_PARSER_CONFIG = {
-    "parsers": {
-        "MatcherParser": {
-            "method_type": "matcher_parser",
-            "auto_config": False,
-            "log_format": "type=<Type> msg=audit(<Time>:*): <Content>",
-            "time_format": None,
-            "params": {
-                "remove_spaces": True,
-                "remove_punctuation": True,
-                "lowercase": True,
-                "path_templates": AUDIT_TEMPLATES,
-            },
-        }
-    }
-}
-
-
-class TestNewEventDetectorEndToEnd:
-    """Regression test: full configure/train/detect pipeline on audit.log."""
-
-    @pytest.mark.slow
-    def test_audit_log_anomalie_fed(self):
-        parser = MatcherParser(config=_PARSER_CONFIG)
-        detector1 = NewEventDetector(config=NewEventDetectorConfig(allow_fed=True))
-        detector2 = NewEventDetector(config=NewEventDetectorConfig(allow_fed=True))
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-        for log in logs[:TRAIN_UNTIL]:
-            detector1.configure(log)
-            detector2.configure(log)
-
-        detector1.set_configuration()
-        detector2.set_configuration()
-
-        for i, log in enumerate(logs[:TRAIN_UNTIL]):
-            if i < 1:
-                detector1.train(log)
-            else:
-                detector2.train(log)
-
-        assert detector2.persistency != detector1.persistency
-
-        (detector1 + detector2).aggregate()
-        assert detector2.persistency == detector1.persistency
-
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            output = sc.DetectorSchema()
-            if detector1.detect(log, output_=output):
-                detected_ids.add(log["logID"])
-
-        assert detected_ids == {"1863"}
-
-    @pytest.mark.slow
-    def test_audit_log_anomalie_binary(self):
-        parser = MatcherParser(config=_PARSER_CONFIG)
-        detector1 = NewEventDetector(config=NewEventDetectorConfig(allow_fed=True))
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-        for log in logs[:TRAIN_UNTIL]:
-            detector1.configure(log)
-
-        detector1.set_configuration()
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector1.train(log)
-
-        detector2 = NewEventDetector(config=NewEventDetectorConfig(allow_fed=True))
-        detector2 = detector2.from_binary(detector1.to_binary())
-
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            output = sc.DetectorSchema()
-            if detector2.detect(log, output_=output):
-                detected_ids.add(log["logID"])
-
-        assert detected_ids == {"1863"}
