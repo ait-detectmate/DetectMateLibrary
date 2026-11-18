@@ -22,8 +22,9 @@ EXTRA_MARKS = {
 }
 
 example_files = [
-    pytest.param(path, marks=EXTRA_MARKS.get(path.relative_to(examples).as_posix(), []))
+    pytest.param(path, id=name, marks=EXTRA_MARKS.get(name, []))
     for path in sorted(examples.rglob("*.py"))
+    for name in [path.relative_to(examples).as_posix()]
 ]
 
 
