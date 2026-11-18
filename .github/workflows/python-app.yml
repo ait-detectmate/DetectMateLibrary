@@ -61,7 +61,9 @@ jobs:
           exit 1
 
       - name: Test with pytest
-        run: uv run pytest -s -m ""
+        # everything, incl. slow/cli/docs and the database tests; the minimum is the combined
+        # line + branch coverage measured locally without g++/MongoDB/Redis (79.8 %), rounded down
+        run: uv run pytest -m "" --cov=detectmatelibrary --cov-branch --cov-report=term --cov-fail-under=79
 
       - name: Stop Containers
         if: always()
