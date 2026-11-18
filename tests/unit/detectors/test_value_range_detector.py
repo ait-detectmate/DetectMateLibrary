@@ -7,17 +7,14 @@ This module tests the ValueRangeDetector implementation including:
 - Event-specific configuration handling
 - Input/output schema validation
 """
-import logging
 import pytest
 from detectmatelibrary.detectors.value_range_detector import ValueRangeDetector, ValueRangeDetectorConfig
 from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
     SingleStabilityTracker,
 )
-from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
-from detectmatelibrary.tools.logging import logger
 from tests.support.audit import TRAIN_UNTIL
 from tests.support.paths import AUDIT_LOG, AUDIT_TEMPLATES
 # Set time test mode for consistent timestamps
@@ -256,31 +253,6 @@ class TestValueRangeDetectorEndToEnd:
     """Regression test: full configure/train/detect pipeline on audit.log."""
 
     @pytest.mark.slow
-    def test_audit_log_anomalies(self):
-        parser = MatcherParser(config=_PARSER_CONFIG)
-        detector = ValueRangeDetector()
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector.configure(log)
-        detector.set_configuration()
-
-        for log in logs[:TRAIN_UNTIL]:
-            logger.setLevel(logging.CRITICAL)
-            detector.train(log)
-            logger.setLevel(logging.DEBUG)
-
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            output = sc.DetectorSchema()
-            if detector.detect(log, output_=output):
-                detected_ids.add(log["logID"])
-
-        # uid is not always 0 for event id 0. uid=1002 in line 1864 is a different event id.
-        assert detected_ids == {'1859', '1860', '1861', '1862'}
-
-    @pytest.mark.slow
     def test_audit_log_anomalies_to_binary(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = ValueRangeDetector(config=ValueRangeDetectorConfig(allow_fed=True))
@@ -339,42 +311,6 @@ class TestValueRangeDetectorEndToEnd:
         for log in logs[TRAIN_UNTIL:]:
             output = sc.DetectorSchema()
             if detector1.detect(log, output_=output):
-                detected_ids.add(log["logID"])
-
-        assert detected_ids == {'1859', '1860', '1861', '1862'}
-
-
-class TestValueRangeDetectorAutoConfig:
-    """Test that process() drives configure/set_configuration/train/detect
-    automatically."""
-
-    @pytest.mark.slow
-    def test_audit_log_anomalies_via_process(self):
-        parser = MatcherParser(config=_PARSER_CONFIG)
-        detector = ValueRangeDetector()
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-
-        # Phase 1: configure — keep configuring for logs[:TRAIN_UNTIL]
-        detector.fitlogic.config_state.current = EnumState.KEEP
-        for log in logs[:TRAIN_UNTIL]:
-            detector.process(log)
-
-        # Transition: stop configure so next process() call triggers set_configuration()
-        detector.fitlogic.config_state.current = EnumState.STOP
-
-        # Phase 2: train — keep training for logs[:TRAIN_UNTIL]
-        detector.fitlogic.train_state.current = EnumState.KEEP
-        for log in logs[:TRAIN_UNTIL]:
-            logger.setLevel(logging.CRITICAL)
-            detector.process(log)
-            logger.setLevel(logging.DEBUG)
-
-        # Phase 3: detect — stop training so process() only calls detect()
-        detector.fitlogic.train_state.current = EnumState.STOP
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            if detector.process(log) is not None:
                 detected_ids.add(log["logID"])
 
         assert detected_ids == {'1859', '1860', '1861', '1862'}

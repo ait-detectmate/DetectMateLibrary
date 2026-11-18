@@ -11,7 +11,6 @@ This module tests the BigramFrequencyDetector implementation including:
 from detectmatelibrary.detectors.bigram_frequency_detector import (
     BigramFrequencyDetector, BigramFrequencyDetectorConfig
 )
-from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
@@ -39,17 +38,6 @@ _SKIP_REPETITIONS_CONFIG = {
                     }
                 }
             },
-        }
-    }
-}
-
-# Same parameters, but the configure phase picks the variables.
-_AUTO_SKIP_REPETITIONS_CONFIG = {
-    "detectors": {
-        "MultipleDetector": {
-            "method_type": "bigram_frequency_detector",
-            "auto_config": True,
-            "params": {"skip_repetitions": True},
         }
     }
 }
@@ -242,32 +230,6 @@ class TestBigramFrequencyDetectorEndToEnd:
     """Regression test: full configure/train/detect pipeline on audit.log."""
 
     @pytest.mark.slow
-    def test_audit_log_anomalies(self):
-        parser = MatcherParser(config=_PARSER_CONFIG)
-        detector = BigramFrequencyDetector(
-            config=BigramFrequencyDetectorConfig(
-                skip_repetitions=False
-            )
-        )
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector.configure(log)
-        detector.set_configuration()
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector.train(log)
-
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            output = sc.DetectorSchema()
-            if detector.detect(log, output_=output):
-                detected_ids.add(log["logID"])
-
-        assert detected_ids == {'1859', '1860', '1861', '1862'}
-
-    @pytest.mark.slow
     def test_audit_log_anomalie_fed(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector1 = BigramFrequencyDetector(
@@ -309,40 +271,6 @@ class TestBigramFrequencyDetectorEndToEnd:
                 detected_ids.add(log["logID"])
 
         assert detected_ids == {'1859', '1860', '1861', '1862'}
-
-
-class TestBigramFrequencyDetectorAutoConfig:
-    """Test that process() drives configure/set_configuration/train/detect
-    automatically."""
-
-    @pytest.mark.slow
-    def test_audit_log_anomalies_via_process(self):
-        parser = MatcherParser(config=_PARSER_CONFIG)
-        detector = BigramFrequencyDetector(config=_AUTO_SKIP_REPETITIONS_CONFIG, name="MultipleDetector")
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-
-        # Phase 1: configure — keep configuring for logs[:TRAIN_UNTIL]
-        detector.fitlogic.config_state.current = EnumState.KEEP
-        for log in logs[:TRAIN_UNTIL]:
-            detector.process(log)
-
-        # Transition: stop configure so next process() call triggers set_configuration()
-        detector.fitlogic.config_state.current = EnumState.STOP
-
-        # Phase 2: train — keep training for logs[:TRAIN_UNTIL]
-        detector.fitlogic.train_state.current = EnumState.KEEP
-        for log in logs[:TRAIN_UNTIL]:
-            detector.process(log)
-
-        # Phase 3: detect — stop training so process() only calls detect()
-        detector.fitlogic.train_state.current = EnumState.STOP
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            if detector.process(log) is not None:
-                detected_ids.add(log["logID"])
-
-        assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
 
 
 def _parser_data(event_id, level, var_value):

@@ -20,7 +20,6 @@ from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
 from detectmatelibrary.base_detectors import PersistConfig
-from detectmatelibrary.common._core_op._fit_logic import EnumState
 from tests.support.audit import TRAIN_UNTIL
 from tests.support.paths import AUDIT_LOG, AUDIT_TEMPLATES
 
@@ -193,29 +192,6 @@ class TestEventSequenceDetectorEndToEnd:
     """Regression test: full train/detect pipeline on audit.log."""
 
     @pytest.mark.slow
-    def test_audit_log_anomalies(self):
-        pars = MatcherParser(config=_PARSER_CONFIG)
-        detector = EventSequenceDetector(
-            config=EventSequenceDetectorConfig(auto_config=False, fixed_window_size=3),
-            name="EventSequenceDetector",
-        )
-
-        logs = list(From.log(pars, in_path=AUDIT_LOG, do_process=True))
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector.train(log)
-
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            output = sc.DetectorSchema()
-            if detector.detect(log, output_=output):
-                detected_ids.add(log["logID"])
-
-        # One novel event, reported once per window it appears in: with
-        # fixed_window_size=3 that is three consecutive log IDs.
-        assert detected_ids == {"1863", "1864", "1865"}
-
-    @pytest.mark.slow
     def test_audit_log_anomalie_fed(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector1 = EventSequenceDetector(
@@ -294,42 +270,6 @@ class TestEventSequenceDetectorEndToEnd:
                 detected_ids.add(log["logID"])
 
         assert detected_ids == {"1863", "1864", "1865"}
-
-    @pytest.mark.slow
-    def test_audit_log_anomalies_via_process(self):
-        """Same regression, driven through process() so the configure ->
-        set_configuration -> train -> detect lifecycle is exercised."""
-        pars = MatcherParser(config=_PARSER_CONFIG)
-        detector = EventSequenceDetector(name="EventSequenceProcess")
-
-        logs = list(From.log(pars, in_path=AUDIT_LOG, do_process=True))
-
-        # Phase 1: configure
-        detector.fitlogic.config_state.current = EnumState.KEEP
-        for log in logs[:TRAIN_UNTIL]:
-            detector.process(log)
-
-        # Transition: next process() call triggers set_configuration()
-        detector.fitlogic.config_state.current = EnumState.STOP
-
-        # Phase 2: train
-        detector.fitlogic.train_state.current = EnumState.KEEP
-        for log in logs[:TRAIN_UNTIL]:
-            detector.process(log)
-
-        # auto-config settles on the longest stable window in [2..10]
-        assert detector.config.fixed_window_size == 7
-
-        # Phase 3: detect only
-        detector.fitlogic.train_state.current = EnumState.STOP
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            if detector.process(log) is not None:
-                detected_ids.add(log["logID"])
-
-        # The novel event at 1863 plus the neighbouring windows it invalidates:
-        # a 7-long window makes more sequences unique than a short one.
-        assert detected_ids == {str(log_id) for log_id in range(1861, 1871)}
 
 
 # A repeating event yields a constant window sequence at every length, so the

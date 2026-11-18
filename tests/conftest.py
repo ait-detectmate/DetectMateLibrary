@@ -108,6 +108,18 @@ def _in_ci() -> bool:
     return os.environ.get("CI", "").lower() in ("1", "true", "yes")
 
 
+def pytest_addoption(parser: pytest.Parser) -> None:
+    parser.addoption(
+        "--update-golden", action="store_true",
+        help="rewrite the e2e golden files in tests/test_data/golden/ instead of comparing with them",
+    )
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    if config.getoption("--update-golden") and _in_ci():
+        raise pytest.UsageError("--update-golden rewrites expected results; it is not allowed in CI")
+
+
 def pytest_runtest_setup(item: pytest.Item) -> None:
     for marker, (available, reason) in _REQUIRED.items():
         if item.get_closest_marker(marker) is not None and not available():

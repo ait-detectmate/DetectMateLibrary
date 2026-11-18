@@ -9,7 +9,6 @@ This module tests the CharsetDetector implementation including:
 """
 
 from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig
-from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
@@ -274,28 +273,6 @@ class TestCharsetDetectorEndToEnd:
     """Regression test: full configure/train/detect pipeline on audit.log."""
 
     @pytest.mark.slow
-    def test_audit_log_anomalies(self):
-        parser = MatcherParser(config=_PARSER_CONFIG)
-        detector = CharsetDetector()
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector.configure(log)
-        detector.set_configuration()
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector.train(log)
-
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            output = sc.DetectorSchema()
-            if detector.detect(log, output_=output):
-                detected_ids.add(log["logID"])
-
-        assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
-
-    @pytest.mark.slow
     def test_audit_log_anomalies_to_binary(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = CharsetDetector(config=CharsetDetectorConfig(allow_fed=True))
@@ -352,40 +329,6 @@ class TestCharsetDetectorEndToEnd:
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
             if detector1.process(log) is not None:
-                detected_ids.add(log["logID"])
-
-        assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}
-
-
-class TestCharsetDetectorAutoConfig:
-    """Test that process() drives configure/set_configuration/train/detect
-    automatically."""
-
-    @pytest.mark.slow
-    def test_audit_log_anomalies_via_process(self):
-        parser = MatcherParser(config=_PARSER_CONFIG)
-        detector = CharsetDetector()
-
-        logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))
-
-        # Phase 1: configure — keep configuring for logs[:TRAIN_UNTIL]
-        detector.fitlogic.config_state.current = EnumState.KEEP
-        for log in logs[:TRAIN_UNTIL]:
-            detector.process(log)
-
-        # Transition: stop configure so next process() call triggers set_configuration()
-        detector.fitlogic.config_state.current = EnumState.STOP
-
-        # Phase 2: train — keep training for logs[:TRAIN_UNTIL]
-        detector.fitlogic.train_state.current = EnumState.KEEP
-        for log in logs[:TRAIN_UNTIL]:
-            detector.process(log)
-
-        # Phase 3: detect — stop training so process() only calls detect()
-        detector.fitlogic.train_state.current = EnumState.STOP
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            if detector.process(log) is not None:
                 detected_ids.add(log["logID"])
 
         assert detected_ids == {'1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867'}

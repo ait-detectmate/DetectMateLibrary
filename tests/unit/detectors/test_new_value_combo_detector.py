@@ -489,28 +489,6 @@ class TestNewValueComboDetectorEndToEndWithRealData:
     """Regression test: full configure/train/detect pipeline on audit.log."""
 
     @pytest.mark.slow
-    def test_audit_log_anomalies(self):
-        pars = MatcherParser(config=_PARSER_CONFIG)
-        detector = NewValueComboDetector()
-
-        logs = list(From.log(pars, in_path=AUDIT_LOG, do_process=True))
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector.configure(log)
-        detector.set_configuration()
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector.train(log)
-
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            output = sc.DetectorSchema()
-            if detector.detect(log, output_=output):
-                detected_ids.add(log["logID"])
-
-        assert detected_ids == {"1859", "1860", "1861", "1862", "1864", "1865", "1866", "1867"}
-
-    @pytest.mark.slow
     def test_audit_log_anomalies_to_binary(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector = NewValueComboDetector(config=NewValueComboDetectorConfig(allow_fed=True))

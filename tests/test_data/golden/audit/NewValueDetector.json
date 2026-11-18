@@ -1,0 +1,48 @@
+{
+  "chain": "C3",
+  "dataset": "audit.log",
+  "train_until": 1800,
+  "detector": "NewValueDetector",
+  "parser": {
+    "log_format": "type=<Type> msg=audit(<Time>): <Content>",
+    "time_format": null,
+    "params": {
+      "remove_spaces": true,
+      "remove_punctuation": true,
+      "lowercase": true
+    }
+  },
+  "config": {
+    "method_type": "new_value_detector",
+    "auto_config": true,
+    "data_use_configure": 1799,
+    "data_use_training": 1
+  },
+  "alerts": [
+    [
+      "1859"
+    ],
+    [
+      "1860"
+    ],
+    [
+      "1861"
+    ],
+    [
+      "1862"
+    ],
+    [
+      "1864"
+    ],
+    [
+      "1865"
+    ],
+    [
+      "1866"
+    ],
+    [
+      "1867"
+    ]
+  ],
+  "regenerate": "uv run pytest tests/e2e -m '' --update-golden"
+}

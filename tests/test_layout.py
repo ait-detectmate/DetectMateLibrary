@@ -37,6 +37,8 @@ NO_UNIT_TEST_FILE = {
     # tested at another level
     "schemas/connectors/mongos.py": "needs a real MongoDB: tests/integration/test_mongo_connector.py",
     "schemas/connectors/redis.py": "needs a real Redis: tests/integration/test_redis_connector.py",
+    "detectors/deeplog_detector.py": "DeepLearningDetector config: contract, e2e C3",
+    "detectors/logbert_detector.py": "DeepLearningDetector config: contract, e2e C3",
     # out of scope
     "parsers/logbatcher/engine": "vendored LogBatcher engine (MIT), needs an LLM; out of scope",
     "tools/workspace/templates": "copied into generated workspaces; run by tests/e2e/test_workspace_cli.py",

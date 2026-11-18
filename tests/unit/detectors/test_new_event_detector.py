@@ -12,7 +12,6 @@ from detectmatelibrary.detectors.new_event_detector import NewEventDetector, New
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 import detectmatelibrary.schemas as sc
-from detectmatelibrary.common._core_op._fit_logic import EnumState
 from tests.support.audit import TRAIN_UNTIL
 from tests.support.paths import AUDIT_LOG, AUDIT_TEMPLATES
 
@@ -131,28 +130,6 @@ class TestNewEventDetectorEndToEnd:
     """Regression test: full configure/train/detect pipeline on audit.log."""
 
     @pytest.mark.slow
-    def test_audit_log_anomalies(self):
-        pars = MatcherParser(config=_PARSER_CONFIG)
-        detector = NewEventDetector(config=config, name="NewEventDetector")
-
-        logs = list(From.log(pars, in_path=AUDIT_LOG, do_process=True))
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector.configure(log)
-        detector.set_configuration()
-
-        for log in logs[:TRAIN_UNTIL]:
-            detector.train(log)
-
-        detected_ids: set[str] = set()
-        for i, log in enumerate(logs[TRAIN_UNTIL:]):
-            output = sc.DetectorSchema()
-            if detector.detect(log, output_=output):
-                detected_ids.add(log["logID"])
-
-        assert detected_ids == {"1863"}
-
-    @pytest.mark.slow
     def test_audit_log_anomalie_fed(self):
         parser = MatcherParser(config=_PARSER_CONFIG)
         detector1 = NewEventDetector(config=NewEventDetectorConfig(allow_fed=True))
@@ -206,40 +183,6 @@ class TestNewEventDetectorEndToEnd:
         for log in logs[TRAIN_UNTIL:]:
             output = sc.DetectorSchema()
             if detector2.detect(log, output_=output):
-                detected_ids.add(log["logID"])
-
-        assert detected_ids == {"1863"}
-
-
-class TestNewEventDetectorAutoConfig:
-    """Test that process() drives configure/set_configuration/train/detect
-    automatically."""
-
-    @pytest.mark.slow
-    def test_audit_log_anomalies_via_process(self):
-        pars = MatcherParser(config=_PARSER_CONFIG)
-        detector = NewEventDetector()
-
-        logs = list(From.log(pars, in_path=AUDIT_LOG, do_process=True))
-
-        # Phase 1: configure — keep configuring for logs[:TRAIN_UNTIL]
-        detector.fitlogic.config_state.current = EnumState.KEEP
-        for log in logs[:TRAIN_UNTIL]:
-            detector.process(log)
-
-        # Transition: stop configure so next process() call triggers set_configuration()
-        detector.fitlogic.config_state.current = EnumState.STOP
-
-        # Phase 2: train — keep training for logs[:TRAIN_UNTIL]
-        detector.fitlogic.train_state.current = EnumState.KEEP
-        for log in logs[:TRAIN_UNTIL]:
-            detector.process(log)
-
-        # Phase 3: detect — stop training so process() only calls detect()
-        detector.fitlogic.train_state.current = EnumState.STOP
-        detected_ids: set[str] = set()
-        for log in logs[TRAIN_UNTIL:]:
-            if detector.process(log) is not None:
                 detected_ids.add(log["logID"])
 
         assert detected_ids == {"1863"}

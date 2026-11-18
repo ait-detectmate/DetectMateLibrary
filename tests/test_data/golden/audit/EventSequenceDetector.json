@@ -1,0 +1,54 @@
+{
+  "chain": "C3",
+  "dataset": "audit.log",
+  "train_until": 1800,
+  "detector": "EventSequenceDetector",
+  "parser": {
+    "log_format": "type=<Type> msg=audit(<Time>:*): <Content>",
+    "time_format": null,
+    "params": {
+      "remove_spaces": true,
+      "remove_punctuation": true,
+      "lowercase": true
+    }
+  },
+  "config": {
+    "method_type": "event_sequence_detector",
+    "auto_config": true,
+    "data_use_configure": 1799,
+    "data_use_training": 1
+  },
+  "alerts": [
+    [
+      "1861"
+    ],
+    [
+      "1862"
+    ],
+    [
+      "1863"
+    ],
+    [
+      "1864"
+    ],
+    [
+      "1865"
+    ],
+    [
+      "1866"
+    ],
+    [
+      "1867"
+    ],
+    [
+      "1868"
+    ],
+    [
+      "1869"
+    ],
+    [
+      "1870"
+    ]
+  ],
+  "regenerate": "uv run pytest tests/e2e -m '' --update-golden"
+}
