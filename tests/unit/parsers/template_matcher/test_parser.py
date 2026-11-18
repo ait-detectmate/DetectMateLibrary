@@ -1,8 +1,12 @@
 """Tests for detectmatelibrary.parsers.template_matcher._parser."""
+import os
+
 import pytest
 from detectmatelibrary.parsers.template_matcher import MatcherParser, MatcherParserConfig, \
     TemplatesNotFoundError
-from detectmatelibrary.parsers.template_matcher._parser import _compile_templates
+from detectmatelibrary.parsers.template_matcher._parser import (
+    TemplateNoPermissionError, _compile_templates, load_templates,
+)
 
 from detectmatelibrary.common._config._formats import EventsConfig
 from detectmatelibrary import schemas
@@ -241,3 +245,35 @@ class TestNamedEventIdCsv:
 
         assert 0 in compiled.events
         assert compiled.events[0].variables[0].name == "process_id"
+
+
+class TestLoadTemplates:
+    def test_a_csv_names_event_ids_and_skips_empty_templates(self, tmp_path):
+        path = tmp_path / "t.csv"
+        path.write_text('EventId,EventTemplate\nlogin,"user <*>"\nempty,\n,"host <*>"\n')
+        assert load_templates(str(path)) == (["user <*>", "host <*>"], ["login", None])
+
+    def test_a_csv_without_event_ids_gives_positional_ids(self, tmp_path):
+        path = tmp_path / "t.csv"
+        path.write_text('EventTemplate\n"user <*>"\n')
+        assert load_templates(str(path)) == (["user <*>"], [None])
+
+    def test_a_csv_without_templates_is_rejected(self, tmp_path):
+        path = tmp_path / "t.csv"
+        path.write_text("EventId,Template\nlogin,user <*>\n")
+        with pytest.raises(ValueError, match="EventTemplate"):
+            load_templates(str(path))
+
+    def test_other_file_types_are_rejected(self, tmp_path):
+        path = tmp_path / "t.json"
+        path.write_text("[]")
+        with pytest.raises(ValueError, match="Unsupported template file format"):
+            load_templates(str(path))
+
+    @pytest.mark.skipif(os.geteuid() == 0, reason="root can read any file")
+    def test_an_unreadable_file_is_a_permission_error(self, tmp_path):
+        path = tmp_path / "t.txt"
+        path.write_text("user <*>\n")
+        path.chmod(0)
+        with pytest.raises(TemplateNoPermissionError):
+            load_templates(str(path))

@@ -593,3 +593,64 @@ def test_persistency_load_error_is_exception():
     err = PersistencyLoadError("test error")
     assert isinstance(err, Exception)
     assert str(err) == "test error"
+
+
+class TestPersistencySaverBrokenState:
+    """A saved state that cannot be restored raises PersistencyLoadError."""
+
+    ROOT = "corrupt/state"
+
+    def _saved(self) -> fsspec.AbstractFileSystem:
+        saver, _ = _memory_saver(f"memory://{self.ROOT}")
+        saver.save()
+        return fsspec.filesystem("memory")
+
+    def _load(self) -> None:
+        PersistencySaver(EventPersistency(), PersistencySaverConfig(path=f"memory://{self.ROOT}")).load()
+
+    def test_an_unknown_tracker_type(self):
+        fs = self._saved()
+        metadata = json.loads(fs.cat(f"{self.ROOT}/metadata.json"))
+        metadata["event_backends"]["E1"] = "NoSuchTracker"
+        fs.pipe(f"{self.ROOT}/metadata.json", json.dumps(metadata).encode())
+        with pytest.raises(PersistencyLoadError, match="Unknown backend 'NoSuchTracker'"):
+            self._load()
+
+    def test_a_corrupt_event_file(self):
+        fs = self._saved()
+        fs.pipe(f"{self.ROOT}/events/E1.msgpack", b"not msgpack")
+        with pytest.raises(PersistencyLoadError, match="Failed to restore state"):
+            self._load()
+
+    def test_metadata_without_its_fields(self):
+        fs = self._saved()
+        fs.pipe(f"{self.ROOT}/metadata.json", b'{"version": 1}')
+        with pytest.raises(PersistencyLoadError, match="Failed to restore state"):
+            self._load()
+
+
+class TestPersistencySaverStartStop:
+    def test_stop_without_start_saves_nothing(self):
+        saver, _ = _memory_saver("memory://never_started/state")
+        saver.stop()
+        assert not fsspec.filesystem("memory").exists("never_started/state/metadata.json")
+
+    def test_start_outside_the_main_thread_skips_the_signal_handler(self):
+        """signal.signal() only works in the main thread; the saver starts
+        anyway and stop() still saves."""
+        saver, _ = _memory_saver("memory://worker_thread/state")
+        worker = threading.Thread(target=saver.start)
+        worker.start()
+        worker.join()
+
+        assert saver._timer is not None and saver._timer.is_alive()
+        saver.stop()
+        assert fsspec.filesystem("memory").exists("worker_thread/state/metadata.json")
+
+    def test_status_tolerates_unreadable_metadata(self, caplog):
+        saver, _ = _memory_saver("memory://bad_meta/state")
+        fsspec.filesystem("memory").pipe("bad_meta/state/metadata.json", b"{not json")
+        with caplog.at_level(logging.WARNING):
+            status = saver.get_status()
+        assert status["last_saved_at"] is None
+        assert "could not read metadata.json" in caplog.text

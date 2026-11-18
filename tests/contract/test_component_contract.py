@@ -8,6 +8,7 @@ component.
 import pytest
 from pydantic import ValidationError
 
+import detectmatelibrary.schemas as sc
 from detectmatelibrary import detectors
 from detectmatelibrary.common._config._compile import MethodTypeNotMatch
 from detectmatelibrary.helper.select_component import selectComponent
@@ -77,6 +78,13 @@ class TestRuntimeApi:
                 assert component.export_state("memory://contract/state") is None
                 component.import_state("memory://contract/never_saved")
                 component.import_state(b"not a state archive")
+
+    def test_corrupt_bytes_raise_not_supported_schema(self, case):
+        """Bytes that decode as no schema raise the documented exception
+        (docs/schemas.md); bytes of another schema decode without error
+        (question Q-I)."""
+        with case.build() as component, pytest.raises(sc.NotSupportedSchema):
+            component.process(b"\x00\xff\x13 not a schema")
 
 
 @pytest.mark.filterwarnings("ignore:To binary not implemented", "ignore:Load binary not implemented")

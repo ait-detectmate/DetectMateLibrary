@@ -67,6 +67,12 @@ def test_server_of_three_clients_raises_the_golden_alerts(name, join, audit_logs
     assert [list(output["logIDs"]) for output in outputs if output is not None] == golden["alerts"]
 
 
+def _learned(detector: TrackerDetector) -> dict:
+    """What each event's tracker learned, serialized (store equality ignores
+    it: bug B11)."""
+    return {event: tracker.dump() for event, tracker in detector.persistency.get_events_data().items()}
+
+
 @pytest.mark.slow
 @pytest.mark.parametrize("join", ["from_binary", "add"])
 @pytest.mark.parametrize("name", ["ECVCDetector", "SCVSDetector"])
@@ -88,7 +94,7 @@ def test_count_vector_state_reaches_the_other_node(name, join, audit_logs):
         (trained + other).aggregate()
 
     assert trained.persistency.get_events_seen()
-    assert other.persistency == trained.persistency
+    assert _learned(other) == _learned(trained)
     if name == "ECVCDetector":
         assert (other.count_vecs == trained.count_vecs).all()
         assert other.threshold == trained.threshold

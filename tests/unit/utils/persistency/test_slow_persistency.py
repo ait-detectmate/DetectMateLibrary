@@ -6,6 +6,8 @@ import polars as pl
 import os
 import pathlib
 
+import pytest
+
 
 class TestSlowPersisntecy:
     def test_buffer(self) -> None:
@@ -64,3 +66,13 @@ class TestSlowPersisntecy:
     def test_clean_generated_path_without_generated_files_does_nothing(self) -> None:
         clean_generated_path()
         assert not os.path.exists(".temp")
+
+
+class TestSlowPersistencyEdgeCases:
+    def test_load_before_anything_was_written_warns_and_is_empty(self):
+        persistency = SlowPersistency(columns=["char"])
+        with pytest.warns(UserWarning, match="CSV file not found"):
+            assert persistency.load().is_empty()
+
+    def test_only_another_slow_persistency_can_be_equal(self):
+        assert SlowPersistency(columns=["char"]) != "not a store"
