@@ -1,0 +1,40 @@
+# The audit.log pipeline of tests/e2e/test_pipeline.py (chain C2), as a
+# config file: TreeMatcher -> ECVC + Charset -> LogIDCount.
+# path_templates is relative to tests/test_data/; the test resolves it.
+main_pipeline:
+  AuditPipeline:
+    method_type: pipeline
+    params:
+      do_parsing: true
+      do_aggregation: true
+      n_workers: 1
+      parsers:
+        - parsers:
+            TreeMatcher:
+              method_type: tree_matcher
+              auto_config: false
+              log_format: "type=<Type> msg=audit(<Time>): <Content>"
+              params:
+                path_templates: audit_templates.txt
+      detectors:
+        - detectors:
+            ECVCDetector:
+              method_type: ecvc_detector
+              data_use_configure: 1800
+              params:
+                window_size: 10
+                seed: 0
+                validation_per: 0.0
+                threshold_method: mean
+        - detectors:
+            CharsetDetector:
+              method_type: charset_detector
+              auto_config: true
+              data_use_configure: 1800
+              data_use_training: 1
+      aggregator:
+        alert_aggregators:
+          LogIDCountAggregator:
+            method_type: logid_count_aggregator
+            params:
+              max_count: 1
