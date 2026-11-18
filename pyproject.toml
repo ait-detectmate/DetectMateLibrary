@@ -37,7 +37,7 @@ markers = [
     "contract: shared-interface suite over all implementations (applied automatically to tests/contract/)",
     "integration: several real components together (applied automatically to tests/integration/)",
     "e2e: raw logs to alerts through public entry points (applied automatically to tests/e2e/)",
-    "slow: takes more than 2 s; opt-in locally (-m slow), always run in CI",
+    "slow: long-running (DL training, full-dataset runs, more e2e variants); opt-in locally, always run in CI",
     "cli: runs the installed `mate` console script in a subprocess; opt-in locally, always run in CI",
     "docs: runs a file from docs/examples/; opt-in locally, always run in CI",
     "needs_cxx: needs a C++ compiler for torch.compile; skipped locally without one, fails in CI",

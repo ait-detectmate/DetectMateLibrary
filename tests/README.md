@@ -71,7 +71,7 @@ Level markers (`unit`, `contract`, `integration`, `e2e`) come from the directory
 
 | Marker | Meaning | Local default run | CI |
 |---|---|---|---|
-| `slow` | takes more than about 2 s | left out | runs |
+| `slow` | long-running: DL training, full-dataset runs, further variants of an e2e chain (each chain keeps one variant of a few seconds in the default run) | left out | runs |
 | `cli` | runs the installed `mate` console script | left out | runs |
 | `docs` | runs a file from `docs/examples/` | left out | runs |
 | `needs_cxx` | needs a C++ compiler (torch.compile) | skipped if there is none | fails if there is none |
