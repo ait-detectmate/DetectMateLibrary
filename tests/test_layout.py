@@ -48,11 +48,6 @@ NO_UNIT_TEST_FILE = {
     "common/_core_op/_basic_component.py": "gap: covered through CoreComponent",
     "common/_core_op/_schema_pipeline.py": "gap: covered through CoreComponent.process",
     "schemas/connectors/__init__.py": "gap: select_connector covered through set_connector",
-    "utils/id_generator.py": "gap: covered through the components' IDs",
-    "utils/key_extractor.py": "gap: covered through JsonParser",
-    "utils/preview_helpers.py": "gap: hardly covered",
-    "utils/persistency/data_structures/trackers/base/multi_tracker.py": "gap: via the stability trackers",
-    "utils/persistency/data_structures/trackers/rle_list.py": "gap: via the stability classifier tests",
 }
 
 # Unit test files that don't follow the mirror rule yet, and why.
