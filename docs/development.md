@@ -42,6 +42,8 @@ In order to run the tests run the following command. The `dev` group already inc
 uv run --dev pytest
 ```
 
+That default run leaves out the slow, CLI and documentation tests; `uv run --dev pytest -m ""` runs everything, as CI does. Where a new test belongs, the contract registry for new components, golden files and the test markers are described in [`tests/README.md`](https://github.com/ait-detectmate/DetectMateLibrary/blob/development/tests/README.md).
+
 ## Implement auto-configuration in a detector
 
 The user-facing side of auto-configuration is described in the [Detectors overview](detectors.md#auto-configuration-optional). This section covers what a detector has to implement to support it.
@@ -137,7 +139,7 @@ You can also include the whole file by dropping the `:section` suffix
 are the norm. Because `check_paths: true` is set, the build aborts if the file or
 marker doesn't exist, so a missing snippet is caught at build time.
 
-**3. Make sure it's testable.** The test (`tests/test_docs/test_doc_examples.py`)
+**3. Make sure it's testable.** The test (`tests/e2e/test_doc_examples.py`)
 globs every `.py` under `docs/examples/` and runs each one as a script via
 `runpy.run_path(..., run_name="__main__")`. There is no plugin and no assert
 requirement: a snippet passes as long as it runs standalone without raising. If
@@ -147,7 +149,7 @@ plain `pytest` run leaves it out; select it with `-m` (CI runs everything with `
 
 ```console title="Run different unit tests"
 uv run --dev pytest -m ""                      # whole suite, snippets included
-uv run --dev pytest tests/test_docs -m docs    # snippets only
+uv run --dev pytest tests/e2e -m docs          # snippets only
 ```
 
 **4. Component pages: a YAML file, and generated argument tables.** Each parser and
