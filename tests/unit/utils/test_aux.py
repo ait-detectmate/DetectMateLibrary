@@ -1,10 +1,8 @@
 """Tests for detectmatelibrary.utils.aux."""
+from datetime import datetime, timezone
+
+from detectmatelibrary.utils import aux
 from detectmatelibrary.utils.aux import get_timestamp, time_test_mode
-
-from datetime import datetime
-from time import sleep
-
-import pytest
 
 
 class TestTimestamp:
@@ -12,17 +10,12 @@ class TestTimestamp:
         time_test_mode()
         assert get_timestamp() == 0
 
-    def test_no_test_mode(self) -> None:
+    def test_no_test_mode_reads_the_clock(self, monkeypatch) -> None:
+        class FixedClock(datetime):
+            @classmethod
+            def now(cls, tz=None):
+                return cls(2026, 3, 4, 14, 18, 0, 900000, tzinfo=timezone.utc)
+
         time_test_mode(False)
-        assert get_timestamp() != 0
-
-    @pytest.mark.slow
-    def test_get_timestamp(self) -> None:
-        time = get_timestamp()
-        sleep(1)
-        time2 = get_timestamp()
-
-        time = datetime.fromtimestamp(time)
-        time2 = datetime.fromtimestamp(time2)
-
-        assert time.second != time2.second
+        monkeypatch.setattr(aux, "datetime", FixedClock)
+        assert get_timestamp() == 1772633880  # whole seconds, rounded down

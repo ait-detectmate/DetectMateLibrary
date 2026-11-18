@@ -18,6 +18,7 @@ from detectmatelibrary.utils.persistency.persistency_saver import (
 )
 import detectmatelibrary.utils.persistency.persistency_saver as ps
 from detectmatelibrary.utils import persistency
+from tests.support.timing import wait_until
 
 import logging
 import zipfile
@@ -42,7 +43,7 @@ class TestSaveTimer:
         fired = threading.Event()
         timer = _SaveTimer(interval=0.05, callback=fired.set)
         timer.start()
-        assert fired.wait(timeout=1.0), "callback did not fire"
+        assert fired.wait(timeout=5.0), "callback did not fire"
         timer.stop()
         timer.join(timeout=1.0)
 
@@ -52,14 +53,13 @@ class TestSaveTimer:
         def inc():
             count["n"] += 1
 
-        timer = _SaveTimer(interval=0.05, callback=inc)
+        timer = _SaveTimer(interval=0.01, callback=inc)
         timer.start()
-        time.sleep(0.12)
+        wait_until(lambda: count["n"] >= 1)
         timer.stop()
-        timer.join(timeout=1.0)
-        captured = count["n"]
-        time.sleep(0.12)
-        assert count["n"] == captured  # no more fires after stop
+        timer.join(timeout=5.0)
+
+        assert not timer.is_alive()  # the thread ended, so nothing can fire any more
 
 
 def _make_persistency_with_data() -> EventPersistency:
@@ -168,10 +168,10 @@ class TestPersistencySaverTriggers:
         )
         saver = PersistencySaver(p, cfg)
         saver.start()
-        time.sleep(0.15)
-        saver.stop()
         fs = fsspec.filesystem("memory")
-        assert fs.exists("trigger_test/state/metadata.json")
+        # checked before stop(), which saves as well
+        wait_until(lambda: fs.exists("trigger_test/state/metadata.json"))
+        saver.stop()
 
     def test_timed_save_resets_events_since_save(self):
         p = EventPersistency()
@@ -184,10 +184,9 @@ class TestPersistencySaverTriggers:
 
         p.ingest_event(event_id="E1", event_template="T", variables=["x"], named_variables={})
         p.ingest_event(event_id="E1", event_template="T", variables=["y"], named_variables={})
-        time.sleep(0.15)
+        # save() by the timer resets the counter; checked before stop(), which saves as well
+        wait_until(lambda: p._events_since_save == 0)
         saver.stop()
-
-        assert p._events_since_save == 0  # save() was called by the timer, which resets the counter
 
     def test_stop_does_final_save(self):
         p = _make_persistency_with_data()
@@ -344,7 +343,9 @@ class TestPersistencySaverConcurrency:
         with saver.locked():
             t = threading.Thread(target=worker)
             t.start()
-            time.sleep(0.1)  # ample time for an unguarded ingest to complete
+            # ample time for an unguarded ingest to complete; a slow machine can only
+            # make the check below easier to pass, never make it fail
+            time.sleep(0.1)
             assert not done.is_set(), "ingest_event ran while the saver lock was held"
             assert "E1" not in p.get_events_seen()
         t.join(timeout=1.0)
@@ -460,9 +461,8 @@ class TestPersistencySaverSaveFailure:
             p, PersistencySaverConfig(path="memory://save_fail5/state", save_interval_seconds=0)
         )
         saver.start()
-        time.sleep(0.15)
+        wait_until(lambda: len(attempts) > 1)
         assert saver._timer is not None and saver._timer.is_alive()
-        assert len(attempts) > 1
         with pytest.raises(PersistencySaveError):
             saver.stop()
 
@@ -565,15 +565,23 @@ class TestStandaloneSaveLoad:
 
 
 class TestPersistencySaverThreadSafety:
-    def test_load_with_running_timer_does_not_raise(self):
+    def test_load_with_running_timer_does_not_raise(self, monkeypatch):
         p = _make_persistency_with_data()
         path = "memory://threadsafe_test/state"
         # Save initial state
         PersistencySaver(p, PersistencySaverConfig(path=path)).save()
-        # Start a saver with a fast timer
+        # Start a saver with a fast timer and wait until it has written once
+        writes: list[int] = []
+        write = ps._write
+
+        def counting_write(*args):
+            writes.append(1)
+            write(*args)
+
+        monkeypatch.setattr(ps, "_write", counting_write)
         saver = PersistencySaver(p, PersistencySaverConfig(path=path, save_interval_seconds=0))
         saver.start()
-        time.sleep(0.05)
+        wait_until(lambda: writes)
         # Load into a second persistency while first saver's timer is firing
         p2 = EventPersistency()
         PersistencySaver(p2, PersistencySaverConfig(path=path)).load()

@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 import pytest
 
+from detectmatelibrary.utils import time_format_handler
 from detectmatelibrary.utils.time_format_handler import TimeFormatHandler
 
 tfh = TimeFormatHandler()
@@ -47,10 +48,15 @@ def test_parses_to_epoch_seconds(text, expected):
     assert tfh.parse_timestamp(text) == str(expected)
 
 
-def test_syslog_without_year_assumes_current_year():
-    # Expect that a string like 'Nov 11 12:13:14' is parsed with current year
-    s = "Nov 11 12:13:14"
-    year = datetime.now().year
-    dt = datetime.strptime(f"{year} {s}", "%Y %b %d %H:%M:%S")
-    dt = dt.replace(tzinfo=timezone.utc)
-    assert tfh.parse_timestamp(s) == str(int(dt.timestamp()))
+class _NewYearsEve(datetime):
+    """A clock that reads 31 December 2025, 23:59:59."""
+
+    @classmethod
+    def now(cls, tz=None):
+        return cls(2025, 12, 31, 23, 59, 59, tzinfo=tz)
+
+
+def test_syslog_without_year_takes_the_current_year(monkeypatch):
+    monkeypatch.setattr(time_format_handler, "datetime", _NewYearsEve)
+    expected = datetime(2025, 11, 11, 12, 13, 14, tzinfo=timezone.utc)
+    assert tfh.parse_timestamp("Nov 11 12:13:14") == str(int(expected.timestamp()))
