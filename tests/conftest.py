@@ -250,7 +250,7 @@ def _no_leaked_saver_threads() -> Iterator[None]:
 
 # ---- B1 guard: shared default configs ---------------------------------------
 #
-# Bug B1 (see ISSUE_DRAFTS.md): component constructors use a config *instance*
+# Bug B1 (see tests/README.md): component constructors use a config *instance*
 # as their default argument, so every default-constructed component of a class
 # shares it, and set_configuration() mutates it in place. Without this guard,
 # one test that configures `NewValueDetector()` changes `NewValueDetector()`

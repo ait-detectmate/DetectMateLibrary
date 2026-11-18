@@ -5,8 +5,8 @@ The detector (NewValue, set up as in its chain C3 golden file) first learns
 the first TRAIN_UNTIL lines through process(). The file chain then runs on
 a 40-line slice after them that holds every labelled anomaly: FromTo
 rewrites its whole output file for every record, so all of audit.log would
-take minutes (ISSUE_DRAFTS.md, Q-H). The YAML file must hold the slice's
-golden alerts; From.log numbers the slice's lines from 0.
+take minutes (question Q-H in tests/README.md). The YAML file must hold the
+slice's golden alerts; From.log numbers the slice's lines from 0.
 """
 from pathlib import Path
 
