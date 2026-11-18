@@ -1,15 +1,25 @@
-"""Tests for the stability tracking module.
+"""Tests for StabilityClassifier: the verdict on a change series."""
 
-This module tests StabilityClassifier, SingleVariableTracker,
-MultiVariableTracker, and EventVariableTrackerData for variable
-convergence and stability analysis.
-"""
+import pytest
 
 from detectmatelibrary.utils.persistency.data_structures.trackers import (
     StabilityClassifier,
     ClassificationMethods,
 )
 from detectmatelibrary.utils.persistency.data_structures.trackers.rle_list import RLEList
+
+DEFAULT = StabilityClassifier(
+    classification=ClassificationMethods(segment_thresholds=[1.1, 0.3, 0.1, 0.01])
+)
+
+
+def _series(values: list[bool], as_rle: bool) -> RLEList | list[int]:
+    if not as_rle:
+        return [int(value) for value in values]
+    rle = RLEList()
+    for value in values:
+        rle.append(value)
+    return rle
 
 
 class TestStabilityClassifier:
@@ -39,49 +49,26 @@ class TestStabilityClassifier:
         classifier.classification = ClassificationMethods(segment_thresholds=[0.3] * 6)
         assert classifier.n_segments == 6
 
-    def test_is_stable_with_rle_list_stable_pattern(self):
-        """Test stability detection with RLEList - stable pattern."""
-        classifier = StabilityClassifier(
-            classification=ClassificationMethods(segment_thresholds=[1.1, 0.3, 0.1, 0.01])
-        )
+    # A change series holds True when a new value appeared and False when a
+    # known one came back. A variable is stable once the changes die out.
 
-        # Create RLEList: 10 True, 5 False, 15 True (stabilizing to True)
-        rle = RLEList()
-        for _ in range(10):
-            rle.append(True)
-        for _ in range(5):
-            rle.append(False)
-        for _ in range(15):
-            rle.append(True)
+    @pytest.mark.parametrize("as_rle", [True, False], ids=["rle_list", "list"])
+    def test_changes_returning_at_the_end_are_unstable(self, as_rle):
+        """10 new values, 5 known ones, then 15 new values again: the variable
+        never settles (segment means 1.0, 0.375, 1.0, 1.0 exceed 1.1, 0.3,
+        0.1, 0.01)."""
+        series = [True] * 10 + [False] * 5 + [True] * 15
+        assert DEFAULT.is_stable(_series(series, as_rle)) is False
 
-        result = classifier.is_stable(rle)
-        assert isinstance(result, bool)
+    @pytest.mark.parametrize("as_rle", [True, False], ids=["rle_list", "list"])
+    def test_alternating_changes_are_unstable(self, as_rle):
+        assert DEFAULT.is_stable(_series([True, False] * 20, as_rle)) is False
 
-    def test_is_stable_with_rle_list_unstable_pattern(self):
-        """Test stability detection with RLEList - unstable pattern."""
-        classifier = StabilityClassifier(
-            classification=ClassificationMethods(segment_thresholds=[1.1, 0.3, 0.1, 0.01])
-        )
-
-        # Create alternating pattern
-        rle = RLEList()
-        for _ in range(20):
-            rle.append(True)
-            rle.append(False)
-
-        result = classifier.is_stable(rle)
-        assert isinstance(result, bool)
-
-    def test_is_stable_with_regular_list(self):
-        """Test stability detection with regular list."""
-        classifier = StabilityClassifier(
-            classification=ClassificationMethods(segment_thresholds=[1.1, 0.3, 0.1, 0.01])
-        )
-
-        # Stable pattern
-        stable_list = [1] * 10 + [0] * 5 + [1] * 15
-        result = classifier.is_stable(stable_list)
-        assert isinstance(result, bool)
+    @pytest.mark.parametrize("as_rle", [True, False], ids=["rle_list", "list"])
+    def test_changes_that_die_out_are_stable(self, as_rle):
+        """2 new values, then 38 known ones: the variable settled."""
+        series = [True] * 2 + [False] * 38
+        assert DEFAULT.is_stable(_series(series, as_rle)) is True
 
     def test_different_segment_thresholds(self):
         """The same series is STABLE under a lenient list and UNSTABLE under a

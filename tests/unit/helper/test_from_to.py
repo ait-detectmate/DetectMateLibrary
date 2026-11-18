@@ -6,9 +6,12 @@ from tests.support.paths import AUDIT_TEMPLATES
 import detectmatelibrary.schemas as sc
 import detectmateperformance as dmp
 import polars as pl
+from ast import literal_eval
 import json
 import yaml
 import os
+
+import pytest
 
 
 expected_log = "pid=<*> uid=<*> auid=<*> ses=<*> msg='op=<*> "
@@ -296,213 +299,65 @@ class TestCaseFrom:
             assert parsed1[field] == schema1[field], field
 
 
+# FromTo.<source>2<target>: the format names as they appear in the method names
+EXTENSIONS = {"binary_file": "txt", "json": "json", "yaml": "yaml"}
+FORMATS = list(EXTENSIONS)
+TABLE = pl.DataFrame({
+    "Type": ["A", "B"],
+    "Content": ["hello there", "general kenobi"],
+    "ParamList": [["a", "b"], ["c", "d"]],
+    "Templates": ["hello <*>", "<*> kenobi"],
+    "EventIDs": [0, 1]
+})
+
+
+def _written(fmt: str, path: str, schema: type = sc.ParserSchema) -> list[dict]:
+    """The records in an output file, in order, as dicts."""
+    with open(path) as f:
+        if fmt == "binary_file":
+            records = []
+            for line in f:
+                record = schema()
+                record.deserialize(literal_eval(line.strip()))
+                records.append(record.as_dict())
+            return records
+        data = json.load(f) if fmt == "json" else yaml.safe_load(f)
+    return [data[key] for key in sorted(data, key=int)]
+
+
 class TestCaseFromTo:
-    def test_log2binary(self):
-        parser = DummyParser()
-        gen = FromTo.log2binary_file(parser, AUDIT_TEMPLATES, DUMMY_TXT_PATH)
+    @pytest.mark.parametrize("target", FORMATS)
+    def test_log_to_file_writes_each_parsed_log(self, target):
+        out_path = f"out.{EXTENSIONS[target]}"
+        outputs = list(getattr(FromTo, f"log2{target}")(DummyParser(), AUDIT_TEMPLATES, out_path))
 
-        values = []
-        for _ in range(5):
-            values.append(next(gen))
+        with open(AUDIT_TEMPLATES) as f:
+            assert [output["log"] for output in outputs] == [line.strip() for line in f]
+        assert _written(target, out_path) == [output.as_dict() for output in outputs]
 
-        with open(DUMMY_TXT_PATH) as f:
-            assert 5 == len(f.readlines())
+    @pytest.mark.parametrize("target", FORMATS)
+    @pytest.mark.parametrize("source", FORMATS)
+    def test_file_to_file_parses_each_record_and_writes_it(self, source, target):
+        logs = list(From.log(DummyParser(), AUDIT_TEMPLATES, do_process=False))[:5]
+        in_path, out_path = f"in.{EXTENSIONS[source]}", f"out.{EXTENSIONS[target]}"
+        getattr(To, source)(logs, in_path)
 
-    def test_log2json(self):
-        parser = DummyParser()
-        gen = FromTo.log2json(parser, AUDIT_TEMPLATES, DUMMY_JSON_PATH)
+        outputs = list(getattr(FromTo, f"{source}2{target}")(DummyParser(), in_path, out_path))
 
-        values = []
-        for _ in range(5):
-            values.append(next(gen))
+        assert all(isinstance(output, sc.ParserSchema) for output in outputs)
+        assert [output["log"] for output in outputs] == [log["log"] for log in logs]
+        assert _written(target, out_path) == [output.as_dict() for output in outputs]
 
-        with open(DUMMY_JSON_PATH) as f:
-            assert 5 == len(json.load(f))
+    @pytest.mark.parametrize("target", FORMATS)
+    def test_polars_to_file_writes_only_the_alerts(self, target):
+        """DummyDetector alerts on every second record: here the row with
+        logID 1."""
+        out_path = f"out.{EXTENSIONS[target]}"
+        outputs = list(getattr(FromTo, f"polars2{target}")(DummyDetector(), df=TABLE, out_path=out_path))
 
-    def test_log2yaml(self):
-        parser = DummyParser()
-        gen = FromTo.log2yaml(parser, AUDIT_TEMPLATES, DUMMY_YAML_PATH)
-
-        values = []
-        for _ in range(5):
-            values.append(next(gen))
-
-        with open(DUMMY_YAML_PATH) as f:
-            assert 5 == len(yaml.safe_load(f))
-
-    def test_binary2binary(self):
-        parser = DummyParser()
-        gen = From.log(parser, AUDIT_TEMPLATES, do_process=False)
-        values = []
-        for _ in range(5):
-            values.append(To.binary_file(next(gen), DUMMY_TXT_PATH))
-
-        gen = FromTo.binary_file2binary_file(parser, DUMMY_TXT_PATH, DUMMY_TXT_PATH2)
-        for _ in gen:
-            pass
-
-        with open(DUMMY_TXT_PATH2) as f:
-            assert 5 == len(f.readlines())
-
-    def test_binary2json(self):
-        parser = DummyParser()
-        gen = From.log(parser, AUDIT_TEMPLATES, do_process=False)
-        values = []
-        for _ in range(5):
-            values.append(To.binary_file(next(gen), DUMMY_TXT_PATH))
-
-        gen = FromTo.binary_file2json(parser, DUMMY_TXT_PATH, DUMMY_JSON_PATH)
-        for _ in gen:
-            pass
-
-        with open(DUMMY_JSON_PATH) as f:
-            assert 5 == len(json.load(f))
-
-    def test_binary2yaml(self):
-        parser = DummyParser()
-        gen = From.log(parser, AUDIT_TEMPLATES, do_process=False)
-        values = []
-        for _ in range(5):
-            values.append(To.binary_file(next(gen), DUMMY_TXT_PATH))
-
-        gen = FromTo.binary_file2yaml(parser, DUMMY_TXT_PATH, DUMMY_YAML_PATH)
-        for _ in gen:
-            pass
-
-        with open(DUMMY_YAML_PATH) as f:
-            assert 5 == len(yaml.safe_load(f))
-
-    def test_json2binary(self):
-        parser = DummyParser()
-        gen = From.log(parser, AUDIT_TEMPLATES, do_process=False)
-        values = []
-        for _ in range(5):
-            values.append(To.json(next(gen), DUMMY_JSON_PATH))
-
-        gen = FromTo.json2binary_file(parser, DUMMY_JSON_PATH, DUMMY_TXT_PATH)
-        for _ in gen:
-            pass
-
-        with open(DUMMY_TXT_PATH) as f:
-            assert 5 == len(f.readlines())
-
-    def test_json2json(self):
-        parser = DummyParser()
-        gen = From.log(parser, AUDIT_TEMPLATES, do_process=False)
-        values = []
-        for _ in range(5):
-            values.append(To.json(next(gen), DUMMY_JSON_PATH))
-
-        gen = FromTo.json2json(parser, DUMMY_JSON_PATH, DUMMY_JSON_PATH2)
-        for _ in gen:
-            pass
-
-        with open(DUMMY_JSON_PATH) as f:
-            assert 5 == len(json.load(f))
-
-    def test_json2yaml(self):
-        parser = DummyParser()
-        gen = From.log(parser, AUDIT_TEMPLATES, do_process=False)
-        values = []
-        for _ in range(5):
-            values.append(To.json(next(gen), DUMMY_JSON_PATH))
-
-        gen = FromTo.json2yaml(parser, DUMMY_JSON_PATH, DUMMY_YAML_PATH)
-        for _ in gen:
-            pass
-
-        with open(DUMMY_YAML_PATH) as f:
-            assert 5 == len(yaml.safe_load(f))
-
-    def test_yaml2binary(self):
-        parser = DummyParser()
-        gen = From.log(parser, AUDIT_TEMPLATES, do_process=False)
-        values = []
-        for _ in range(5):
-            values.append(To.yaml(next(gen), DUMMY_YAML_PATH))
-
-        gen = FromTo.yaml2binary_file(parser, DUMMY_YAML_PATH, DUMMY_TXT_PATH)
-        for _ in gen:
-            pass
-
-        with open(DUMMY_TXT_PATH) as f:
-            assert 5 == len(f.readlines())
-
-    def test_yaml2json(self):
-        parser = DummyParser()
-        gen = From.log(parser, AUDIT_TEMPLATES, do_process=False)
-        values = []
-        for _ in range(5):
-            values.append(To.yaml(next(gen), DUMMY_YAML_PATH))
-
-        gen = FromTo.yaml2json(parser, DUMMY_YAML_PATH, DUMMY_JSON_PATH)
-        for _ in gen:
-            pass
-
-        with open(DUMMY_JSON_PATH) as f:
-            assert 5 == len(json.load(f))
-
-    def test_yaml2yaml(self):
-        parser = DummyParser()
-        gen = From.log(parser, AUDIT_TEMPLATES, do_process=False)
-        values = []
-        for _ in range(5):
-            values.append(To.yaml(next(gen), DUMMY_YAML_PATH))
-
-        gen = FromTo.yaml2yaml(parser, DUMMY_YAML_PATH, DUMMY_YAML_PATH2)
-        for _ in gen:
-            pass
-
-        with open(DUMMY_YAML_PATH2) as f:
-            assert 5 == len(yaml.safe_load(f))
-
-    def test_polars2binary(self):
-        detector = DummyDetector()
-        table = pl.DataFrame({
-            "Type": ["A", "B"],
-            "Content": ["hello there", "general kenobi"],
-            "ParamList": [["a", "b"], ["c", "d"]],
-            "Templates": ["hello <*>", "<*> kenobi"],
-            "EventIDs": [0, 1]
-        })
-        gen = FromTo.polars2binary_file(detector, df=table, out_path=DUMMY_TXT_PATH)
-        for _ in gen:
-            pass
-
-        with open(DUMMY_TXT_PATH) as f:
-            assert 1 == len(f.readlines())
-
-    def test_polars2json(self):
-        detector = DummyDetector()
-        table = pl.DataFrame({
-            "Type": ["A", "B"],
-            "Content": ["hello there", "general kenobi"],
-            "ParamList": [["a", "b"], ["c", "d"]],
-            "Templates": ["hello <*>", "<*> kenobi"],
-            "EventIDs": [0, 1]
-        })
-        gen = FromTo.polars2json(detector, df=table, out_path=DUMMY_JSON_PATH)
-        for _ in gen:
-            pass
-
-        with open(DUMMY_JSON_PATH) as f:
-            assert 1 == len(json.load(f))
-
-    def test_polars2yaml(self):
-        detector = DummyDetector()
-        table = pl.DataFrame({
-            "Type": ["A", "B"],
-            "Content": ["hello there", "general kenobi"],
-            "ParamList": [["a", "b"], ["c", "d"]],
-            "Templates": ["hello <*>", "<*> kenobi"],
-            "EventIDs": [0, 1]
-        })
-        gen = FromTo.polars2yaml(detector, df=table, out_path=DUMMY_YAML_PATH)
-        for _ in gen:
-            pass
-
-        with open(DUMMY_YAML_PATH) as f:
-            assert 1 == len(yaml.safe_load(f))
+        assert outputs[0] is None
+        written = _written(target, out_path, sc.DetectorSchema)
+        assert [record["logIDs"] for record in written] == [["1"]]
 
 
 class TestUseCase:

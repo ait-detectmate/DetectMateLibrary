@@ -94,32 +94,37 @@ class TestSingleVariableTracker:
             tracker.add_value("stable_value")
 
         result = tracker.classify()
-        assert result.type in ["STABLE", "STATIC"]
+        assert result.type == "STABLE"
 
     def test_classification_unstable(self):
-        """Test classification as UNSTABLE (no clear pattern)."""
+        """A new value every second record: the changes never die out."""
         tracker = SingleStabilityTracker(min_samples=10)
 
-        # Alternating pattern
+        for i in range(40):
+            tracker.add_value(f"value_{i}" if i % 2 else "value_a")
+
+        assert tracker.classify().type == "UNSTABLE"
+
+    def test_two_alternating_values_are_stable(self):
+        """Once both values were seen nothing is new, however often they
+        alternate."""
+        tracker = SingleStabilityTracker(min_samples=10)
+
         for i in range(40):
             tracker.add_value("value_a" if i % 2 == 0 else "value_b")
 
-        result = tracker.classify()
-        # Could be UNSTABLE or classified differently depending on classifier logic
-        assert result.type in ["UNSTABLE", "STABLE", "RANDOM"]
+        assert tracker.classify().type == "STABLE"
 
-    def test_rle_list_integration(self):
-        """Test that RLEList is used for efficient storage."""
+    def test_change_series_marks_each_new_value(self):
+        """True where a value is seen for the first time, stored as runs."""
         tracker = SingleStabilityTracker()
 
-        # Add values that create runs
-        for i in range(20):
+        for _ in range(20):
             tracker.add_value("a")
-        for i in range(20):
+        for _ in range(20):
             tracker.add_value("b")
 
-        # RLEList should be populated
-        assert len(tracker.change_series) > 0
+        assert tracker.change_series.runs() == [(True, 1), (False, 19), (True, 1), (False, 19)]
 
     def test_unique_values_tracking(self):
         """Test unique values are tracked in a set."""
@@ -220,9 +225,9 @@ class TestMultiVariableTracker:
                 "random_var": f"unique_{i}",
             })
 
-        stable_vars = trackers.get_features_by_classification("STABLE")
-        assert isinstance(stable_vars, list)
-        # "stable_var" should be classified as STATIC
+        assert trackers.get_features_by_classification("STATIC") == ["stable_var"]
+        assert trackers.get_features_by_classification("RANDOM") == ["random_var"]
+        assert trackers.get_features_by_classification("STABLE") == []
 
     def test_get_trackers(self):
         """Test retrieving all trackers."""
@@ -290,14 +295,16 @@ class TestEventVariableTrackerData:
                 "random_var": f"unique_{i}",
             })
 
-        stable_vars = evt.get_features_by_classification("STABLE")
-        assert isinstance(stable_vars, list)
+        assert evt.get_features_by_classification("STATIC") == ["stable_var"]
+        assert evt.get_features_by_classification("RANDOM") == ["random_var"]
+        assert evt.get_features_by_classification("STABLE") == []
 
-    def test_integration_with_stability_tracker(self):
-        """Test full integration with SingleStabilityTracker."""
+    def test_each_variable_gets_its_own_verdict(self):
+        """Five users repeat (STABLE); 31 statuses before "success" keep
+        changing into the third segment (UNSTABLE); request IDs never repeat
+        (RANDOM)."""
         evt = EventStabilityTracker()
 
-        # Simulate log processing
         for i in range(50):
             evt.add_data({
                 "user": f"user_{i % 5}",
@@ -305,12 +312,10 @@ class TestEventVariableTrackerData:
                 "request_id": f"req_{i}",
             })
 
-        # Get data and variables
-        var_names = evt.get_variables()
-        stable_vars = evt.get_features_by_classification("STABLE")
-
-        assert len(var_names) == 3
-        assert isinstance(stable_vars, list)
+        assert evt.get_variables() == ["user", "status", "request_id"]
+        assert evt.get_features_by_classification("STABLE") == ["user"]
+        assert evt.get_features_by_classification("UNSTABLE") == ["status"]
+        assert evt.get_features_by_classification("RANDOM") == ["request_id"]
 
     def test_to_data_default_converter(self):
         """Test to_data method with default converter (identity function)."""
@@ -396,9 +401,7 @@ class TestStabilityTrackingIntegration:
         for i in range(35):
             tracker.add_value("final_stable_value")
 
-        classification = tracker.classify()
-        # Should be STABLE or STATIC
-        assert classification.type in ["STABLE", "STATIC"]
+        assert tracker.classify().type == "STABLE"
 
     def test_multiple_variables_with_different_patterns(self):
         """Test tracking multiple variables with different patterns."""
@@ -410,7 +413,8 @@ class TestStabilityTrackingIntegration:
                 "static_var": "always_same",
                 "random_var": f"unique_{i}",
                 "user_id": f"user_{i % 10}",  # 10 users cycling
-                "status": "ok" if i > 80 else f"status_{i % 5}",  # Stabilizing
+                # "ok" is new at i=81: a change in the last segment
+                "status": "ok" if i > 80 else f"status_{i % 5}",
             })
 
         classifications = trackers.classify()
@@ -421,9 +425,10 @@ class TestStabilityTrackingIntegration:
         # random_var should be RANDOM
         assert classifications["random_var"].type == "RANDOM"
 
-        # user_id and status depend on classifier logic
-        assert isinstance(classifications["user_id"], Classification)
-        assert isinstance(classifications["status"], Classification)
+        # ten users: new only in the first segment
+        assert classifications["user_id"].type == "STABLE"
+        # one new value in the last segment exceeds its 0.01 threshold
+        assert classifications["status"].type == "UNSTABLE"
 
     def test_event_variable_tracker_real_world_scenario(self):
         """Test EventStabilityTracker with realistic log data."""
@@ -439,15 +444,10 @@ class TestStabilityTrackingIntegration:
                 "server": "prod-server-1",  # Static
             })
 
-        var_names = evt.get_variables()
-        stable_vars = evt.get_features_by_classification("STABLE")
-
-        assert len(var_names) == 5
-        assert isinstance(stable_vars, list)
-
-        # Server should definitely be stable
-        # Request_id should be random
-        # Others depend on exact classifier logic
+        assert evt.get_variables() == ["method", "status_code", "user_agent", "request_id", "server"]
+        assert evt.get_features_by_classification("STABLE") == ["method", "status_code", "user_agent"]
+        assert evt.get_features_by_classification("STATIC") == ["server"]
+        assert evt.get_features_by_classification("RANDOM") == ["request_id"]
 
     def test_classifier_with_varying_thresholds(self):
         """Verdict sensitivity through the block: one segment sits between
