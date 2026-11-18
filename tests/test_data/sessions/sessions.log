@@ -1,0 +1,234 @@
+blk_23 Receiving block blk_23 src: /10.0.0.6:50010 dest: /10.0.0.2:50010
+blk_33 Receiving block blk_33 src: /10.0.0.4:50010 dest: /10.0.0.4:50010
+blk_3 Receiving block blk_3 src: /10.0.0.3:50010 dest: /10.0.0.8:50010
+blk_24 Receiving block blk_24 src: /10.0.0.4:50010 dest: /10.0.0.8:50010
+blk_26 Receiving block blk_26 src: /10.0.0.2:50010 dest: /10.0.0.2:50010
+blk_0 Receiving block blk_0 src: /10.0.0.7:50010 dest: /10.0.0.7:50010
+blk_26 Received block blk_26 of size 30503 from /10.0.0.1
+blk_20 Receiving block blk_20 src: /10.0.0.6:50010 dest: /10.0.0.5:50010
+blk_28 Receiving block blk_28 src: /10.0.0.7:50010 dest: /10.0.0.4:50010
+blk_13 Receiving block blk_13 src: /10.0.0.4:50010 dest: /10.0.0.8:50010
+blk_23 Received block blk_23 of size 27435 from /10.0.0.1
+blk_18 Receiving block blk_18 src: /10.0.0.3:50010 dest: /10.0.0.3:50010
+blk_30 Receiving block blk_30 src: /10.0.0.7:50010 dest: /10.0.0.1:50010
+blk_5 Receiving block blk_5 src: /10.0.0.2:50010 dest: /10.0.0.3:50010
+blk_11 Receiving block blk_11 src: /10.0.0.5:50010 dest: /10.0.0.6:50010
+blk_6 Receiving block blk_6 src: /10.0.0.6:50010 dest: /10.0.0.2:50010
+blk_17 Receiving block blk_17 src: /10.0.0.1:50010 dest: /10.0.0.4:50010
+blk_7 Receiving block blk_7 src: /10.0.0.6:50010 dest: /10.0.0.7:50010
+blk_35 Receiving block blk_35 src: /10.0.0.2:50010 dest: /10.0.0.6:50010
+blk_38 Receiving block blk_38 src: /10.0.0.3:50010 dest: /10.0.0.3:50010
+blk_9 Receiving block blk_9 src: /10.0.0.2:50010 dest: /10.0.0.5:50010
+blk_28 Received block blk_28 of size 40641 from /10.0.0.1
+blk_25 Receiving block blk_25 src: /10.0.0.8:50010 dest: /10.0.0.8:50010
+blk_11 Received block blk_11 of size 2630 from /10.0.0.5
+blk_26 Received block blk_26 of size 40380 from /10.0.0.3
+blk_27 Receiving block blk_27 src: /10.0.0.6:50010 dest: /10.0.0.7:50010
+blk_11 Received block blk_11 of size 45029 from /10.0.0.8
+blk_15 Receiving block blk_15 src: /10.0.0.1:50010 dest: /10.0.0.4:50010
+blk_29 Receiving block blk_29 src: /10.0.0.1:50010 dest: /10.0.0.3:50010
+blk_21 Receiving block blk_21 src: /10.0.0.5:50010 dest: /10.0.0.6:50010
+blk_33 Received block blk_33 of size 15869 from /10.0.0.7
+blk_9 Received block blk_9 of size 9000 from /10.0.0.7
+blk_22 Receiving block blk_22 src: /10.0.0.1:50010 dest: /10.0.0.2:50010
+blk_29 Received block blk_29 of size 44781 from /10.0.0.4
+blk_5 Received block blk_5 of size 52287 from /10.0.0.1
+blk_30 Received block blk_30 of size 7164 from /10.0.0.7
+blk_13 Received block blk_13 of size 53725 from /10.0.0.7
+blk_18 Received block blk_18 of size 49129 from /10.0.0.6
+blk_0 Received block blk_0 of size 54075 from /10.0.0.5
+blk_28 Received block blk_28 of size 9601 from /10.0.0.5
+blk_39 Receiving block blk_39 src: /10.0.0.2:50010 dest: /10.0.0.3:50010
+blk_29 Received block blk_29 of size 64088 from /10.0.0.1
+blk_0 PacketResponder 5 for block blk_0 terminating
+blk_13 Received block blk_13 of size 22715 from /10.0.0.7
+blk_19 Receiving block blk_19 src: /10.0.0.3:50010 dest: /10.0.0.5:50010
+blk_7 Received block blk_7 of size 29675 from /10.0.0.2
+blk_19 Received block blk_19 of size 39457 from /10.0.0.7
+blk_34 Receiving block blk_34 src: /10.0.0.2:50010 dest: /10.0.0.2:50010
+blk_38 Received block blk_38 of size 32019 from /10.0.0.6
+blk_9 PacketResponder 8 for block blk_9 terminating
+blk_27 Received block blk_27 of size 68895 from /10.0.0.1
+blk_30 PacketResponder 2 for block blk_30 terminating
+blk_5 Received block blk_5 of size 29206 from /10.0.0.5
+blk_31 Receiving block blk_31 src: /10.0.0.6:50010 dest: /10.0.0.2:50010
+blk_14 Receiving block blk_14 src: /10.0.0.1:50010 dest: /10.0.0.1:50010
+blk_34 Received block blk_34 of size 59552 from /10.0.0.3
+blk_25 Received block blk_25 of size 45593 from /10.0.0.4
+blk_17 Received block blk_17 of size 6505 from /10.0.0.6
+blk_1 Receiving block blk_1 src: /10.0.0.3:50010 dest: /10.0.0.2:50010
+blk_7 Received block blk_7 of size 4499 from /10.0.0.1
+blk_17 Received block blk_17 of size 58074 from /10.0.0.8
+blk_2 Receiving block blk_2 src: /10.0.0.8:50010 dest: /10.0.0.5:50010
+blk_0 Verification succeeded for blk_0
+blk_17 PacketResponder 6 for block blk_17 terminating
+blk_26 PacketResponder 1 for block blk_26 terminating
+blk_34 Received block blk_34 of size 4949 from /10.0.0.7
+blk_38 Received block blk_38 of size 49819 from /10.0.0.3
+blk_26 Verification succeeded for blk_26
+blk_30 Verification succeeded for blk_30
+blk_7 PacketResponder 2 for block blk_7 terminating
+blk_17 Verification succeeded for blk_17
+blk_24 Received block blk_24 of size 14729 from /10.0.0.6
+blk_20 Received block blk_20 of size 64068 from /10.0.0.2
+blk_13 PacketResponder 8 for block blk_13 terminating
+blk_6 Received block blk_6 of size 32855 from /10.0.0.6
+blk_3 Received block blk_3 of size 67576 from /10.0.0.2
+blk_5 PacketResponder 7 for block blk_5 terminating
+blk_18 PacketResponder 2 for block blk_18 terminating
+blk_21 Received block blk_21 of size 12393 from /10.0.0.3
+blk_38 PacketResponder 7 for block blk_38 terminating
+blk_23 Received block blk_23 of size 53160 from /10.0.0.2
+blk_8 Receiving block blk_8 src: /10.0.0.2:50010 dest: /10.0.0.1:50010
+blk_37 Receiving block blk_37 src: /10.0.0.3:50010 dest: /10.0.0.1:50010
+blk_16 Receiving block blk_16 src: /10.0.0.8:50010 dest: /10.0.0.7:50010
+blk_11 PacketResponder 1 for block blk_11 terminating
+blk_5 Verification succeeded for blk_5
+blk_31 Received block blk_31 of size 65267 from /10.0.0.4
+blk_21 PacketResponder 2 for block blk_21 terminating
+blk_21 Verification succeeded for blk_21
+blk_39 Received block blk_39 of size 19649 from /10.0.0.5
+blk_10 Receiving block blk_10 src: /10.0.0.6:50010 dest: /10.0.0.8:50010
+blk_39 PacketResponder 7 for block blk_39 terminating
+blk_15 Received block blk_15 of size 25963 from /10.0.0.1
+blk_8 Received block blk_8 of size 17239 from /10.0.0.4
+blk_32 Receiving block blk_32 src: /10.0.0.2:50010 dest: /10.0.0.4:50010
+blk_31 Received block blk_31 of size 62235 from /10.0.0.2
+blk_20 Received block blk_20 of size 46043 from /10.0.0.8
+blk_22 Received block blk_22 of size 65044 from /10.0.0.5
+blk_34 PacketResponder 8 for block blk_34 terminating
+blk_28 PacketResponder 8 for block blk_28 terminating
+blk_10 Received block blk_10 of size 21736 from /10.0.0.4
+blk_12 Receiving block blk_12 src: /10.0.0.5:50010 dest: /10.0.0.6:50010
+blk_9 Verification succeeded for blk_9
+blk_10 Received block blk_10 of size 33858 from /10.0.0.3
+blk_31 PacketResponder 6 for block blk_31 terminating
+blk_32 Received block blk_32 of size 49703 from /10.0.0.7
+blk_36 Receiving block blk_36 src: /10.0.0.1:50010 dest: /10.0.0.5:50010
+blk_11 Verification succeeded for blk_11
+blk_25 Received block blk_25 of size 5648 from /10.0.0.6
+blk_29 PacketResponder 7 for block blk_29 terminating
+blk_38 Verification succeeded for blk_38
+blk_31 Verification succeeded for blk_31
+blk_18 Verification succeeded for blk_18
+blk_8 Received block blk_8 of size 9006 from /10.0.0.8
+blk_22 Received block blk_22 of size 11965 from /10.0.0.4
+blk_22 PacketResponder 6 for block blk_22 terminating
+blk_32 Received block blk_32 of size 47734 from /10.0.0.4
+blk_23 PacketResponder 5 for block blk_23 terminating
+blk_14 Received block blk_14 of size 62196 from /10.0.0.6
+blk_22 Verification succeeded for blk_22
+blk_29 Verification succeeded for blk_29
+blk_2 Received block blk_2 of size 53274 from /10.0.0.1
+blk_20 PacketResponder 2 for block blk_20 terminating
+blk_13 Verification succeeded for blk_13
+blk_6 PacketResponder 1 for block blk_6 terminating
+blk_36 Received block blk_36 of size 19597 from /10.0.0.1
+blk_24 PacketResponder 8 for block blk_24 terminating
+blk_2 Received block blk_2 of size 44664 from /10.0.0.1
+blk_32 PacketResponder 2 for block blk_32 terminating
+blk_8 PacketResponder 1 for block blk_8 terminating
+blk_1 Received block blk_1 of size 13945 from /10.0.0.3
+blk_16 Received block blk_16 of size 60372 from /10.0.0.1
+blk_24 Verification succeeded for blk_24
+blk_19 Received block blk_19 of size 32418 from /10.0.0.2
+blk_1 Received block blk_1 of size 62884 from /10.0.0.2
+blk_27 PacketResponder 2 for block blk_27 terminating
+blk_3 PacketResponder 8 for block blk_3 terminating
+blk_35 Received block blk_35 of size 24318 from /10.0.0.6
+blk_3 Verification succeeded for blk_3
+blk_36 PacketResponder 3 for block blk_36 terminating
+blk_39 Verification succeeded for blk_39
+blk_36 Verification succeeded for blk_36
+blk_20 Verification succeeded for blk_20
+blk_1 PacketResponder 2 for block blk_1 terminating
+blk_19 PacketResponder 1 for block blk_19 terminating
+blk_2 PacketResponder 4 for block blk_2 terminating
+blk_6 Verification succeeded for blk_6
+blk_37 Received block blk_37 of size 63045 from /10.0.0.6
+blk_1 Verification succeeded for blk_1
+blk_16 Received block blk_16 of size 18487 from /10.0.0.2
+blk_19 Verification succeeded for blk_19
+blk_15 PacketResponder 2 for block blk_15 terminating
+blk_10 PacketResponder 2 for block blk_10 terminating
+blk_23 Verification succeeded for blk_23
+blk_14 Received block blk_14 of size 25641 from /10.0.0.1
+blk_8 Verification succeeded for blk_8
+blk_34 Verification succeeded for blk_34
+blk_16 PacketResponder 6 for block blk_16 terminating
+blk_32 Verification succeeded for blk_32
+blk_14 PacketResponder 2 for block blk_14 terminating
+blk_15 Verification succeeded for blk_15
+blk_7 Verification succeeded for blk_7
+blk_16 Verification succeeded for blk_16
+blk_27 Verification succeeded for blk_27
+blk_28 Verification succeeded for blk_28
+blk_10 Verification succeeded for blk_10
+blk_37 Received block blk_37 of size 43858 from /10.0.0.5
+blk_12 Received block blk_12 of size 55318 from /10.0.0.5
+blk_33 PacketResponder 3 for block blk_33 terminating
+blk_12 PacketResponder 2 for block blk_12 terminating
+blk_14 Verification succeeded for blk_14
+blk_4 Receiving block blk_4 src: /10.0.0.4:50010 dest: /10.0.0.5:50010
+blk_25 PacketResponder 3 for block blk_25 terminating
+blk_12 Verification succeeded for blk_12
+blk_33 Verification succeeded for blk_33
+blk_35 Received block blk_35 of size 48946 from /10.0.0.1
+blk_35 PacketResponder 2 for block blk_35 terminating
+blk_35 Verification succeeded for blk_35
+blk_4 Received block blk_4 of size 42555 from /10.0.0.2
+blk_4 Received block blk_4 of size 25100 from /10.0.0.4
+blk_37 PacketResponder 3 for block blk_37 terminating
+blk_4 PacketResponder 4 for block blk_4 terminating
+blk_2 Verification succeeded for blk_2
+blk_25 Verification succeeded for blk_25
+blk_4 Verification succeeded for blk_4
+blk_37 Verification succeeded for blk_37
+blk_42 Receiving block blk_42 src: /10.0.0.1:50010 dest: /10.0.0.3:50010
+blk_42 PacketResponder 7 for block blk_42 terminating
+blk_48 Received block blk_48 of size 7523 from /10.0.0.1
+blk_41 Receiving block blk_41 src: /10.0.0.7:50010 dest: /10.0.0.8:50010
+blk_42 Received block blk_42 of size 26277 from /10.0.0.4
+blk_43 Receiving block blk_43 src: /10.0.0.6:50010 dest: /10.0.0.6:50010
+blk_47 Receiving block blk_47 src: /10.0.0.5:50010 dest: /10.0.0.8:50010
+blk_49 Receiving block blk_49 src: /10.0.0.2:50010 dest: /10.0.0.5:50010
+blk_43 Received block blk_43 of size 4778 from /10.0.0.6
+blk_43 Received block blk_43 of size 49326 from /10.0.0.1
+blk_42 Verification succeeded for blk_42
+blk_44 Receiving block blk_44 src: /10.0.0.5:50010 dest: /10.0.0.5:50010
+blk_47 Received block blk_47 of size 36723 from /10.0.0.8
+blk_46 Receiving block blk_46 src: /10.0.0.7:50010 dest: /10.0.0.7:50010
+blk_43 PacketResponder 2 for block blk_43 terminating
+blk_48 Received block blk_48 of size 36715 from /10.0.0.2
+blk_41 Received block blk_41 of size 29235 from /10.0.0.5
+blk_40 Receiving block blk_40 src: /10.0.0.2:50010 dest: /10.0.0.3:50010
+blk_49 Received block blk_49 of size 63949 from /10.0.0.4
+blk_46 Received block blk_46 of size 65227 from /10.0.0.3
+blk_48 PacketResponder 2 for block blk_48 terminating
+blk_48 Verification succeeded for blk_48
+blk_45 Receiving block blk_45 src: /10.0.0.1:50010 dest: /10.0.0.7:50010
+blk_40 Received block blk_40 of size 31548 from /10.0.0.1
+blk_44 Received block blk_44 of size 64187 from /10.0.0.7
+blk_43 Verification succeeded for blk_43
+blk_47 Received block blk_47 of size 16562 from /10.0.0.4
+blk_45 Received block blk_45 of size 16482 from /10.0.0.8
+blk_49 Received block blk_49 of size 18994 from /10.0.0.5
+blk_47 PacketResponder 2 for block blk_47 terminating
+blk_45 Deleting block blk_45 file /data/blk_45
+blk_46 Received block blk_46 of size 37568 from /10.0.0.4
+blk_44 Received block blk_44 of size 6833 from /10.0.0.6
+blk_47 Verification succeeded for blk_47
+blk_40 Received block blk_40 of size 68124 from /10.0.0.5
+blk_44 PacketResponder 5 for block blk_44 terminating
+blk_41 Received block blk_41 of size 6535 from /10.0.0.6
+blk_46 PacketResponder 6 for block blk_46 terminating
+blk_45 PacketResponder 2 for block blk_45 terminating
+blk_49 PacketResponder 1 for block blk_49 terminating
+blk_41 PacketResponder 1 for block blk_41 terminating
+blk_44 Verification succeeded for blk_44
+blk_45 Verification succeeded for blk_45
+blk_49 Verification succeeded for blk_49
+blk_40 PacketResponder 5 for block blk_40 terminating
+blk_40 Verification succeeded for blk_40
+blk_41 Verification succeeded for blk_41
+blk_46 Verification succeeded for blk_46
