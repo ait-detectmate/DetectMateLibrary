@@ -42,12 +42,6 @@ NO_UNIT_TEST_FILE = {
     # out of scope
     "parsers/logbatcher/engine": "vendored LogBatcher engine (MIT), needs an LLM; out of scope",
     "tools/workspace/templates": "copied into generated workspaces; run by tests/e2e/test_workspace_cli.py",
-    # gaps: no own unit test file yet (covered only indirectly); see TEST_PLAN.md
-    "base_detectors/_variable_hooks.py": "gap: covered through VariableDetector subclasses",
-    "common/_config/_formats.py": "gap: covered through config parsing in test_config.py / test_compile.py",
-    "common/_core_op/_basic_component.py": "gap: covered through CoreComponent",
-    "common/_core_op/_schema_pipeline.py": "gap: covered through CoreComponent.process",
-    "schemas/connectors/__init__.py": "gap: select_connector covered through set_connector",
 }
 
 # Unit test files that don't follow the mirror rule yet, and why.

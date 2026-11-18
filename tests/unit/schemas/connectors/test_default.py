@@ -1,4 +1,5 @@
 """Tests for detectmatelibrary.schemas.connectors.default."""
+from detectmatelibrary.schemas.connectors import default
 from detectmatelibrary.schemas.connectors.default import ver_record
 
 import detectmatelibrary.schemas as sc
@@ -101,3 +102,25 @@ class TestConnectors:
 
         parsed_schema2 = sc.ParserSchema.from_id("Parsed_1")
         assert parsed_schema == parsed_schema2
+
+
+class TestDataConversion:
+    def test_lists_and_dicts_survive_the_round_trip(self):
+        data = {"id": "1", "variables": ["a", "b"], "headerVariables": {"Level": "info"}}
+        assert default.recover_data(default.prepare_data(dict(data))) == data
+
+    def test_a_missing_dict_part_reads_back_empty(self):
+        assert default.recover_data([{"headerVariables": "$DICT$_1"}]) == {"headerVariables": {}}
+
+
+class TestBaseConnectors:
+    def test_the_default_connector_stores_and_restores_nothing(self):
+        connector = default.DefaultConnector()
+        connector.store_data("1", {"a": 1})
+        assert connector.restore_data("1") == {}
+
+    def test_a_connector_without_a_database_reads_back_empty(self):
+        connector = default.DefaultConnector(name="Custom", url="u")
+        connector.store_data("1", {"a": 1})
+        assert connector.restore_data("1") == {}
+        assert str(connector) == "Connector <Custom> connected to: u"
