@@ -1,8 +1,6 @@
 # Template Tree Matcher [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/parsers/tree_matcher.py)]
 
-The Template Tree Matcher is a parser that matches incoming logs against a set of templates using a tree-based depth-first search. It provides faster matching for batch workloads compared with the streaming Template Matcher.
-
-This parser wraps functionality from the DetectMatePerformance project: https://github.com/ait-detectmate/DetectMatePerformance. Prefer the performance implementation when parsing many log lines in non-stream (batch) mode.
+The Template Tree Matcher matches incoming logs against predefined templates and extracts variable values. DetectMatePerformance provides the underlying tree matcher and a batch matching API. [DetectMatePerformance](https://github.com/ait-detectmate/DetectMatePerformance)
 
 ## In/out
 
@@ -20,17 +18,35 @@ Input and output schemas in the pipeline
 !!! warning "Not yet stable"
     This parser is not yet in a stable release and may behave differently across platforms or hardware.
 
+## Description
+
+When the method starts, the matcher loads the template list from `params.path_templates`. It builds a tree where every template corresponds to a path, and any templates sharing the same leading tokens also share the same initial nodes. If `path_templates` isn’t provided, the matcher begins with an empty tree.
+
+In both templates and incoming log lines, punctuation like `=`, `:`, and quotation marks is used to split tokens. Matching is case-sensitive, and a path such as `/srv/app` is treated as one token. A `<*>` edge captures tokens until the next fixed token appears, and a wildcard at the end captures all remaining tokens. A successful match consumes the full message and only succeeds when it reaches a complete template path.
+
+![TreeMatcher](../img/TreeMatcher.svg)
+
+When the search fails, `eventID` is `-1` and `template` is `template not found`. The `variables` list can contain tokens captured before the failure.
+
 ## Template format
 
-- Templates are plain text lines in a template file.
-- Use the token `<*>` to mark wildcard slots.
+Put one template on each line of a plain-text file and use `<*>` for variable text. Consecutive wildcard tokens are combined into one.
 
-Example template file (templates.txt):
-
-```console title="Templates"
+```text title="templates.txt"
 pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>
 login success: user=<*> source=<*>
+login failure: reason=<*> code=<*>
 ```
+
+The two `login` templates share a node and then follow different paths.
+
+```text
+login
+├── success → user → <*> → source → <*>
+└── failure → reason → <*> → code → <*>
+```
+
+The message `login failure: reason=timed out code=17` matches the third template. The parser returns `2` for `eventID`, `login failure reason <*> code <*>` for `template`, and `["timed", "out", "17"]` for `variables`.
 
 ## Example
 
@@ -80,6 +96,3 @@ All parameters this parser accepts, grouped by the YAML block they go in. **Scop
     | `time_format` | string, null | None | shared | fitting description yet to find |
     | `log_source` | string, null | None | shared | Process only inputs of the same log source. |
 <!-- End arguments -->
-
-!!! note
-    This matcher removes non-alphanumeric characters from logs and templates before matching, except for the `<*>` token. Ensure your templates are compatible with that normalization.
