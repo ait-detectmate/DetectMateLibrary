@@ -16,7 +16,9 @@ from detectmatelibrary.detectors.rule_detector import RuleDetectorConfig
 from detectmatelibrary.detectors.scvs_detector import SCVSDetectorConfig
 from detectmatelibrary.detectors.value_range_detector import ValueRangeDetectorConfig
 
+from detectmatelibrary.parsers.aecid_pg import AECIDPGConfig
 from detectmatelibrary.parsers.autoparser import AutoParserConfig
+from detectmatelibrary.parsers.brain import BrainConfig
 from detectmatelibrary.parsers.drain import DrainConfig
 from detectmatelibrary.parsers.json_parser import JsonParserConfig
 from detectmatelibrary.parsers.logbatcher import LogBatcherParserConfig
@@ -37,6 +39,7 @@ from detectmatelibrary.alert_aggregation.alertbert import AlertBERTAggregationCo
 from detectmatelibrary.bases.base_detectors import TrackerDetectorConfig
 from detectmatelibrary.bases.base_detectors import VariableDetectorConfig
 from detectmatelibrary.bases.base_detectors import DeepLearningDetectorConfig
+from detectmatelibrary.bases.base_parsers import ParserGeneratorConfig
 
 
 from typing import Any
@@ -128,7 +131,7 @@ def update_docs(
 def _family_rows(
     config: CoreConfig, base: type[CoreConfig] = CoreDetectorConfig
 ) -> list[dict[str, Any]]:
-    """What a detector family adds on top of the fields of ``base``."""
+    """Return the fields a component family adds to its base config."""
     return [r for r in config.get_docs(shared_base=base) if r["Scope"] == "specific"]
 
 
@@ -175,8 +178,7 @@ def update_shared_args_detectors(doc_path: str) -> None:
 
 
 def update_shared_args_parsers(doc_path: str) -> None:
-    """Fill docs/parsers.md's tables of parameters shared across several
-    parsers: fields every parser has (CoreParserConfig)."""
+    """Generate the shared parser configuration tables."""
     try:
         with open(doc_path, "r") as f:
             docs = f.readlines()
@@ -186,6 +188,14 @@ def update_shared_args_parsers(doc_path: str) -> None:
             start_cmd="<!-- Start common_arguments -->\n",
             end_cmd="<!-- End common_arguments -->\n",
             add=get_arguments(CoreParserConfig().get_docs(), with_scope=False),
+        )
+        docs = append_docs(
+            docs=docs,
+            start_cmd="<!-- Start parser_generator_arguments -->\n",
+            end_cmd="<!-- End parser_generator_arguments -->\n",
+            add=get_arguments(
+                _family_rows(ParserGeneratorConfig(), base=CoreParserConfig), with_scope=False
+            ),
         )
         with open(doc_path, "w") as f:
             f.writelines(docs)
@@ -271,8 +281,10 @@ DETECTOR_DOCS: list[tuple[CoreConfig, type[CoreConfig], str]] = [
 ]
 
 PARSER_DOCS: list[tuple[CoreConfig, type[CoreConfig], str]] = [
+    (AECIDPGConfig(), ParserGeneratorConfig, "docs/parsers/aecid_pg.md"),
     (AutoParserConfig(), CoreParserConfig, "docs/parsers/auto_parser.md"),
-    (DrainConfig(), CoreParserConfig, "docs/parsers/drain_parser.md"),
+    (BrainConfig(), ParserGeneratorConfig, "docs/parsers/brain.md"),
+    (DrainConfig(), ParserGeneratorConfig, "docs/parsers/drain_parser.md"),
     (JsonParserConfig(), CoreParserConfig, "docs/parsers/json_parser.md"),
     (LogBatcherParserConfig(), CoreParserConfig, "docs/parsers/logbatcher_parser.md"),
     (MatcherParserConfig(), CoreParserConfig, "docs/parsers/template_matcher.md"),

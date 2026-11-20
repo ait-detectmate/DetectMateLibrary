@@ -18,12 +18,12 @@ class ParserGeneratorConfig(CoreParserConfig):
     method_type: str = Field(default="gen_parser", description="Indicates what type of method it is.")
 
     reset_in_post_train: bool = Field(
-        default=False, description="fitting description yet to find"
+        default=False, description="Clear buffered training logs after generating templates."
     )
 
     Finetune: list[list[str | list[Any]]] = Field(
         default=[],
-        description="fitting description yet to find",
+        description="Candidate [parameter, values] pairs for automatic configuration.",
     )
 
 

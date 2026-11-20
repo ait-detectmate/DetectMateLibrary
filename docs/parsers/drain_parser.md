@@ -50,7 +50,7 @@ The same file works unchanged in both places a parser runs:
 
 ## Configuration arguments
 
-All parameters this parser accepts, grouped by the YAML block they go in. **Scope** tells whether a parameter is `specific` to this parser or `shared` with other parsers (see the [Parsers overview](../parsers.md#common-parameters-all-parsers)).
+Arguments are grouped by YAML block. **Scope** identifies fields specific to Drain and fields inherited from the parser generator base. When Drain overrides an inherited default, the base default appears in parentheses. [Shared parser generator parameters](../parsers.md#parser-generators)
 
 <!-- Start arguments -->
 ??? note "Top level"
@@ -64,8 +64,6 @@ All parameters this parser accepts, grouped by the YAML block they go in. **Scop
 
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
-    | `reset_in_post_train` | boolean | False | specific | fitting description yet to find |
-    | `Finetune` | array | [['depth', [1, 2, 3, 4]], ['max_childs', [10, 40]], ['sim_thres', [0.2, 0.4, 0.6, 0.8]]] | specific | fitting description yet to find |
     | `depth` | integer | 2 | specific | fitting description yet to find |
     | `max_childs` | integer | 10 | specific | fitting description yet to find |
     | `sim_thres` | number | 0.2 | specific | fitting description yet to find |
@@ -80,4 +78,6 @@ All parameters this parser accepts, grouped by the YAML block they go in. **Scop
     | `log_format` | string, null | None | shared | fitting description yet to find |
     | `time_format` | string, null | None | shared | fitting description yet to find |
     | `log_source` | string, null | None | shared | Process only inputs of the same log source. |
+    | `reset_in_post_train` | boolean | False | shared | Clear buffered training logs after generating templates. |
+    | `Finetune` | array | [['depth', [1, 2, 3, 4]], ['max_childs', [10, 40]], ['sim_thres', [0.2, 0.4, 0.6, 0.8]]] (shared: []) | shared | Candidate [parameter, values] pairs for automatic configuration. |
 <!-- End arguments -->

@@ -1,4 +1,4 @@
-from detectmatelibrary.bases.base_parsers.parser_generator import ParserGeneratorConfig, ParserGenerator
+from detectmatelibrary.bases.base_parsers import ParserGenerator, ParserGeneratorConfig
 from detectmateperformance.brain import Brain
 
 from typing import Any, override
@@ -9,13 +9,16 @@ from pydantic import Field
 class BrainConfig(ParserGeneratorConfig):
     method_type: str = Field(default="brain_parser", description="Indicates what type of method it is.")
 
-    weight: float = Field(default=0.5, description="Weight value in Brain")
+    weight: float = Field(
+        default=0.5,
+        description="Multiplier on the highest token frequency in a log to set the clustering cutoff.",
+    )
 
     Finetune: list[list[str | list[Any]]] = Field(
         default=[
             ["weight", [0.5, 1.0, 1.5]],
         ],
-        description="fitting description yet to find",
+        description="Candidate [parameter, values] pairs for automatic configuration.",
     )
 
 

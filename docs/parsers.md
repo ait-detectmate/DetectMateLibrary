@@ -126,6 +126,8 @@ def test_my_parser_parse():
 - [Template Tree Matcher](parsers/template_tree_matcher.md): matches logs against a predefined set of `<*>` templates using a tree structure.
 - [LogBatcher Parser](parsers/logbatcher_parser.md): LLM-based parser that infers templates from raw logs with no training data.
 - [Drain parser](parsers/drain_parser.md): Parser inspired by [Drain Publication](https://ieeexplore.ieee.org/document/8029742).
+- [Brain Parser](parsers/brain.md) groups logs by token frequency to learn templates.
+- [AECID-PG Parser](parsers/aecid_pg.md) learns templates by pruning a tree of token sequences.
 - [Auto parser](parsers/auto_parser.md): The auto parser uses a brute-force strategy: it iterates through every log-type record in the internal dataset and chooses the regex and templates that best matches the provided logs.
 
 ### Common parameters (all parsers)
@@ -155,3 +157,16 @@ There are some parameters, that **every** parser inherits from `CoreParserConfig
     | `time_format` | string, null | None | fitting description yet to find |
     | `log_source` | string, null | None | Process only inputs of the same log source. |
 <!-- End common_arguments -->
+
+### Parser generators
+
+Drain, Brain, and AECID-PG use `ParserGenerator` to learn templates from buffered logs and merge templates during [federation](federation.md). Their configs inherit these additional fields from `ParserGeneratorConfig`. Each parser defines its own default `Finetune` search grid. The search runs when `auto_config` is enabled and `data_use_configure` is set.
+
+<!-- Start parser_generator_arguments -->
+???+ note "params"
+
+    | Field | Type | Default | Description |
+    |---|---|---|---|
+    | `reset_in_post_train` | boolean | False | Clear buffered training logs after generating templates. |
+    | `Finetune` | array | [] | Candidate [parameter, values] pairs for automatic configuration. |
+<!-- End parser_generator_arguments -->

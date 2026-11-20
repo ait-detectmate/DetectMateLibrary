@@ -1,4 +1,4 @@
-from detectmatelibrary.bases.base_parsers.parser_generator import ParserGeneratorConfig, ParserGenerator
+from detectmatelibrary.bases.base_parsers import ParserGenerator, ParserGeneratorConfig
 from detectmateperformance.drain import Drain
 
 from typing import Any, override
@@ -19,7 +19,7 @@ class DrainConfig(ParserGeneratorConfig):
             ["max_childs", [10, 40]],
             ["sim_thres", [0.2, 0.4, 0.6, 0.8]],
         ],
-        description="fitting description yet to find",
+        description="Candidate [parameter, values] pairs for automatic configuration.",
     )
 
 
