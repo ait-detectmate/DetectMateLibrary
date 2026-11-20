@@ -1,26 +1,17 @@
-from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
-from detectmatelibrary import schemas
-
-from detectmateperformance.match_tree import TreeMatcher
+from detectmatelibrary.bases.base_parsers.parser_generator import ParserGeneratorConfig, ParserGenerator
 from detectmateperformance.drain import Drain
 
-from detectmatelibrary.utils.finetune import Combinations
-
-from typing import Any
+from typing import Any, override
 
 from pydantic import Field
 
 
-class DrainConfig(CoreParserConfig):
+class DrainConfig(ParserGeneratorConfig):
     method_type: str = Field(default="drain_parser", description="Indicates what type of method it is.")
 
     depth: int = Field(default=2, description="fitting description yet to find")
     max_childs: int = Field(default=10, description="fitting description yet to find")
     sim_thres: float = Field(default=0.2, description="fitting description yet to find")
-
-    reset_in_post_train: bool = Field(
-        default=False, description="fitting description yet to find"
-    )
 
     Finetune: list[list[str | list[Any]]] = Field(
         default=[
@@ -32,48 +23,7 @@ class DrainConfig(CoreParserConfig):
     )
 
 
-def _init_drain(config: DrainConfig) -> Drain:
-    return Drain(
-        depth=config.depth,
-        max_child=config.max_childs,
-        sim=config.sim_thres,
-    )
-
-
-def _found_ratio(logs: list[str], tree_matcher: TreeMatcher) -> float:
-    results = tree_matcher.match_batch(logs).get_all_templates()
-
-    score = 0.0
-    for template in results:
-        if "template not found" == template:
-            score += 1.0
-
-    return score / len(results)
-
-
-def _get_best_config(logs: list[str], config: DrainConfig) -> DrainConfig:
-
-    found_ratio: list[float] = []
-    length: list[int] = []
-
-    for config in (comb := Combinations(config))():  # type: ignore
-        drain = _init_drain(config)
-        for input_ in logs:
-            drain.add(input_)
-        tree_matcher = drain.generate()
-
-        found_ratio.append(_found_ratio(logs, tree_matcher))
-        length.append(len(tree_matcher))
-
-    n = max(length)
-    for le, sc in zip(length, found_ratio):
-        comb.add_value((float(le) / n) + sc)
-
-    new_config: DrainConfig = comb.get_best()  # type: ignore
-    return new_config
-
-
-class DrainParser(CoreParser):
+class DrainParser(ParserGenerator):
     def __init__(
         self,
         name: str = "DrainParser",
@@ -84,35 +34,12 @@ class DrainParser(CoreParser):
             config = DrainConfig.from_dict(config, name)
         super().__init__(name=name, config=config)
 
-        self.config: DrainConfig
-        self.drain_gen = _init_drain(config=config)
-        self.tree_match: TreeMatcher | None = None
+        self.parser_gen: Drain
 
-        self.config_buffer: list[str] = []
-
-    def configure(self, input_: schemas.LogSchema) -> None:  # type: ignore
-        self.config_buffer.append(input_["log"])
-
-    def set_configuration(self) -> None:
-        self.config = _get_best_config(self.config_buffer, config=self.config)
-        self.config_buffer = []
-
-    def train(self, input_: schemas.LogSchema) -> None:  # type: ignore
-        self.drain_gen.add(input_["log"])
-
-    def post_train(self) -> None:
-        self.tree_match = self.drain_gen.generate()
-        if self.config.reset_in_post_train:
-            self.drain_gen.reset()
-
-    def parse(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> None:
-
-        if self.tree_match is None:
-            output_["eventID"] = -1
-            output_["template"] = "templates not yet generated"
-        else:
-            parsed = self.tree_match.match_log(input_["log"], get_var=True)[0]
-
-            output_["eventID"] = parsed["EventID"]
-            output_["variables"].extend(parsed["ParamList"])
-            output_["template"] = parsed["Template"]
+    @override
+    def init_parser(self, config: DrainConfig) -> Drain:  # type: ignore
+        return Drain(
+            depth=config.depth,
+            max_child=config.max_childs,
+            sim=config.sim_thres,
+        )
