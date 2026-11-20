@@ -4,7 +4,7 @@ from detectmatelibrary.common._config._compile import (
     get_instance_variables,
 )
 from detectmatelibrary.common._core_op._train_buffer import TrainBuffer
-from detectmatelibrary.base_detectors import (
+from detectmatelibrary.bases.base_detectors import (
     SingleStabilityTracker,
     VariableAutoConfigParams,
     VariableDetector,

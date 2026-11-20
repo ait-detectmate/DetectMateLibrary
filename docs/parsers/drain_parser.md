@@ -1,8 +1,6 @@
 # Drain Parser [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/parsers/drain.py)]
 
-The parser is derived from the official [Drain publication](https://ieeexplore.ieee.org/document/8029742).
-
-It also wraps functionality from the DetectMatePerformance project: https://github.com/ait-detectmate/DetectMatePerformance. When parsing large numbers of log lines in non-stream (batch) mode, it is recommended to use the performance-oriented implementation.
+Drain uses the DetectMatePerformance implementation, which also provides a batch API for processing large collections of logs. [DetectMatePerformance](https://github.com/ait-detectmate/DetectMatePerformance)
 
 ## In/out
 
@@ -13,8 +11,28 @@ Input and output schemas in the pipeline
 | **Input**  | [LogSchema](../schemas.md) | Unstructured log   |
 | **Output** | [ParserSchema](../schemas.md) | Structured log   |
 
+
+| Learns from training data | Auto-configuration | Needs `events` | Federation |
+|---|---|---|---|
+| ✅ | ✅  | ❌  | ✅ |
+
 !!! warning "Not yet stable"
     This parser is not yet in a stable release and may behave differently across platforms or hardware.
+
+## Description
+
+The original Drain algorithm uses a fixed-depth tree to narrow the search for a matching log group. The first level below the root branches on the number of tokens in the message. The next levels use leading tokens in order. At the leaf, Drain scores each candidate template by the fraction of tokens that match at the same positions. A similarity threshold determines whether Drain updates the best-matching group or starts a new one. [Drain paper, Section III](https://jiemingzhu.github.io/pub/pjhe_icws2017.pdf)
+
+![Drain groups messages by token count and leading tokens. The Hello world group yields the template Hello world <*> you.](../img/Drain.svg)
+
+In DetectMate, Drain generates templates from buffered logs when training ends. It groups cleaned messages by token count, capped at `max_childs`, and by their first `depth` tokens. Within each group, messages join a cluster when their similarity to its first message exceeds `sim_thres`. The score is the fraction of matching bytes at the same positions over the length of the shorter message.
+
+Each template keeps the tokens that agree at the same position and uses `<*>` where they vary. For example, `Hello world and you` and `Hello world or you` produce `Hello world <*> you`. After training, a tree matcher uses the learned templates to parse incoming messages. A match for `Hello world to you` returns that template and puts `to` in `variables`.
+
+### Federation
+
+Drain inherits the concatenation strategy from `ParserGenerator`. Aggregation collects the templates learned by each participating parser, removes duplicates, and sorts the result. Each participant builds its matcher from that shared list, giving the same template the same `eventID` across the federation. [Distributed parsing paper, Section 4.3.1](https://arxiv.org/pdf/2610.36946#page=6)
+
 
 ## Examples
 
@@ -45,7 +63,7 @@ The same file works unchanged in both places a parser runs:
 
 ## Configuration arguments
 
-All parameters this parser accepts, grouped by the YAML block they go in. **Scope** tells whether a parameter is `specific` to this parser or `shared` with other parsers (see the [Parsers overview](../parsers.md#common-parameters-all-parsers)).
+Arguments are grouped by YAML block. **Scope** identifies fields specific to Drain and fields inherited from the parser generator base. When Drain overrides an inherited default, the base default appears in parentheses. [Shared parser generator parameters](../parsers.md#parser-generators)
 
 <!-- Start arguments -->
 ??? note "Top level"
@@ -59,20 +77,20 @@ All parameters this parser accepts, grouped by the YAML block they go in. **Scop
 
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
-    | `depth` | integer | 2 | specific | fitting description yet to find |
-    | `max_childs` | integer | 10 | specific | fitting description yet to find |
-    | `sim_thres` | number | 0.2 | specific | fitting description yet to find |
-    | `reset_in_post_train` | boolean | False | specific | fitting description yet to find |
-    | `Finetune` | array | [['depth', [1, 2, 3, 4]], ['max_childs', [10, 40]], ['sim_thres', [0.2, 0.4, 0.6, 0.8]]] | specific | fitting description yet to find |
+    | `depth` | integer | 2 | specific | Number of leading tokens used to group training logs. |
+    | `max_childs` | integer | 10 | specific | Upper limit on the token count used for grouping. |
+    | `sim_thres` | number | 0.2 | specific | Similarity score a message must exceed to join a cluster. |
     | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
     | `data_use_training` | integer, null | None | shared | Number of logs used for training. None skips training. |
     | `data_use_configure` | integer, null | None | shared | Number of logs used for the configuration step. None skips it. |
-    | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
+    | `use_config_data_as_training` | boolean | True | shared | Reuse configuration records as training data. |
     | `train_buffer_max_records` | integer | 100000 | shared | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
     | `connector_name` | string, null | None | shared | Add a connector to the output schema. |
     | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
-    | `log_format` | string, null | None | shared | fitting description yet to find |
-    | `time_format` | string, null | None | shared | fitting description yet to find |
+    | `log_format` | string, null | None | shared | Pattern with named fields such as `<Time>` and `<Content>` for splitting a raw log. |
+    | `time_format` | string, null | None | shared | Format used to parse the timestamp field. |
     | `log_source` | string, null | None | shared | Process only inputs of the same log source. |
+    | `reset_in_post_train` | boolean | False | shared | Clear buffered training logs after generating templates. |
+    | `Finetune` | array | [['depth', [1, 2, 3, 4]], ['max_childs', [10, 40]], ['sim_thres', [0.2, 0.4, 0.6, 0.8]]] (shared: []) | shared | Candidate [parameter, values] pairs for automatic configuration. |
 <!-- End arguments -->

@@ -2,8 +2,8 @@ from typing import Any, Collection, List, Sequence
 from typing_extensions import Self, override
 import warnings
 
-from detectmatelibrary.base_detectors import CountVectorDetector, CountVectorDetectorConfig
-from detectmatelibrary.base_detectors.count_vector_detector import SessionWindows
+from detectmatelibrary.bases.base_detectors import CountVectorDetector, CountVectorDetectorConfig
+from detectmatelibrary.bases.base_detectors.count_vector_detector import SessionWindows
 from detectmatelibrary.utils.sequence_encoding import (
     build_count_vec,
     decode_count_vec,

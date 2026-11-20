@@ -2,13 +2,9 @@
 
 ![UML](img/logo.svg)
 
-Welcome to the documentation for the DetectMate Library. DetectMate is a flexible,
-component-based library for parsing and log anomaly detection. It can be used in research and production,
-and together with the
-[DetectMate Service](https://github.com/ait-detectmate/DetectMateService/tree/main)
-it deploys into microservice architectures.
+DetectMate is a flexible, component-based library for log parsing and anomaly detection. You can use the library in research and production and deploy it in a microservice architecture with DetectMate Service. [DetectMate Service](https://ait-detectmate.github.io/DetectMateService/latest/)
 
-In the figure below, we can see how the different components of the DetectMate environment interact. The Service enables codeless deployment, while using the Library provides greater flexibility and allows developers to integrate the tool into their own scripts.
+The diagram shows how the DetectMate components interact. The Service supports deployment without custom code. The Library lets developers integrate the components into their own scripts.
 
 
 ![Diagram](img/overall.svg)
@@ -25,8 +21,6 @@ Start here if you are new to the library and want a quick overview of what it ca
 
 ## Advanced Guide
 
-Here you can get the full scope.
-
 * [Overall architecture](advanced/overall_architecture.md)
 * [Schemas](schemas.md)
 * [Parsers](parsers.md)
@@ -39,4 +33,4 @@ Here you can get the full scope.
 
 * [Contributing](contribution.md)
 * [Development](development.md)
-* [Release Process](release.md).
+* [Release Process](release.md)

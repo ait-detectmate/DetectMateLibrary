@@ -46,9 +46,9 @@ class From:
         renames: dict[str, str] | None = None,
     ) -> Iterator[BaseSchema]:
         """
-        Load Polars dataframe as input schemas follow DetectMatePerformance format.
+        Load input schemas from a Polars DataFrame in DetectMatePerformance format.
 
-        *  renames: allow to rename the dataframe inside the method
+        Use renames to rename columns before loading.
         """
 ```
 
@@ -202,7 +202,7 @@ class FromTo:
         constant_fields: dict[str, Any] = {},
         renames: dict[str, str] | None = None,
     ) -> Iterator[BaseSchema]:
-        """Load DetectMatePerformance Dataframe to binary file"""
+        """Load a DetectMatePerformance DataFrame and save it to a binary file."""
 
     @staticmethod
     def polars2json(
@@ -212,7 +212,7 @@ class FromTo:
         constant_fields: dict[str, Any] = {},
         renames: dict[str, str] | None = None,
     ) -> Iterator[BaseSchema]:
-        """Load DetectMatePerformance Dataframe to json"""
+        """Load a DetectMatePerformance DataFrame and save it to a JSON file."""
 
     @staticmethod
     def polars2yaml(
@@ -222,7 +222,7 @@ class FromTo:
         constant_fields: dict[str, Any] = {},
         renames: dict[str, str] | None = None,
     ) -> Iterator[BaseSchema]:
-        """Load DetectMatePerformance Dataframe to yaml"""
+        """Load a DetectMatePerformance DataFrame and save it to a YAML file."""
 ```
 
 ### Usage

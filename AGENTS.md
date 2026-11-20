@@ -23,12 +23,12 @@ uv run pytest tests/test_foo.py                       # single test file
 uv run prek run -a
 
 # Recompile Protobuf (only if schemas.proto is modified)
-protoc --proto_path=src/detectmatelibrary/schemas/ \
-  --python_out=src/detectmatelibrary/schemas/ \
-  src/detectmatelibrary/schemas/schemas.proto
+protoc --proto_path=src/detectmatelibrary/schemas/protobuf/ \
+  --python_out=src/detectmatelibrary/schemas/protobuf/ \
+  src/detectmatelibrary/schemas/protobuf/schemas.proto
 
-# Scaffold a new component workspace
-mate create --type <parser|detector> --name <name> --dir <target_dir>
+# Scaffold a new component workspace. Set --type to parser or detector.
+mate create --type parser --name MyParser --dir ./my_parser
 ```
 
 ## Architecture
@@ -109,11 +109,11 @@ config = generate_detector_config(
 
 Load/save configs via `BasicConfig.from_dict(d, method_id=...)` and `.to_dict(method_id=...)` for YAML round-trip compatibility.
 
-After training completes, variable detectors with `auto_config=False` automatically call `validate_config_coverage()` (`src/detectmatelibrary/base_detectors/variable_detector.py`, from `VariableDetector.post_train`), which logs warnings when configured EventIDs or variable positions were never observed in training data. This catches config/data mismatches early — check logs after the training phase when adding new detector configs.
+After training completes, variable detectors with `auto_config=False` automatically call `validate_config_coverage()` (`src/detectmatelibrary/bases/base_detectors/variable_detector.py`, from `VariableDetector.post_train`), which logs warnings when configured EventIDs or variable positions were never observed in training data. This catches config/data mismatches early — check logs after the training phase when adding new detector configs.
 
-### Base detectors (`src/detectmatelibrary/base_detectors/`)
+### Base detectors (`src/detectmatelibrary/bases/base_detectors/`)
 
-A layer between `common/` and `detectors/`, imported as `from detectmatelibrary.base_detectors import ...`:
+A layer between `common/` and `detectors`, imported as `from detectmatelibrary.bases.base_detectors import ...`:
 
 - **`TrackerDetector(CoreDetector)`** — the only owner of persistency. Builds the `EventPersistency` stores (`persistency`, `auto_conf_persistency`), starts the `persist:` saver, implements `export_state`/`import_state` and federation (`to_binary`, `from_binary`, `aggregate_strategy`, `finalize_federation`). `TrackerDetectorConfig` adds `persist` and `allow_fed`.
   - **`VariableDetector(TrackerDetector)`** — per-variable model detectors (NewValue, Combo, Charset, ValueRange, BigramFrequency).
@@ -133,6 +133,7 @@ Dependency rules: `utils.persistency` is imported only from `utils/persistency/`
 ### Buffering Modes (`src/detectmatelibrary/utils/data_buffer.py`)
 
 Three modes via `ArgsBuffer` config:
+
 - **NO_BUF** — one item at a time (default)
 - **BATCH** — accumulate N items, process as batch
 - **WINDOW** — sliding window of size N
@@ -166,7 +167,7 @@ class MyDetector(CoreDetector):
         return False  # True = anomaly detected
 ```
 
-Same pattern applies for `CoreParser` — implement `parse(input_: LogSchema, output_: ParserSchema) -> bool`.
+The same pattern applies to `CoreParser`. Implement `parse(input_: LogSchema, output_: ParserSchema) -> bool`.
 
 ### Wiring persist support into a new detector
 
@@ -175,7 +176,7 @@ A detector that keeps state in `EventPersistency` stores subclasses `TrackerDete
 **1. Subclass `TrackerDetector` and its config:**
 
 ```python
-from detectmatelibrary.base_detectors import TrackerDetector, TrackerDetectorConfig
+from detectmatelibrary.bases.base_detectors import TrackerDetector, TrackerDetectorConfig
 
 class MyDetectorConfig(TrackerDetectorConfig):
     method_type: str = "my_detector"
@@ -212,6 +213,7 @@ Every other field — `persist`, `auto_config_params`, any detector-specific par
 ## Code Quality
 
 Pre-commit hooks enforce:
+
 - **mypy** strict mode
 - **flake8** linting, **autopep8** formatting (max line 110)
 - **bandit** security checks, **vulture** dead-code detection (70% threshold)

@@ -47,7 +47,7 @@ class _CompOp:
 
 
 class FedOperations:
-    """Operations related to the federation learning / agregation."""
+    """Operations for aggregating federated components."""
     __COMPONENT: str = "_components"
 
     def __init__(self) -> None:
@@ -55,15 +55,13 @@ class FedOperations:
         _CompOp.reset(self, self.__COMPONENT)
 
     def __add__(self, other: object) -> Self:
-        """Add other components to do the aggregation in a combine first
-        approach."""
+        """Combine components for a later aggregation."""
         _CompOp.combine(self, attr=self.__COMPONENT, other_inst=other)
 
         return self
 
     def __sub__(self, other: object) -> Self:
-        """Remove other components to do the aggregation in a combine first
-        approach."""
+        """Remove a component from the combined group."""
         _CompOp.uncombine(self, attr=self.__COMPONENT, other_inst=other)
 
         return self
@@ -74,8 +72,7 @@ class FedOperations:
 
     @overload
     def stack(self, other: object | list[object]) -> None:
-        """Stack other components to do the aggregation in a stack later
-        approach."""
+        """Stack components for a later aggregation."""
         pass
 
     def stack(self, other: object | list[object | bytes] | bytes) -> None:
@@ -95,25 +92,25 @@ class FedOperations:
 
         return self.to_binary()
 
-    # ---- Needs to be define by CoreComponent ----------------------------------------------------
+    # ---- Implemented by CoreComponent -----------------------------------------------------------
 
     def from_binary(self, binary: bytes) -> object:
-        """From binary, return a new object with the binary."""
-        warnings.warn(f"From binary not implemented, return None for {binary!r}")
+        """Reconstruct a component from serialized bytes."""
+        warnings.warn(f"Binary deserialization is unavailable for input {binary!r}.")
         return None
 
-    # ---- Needs to be define in the componets ----------------------------------------------------
+    # ---- Implemented by the components ----------------------------------------------------------
     def to_binary(self) -> bytes | None:
-        warnings.warn("To binary not implemented, return None")
+        warnings.warn("Binary serialization is unavailable for this component.")
         return None
 
     def load_binary(self, binary: bytes) -> None:
-        """Modify current instance with binary."""
-        warnings.warn(f"Load binary not implemented, return None for {binary!r}")
+        """Update this component from serialized bytes."""
+        warnings.warn(f"Binary loading is unavailable for input {binary!r}.")
 
     def aggregate_strategy(self, components: set["FedOperations"]) -> None:
-        """Aggregation strategy use by the component."""
-        warnings.warn(f"No strategy found, aggregations does nothing for {components}")
+        """Define how to aggregate the given components."""
+        warnings.warn(f"Aggregation requires a strategy for {components}.")
 
     def finalize_federation(self) -> None:
         pass

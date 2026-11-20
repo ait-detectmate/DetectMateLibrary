@@ -1,6 +1,6 @@
 
 from detectmatelibrary.detectors.scvs_detector import SCVSDetector, SCVSDetectorConfig
-from detectmatelibrary.base_detectors import CountVectorDetector, SessionWindows
+from detectmatelibrary.bases.base_detectors import CountVectorDetector, SessionWindows
 from detectmatelibrary.utils.sequence_encoding import build_count_vec, count_events, encode_count_vec
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From

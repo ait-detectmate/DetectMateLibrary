@@ -1,8 +1,8 @@
 
-from detectmatelibrary.base_detectors import (
+from detectmatelibrary.bases.base_detectors import (
     DeepLearningDetector, DeepLearningDetectorConfig
 )
-from detectmatelibrary.base_detectors.deeplearning_detector import SessionWindows
+from detectmatelibrary.bases.base_detectors.deeplearning_detector import SessionWindows
 from detectmatelibrary.utils.deep_learning._op import PAD
 
 from detectmatelibrary.utils.deep_learning.imodel import DeepModel

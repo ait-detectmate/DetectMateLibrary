@@ -37,17 +37,17 @@ class CoreDetector(CoreComponent):
     def run(
         self, input_: List[ParserSchema] | ParserSchema, output_: DetectorSchema
     ) -> bool:
-        """Define in the Core detector"""
+        """Run the detector on the given input."""
 
     def detect(
         self,
         input_: List[ParserSchema] | ParserSchema,
         output_: DetectorSchema,
     ) -> bool:
-        """Empty, must be define in the specific detector"""
+        """Implement this method in the detector subclass."""
 
     def train(self, input_: ParserSchema | list[ParserSchema]) -> None:
-        """Empty, can be define in the detector. It trains the detector"""
+        """Override this method to train the detector."""
 ```
 
 ## Implementing a detector: example
@@ -87,7 +87,7 @@ class SimpleThresholdDetector(CoreDetector):
 
         return False
 ```
-To configure the number of logs receive as input, you need to configure the [buffer](auxiliar/input_buffer.md) in the initialization of the Detector.
+Set the buffer when initializing the detector to control how many logs it receives per call. [Data buffer](auxiliar/input_buffer.md)
 
 ## Detectors methods
 
@@ -189,7 +189,7 @@ Some parameters are inherited by **every** detector from `CoreDetectorConfig`/`C
     | `start_id` | integer | 10 | Number used to start the unique ID generator. |
     | `data_use_training` | integer, null | None | Number of logs used for training. None skips training. |
     | `data_use_configure` | integer, null | None | Number of logs used for the configuration step. None skips it. |
-    | `use_config_data_as_training` | boolean | True | Combine the configured data in the training process if True. |
+    | `use_config_data_as_training` | boolean | True | Reuse configuration records as training data. |
     | `train_buffer_max_records` | integer | 100000 | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
     | `connector_name` | string, null | None | Add a connector to the output schema. |
@@ -330,12 +330,10 @@ To support auto-configuration in your own detector, see [Development](developmen
 
 ### Full lifecycle with auto-configuration
 
-```python title="Full cycle"
-1. configure(input_)         # call for each event in the dataset
-2. set_configuration()       # finalize which variables to monitor
-3. train(input_)             # call for each event in the dataset
-4. detect(input_, output_)   # call for each event to detect anomalies
-```
+1. Call `configure(input_)` for each configuration event.
+2. Call `set_configuration()` to finalize which variables to monitor.
+3. Call `train(input_)` for each training event.
+4. Call `detect(input_, output_)` for each event to check for anomalies.
 
 When `auto_config` is `False`, steps 1 and 2 are skipped entirely. `data_use_configure`
 still reserves its records, and with `use_config_data_as_training` they still go to
@@ -545,10 +543,10 @@ this, set `StateDirectory=` in your unit file: systemd creates `/var/lib/<dir>`
 with the right ownership and exports `$STATE_DIRECTORY`, which the default `path`
 reads automatically. No explicit `path:` needed:
 
-```yaml title="Running under systemd"
+```ini title="Running under systemd"
 [Service]
 User=detectmate
-StateDirectory=detectmate     # → state at /var/lib/detectmate/<detector>/
+StateDirectory=detectmate
 ```
 
 Setting `path:` explicitly (e.g. an `s3://` URL) always overrides `$STATE_DIRECTORY`.

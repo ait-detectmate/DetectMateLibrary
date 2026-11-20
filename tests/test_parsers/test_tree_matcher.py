@@ -1,4 +1,4 @@
-"""Most of the functionality is test it in DetectMatePerformance."""
+"""Most of the functionality is tested in DetectMatePerformance."""
 from detectmatelibrary.parsers.tree_matcher import TemplateCppTreeMatcher
 from detectmatelibrary import schemas
 from tests.test_data import TEST_TEMPLATES

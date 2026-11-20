@@ -1,4 +1,4 @@
-"""Most of the functionality is test it in DetectMatePerformance."""
+"""Most of the functionality is tested in DetectMatePerformance."""
 from detectmatelibrary.parsers.autoparser import AutoParser
 
 from detectmatelibrary.helper.from_to import From

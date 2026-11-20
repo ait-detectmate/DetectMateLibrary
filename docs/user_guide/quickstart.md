@@ -1,22 +1,23 @@
 # Quickstart
 
-This quickstart shows how to process a log dataset (we use data from the [AIT Log Data Set V2.0](https://zenodo.org/records/5789064)).
+This quickstart shows how to process logs from the AIT Log Data Set V2.0. [Dataset](https://zenodo.org/records/5789064)
 
 ## Tutorials
 
 We developed three tutorials that show how to work with DetectMate using a few straightforward examples:
 
-* [Run individually](./quickstart.md#run-individually): Execute each component separately within a script.
-* [Run basic pipeline](./quickstart.md##run-basic-pipeline): Execute all types of components together in a simple pipeline.
-* [Run expert pipeline](./quickstart.md#run-expert-pipeline): Execute all types of components using a [Redis](https://redis.io/) connector and multi-source logs as the input.
+* Execute each component separately in a script. [Run individually](#run-individually)
+* Run all component types together in one pipeline. [Run basic pipeline](#run-basic-pipeline)
+* Process multiple log sources and store results with a Redis connector. [Run expert pipeline](#run-expert-pipeline)
+* Run DetectMate through the Service. [Service tutorial](https://ait-detectmate.github.io/DetectMateService/latest/)
 
 ## Before you start
 
-Before starting, follow the next steps in your work directory:
+Set up your working directory before starting the tutorials.
 
-1. Copy the logs from in [here](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/tests/test_data/audit.log) and the matching templates from [here](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/tests/test_data/audit_templates.txt).
+1. Download the audit logs and their matching templates. [Audit logs](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/tests/test_data/audit.log) · [Audit templates](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/tests/test_data/audit_templates.txt)
 
-2. Install DetectMateLibrary dependency:
+2. Install the DetectMateLibrary package.
 
 ```console title="Install DetectMate"
 pip install detectmatelibrary
@@ -29,7 +30,7 @@ In the first example, we will execute the components one by one to better unders
 
 ### 0. Define configuration
 
-First, we need to set up all the variables, such as the paths and the parameters used by the `DetectMate` methods. As shown below, all the methods can be initialized within the same dictionary. We will explain all the steps bellow.
+Define file paths and component parameters in one configuration dictionary.
 
 ```python title="Example configuration"
 --8<-- "docs/examples/others/quickstart.py:config"
@@ -68,11 +69,9 @@ Finally, to combine all the alerts collected from the various detectors, an aler
 
 ## Run basic pipeline
 
-Although you can run each method separately to gain more control over the individual steps, it isn’t required. You can also execute everything together as a single pipeline. Next, we will run the methods described earlier using the generic DetectMateLibray pipeline.
+The DetectMateLibrary pipeline runs the components from the previous example together.
 
 ### 1. Initialize the pipeline
-
-First, we initialze the pipeline.
 
 ```python title="Initialize pipeline"
 --8<-- "docs/examples/others/quickstart.py:pipeline"
@@ -91,11 +90,11 @@ Finally, we run the pipeline.
 
 The earlier pipeline processes only a single log data source, and intermediate schemas are discarded, while any output is saved permanently. In this example, two log sources will run at the same time, and the detector and alert-aggregation outputs will be stored in a Redis service.
 
-For this use case, we also need to download other types of logs, including downloading and adding these [Apache logs](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/tests/test_data/apache.log).
+Download the Apache logs as a second source. [Apache logs](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/tests/test_data/apache.log)
 
 ### 0. Prepare logs
 
-First, we will prepare the data. In this example, we will simply upload the Audit and Apache datasets and ensure they have distinct log sources.
+Load the Audit and Apache datasets and give each a distinct log source.
 
 ```python title="Prepare logs"
 --8<-- "docs/examples/others/quickstart_2.py:prepare"
@@ -163,11 +162,11 @@ To reach the dashboard, launch your preferred web browser and navigate to the fo
 http://localhost:5540/
 ```
 
-### 3. Initialize the pipeline
+### 2. Initialize the pipeline
 
 Now that the data and services are in place, we can return to our script and implement our pipeline. Previously, we relied on a dictionary to initialize the methods within the pipeline. In this case, we’ll use the Config classes instead. We will run two parsers—one for each log source—and four detectors, again two per source.
 
-To link where the data should go, we first use the `log_source` argument in the parsers to specify which type of logs to process. For detectors, the `parser` argument is used to indicate which parser to pull data from.
+Set `log_source` on each parser to select its input logs. Set `parser` on each detector to select its input parser.
 
 We will store the alert data so that dataset 0 contains Audit alerts, dataset 1 contains Apache alerts, and dataset 2 contains all aggregated alerts.
 
@@ -175,7 +174,7 @@ We will store the alert data so that dataset 0 contains Audit alerts, dataset 1 
 --8<-- "docs/examples/others/quickstart_2.py:initialize"
 ```
 
-### 4. Run pipeline
+### 3. Run the pipeline
 
 Let’s execute the full pipeline to retrieve the data.
 
@@ -183,7 +182,7 @@ Let’s execute the full pipeline to retrieve the data.
 --8<-- "docs/examples/others/quickstart_2.py:run"
 ```
 
-### 5. Get the data
+### 4. Get the data
 
 To retrieve the data, we can simply initialize the schemas using the various IDs.
 

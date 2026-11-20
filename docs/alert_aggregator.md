@@ -65,19 +65,19 @@ fields left for `aggregate_alerts()` to fill are `description` and `alertDetails
 
 ## Alert aggregator methods
 
-The alert aggregator are numbered from simplest to most complex, and the sidebar lists them in the same order.
+The alert aggregators are numbered from simplest to most complex, and the sidebar lists them in the same order.
 
-| # | Detector | What it detects |
+| # | Alert aggregator | What it does |
 |---|---|---|
-| 00 | [Basic Concat Aggregator](alert_aggregators/basic_concatenation.md) | Concat a set of alerts. |
-| 01 | [LogID Count Aggregator](alert_aggregators/logid_count.md) | Count the amount of times a logID is in alerts. |
+| 00 | [Basic Concat Aggregator](alert_aggregators/basic_concatenation.md) | Combine a set of alerts. |
+| 01 | [LogID Count Aggregator](alert_aggregators/logid_count.md) | Count how many times a log ID appears in alerts. |
 | 02 | [Time Delta](alert_aggregators/time_delta.md) | Group alerts by their time difference. |
 | 03 | [AlertBERT](alert_aggregators/alertbert.md) | Group alerts based on timestamps and embeddings. |
 
 
 ### Common parameters (all alert aggregators)
 
-There are some parameters, that **every** alert aggregator inherits from `CoreAlertAggregatorConfig`/`CoreConfigCoreAlertAggregator`/`BasicConfig`, regardless of what it does. The other parameters, that are **specific** for the respective detector, are explained right at the detectors documentation page, later on.
+All alert aggregators inherit parameters from `CoreAlertAggregatorConfig`, `CoreConfig`, and `BasicConfig`. Each aggregator’s page explains its specific parameters.
 
 <!-- Start common_arguments -->
 ???+ note "Top level"
@@ -93,7 +93,7 @@ There are some parameters, that **every** alert aggregator inherits from `CoreAl
     | `start_id` | integer | 10 | Number used to start the unique ID generator. |
     | `data_use_training` | integer, null | None | Number of logs used for training. None skips training. |
     | `data_use_configure` | integer, null | None | Number of logs used for the configuration step. None skips it. |
-    | `use_config_data_as_training` | boolean | True | Combine the configured data in the training process if True. |
+    | `use_config_data_as_training` | boolean | True | Reuse configuration records as training data. |
     | `train_buffer_max_records` | integer | 100000 | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
     | `connector_name` | string, null | None | Add a connector to the output schema. |
@@ -102,7 +102,7 @@ There are some parameters, that **every** alert aggregator inherits from `CoreAl
 
 ### Density Clustering Aggregator
 
-The alert aggregators that are based on density clustering ([Time Delta](alert_aggregators/time_delta.md), [AlertBERT](alert_aggregators/alertbert.md)) accept also the following arguments:
+Time Delta and AlertBERT also accept the density clustering parameters below. [Time Delta](alert_aggregators/time_delta.md) · [AlertBERT](alert_aggregators/alertbert.md)
 
 <!-- Start density_clustering_arguments -->
 ???+ note "params"

@@ -23,8 +23,8 @@ uv sync
 Changes to the source tree are then reflected immediately. To install DetectMate
 as a library into a different environment instead:
 
-```console  title="Install from PIP"
-uv pip install --no-cache-dir <directory_detectmatelibrary>
+```console title="Install with pip"
+uv pip install --no-cache-dir /path/to/DetectMateLibrary
 ```
 
 ## Optional dependencies
@@ -43,19 +43,19 @@ To have a closer look at all the dependencies, see [Optional dependencies](https
 Install an extra with `uv sync`:
 
 ```console  title="Install optional dependencies"
-uv sync --extra dataframes
+uv sync --extra llm
 ```
 
 Or with `uv pip install` / `pip` when installing as a library:
 
-```console title="Install optional dependencies with PIP"
+```console title="Install optional dependencies with pip"
 uv pip install "detectmatelibrary[llm]"
 ```
 
 Combine multiple extras if needed:
 
 ```console title="Install multiple optional dependencies"
-uv sync --extra llm --extra palertbert
+uv sync --extra llm --extra alertbert
 ```
 
 Or install everything at once with the `full` extra:
@@ -71,21 +71,21 @@ uv pip install "detectmatelibrary[full]"
 
 ### Step 1: Install Python development dependencies & pre-commit hooks
 
-* Install dev dependencies (testing, linters, formatters). The `dev` group also pulls in the `full` extra, so every optional dependency (LLM, dataframes, polars-rtcompat) is installed too:
+Install the development dependencies for testing, linting, and formatting. The `dev` group includes the `full` extra, which installs all optional dependencies.
 
 ```console title="Install development dependencies"
 uv sync --dev
 ```
 
-* Install pre-commit hooks (this repository uses `prek` to run pre-commit tooling):
+Install the pre-commit hooks with `prek`.
 
-```bashconsole title="Install precommit"
+```console title="Install pre-commit hooks"
 uv run --dev prek install
 ```
 
 **Notes:**
 
-* Ensure `uv` is available in PATH. If not, use your system Python + virtualenv and then `uv sync --dev`.
+* Ensure `uv` is on your `PATH` before running these commands.
 * Run the pre-commit hooks locally with `uv run --dev prek run -a` before committing to catch style/typing issues early.
 
 ### Step 2: Install Protobuf toolchain (only if you change proto files)
@@ -94,7 +94,7 @@ uv run --dev prek install
 
 * Install `protoc` on Debian/Ubuntu:
 
-```console title="Install ProtoBuff in Linux"
+```console title="Install Protobuf on Linux"
 sudo apt-get update
 sudo apt-get install -y protobuf-compiler
 protoc --version
@@ -102,7 +102,7 @@ protoc --version
 
 * Compile the project proto:
 
-```console  title="Compile ProtoBuff"
+```console title="Compile the Protobuf schema"
 protoc \
   --proto_path=src/detectmatelibrary/schemas/protobuf/ \
   --python_out=src/detectmatelibrary/schemas/protobuf/ \
@@ -121,7 +121,7 @@ uv run --dev pytest -s
 
 To run all unit tests, first start the database containers:
 
-```console  title="Start datasets"
+```console title="Start the databases"
 docker compose -f tests/test_schemas/compose.yaml up -d
 ```
 

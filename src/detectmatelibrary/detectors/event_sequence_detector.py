@@ -1,4 +1,6 @@
-from detectmatelibrary.base_detectors import StabilityAutoConfigParams, TrackerDetector, TrackerDetectorConfig
+from detectmatelibrary.bases.base_detectors import (
+    StabilityAutoConfigParams, TrackerDetector, TrackerDetectorConfig
+)
 from detectmatelibrary.common._config._compile import generate_events_config
 
 from detectmatelibrary.tools.logging import logger

@@ -3,7 +3,7 @@ from typing import Any
 
 from pydantic import Field, NonNegativeFloat
 
-from detectmatelibrary.base_alert_aggregation.density_clustering import (
+from detectmatelibrary.bases.base_alert_aggregation.density_clustering import (
     DensityClusteringAggregation,
     DensityClusteringAggregationConfig,
 )

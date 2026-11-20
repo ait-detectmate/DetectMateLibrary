@@ -14,9 +14,11 @@ from pydantic import Field
 
 class AutoParserConfig(CoreParserConfig):
     method_type: str = Field(
-        default="auto_parser", description="fitting description yet to find"
+        default="auto_parser", description="Identifies the Auto Parser method."
     )
-    fix_type: str = Field(default="", description="fitting description yet to find")
+    fix_type: str = Field(
+        default="", description="Built-in log type to use. An empty string lets the parser choose a type."
+    )
 
 
 class AutoParser(CoreParser):

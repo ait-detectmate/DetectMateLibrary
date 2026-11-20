@@ -583,7 +583,7 @@ class MaskedLanguageModel(nn.ModuleDict):
                 ),
             }
         )
-        # tie weigths of the embedding layer and the output layer
+        # Tie the weights of the embedding and output layers.
         for t in self.config["features"]:
             head = cast(MultiClassificationHead, self["head"])
             embedding = cast(MaskedLangModelEmbeddingLayer, self["embedding"])
@@ -1375,10 +1375,10 @@ pre-cluster size ({pre_cluster_size})!"
                         -1
                         * np.arange(
                             1, square_sizes[0] + 1
-                        ),  # make sure the labels dont collide
+                        ),  # Prevent label collisions.
                         tertiary_labels_array,
                         -1 * np.arange(1, square_sizes[-1] + 1)
-                        - 2 * square_sizes[0],  # make sure the labels dont collide
+                        - 2 * square_sizes[0],  # Prevent label collisions.
                     ]
                 )
             else:
@@ -1399,13 +1399,13 @@ pre-cluster size ({pre_cluster_size})!"
                     [
                         secondary_labels_array,
                         -1 * np.arange(1, square_sizes[-1] + 1),
-                    ]  # make sure the labels dont collide
+                    ]  # Prevent label collisions.
                 )
                 # Add labels to make the sequences the same length.
                 tertiary_labels_array = np.concatenate(
                     [
                         -1 * np.arange(1, square_sizes[0] + 1)
-                        - 2 * square_sizes[-1],  # make sure the labels dont collide
+                        - 2 * square_sizes[-1],  # Prevent label collisions.
                         tertiary_labels_array,
                     ]
                 )
@@ -1424,7 +1424,7 @@ tertiary labels ({len(tertiary_labels_array)})!"
                 -1
                 * (
                     1 + secondary_labels_array
-                ),  # make sure the labels dont collide  # change 2
+                ),  # Prevent label collisions.
             )
 
             pred.append(primary_labels_array + next_label)

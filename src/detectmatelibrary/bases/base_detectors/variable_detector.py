@@ -5,9 +5,9 @@ from detectmatelibrary.common._config._compile import (
 )
 from detectmatelibrary.common.detector import _time_handler as _core_time_handler
 from detectmatelibrary.common._config._formats import EventsConfig
-from detectmatelibrary.base_detectors._stability import StabilityAutoConfigParams
-from detectmatelibrary.base_detectors.tracker_detector import TrackerDetector, TrackerDetectorConfig
-from detectmatelibrary.base_detectors._variable_hooks import VariableHooks
+from detectmatelibrary.bases.base_detectors._stability import StabilityAutoConfigParams
+from detectmatelibrary.bases.base_detectors.tracker_detector import TrackerDetector, TrackerDetectorConfig
+from detectmatelibrary.bases.base_detectors._variable_hooks import VariableHooks
 
 from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stability_tracker import (
     EventStabilityTracker,

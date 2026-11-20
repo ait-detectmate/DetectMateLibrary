@@ -8,7 +8,7 @@ from detectmatelibrary.common._config._compile import (
 from detectmatelibrary.common._config._formats import EventsConfig, _EventConfig
 from detectmatelibrary.common._config import BasicConfig
 from detectmatelibrary.common._config import AutoConfigParams
-from detectmatelibrary.base_detectors import VariableDetectorConfig
+from detectmatelibrary.bases.base_detectors import VariableDetectorConfig
 from detectmatelibrary.detectors.bigram_frequency_detector import BigramFrequencyDetectorConfig
 from detectmatelibrary.detectors.charset_detector import CharsetDetectorConfig
 from detectmatelibrary.detectors.deeplog_detector import DeeplogDetectorConfig
@@ -94,7 +94,7 @@ class TestConfigDocs:
             "Scope": "specific",
             "Default changed": False,
             "Shared default": None,
-            "Description": "Indicates what type of method is.",
+            "Description": "Identifies the method to load.",
         } in docs
         assert _row(docs, "component_type")["Block"] == "top"
         assert _row(docs, "auto_config")["Default value"] is False
