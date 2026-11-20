@@ -59,11 +59,11 @@ All parameters this parser accepts, grouped by the YAML block they go in. **Scop
 
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
+    | `reset_in_post_train` | boolean | False | specific | fitting description yet to find |
+    | `Finetune` | array | [['depth', [1, 2, 3, 4]], ['max_childs', [10, 40]], ['sim_thres', [0.2, 0.4, 0.6, 0.8]]] | specific | fitting description yet to find |
     | `depth` | integer | 2 | specific | fitting description yet to find |
     | `max_childs` | integer | 10 | specific | fitting description yet to find |
     | `sim_thres` | number | 0.2 | specific | fitting description yet to find |
-    | `reset_in_post_train` | boolean | False | specific | fitting description yet to find |
-    | `Finetune` | array | [['depth', [1, 2, 3, 4]], ['max_childs', [10, 40]], ['sim_thres', [0.2, 0.4, 0.6, 0.8]]] | specific | fitting description yet to find |
     | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
     | `data_use_training` | integer, null | None | shared | Number of logs used for training. None skips training. |
     | `data_use_configure` | integer, null | None | shared | Number of logs used for the configuration step. None skips it. |
