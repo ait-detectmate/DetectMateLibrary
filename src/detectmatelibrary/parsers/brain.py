@@ -34,4 +34,4 @@ class BrainParser(ParserGenerator):
 
     @override
     def init_parser(self, config: BrainConfig) -> Brain:  # type: ignore
-        return Brain(weight=config)
+        return Brain(weight=config.weight)

@@ -28,7 +28,7 @@ class AECIDPGConfig(ParserGeneratorConfig):
 class AECIDPGParser(ParserGenerator):
     def __init__(
         self,
-        name: str = "DrainParser",
+        name: str = "AECIDPGParser",
         config: AECIDPGConfig | dict[str, Any] = AECIDPGConfig(),
     ) -> None:
 
