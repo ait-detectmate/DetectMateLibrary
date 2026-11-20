@@ -14,7 +14,7 @@ Key goals:
 - Well-defined schema contracts so components can be composed or run as microservices.
 - Easy extensibility: add new readers, parsers or detectors by subclassing core base classes.
 
-## Components flow
+## Component flow
 
 The pipeline is strictly directional:
 
@@ -24,9 +24,9 @@ The pipeline is strictly directional:
 
 Each arrow represents a stream of Schema objects. Components are designed to run in the same process for lightweight setups or as separate services for scalable deployments.
 
-![Components flow](../img/diagrams_structure.svg)
+![Component flow](../img/diagrams_structure.svg)
 
-## Components architecture
+## Component architecture
 
 All components inherit from the `CoreComponent` class. This class provides all the essential functionality required for DetectMate to operate (see UML diagram below). Every `Detector` must inherit from `CoreDetector`, every `AlertAggregator` must inherit from `CoreAlertAggregator` and every `Parser` must inherit from `CoreParser` to ensure compatibility with DetectMate.
 
@@ -67,7 +67,7 @@ The process flow is made up of the following stages:
 ![Flow](../img/processFlow.svg)
 
 
-## Components methods
+## Component methods
 
 Each Core* base class exposes a small, stable API that implementations must implement or may override.
 

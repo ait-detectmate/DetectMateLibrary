@@ -54,13 +54,13 @@ def flatten_dict(obj: dict[str, Any], sep: str = ".") -> dict[str, Any]:
 class JsonParserConfig(CoreParserConfig):
     method_type: str = Field(default="json_parser", description="Indicates what type of method it is.")
     timestamp_name: str = Field(
-        default="time", description="fitting description yet to find"
+        default="time", description="Case-insensitive substring used to find the timestamp key."
     )
     content_name: str = Field(
-        default="message", description="fitting description yet to find"
+        default="message", description="Case-insensitive substring used to find the message content key."
     )
     content_parser: str = Field(
-        default="JsonMatcherParser", description="fitting description yet to find"
+        default="JsonMatcherParser", description="Name of the sibling Template Matcher configuration."
     )
 
 

@@ -56,9 +56,9 @@ class LogIDCountAggegationConfig(CoreAlertAggregatorConfig):
     method_type: str = Field(
         default="logid_count_aggregator", description="Indicates what type of method it is."
     )
-    max_count: int = Field(default=4, description="Max count of alerts in a specific logID.")
+    max_count: int = Field(default=4, description="Alert count threshold for a log ID.")
     max_memory: int = Field(
-        default=5000, description="Max number of logIDs store in the count memory."
+        default=5000, description="Maximum number of log IDs tracked at once."
     )
 
 
@@ -87,10 +87,9 @@ class LogIDCountAggegation(CoreAlertAggregator):
             if self.counter.add_and_check(logID):
                 alert_logs.append(logID)
 
-        if (aggreated_alerts := len(alert_logs) > 0):
+        if (aggregated_alerts := len(alert_logs) > 0):
             output_["description"] = (
-                "LogID count how many times a log was count as alert."
-                f"Logs that pass the limit count: {", ".join(alert_logs)}"
+                f"Alert counts reached the threshold for log IDs {', '.join(alert_logs)}."
             )
 
-        return aggreated_alerts
+        return aggregated_alerts

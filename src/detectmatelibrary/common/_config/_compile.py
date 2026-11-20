@@ -64,8 +64,8 @@ class MethodTypeNotMatch(Exception):
 class MissingParamsWarning(UserWarning):
     def __init__(self) -> None:
         super().__init__(
-            "'auto_config = False' and no 'params', 'auto_config_params', 'events', "
-            "'global', or 'persist' provided. Is that intended?"
+            "Auto-configuration is disabled, and the configuration omits 'params', "
+            "'auto_config_params', 'events', 'global', and 'persist'. Is that intended?"
         )
 
 

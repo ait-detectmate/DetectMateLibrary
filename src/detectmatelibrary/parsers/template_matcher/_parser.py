@@ -118,9 +118,9 @@ class MatcherParserConfig(CoreParserConfig):
         default=True, description="Remove duplicate spaces."
     )
     remove_punctuation: bool = Field(
-        default=True, description="Remove punctuations symbols."
+        default=True, description="Remove punctuation."
     )
-    lowercase: bool = Field(default=True, description="Converts all characters in lowercase.")
+    lowercase: bool = Field(default=True, description="Convert text to lowercase.")
 
     path_templates: str | None = Field(
         default=None, description="Path of the templates file."

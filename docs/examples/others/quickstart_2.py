@@ -127,7 +127,7 @@ print(sc.DetectorSchema.from_id(
     "NewValueDetector_from_AutoParser_from_Apache_logs_377"
 ))
 
-# Get an aggreate alert
+# Get an aggregated alert
 sc.set_connector(connector="Redis", url="http://localhost:6379:2")
 print(sc.AggregateSchema.from_id("LogIDCountAggregator_15"))
 

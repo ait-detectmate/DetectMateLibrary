@@ -35,7 +35,7 @@ Open a pull request to merge the `development` branch into `main`. Once CI passe
 
 `DetectMateLibrary` follows [Semantic Versioning](https://semver.org/) (`MAJOR.MINOR.PATCH`):
 
-- **Patch** (`0.3.x`): bug fixes, updates/correction to documentation and dependabot updates.
+- **Patch** (`0.3.x`) covers bug fixes, documentation corrections, and Dependabot updates.
 - **Minor** (`0.x.0`): new features with backwards-compatible functionality. No breaking changes. Reset the patch number to `0`.
 - **Major** (`x.0.0`): breaking changes. Reset both minor and patch numbers to `0`.
 

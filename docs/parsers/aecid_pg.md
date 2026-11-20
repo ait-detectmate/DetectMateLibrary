@@ -88,13 +88,13 @@ Arguments are grouped by YAML block. **Scope** identifies fields specific to AEC
     | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
     | `data_use_training` | integer, null | None | shared | Number of logs used for training. None skips training. |
     | `data_use_configure` | integer, null | None | shared | Number of logs used for the configuration step. None skips it. |
-    | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
+    | `use_config_data_as_training` | boolean | True | shared | Reuse configuration records as training data. |
     | `train_buffer_max_records` | integer | 100000 | shared | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
     | `connector_name` | string, null | None | shared | Add a connector to the output schema. |
     | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
-    | `log_format` | string, null | None | shared | fitting description yet to find |
-    | `time_format` | string, null | None | shared | fitting description yet to find |
+    | `log_format` | string, null | None | shared | Pattern with named fields such as `<Time>` and `<Content>` for splitting a raw log. |
+    | `time_format` | string, null | None | shared | Format used to parse the timestamp field. |
     | `log_source` | string, null | None | shared | Process only inputs of the same log source. |
     | `reset_in_post_train` | boolean | False | shared | Clear buffered training logs after generating templates. |
     | `Finetune` | array | [['theta_1', [0.01, 0.05, 0.1, 0.2]], ['theta_2', [0.7, 0.8, 0.9]], ['theta_3', [0.4, 0.5, 0.6]]] (shared: []) | shared | Candidate [parameter, values] pairs for automatic configuration. |

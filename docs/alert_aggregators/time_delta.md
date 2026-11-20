@@ -1,6 +1,6 @@
 # Time Delta Alert Aggregation [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/alert_aggregation/time_delta.py)]
 
-The time-delta alert aggregator implements alert aggregation by grouping alerts according their time-difference as proposed by [Landauer et al.](https://dl.acm.org/doi/pdf/10.1145/3510581).
+Time Delta groups alerts by their time difference. [Landauer et al.](https://dl.acm.org/doi/pdf/10.1145/3510581)
 
 ## In/out
 
@@ -17,11 +17,7 @@ The time-delta alert aggregator implements alert aggregation by grouping alerts 
 
 ## Description
 
-This class implements alert aggregation by considering the differences between the timestamps of alerts.
-
-Two alerts will be assigned to the same group if the time difference between them is below a certain threshold delta.
-The time difference is computed based on the timestamps of the last logs associated with each alert as these determine the earliest time at which the alert was detected.
-Important: It is assumed that the alerts arrive in order of their timestamps!
+The aggregator assigns two alerts to the same group when the time difference between the last logs associated with those alerts is below `delta`. It expects alerts in timestamp order.
 
 ## Example
 
@@ -61,7 +57,7 @@ All parameters this alert aggregator accepts, grouped by the YAML block they go 
     | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
     | `data_use_training` | integer, null | None | shared | Number of logs used for training. None skips training. |
     | `data_use_configure` | integer, null | None | shared | Number of logs used for the configuration step. None skips it. |
-    | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
+    | `use_config_data_as_training` | boolean | True | shared | Reuse configuration records as training data. |
     | `train_buffer_max_records` | integer | 100000 | shared | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
     | `connector_name` | string, null | None | shared | Add a connector to the output schema. |

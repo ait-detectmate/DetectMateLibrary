@@ -113,7 +113,8 @@ class ParserGenerator(CoreParser):
 
     # ---- Methods only part of parser generator ----------------------------------
     def init_parser(self, config: ParserGeneratorConfig) -> IParser:
-        """This method need to be update it in the child classes."""
+        """Override this method to construct the parser for the given
+        configuration."""
         return IParser()
 
     def get_templates(self) -> list[str]:

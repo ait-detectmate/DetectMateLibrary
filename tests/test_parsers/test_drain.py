@@ -1,4 +1,4 @@
-"""Most of the functionality is test it in DetectMatePerformance."""
+"""Most of the functionality is tested in DetectMatePerformance."""
 from detectmatelibrary.parsers.drain import DrainParser
 from detectmatelibrary import schemas
 

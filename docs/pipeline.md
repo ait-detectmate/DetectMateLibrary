@@ -1,6 +1,6 @@
 # Pipelines
 
-Pipelines that enable running the various components within the library, simulating the final behavior delivered by the service.
+Pipelines run library components together in the same order as the service.
 
 
 ## Main pipeline [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/pipeline.py)]
@@ -9,7 +9,7 @@ The main pipeline functions like a standard inference pipeline. To initialize th
 
 If `do_parsing=False`, the pipeline will take already-parsed logs as input, and the parsing step will be skipped. Likewise, if `do_aggregation=False`, the pipeline will output the detectors’ alerts directly, and the alert aggregation step will be skipped.
 
-The pipeline allows you to pass either a Config class instance or the dictionary used to initialize that Config class as arguments to the various components. For the detectors list, both methods can be combined, as shown in the example.
+Configure each pipeline component with a configuration object or a dictionary. The detector list can contain both forms.
 
 ### Example 1
 

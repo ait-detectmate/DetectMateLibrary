@@ -50,7 +50,7 @@ class BasicConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     method_type: str = Field(
-        default="default_method_type", description="Indicates what type of method is."
+        default="default_method_type", description="Identifies the method to load."
     )
     component_type: str = Field(
         default="default_type",

@@ -42,7 +42,7 @@ class CoreConfig(BasicConfig):
     )
     use_config_data_as_training: bool = Field(
         default=True,
-        description="Combine the configured data in the training process if True.",
+        description="Reuse configuration records as training data.",
     )
     train_buffer_max_records: int = Field(
         default=100_000,

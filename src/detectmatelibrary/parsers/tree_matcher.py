@@ -12,7 +12,7 @@ class TemplateCppTreeMatcherConfig(CoreParserConfig):
     method_type: str = Field(default="tree_matcher", description="Indicates what type of method it is.")
 
     path_templates: str | None = Field(
-        default=None, description="fitting description yet to find"
+        default=None, description="Path to a plain-text file containing one template per line."
     )
 
 

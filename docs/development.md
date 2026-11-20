@@ -1,13 +1,13 @@
 # Development
 
-This section describes how to setup a development environment and how to contribute to `DetectMateLibrary`.
+This section describes how to set up a development environment and contribute to DetectMateLibrary.
 
 !!! note
 
     Read the [Contribution Guide](contribution.md) to follow and understand the development workflow.
 
 
-## Setup a development environment
+## Set up a development environment
 
 For development we recommend using [uv](https://docs.astral.sh/uv/). You can install all optional dependencies:
 
@@ -36,7 +36,7 @@ uv run prek run -a
 
 ## Add tests and run pytest
 
-In order to run the tests run the following command. The `dev` group already includes the `full` extra, so all optional dependencies are installed automatically:
+Run the tests with the `dev` group. It includes the `full` extra, which installs all optional dependencies.
 
 ```console title="Run unit tests"
 uv run --dev pytest
@@ -49,7 +49,7 @@ The user-facing side of auto-configuration is described in the [Detectors overvi
 A detector that supports auto-configuration subclasses `base_detectors.TrackerDetector`, which builds two stores: `self.persistency` for training and detection, and a separate `self.auto_conf_persistency` for auto-configuration. Detectors never build stores from `utils.persistency` themselves:
 
 ```python title="Implement method"
-from detectmatelibrary.base_detectors import TrackerDetector, TrackerDetectorConfig
+from detectmatelibrary.bases.base_detectors import TrackerDetector, TrackerDetectorConfig
 
 
 class MyDetectorConfig(TrackerDetectorConfig):
@@ -63,7 +63,7 @@ class MyDetector(TrackerDetector):
 
 The `configure()` method ingests all available variables (not just configured ones) so the tracker can assess each one:
 
-```python title="Implment configure"
+```python title="Implement configure()"
 def configure(self, input_):
     self.auto_conf_persistency.ingest_event(
         event_id=input_["eventID"],
@@ -78,7 +78,7 @@ final `events` block. It touches nothing else on the config: everything the
 operator set under `params` or `auto_config_params` must survive untouched, so
 `set_configuration` never rebuilds the config from scratch:
 
-```python title="Implement set configure"
+```python title="Implement set_configuration()"
 def set_configuration(self):
     variables = {}
     for event_id, tracker in self.auto_conf_persistency.get_events_data().items():
@@ -126,7 +126,7 @@ from detectmatelibrary.parsers.logbatcher import LogBatcherParser, LogBatcherPar
 **2. Include it in the `.md` page.** Paths are relative to the repo root
 (`base_path` is set to `.`). Reference the section by name:
 
-````console title="Example insert code"
+````markdown title="Include the snippet"
 ```python
 ;--8<-- "docs/examples/parsers/logbatcher_parser.py:basic"
 ```
@@ -142,12 +142,13 @@ globs every `.py` under `docs/examples/` and runs each one as a script via
 `runpy.run_path(..., run_name="__main__")`. There is no plugin and no assert
 requirement: a snippet passes as long as it runs standalone without raising. If
 your example needs something unavailable in CI (e.g. an API key), comment out
-those calls rather than letting them fail. The test is marked `ignored`, so a
-plain `pytest` run skips it; pass `--run-ignored` (as CI does) to include it:
+those calls rather than letting them fail. The documentation tests are opt-in
+because some examples use MongoDB or Redis. Start both services before running
+these commands. [Test setup](user_guide/installation.md#step-3-run-unit-tests)
 
 ```console title="Run different unit tests"
-uv run --dev pytest --run-ignored                    # whole suite, snippets included
-uv run --dev pytest tests/test_docs --run-ignored    # snippets only
+uv run --dev pytest --run-ignored --run-ignored-mongo --run-ignored-redis
+uv run --dev pytest tests/test_docs --run-ignored --run-ignored-mongo --run-ignored-redis
 ```
 
 **4. Component pages: a YAML file, and generated argument tables.** Each parser and

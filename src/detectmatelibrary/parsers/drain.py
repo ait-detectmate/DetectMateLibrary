@@ -9,9 +9,11 @@ from pydantic import Field
 class DrainConfig(ParserGeneratorConfig):
     method_type: str = Field(default="drain_parser", description="Indicates what type of method it is.")
 
-    depth: int = Field(default=2, description="fitting description yet to find")
-    max_childs: int = Field(default=10, description="fitting description yet to find")
-    sim_thres: float = Field(default=0.2, description="fitting description yet to find")
+    depth: int = Field(default=2, description="Number of leading tokens used to group training logs.")
+    max_childs: int = Field(default=10, description="Upper limit on the token count used for grouping.")
+    sim_thres: float = Field(
+        default=0.2, description="Similarity score a message must exceed to join a cluster."
+    )
 
     Finetune: list[list[str | list[Any]]] = Field(
         default=[

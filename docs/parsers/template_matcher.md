@@ -1,6 +1,6 @@
 # Template Matcher [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/parsers/template_matcher/_parser.py)]
 
-The Template Matcher is a parser that takes a set of templates and matches them to incoming logs. It extracts parameters from positions marked with the <*> wildcard and returns a ParserSchema with the matched template and the extracted variables.
+The Template Matcher matches predefined templates to incoming logs. It extracts parameters from positions marked with `<*>` and returns a `ParserSchema` with the matched template and extracted variables.
 
 ## In/out
 
@@ -19,9 +19,9 @@ Input and output schemas in the pipeline
 
 The template matcher is a lightweight, fast parser intended for logs that follow stable textual templates with variable fields. Templates use the token `<*>` to mark wildcard slots. The matcher:
 
-- Preprocesses logs and templates (remove spaces, punctuation, lowercase) based on config.
+- Preprocesses logs and templates according to the configured spacing, punctuation, and case options.
 - Tries the templates in order of how often each has matched so far, uses the first one that matches, and extracts all wildcard parameters in order. If templates overlap, the same log can therefore get a different `eventID` over time.
-- Populates ParserSchema fields: `eventID`, `template`, `variables`,  `logID`, and related fields.
+- Populates `eventID`, `template`, `variables`, `logID`, and related `ParserSchema` fields.
 - **`eventID` is the 0-indexed line number of the matched template** in the template file (first line → `eventID: 0`, second line → `eventID: 1`, etc.).
 
 This parser is designed for high-throughput use when templates are known in advance.
@@ -93,18 +93,18 @@ All parameters this parser accepts, grouped by the YAML block they go in. **Scop
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
     | `remove_spaces` | boolean | True | specific | Remove duplicate spaces. |
-    | `remove_punctuation` | boolean | True | specific | Remove punctuations symbols. |
-    | `lowercase` | boolean | True | specific | Converts all characters in lowercase. |
+    | `remove_punctuation` | boolean | True | specific | Remove punctuation. |
+    | `lowercase` | boolean | True | specific | Convert text to lowercase. |
     | `path_templates` | string, null | None | specific | Path of the templates file. |
     | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
     | `data_use_training` | integer, null | None | shared | Number of logs used for training. None skips training. |
     | `data_use_configure` | integer, null | None | shared | Number of logs used for the configuration step. None skips it. |
-    | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
+    | `use_config_data_as_training` | boolean | True | shared | Reuse configuration records as training data. |
     | `train_buffer_max_records` | integer | 100000 | shared | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
     | `connector_name` | string, null | None | shared | Add a connector to the output schema. |
     | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
-    | `log_format` | string, null | None | shared | fitting description yet to find |
-    | `time_format` | string, null | None | shared | fitting description yet to find |
+    | `log_format` | string, null | None | shared | Pattern with named fields such as `<Time>` and `<Content>` for splitting a raw log. |
+    | `time_format` | string, null | None | shared | Format used to parse the timestamp field. |
     | `log_source` | string, null | None | shared | Process only inputs of the same log source. |
 <!-- End arguments -->

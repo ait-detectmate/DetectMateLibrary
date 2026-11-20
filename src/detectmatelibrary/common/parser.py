@@ -24,11 +24,11 @@ class CoreParserConfig(CoreConfig):
 
     log_format: Optional[str] = Field(
         default=None,
-        description=("fitting description yet to find"),
+        description="Pattern with named fields such as `<Time>` and `<Content>` for splitting a raw log.",
     )
     time_format: Optional[str] = Field(
         default=None,
-        description=("fitting description yet to find"),
+        description="Format used to parse the timestamp field.",
     )
 
     _regex: re.Pattern[str] | None = None

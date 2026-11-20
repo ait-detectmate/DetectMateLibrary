@@ -94,7 +94,7 @@ class TestConfigDocs:
             "Scope": "specific",
             "Default changed": False,
             "Shared default": None,
-            "Description": "Indicates what type of method is.",
+            "Description": "Identifies the method to load.",
         } in docs
         assert _row(docs, "component_type")["Block"] == "top"
         assert _row(docs, "auto_config")["Default value"] is False

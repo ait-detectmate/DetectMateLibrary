@@ -104,8 +104,7 @@ ep[event_id]                       # alias for get_event_data
 |---|---|
 | `persistency.EventStabilityTracker` | You only care about how variables behave over time (`STATIC` / `STABLE` / `UNSTABLE` / `RANDOM`). Cheapest memory footprint. |
 
-All three are re-exported from the top of the package: `persistency.X` is the
-canonical import; the deeply nested submodules are an implementation detail.
+The persistency package exports `EventStabilityTracker` directly.
 
 ### Persisting to disk
 

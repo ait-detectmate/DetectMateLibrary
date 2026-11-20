@@ -90,7 +90,6 @@ class TestLogIDCount:
         aggregator = LogIDCountAggegation(config=LogIDCountAggegationConfig(max_count=1))
         alert = aggregator.process(generate_schema(["a", "b"]))
 
-        expected = "LogID count how many times a log was count as alert."
-        expected += "Logs that pass the limit count: a, b"
+        expected = "Alert counts reached the threshold for log IDs a, b."
 
         assert alert["description"] == expected
