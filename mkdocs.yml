@@ -51,9 +51,9 @@ nav:
       - 01_Template Matcher: parsers/template_matcher.md
       - 02_Template Tree Matcher: parsers/template_tree_matcher.md
       - 03_Auto Parser: parsers/auto_parser.md
-      - 04_Drain Parser: parsers/drain_parser.md
-      - 05_Brain Parser: parsers/brain.md
-      - 06_AECID-PG Parser: parsers/aecid_pg.md
+      - 04_AECID-PG Parser: parsers/aecid_pg.md
+      - 05_Drain Parser: parsers/drain_parser.md
+      - 06_Brain Parser: parsers/brain.md
       - 07_LogBatcher Parser: parsers/logbatcher_parser.md
     - Detector types:
       - 00_Random Detector: detectors/random_detector.md

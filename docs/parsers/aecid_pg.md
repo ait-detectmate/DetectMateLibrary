@@ -1,8 +1,6 @@
 # AECID-PG Parser [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/parsers/aecid_pg.py)]
 
-AECID-PG counts token sequences in training logs to build a tree. It uses branch frequencies to decide which branches to merge into `<*>` wildcards, then turns the pruned tree into log templates. [AECID-PG publication](https://dl.ifip.org/db/conf/im/im2019-ws1-annet/191478.pdf)
-
-The parser uses the template generator from DetectMatePerformance, which also provides a batch API for mining templates from collections of log lines. [DetectMatePerformance](https://github.com/ait-detectmate/DetectMatePerformance)
+AECID-PG uses the DetectMatePerformance implementation, which also provides a batch API for mining templates from large collections of logs. [DetectMatePerformance](https://github.com/ait-detectmate/DetectMatePerformance)
 
 ## In/out
 
@@ -16,6 +14,32 @@ Input and output schemas in the pipeline
 | Learns from training data | Auto-configuration | Needs `events` | Federation |
 |---|---|---|---|
 | ✅ | ✅ | ❌ | ✅ |
+
+## Description
+
+The original AECID-PG algorithm builds a tree with one token per branch. Messages that begin with the same tokens share a path from the root. At each node, the frequency of the next token guides which branches stay fixed and which become wildcards. [AECID-PG paper, Section III](https://ieeexplore.ieee.org/document/8717887/)
+
+DetectMate builds this tree from the cleaned, buffered messages when training ends. A branch’s frequency is its share of the messages that continue from its parent node. At each node, the generator applies the first matching rule.
+
+1. If every branch is below `theta_1`, merge them all into one `<*>` branch.
+2. If the branches at or above `theta_1` together account for at least `theta_3` of the messages, keep those branches and merge the rest into a wildcard.
+3. Otherwise, merge branches below `theta_2` into a wildcard.
+
+In the first training round below, the two ranks each occur in half of the messages that begin with `hello there`.
+
+```text
+hello there
+├── general (1/2)
+│   └── kenobi
+└── captain (1/2)
+    └── kenobi
+```
+
+With `theta_1: 0.6`, both branches fall below the cutoff and merge into a wildcard. The tree matcher uses the resulting `hello there <*> kenobi` template for `hello there, sergeant kenobi!` and puts `sergeant` in `variables`.
+
+### Federation
+
+AECID-PG, Brain, and Drain inherit the same concatenation strategy from `ParserGenerator`. Aggregation gathers the templates from participating parsers, removes duplicates, and sorts the result. Each participant builds its matcher from the shared list, so the same template maps to the same `eventID` across the federation. [Distributed parsing paper, Section 4.3.1](https://arxiv.org/pdf/2610.36946#page=6)
 
 ## Examples
 
@@ -33,7 +57,7 @@ Run this after the first example to clear the training buffer after each round w
 
 ## Configuration file
 
-This file sets the initial training size to two logs. Setting `theta_1` to `0.6` merges the two equally frequent rank tokens into a wildcard. See [Configuration arguments](#configuration-arguments) for the remaining defaults.
+This file sets the initial training size to two logs. See [Configuration arguments](#configuration-arguments) for the remaining defaults.
 
 ```yaml title="Configuration"
 --8<-- "docs/examples/parsers/aecid_pg.yaml"
