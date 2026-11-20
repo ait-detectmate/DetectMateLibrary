@@ -1,14 +1,17 @@
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
+from detectmatelibrary.common._core_op._fed_component import FedOperations
 from detectmatelibrary import schemas
 
 from detectmateperformance.match_tree import TreeMatcher
+from detectmateperformance.types_ import LogTemplates
 from detectmateperformance._iparser import IParser
 
 from detectmatelibrary.utils.finetune import Combinations
 
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 from pydantic import Field
+import msgpack
 
 
 class ParserGeneratorConfig(CoreParserConfig):
@@ -79,10 +82,7 @@ class ParserGenerator(CoreParser):
 
         self.config_buffer: list[str] = []
 
-    def init_parser(self, config: ParserGeneratorConfig) -> IParser:
-        """This method need to be update it in the child classes."""
-        return IParser()
-
+    # ---- Standard parser methods ----------------------------------
     def configure(self, input_: schemas.LogSchema) -> None:  # type: ignore
         self.config_buffer.append(input_["log"])
 
@@ -101,7 +101,6 @@ class ParserGenerator(CoreParser):
             self.parser_gen.reset()
 
     def parse(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> None:
-
         if self.tree_match is None:
             output_["eventID"] = -1
             output_["template"] = "templates not yet generated"
@@ -111,3 +110,34 @@ class ParserGenerator(CoreParser):
             output_["eventID"] = parsed["EventID"]
             output_["variables"].extend(parsed["ParamList"])
             output_["template"] = parsed["Template"]
+
+    # ---- Methods only part of parser generator ----------------------------------
+    def init_parser(self, config: ParserGeneratorConfig) -> IParser:
+        """This method need to be update it in the child classes."""
+        return IParser()
+
+    def get_templates(self) -> list[str]:
+        return self.tree_match.get_templates(False) if self.tree_match is not None else []
+
+    def set_templates(self, templates: list[str]) -> None:
+        self.tree_match = TreeMatcher(LogTemplates(templates))
+
+    # ---- Federation methods ----------------------------------------------------
+    def aggregate_strategy(self, components: set[FedOperations]) -> None:
+        parsers = cast(set[ParserGenerator], components)
+        templates = sorted({
+            template for parser in parsers for template in parser.get_templates()
+        })
+        for parser in parsers:
+            parser.set_templates(templates)
+
+    def to_binary(self) -> bytes:
+        templates = self.get_templates()
+        if not templates:
+            return b""
+        binary: bytes = msgpack.packb(templates, use_bin_type=True)
+        return binary
+
+    def load_binary(self, binary: bytes) -> None:
+        templates = msgpack.unpackb(binary, raw=False) if binary else []
+        self.set_templates(templates)

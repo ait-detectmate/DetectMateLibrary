@@ -34,6 +34,103 @@ class TestDrainParser:
         assert parsed["eventID"] == -1
         assert parsed["template"] == "template not found"
 
+    def test_federation_process(self):
+        config_dict = {
+            "parsers": {
+                "DrainParser": {
+                    "method_type": "drain_parser",
+                    "depth": 2,
+                    "max_childs": 10,
+                    "sim_thres": 0.2,
+                    "data_use_training": 2,
+                }
+            }
+        }
+        parser_1 = DrainParser(config=config_dict)
+        parser_2 = DrainParser(config=config_dict)
+        parser_1 + parser_2
+
+        parsed = parser_1.process(schemas.LogSchema({"log": "hello there, general kenobi!"}))
+        assert parsed["eventID"] == -1
+        assert parsed["template"] == "templates not yet generated"
+
+        parsed = parser_1.process(schemas.LogSchema({"log": "hello there, captain kenobi!"}))
+        assert parsed["eventID"] == -1
+        assert parsed["template"] == "templates not yet generated"
+
+        parsed = parser_1.process(schemas.LogSchema({"log": "hello there, sargent kenobi!"}))
+        assert parsed["eventID"] == 0
+        assert parsed["template"] == "hello there <*> kenobi"
+
+        parsed = parser_2.process(schemas.LogSchema({"log": "hello world and planets"}))
+        assert parsed["eventID"] == -1
+        assert parsed["template"] == "templates not yet generated"
+
+        parsed = parser_2.process(schemas.LogSchema({"log": "hello world or planets"}))
+        assert parsed["eventID"] == -1
+        assert parsed["template"] == "templates not yet generated"
+
+        parsed = parser_2.process(schemas.LogSchema({"log": "hello world and planets"}))
+        assert parsed["eventID"] == 0
+        assert parsed["template"] == "hello world <*> planets"
+
+        parsed = parser_1.process(schemas.LogSchema({"log": "hello world xor planets"}))
+        assert parsed["eventID"] == -1
+        assert parsed["template"] == "template not found"
+
+        parser_2.aggregate()
+        parsed = parser_1.process(schemas.LogSchema({"log": "hello world xor planets"}))
+        assert parsed["template"] == "hello world <*> planets"
+
+    def test_federation_process_binary(self):
+        config_dict = {
+            "parsers": {
+                "DrainParser": {
+                    "method_type": "drain_parser",
+                    "depth": 2,
+                    "max_childs": 10,
+                    "sim_thres": 0.2,
+                    "data_use_training": 2,
+                }
+            }
+        }
+        parser_1 = DrainParser(config=config_dict)
+        parser_2 = DrainParser(config=config_dict)
+        parser_3 = DrainParser(config=config_dict)
+
+        parsed = parser_1.process(schemas.LogSchema({"log": "hello there, general kenobi!"}))
+        assert parsed["eventID"] == -1
+        assert parsed["template"] == "templates not yet generated"
+
+        parsed = parser_1.process(schemas.LogSchema({"log": "hello there, captain kenobi!"}))
+        assert parsed["eventID"] == -1
+        assert parsed["template"] == "templates not yet generated"
+
+        parsed = parser_1.process(schemas.LogSchema({"log": "hello there, sargent kenobi!"}))
+        assert parsed["eventID"] == 0
+        assert parsed["template"] == "hello there <*> kenobi"
+
+        parsed = parser_2.process(schemas.LogSchema({"log": "hello world and planets"}))
+        assert parsed["eventID"] == -1
+        assert parsed["template"] == "templates not yet generated"
+
+        parsed = parser_2.process(schemas.LogSchema({"log": "hello world or planets"}))
+        assert parsed["eventID"] == -1
+        assert parsed["template"] == "templates not yet generated"
+
+        parsed = parser_2.process(schemas.LogSchema({"log": "hello world and planets"}))
+        assert parsed["eventID"] == 0
+        assert parsed["template"] == "hello world <*> planets"
+
+        parsed = parser_1.process(schemas.LogSchema({"log": "hello world xor planets"}))
+        assert parsed["eventID"] == -1
+        assert parsed["template"] == "template not found"
+
+        parser_1.stack([parser_3.to_binary(), parser_2.to_binary()])
+        parser_1.aggregate()
+        parsed = parser_1.process(schemas.LogSchema({"log": "hello world xor planets"}))
+        assert parsed["template"] == "hello world <*> planets"
+
     def test_reset_after_train(self):
         config_dict = {
             "parsers": {
