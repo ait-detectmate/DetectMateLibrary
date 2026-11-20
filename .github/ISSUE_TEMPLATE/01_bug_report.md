@@ -7,15 +7,15 @@ about: If something isn't working 🔧
 Describe your issue here.
 
 ### Your environment
-* Version of detectmate
-* Version of python
+* DetectMate version
+* Python version
 * Docker or manual installation?
 
 ### Steps to reproduce
 Tell us how to reproduce this issue.
 
 ### Expected behaviour
-Tell us what should happen
+Tell us what should happen.
 
 ### Actual behaviour
-Tell us what happens instead
+Tell us what happens instead.
