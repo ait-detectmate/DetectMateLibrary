@@ -13,6 +13,10 @@ Input and output schemas in the pipeline
 | **Input**  | [LogSchema](../schemas.md) | Unstructured log   |
 | **Output** | [ParserSchema](../schemas.md) | Structured log   |
 
+| Learns from training data | Auto-configuration | Needs `events` | Federation |
+|---|---|---|---|
+| ❌ | ❌  | ❌  | ❌ |
+
 !!! warning "Not yet stable"
     This parser is not yet in a stable release and may behave differently across platforms or hardware.
 

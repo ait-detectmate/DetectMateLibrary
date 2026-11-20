@@ -11,6 +11,11 @@ Input and output schemas in the pipeline
 | **Input**  | [LogSchema](../schemas.md)    | Raw log string                           |
 | **Output** | [ParserSchema](../schemas.md) | Structured log with template and variables |
 
+
+| Learns from training data | Auto-configuration | Needs `events` | Federation |
+|---|---|---|---|
+| ✅ | ✅  | ❌  | ❌ |
+
 ## Installation
 
 `LogBatcherParser` requires the `llm` optional extra:

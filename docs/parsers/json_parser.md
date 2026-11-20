@@ -11,6 +11,10 @@ Input and output schemas in the pipeline
 | **Input**  | [LogSchema](../schemas.md) | Raw log (JSON string) |
 | **Output** | [ParserSchema](../schemas.md) | Structured log with extracted fields |
 
+| Learns from training data | Auto-configuration | Needs `events` | Federation |
+|---|---|---|---|
+| ❌ | ❌  | ❌  | ❌ |
+
 ## Examples
 
 ```python title="Example 1"

@@ -11,6 +11,10 @@ Input and output schemas in the pipeline
 | **Input**  | [LogSchema](../schemas.md) | Unstructured log   |
 | **Output** | [ParserSchema](../schemas.md) | Structured log   |
 
+| Learns from training data | Auto-configuration | Needs `events` | Federation |
+|---|---|---|---|
+| ❌ | ❌  | ❌  | ❌ |
+
 ## Overview
 
 The template matcher is a lightweight, fast parser intended for logs that follow stable textual templates with variable fields. Templates use the token `<*>` to mark wildcard slots. The matcher:
