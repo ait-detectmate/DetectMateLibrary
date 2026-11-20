@@ -1,8 +1,6 @@
 # Brain Parser [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/parsers/brain.py)]
 
-The Brain parser groups training logs by token frequencies at each position. It keeps the tokens that are constant within a group and writes a `<*>` wildcard for each varying position. [Brain publication](https://ieeexplore.ieee.org/abstract/document/10109145)
-
-The parser uses the template generator from DetectMatePerformance, which also provides a batch API for mining templates from collections of log lines. [DetectMatePerformance](https://github.com/ait-detectmate/DetectMatePerformance)
+Brain uses the DetectMatePerformance implementation, which also provides a batch API for mining templates from large collections of logs. [DetectMatePerformance](https://github.com/ait-detectmate/DetectMatePerformance)
 
 ## In/out
 
@@ -16,6 +14,20 @@ Input and output schemas in the pipeline
 | Learns from training data | Auto-configuration | Needs `events` | Federation |
 |---|---|---|---|
 | ✅ | ✅ | ❌ | ✅ |
+
+## Description
+
+The original Brain algorithm looks for the longest common pattern in a log message by grouping tokens with the same frequency. Messages with the same length and pattern form an initial group. A bidirectional tree finds additional fixed tokens outside that pattern to complete the template. [Brain paper](https://ieeexplore.ieee.org/abstract/document/10109145)
+
+![Brain](../img/Brain.svg)
+
+In DetectMate, Brain builds templates when training ends. It counts how often each token appears at a given position across the buffered logs. For each message, Brain considers tokens whose count is at least `weight` times the highest count among that message’s tokens. It chooses the largest group of eligible tokens that share a count. If two groups have the same size, it picks the one with the higher count.
+
+Brain groups messages that have the same token count and the same selected tokens at the same positions. It checks every position in each group, keeping tokens that agree across all messages and writing `<*>` where they vary. In the first training round below, `hello`, `there`, and `kenobi` each occur twice in their respective positions. The varying rank becomes a wildcard in `hello there <*> kenobi`. After training, the tree matcher returns that template for `hello there, sergeant kenobi!` and puts `sergeant` in `variables`.
+
+### Federation
+
+Brain inherit the same concatenation strategy from `ParserGenerator`. Aggregation collects the templates learned by each participating parser, removes duplicates, and sorts the result. Each participant builds its matcher from that shared list, giving the same template the same `eventID` across the federation. [Brain description](drain_parser.md#description) · [Distributed parsing paper, Section 4.3.1](https://arxiv.org/pdf/2610.36946#page=6)
 
 ## Examples
 

@@ -1,8 +1,6 @@
 # Drain Parser [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/parsers/drain.py)]
 
-The parser is derived from the official [Drain publication](https://ieeexplore.ieee.org/document/8029742).
-
-It also wraps functionality from the DetectMatePerformance project: https://github.com/ait-detectmate/DetectMatePerformance. When parsing large numbers of log lines in non-stream (batch) mode, it is recommended to use the performance-oriented implementation.
+Drain uses the DetectMatePerformance implementation, which also provides a batch API for processing large collections of logs. [DetectMatePerformance](https://github.com/ait-detectmate/DetectMatePerformance)
 
 ## In/out
 
@@ -20,6 +18,21 @@ Input and output schemas in the pipeline
 
 !!! warning "Not yet stable"
     This parser is not yet in a stable release and may behave differently across platforms or hardware.
+
+## Description
+
+The original Drain algorithm uses a fixed-depth tree to narrow the search for a matching log group. The first level below the root branches on the number of tokens in the message. The next levels use leading tokens in order. At the leaf, Drain scores each candidate template by the fraction of tokens that match at the same positions. A similarity threshold determines whether Drain updates the best-matching group or starts a new one. [Drain paper, Section III](https://jiemingzhu.github.io/pub/pjhe_icws2017.pdf)
+
+![Drain groups messages by token count and leading tokens. The Hello world group yields the template Hello world <*> you.](../img/Drain.svg)
+
+In DetectMate, Drain generates templates from buffered logs when training ends. It groups cleaned messages by token count, capped at `max_childs`, and by their first `depth` tokens. Within each group, messages join a cluster when their similarity to its first message exceeds `sim_thres`. The score is the fraction of matching bytes at the same positions over the length of the shorter message.
+
+Each template keeps the tokens that agree at the same position and uses `<*>` where they vary. For example, `Hello world and you` and `Hello world or you` produce `Hello world <*> you`. After training, a tree matcher uses the learned templates to parse incoming messages. A match for `Hello world to you` returns that template and puts `to` in `variables`.
+
+### Federation
+
+Drain inherit the same concatenation strategy from `ParserGenerator`. Aggregation collects the templates learned by each participating parser, removes duplicates, and sorts the result. Each participant builds its matcher from that shared list, giving the same template the same `eventID` across the federation. [Drain description](drain_parser.md#description) · [Distributed parsing paper, Section 4.3.1](https://arxiv.org/pdf/2610.36946#page=6)
+
 
 ## Examples
 
