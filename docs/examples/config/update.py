@@ -27,14 +27,16 @@ from detectmatelibrary.common.core import CoreConfig
 from detectmatelibrary.common.detector import CoreDetectorConfig
 from detectmatelibrary.common.parser import CoreParserConfig
 from detectmatelibrary.common.alert_aggregator import CoreAlertAggregatorConfig
-from detectmatelibrary.base_alert_aggregation.density_clustering import DensityClusteringAggregationConfig
+from detectmatelibrary.bases.base_alert_aggregation.density_clustering import (
+    DensityClusteringAggregationConfig
+)
 from detectmatelibrary.alert_aggregation.basic_concat import BasicConcatAggregationConfig
 from detectmatelibrary.alert_aggregation.time_delta import TimeDeltaAggregationConfig
 from detectmatelibrary.alert_aggregation.logid_count import LogIDCountAggegationConfig
 from detectmatelibrary.alert_aggregation.alertbert import AlertBERTAggregationConfig
-from detectmatelibrary.base_detectors import TrackerDetectorConfig
-from detectmatelibrary.base_detectors import VariableDetectorConfig
-from detectmatelibrary.base_detectors import DeepLearningDetectorConfig
+from detectmatelibrary.bases.base_detectors import TrackerDetectorConfig
+from detectmatelibrary.bases.base_detectors import VariableDetectorConfig
+from detectmatelibrary.bases.base_detectors import DeepLearningDetectorConfig
 
 
 from typing import Any

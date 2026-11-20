@@ -1,5 +1,6 @@
-from detectmatelibrary.base_detectors import SingleStabilityTracker, VariableDetector, VariableDetectorConfig
-
+from detectmatelibrary.bases.base_detectors import (
+    SingleStabilityTracker, VariableDetector, VariableDetectorConfig
+)
 from typing import Any, Dict, Optional
 
 from pydantic import Field

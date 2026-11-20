@@ -4,7 +4,7 @@ from typing import Any, Literal, cast
 
 from pydantic import Field, NonNegativeFloat
 
-from detectmatelibrary.base_alert_aggregation import (
+from detectmatelibrary.bases.base_alert_aggregation import (
     DensityClusteringAggregation,
     DensityClusteringAggregationConfig,
 )
