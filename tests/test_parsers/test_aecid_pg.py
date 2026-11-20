@@ -1,4 +1,4 @@
-"""Test the AECID PG parser's training and configuration lifecycle."""
+"""Test training, federation, and configuration for the AECID PG parser."""
 from detectmatelibrary import schemas
 from detectmatelibrary.parsers.aecid_pg import AECIDPGParser
 
@@ -6,6 +6,8 @@ from detectmatelibrary.parsers.aecid_pg import AECIDPGParser
 TRAINING_LOGS = ("hello there, general kenobi!", "hello there, captain kenobi!")
 MATCHING_LOG = "hello there, sergeant kenobi!"
 NEW_TRAINING_LOG = "bella ciao bella ciao"
+PEER_TRAINING_LOGS = ("hello world and planets", "hello world or planets")
+PEER_MATCHING_LOG = "hello world xor planets"
 
 
 class TestAECIDPGParser:
@@ -38,6 +40,99 @@ class TestAECIDPGParser:
         parsed = parser.process(schemas.LogSchema({"log": "hello there, general R2D2!"}))
         assert parsed["eventID"] == -1
         assert parsed["template"] == "template not found"
+
+    def test_federation_process(self):
+        config_dict = {
+            "parsers": {
+                "AECIDPGParser": {
+                    "method_type": "aecid_pg_parser",
+                    "params": {
+                        "theta_1": 0.6,
+                        "theta_2": 0.8,
+                        "theta_3": 0.5,
+                        "data_use_training": 2,
+                    },
+                },
+            },
+        }
+        parser = AECIDPGParser(config=config_dict)
+        peer = AECIDPGParser(config=config_dict)
+        parser + peer
+
+        for log in TRAINING_LOGS:
+            parsed = parser.process(schemas.LogSchema({"log": log}))
+            assert parsed["eventID"] == -1
+            assert parsed["template"] == "templates not yet generated"
+
+        parsed = parser.process(schemas.LogSchema({"log": MATCHING_LOG}))
+        assert parsed["eventID"] == 0
+        assert parsed["template"] == "hello there <*> kenobi"
+
+        for log in PEER_TRAINING_LOGS:
+            parsed = peer.process(schemas.LogSchema({"log": log}))
+            assert parsed["eventID"] == -1
+            assert parsed["template"] == "templates not yet generated"
+
+        parsed = peer.process(schemas.LogSchema({"log": PEER_MATCHING_LOG}))
+        assert parsed["eventID"] == 0
+        assert parsed["template"] == "hello world <*> planets"
+
+        parsed = parser.process(schemas.LogSchema({"log": PEER_MATCHING_LOG}))
+        assert parsed["eventID"] == -1
+        assert parsed["template"] == "template not found"
+
+        peer.aggregate()
+        parsed = parser.process(schemas.LogSchema({"log": PEER_MATCHING_LOG}))
+        assert parsed["template"] == "hello world <*> planets"
+        parsed = parser.process(schemas.LogSchema({"log": MATCHING_LOG}))
+        assert parsed["template"] == "hello there <*> kenobi"
+
+    def test_federation_process_binary(self):
+        config_dict = {
+            "parsers": {
+                "AECIDPGParser": {
+                    "method_type": "aecid_pg_parser",
+                    "params": {
+                        "theta_1": 0.6,
+                        "theta_2": 0.8,
+                        "theta_3": 0.5,
+                        "data_use_training": 2,
+                    },
+                },
+            },
+        }
+        parser = AECIDPGParser(config=config_dict)
+        peer = AECIDPGParser(config=config_dict)
+        empty_peer = AECIDPGParser(config=config_dict)
+
+        for log in TRAINING_LOGS:
+            parsed = parser.process(schemas.LogSchema({"log": log}))
+            assert parsed["eventID"] == -1
+            assert parsed["template"] == "templates not yet generated"
+
+        parsed = parser.process(schemas.LogSchema({"log": MATCHING_LOG}))
+        assert parsed["eventID"] == 0
+        assert parsed["template"] == "hello there <*> kenobi"
+
+        for log in PEER_TRAINING_LOGS:
+            parsed = peer.process(schemas.LogSchema({"log": log}))
+            assert parsed["eventID"] == -1
+            assert parsed["template"] == "templates not yet generated"
+
+        parsed = peer.process(schemas.LogSchema({"log": PEER_MATCHING_LOG}))
+        assert parsed["eventID"] == 0
+        assert parsed["template"] == "hello world <*> planets"
+
+        parsed = parser.process(schemas.LogSchema({"log": PEER_MATCHING_LOG}))
+        assert parsed["eventID"] == -1
+        assert parsed["template"] == "template not found"
+
+        parser.stack([empty_peer.to_binary(), peer.to_binary()])
+        parser.aggregate()
+        parsed = parser.process(schemas.LogSchema({"log": PEER_MATCHING_LOG}))
+        assert parsed["template"] == "hello world <*> planets"
+        parsed = parser.process(schemas.LogSchema({"log": MATCHING_LOG}))
+        assert parsed["template"] == "hello there <*> kenobi"
 
     def test_reset_after_train(self):
         config_dict = {
