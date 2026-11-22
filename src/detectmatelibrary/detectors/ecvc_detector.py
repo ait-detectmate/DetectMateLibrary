@@ -6,6 +6,7 @@ from detectmatelibrary.base_detectors import CountVectorDetector, CountVectorDet
 from detectmatelibrary.base_detectors.count_vector_detector import SessionWindows
 from detectmatelibrary.utils.sequence_encoding import (
     build_count_vec,
+    count_events,
     decode_count_vec,
 )
 from detectmatelibrary import schemas
@@ -27,13 +28,9 @@ class ECVCOp:
 
     @staticmethod
     def events_vec(events: Sequence[int], n: int) -> np.ndarray:
-        """Count vector of `events`, at least `n` long."""
-        arr = np.zeros(n if n > (m := max(events) + 1) else m)
-
-        for e in events:
-            arr[e] += 1
-
-        return arr
+        """`count_events` of `events` as an array, at least `n` long."""
+        counts = count_events(events)
+        return np.pad(np.array(counts, dtype=float), (0, max(n - len(counts), 0)))
 
     @staticmethod
     def init_count_matrix(seqs: Collection[tuple[int, ...]]) -> np.ndarray:
