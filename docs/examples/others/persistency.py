@@ -87,7 +87,7 @@ persistency.load(ep, data)
 # --8<-- [end:example_5]
 
 # --8<-- [start:example_7]
-from detectmatelibrary.base_detectors import TrackerDetector, TrackerDetectorConfig
+from detectmatelibrary.bases.base_detectors import TrackerDetector, TrackerDetectorConfig
 
 class MyDetectorConfig(TrackerDetectorConfig):
     method_type: str = "my_detector"
@@ -119,3 +119,6 @@ detector.import_state("./snapshots/my-detector")
 # Import from bytes (e.g. from an API request body)
 detector.import_state(data)
 # --8<-- [start:example_6]
+
+import shutil
+shutil.rmtree("./snapshots")
