@@ -42,6 +42,14 @@ Run the tests with the `dev` group. It includes the `full` extra, which installs
 uv run --dev pytest
 ```
 
+The tests in `tests/test_utils/test_deep_learning.py` use the `deeplearning`
+marker and are skipped by default. Either `--run-deeplearning` or
+`--run-ignored` enables them. Use `-m deeplearning` to select just this group.
+
+```console title="Run deep-learning utility tests"
+uv run --dev pytest --run-deeplearning -m deeplearning
+```
+
 ## Implement auto-configuration in a detector
 
 The user-facing side of auto-configuration is described in the [Detectors overview](detectors.md#auto-configuration-optional). This section covers what a detector has to implement to support it.

@@ -119,6 +119,10 @@ The full test suite covers dataframe and LLM-parser code, so all extras must be 
 uv run --dev pytest -s
 ```
 
+Add `--run-deeplearning` to include the deep-learning utility tests in this run.
+The full test run below includes them through `--run-ignored`.
+[Run just the deep-learning utility tests](../development.md#add-tests-and-run-pytest)
+
 To run all unit tests, first start the database containers:
 
 ```console title="Start the databases"
