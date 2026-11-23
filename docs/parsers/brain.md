@@ -87,5 +87,5 @@ Arguments are grouped by YAML block. **Scope** identifies fields specific to Bra
     | `time_format` | string, null | None | shared | Format used to parse the timestamp field. |
     | `log_source` | string, null | None | shared | Process only inputs of the same log source. |
     | `reset_in_post_train` | boolean | False | shared | Clear buffered training logs after generating templates. |
-    | `Finetune` | array | [['weight', [0.5, 1.0, 1.5]]] (shared: []) | shared | Candidate [parameter, values] pairs for automatic configuration. |
+    | `Finetune` | array | [['weight', [0.5, 0.8, 1.0]]] (shared: []) | shared | Candidate [parameter, values] pairs for automatic configuration. |
 <!-- End arguments -->
