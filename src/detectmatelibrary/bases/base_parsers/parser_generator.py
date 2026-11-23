@@ -84,7 +84,8 @@ class ParserGenerator(CoreParser):
 
     # ---- Standard parser methods ----------------------------------
     def configure(self, input_: schemas.LogSchema) -> None:  # type: ignore
-        self.config_buffer.append(input_["log"])
+        _, content = self._format_log(input_["log"])
+        self.config_buffer.append(content)
 
     def set_configuration(self) -> None:
         self.config = _get_best_config(
@@ -93,7 +94,8 @@ class ParserGenerator(CoreParser):
         self.config_buffer = []
 
     def train(self, input_: schemas.LogSchema) -> None:  # type: ignore
-        self.parser_gen.add(input_["log"])
+        _, content = self._format_log(input_["log"])
+        self.parser_gen.add(content)
 
     def post_train(self) -> None:
         self.tree_match = self.parser_gen.generate()

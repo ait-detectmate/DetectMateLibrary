@@ -72,14 +72,17 @@ class CoreParser(CoreComponent[sc.LogSchema, sc.ParserSchema]):
 
         self.__parser_id = define_parser_id(self.name, config.log_source)
 
-    @override
-    def run(self, input_: sc.LogSchema, output_: sc.ParserSchema) -> bool:  # type: ignore
-        var, content = get_format_variables(
+    def _format_log(self, log: str) -> tuple[dict[str, str], str]:
+        return get_format_variables(
             self.config._regex,
-            log=input_["log"],
+            log=log,
             time_format=self.config.time_format,
             time_format_handler=self.time_format_handler,
         )
+
+    @override
+    def run(self, input_: sc.LogSchema, output_: sc.ParserSchema) -> bool:  # type: ignore
+        var, content = self._format_log(input_["log"])
 
         output_["parserID"] = self.__parser_id
         output_["parsedLogID"] = str(self.id_generator())
