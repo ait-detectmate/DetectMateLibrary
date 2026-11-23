@@ -16,7 +16,7 @@ class BrainConfig(ParserGeneratorConfig):
 
     Finetune: list[list[str | list[Any]]] = Field(
         default=[
-            ["weight", [0.5, 1.0, 1.5]],
+            ["weight", [0.5, 0.8, 1.0]],
         ],
         description="Candidate [parameter, values] pairs for automatic configuration.",
     )
