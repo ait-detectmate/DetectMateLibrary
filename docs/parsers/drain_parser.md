@@ -33,6 +33,9 @@ Each template keeps the tokens that agree at the same position and uses `<*>` wh
 
 Drain inherits the concatenation strategy from `ParserGenerator`. Aggregation collects the templates learned by each participating parser, removes duplicates, and sorts the result. Each participant builds its matcher from that shared list, giving the same template the same `eventID` across the federation. [Distributed parsing paper, Section 4.3.1](https://arxiv.org/pdf/2610.36946#page=6)
 
+!!! warning "Training after federation"
+    When retraining finishes, the parser replaces the federated template set with templates generated
+    from its local training buffer. Templates learned only by other participants are lost.
 
 ## Examples
 

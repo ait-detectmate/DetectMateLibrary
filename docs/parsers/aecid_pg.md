@@ -41,6 +41,10 @@ With `theta_1: 0.6`, both branches fall below the cutoff and merge into a wildca
 
 AECID-PG, Brain, and Drain inherit the same concatenation strategy from `ParserGenerator`. Aggregation gathers the templates from participating parsers, removes duplicates, and sorts the result. Each participant builds its matcher from the shared list, so the same template maps to the same `eventID` across the federation. [Distributed parsing paper, Section 4.3.1](https://arxiv.org/pdf/2610.36946#page=6)
 
+!!! warning "Training after federation"
+    When retraining finishes, the parser replaces the federated template set with templates generated
+    from its local training buffer. Templates learned only by other participants are lost.
+
 ## Examples
 
 By default, AECID-PG keeps earlier training logs when training resumes.
