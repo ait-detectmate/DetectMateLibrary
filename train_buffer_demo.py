@@ -146,7 +146,7 @@ def run_new(logs: list[BaseSchema], train_until: int) -> None:
                 break
     # training
     do_check = True
-    for log in train_buffer:
+    for log in train_buffer:  # type: ignore
         # detector.process is much slower and for fair comparison you just use the logs in train_buffer to
         # train the detectors anyway.
         for detector in detectors:
