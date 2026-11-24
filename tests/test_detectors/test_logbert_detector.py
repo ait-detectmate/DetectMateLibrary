@@ -24,7 +24,7 @@ class TestDeeplog:
                     "method_type": "logbert_detector",
                     "auto_config": True,
                     "data_use_configure": 10,
-                    "data_use_training": 10,
+                    "data_use_training": 20,
                     "window_size": 4, 
                 }
             }

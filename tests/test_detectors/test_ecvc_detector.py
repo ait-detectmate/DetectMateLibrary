@@ -361,7 +361,7 @@ class TestECVCSessionWindows:
     def test_each_phase_sees_each_event_once(self):
         # Configure records are replayed into train() after the configure phase: the windows
         # must not count an event twice or lose one.
-        detector = _session_detector(data_use_configure=2, data_use_training=1)
+        detector = _session_detector(data_use_configure=2, data_use_training=3)
         for s, e in STREAM:
             detector.process(_record(e, s))
         assert set(detector.persistency.get_events_seen()) == _counts(*WINDOWS[:3])

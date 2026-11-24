@@ -118,7 +118,7 @@ class TestSessionWindows:
         detector = DeepLearningDetector(
             model_cls=RecordingModel,
             config=DeepLearningDetectorConfig(
-                window_size=3, session_variable="blk", data_use_configure=2, data_use_training=1
+                window_size=3, session_variable="blk", data_use_configure=2, data_use_training=3
             ),
         )
         for s, e in STREAM:
