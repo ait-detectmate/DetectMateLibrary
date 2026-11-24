@@ -90,12 +90,14 @@ Level markers (`unit`, `contract`, `integration`, `e2e`) come from the directory
 
 `tests/test_data/golden/` holds what the e2e chains produced on fixed input, with the settings that produced them: `audit/` (one per detector, C3), `pipeline/` (C2), `sessions/`. A test compares a fresh run with its golden file.
 
-When a change to the library changes the output on purpose:
+When a change to the library changes the output on purpose — a detector algorithm change, a bugfix that changes the expected alerts, a changed default — the e2e tests fail because the fresh run no longer matches the stored golden file. Rewrite the golden files to accept the new output as the new reference:
 
 ```bash
 uv run pytest tests/e2e -m "" --update-golden    # rewrites the golden files; refused when CI is set
 git diff tests/test_data/golden/                  # review the change like code
 ```
+
+`-m ""` clears the default marker filter (the e2e tests are otherwise skipped, e.g. as `slow`). The refusal under `CI` keeps this a local, deliberate step: nobody should rewrite the reference output from a pipeline run without reviewing the diff first. Never run `--update-golden` just to make a failing test pass — check the diff, and make sure every change in it is the one you intended, before committing it.
 
 DeepLog and LogBERT are not compared exactly. Their `<Detector>.thresholds.json` holds a minimum number of labelled anomalies to find and a maximum number of false alarms, both measured from one seeded run; `--update-golden` measures them again.
 

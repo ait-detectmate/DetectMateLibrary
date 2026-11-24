@@ -55,8 +55,9 @@ class TestStabilityClassifier:
     @pytest.mark.parametrize("as_rle", [True, False], ids=["rle_list", "list"])
     def test_changes_returning_at_the_end_are_unstable(self, as_rle):
         """10 new values, 5 known ones, then 15 new values again: the variable
-        never settles (segment means 1.0, 0.375, 1.0, 1.0 exceed 1.1, 0.3,
-        0.1, 0.01)."""
+        never settles -- segment means 1.0, 0.375, 1.0, 1.0 against thresholds
+        1.1, 0.3, 0.1, 0.01: segments 2-4 exceed their threshold, which is
+        enough to call it unstable."""
         series = [True] * 10 + [False] * 5 + [True] * 15
         assert DEFAULT.is_stable(_series(series, as_rle)) is False
 
