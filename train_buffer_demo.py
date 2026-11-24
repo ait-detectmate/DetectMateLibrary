@@ -86,7 +86,7 @@ def run_original(logs: list[BaseSchema], train_until: int) -> None:
     detector_ids = [sorted(list(x)) for x in detector_ids]  # type: ignore[misc]
     results = [[str(x) for x in range(1800, 2316) if x != 1863], ['1863'],
                ['1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867']]
-    assert all([detector_ids[x] == results[x] for x in range(len(detector_ids))])  # type: ignore
+    assert all([detector_ids[x] == results[x] for x in range(len(detector_ids))])  # type: ignore #nosec B101
     print(f"Time needed for configuration and training with original setup {end - start} and train_until "
           f"{train_until}.")
 
@@ -140,22 +140,22 @@ def run_new(logs: list[BaseSchema], train_until: int) -> None:
             train_buffer.add(log)
             if len(train_buffer) == train_until:
                 for detector in detectors:
-                    assert detector.fitlogic.run() == FitLogicState.DO_TRAIN
-                    assert detector.fitlogic.finish_config() is True
+                    assert detector.fitlogic.run() == FitLogicState.DO_TRAIN  # nosec B101
+                    assert detector.fitlogic.finish_config() is True  # nosec B101
                     detector.set_configuration()
                 break
     # training
     do_check = True
-    for log in train_buffer:  # type: ignore[assignment]
+    for log in train_buffer:
         # detector.process is much slower and for fair comparison you just use the logs in train_buffer to
         # train the detectors anyway.
         for detector in detectors:
             detector.train(cast(ParserSchema, log))
             detector.fitlogic.run()
         if do_check and len(train_buffer) == train_until - 1:  # one log was already consumed.
-            assert nvd.fitlogic.config_state.finished
-            assert ned.fitlogic.config_state.finished
-            assert bfd.fitlogic.config_state.finished
+            assert nvd.fitlogic.config_state.finished  # nosec B101
+            assert ned.fitlogic.config_state.finished  # nosec B101
+            assert bfd.fitlogic.config_state.finished  # nosec B101
             do_check = False
     end = datetime.now()
 
@@ -166,14 +166,14 @@ def run_new(logs: list[BaseSchema], train_until: int) -> None:
             if detector.process(log):
                 detector_ids[i].add(log["logID"])
         if do_check:
-            assert nvd.fitlogic.train_state.finished
-            assert ned.fitlogic.train_state.finished
-            assert bfd.fitlogic.train_state.finished
+            assert nvd.fitlogic.train_state.finished  # nosec B101
+            assert ned.fitlogic.train_state.finished  # nosec B101
+            assert bfd.fitlogic.train_state.finished  # nosec B101
             do_check = False
     detector_ids = [sorted(list(x)) for x in detector_ids]  # type: ignore
     results = [[str(x) for x in range(1800, 2316) if x != 1863], ['1863'],
                ['1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867']]
-    assert all([detector_ids[x] == results[x] for x in range(len(detector_ids))])  # type: ignore
+    assert all([detector_ids[x] == results[x] for x in range(len(detector_ids))])  # type: ignore #nosec B101
     print(f"Time needed for configuration and training with new setup {end - start} and train_until "
           f"{train_until}.")
 
