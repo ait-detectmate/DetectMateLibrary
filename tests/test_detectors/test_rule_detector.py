@@ -1,62 +1,62 @@
 import detectmatelibrary.detectors.rule_detector as rd
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 
 import pytest
 
 
 class TestCaseRules:
     def test_template_not_found(self) -> None:
-        parsed_log = schemas.ParserSchema({"eventID": -1})
+        parsed_log = sc.ParserSchema({"eventID": -1})
         alert, msg = rd.template_not_found(parsed_log)
         assert alert
         assert "No template found by parser" == msg
 
-        parsed_log = schemas.ParserSchema({"eventID": 2})
+        parsed_log = sc.ParserSchema({"eventID": 2})
         alert, _ = rd.template_not_found(parsed_log)
         assert not alert
 
     def test_find_keyword(self) -> None:
         keywords = ["hello", "ciao"]
 
-        parsed_log = schemas.ParserSchema({"log": "hello world"})
+        parsed_log = sc.ParserSchema({"log": "hello world"})
         alert, msg = rd.find_keyword(parsed_log, keywords)
         assert alert
         assert "Found word 'hello' in the logs" == msg
 
-        parsed_log = schemas.ParserSchema({"log": "ciao world"})
+        parsed_log = sc.ParserSchema({"log": "ciao world"})
         alert, msg = rd.find_keyword(parsed_log, keywords)
         assert alert
         assert "Found word 'ciao' in the logs" == msg
 
-        parsed_log = schemas.ParserSchema({"log": "world"})
+        parsed_log = sc.ParserSchema({"log": "world"})
         alert, _ = rd.find_keyword(parsed_log, keywords)
         assert not alert
 
     def test_find_exceptions(self) -> None:
-        parsed_log = schemas.ParserSchema({"log": "hello Exception"})
+        parsed_log = sc.ParserSchema({"log": "hello Exception"})
         alert, msg = rd.exceptions(parsed_log)
         assert alert
         assert "Found word 'exception' in the logs" == msg
 
-        parsed_log = schemas.ParserSchema({"log": "world"})
+        parsed_log = sc.ParserSchema({"log": "world"})
         alert, _ = rd.exceptions(parsed_log)
         assert not alert
 
     def test_error_log(self) -> None:
-        parsed_log = schemas.ParserSchema(
+        parsed_log = sc.ParserSchema(
             {"headerVariables": {"Level": "Error"}}
         )
         alert, msg = rd.error_log(parsed_log)
         assert alert
         assert "Error found" == msg
 
-        parsed_log = schemas.ParserSchema(
+        parsed_log = sc.ParserSchema(
             {"headerVariables": {"Level": "Info"}}
         )
         alert, _ = rd.error_log(parsed_log)
         assert not alert
 
-        parsed_log = schemas.ParserSchema({"log": "hello world"})
+        parsed_log = sc.ParserSchema({"log": "hello world"})
         alert, _ = rd.error_log(parsed_log)
         assert not alert
 
@@ -65,9 +65,9 @@ class TestCaseRuleDetector:
     def test_run_all_rules(self) -> None:
         rule_detector = rd.RuleDetector()
 
-        assert rule_detector.process(schemas.ParserSchema()) is None
+        assert rule_detector.process(sc.ParserSchema()) is None
 
-        alert1 = rule_detector.process(schemas.ParserSchema(
+        alert1 = rule_detector.process(sc.ParserSchema(
             {
                 "eventID": -1,
                 "log": "fail exception",
@@ -85,9 +85,9 @@ class TestCaseRuleDetector:
     def test_all_rules_serialize(self) -> None:
         rule_detector = rd.RuleDetector()
 
-        assert rule_detector.process(schemas.ParserSchema().serialize()) is None
+        assert rule_detector.process(sc.ParserSchema().serialize()) is None
 
-        alert1 = rule_detector.process(schemas.ParserSchema(
+        alert1 = rule_detector.process(sc.ParserSchema(
             {
                 "eventID": -1,
                 "log": "fail exception",
@@ -96,7 +96,7 @@ class TestCaseRuleDetector:
         ).serialize())
         assert alert1 is not None
 
-        (alert := schemas.DetectorSchema()).deserialize(alert1)
+        (alert := sc.DetectorSchema()).deserialize(alert1)
         assert alert["alertDetails"] == {
             "R001 - TemplateNotFound": "No template found by parser",
             "R003 - CheckForExceptions": "Found word 'exception' in the logs",
@@ -122,9 +122,9 @@ class TestCaseRuleDetector:
             }
         )
 
-        assert rule_detector.process(schemas.ParserSchema()) is None
+        assert rule_detector.process(sc.ParserSchema()) is None
 
-        alert1 = rule_detector.process(schemas.ParserSchema(
+        alert1 = rule_detector.process(sc.ParserSchema(
             {
                 "eventID": -1,
                 "log": "fail exception",
@@ -155,8 +155,8 @@ class TestCaseRuleDetector:
             }
         )
 
-        assert rule_detector.process(schemas.ParserSchema({"log": "ciao"})) is None
-        assert rule_detector.process(schemas.ParserSchema({"log": "hi"})) is not None
+        assert rule_detector.process(sc.ParserSchema({"log": "ciao"})) is None
+        assert rule_detector.process(sc.ParserSchema({"log": "hi"})) is not None
 
     def test_rule_not_found(self) -> None:
 

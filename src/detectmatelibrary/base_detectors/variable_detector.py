@@ -125,7 +125,7 @@ class VariableDetector(TrackerDetector, VariableHooks):
     _time_handler: TimeFormatHandler = _core_time_handler
 
     def __init__(
-        self, name: str, config: VariableDetectorConfig = VariableDetectorConfig()
+        self, name: str, config: VariableDetectorConfig | dict[str, Any] = VariableDetectorConfig()
     ) -> None:
         if isinstance(config, dict):
             config = VariableDetectorConfig.from_dict(config, name)

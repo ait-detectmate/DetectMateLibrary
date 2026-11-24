@@ -34,11 +34,11 @@ class CoreConfig(BasicConfig):
     )
     data_use_training: int | None = Field(
         default=None,
-        description="Data used for training, if None, training is not done.",
+        description="Number of logs used for training. None skips training.",
     )
     data_use_configure: int | None = Field(
         default=None,
-        description="Data used for configuration, if None, configuration is not done.",
+        description="Number of logs used for the configuration step. None skips it.",
     )
     use_config_data_as_training: bool = Field(
         default=True,
@@ -60,6 +60,12 @@ class CoreConfig(BasicConfig):
             "removed after training reads it; a killed process leaves it behind."
         ),
     )
+    connector_name: str | None = Field(
+        default=None, description="Add a connector to the output schema.",
+    )
+    connector_url: str | None = Field(
+        default=None, description="Set up the URL of the connector for the output schema.",
+    )
 
 
 class CoreComponent(Component[TInput, TOutput], FedOperations):
@@ -67,13 +73,16 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
 
     def __init__(
         self,
-        name: str,
+        name: str = "Component",
         type_: str = "Core",
-        config: CoreConfig = CoreConfig(),
+        config: CoreConfig | dict[str, Any] = CoreConfig(),
         args_buffer: ArgsBuffer = ArgsBuffer(BufferMode.NO_BUF),
         input_schema: type[BaseSchema] = BaseSchema,
         output_schema: type[BaseSchema] = BaseSchema,
     ) -> None:
+        if isinstance(config, dict):
+            config = CoreConfig.from_dict(config, name)
+
         Component.__init__(self, name=name, type_=type_, config=config)
         FedOperations.__init__(self)
         self.config: CoreConfig
@@ -110,10 +119,10 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
         path: str | None = None,
         storage_options: dict[str, Any] | None = None,
     ) -> bytes | None:
-        """Save this component's state. The base has none, so returns None.
+        """Save this component's state.
 
-        Components with state override this (see
-        base_detectors.TrackerDetector).
+        The base has none, so returns None. Components with state
+        override this (see base_detectors.TrackerDetector).
         """
         return None
 
@@ -140,11 +149,17 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
     def get_window_size(self) -> int:
         return self.data_buffer.get_window_size()
 
+    def _is_input_eligible(self, data: BaseSchema) -> bool:
+        """Check if input should be filtered or not."""
+        return True
+
     def process(self, data: BaseSchema | bytes) -> BaseSchema | bytes | None:
         data_serialized = data
         is_byte, data = SchemaPipeline.preprocess(self.input_schema(), data)
         logger.debug(f"<<{self.name}>> received:\n{data}")
 
+        if not self._is_input_eligible(data):
+            return None
         if (data_buffered := self.data_buffer.add(data)) is None:  # type: ignore
             return None
 
@@ -171,7 +186,7 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
             logger.debug(f"<<{self.name}>> finalizing training")
             self.post_train()
 
-        output_ = self.output_schema()
+        output_ = self.output_schema(connector=self.config.connector_name, url=self.config.connector_url)
         logger.debug(f"<<{self.name}>> processing data")
         return_schema = self.run(input_=data_buffered, output_=output_)
         if not return_schema:
@@ -179,4 +194,4 @@ class CoreComponent(Component[TInput, TOutput], FedOperations):
             return None
 
         logger.debug(f"<<{self.name}>> processed:\n{output_}")
-        return SchemaPipeline.postprocess(output_, is_byte=is_byte)
+        return SchemaPipeline.postprocess(output_.store(), is_byte=is_byte)

@@ -17,7 +17,7 @@ class CharsetDetector(VariableDetector):
     def __init__(
         self,
         name: str = "CharsetDetector",
-        config: CharsetDetectorConfig = CharsetDetectorConfig(),
+        config: CharsetDetectorConfig | dict[str, Any] = CharsetDetectorConfig(),
     ) -> None:
         if isinstance(config, dict):
             config = CharsetDetectorConfig.from_dict(config, name)

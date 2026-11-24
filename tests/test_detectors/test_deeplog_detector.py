@@ -10,7 +10,7 @@ from detectmatelibrary.helper.from_to import From
 
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
 
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 
 import pytest
 
@@ -35,7 +35,7 @@ class TestDeeplog:
 
         for j in range(2):
             for i in [1, 2, 3, 4, 5, 1, 2]:
-                deeplog.process(schemas.ParserSchema({"eventID": i}))
+                deeplog.process(sc.ParserSchema({"eventID": i}))
 
             if j == 0:
                 assert deeplog.get_state() == "Configuring"
@@ -44,7 +44,7 @@ class TestDeeplog:
 
         for _ in range(2):
             for i in [1, 2, 3, 4, 5, 1, 2]:
-                deeplog.process(schemas.ParserSchema({"eventID": i}))
+                deeplog.process(sc.ParserSchema({"eventID": i}))
         assert deeplog.get_state() == "Default"
 
     @pytest.mark.ignored
@@ -79,7 +79,7 @@ class TestDeeplog:
 
         for j in range(2):
             for i in [1, 2, 3, 4, 5, 1, 2]:
-                deeplog.process(schemas.ParserSchema({"eventID": i}))
+                deeplog.process(sc.ParserSchema({"eventID": i}))
             if j == 0:
                 assert deeplog.get_state() == "Training"
 

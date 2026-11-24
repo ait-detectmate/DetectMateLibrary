@@ -5,8 +5,8 @@ from detectmatelibrary.common._config import BasicConfig
 
 from detectmatelibrary.utils.data_buffer import ArgsBuffer, BufferMode
 
-import detectmatelibrary.schemas._op as op_schemas
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas.protobuf._op as op_schemas
+import detectmatelibrary.schemas as sc
 
 import logging
 import os
@@ -38,11 +38,13 @@ default_args = {
     "use_config_data_as_training": True,
     "train_buffer_max_records": 100_000,
     "train_buffer_dir": None,
+    'connector_name': None,
+    'connector_url': None
 }
 
 
-def _make_log(i: int) -> schemas.LogSchema:
-    return schemas.LogSchema({
+def _make_log(i: int) -> sc.LogSchema:
+    return sc.LogSchema({
         "__version__": "2.0.0",
         "logID": str(i),
         "logSource": "test",
@@ -60,7 +62,7 @@ class MockComponentWithTraining(CoreComponent):
         self, name: str, config: MockConfigWithTraining = MockConfigWithTraining()
     ) -> None:
         super().__init__(
-            name=name, type_="Dummy", config=config, input_schema=schemas.LogSchema
+            name=name, type_="Dummy", config=config, input_schema=sc.LogSchema
         )
         self.train_data = []
 
@@ -83,7 +85,7 @@ class MockComponentWithConfigure(CoreComponent):
         self, name: str, config: MockConfigWithConfigure = MockConfigWithConfigure()
     ) -> None:
         super().__init__(
-            name=name, type_="Dummy", config=config, input_schema=schemas.LogSchema
+            name=name, type_="Dummy", config=config, input_schema=sc.LogSchema
         )
         self.configure_data: list = []
         self.set_configuration_called: int = 0
@@ -101,7 +103,7 @@ class MockComponentWithConfigure(CoreComponent):
 class MockComponentWithConfigureAndTraining(CoreComponent):
     def __init__(self, name: str, config: CoreConfig = CoreConfig()) -> None:
         super().__init__(
-            name=name, type_="Dummy", config=config, input_schema=schemas.LogSchema
+            name=name, type_="Dummy", config=config, input_schema=sc.LogSchema
         )
         self.configure_data: list = []
         self.train_data: list = []
@@ -135,7 +137,7 @@ class DummyComponentWithBuffer(CoreComponent):
 class TestConfigCore:
     def test_initialize(self) -> None:
         config = MockConfig(thresholds=0.5, max_iter=100)
-        expected = {"thresholds": 0.5, "max_iter": 100}
+        expected = {"thresholds": 0.5, "max_iter": 100, 'connector_name': None, 'connector_url': None}
         expected.update(default_args)
 
         assert isinstance(config, BasicConfig)
@@ -159,7 +161,7 @@ class TestConfigCore:
             },
             "test_id"
         )
-        expected = {"thresholds": 0.8, "max_iter": 30}
+        expected = {"thresholds": 0.8, "max_iter": 30, 'connector_name': None, 'connector_url': None}
         expected.update(default_args)
         expected["data_use_training"] = 10
 
@@ -173,16 +175,34 @@ class TestConfigCore:
     def test_update_config(self) -> None:
         config = MockConfig()
 
-        expected = {"thresholds": 0.7, "max_iter": 50, "data_use_training": None}
+        expected = {
+            "thresholds": 0.7,
+            "max_iter": 50,
+            "data_use_training": None,
+            'connector_name': None,
+            'connector_url': None
+        }
         expected.update(default_args)
         assert config.get_config() == expected
 
-        expected = {"thresholds": 0.9, "max_iter": 50, "data_use_training": None}
+        expected = {
+            "thresholds": 0.9,
+            "max_iter": 50,
+            "data_use_training": None,
+            'connector_name': None,
+            'connector_url': None
+        }
         expected.update(default_args)
         config.update_config({"thresholds": 0.9})
         assert config.get_config() == expected
 
-        expected = {"max_iter": 200, "thresholds": 0.9, "data_use_training": None}
+        expected = {
+            "max_iter": 200,
+            "thresholds": 0.9,
+            "data_use_training": None,
+            'connector_name': None,
+            'connector_url': None
+        }
         expected.update(default_args)
         config.update_config({"max_iter": 200})
         assert config.get_config() == expected
@@ -240,7 +260,7 @@ class TestCoreComponent:
 
         for i in range(10):
             component.process(
-                schemas.LogSchema({
+                sc.LogSchema({
                     "__version__": "2.0.0",
                     "logID": str(i),
                     "logSource": "test",
@@ -250,7 +270,7 @@ class TestCoreComponent:
 
         assert len(component.train_data) == component.fitlogic.train_state.data_used
         for i, log in enumerate(component.train_data):
-            expected = schemas.LogSchema({
+            expected = sc.LogSchema({
                 "__version__": "2.0.0",
                 "logID": str(i),
                 "logSource": "test",
@@ -266,7 +286,7 @@ class TestCoreComponent:
 
         for i in range(10):
             component.process(
-                schemas.LogSchema({
+                sc.LogSchema({
                     "__version__": "2.0.0",
                     "logID": str(i),
                     "logSource": "test",
@@ -277,7 +297,7 @@ class TestCoreComponent:
         total += component.fitlogic.config_state.total_need_data
         assert len(component.train_data) == total
         for i, log in enumerate(component.train_data):
-            expected = schemas.LogSchema({
+            expected = sc.LogSchema({
                 "__version__": "2.0.0",
                 "logID": str(i),
                 "logSource": "test",
@@ -292,7 +312,7 @@ class TestCoreComponent:
             if i == 2:
                 component.update_state("stop_training")
             component.process(
-                schemas.LogSchema({
+                sc.LogSchema({
                     "__version__": "2.0.0",
                     "logID": str(i),
                     "logSource": "test",
@@ -308,7 +328,7 @@ class TestCoreComponent:
 
         for i in range(10):
             component.process(
-                schemas.LogSchema({
+                sc.LogSchema({
                     "__version__": "2.0.0",
                     "logID": str(i),
                     "logSource": "test",
@@ -477,7 +497,7 @@ class MockConfigWithPostTrain(CoreConfig):
 class MockComponentWithPostTrain(CoreComponent):
     def __init__(self, name: str, config: CoreConfig = MockConfigWithPostTrain()) -> None:
         super().__init__(
-            name=name, type_="Dummy", config=config, input_schema=schemas.LogSchema
+            name=name, type_="Dummy", config=config, input_schema=sc.LogSchema
         )
         self.post_train_called: int = 0
 
@@ -612,7 +632,7 @@ class TestCoreComponentContextManager:
 class MockWindowComponent(CoreComponent):
     def __init__(self, name: str, config: CoreConfig) -> None:
         super().__init__(
-            name=name, type_="Dummy", config=config, input_schema=schemas.LogSchema,
+            name=name, type_="Dummy", config=config, input_schema=sc.LogSchema,
             args_buffer=ArgsBuffer(mode=BufferMode.WINDOW, size=2),
         )
         self.train_data: list = []

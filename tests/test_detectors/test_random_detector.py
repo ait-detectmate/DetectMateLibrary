@@ -1,5 +1,5 @@
 from detectmatelibrary.detectors.random_detector import RandomDetector
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 from detectmatelibrary.utils.aux import time_test_mode
 
 from copy import deepcopy
@@ -49,7 +49,7 @@ class TestRandomDetectorEdgeCases:
     def test_random_seed_consistency(self):
 
         detector = RandomDetector(name="TestDetector", config=deepcopy(config))
-        parser_data = schemas.ParserSchema({
+        parser_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "test template",
@@ -60,13 +60,13 @@ class TestRandomDetectorEdgeCases:
             "log": "test log message",
             "headerVariables": {"timestamp": "123456"}
         })
-        detector_output = schemas.DetectorSchema()
+        detector_output = sc.DetectorSchema()
 
         # Multiple calls should return consistent results when mocked
         result1 = detector.detect(parser_data, detector_output)
 
         # Reset output for second call
-        detector_output = schemas.DetectorSchema()
+        detector_output = sc.DetectorSchema()
         result2 = detector.detect(parser_data, detector_output)
 
         assert result1 == result2

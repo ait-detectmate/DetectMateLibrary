@@ -24,8 +24,6 @@ _BACKEND_REGISTRY: dict[str, type[EventDataset]] = {
     "EventStabilityTracker": EventStabilityTracker,
 }
 
-_DATAFRAME_BACKENDS = {"EventDataFrame", "ChunkedEventDataFrame"}
-
 
 def _get_backend_cls(name: str) -> type[EventDataset]:
     if name in _BACKEND_REGISTRY:
@@ -36,8 +34,6 @@ def _get_backend_cls(name: str) -> type[EventDataset]:
 _EXTENSION_MAP: dict[str, str] = {
     "EventTracker": "msgpack",
     "EventStabilityTracker": "msgpack",
-    "EventDataFrame": "parquet",
-    "ChunkedEventDataFrame": "parquet",
 }
 
 

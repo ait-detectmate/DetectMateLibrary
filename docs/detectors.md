@@ -1,5 +1,5 @@
 
-# Detectors
+# Detectors [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/common/detector.py)]
 
 Detectors process structured logs from Parsers and emit alerts when anomalies are detected.
 
@@ -8,13 +8,12 @@ Detectors process structured logs from Parsers and emit alerts when anomalies ar
 | **Input**  | [ParserSchema](schemas.md) | Structured log     |
 | **Output** | [DetectorSchema](schemas.md)| Alert / finding    |
 
-This document describes the minimal API, implementation guidance, a short example detector and a unit test pattern.
+This document describes the minimal API, implementation guidance and a short example detector.
 
 ## CoreDetector: minimal API
 
 
-
-```python
+```python title="Detector API"
 class CoreDetectorConfig(CoreConfig):
     component_type: str = "detectors"
     method_type: str = "core_detector"
@@ -55,7 +54,7 @@ class CoreDetector(CoreComponent):
 
 Simple detector that raises an alert when a numeric variable exceeds a threshold.
 
-```python
+```python title="Detector Example"
 class SimpleThresholdConfig(CoreDetectorConfig):
     method_type: str = "simple_threshold"
     threshold: float = 0.0
@@ -145,9 +144,9 @@ example configurations set `auto_config: false` anyway, to make this explicit. I
 `auto_config` is `True` *and* `data_use_configure` is set, the configure phase replaces the
 `events` block with its own selection.
 
-When `auto_config` is set to `False`, the detector expects an explicit `events` or `global` block that specifies exactly which variables to monitor. `events` refers to event-specific variables while `global` refers to variables, that are not bound to events (`header_variables` can but don't have to be event bound):
+When `auto_config` is set to `False`, the detector expects an explicit `events` or `global` block that specifies exactly which variables to monitor. `events` refers to event-specific variables while `global` refers to variables that are not bound to events (`header_variables` can but don't have to be event bound):
 
-```yaml
+```yaml title="Detector Configuration"
 detectors:
   NewValueDetector:
     method_type: new_value_detector
@@ -172,14 +171,14 @@ detectors:
 
 ### Common parameters (all detectors)
 
-There are some parameters, that **every** detector inherits from `CoreDetectorConfig`/`CoreConfig`/`BasicConfig`, regardless of what it does. The other parameters, that are **specific** for the respective detector, are explained right at the detectors documentation page, later on.
+Some parameters are inherited by **every** detector from `CoreDetectorConfig`/`CoreConfig`/`BasicConfig`, regardless of what it does. The parameters that are **specific** to a detector are explained on that detector's own page.
 
 <!-- Start common_arguments -->
 ???+ note "Top level"
 
     | Field | Type | Default | Description |
     |---|---|---|---|
-    | `auto_config` | boolean | True | Runs the configuration step before the training process. |
+    | `auto_config` | boolean | True | Runs the configuration step before the training process. Has no effect unless data_use_configure is set. |
     | `events` | object | {} | Events configuration dict keyed by event_id. |
     | `global` | object | {} | Instances monitoring event-independent header variables (e.g. hostname, level), keyed by instance name. Written as `global` in YAML. |
 
@@ -188,12 +187,14 @@ There are some parameters, that **every** detector inherits from `CoreDetectorCo
     | Field | Type | Default | Description |
     |---|---|---|---|
     | `start_id` | integer | 10 | Number used to start the unique ID generator. |
-    | `data_use_training` | integer, null | None | Data used for training, if None, training is not done. |
-    | `data_use_configure` | integer, null | None | Data used for configuration, if None, configuration is not done. |
+    | `data_use_training` | integer, null | None | Number of logs used for training. None skips training. |
+    | `data_use_configure` | integer, null | None | Number of logs used for the configuration step. None skips it. |
     | `use_config_data_as_training` | boolean | True | Combine the configured data in the training process if True. |
     | `train_buffer_max_records` | integer | 100000 | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
-    | `parser` | string | PARSER | Name of the parser used. |
+    | `connector_name` | string, null | None | Add a connector to the output schema. |
+    | `connector_url` | string, null | None | Set up the URL of the connector for the output schema. |
+    | `parser` | string, null | None | Name of the parser used. |
 <!-- End common_arguments -->
 
 Beyond the common parameters, detectors inherit the parameters of the group they belong to.
@@ -207,13 +208,13 @@ The detectors that keep their model in persistency stores ([New Event](detectors
 
     | Field | Type | Default | Description |
     |---|---|---|---|
-    | `persist` | object, null | None | Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See the Persistency page. |
+    | `persist` | object, null | None | Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See Saving state (persist) on the Detectors page. |
 
 ???+ note "params"
 
     | Field | Type | Default | Description |
     |---|---|---|---|
-    | `allow_fed` | boolean | False | Allow to do the federation |
+    | `allow_fed` | boolean | False | Builds the stores needed to take part in federation. |
 <!-- End tracker_arguments -->
 
 ### Per-variable model detectors
@@ -250,6 +251,7 @@ The two neural detectors ([DeepLog](detectors/deeplog.md), [LogBERT](detectors/l
     | `window_size` | integer | 10 | Number of consecutive events used as one training/detection sequence. |
     | `validation_per` | number | 0.2 | Fraction of data held out for validation during (fine)training. |
     | `finetune_epochs` | integer | 2 | Number of epochs used when finetuning during the configuration phase. |
+    | `session_variable` | string, null | None | Header variable that names the session of each event (HDFS: block_id). When set, an event's window holds the events before it in its own session, padded at the session start, so windows never mix sessions and every event is checked. |
     | `hyperparameters` | object | {'Model': {}, 'Train': {}, 'Finetune': []} | Model, training and hyperparameter-search settings passed to the underlying deep learning model. |
 <!-- End deeplearning_arguments -->
 
@@ -291,7 +293,7 @@ after creating both components, with `compile_detector_config()`. **Without this
 the detector monitors nothing**; it only logs a warning that the named `eventID` was
 never observed in training.
 
-```python
+```python title="Detector Examples"
 --8<-- "docs/examples/detectors/named_events.py:example"
 ```
 
@@ -302,7 +304,7 @@ Detectors can optionally support **auto-configuration**: a process where the det
 
 Auto-configuration is controlled by the `auto_config` flag in the pipeline config (e.g. `config/pipeline_config_default.yaml`):
 
-```yaml
+```yaml title="Detector Autoconfiguration"
 detectors:
   NewValueDetector:
     method_type: new_value_detector
@@ -328,7 +330,7 @@ To support auto-configuration in your own detector, see [Development](developmen
 
 ### Full lifecycle with auto-configuration
 
-```python
+```python title="Full cycle"
 1. configure(input_)         # call for each event in the dataset
 2. set_configuration()       # finalize which variables to monitor
 3. train(input_)             # call for each event in the dataset
@@ -356,6 +358,9 @@ be rerun with `auto_config: False` and reproduce the same detector.
 
 ### Stability classification (optional)
 
+!!! warning "Not compatible with all detectors"
+
+
 Stability classification decides whether a variable's change history counts as
 `STABLE` by running one or more classification methods against it and combining
 their verdicts. There are four independent methods, over two primitives and two
@@ -368,8 +373,8 @@ axes:
 | `slope_index` | change centroid vs. `slope_threshold` | index positions |
 | `slope_time` | change centroid vs. `slope_threshold` | normalized timestamps |
 
-Any subset of the four may be enabled, and any single one may stand alone. The
-default (`index` alone) is the historical behaviour: each segment's mean rate
+Any subset of the four may be enabled, and any single one may stand alone. By
+default only `index` is enabled: each segment's mean rate
 of change is compared against its entry in `segment_thresholds` (four segments
 by default, one threshold per segment), and the segments are **equal-count**:
 each holds the same number of observations, regardless of how much time they
@@ -390,7 +395,7 @@ and go in the detector's `auto_config_params` block: they are inputs to the
 auto-configuration phase, read only while `auto_config` is `True`, and never
 consulted at detection time.
 
-```yaml
+```yaml title="Detector configuration"
 detectors:
   NewValueDetector:
     method_type: new_value_detector
@@ -410,12 +415,11 @@ detectors:
       timestamp_format: "%y%m%d %H%M%S"
 ```
 
-Defaults reproduce the historical behaviour exactly: `index: True`, the other
-three `False`, `segment_thresholds: [1.1, 0.3, 0.1, 0.01]`, `decision: consensus`,
+The defaults are `index: True`, the other three `False`,
+`segment_thresholds: [1.1, 0.3, 0.1, 0.01]`, `decision: consensus` and
 `slope_threshold: -0.05`. A config that sets nothing under `classification`
-classifies identically to before these changes on every series with at least
-four observations; the one exception is the segment floor described under
-"Fields" below.
+uses exactly these. A variable with fewer observations than segments is
+classified `INSUFFICIENT_DATA`; see the segment floor under "Fields" below.
 
 #### The decision rule
 
@@ -504,11 +508,14 @@ matters: the index pass keeps every segment populated.
 
 ### Saving state (persist)
 
+!!! warning "Not compatible with all detectors"
+
+
 [Tracker detectors](#tracker-detectors) can persist their training state to disk
 (or cloud storage) so it can be restored in a later session. Configure this with a
 top-level `persist:` block in the detector config:
 
-```yaml
+```yaml title="Detector configuration"
 detectors:
   NewValueDetector:
     method_type: new_value_detector
@@ -538,7 +545,7 @@ this, set `StateDirectory=` in your unit file: systemd creates `/var/lib/<dir>`
 with the right ownership and exports `$STATE_DIRECTORY`, which the default `path`
 reads automatically. No explicit `path:` needed:
 
-```ini
+```yaml title="Running under systemd"
 [Service]
 User=detectmate
 StateDirectory=detectmate     # → state at /var/lib/detectmate/<detector>/
@@ -560,14 +567,14 @@ Setting `path:` explicitly (e.g. an `s3://` URL) always overrides `$STATE_DIRECT
 
 **Local filesystem** (no `storage_options` needed):
 
-```yaml
+```yaml title="Define persistency"
 persist:
   path: ./state
 ```
 
 **S3**:
 
-```yaml
+```yaml title="Persistency S3 bucket"
 persist:
   path: s3://my-bucket/detector-state
   storage_options:
@@ -578,7 +585,7 @@ persist:
 
 S3-compatible storage (MinIO, etc.):
 
-```yaml
+```yaml title="Persistency S3 bucket"
 persist:
   path: s3://my-bucket/detector-state
   storage_options:
@@ -589,7 +596,7 @@ persist:
 
 **Azure Blob Storage**:
 
-```yaml
+```yaml title="Persistency Azure"
 persist:
   path: az://my-container/detector-state
   storage_options:
@@ -599,7 +606,7 @@ persist:
 
 **GCS**:
 
-```yaml
+```yaml title="Persistency GCS"
 persist:
   path: gs://my-bucket/detector-state
   storage_options:

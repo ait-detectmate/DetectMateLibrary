@@ -73,7 +73,7 @@ class BigramFrequencyDetector(VariableDetector):
     def __init__(
         self,
         name: str = "BigramFrequencyDetector",
-        config: BigramFrequencyDetectorConfig = BigramFrequencyDetectorConfig(),
+        config: BigramFrequencyDetectorConfig | dict[str, Any] = BigramFrequencyDetectorConfig(),
     ) -> None:
         if isinstance(config, dict):
             config = BigramFrequencyDetectorConfig.from_dict(config, name)

@@ -1,4 +1,4 @@
-# Template Tree Matcher
+# Template Tree Matcher [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/parsers/tree_matcher.py)]
 
 The Template Tree Matcher is a parser that matches incoming logs against a set of templates using a tree-based depth-first search. It provides faster matching for batch workloads compared with the streaming Template Matcher.
 
@@ -13,7 +13,8 @@ Input and output schemas in the pipeline
 | **Input**  | [LogSchema](../schemas.md) | Unstructured log   |
 | **Output** | [ParserSchema](../schemas.md) | Structured log   |
 
-WARNING: This parser is not yet in a stable release and may behave differently across platforms or hardware.
+!!! warning "Not yet stable"
+    This parser is not yet in a stable release and may behave differently across platforms or hardware.
 
 ## Template format
 
@@ -21,14 +22,15 @@ WARNING: This parser is not yet in a stable release and may behave differently a
 - Use the token `<*>` to mark wildcard slots.
 
 Example template file (templates.txt):
-```text
+
+```console title="Templates"
 pid=<*> uid=<*> auid=<*> ses=<*> msg='op=PAM:<*> acct=<*>
 login success: user=<*> source=<*>
 ```
 
 ## Example
 
-```python
+```python title="Example"
 --8<-- "docs/examples/parsers/template_tree_matcher.py:example"
 ```
 
@@ -36,7 +38,7 @@ login success: user=<*> source=<*>
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/parsers/template_tree_matcher.yaml"
 ```
 
@@ -63,13 +65,17 @@ All parameters this parser accepts, grouped by the YAML block they go in. **Scop
     |---|---|---|---|---|
     | `path_templates` | string, null | None | specific | fitting description yet to find |
     | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
-    | `data_use_training` | integer, null | None | shared | Data used for training, if None, training is not done. |
-    | `data_use_configure` | integer, null | None | shared | Data used for configuration, if None, configuration is not done. |
+    | `data_use_training` | integer, null | None | shared | Number of logs used for training. None skips training. |
+    | `data_use_configure` | integer, null | None | shared | Number of logs used for the configuration step. None skips it. |
     | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
     | `train_buffer_max_records` | integer | 100000 | shared | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
+    | `connector_name` | string, null | None | shared | Add a connector to the output schema. |
+    | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
     | `log_format` | string, null | None | shared | fitting description yet to find |
     | `time_format` | string, null | None | shared | fitting description yet to find |
+    | `log_source` | string, null | None | shared | Process only inputs of the same log source. |
 <!-- End arguments -->
 
-Note: this matcher removes non-alphanumeric characters from logs and templates before matching, except for the `<*>` token. Ensure your templates are compatible with that normalization.
+!!! note
+    This matcher removes non-alphanumeric characters from logs and templates before matching, except for the `<*>` token. Ensure your templates are compatible with that normalization.

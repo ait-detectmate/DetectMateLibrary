@@ -26,7 +26,7 @@ class ValueRangeDetector(VariableDetector):
     def __init__(
         self,
         name: str = "ValueRangeDetector",
-        config: ValueRangeDetectorConfig = ValueRangeDetectorConfig(),
+        config: ValueRangeDetectorConfig | dict[str, Any] = ValueRangeDetectorConfig(),
     ) -> None:
         if isinstance(config, dict):
             config = ValueRangeDetectorConfig.from_dict(config, name)

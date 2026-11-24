@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 from detectmatelibrary.common.parser import CoreParser
 from detectmatelibrary.parsers.logbatcher import LogBatcherParser, LogBatcherParserConfig
 from detectmatelibrary.utils.aux import time_test_mode
@@ -41,11 +41,25 @@ class TestLogBatcherParserInit:
         config = LogBatcherParserConfig(api_key="k")
         assert config.method_type == "logbatcher_parser"
 
+    def test_api_key_falls_back_to_env(self, monkeypatch):
+        monkeypatch.setenv("OPENAI_API_KEY", "env-key")
+
+        parser = LogBatcherParser()
+
+        assert parser._llm_parser.client.api_key == "env-key"
+
+    def test_config_api_key_overrides_env(self, monkeypatch):
+        monkeypatch.setenv("OPENAI_API_KEY", "env-key")
+
+        parser = LogBatcherParser(config=LogBatcherParserConfig(api_key="config-key"))
+
+        assert parser._llm_parser.client.api_key == "config-key"
+
 
 class TestLogBatcherParserParse:
     def test_template_extracted(self):
         parser = _make_parser()
-        log_schema = schemas.LogSchema({"logID": "1", "log": LOG})
+        log_schema = sc.LogSchema({"logID": "1", "log": LOG})
 
         result = parser.process(log_schema)
 
@@ -53,7 +67,7 @@ class TestLogBatcherParserParse:
 
     def test_variables_extracted(self):
         parser = _make_parser()
-        log_schema = schemas.LogSchema({"logID": "1", "log": LOG})
+        log_schema = sc.LogSchema({"logID": "1", "log": LOG})
 
         result = parser.process(log_schema)
 
@@ -62,7 +76,7 @@ class TestLogBatcherParserParse:
 
     def test_event_id_is_int(self):
         parser = _make_parser()
-        log_schema = schemas.LogSchema({"logID": "1", "log": LOG})
+        log_schema = sc.LogSchema({"logID": "1", "log": LOG})
 
         result = parser.process(log_schema)
 
@@ -72,11 +86,11 @@ class TestLogBatcherParserParse:
         """Second identical log must not trigger a new LLM call."""
         parser = _make_parser()
 
-        log_schema1 = schemas.LogSchema({"logID": "1", "log": LOG})
+        log_schema1 = sc.LogSchema({"logID": "1", "log": LOG})
         parser.process(log_schema1)
         llm_call_count = parser._llm_parser.chat.call_count
 
-        log_schema2 = schemas.LogSchema({"logID": "2", "log": LOG})
+        log_schema2 = sc.LogSchema({"logID": "2", "log": LOG})
         parser.process(log_schema2)
 
         assert parser._llm_parser.chat.call_count == llm_call_count

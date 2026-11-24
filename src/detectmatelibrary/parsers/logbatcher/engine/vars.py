@@ -29,9 +29,10 @@ from typing import List
 
 from .matching import extract_variables
 
+
 def vars_update(refer_log: str, template: str, candidates: List[str]) -> List[str]:
     new_variables = extract_variables(refer_log, template)
-    extend_vars = []
+    extend_vars: List[str] = []
     if not new_variables:
         return extend_vars
     for var in new_variables:

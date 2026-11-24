@@ -12,7 +12,7 @@ from detectmatelibrary.detectors.new_event_detector import NewEventDetector, New
     BufferMode
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 from detectmatelibrary.utils.aux import time_test_mode
 from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
@@ -55,8 +55,8 @@ class TestNewEventDetectorInitialization:
         assert detector.name == "NewEventDetector"
         assert hasattr(detector, 'config')
         assert detector.data_buffer.mode == BufferMode.NO_BUF
-        assert detector.input_schema == schemas.ParserSchema
-        assert detector.output_schema == schemas.DetectorSchema
+        assert detector.input_schema == sc.ParserSchema
+        assert detector.output_schema == sc.DetectorSchema
         assert hasattr(detector, 'persistency')
 
     def test_custom_config_initialization(self):
@@ -76,7 +76,7 @@ class TestNewEventDetectorTraining:
         detector = NewEventDetector(config=config, name="MultipleDetector")
         event_ids = {0, 3, 8, 9}
         for event in event_ids:
-            parser_data = schemas.ParserSchema({
+            parser_data = sc.ParserSchema({
                 "parserType": "test",
                 "eventID": event,
                 "template": "test template",
@@ -101,7 +101,7 @@ class TestNewEventDetectorDetection:
         detector = NewEventDetector(config=config, name="MultipleDetector")
 
         # Train with an event_id
-        train_data = schemas.ParserSchema({
+        train_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "test template",
@@ -115,7 +115,7 @@ class TestNewEventDetectorDetection:
         detector.train(train_data)
 
         # Detect with the same event_id
-        test_data = schemas.ParserSchema({
+        test_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "test template",
@@ -126,7 +126,7 @@ class TestNewEventDetectorDetection:
             "log": "test log message",
             "headerVariables": {"level": "CRITICAL"}
         })
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
 
         result = detector.detect(test_data, output)
 
@@ -171,7 +171,7 @@ class TestNewEventDetectorEndToEnd:
 
         detected_ids: set[str] = set()
         for i, log in enumerate(logs[TRAIN_UNTIL:]):
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
@@ -204,7 +204,7 @@ class TestNewEventDetectorEndToEnd:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector1.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
@@ -229,7 +229,7 @@ class TestNewEventDetectorEndToEnd:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector2.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
@@ -303,7 +303,7 @@ class TestNewEventDetectorGlobalInstances:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector.detect(log, output_=output):
                 assert all(key.startswith("Global -") for key in output["alertDetails"])
                 detected_ids.add(log["logID"])
@@ -315,7 +315,7 @@ class TestNewEventDetectorFederationCleanup:
     def test_finalize_federation_removes_the_slow_table(self, tmp_path, monkeypatch):
         monkeypatch.chdir(tmp_path)  # the slow store writes .temp/ CSVs here
         detector = NewEventDetector(config=NewEventDetectorConfig(allow_fed=True))
-        detector.train(schemas.ParserSchema({"eventID": 1, "template": "test template"}))
+        detector.train(sc.ParserSchema({"eventID": 1, "template": "test template"}))
         assert (tmp_path / ".temp").exists()
 
         detector.finalize_federation()

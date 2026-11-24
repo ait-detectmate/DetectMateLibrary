@@ -9,6 +9,7 @@ from detectmatelibrary.utils.persistency.data_structures.trackers.stability.stab
     SingleStabilityTracker,
 )
 
+from .count_vector_detector import CountVectorDetector, CountVectorDetectorConfig, SessionWindows
 from ._persist import PersistConfig
 from .deeplearning_detector import DeepLearningDetector, DeepLearningDetectorConfig
 from ._stability import StabilityAutoConfigParams
@@ -16,10 +17,13 @@ from .tracker_detector import TrackerDetector, TrackerDetectorConfig
 from .variable_detector import VariableAutoConfigParams, VariableDetector, VariableDetectorConfig
 
 __all__ = [
+    "CountVectorDetector",
+    "CountVectorDetectorConfig",
     "DeepLearningDetector",
     "DeepLearningDetectorConfig",
     "EventStabilityTracker",
     "PersistConfig",
+    "SessionWindows",
     "SingleStabilityTracker",
     "StabilityAutoConfigParams",
     "TrackerDetector",

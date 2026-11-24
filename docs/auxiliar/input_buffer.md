@@ -1,4 +1,4 @@
-#  Data Buffer
+# Data Buffer [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/utils/data_buffer.py)]
 
 The data buffer is an auxiliary method that can be used in all the components. It takes the stream data and formats it to the given specifications.
 
@@ -16,18 +16,18 @@ It has different configuration states to configure its behaviour.
 Code examples to show the behaviour of the **DataBuffer** class.
 
 ### No Buffer mode
-```python
+```python title="No Buffer"
 --8<-- "docs/examples/others/data_buffer.py:example_1"
 ```
 
 ### Batch mode
 
-```python
+```python title="Batch Mode"
 --8<-- "docs/examples/others/data_buffer.py:example_2"
 ```
 
 ### Window mode
 
-```python
+```python title="Windows Mode"
 --8<-- "docs/examples/others/data_buffer.py:example_3"
 ```

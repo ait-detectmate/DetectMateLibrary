@@ -11,7 +11,7 @@ from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.common._config import generate_detector_config
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 from detectmatelibrary.utils.aux import time_test_mode
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
 
@@ -71,8 +71,8 @@ class TestNewValueComboDetectorInitialization:
 
         assert detector.name == "NewValueComboDetector"
         assert detector.data_buffer.mode == BufferMode.NO_BUF
-        assert detector.input_schema == schemas.ParserSchema
-        assert detector.output_schema == schemas.DetectorSchema
+        assert detector.input_schema == sc.ParserSchema
+        assert detector.output_schema == sc.DetectorSchema
 
     def test_custom_config_initialization(self):
         detector = NewValueComboDetector(name="CustomInit", config=config)
@@ -89,7 +89,7 @@ class TestNewValueComboDetectorTraining:
         # Train with multiple values
         for event in range(3):
             for level in ["INFO", "WARNING", "ERROR"]:
-                parser_data = schemas.ParserSchema({
+                parser_data = sc.ParserSchema({
                     "parserType": "test",
                     "eventID": event,
                     "template": "test template",
@@ -113,7 +113,7 @@ class TestNewValueComboDetectorDetection:
         detector = NewValueComboDetector(config=config, name="MultipleDetector")
 
         # Train with a value
-        train_data = schemas.ParserSchema({
+        train_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "test template",
@@ -126,7 +126,7 @@ class TestNewValueComboDetectorDetection:
         })
         detector.train(train_data)
 
-        train_data = schemas.ParserSchema({
+        train_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "test template",
@@ -140,7 +140,7 @@ class TestNewValueComboDetectorDetection:
         detector.train(train_data)
 
         # Detect with the same value
-        test_data = schemas.ParserSchema({
+        test_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 12,
             "template": "test template",
@@ -151,7 +151,7 @@ class TestNewValueComboDetectorDetection:
             "log": "test log message",
             "headerVariables": {"level": "CRITICAL"}
         })
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
 
         result = detector.detect(test_data, output)
 
@@ -162,7 +162,7 @@ class TestNewValueComboDetectorDetection:
         detector = NewValueComboDetector(config=config, name="MultipleDetector")
 
         # Train with a value
-        train_data = schemas.ParserSchema({
+        train_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "test template",
@@ -175,7 +175,7 @@ class TestNewValueComboDetectorDetection:
         })
         detector.train(train_data)
 
-        train_data = schemas.ParserSchema({
+        train_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "test template",
@@ -189,7 +189,7 @@ class TestNewValueComboDetectorDetection:
         detector.train(train_data)
 
         # Detect with an unknown combination (pos 1 has a new value)
-        test_data = schemas.ParserSchema({
+        test_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "test template",
@@ -200,7 +200,7 @@ class TestNewValueComboDetectorDetection:
             "log": "test log message",
             "headerVariables": {"level": "CRITICAL"}
         })
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
 
         result = detector.detect(test_data, output)
 
@@ -253,7 +253,7 @@ class TestNewValueComboDetectorConfiguration:
 
         # Configure with sample events
         for event_id in [1, 2, 3]:
-            parser_data = schemas.ParserSchema({
+            parser_data = sc.ParserSchema({
                 "parserType": "test",
                 "eventID": event_id,
                 "template": f"Template {event_id}",
@@ -279,7 +279,7 @@ class TestNewValueComboDetectorConfiguration:
 
         # Configure with events that have varying stability
         for i in range(10):
-            parser_data = schemas.ParserSchema({
+            parser_data = sc.ParserSchema({
                 "parserType": "test",
                 "eventID": 1,
                 "template": "Template 1",
@@ -307,7 +307,7 @@ class TestNewValueComboDetectorConfiguration:
         training_data = []
         for i in range(20):
             for event_id in [1, 2]:
-                parser_data = schemas.ParserSchema({
+                parser_data = sc.ParserSchema({
                     "parserType": "test",
                     "eventID": event_id,
                     "template": f"Template {event_id}",
@@ -329,7 +329,7 @@ class TestNewValueComboDetectorConfiguration:
             detector.train(data)
 
         # Step 4: Verify detector can detect anomalies
-        test_data = schemas.ParserSchema({
+        test_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "Template 1",
@@ -340,7 +340,7 @@ class TestNewValueComboDetectorConfiguration:
             "log": "test log",
             "headerVariables": {"level": "INFO"}
         })
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
 
         # Should detect anomaly due to new combination
         result = detector.detect(test_data, output)
@@ -352,7 +352,7 @@ class TestNewValueComboDetectorConfiguration:
 
         # Configure with multiple variable events
         for i in range(15):
-            parser_data = schemas.ParserSchema({
+            parser_data = sc.ParserSchema({
                 "parserType": "test",
                 "eventID": 1,
                 "template": "Multi-var template",
@@ -377,7 +377,7 @@ class TestNewValueComboDetectorConfiguration:
 
         # Configure with highly variable data
         for i in range(10):
-            parser_data = schemas.ParserSchema({
+            parser_data = sc.ParserSchema({
                 "parserType": "test",
                 "eventID": 1,
                 "template": "Variable template",
@@ -404,7 +404,7 @@ class TestNewValueComboDetectorEndToEnd:
 
     @staticmethod
     def _make_schema(event_id, template, variables, log_format_variables, log_id="1"):
-        return schemas.ParserSchema({
+        return sc.ParserSchema({
             "parserType": "test",
             "eventID": event_id,
             "template": template,
@@ -457,7 +457,7 @@ class TestNewValueComboDetectorEndToEnd:
             ["MALICIOUS_USER", "MALICIOUS_IP"],
             {"username": "MALICIOUS_USER", "src_ip": "MALICIOUS_IP"},
         )
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
         result = detector.detect(anomalous, output)
 
         assert result is True
@@ -501,7 +501,7 @@ class TestNewValueComboDetectorEndToEnd:
             ["user1", "192.168.1.100"],
             {"username": "user1", "src_ip": "192.168.1.100"},
         )
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
         result = detector.detect(benign, output)
 
         assert result is False
@@ -547,7 +547,7 @@ class TestNewValueComboDetectorEndToEnd:
             ["hacker", "/etc/shadow"],
             {"username": "hacker", "filepath": "/etc/shadow"},
         )
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
         result = detector.detect(file_event, output)
         assert result is False
 
@@ -583,7 +583,7 @@ class TestNewValueComboDetectorEndToEndWithRealData:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
@@ -610,7 +610,7 @@ class TestNewValueComboDetectorEndToEndWithRealData:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector2.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
@@ -644,7 +644,7 @@ class TestNewValueComboDetectorEndToEndWithRealData:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector1.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
@@ -670,7 +670,7 @@ class TestNewValueComboDetectorClassificationConfigPreservation:
         assert detector.config.auto_config is True  # the default (set_configuration-first) path
 
         for i in range(10):
-            parser_data = schemas.ParserSchema({
+            parser_data = sc.ParserSchema({
                 "parserType": "test",
                 "eventID": 1,
                 "template": "Template 1",
@@ -696,7 +696,7 @@ class TestNewValueComboDetectorClassificationConfigPreservation:
         )
         detector = NewValueComboDetector(config=cfg, name="NewValueComboDetector")
         for i in range(10):
-            detector.configure(schemas.ParserSchema({
+            detector.configure(sc.ParserSchema({
                 "parserType": "test",
                 "eventID": 1,
                 "template": "Template 1",
@@ -753,7 +753,7 @@ class TestNewValueComboDetectorClassificationCombos:
         for i in range(12):
             # var_0 and var_1 both cycle over 3 values -> both STABLE in pass 1,
             # so pass 2 gets a ("var_0", "var_1") combo tracker to look at.
-            detector.configure(schemas.ParserSchema({
+            detector.configure(sc.ParserSchema({
                 "parserType": "test",
                 "eventID": 1,
                 "template": "Template 1",
@@ -837,8 +837,8 @@ class TestNewValueComboDetectorConfigureSpill:
     afterwards."""
 
     @staticmethod
-    def _record(i: int) -> schemas.ParserSchema:
-        return schemas.ParserSchema({
+    def _record(i: int) -> sc.ParserSchema:
+        return sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "Template 1",
@@ -913,7 +913,7 @@ class TestNewValueComboDetectorAllCombos:
 
     @staticmethod
     def _record(variables, log_format_variables=None, event_id=1, log_id="1"):
-        return schemas.ParserSchema({
+        return sc.ParserSchema({
             "parserType": "test",
             "eventID": event_id,
             "template": "Template 1",
@@ -959,7 +959,7 @@ class TestNewValueComboDetectorAllCombos:
         detector.train(self._record(["b", "y"], {"level": "ERROR"}))
 
         # ("a", "x") is known to the first combo; ("a", "ERROR") is new to the second
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
         assert detector.detect(self._record(["a", "x"], {"level": "ERROR"}), output)
         assert output.score == 1.0
         assert list(output.alertDetails) == ["EventID 1 - ('var_0', 'level')"]
@@ -971,7 +971,7 @@ class TestNewValueComboDetectorAllCombos:
         trackers = detector.persistency.get_events_data()[1].get_data()
         assert list(trackers) == [("var_0", "var_1"), ("var_0", "level")]
         assert not detector.detect(
-            self._record(["a", "x"], {"level": "INFO"}), schemas.DetectorSchema()
+            self._record(["a", "x"], {"level": "INFO"}), sc.DetectorSchema()
         )
 
     def test_combo_with_a_missing_variable_is_skipped(self):
@@ -984,7 +984,7 @@ class TestNewValueComboDetectorAllCombos:
         assert list(trackers) == [("var_0", "var_1"), ("var_0", "level")]
         assert trackers[("var_0", "level")].unique_set == {("a", "INFO")}
 
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
         assert not detector.detect(self._record(["b", "y"]), output)
         assert not detector.detect(self._record(["new"]), output)
 
@@ -1000,7 +1000,7 @@ class TestNewValueComboDetectorAllCombos:
         assert trackers[("var_0", "var_1")].unique_set == {("a", "x"), ("b", "y")}
         assert trackers[("var_0", "level")].unique_set == {("a", "INFO"), ("b", "ERROR")}
         assert received.detect(
-            self._record(["a", "x"], {"level": "ERROR"}), schemas.DetectorSchema()
+            self._record(["a", "x"], {"level": "ERROR"}), sc.DetectorSchema()
         )
 
     @staticmethod

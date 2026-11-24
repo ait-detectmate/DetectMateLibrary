@@ -1,8 +1,8 @@
-# Federation
+# Federation [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/common/_core_op/_fed_component.py)]
 
 This section explains how to use the federation setup. For a component to support federation, it must implement the following methods:
 
-```python
+```python title="Federation methods"
 def to_binary(self) -> bytes | None:
     """(Federation only) Serialize to bytes for federation operations."""
 
@@ -31,7 +31,7 @@ There are two main ways to use federation:
 
 For all the examples below, we will use this code:
 
-```python
+```python title="Component with federation implemented"
 --8<-- "docs/examples/others/federation.py:example_1"
 ```
 
@@ -39,17 +39,17 @@ For all the examples below, we will use this code:
 
 The diagram below shows the workflow:
 
-![combine](img/fed_combine_first.png)
+![combine](img/fed_combine_first.svg)
 
 Example 1:
 
-```python
+```python title="Combine first example"
 --8<-- "docs/examples/others/federation.py:example_2"
 ```
 
 Example 2:
 
-```python
+```python title="Combine first example"
 --8<-- "docs/examples/others/federation.py:example_3"
 ```
 
@@ -57,16 +57,16 @@ Example 2:
 
 The diagram below shows the workflow:
 
-![stack](img/fed_stack_later.png)
+![stack](img/fed_stack_later.svg)
 
 Example 1:
 
-```python
+```python title="Stack later example"
 --8<-- "docs/examples/others/federation.py:example_4"
 ```
 
 Example 2:
 
-```python
+```python title="Stack later example"
 --8<-- "docs/examples/others/federation.py:example_5"
 ```

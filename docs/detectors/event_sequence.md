@@ -1,4 +1,4 @@
-# Event Sequence Detector
+# Event Sequence Detector [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/detectors/event_sequence_detector.py)]
 
 The Event Sequence Detector raises alerts when a run of consecutive event IDs appears in an order that was never observed during training. It is useful to detect broken or unexpected workflows in an environment where the individual events are all benign on their own.
 
@@ -25,6 +25,10 @@ Because a novel event stays inside the window for `fixed_window_size` steps, a s
 
 Sequences are stored as fixed-length n-grams, so a persisted model is only meaningful at the length it was trained with. When state is restored via [persistency](../auxiliar/persistency.md) at a different `fixed_window_size`, the detector logs a warning, adopts the persisted length, and skips auto-configuration.
 
+### Sessions
+
+When the log interleaves independent sessions (HDFS: one per `block_id`), a stream window mixes their events. Set `session_variable` to the header variable that names the session: each event's window then holds the last `fixed_window_size` events of its own session, fewer at the session start, so the first events of a session are checked too. The configure phase sees the same windows, and a restored model takes the length of its longest learned sequence.
+
 ### Auto configuration
 
 With `auto_config: True` the detector spends the configure phase feeding one window per candidate length in `min_window_size .. max_window_size` (inclusive) and tracking how stable the resulting sequences are. The longest candidate whose sequences are classified `STABLE` or `STATIC` is written to `fixed_window_size`, so the resulting configuration can be replayed verbatim with `auto_config: False`.
@@ -37,7 +41,7 @@ Longer windows are more specific and therefore alert more readily; if the auto-c
 
 To let the detector pick the window length, give it a configure phase instead of a `fixed_window_size`:
 
-```yaml
+```yaml title="Configuration"
 detectors:
   LoginSequenceDetector:
     method_type: event_sequence_detector
@@ -49,7 +53,7 @@ detectors:
 
 ## Example
 
-```python
+```python title="Example"
 --8<-- "docs/examples/detectors/event_sequence.py:example"
 ```
 
@@ -59,7 +63,7 @@ The sequences learned so far are available via `detector.get_known_sequences()`,
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/detectors/event_sequence.yaml"
 ```
 
@@ -78,24 +82,27 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
     | `method_type` | string | event_sequence_detector | shared | Indicates what type of method it is. |
-    | `auto_config` | boolean | True | shared | Runs the configuration step before the training process. |
+    | `auto_config` | boolean | True | shared | Runs the configuration step before the training process. Has no effect unless data_use_configure is set. |
     | `events` | object | {} | shared | Events configuration dict keyed by event_id. |
     | `global` | object | {} | shared | Instances monitoring event-independent header variables (e.g. hostname, level), keyed by instance name. Written as `global` in YAML. |
-    | `persist` | object, null | None | shared | Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See the Persistency page. |
+    | `persist` | object, null | None | shared | Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See Saving state (persist) on the Detectors page. |
 
 ???+ note "params"
 
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
     | `fixed_window_size` | integer, null | None | specific | Length of the sliding EventID window. A window whose exact EventID sequence was not seen during training is reported as an anomaly. When set it overrides the `auto_config_params` window range and skips auto-configuration; auto-configuration writes its own choice here. While it is None the detector is unconfigured and neither trains nor alerts. |
+    | `session_variable` | string, null | None | specific | Header variable that names the session of each event (HDFS: block_id). When set, an event's window holds the last fixed_window_size events of its own session, fewer at the session start, so windows never mix sessions and every event is checked. |
     | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
-    | `data_use_training` | integer, null | None | shared | Data used for training, if None, training is not done. |
-    | `data_use_configure` | integer, null | None | shared | Data used for configuration, if None, configuration is not done. |
+    | `data_use_training` | integer, null | None | shared | Number of logs used for training. None skips training. |
+    | `data_use_configure` | integer, null | None | shared | Number of logs used for the configuration step. None skips it. |
     | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
     | `train_buffer_max_records` | integer | 100000 | shared | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
-    | `parser` | string | PARSER | shared | Name of the parser used. |
-    | `allow_fed` | boolean | False | shared | Allow to do the federation |
+    | `connector_name` | string, null | None | shared | Add a connector to the output schema. |
+    | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
+    | `parser` | string, null | None | shared | Name of the parser used. |
+    | `allow_fed` | boolean | False | shared | Builds the stores needed to take part in federation. |
 
 ??? note "auto_config_params (read only while auto_config is true)"
 

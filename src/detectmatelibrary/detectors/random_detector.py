@@ -4,10 +4,10 @@ from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
 
 from detectmatelibrary.utils.data_buffer import BufferMode
 
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 
 from typing_extensions import override
-from typing import List
+from typing import List, Any
 
 from pydantic import Field
 import numpy as np
@@ -26,7 +26,7 @@ class RandomDetector(CoreDetector):
     def __init__(
         self,
         name: str = "RandomDetector",
-        config: RandomDetectorConfig = RandomDetectorConfig(),
+        config: RandomDetectorConfig | dict[str, Any] = RandomDetectorConfig(),
     ) -> None:
         if isinstance(config, dict):
             config = RandomDetectorConfig.from_dict(config, name)
@@ -34,15 +34,15 @@ class RandomDetector(CoreDetector):
         self.config: RandomDetectorConfig
 
     @override
-    def train(self, input_: List[schemas.ParserSchema] | schemas.ParserSchema) -> None:
+    def train(self, input_: List[sc.ParserSchema] | sc.ParserSchema) -> None:
         """Training is not applicable for RandomDetector."""
         return
 
     @override
     def detect(
         self,
-        input_: schemas.ParserSchema,  # type: ignore
-        output_: schemas.DetectorSchema,
+        input_: sc.ParserSchema,  # type: ignore
+        output_: sc.DetectorSchema,
     ) -> bool:
         """Detect anomalies randomly in the input data."""
         overall_score = 0.0

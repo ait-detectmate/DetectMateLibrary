@@ -9,7 +9,7 @@
 
 ## Work Flow
 ![workflow](outputs/figures/workflow.png)
-Log Batcher contians three main components: **Partitioning, Caching and Batching - Querying** 
+Log Batcher contians three main components: **Partitioning, Caching and Batching - Querying**
 
 
 **Table of Contents**
@@ -24,7 +24,7 @@ Log Batcher contians three main components: **Partitioning, Caching and Batching
     - [Prepare datasets](#prepare-datasets)
     - [Reproduce](#reproduce)
     - [Benchmark Evaluation](#benchmark-evaluation)
-  
+
 
 ## Setup
 
@@ -128,7 +128,7 @@ docker run -it logbatcher
 
 ### Data format
 
-LogBatcher mainly takes **a raw log file** (in plain text format) as input and outputs the **parsed log file** (in CSV format). A **raw log file** is a log file with each line representing a complete log. 
+LogBatcher mainly takes **a raw log file** (in plain text format) as input and outputs the **parsed log file** (in CSV format). A **raw log file** is a log file with each line representing a complete log.
 
 Following the data format from [LOGPAI](https://github.com/logpai/loghub), the data can also be a **structured log file**. A **structured log file** is a CSV file that includes at least the `LineID` and `Content` columns for parsing, with optional `EventID` and `EventTemplate` columns for evaluation.
 

@@ -1,5 +1,5 @@
 from detectmatelibrary.common.detector import _extract_timestamp
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 
 
 class TestCoreDetector:
@@ -50,7 +50,7 @@ class TestCoreDetector:
             ("Wednesday, March 4, 2026 14:18:00", EXPECTED_UTC),
         ]
         for time_str, expected in test_cases:
-            schema = schemas.ParserSchema({**dummy_schema, "headerVariables": {"Time": time_str}})
+            schema = sc.ParserSchema({**dummy_schema, "headerVariables": {"Time": time_str}})
             result = _extract_timestamp(schema)
             assert result == [expected], (
                 f"Format '{time_str}': expected [{expected}], got {result}"
@@ -59,9 +59,9 @@ class TestCoreDetector:
     def test_microsecond_epoch_fits_the_schema(self) -> None:
         """Issue #271: a microsecond epoch folded only once landed in
         milliseconds and overflowed the int32 timestamp fields."""
-        schema = schemas.DetectorSchema({
+        schema = sc.DetectorSchema({
             "logTimestamps": _extract_timestamp(
-                schemas.ParserSchema({"headerVariables": {"Time": "1643114452000000"}})
+                sc.ParserSchema({"headerVariables": {"Time": "1643114452000000"}})
             ),
         })
         assert str(schema)  # rebuilds the protobuf -- used to raise ValueError
@@ -71,11 +71,11 @@ class TestCoreDetector:
         """Timestamps are int64, so they survive 2038 (and a stray ms
         value)."""
         for schema, field, value in [
-            (schemas.ParserSchema(), "receivedTimestamp", 2**31),
-            (schemas.ParserSchema(), "parsedTimestamp", 2**31),
-            (schemas.DetectorSchema(), "detectedTimestamp", 2**31),
-            (schemas.DetectorSchema(), "receivedTimestamp", 1643114452000),
-            (schemas.AggregateSchema(), "aggregatedTimestamp", 2**31),
+            (sc.ParserSchema(), "receivedTimestamp", 2**31),
+            (sc.ParserSchema(), "parsedTimestamp", 2**31),
+            (sc.DetectorSchema(), "detectedTimestamp", 2**31),
+            (sc.DetectorSchema(), "receivedTimestamp", 1643114452000),
+            (sc.AggregateSchema(), "aggregatedTimestamp", 2**31),
         ]:
             schema[field] = value
             assert getattr(schema.get_schema(), field) == value

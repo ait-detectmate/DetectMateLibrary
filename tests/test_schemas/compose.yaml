@@ -1,0 +1,15 @@
+services:
+  mongo:
+    image: mongo
+    ports:
+      - "127.0.0.1:27017:27017"
+    tmpfs:
+      - /data/db
+      - /data/configdb
+  redis:
+    image: redis:8-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    tmpfs:
+      - /data

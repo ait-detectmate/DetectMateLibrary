@@ -10,6 +10,7 @@ from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.schemas import ParserSchema, DetectorSchema
 
 from pydantic import Field
+from typing import Any
 
 
 class NewEventDetectorConfig(TrackerDetectorConfig):
@@ -24,7 +25,7 @@ class NewEventDetector(TrackerDetector):
     def __init__(
         self,
         name: str = "NewEventDetector",
-        config: NewEventDetectorConfig = NewEventDetectorConfig()
+        config: NewEventDetectorConfig | dict[str, Any] = NewEventDetectorConfig()
     ) -> None:
 
         if isinstance(config, dict):

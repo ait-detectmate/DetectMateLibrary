@@ -14,7 +14,7 @@ from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 from detectmatelibrary.utils.aux import time_test_mode
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
 
@@ -75,8 +75,8 @@ class TestNewValueDetectorInitialization:
         assert detector.name == "NewValueDetector"
         assert hasattr(detector, 'config')
         assert detector.data_buffer.mode == BufferMode.NO_BUF
-        assert detector.input_schema == schemas.ParserSchema
-        assert detector.output_schema == schemas.DetectorSchema
+        assert detector.input_schema == sc.ParserSchema
+        assert detector.output_schema == sc.DetectorSchema
         assert hasattr(detector, 'persistency')
 
     def test_custom_config_initialization(self):
@@ -97,7 +97,7 @@ class TestNewValueDetectorTraining:
         # Train with multiple values (only event 1 should be tracked per config)
         for event in range(3):
             for level in ["INFO", "WARNING", "ERROR"]:
-                parser_data = schemas.ParserSchema({
+                parser_data = sc.ParserSchema({
                     "parserType": "test",
                     "eventID": event,
                     "template": "test template",
@@ -129,7 +129,7 @@ class TestNewValueDetectorDetection:
         detector = NewValueDetector(config=config, name="MultipleDetector")
 
         # Train with a value
-        train_data = schemas.ParserSchema({
+        train_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "test template",
@@ -143,7 +143,7 @@ class TestNewValueDetectorDetection:
         detector.train(train_data)
 
         # Detect with the same value
-        test_data = schemas.ParserSchema({
+        test_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 12,
             "template": "test template",
@@ -154,7 +154,7 @@ class TestNewValueDetectorDetection:
             "log": "test log message",
             "headerVariables": {"level": "CRITICAL"}
         })
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
 
         result = detector.detect(test_data, output)
 
@@ -165,7 +165,7 @@ class TestNewValueDetectorDetection:
         detector = NewValueDetector(config=config, name="MultipleDetector")
 
         # Train with a value
-        train_data = schemas.ParserSchema({
+        train_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "test template",
@@ -179,7 +179,7 @@ class TestNewValueDetectorDetection:
         detector.train(train_data)
 
         # Detect with the same value
-        test_data = schemas.ParserSchema({
+        test_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "test template",
@@ -190,7 +190,7 @@ class TestNewValueDetectorDetection:
             "log": "test log message",
             "headerVariables": {"level": "CRITICAL"}
         })
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
 
         result = detector.detect(test_data, output)
 
@@ -235,7 +235,7 @@ class TestNewValueDetectorEndToEnd:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
@@ -263,7 +263,7 @@ class TestNewValueDetectorEndToEnd:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector2.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
@@ -297,7 +297,7 @@ class TestNewValueDetectorEndToEnd:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector1.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
@@ -347,7 +347,7 @@ class TestNewValueDetectorAutoConfig:
         explicit_events = detector.config.events.model_dump()
 
         for i in range(20):
-            detector.process(schemas.ParserSchema({
+            detector.process(sc.ParserSchema({
                 "parserType": "test",
                 "eventID": [1, 2, 3][i % 3],
                 "template": "test template",
@@ -398,7 +398,7 @@ class TestNewValueDetectorGlobalInstances:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector.detect(log, output_=output):
                 assert all(key.startswith("Global -") for key in output["alertDetails"])
                 detected_ids.add(log["logID"])

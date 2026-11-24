@@ -1,4 +1,4 @@
-# Parsers
+# Parsers [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/common/parser.py)]
 
 Parsers convert unstructured raw logs into structured ParserSchema objects that downstream detectors consume.
 
@@ -19,7 +19,7 @@ This document explains expected APIs, how to implement a parser, testing tips an
 
 Recommended signatures and behavior:
 
-```python
+```python title="Parser main methods"
 class CoreParser:
     def run(self, input_: schemas.LogSchema, output_: schemas.ParserSchema) -> bool:
         """Top-level runner. Calls parse() and performs pre/post processing.
@@ -66,7 +66,7 @@ returns, so a value set there is overwritten.
 
 Example:
 
-```python
+```python title="Example of a Dummy parser"
 # filepath: src/detectmatelibrary/parsers/my_parser.py
 from typing import Any
 
@@ -104,11 +104,12 @@ class MyParser(CoreParser):
 
 Unit test `parse()` directly using `ParserSchema` objects:
 
-```python
-def test_my_parser_parse():
-    from detectmatelibrary.parsers.my_parser import MyParser
-    from detectmatelibrary import schemas
+```python title="Testing parser"
+from detectmatelibrary.parsers.my_parser import MyParser
+from detectmatelibrary import schemas
 
+
+def test_my_parser_parse():
     parser = MyParser()
     raw = schemas.LogSchema({"log": "a b c", "logID": "1"})
     out = schemas.ParserSchema()
@@ -143,11 +144,14 @@ There are some parameters, that **every** parser inherits from `CoreParserConfig
     | Field | Type | Default | Description |
     |---|---|---|---|
     | `start_id` | integer | 10 | Number used to start the unique ID generator. |
-    | `data_use_training` | integer, null | None | Data used for training, if None, training is not done. |
-    | `data_use_configure` | integer, null | None | Data used for configuration, if None, configuration is not done. |
+    | `data_use_training` | integer, null | None | Number of logs used for training. None skips training. |
+    | `data_use_configure` | integer, null | None | Number of logs used for the configuration step. None skips it. |
     | `use_config_data_as_training` | boolean | True | Combine the configured data in the training process if True. |
     | `train_buffer_max_records` | integer | 100000 | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
+    | `connector_name` | string, null | None | Add a connector to the output schema. |
+    | `connector_url` | string, null | None | Set up the URL of the connector for the output schema. |
     | `log_format` | string, null | None | fitting description yet to find |
     | `time_format` | string, null | None | fitting description yet to find |
+    | `log_source` | string, null | None | Process only inputs of the same log source. |
 <!-- End common_arguments -->

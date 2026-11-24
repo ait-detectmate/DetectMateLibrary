@@ -1,4 +1,4 @@
-# Bigram Frequency Detector
+# Bigram Frequency Detector [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/detectors/bigram_frequency_detector.py)]
 
 The Bigram Frequency Detector raises alerts when a variable's character bigrams (pairs of neighbouring letters/characters) appear improbable under a learned per-variable bigram frequency model. Optionally, an English-language bigram table can be consulted as a fallback for bigrams not yet seen during training.
 
@@ -23,7 +23,7 @@ For each configured variable, the detector walks every observed value character-
 
 ## Example
 
-```python
+```python title="Example"
 --8<-- "docs/examples/detectors/bigram_frequency.py:example"
 ```
 
@@ -31,7 +31,7 @@ For each configured variable, the detector walks every observed value character-
 
 The configuration used by the example above. It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/detectors/bigram_frequency.yaml"
 ```
 
@@ -50,10 +50,10 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
     | `method_type` | string | bigram_frequency_detector | shared | Indicates what type of method it is. |
-    | `auto_config` | boolean | True | shared | Runs the configuration step before the training process. |
+    | `auto_config` | boolean | True | shared | Runs the configuration step before the training process. Has no effect unless data_use_configure is set. |
     | `events` | object | {} | shared | Events configuration dict keyed by event_id. |
     | `global` | object | {} | shared | Instances monitoring event-independent header variables (e.g. hostname, level), keyed by instance name. Written as `global` in YAML. |
-    | `persist` | object, null | None | shared | Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See the Persistency page. |
+    | `persist` | object, null | None | shared | Periodic state saving (path, interval_seconds, events_until_save, auto_load, storage_options). None disables it. See Saving state (persist) on the Detectors page. |
 
 ???+ note "params"
 
@@ -63,13 +63,15 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
     | `default_freqs` | boolean | False | specific | Initialize the probabilities with default values from https://github.com/markbaggett/freq. |
     | `skip_repetitions` | boolean | True | specific | Only use distinct values for character-pair counting. This counteracts the problem of imbalanced word frequencies that distort the frequency table generated in a single run. |
     | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
-    | `data_use_training` | integer, null | None | shared | Data used for training, if None, training is not done. |
-    | `data_use_configure` | integer, null | None | shared | Data used for configuration, if None, configuration is not done. |
+    | `data_use_training` | integer, null | None | shared | Number of logs used for training. None skips training. |
+    | `data_use_configure` | integer, null | None | shared | Number of logs used for the configuration step. None skips it. |
     | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
     | `train_buffer_max_records` | integer | 100000 | shared | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
-    | `parser` | string | PARSER | shared | Name of the parser used. |
-    | `allow_fed` | boolean | False | shared | Allow to do the federation |
+    | `connector_name` | string, null | None | shared | Add a connector to the output schema. |
+    | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
+    | `parser` | string, null | None | shared | Name of the parser used. |
+    | `allow_fed` | boolean | False | shared | Builds the stores needed to take part in federation. |
 
 ??? note "auto_config_params (read only while auto_config is true)"
 

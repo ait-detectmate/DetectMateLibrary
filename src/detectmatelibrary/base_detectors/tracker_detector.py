@@ -24,13 +24,13 @@ class TrackerDetectorConfig(CoreDetectorConfig):
         default=None,
         description=(
             "Periodic state saving (path, interval_seconds, events_until_save, auto_load, "
-            "storage_options). None disables it. See the Persistency page."
+            "storage_options). None disables it. See Saving state (persist) on the Detectors page."
         ),
     )
     allow_fed: bool = Field(
         default=False,
         description=(
-            "Allow to do the federation"
+            "Builds the stores needed to take part in federation."
         ),
     )
 

@@ -1,4 +1,4 @@
-# Persistency
+# Persistency [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/utils/persistency/event_persistency.py)]
 
 The persistency module gives a detector a place to remember things about the
 events it sees. State is keyed by `eventID` and survives across training, the
@@ -19,16 +19,14 @@ but have their own variable values. Persistency stores **one independent state
 object per event ID**, so an `EventStabilityTracker` for `eventID=4733` does
 not interfere with one for `eventID=4624`.
 
-### 2. Backends (`EventDataStructure`)
+### 2. Backends
 
 A backend is the thing that actually stores the per-event state. Persistency
 owns the dict `{event_id: backend}`; the backend itself decides *how* data is
 kept.
 
-Two families ship today:
+One family ships today:
 
-- **DataFrame backends** (`EventDataFrame`, `ChunkedEventDataFrame`) keeps the
-  raw rows. Very storage heavy and *not recommended* for production-ready detectors.
 - **Tracker backends** (`EventStabilityTracker`) keep only derived features
   (e.g. "this variable has been constant for the last 10k events") that are relevant for the detector. Use these
   when you only need a summary or a subset of the log's information, not the raw history: they cost a fraction of
@@ -59,7 +57,7 @@ block in its config and `TrackerDetector` starts the saver.
 
 ## Quick start
 
-```python
+```python title="Quick start"
 from detectmatelibrary.utils import persistency
 
 ep = persistency.EventPersistency()
@@ -89,7 +87,7 @@ events, query state.
 
 Common methods:
 
-```python
+```python title="Quick start"
 ep.ingest_event(event_id, event_template, variables=..., named_variables=...)
 
 ep.get_event_data(event_id)        # backend for a single event
@@ -111,7 +109,7 @@ canonical import; the deeply nested submodules are an implementation detail.
 
 ### Persisting to disk
 
-```python
+```python title="Persistency to disk"
 saver = persistency.PersistencySaver(
     ep,
     persistency.PersistencySaverConfig(
@@ -140,7 +138,7 @@ another `events_until_save` events before retrying.
 
 #### Restoring state
 
-```python
+```python title="Restoring state"
 saver = persistency.PersistencySaver(
     ep,
     persistency.PersistencySaverConfig(path="./state/my-detector", auto_load=True),
@@ -157,7 +155,7 @@ silently starting empty.
 For one-shot transfers (e.g. moving trained state to a new environment, or
 taking a manual snapshot), use the standalone functions directly:
 
-```python
+```python title="Export and importint states"
 from detectmatelibrary.utils import persistency
 
 # Export to a file URI
@@ -190,7 +188,7 @@ When working through a detector (the typical path for DetectMateService), use
 the methods on the detector object directly, with no need to access
 `EventPersistency` internals:
 
-```python
+```python title="Detector export-import"
 # Export to a file URI
 detector.export_state("./snapshots/my-detector")
 
@@ -228,7 +226,7 @@ for the config schema.
 
 In detector code, the pattern is:
 
-```python
+```python title="Detector with persistency"
 from detectmatelibrary.base_detectors import TrackerDetector, TrackerDetectorConfig
 
 class MyDetectorConfig(TrackerDetectorConfig):

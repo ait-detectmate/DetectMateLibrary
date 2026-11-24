@@ -1,5 +1,6 @@
 
-from detectmatelibrary.detectors.ecvc_detector import ECVCOp, ECVCDetectorConfig, ECVCDetector
+from detectmatelibrary.detectors.ecvc_detector import ECVCOp, ECVCDetectorConfig, ECVCDetector, SessionWindows
+from detectmatelibrary.utils.sequence_encoding import count_events, encode_count_vec
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 from detectmatelibrary import schemas
@@ -20,6 +21,10 @@ class TestECVCOP:
         expected = tuple([2, 1, 0, 0, 1])
 
         assert ECVCOp.build_count_vec(input_) == expected
+
+    def test_count_events(self):
+        assert count_events([0, 1, 4, 0]) == (2, 1, 0, 0, 1)
+        assert count_events([3]) == (0, 0, 0, 1)
 
     def test_build_one_vec(self):
         input_ = [
@@ -56,6 +61,17 @@ class TestECVCOP:
         y = np.array([0, 1, 4, 0])
 
         assert 0.0 == ECVCOp.calculate_score(y, matrix=input_)
+
+    def test_calculate_score_matches_the_row_loop(self):
+        rng = np.random.default_rng(0)
+        for rows, cols, extra in [(1, 3, 0), (5, 4, 2), (200, 30, 0), (200, 30, 5)]:
+            matrix = rng.integers(0, 4, (rows, cols)).astype(float)
+            for _ in range(20):
+                y = rng.integers(0, 4, cols + extra).astype(float)
+                assert ECVCOp.calculate_score(y, matrix) == _row_loop_score(y, matrix)
+
+    def test_calculate_score_without_rows_is_inf(self):
+        assert ECVCOp.calculate_score(np.array([1., 2.]), matrix=np.zeros((0, 2))) == np.inf
 
     def test_calculate_threshol(self):
         matrix = np.array([
@@ -116,6 +132,59 @@ class TestECVC:
         assert ecvc.config.method_type == "ecvc_detector"
         assert ecvc.config.window_size == 3
         assert "ecvc_detector_detector" in str(config)  # caller's dict is left untouched
+
+    def test_window_seen_in_training_skips_the_scan(self, monkeypatch):
+        ecvc = ECVCDetector(config=ECVCDetectorConfig(window_size=3, validation_per=0.))
+        ecvc.train(_window([0, 1, 4]))
+        ecvc.post_train()
+        scored = []
+        monkeypatch.setattr(ECVCOp, "calculate_score", staticmethod(lambda y, matrix: scored.append(y) or 1.))
+
+        assert not ecvc.detect(_window([4, 0, 1]), schemas.DetectorSchema())  # same counts
+        assert scored == []
+        assert ecvc.detect(_window([4, 4, 4]), schemas.DetectorSchema())
+        assert len(scored) == 1
+
+    def test_window_held_out_for_the_threshold_never_alerts(self):
+        """validation_per only sets the threshold: every window seen in training stays known."""
+        rng = np.random.default_rng(0)
+        windows = [_window(rng.integers(0, 10, 4).tolist()) for _ in range(40)]
+        ecvc = ECVCDetector(config=ECVCDetectorConfig(window_size=4, validation_per=0.5))
+        for window in windows:
+            ecvc.train(window)
+        ecvc.post_train()
+
+        assert ecvc.threshold > 0  # the held-out half did set it
+        assert not any(ecvc.detect(window, schemas.DetectorSchema()) for window in windows)
+
+    def test_detect_matches_the_full_scan(self):
+        """The shortcut changes no decision: not for validation vectors, not for eventID -1."""
+        rng = np.random.default_rng(0)
+        windows = [_window(rng.integers(-1, 6, 4).tolist()) for _ in range(300)]
+        ecvc = ECVCDetector(config=ECVCDetectorConfig(window_size=4, validation_per=0.5))
+        for window in windows[:150]:
+            ecvc.train(window)
+        ecvc.post_train()
+        assert ecvc.count_vecs is not None
+
+        for window in windows:
+            y = ECVCOp.build_one_vec(window, ecvc.count_vecs.shape[1])
+            expected = _row_loop_score(y, ecvc.count_vecs) > ecvc.threshold
+            assert ecvc.detect(window, schemas.DetectorSchema()) == expected
+
+
+def _row_loop_score(y, matrix):
+    """calculate_score before vectorising: one row of matrix at a time."""
+    pad = np.zeros((matrix.shape[0], y.shape[0] - matrix.shape[1]))
+    matrix_ = np.concat([matrix, pad], axis=1)
+
+    score = np.inf
+    for m in matrix_:
+        dif = np.sum(np.abs(m - y))
+        div = np.sum(np.max(np.concat([m[np.newaxis], y[np.newaxis]]).T, axis=1))
+        score = score if score < (s := (dif / div)) else s
+
+    return float(score)
 
 
 PIPELINE_CONFIG = {
@@ -252,3 +321,63 @@ class TestECVCDetectorRestoredState:
         detector.finalize_federation()
 
         assert not (tmp_path / ".temp").exists()
+
+
+def _record(event, session):
+    return schemas.ParserSchema({"eventID": event, "headerVariables": {"blk": session}})
+
+
+def _counts(*windows):
+    """The persistency keys of the count vectors of these windows (window_size
+    2)."""
+    return {encode_count_vec(2, count_events(w)) for w in windows}
+
+
+# Two interleaved sessions, a: 1 3 5 and b: 2 4, and the window (size 2) ending at each event.
+STREAM = [("a", 1), ("b", 2), ("a", 3), ("b", 4), ("a", 5)]
+WINDOWS = [(1,), (2,), (1, 3), (2, 4), (3, 5)]
+
+
+def _session_detector(**config):
+    return ECVCDetector(config=ECVCDetectorConfig(
+        window_size=2, session_variable="blk", validation_per=0., **config
+    ))
+
+
+class TestECVCSessionWindows:
+    """With session_variable, an event's window holds the events before it in
+    its own session."""
+
+    def test_windows_never_mix_sessions(self):
+        windows = SessionWindows(size=2)
+        assert [windows.add(s, e) for s, e in STREAM] == WINDOWS
+
+    def test_training_counts_the_windows_of_each_session(self):
+        detector = _session_detector(data_use_training=len(STREAM))
+        for s, e in STREAM:
+            detector.process(_record(e, s))
+        assert set(detector.persistency.get_events_seen()) == _counts(*WINDOWS)
+
+    def test_each_phase_sees_each_event_once(self):
+        # Configure records are replayed into train() after the configure phase: the windows
+        # must not count an event twice or lose one.
+        detector = _session_detector(data_use_configure=2, data_use_training=1)
+        for s, e in STREAM:
+            detector.process(_record(e, s))
+        assert set(detector.persistency.get_events_seen()) == _counts(*WINDOWS[:3])
+
+    def test_detection_scores_the_window_of_the_events_own_session(self):
+        # Training sees one session alternating 1 and 2. Two sessions doing the same, interleaved,
+        # raise nothing (a stream window would count 1 1 and 2 2); a session starting with 2 does.
+        detector = _session_detector(data_use_training=6)
+        alerts = [detector.process(_record(e, "t")) for e in (1, 2, 1, 2, 1, 2)]
+        for s, e in [("a", 1), ("b", 1), ("a", 2), ("b", 2), ("a", 1), ("b", 1)]:
+            alerts.append(detector.process(_record(e, s)))
+        alerts.append(detector.process(_record(2, "c")))
+        assert [a is not None for a in alerts] == [False] * 12 + [True]
+        assert alerts[-1]["logIDs"] == [str(_record(2, "c")["logID"])]
+
+    def test_missing_session_variable_raises(self):
+        detector = _session_detector(data_use_training=1)
+        with pytest.raises(ValueError, match="blk"):
+            detector.process(schemas.ParserSchema({"eventID": 1}))

@@ -8,7 +8,7 @@ import os
 
 import polars as pl
 
-from typing import Iterator, overload
+from typing import Iterator, overload, Any
 import yaml
 import json
 
@@ -194,9 +194,17 @@ class _Polars:
 class From:
     @staticmethod
     def _yield(
-        component: CoreComponent[TInput, TOutput], in_: Iterator[BaseSchema], do_process: bool = True
+        component: CoreComponent[TInput, TOutput],
+        in_: Iterator[BaseSchema],
+        do_process: bool = True,
+        constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
+
         for in_schema in in_:
+
+            for k, v in constant_fields.items():
+                in_schema[k] = v
+
             if do_process:
                 yield component.process(in_schema)  # type: ignore
             else:
@@ -204,8 +212,12 @@ class From:
 
     @staticmethod
     def log(
-        component: CoreComponent[TInput, TOutput], in_path: str, do_process: bool = True
+        component: CoreComponent[TInput, TOutput],
+        in_path: str,
+        do_process: bool = True,
+        constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
+
         def __generator():  # type: ignore
             id_generator = SimpleIDGenerator(start_id=0)
 
@@ -216,12 +228,18 @@ class From:
                         "logID": str(id_generator()),
                     })
 
-        return From._yield(component, __generator(), do_process=do_process)  # type: ignore
+        return From._yield(
+            component, __generator(), do_process=do_process, constant_fields=constant_fields  # type: ignore
+        )
 
     @staticmethod
     def binary_file(
-        component: CoreComponent[TInput, TOutput], in_path: str, do_process: bool = True
+        component: CoreComponent[TInput, TOutput],
+        in_path: str,
+        do_process: bool = True,
+        constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
+
         def __generator():  # type: ignore
             with open(in_path, "r") as f:
                 for line in f:
@@ -229,12 +247,18 @@ class From:
                     schema.deserialize(literal_eval(line.strip()))
                     yield schema
 
-        return From._yield(component, __generator(), do_process=do_process)  # type: ignore
+        return From._yield(
+            component, __generator(), do_process=do_process, constant_fields=constant_fields  # type: ignore
+        )
 
     @staticmethod
     def json(
-        component: CoreComponent[TInput, TOutput], in_path: str, do_process: bool = True
+        component: CoreComponent[TInput, TOutput],
+        in_path: str,
+        do_process: bool = True,
+        constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
+
         def __generator():  # type: ignore
             with open(in_path, "r") as f:
                 data = json.load(f)
@@ -242,12 +266,18 @@ class From:
                 schema = component.input_schema(data[str(i)])
                 yield schema
 
-        return From._yield(component, __generator(), do_process=do_process)  # type: ignore
+        return From._yield(
+            component, __generator(), do_process=do_process, constant_fields=constant_fields  # type: ignore
+        )
 
     @staticmethod
     def yaml(
-        component: CoreComponent[TInput, TOutput], in_path: str, do_process: bool = True
+        component: CoreComponent[TInput, TOutput],
+        in_path: str,
+        do_process: bool = True,
+        constant_fields: dict[str, Any] = {},
     ) -> Iterator[BaseSchema]:
+
         def __generator():  # type: ignore
             with open(in_path, "r") as f:
                 data = yaml.safe_load(f)
@@ -255,13 +285,16 @@ class From:
                 schema = component.input_schema(data[i])
                 yield schema
 
-        return From._yield(component, __generator(), do_process=do_process)  # type: ignore
+        return From._yield(
+            component, __generator(), do_process=do_process, constant_fields=constant_fields  # type: ignore
+        )
 
     @staticmethod
     def polars(
         component: CoreComponent[TInput, TOutput],
         df: pl.DataFrame | pl.LazyFrame,
         do_process: bool = True,
+        constant_fields: dict[str, Any] = {},
         renames: dict[str, str] | None = None
     ) -> Iterator[BaseSchema]:
 
@@ -273,6 +306,8 @@ class From:
             del renames["ParamList"]
 
         df = df.rename(renames)
+        for k, v in constant_fields.items():
+            df = df.with_columns(pl.lit(v).alias(k))
 
         return _Polars.with_dataframe(
             component=component, df=df, do_process=do_process, renames=renames
@@ -284,9 +319,15 @@ class From:
 class FromTo:
     @staticmethod
     def log2binary_file(
-        component: CoreComponent[TInput, TOutput], in_path: str, out_path: str
+        component: CoreComponent[TInput, TOutput],
+        in_path: str,
+        out_path: str,
+        constant_fields: dict[str, Any] = {}
     ) -> Iterator[BaseSchema]:
-        gen = From.log(component, in_path=in_path, do_process=True)
+
+        gen = From.log(
+            component, in_path=in_path, do_process=True, constant_fields=constant_fields
+        )
 
         for log in gen:
             To.binary_file(log, out_path=out_path)
@@ -294,28 +335,45 @@ class FromTo:
 
     @staticmethod
     def log2json(
-        component: CoreComponent[TInput, TOutput], in_path: str, out_path: str
+        component: CoreComponent[TInput, TOutput],
+        in_path: str,
+        out_path: str,
+        constant_fields: dict[str, Any] = {},
     ) -> Iterator[BaseSchema]:
-        gen = From.log(component, in_path=in_path, do_process=True)
+
+        gen = From.log(
+            component, in_path=in_path, do_process=True, constant_fields=constant_fields
+        )
 
         for log in gen:
             yield To.json(log, out_path=out_path)  # type: ignore
 
     @staticmethod
     def log2yaml(
-        component: CoreComponent[TInput, TOutput], in_path: str, out_path: str
+        component: CoreComponent[TInput, TOutput],
+        in_path: str,
+        out_path: str,
+        constant_fields: dict[str, Any] = {},
     ) -> Iterator[BaseSchema]:
-        gen = From.log(component, in_path=in_path, do_process=True)
+
+        gen = From.log(
+            component, in_path=in_path, do_process=True, constant_fields=constant_fields
+        )
 
         for log in gen:
             yield To.yaml(log, out_path=out_path)  # type: ignore
 
     @staticmethod
     def binary_file2binary_file(
-        component: CoreComponent[TInput, TOutput], in_path: str, out_path: str
+        component: CoreComponent[TInput, TOutput],
+        in_path: str,
+        out_path: str,
+        constant_fields: dict[str, Any] = {},
     ) -> Iterator[BaseSchema]:
 
-        gen = From.binary_file(component, in_path=in_path, do_process=True)
+        gen = From.binary_file(
+            component, in_path=in_path, do_process=True, constant_fields=constant_fields
+        )
 
         for log in gen:
             To.binary_file(log, out_path=out_path)
@@ -323,27 +381,45 @@ class FromTo:
 
     @staticmethod
     def binary_file2json(
-        component: CoreComponent[TInput, TOutput], in_path: str, out_path: str
+        component: CoreComponent[TInput, TOutput],
+        in_path: str,
+        out_path: str,
+        constant_fields: dict[str, Any] = {},
     ) -> Iterator[BaseSchema]:
-        gen = From.binary_file(component, in_path=in_path, do_process=True)
+
+        gen = From.binary_file(
+            component, in_path=in_path, do_process=True, constant_fields=constant_fields
+        )
 
         for log in gen:
             yield To.json(log, out_path=out_path)  # type: ignore
 
     @staticmethod
     def binary_file2yaml(
-        component: CoreComponent[TInput, TOutput], in_path: str, out_path: str
+        component: CoreComponent[TInput, TOutput],
+        in_path: str,
+        out_path: str,
+        constant_fields: dict[str, Any] = {},
     ) -> Iterator[BaseSchema]:
-        gen = From.binary_file(component, in_path=in_path, do_process=True)
+
+        gen = From.binary_file(
+            component, in_path=in_path, do_process=True, constant_fields=constant_fields
+        )
 
         for log in gen:
             yield To.yaml(log, out_path=out_path)  # type: ignore
 
     @staticmethod
     def json2binary_file(
-        component: CoreComponent[TInput, TOutput], in_path: str, out_path: str
+        component: CoreComponent[TInput, TOutput],
+        in_path: str,
+        out_path: str,
+        constant_fields: dict[str, Any] = {},
     ) -> Iterator[BaseSchema]:
-        gen = From.json(component, in_path=in_path, do_process=True)
+
+        gen = From.json(
+            component, in_path=in_path, do_process=True, constant_fields=constant_fields
+        )
 
         for log in gen:
             To.binary_file(log, out_path=out_path)
@@ -351,27 +427,45 @@ class FromTo:
 
     @staticmethod
     def json2json(
-        component: CoreComponent[TInput, TOutput], in_path: str, out_path: str
+        component: CoreComponent[TInput, TOutput],
+        in_path: str,
+        out_path: str,
+        constant_fields: dict[str, Any] = {},
     ) -> Iterator[BaseSchema]:
-        gen = From.json(component, in_path=in_path, do_process=True)
+
+        gen = From.json(
+            component, in_path=in_path, do_process=True, constant_fields=constant_fields
+        )
 
         for log in gen:
             yield To.json(log, out_path=out_path)  # type: ignore
 
     @staticmethod
     def json2yaml(
-        component: CoreComponent[TInput, TOutput], in_path: str, out_path: str
+        component: CoreComponent[TInput, TOutput],
+        in_path: str,
+        out_path: str,
+        constant_fields: dict[str, Any] = {},
     ) -> Iterator[BaseSchema]:
-        gen = From.json(component, in_path=in_path, do_process=True)
+
+        gen = From.json(
+            component, in_path=in_path, do_process=True, constant_fields=constant_fields
+        )
 
         for log in gen:
             yield To.yaml(log, out_path=out_path)  # type: ignore
 
     @staticmethod
     def yaml2binary_file(
-        component: CoreComponent[TInput, TOutput], in_path: str, out_path: str
+        component: CoreComponent[TInput, TOutput],
+        in_path: str,
+        out_path: str,
+        constant_fields: dict[str, Any] = {},
     ) -> Iterator[BaseSchema]:
-        gen = From.yaml(component, in_path=in_path, do_process=True)
+
+        gen = From.yaml(
+            component, in_path=in_path, do_process=True, constant_fields=constant_fields
+        )
 
         for log in gen:
             To.binary_file(log, out_path=out_path)
@@ -379,18 +473,30 @@ class FromTo:
 
     @staticmethod
     def yaml2json(
-        component: CoreComponent[TInput, TOutput], in_path: str, out_path: str
+        component: CoreComponent[TInput, TOutput],
+        in_path: str,
+        out_path: str,
+        constant_fields: dict[str, Any] = {},
     ) -> Iterator[BaseSchema]:
-        gen = From.yaml(component, in_path=in_path, do_process=True)
+
+        gen = From.yaml(
+            component, in_path=in_path, do_process=True, constant_fields=constant_fields
+        )
 
         for log in gen:
             yield To.json(log, out_path=out_path)  # type: ignore
 
     @staticmethod
     def yaml2yaml(
-        component: CoreComponent[TInput, TOutput], in_path: str, out_path: str
+        component: CoreComponent[TInput, TOutput],
+        in_path: str,
+        out_path: str,
+        constant_fields: dict[str, Any] = {},
     ) -> Iterator[BaseSchema]:
-        gen = From.yaml(component, in_path=in_path, do_process=True)
+
+        gen = From.yaml(
+            component, in_path=in_path, do_process=True, constant_fields=constant_fields
+        )
 
         for log in gen:
             yield To.yaml(log, out_path=out_path)  # type: ignore
@@ -400,9 +506,13 @@ class FromTo:
         component: CoreComponent[TInput, TOutput],
         df: pl.DataFrame | pl.LazyFrame,
         out_path: str,
+        constant_fields: dict[str, Any] = {},
         renames: dict[str, str] | None = None
     ) -> Iterator[BaseSchema]:
-        gen = From.polars(component, df=df, renames=renames, do_process=True)
+
+        gen = From.polars(
+            component, df=df, renames=renames, do_process=True, constant_fields=constant_fields
+        )
 
         for log in gen:
             yield To.binary_file(log, out_path=out_path)  # type: ignore
@@ -412,9 +522,13 @@ class FromTo:
         component: CoreComponent[TInput, TOutput],
         df: pl.DataFrame | pl.LazyFrame,
         out_path: str,
+        constant_fields: dict[str, Any] = {},
         renames: dict[str, str] | None = None
     ) -> Iterator[BaseSchema]:
-        gen = From.polars(component, df=df, renames=renames, do_process=True)
+
+        gen = From.polars(
+            component, df=df, renames=renames, do_process=True, constant_fields=constant_fields
+        )
 
         for log in gen:
             yield To.json(log, out_path=out_path)  # type: ignore
@@ -424,9 +538,13 @@ class FromTo:
         component: CoreComponent[TInput, TOutput],
         df: pl.DataFrame | pl.LazyFrame,
         out_path: str,
+        constant_fields: dict[str, Any] = {},
         renames: dict[str, str] | None = None
     ) -> Iterator[BaseSchema]:
-        gen = From.polars(component, df=df, renames=renames, do_process=True)
+
+        gen = From.polars(
+            component, df=df, renames=renames, do_process=True, constant_fields=constant_fields
+        )
 
         for log in gen:
             yield To.yaml(log, out_path=out_path)  # type: ignore

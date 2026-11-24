@@ -1,4 +1,5 @@
 from . import common
+from . import alert_aggregation
 from . import detectors
 from . import parsers
 from . import schemas
@@ -10,6 +11,7 @@ __all__ = [
     "common",
     "detectors",
     "parsers",
+    "alert_aggregation",
     "schemas",
     "utils",
     "__authors__",

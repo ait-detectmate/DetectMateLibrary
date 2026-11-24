@@ -3,7 +3,7 @@
 import logging
 import math
 
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 from detectmatelibrary.detectors.charset_detector import CharsetDetector, CharsetDetectorConfig
 from detectmatelibrary.base_detectors import StabilityAutoConfigParams, VariableAutoConfigParams
 from detectmatelibrary.base_detectors._stability import TimestampReader
@@ -386,7 +386,7 @@ class TestSegmentationWithDetectorAddValueFn:
 
 
 def _parser_record(ts_value, event_id=1):
-    return schemas.ParserSchema({
+    return sc.ParserSchema({
         "parserType": "test",
         "eventID": event_id,
         "template": "test template",

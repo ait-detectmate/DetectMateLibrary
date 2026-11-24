@@ -1,15 +1,12 @@
-from typing import Any, Collection, List
+from typing import Any, Collection, List, Sequence
 from typing_extensions import Self, override
 import warnings
 
-from detectmatelibrary.base_detectors import TrackerDetector, TrackerDetectorConfig
-
-from detectmatelibrary.utils.data_buffer import BufferMode
+from detectmatelibrary.base_detectors import CountVectorDetector, CountVectorDetectorConfig
+from detectmatelibrary.base_detectors.count_vector_detector import SessionWindows
 from detectmatelibrary.utils.sequence_encoding import (
     build_count_vec,
     decode_count_vec,
-    encode_count_vec,
-    warn_on_window_size_mismatch,
 )
 from detectmatelibrary import schemas
 
@@ -18,12 +15,19 @@ import numpy as np
 from pydantic import Field
 
 
+__all__ = ["ECVCDetector", "ECVCDetectorConfig", "ECVCOp", "SessionWindows"]
+
+
 class ECVCOp:
     build_count_vec = staticmethod(build_count_vec)
 
     @staticmethod
     def build_one_vec(input_: List[schemas.ParserSchema], n: int) -> np.ndarray:
-        events = [in_["eventID"] for in_ in input_]
+        return ECVCOp.events_vec([in_["eventID"] for in_ in input_], n)
+
+    @staticmethod
+    def events_vec(events: Sequence[int], n: int) -> np.ndarray:
+        """Count vector of `events`, at least `n` long."""
         arr = np.zeros(n if n > (m := max(events) + 1) else m)
 
         for e in events:
@@ -44,16 +48,18 @@ class ECVCOp:
 
     @staticmethod
     def calculate_score(y: np.ndarray, matrix: np.ndarray) -> float:
-        pad = np.zeros((matrix.shape[0], y.shape[0] - matrix.shape[1]))
-        matrix_ = np.concat([matrix, pad], axis=1)
+        """Lowest of sum |m - y| / sum max(m, y) over the rows m of matrix."""
+        if y.shape[0] != matrix.shape[1]:
+            matrix = np.pad(matrix, ((0, 0), (0, y.shape[0] - matrix.shape[1])))
 
-        score = np.inf
-        for m in matrix_:
-            dif = np.sum(np.abs(m - y))
-            div = np.sum(np.max(np.concat([m[np.newaxis], y[np.newaxis]]).T, axis=1))
-            score = score if score < (s := (dif / div)) else s
+        dif = np.abs(matrix - y).sum(axis=1)
+        div = np.maximum(matrix, y).sum(axis=1)
+        return float(np.min(dif / div, initial=np.inf))
 
-        return float(score)
+    @staticmethod
+    def vec_key(vec: np.ndarray) -> bytes:
+        """Hashable key of a count vector, blind to trailing zeros."""
+        return bytes(np.trim_zeros(vec, "b").tobytes())
 
     @staticmethod
     def threshold_cal(y_s: np.ndarray, matrix: np.ndarray, method: str) -> float:
@@ -69,19 +75,16 @@ class ECVCOp:
 _LEGACY_METHOD_TYPE = "ecvc_detector_detector"
 
 
-class ECVCDetectorConfig(TrackerDetectorConfig):
+class ECVCDetectorConfig(CountVectorDetectorConfig):
     method_type: str = Field(
         default="ecvc_detector", description="Indicates what type of method it is."
-    )
-    window_size: int = Field(
-        default=10,
-        description="Length of the event-ID window a count vector is built over.",
     )
     validation_per: float = Field(
         default=0.2,
         description=(
             "Fraction of the learned count vectors held out as a validation "
-            "split and used to derive the anomaly threshold."
+            "split and used to derive the anomaly threshold. Detection still "
+            "matches them: a window seen in training never alerts."
         ),
     )
     seed: int = Field(
@@ -113,9 +116,10 @@ class ECVCDetectorConfig(TrackerDetectorConfig):
         return super().from_dict(data, method_id)
 
 
-class ECVCDetector(TrackerDetector):
+class ECVCDetector(CountVectorDetector):
     # Class-level defaults: _sync_from_state runs inside TrackerDetector.__init__.
     count_vecs: np.ndarray | None = None
+    known_vecs: frozenset[bytes] = frozenset()  # vec_key of each row of count_vecs
     threshold: float = 0.0
 
     def __init__(
@@ -126,23 +130,13 @@ class ECVCDetector(TrackerDetector):
 
         if isinstance(config, dict):
             config = ECVCDetectorConfig.from_dict(config, name)
+        super().__init__(name=name, config=config)
         self.config: ECVCDetectorConfig
-
-        super().__init__(
-            name=name, config=config, buffer_mode=BufferMode.WINDOW, buffer_size=config.window_size
-        )
 
     @override
     def _sync_from_state(self) -> None:
-        warn_on_window_size_mismatch(self.name, self.persistency.get_events_seen(), self.config.window_size)
+        super()._sync_from_state()
         self.build_count_vec()  # no-op while no count vectors are stored
-
-    def train(self, input_: List[schemas.ParserSchema]) -> None:  # type: ignore
-        self._ingest(
-            event_id=encode_count_vec(self.config.window_size, ECVCOp.build_count_vec(input_)),
-            input_=input_[-1],
-            variables={}
-        )
 
     def build_count_vec(self) -> None:
         seqs = sorted(
@@ -156,25 +150,36 @@ class ECVCDetector(TrackerDetector):
         np.random.seed(self.config.seed)
         matrix = ECVCOp.init_count_matrix(seqs)[np.random.permutation(len(seqs))]
 
-        self.count_vecs, val = matrix[:train_idx], matrix[train_idx:]
+        train, val = matrix[:train_idx], matrix[train_idx:]
         if len(val) > 0:
             self.threshold = ECVCOp.threshold_cal(
-                y_s=val, matrix=self.count_vecs, method=self.config.threshold_method
+                y_s=val, matrix=train, method=self.config.threshold_method
             )
+        # The validation split only sets the threshold: detection matches every learned
+        # vector, so a window seen in training never alerts.
+        self.count_vecs = matrix
+        self.known_vecs = frozenset(ECVCOp.vec_key(vec) for vec in self.count_vecs)
 
     def post_train(self) -> None:
         self.build_count_vec()
+        super().post_train()
 
     def detect(
-        self, input_: List[schemas.ParserSchema], output_: schemas.DetectorSchema,  # type: ignore
+        self,
+        input_: List[schemas.ParserSchema] | schemas.ParserSchema,
+        output_: schemas.DetectorSchema,
     ) -> bool:
 
         if self.count_vecs is None:
             return False
 
-        score = ECVCOp.calculate_score(ECVCOp.build_one_vec(
-            input_, self.count_vecs.shape[1]), matrix=self.count_vecs
-        )
+        events = self.window_events(input_)
+        y = ECVCOp.events_vec(events, self.count_vecs.shape[1])
+        # A window equal to a learned vector scores 0, which never exceeds the threshold.
+        if ECVCOp.vec_key(y) in self.known_vecs:
+            return False
+
+        score = ECVCOp.calculate_score(y, matrix=self.count_vecs)
         if score > self.threshold:
             output_["score"] = score
             output_["description"] = "ECVC found an anominal sequence"

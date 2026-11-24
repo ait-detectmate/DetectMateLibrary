@@ -3,13 +3,16 @@ site_url: https://ait-detectmate.github.io/DetectMateLibrary/
 
 theme:
   name: material # windmill is auch cool
+  logo: img/logo_library.png
+  favicon: img/small_logo.svg
   features:
     - navigation.footer   # previous / next page links at the bottom of every page
+    - content.code.copy
   palette:
     # Light mode configuration
     - media: "(prefers-color-scheme: light)"
       scheme: default
-      primary: indigo
+      primary: black
       accent: indigo
       toggle:
         icon: material/brightness-7
@@ -18,7 +21,7 @@ theme:
     # Dark mode configuration
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: indigo
+      primary: black
       accent: indigo
       toggle:
         icon: material/brightness-4
@@ -33,7 +36,6 @@ nav:
     - Installation: user_guide/installation.md
     - Basic knowledge: user_guide/basic_knowledge.md
     - Quickstart: user_guide/quickstart.md
-    - Tutorial (end-to-end): user_guide/tutorial.md
 
   - Advanced Guide:
     - Overall architecture: advanced/overall_architecture.md
@@ -43,6 +45,7 @@ nav:
       - Parsers: parsers.md
       - Detectors: detectors.md
       - Alert Aggregation: alert_aggregator.md
+      - Pipelines: pipeline.md
     - Parser types:
       - 00_JSON Parser: parsers/json_parser.md
       - 01_Template Matcher: parsers/template_matcher.md
@@ -64,15 +67,18 @@ nav:
       - 10_ECVC Detector: detectors/ecvc_detector.md
       - 11_DeepLog Detector: detectors/deeplog.md
       - 12_LogBERT Detector: detectors/logbert.md
-    - Alert Aggregation methods:
+    - Alert Aggregator types:
       - 00_Basic Concat: alert_aggregators/basic_concatenation.md
-    - Helpers:
+      - 01_LogID Count: alert_aggregators/logid_count.md
+      - 02_Time Delta: alert_aggregators/time_delta.md
+      - 03_AlertBERT: alert_aggregators/alertbert.md
+    - Others:
       - FromTo: helper/from_to.md
-    - Auxiliary:
+      - Select Component: helper/select_component.md
       - Persistency: auxiliar/persistency.md
       - Data buffer: auxiliar/input_buffer.md
-    - Other:
-      - Log Formats: other/log_formats.md
+  - Useful information:
+    - Log Formats: other/log_formats.md
 
   - How to contribute:
     - Contributing: contribution.md
@@ -86,3 +92,19 @@ markdown_extensions:
       base_path: ["."]
       check_paths: true
   - pymdownx.superfences
+  - pymdownx.arithmatex:
+      generic: true
+  - attr_list
+  - pymdownx.highlight:
+      pygments_lang_class: true
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
+extra:
+  version:
+    provider: mike

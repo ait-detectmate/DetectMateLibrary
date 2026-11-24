@@ -1,6 +1,6 @@
 from detectmatelibrary.common.parser import CoreParser, CoreParserConfig, get_format_variables
 from detectmatelibrary.utils.aux import time_test_mode
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 
 import pydantic
 import pytest
@@ -51,7 +51,17 @@ default_args = {
     "parsers": {
         "TestParser": {
             "auto_config": True,
-            "method_type": "core_parser"
+            "method_type": "core_parser",
+        }
+    }
+}
+
+picky_args = {
+    "parsers": {
+        "TestParser": {
+            "auto_config": True,
+            "method_type": "core_parser",
+            "log_source": "A",
         }
     }
 }
@@ -64,8 +74,8 @@ class TestCoreParser:
         assert isinstance(parser, CoreParser)
         assert parser.name == "TestParser"
         assert isinstance(parser.config, CoreParserConfig)
-        assert parser.input_schema == schemas.LogSchema
-        assert parser.output_schema == schemas.ParserSchema
+        assert parser.input_schema == sc.LogSchema
+        assert parser.output_schema == sc.ParserSchema
 
     def test_incorrect_config_type(self) -> None:
         invalid_args = {
@@ -82,13 +92,27 @@ class TestCoreParser:
 
     def test_process_correct_input_schema(self) -> None:
         parser = MockupParser(name="TestParser", config=default_args)
-        data = schemas.LogSchema({"logID": "1", "log": "This is a log."}).serialize()
+        data = sc.LogSchema({"logID": "1", "log": "This is a log."}).serialize()
         result = parser.process(data)  # no error should be produced
         assert isinstance(result, bytes)  # and result should be bytes
 
+    def test_process_not_eligeble_input_schema(self) -> None:
+        parser = MockupParser(name="TestParser", config=picky_args)
+
+        data = sc.LogSchema({"logID": "1", "log": "This is a log.", "logSource": "A"})
+        assert parser.process(data) is not None
+
+        data = sc.LogSchema({"logID": "1", "log": "This is a log.", "logSource": "B"})
+        assert parser.process(data) is None
+
+        parser = MockupParser(name="TestParser", config=default_args)
+
+        data = sc.LogSchema({"logID": "1", "log": "This is a log.", "logSource": "B"})
+        assert parser.process(data) is not None
+
     def test_process_correct_input_schema_not_serialize(self) -> None:
         parser = MockupParser(name="TestParser", config=MockupConfig())
-        expected_result = schemas.ParserSchema({
+        expected_result = sc.ParserSchema({
             "__version__": "2.0.0",
             "parserType": "core_parser",
             "parserID": "TestParser",
@@ -103,14 +127,14 @@ class TestCoreParser:
         expected_result.variables = ["a", "b"]
         expected_result.headerVariables["Time"] = "0"
 
-        data = schemas.LogSchema({"logID": "1", "log": "This is a log."})
+        data = sc.LogSchema({"logID": "1", "log": "This is a log."})
         result = parser.process(data)
 
         assert result == expected_result, f"results {result} and expected {expected_result}"
 
     def test_process_ids(self) -> None:
         parser = MockupParser(name="TestParser", config=MockupConfig())
-        data = schemas.LogSchema({
+        data = sc.LogSchema({
             "logID": "1", "log": "This is a log.", "logSource": "", "hostname": ""
         })
 
@@ -122,12 +146,21 @@ class TestCoreParser:
 
     def test_none_parser(self) -> None:
         parser = NoneMockupParser(name="TestParser", config=MockupConfig())
-        data = schemas.LogSchema({
+        data = sc.LogSchema({
             "logID": "1", "log": "This is a log.", "logSource": "", "hostname": ""
         })
 
         assert parser.process(data) is None
         assert parser.process(data) is not None
+
+    def test_parser_to_binary_and_back(self) -> None:
+        parser = NoneMockupParser(name="TestParser", config=MockupConfig(
+            log_source="Hello"
+        ))
+        parser: NoneMockupParser = parser.from_binary(parser.to_binary())
+
+        assert parser.config.log_source == "Hello"
+        assert parser.name == "TestParser"
 
 
 class TestGetFormatVariables:

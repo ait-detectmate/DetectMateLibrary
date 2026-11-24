@@ -15,7 +15,7 @@ from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 from detectmatelibrary.utils.aux import time_test_mode
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
 
@@ -74,8 +74,8 @@ class TestCharsetDetectorInitialization:
         assert detector.name == "CharsetDetector"
         assert hasattr(detector, 'config')
         assert detector.data_buffer.mode == BufferMode.NO_BUF
-        assert detector.input_schema == schemas.ParserSchema
-        assert detector.output_schema == schemas.DetectorSchema
+        assert detector.input_schema == sc.ParserSchema
+        assert detector.output_schema == sc.DetectorSchema
         assert hasattr(detector, 'persistency')
 
     def test_custom_config_initialization(self):
@@ -120,7 +120,7 @@ class TestCharsetDetectorTraining:
         # Train with multiple values (only event 1 should be tracked per config)
         for event in range(3):
             for level in ["INFO", "WARNING", "ERROR"]:
-                parser_data = schemas.ParserSchema({
+                parser_data = sc.ParserSchema({
                     "parserType": "test",
                     "eventID": event,
                     "template": "test template",
@@ -151,7 +151,7 @@ class TestCharsetDetectorDetection:
         detector = CharsetDetector(config=config, name="MultipleDetector")
 
         # Train with a value
-        train_data = schemas.ParserSchema({
+        train_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "test template",
@@ -165,7 +165,7 @@ class TestCharsetDetectorDetection:
         detector.train(train_data)
 
         # Detect with the same value
-        test_data = schemas.ParserSchema({
+        test_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 12,
             "template": "test template",
@@ -176,7 +176,7 @@ class TestCharsetDetectorDetection:
             "log": "test log message",
             "headerVariables": {"level": "CRITICAL"}
         })
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
 
         result = detector.detect(test_data, output)
 
@@ -187,7 +187,7 @@ class TestCharsetDetectorDetection:
         detector = CharsetDetector(config=config, name="MultipleDetector")
 
         # Train with a value
-        train_data = schemas.ParserSchema({
+        train_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "test template",
@@ -201,7 +201,7 @@ class TestCharsetDetectorDetection:
         detector.train(train_data)
 
         # Detect with the same value
-        test_data = schemas.ParserSchema({
+        test_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "test template",
@@ -212,7 +212,7 @@ class TestCharsetDetectorDetection:
             "log": "test log message",
             "headerVariables": {"level": "CRITICAL"}
         })
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
 
         result = detector.detect(test_data, output)
 
@@ -241,7 +241,7 @@ class TestCharsetDetectorDetection:
         }
         detector = CharsetDetector(config=cfg, name="Single")
 
-        train = schemas.ParserSchema({
+        train = sc.ParserSchema({
             "parserType": "test", "eventID": 1, "template": "t",
             "variables": ["abc"], "logID": "1", "parsedLogID": "1",
             "parserID": "p", "log": "l", "headerVariables": {},
@@ -249,22 +249,22 @@ class TestCharsetDetectorDetection:
         detector.train(train)
 
         # All known chars
-        ok = schemas.ParserSchema({
+        ok = sc.ParserSchema({
             "parserType": "test", "eventID": 1, "template": "t",
             "variables": ["cba"], "logID": "2", "parsedLogID": "2",
             "parserID": "p", "log": "l", "headerVariables": {},
         })
-        out = schemas.DetectorSchema()
+        out = sc.DetectorSchema()
         assert not detector.detect(ok, out)
         assert out.score == 0.0
 
         # Unknown chars 'x' and 'y'
-        bad = schemas.ParserSchema({
+        bad = sc.ParserSchema({
             "parserType": "test", "eventID": 1, "template": "t",
             "variables": ["axy"], "logID": "3", "parsedLogID": "3",
             "parserID": "p", "log": "l", "headerVariables": {},
         })
-        out = schemas.DetectorSchema()
+        out = sc.DetectorSchema()
         assert detector.detect(bad, out)
         assert out.score == 1.0
         assert any("'x'" in msg and "'y'" in msg for msg in out["alertDetails"].values())
@@ -307,7 +307,7 @@ class TestCharsetDetectorEndToEnd:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
@@ -335,7 +335,7 @@ class TestCharsetDetectorEndToEnd:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector2.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
@@ -443,7 +443,7 @@ class TestCharsetDetectorGlobalInstances:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector.detect(log, output_=output):
                 assert all(key.startswith("Global -") for key in output["alertDetails"])
                 detected_ids.add(log["logID"])
@@ -459,7 +459,7 @@ class TestCharsetDetectorSetConfigurationPreservesPersist:
 
         # Feed configure() with a couple of stable-variable samples
         for _ in range(5):
-            sample = schemas.ParserSchema({
+            sample = sc.ParserSchema({
                 "parserType": "test", "eventID": 1, "template": "t",
                 "variables": ["abc"], "logID": "x", "parsedLogID": "x",
                 "parserID": "p", "log": "l",

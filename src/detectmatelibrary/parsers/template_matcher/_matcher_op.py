@@ -35,9 +35,6 @@ class Preprocess:
         self.__re_punctuation = re_punctuation
         self.__do_lowercase = do_lowercase
 
-        self._punct_re = re.compile(r'[^\w\s]')
-        self._ws_re = re.compile(r'\s+')
-
     @staticmethod
     def _remove_punctuation(text: str) -> str:
         return re.sub(r'[^\w\s]', '', text)
@@ -52,19 +49,16 @@ class Preprocess:
 
     def __call__(self, text: str) -> str:
         if self.__re_spaces:
-            text = text.replace(" ", "")
+            text = self._remove_extra_spaces(text)
 
         if self.__re_punctuation:
             text = text.replace("<*>", "WILDCARD")
-            text = self._punct_re.sub('', text)
+            text = self._remove_punctuation(text)
             text = text.replace("WILDCARD", "<*>")
 
         text = text.strip()
-        if not self.__re_spaces:
-            text = self._ws_re.sub(' ', text)
-
         if self.__do_lowercase:
-            text = text.lower()
+            text = self._to_lowercase(text)
 
         return text
 
@@ -95,7 +89,7 @@ class TemplatesManager:
 
             info = {
                 "raw": tpl,
-                "tokens": tokens,
+                "process": cleaned_tpl,
                 "min_len": min_len,
                 "count": 0,
                 "event_id": (event_id := event_id + 1)
@@ -219,7 +213,7 @@ class TemplateMatcher:
             t = self.manager.templates[i]
             if len(s) < t["min_len"]:
                 continue
-            params = self.extract_parameters(log, t["raw"])
+            params = self.extract_parameters(log, t["process"])
             if params is not None:
                 t["count"] += 1
                 return t["raw"], params
@@ -228,7 +222,9 @@ class TemplateMatcher:
     def __call__(self, log: str) -> Dict[str, Any]:
         """Batch matching that also returns the params list."""
         output: dict[str, Any] = {}
+        log = self.manager.preprocess(log)
         res = self.match_template_with_params(log)
+
         if res is None:
             output["EventTemplate"] = "<Not Found>"
             output["Params"] = []

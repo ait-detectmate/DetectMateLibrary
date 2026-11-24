@@ -91,7 +91,7 @@ class NewValueComboDetector(VariableDetector):
     def __init__(
         self,
         name: str = "NewValueComboDetector",
-        config: NewValueComboDetectorConfig = NewValueComboDetectorConfig(),
+        config: NewValueComboDetectorConfig | dict[str, Any] = NewValueComboDetectorConfig(),
     ) -> None:
         if isinstance(config, dict):
             config = NewValueComboDetectorConfig.from_dict(config, name)

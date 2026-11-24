@@ -1,4 +1,4 @@
-# JSON Parser
+# JSON Parser [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/parsers/json_parser.py)]
 
 Extracts structured information from JSON-formatted logs. Optionally delegates parsing of a specific JSON field (the "content") to a sibling Template Matcher parser. Nested JSON objects are always flattened to dot-separated keys in `headerVariables`.
 
@@ -13,21 +13,31 @@ Input and output schemas in the pipeline
 
 ## Examples
 
-```python
+```python title="Example 1"
 --8<-- "docs/examples/parsers/json_parser.py:basic"
 ```
 
 With the configuration file below, the `message` field is also matched against templates:
 
-```python
+```python title="Example 2"
 --8<-- "docs/examples/parsers/json_parser.py:dict-based"
 ```
+
+## Event IDs
+
+| Log | Event ID | Template |
+|-----|----------|----------|
+| `message` matches a template | that template's ID | the template |
+| `message` matches no template | `-1` | `<Not Found>` |
+| no `message` field | `-2` | empty |
+
+If the content parser has no templates (for example with the defaults, as in the first example), every message gets `-1`. The parser then logs a warning at the first message.
 
 ## Configuration file
 
 The configuration used by the second example above (the first one runs with all defaults). It sets only what this use case needs; every other parameter keeps its default (see [Configuration arguments](#configuration-arguments)).
 
-```yaml
+```yaml title="Configuration"
 --8<-- "docs/examples/parsers/json_parser.yaml"
 ```
 
@@ -56,13 +66,16 @@ All parameters this parser accepts, grouped by the YAML block they go in. **Scop
     | `content_name` | string | message | specific | fitting description yet to find |
     | `content_parser` | string | JsonMatcherParser | specific | fitting description yet to find |
     | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
-    | `data_use_training` | integer, null | None | shared | Data used for training, if None, training is not done. |
-    | `data_use_configure` | integer, null | None | shared | Data used for configuration, if None, configuration is not done. |
+    | `data_use_training` | integer, null | None | shared | Number of logs used for training. None skips training. |
+    | `data_use_configure` | integer, null | None | shared | Number of logs used for the configuration step. None skips it. |
     | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
     | `train_buffer_max_records` | integer | 100000 | shared | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
+    | `connector_name` | string, null | None | shared | Add a connector to the output schema. |
+    | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
     | `log_format` | string, null | None | shared | fitting description yet to find |
     | `time_format` | string, null | None | shared | fitting description yet to find |
+    | `log_source` | string, null | None | shared | Process only inputs of the same log source. |
 <!-- End arguments -->
 
 The `content_parser` value is a **name**, not an inline config. The referenced parser must be defined as a separate sibling entry at the same level as `JsonParser`.

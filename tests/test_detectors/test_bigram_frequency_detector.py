@@ -17,7 +17,7 @@ from detectmatelibrary.common._core_op._fit_logic import EnumState
 from detectmatelibrary.constants import GLOBAL_EVENT_ID
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 from detectmatelibrary.utils.aux import time_test_mode
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
 # Set time test mode for consistent timestamps
@@ -107,8 +107,8 @@ class TestBigramFrequencyDetectorInitialization:
         assert detector.name == "BigramFrequencyDetector"
         assert hasattr(detector, 'config')
         assert detector.data_buffer.mode == BufferMode.NO_BUF
-        assert detector.input_schema == schemas.ParserSchema
-        assert detector.output_schema == schemas.DetectorSchema
+        assert detector.input_schema == sc.ParserSchema
+        assert detector.output_schema == sc.DetectorSchema
         assert hasattr(detector, 'persistency')
 
     def test_custom_config_initialization(self):
@@ -129,7 +129,7 @@ class TestBigramFrequencyDetectorTraining:
         # Train with multiple values (only event 1 should be tracked per config)
         for event in range(3):
             for level in ["INFO", "WARNING", "ERROR"]:
-                parser_data = schemas.ParserSchema({
+                parser_data = sc.ParserSchema({
                     "parserType": "test",
                     "eventID": event,
                     "template": "test template",
@@ -161,7 +161,7 @@ class TestBigramFrequencyDetectorDetection:
         detector = BigramFrequencyDetector(config=config, name="MultipleDetector")
 
         # Train with a value
-        train_data = schemas.ParserSchema({
+        train_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "test template",
@@ -175,7 +175,7 @@ class TestBigramFrequencyDetectorDetection:
         detector.train(train_data)
 
         # Detect with the same value
-        test_data = schemas.ParserSchema({
+        test_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 12,
             "template": "test template",
@@ -186,7 +186,7 @@ class TestBigramFrequencyDetectorDetection:
             "log": "test log message",
             "headerVariables": {"level": "CRITICAL"}
         })
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
 
         result = detector.detect(test_data, output)
 
@@ -197,7 +197,7 @@ class TestBigramFrequencyDetectorDetection:
         detector = BigramFrequencyDetector(config=config, name="MultipleDetector")
 
         # Train with a value
-        train_data = schemas.ParserSchema({
+        train_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "test template",
@@ -211,7 +211,7 @@ class TestBigramFrequencyDetectorDetection:
         detector.train(train_data)
 
         # Detect with the same value
-        test_data = schemas.ParserSchema({
+        test_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "test template",
@@ -222,7 +222,7 @@ class TestBigramFrequencyDetectorDetection:
             "log": "test log message",
             "headerVariables": {"level": "CRITICAL"}
         })
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
 
         result = detector.detect(test_data, output)
 
@@ -271,7 +271,7 @@ class TestBigramFrequencyDetectorEndToEnd:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
@@ -314,7 +314,7 @@ class TestBigramFrequencyDetectorEndToEnd:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector1.detect(log, output_=output):
                 detected_ids.add(log["logID"])
 
@@ -389,7 +389,7 @@ class TestBigramFrequencyDetectorGlobalInstances:
 
         detected_ids: set[str] = set()
         for log in logs[TRAIN_UNTIL:]:
-            output = schemas.DetectorSchema()
+            output = sc.DetectorSchema()
             if detector.detect(log, output_=output):
                 assert all(key.startswith("Global -") for key in output["alertDetails"])
                 detected_ids.add(log["logID"])
@@ -417,7 +417,7 @@ class TestBigramFrequencyDetectorSetConfigurationPersist:
 
 
 def _parser_data(event_id, level, var_value):
-    return schemas.ParserSchema({
+    return sc.ParserSchema({
         "parserType": "test",
         "eventID": event_id,
         "template": "test template",
@@ -478,7 +478,7 @@ class TestBigramFrequencyDetectorDetectFixes:
         detector.train(_parser_data(1, "INFO", "abc"))
 
         # Detect with a parser line that lacks the 'test' variable
-        test_data = schemas.ParserSchema({
+        test_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "test template",
@@ -489,7 +489,7 @@ class TestBigramFrequencyDetectorDetectFixes:
             "log": "test log message",
             "headerVariables": {"level": "INFO"},
         })
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
         # Must not raise TypeError
         result = detector.detect(test_data, output)
         assert isinstance(result, bool)
@@ -504,7 +504,7 @@ class TestBigramFrequencyDetectorDetectFixes:
         # Detect a typical English-looking value. Without fallback, sparse
         # per-var table → low prob → alert expected.
         test_data = _parser_data(1, "INFO", "the")
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
         result = detector.detect(test_data, output)
         assert result is True
 
@@ -535,7 +535,7 @@ class TestBigramFrequencyDetectorDetectFixes:
 
         # Detect a common English word — fallback should produce non-zero probs
         test_data = _parser_data(1, "INFO", "the")
-        output = schemas.DetectorSchema()
+        output = sc.DetectorSchema()
         result = detector.detect(test_data, output)
         assert result is False
 
@@ -625,7 +625,7 @@ class TestBigramFrequencyDetectorPerVarIsolation:
             }
         }
         detector = BigramFrequencyDetector(config=cfg, name="TwoVarDetector")
-        parser_data = schemas.ParserSchema({
+        parser_data = sc.ParserSchema({
             "parserType": "test",
             "eventID": 1,
             "template": "test template",

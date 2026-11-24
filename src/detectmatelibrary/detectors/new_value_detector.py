@@ -17,7 +17,7 @@ class NewValueDetector(VariableDetector):
     def __init__(
         self,
         name: str = "NewValueDetector",
-        config: NewValueDetectorConfig = NewValueDetectorConfig(),
+        config: NewValueDetectorConfig | dict[str, Any] = NewValueDetectorConfig(),
     ) -> None:
         if isinstance(config, dict):
             config = NewValueDetectorConfig.from_dict(config, name)

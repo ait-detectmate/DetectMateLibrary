@@ -1,7 +1,7 @@
 
 from detectmatelibrary._testutils.dummy_detector import DummyDetector, DummyDetectorConfig
 from detectmatelibrary._testutils.dummy_parser import DummyParser, DummyParserConfig
-import detectmatelibrary.schemas as schemas
+import detectmatelibrary.schemas as sc
 
 
 default_args = {
@@ -32,8 +32,8 @@ class TestDummyMethods:
 
     def test_run_detect_method(self) -> None:
         detector = DummyDetector()
-        data = schemas.ParserSchema({"log": "test log"})
-        output = schemas.DetectorSchema()
+        data = sc.ParserSchema({"log": "test log"})
+        output = sc.DetectorSchema()
 
         result = detector.detect(data, output)
 
@@ -54,8 +54,8 @@ class TestDummyMethods:
 
     def test_run_parse_method(self) -> None:
         parser = DummyParser()
-        input_data = schemas.LogSchema({"log": "test log"})
-        output_data = schemas.ParserSchema()
+        input_data = sc.LogSchema({"log": "test log"})
+        output_data = sc.ParserSchema()
 
         parser.parse(input_data, output_data)
 
@@ -66,7 +66,7 @@ class TestDummyMethods:
         parser = DummyParser()
         detector = DummyDetector()
 
-        log_input = schemas.LogSchema({"log": "test log", "logID": "1"})
+        log_input = sc.LogSchema({"log": "test log", "logID": "1"})
         parsed_log = parser.process(log_input)
 
         while (result := detector.process(parsed_log)) is None:
