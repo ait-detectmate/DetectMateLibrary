@@ -1,5 +1,5 @@
 # Task
-<!-- Please add link a relevant issue or task -->
+<!-- Please link a relevant issue or task. -->
 
 # Description
 <!-- Please include a summary of the change -->
@@ -12,8 +12,8 @@
 # Checklist
 <!-- Go over all the following points, and put an `x` in all the boxes that apply -->
 
-- [ ] This Pull-Request goes to the **development** branch.
+- [ ] This pull request targets the **development** branch.
 - [ ] I have successfully run prek locally.
 - [ ] I have added tests to cover my changes.
-- [ ] I have linked the issue-id to the task-description.
-- [ ] I have performed a self-review of my own code.
+- [ ] I have linked the issue ID in the task description.
+- [ ] I have reviewed my changes.
