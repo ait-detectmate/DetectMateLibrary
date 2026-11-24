@@ -1,5 +1,5 @@
 import math
-
+from typing import cast
 from detectmatelibrary.detectors.new_value_detector import NewValueDetector, NewValueDetectorConfig
 from detectmatelibrary.detectors.new_event_detector import NewEventDetector, NewEventDetectorConfig
 from detectmatelibrary.detectors.bigram_frequency_detector import (
@@ -7,7 +7,7 @@ from detectmatelibrary.detectors.bigram_frequency_detector import (
 )
 from detectmatelibrary.common._core_op._train_buffer import TrainBuffer
 from detectmatelibrary.common._core_op._fit_logic import FitLogicState
-from detectmatelibrary.schemas import BaseSchema, LogSchema, ParserSchema
+from detectmatelibrary.schemas import BaseSchema, ParserSchema
 from detectmatelibrary.parsers.template_matcher import MatcherParser
 from detectmatelibrary.helper.from_to import From
 from tests.test_data import AUDIT_LOG, AUDIT_TEMPLATES, TRAIN_UNTIL
@@ -32,7 +32,7 @@ _PARSER_CONFIG = {
 }
 
 
-def run_original(logs: list[BaseSchema], train_until):
+def run_original(logs: list[BaseSchema], train_until: int) -> None:
     current_config = {
         "detectors": {
             "NewValueDetector": {
@@ -61,9 +61,12 @@ def run_original(logs: list[BaseSchema], train_until):
             }
         }
     }
-    nvd = NewValueDetector(config=NewValueDetectorConfig.from_dict(current_config, method_id="NewValueDetector"), name="NewValueDetector")
-    ned = NewEventDetector(config=NewEventDetectorConfig.from_dict(current_config, method_id="NewEventDetector"), name="NewEventDetector")
-    bfd = BigramFrequencyDetector(config=BigramFrequencyDetectorConfig.from_dict(current_config, method_id="BigramFrequencyDetector"), name="BigramFrequencyDetector")
+    nvd = NewValueDetector(config=NewValueDetectorConfig.from_dict(
+        current_config, method_id="NewValueDetector"), name="NewValueDetector")
+    ned = NewEventDetector(config=NewEventDetectorConfig.from_dict(
+        current_config, method_id="NewEventDetector"), name="NewEventDetector")
+    bfd = BigramFrequencyDetector(config=BigramFrequencyDetectorConfig.from_dict(
+        current_config, method_id="BigramFrequencyDetector"), name="BigramFrequencyDetector")
     detectors = [nvd, ned, bfd]
 
     start = datetime.now()
@@ -75,19 +78,20 @@ def run_original(logs: list[BaseSchema], train_until):
                 detector.process(log)
     end = datetime.now()
 
-    detector_ids = [set() for _ in detectors]
+    detector_ids = [set() for _ in detectors]  # type: ignore
     for log in logs[TRAIN_UNTIL:]:
         for i, detector in enumerate(detectors):
             if detector.process(log):
                 detector_ids[i].add(log["logID"])
-    detector_ids = [sorted(list(x)) for x in detector_ids]
+    detector_ids = [sorted(list(x)) for x in detector_ids]  # type: ignore[misc]
     results = [[str(x) for x in range(1800, 2316) if x != 1863], ['1863'],
                ['1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867']]
-    assert all([detector_ids[x] == results[x] for x in range(len(detector_ids))])
-    print(f"Time needed for configuration and training with original setup {end - start} and train_until {train_until}.")
+    assert all([detector_ids[x] == results[x] for x in range(len(detector_ids))])  # type: ignore
+    print(f"Time needed for configuration and training with original setup {end - start} and train_until "
+          f"{train_until}.")
 
 
-def run_new(logs: list[BaseSchema], train_until):
+def run_new(logs: list[BaseSchema], train_until: int) -> None:
     # use_config_data_as_training to disable original TrainBuffer.
     current_config = {
         "detectors": {
@@ -117,9 +121,12 @@ def run_new(logs: list[BaseSchema], train_until):
             }
         }
     }
-    nvd = NewValueDetector(config=NewValueDetectorConfig.from_dict(current_config, method_id="NewValueDetector"), name="NewValueDetector")
-    ned = NewEventDetector(config=NewEventDetectorConfig.from_dict(current_config, method_id="NewEventDetector"), name="NewEventDetector")
-    bfd = BigramFrequencyDetector(config=BigramFrequencyDetectorConfig.from_dict(current_config, method_id="BigramFrequencyDetector"), name="BigramFrequencyDetector")
+    nvd = NewValueDetector(config=NewValueDetectorConfig.from_dict(
+        current_config, method_id="NewValueDetector"), name="NewValueDetector")
+    ned = NewEventDetector(config=NewEventDetectorConfig.from_dict(
+        current_config, method_id="NewEventDetector"), name="NewEventDetector")
+    bfd = BigramFrequencyDetector(config=BigramFrequencyDetectorConfig.from_dict(
+        current_config, method_id="BigramFrequencyDetector"), name="BigramFrequencyDetector")
     detectors = [nvd, ned, bfd]
 
     train_buffer = TrainBuffer(ParserSchema, name="TrainBuffer")
@@ -139,10 +146,11 @@ def run_new(logs: list[BaseSchema], train_until):
                 break
     # training
     do_check = True
-    for log in train_buffer:
-        # detector.process is much slower and for fair comparison you just use the logs in train_buffer to train the detectors anyway.
+    for log in train_buffer:  # type: ignore[assignment]
+        # detector.process is much slower and for fair comparison you just use the logs in train_buffer to
+        # train the detectors anyway.
         for detector in detectors:
-            detector.train(log)
+            detector.train(cast(ParserSchema, log))
             detector.fitlogic.run()
         if do_check and len(train_buffer) == train_until - 1:  # one log was already consumed.
             assert nvd.fitlogic.config_state.finished
@@ -152,7 +160,7 @@ def run_new(logs: list[BaseSchema], train_until):
     end = datetime.now()
 
     do_check = True
-    detector_ids = [set() for _ in detectors]
+    detector_ids = [set() for _ in detectors]  # type: ignore
     for log in logs[TRAIN_UNTIL:]:
         for i, detector in enumerate(detectors):
             if detector.process(log):
@@ -162,19 +170,21 @@ def run_new(logs: list[BaseSchema], train_until):
             assert ned.fitlogic.train_state.finished
             assert bfd.fitlogic.train_state.finished
             do_check = False
-    detector_ids = [sorted(list(x)) for x in detector_ids]
+    detector_ids = [sorted(list(x)) for x in detector_ids]  # type: ignore
     results = [[str(x) for x in range(1800, 2316) if x != 1863], ['1863'],
                ['1859', '1860', '1861', '1862', '1864', '1865', '1866', '1867']]
-    assert all([detector_ids[x] == results[x] for x in range(len(detector_ids))])
-    print(f"Time needed for configuration and training with new setup {end - start} and train_until {train_until}.")
+    assert all([detector_ids[x] == results[x] for x in range(len(detector_ids))])  # type: ignore
+    print(f"Time needed for configuration and training with new setup {end - start} and train_until "
+          f"{train_until}.")
 
 
-def main():
+def main() -> None:
     # current setup uses internal TrainBuffer with default max_records=100_000.
     parser = MatcherParser(config=_PARSER_CONFIG)
     # logs are read from file and parsed at the same time. Do not want to rerun parsing.
-    # logs are already deserialized Python objects. The training buffer must serialize the logs before storage, independently of the setup.
-    logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True)) # about 2300 lines
+    # logs are already deserialized Python objects. The training buffer must serialize the logs before
+    # storage, independently of the setup.
+    logs = list(From.log(parser, in_path=AUDIT_LOG, do_process=True))  # about 2300 lines
 
     run_original(logs, 10_000)
     run_new(logs, 10_000)
@@ -186,6 +196,7 @@ def main():
     run_new(logs, 500_000)
     run_original(logs, 3_000_000)
     run_new(logs, 3_000_000)
+
 
 if __name__ == "__main__":
     main()

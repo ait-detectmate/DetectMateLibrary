@@ -81,7 +81,7 @@ class TrainBuffer:
             yield record
         self.clear()
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self._size
 
     def clear(self) -> None:
