@@ -1,0 +1,10 @@
+EventId,EventTemplate
+user_session,"pid=<pid> uid=<uid> auid=<auid> ses=<ses> msg='op=<op> acct=<acct> exe=<exe> hostname=<hostname> addr=<addr> terminal=<terminal> res=<res>'"
+service,"pid=<*> uid=<*> auid=<*> ses=<*> msg='unit=<*> comm=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'"
+login,"pid=<*> uid=<*> old-auid=<*> auid=<*> tty=<*> old-ses=<*> ses=<*> res=<*>"
+apparmor,"apparmor=<*> operation=<*> info=<*> profile=<*> name=<*> pid=<*> comm=<*>"
+syscall,"arch=<*> syscall=<*> success=<*> exit=<*> a0=<*> a1=<*> a2=<*> a3=<*> items=<*> ppid=<*> pid=<*> auid=<*> uid=<*> gid=<*> euid=<*> suid=<*> fsuid=<*> egid=<*> sgid=<*> fsgid=<*> tty=<*> ses=<*> comm=<*> exe=<*> key=<*>"
+proctitle,"proctitle=<*>"
+user_account,"pid=<*> uid=<*> auid=<*> ses=<*> msg='op=<*> id=<*> exe=<*> hostname=<*> addr=<*> terminal=<*> res=<*>'"
+user_cmd,"pid=<*> uid=<*> auid=<*> ses=<*> msg='cwd=<*> cmd=<*> terminal=<*> res=<*>'"
+netfilter_cfg,"table=<*> family=<*> entries=<*>"

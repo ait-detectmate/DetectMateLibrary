@@ -1,0 +1,5 @@
+Receiving block <*> src: <*> dest: <*>
+Received block <*> of size <*> from <*>
+PacketResponder <*> for block <*> terminating
+Verification succeeded for <*>
+Deleting block <*> file <*>

@@ -1,0 +1,466 @@
+"""Tests for the trackers in detectmatelibrary.utils.persistency.data_structure
+s.trackers.stability.stability_tracker."""
+from detectmatelibrary.utils.persistency.data_structures.trackers import (
+    StabilityClassifier,
+    SingleStabilityTracker,
+    MultiStabilityTracker,
+    EventStabilityTracker,
+    Classification,
+    ClassificationMethods,
+)
+from detectmatelibrary.utils.persistency.data_structures.trackers.rle_list import RLEList
+
+
+class TestSingleVariableTracker:
+    """Test suite for SingleVariableTracker."""
+
+    def test_initialization_default(self):
+        """Test SingleVariableTracker initialization with defaults."""
+        tracker = SingleStabilityTracker()
+        assert tracker.min_samples == 3
+        assert isinstance(tracker.change_series, RLEList)
+        assert isinstance(tracker.unique_set, set)
+
+    def test_initialization_custom_params(self):
+        """Test initialization with custom parameters."""
+        tracker = SingleStabilityTracker(min_samples=20)
+        assert tracker.min_samples == 20
+
+    def test_add_value_single(self):
+        """Test adding a single value."""
+        tracker = SingleStabilityTracker()
+        tracker.add_value("value1")
+
+        assert len(tracker.unique_set) == 1
+        assert len(tracker.change_series) == 1
+
+    def test_add_value_multiple_same(self):
+        """Test adding multiple same values."""
+        tracker = SingleStabilityTracker()
+
+        for i in range(10):
+            tracker.add_value("constant")
+
+        assert len(tracker.unique_set) == 1
+        assert "constant" in tracker.unique_set
+
+    def test_add_value_multiple_different(self):
+        """Test adding multiple different values."""
+        tracker = SingleStabilityTracker()
+
+        for i in range(10):
+            tracker.add_value(f"value_{i}")
+
+        assert len(tracker.unique_set) == 10
+
+    def test_classification_insufficient_data(self):
+        """Test classification with insufficient data."""
+        tracker = SingleStabilityTracker(min_samples=30)
+
+        for i in range(10):  # Less than min_samples
+            tracker.add_value(f"value_{i}")
+
+        result = tracker.classify()
+        assert result.type == "INSUFFICIENT_DATA"
+
+    def test_classification_static(self):
+        """Test classification as STATIC (single unique value)."""
+        tracker = SingleStabilityTracker(min_samples=10)
+
+        for i in range(40):
+            tracker.add_value("constant")
+
+        result = tracker.classify()
+        assert result.type == "STATIC"
+
+    def test_classification_random(self):
+        """Test classification as RANDOM (all unique values)."""
+        tracker = SingleStabilityTracker(min_samples=10)
+
+        for i in range(40):
+            tracker.add_value(f"unique_{i}")
+
+        result = tracker.classify()
+        assert result.type == "RANDOM"
+
+    def test_classification_stable(self):
+        """Test classification as STABLE (converging pattern)."""
+        tracker = SingleStabilityTracker(min_samples=10)
+
+        # Pattern: changing values that stabilize
+        for i in range(15):
+            tracker.add_value(f"value_{i % 5}")
+        for i in range(25):
+            tracker.add_value("stable_value")
+
+        result = tracker.classify()
+        assert result.type == "STABLE"
+
+    def test_classification_unstable(self):
+        """A new value every second record: the changes never die out."""
+        tracker = SingleStabilityTracker(min_samples=10)
+
+        for i in range(40):
+            tracker.add_value(f"value_{i}" if i % 2 else "value_a")
+
+        assert tracker.classify().type == "UNSTABLE"
+
+    def test_two_alternating_values_are_stable(self):
+        """Once both values were seen nothing is new, however often they
+        alternate."""
+        tracker = SingleStabilityTracker(min_samples=10)
+
+        for i in range(40):
+            tracker.add_value("value_a" if i % 2 == 0 else "value_b")
+
+        assert tracker.classify().type == "STABLE"
+
+    def test_change_series_marks_each_new_value(self):
+        """True where a value is seen for the first time, stored as runs."""
+        tracker = SingleStabilityTracker()
+
+        for _ in range(20):
+            tracker.add_value("a")
+        for _ in range(20):
+            tracker.add_value("b")
+
+        assert tracker.change_series.runs() == [(True, 1), (False, 19), (True, 1), (False, 19)]
+
+    def test_unique_values_tracking(self):
+        """Test unique values are tracked in a set."""
+        tracker = SingleStabilityTracker()
+
+        values = ["a", "b", "c", "a", "b", "a"]
+        for v in values:
+            tracker.add_value(v)
+
+        assert len(tracker.unique_set) == 3
+        assert "a" in tracker.unique_set
+        assert "b" in tracker.unique_set
+        assert "c" in tracker.unique_set
+
+    def test_change_detection(self):
+        """Test that add_value correctly detects changes."""
+        tracker = SingleStabilityTracker()
+
+        tracker.add_value("a")
+        tracker.add_value("a")
+        tracker.add_value("b")
+
+        # First value creates a change (new unique value)
+        # Second doesn't (same value)
+        # Third does (new unique value)
+        assert len(tracker.change_series) == 3
+
+
+class TestMultiVariableTracker:
+    """Test suite for MultiStabilityTracker manager."""
+
+    def test_initialization_default(self):
+        """Test MultiStabilityTracker initialization."""
+        trackers = MultiStabilityTracker(single_tracker_type=SingleStabilityTracker)
+        assert trackers is not None
+        assert trackers.single_tracker_type == SingleStabilityTracker
+
+    def test_initialization_with_kwargs(self):
+        """Test initialization without kwargs - MultiStabilityTracker doesn't store tracker kwargs."""
+        trackers = MultiStabilityTracker(single_tracker_type=SingleStabilityTracker)
+        assert trackers.single_tracker_type == SingleStabilityTracker
+
+    def test_add_data_single_variable(self):
+        """Test adding data for a single variable."""
+        trackers = MultiStabilityTracker(single_tracker_type=SingleStabilityTracker)
+        data = {"var1": "value1"}
+        trackers.add_data(data)
+
+        all_trackers = trackers.get_trackers()
+        assert "var1" in all_trackers
+        assert isinstance(all_trackers["var1"], SingleStabilityTracker)
+
+    def test_add_data_multiple_variables(self):
+        """Test adding data for multiple variables."""
+        trackers = MultiStabilityTracker(single_tracker_type=SingleStabilityTracker)
+        data = {"var1": "value1", "var2": "value2", "var3": "value3"}
+        trackers.add_data(data)
+
+        all_trackers = trackers.get_trackers()
+        assert len(all_trackers) == 3
+        assert "var1" in all_trackers
+        assert "var2" in all_trackers
+        assert "var3" in all_trackers
+
+    def test_add_data_multiple_times(self):
+        """Test adding data multiple times."""
+        trackers = MultiStabilityTracker(single_tracker_type=SingleStabilityTracker)
+
+        trackers.add_data({"var1": "a", "var2": "x"})
+        trackers.add_data({"var1": "b", "var2": "y"})
+        trackers.add_data({"var1": "a", "var3": "z"})
+
+        all_trackers = trackers.get_trackers()
+        assert len(all_trackers) == 3
+        assert "var3" in all_trackers  # New variable dynamically added
+
+    def test_classify_all_variables(self):
+        """Test classifying all variables."""
+        trackers = MultiStabilityTracker(single_tracker_type=SingleStabilityTracker)
+
+        # Add enough data for classification
+        for i in range(10):
+            trackers.add_data({"var1": "constant", "var2": f"changing_{i}"})
+
+        classifications = trackers.classify()
+        assert "var1" in classifications
+        assert "var2" in classifications
+        assert isinstance(classifications["var1"], Classification)
+
+    def test_get_stable_variables(self):
+        """Test retrieving stable variables."""
+        trackers = MultiStabilityTracker(single_tracker_type=SingleStabilityTracker)
+
+        # Create stable pattern
+        for i in range(40):
+            trackers.add_data({
+                "stable_var": "constant",
+                "random_var": f"unique_{i}",
+            })
+
+        assert trackers.get_features_by_classification("STATIC") == ["stable_var"]
+        assert trackers.get_features_by_classification("RANDOM") == ["random_var"]
+        assert trackers.get_features_by_classification("STABLE") == []
+
+    def test_get_trackers(self):
+        """Test retrieving all trackers."""
+        trackers = MultiStabilityTracker(single_tracker_type=SingleStabilityTracker)
+        trackers.add_data({"var1": "a", "var2": "b"})
+
+        all_trackers = trackers.get_trackers()
+        assert isinstance(all_trackers, dict)
+        assert len(all_trackers) == 2
+
+    def test_dynamic_tracker_creation(self):
+        """Test that trackers are created dynamically."""
+        trackers = MultiStabilityTracker(single_tracker_type=SingleStabilityTracker)
+
+        # First add
+        trackers.add_data({"var1": "a"})
+        assert len(trackers.get_trackers()) == 1
+
+        # Second add with new variable
+        trackers.add_data({"var1": "b", "var2": "x"})
+        assert len(trackers.get_trackers()) == 2
+
+        # Third add with another new variable
+        trackers.add_data({"var3": "z"})
+        assert len(trackers.get_trackers()) == 3
+
+
+class TestEventVariableTrackerData:
+    """Test suite for EventStabilityTracker."""
+
+    def test_initialization(self):
+        """Test EventStabilityTracker initialization."""
+        evt = EventStabilityTracker()
+        assert evt is not None
+        assert isinstance(evt.multi_tracker, MultiStabilityTracker)
+
+    def test_add_data(self):
+        """Test adding data."""
+        evt = EventStabilityTracker()
+        data = {"var1": "value1", "var2": "value2"}
+        evt.add_data(data)
+
+        # Should have created trackers
+        trackers = evt.get_data()
+        assert len(trackers) == 2
+
+    def test_get_variables(self):
+        """Test retrieving variable names."""
+        evt = EventStabilityTracker()
+        evt.add_data({"var1": "a", "var2": "b", "var3": "c"})
+
+        var_names = evt.get_variables()
+        assert "var1" in var_names
+        assert "var2" in var_names
+        assert "var3" in var_names
+        assert len(var_names) == 3
+
+    def test_get_stable_variables(self):
+        """Test retrieving stable variables."""
+        evt = EventStabilityTracker()
+
+        for i in range(40):
+            evt.add_data({
+                "stable_var": "constant",
+                "random_var": f"unique_{i}",
+            })
+
+        assert evt.get_features_by_classification("STATIC") == ["stable_var"]
+        assert evt.get_features_by_classification("RANDOM") == ["random_var"]
+        assert evt.get_features_by_classification("STABLE") == []
+
+    def test_each_variable_gets_its_own_verdict(self):
+        """Five users repeat (STABLE); 31 statuses before "success" keep
+        changing into the third segment (UNSTABLE); request IDs never repeat
+        (RANDOM)."""
+        evt = EventStabilityTracker()
+
+        for i in range(50):
+            evt.add_data({
+                "user": f"user_{i % 5}",
+                "status": "success" if i > 30 else f"status_{i}",
+                "request_id": f"req_{i}",
+            })
+
+        assert evt.get_variables() == ["user", "status", "request_id"]
+        assert evt.get_features_by_classification("STABLE") == ["user"]
+        assert evt.get_features_by_classification("UNSTABLE") == ["status"]
+        assert evt.get_features_by_classification("RANDOM") == ["request_id"]
+
+    def test_to_data_default_converter(self):
+        """Test to_data method with default converter (identity function)."""
+        evt = EventStabilityTracker()
+
+        raw_data = {"var1": "value1", "var2": "value2"}
+        converted_data = evt.to_data(raw_data)
+
+        # Default converter returns the dict as-is
+        assert converted_data == raw_data
+        assert "var1" in converted_data
+        assert "var2" in converted_data
+
+    def test_to_data_with_custom_converter(self):
+        """Test to_data method with custom converter function."""
+        # Custom converter that uppercases string values
+        def uppercase_converter(data: dict) -> dict:
+            return {k: v.upper() if isinstance(v, str) else v for k, v in data.items()}
+
+        evt = EventStabilityTracker(converter_function=uppercase_converter)
+
+        raw_data = {"var1": "value1", "var2": "value2"}
+        converted_data = evt.to_data(raw_data)
+
+        assert converted_data["var1"] == "VALUE1"
+        assert converted_data["var2"] == "VALUE2"
+
+    def test_to_data_integration_with_add_data(self):
+        """Test that to_data and add_data work together correctly."""
+        evt = EventStabilityTracker()
+
+        # Use to_data to convert raw data, then add it
+        raw_data = {"user": "alice", "ip": "192.168.1.1"}
+        converted_data = evt.to_data(raw_data)
+        evt.add_data(converted_data)
+
+        # Verify data was added correctly
+        trackers = evt.get_data()
+        assert len(trackers) == 2
+        assert "user" in trackers
+        assert "ip" in trackers
+
+    def test_converter_function_is_callable(self):
+        """Test that converter_function is correctly set."""
+        evt = EventStabilityTracker()
+        # Default converter should be identity function
+        assert callable(evt.converter_function)
+        assert evt.converter_function({"a": 1}) == {"a": 1}
+
+
+class TestStabilityTrackingIntegration:
+    """Integration tests for stability tracking components."""
+
+    def test_full_workflow_static_variable(self):
+        """Test full workflow with static variable."""
+        tracker = SingleStabilityTracker(min_samples=10)
+
+        # Add 50 identical values
+        for i in range(50):
+            tracker.add_value("constant_value")
+
+        classification = tracker.classify()
+        assert classification.type == "STATIC"
+
+    def test_full_workflow_random_variable(self):
+        """Test full workflow with random variable."""
+        tracker = SingleStabilityTracker(min_samples=10)
+
+        # Add 50 unique values
+        for i in range(50):
+            tracker.add_value(f"unique_value_{i}")
+
+        classification = tracker.classify()
+        assert classification.type == "RANDOM"
+
+    def test_full_workflow_stabilizing_variable(self):
+        """Test full workflow with stabilizing variable."""
+        tracker = SingleStabilityTracker(min_samples=10)
+
+        # Start with varied values, then stabilize
+        for i in range(15):
+            tracker.add_value(f"value_{i % 7}")
+        for i in range(35):
+            tracker.add_value("final_stable_value")
+
+        assert tracker.classify().type == "STABLE"
+
+    def test_multiple_variables_with_different_patterns(self):
+        """Test tracking multiple variables with different patterns."""
+        trackers = MultiStabilityTracker(single_tracker_type=SingleStabilityTracker)
+
+        # Simulate 100 events
+        for i in range(100):
+            trackers.add_data({
+                "static_var": "always_same",
+                "random_var": f"unique_{i}",
+                "user_id": f"user_{i % 10}",  # 10 users cycling
+                # "ok" is new at i=81: a change in the last segment
+                "status": "ok" if i > 80 else f"status_{i % 5}",
+            })
+
+        classifications = trackers.classify()
+
+        # static_var should be STATIC
+        assert classifications["static_var"].type == "STATIC"
+
+        # random_var should be RANDOM
+        assert classifications["random_var"].type == "RANDOM"
+
+        # ten users: new only in the first segment
+        assert classifications["user_id"].type == "STABLE"
+        # one new value in the last segment exceeds its 0.01 threshold
+        assert classifications["status"].type == "UNSTABLE"
+
+    def test_event_variable_tracker_real_world_scenario(self):
+        """Test EventStabilityTracker with realistic log data."""
+        evt = EventStabilityTracker()
+
+        # Simulate web server logs
+        for i in range(200):
+            evt.add_data({
+                "method": "GET" if i % 10 != 0 else "POST",  # Mostly GET
+                "status_code": "200" if i > 150 else str(200 + (i % 5)),  # Stabilizing to 200
+                "user_agent": f"Browser_{i % 3}",  # 3 different browsers
+                "request_id": f"req_{i}",  # Unique per request
+                "server": "prod-server-1",  # Static
+            })
+
+        assert evt.get_variables() == ["method", "status_code", "user_agent", "request_id", "server"]
+        assert evt.get_features_by_classification("STABLE") == ["method", "status_code", "user_agent"]
+        assert evt.get_features_by_classification("STATIC") == ["server"]
+        assert evt.get_features_by_classification("RANDOM") == ["request_id"]
+
+    def test_classifier_with_varying_thresholds(self):
+        """Verdict sensitivity through the block: one segment sits between
+        the two lists' thresholds."""
+        # 4 segments of 10: means 1.0, 0.2, 0.0, 0.0
+        pattern = [1] * 10 + [1, 0, 0, 0, 0] * 2 + [0] * 20
+
+        strict = StabilityClassifier(
+            classification=ClassificationMethods(segment_thresholds=[1.1, 0.1, 0.05, 0.01])
+        )
+        lenient = StabilityClassifier(
+            classification=ClassificationMethods(segment_thresholds=[1.1, 0.5, 0.05, 0.01])
+        )
+
+        assert strict.is_stable(pattern) is False
+        assert lenient.is_stable(pattern) is True

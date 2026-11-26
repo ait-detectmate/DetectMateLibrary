@@ -27,7 +27,23 @@ dependencies = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--ignore=local"
+# The only pytest configuration: there is no pytest.ini (it would shadow this table).
+testpaths = ["tests"]
+# Default run: everything except the opt-in groups below. `-m ""` runs everything (what CI does).
+addopts = "--strict-markers --strict-config --ignore=local -ra -m 'not slow and not cli and not docs'"
+xfail_strict = true
+markers = [
+    "unit: tests one source module (applied automatically to tests/unit/)",
+    "contract: shared-interface suite over all implementations (applied automatically to tests/contract/)",
+    "integration: several real components together (applied automatically to tests/integration/)",
+    "e2e: raw logs to alerts through public entry points (applied automatically to tests/e2e/)",
+    "slow: long-running (DL training, full-dataset runs, more e2e variants); opt-in locally, always run in CI",
+    "cli: runs the installed `mate` console script in a subprocess; opt-in locally, always run in CI",
+    "docs: runs a file from docs/examples/; opt-in locally, always run in CI",
+    "needs_cxx: needs a C++ compiler for torch.compile; skipped locally without one, fails in CI",
+    "needs_mongo: needs MongoDB (docker compose -f tests/compose.yaml up -d); skipped locally if unreachable, fails in CI",
+    "needs_redis: needs Redis (docker compose -f tests/compose.yaml up -d); skipped locally if unreachable, fails in CI",
+]
 
 [dependency-groups]
 # install with all the dev dependencies:  uv pip install --group dev

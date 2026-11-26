@@ -1,0 +1,133 @@
+"""Tests for detectmatelibrary.common.parser."""
+from detectmatelibrary.common.parser import CoreParser, CoreParserConfig
+import detectmatelibrary.schemas as sc
+
+import pytest
+
+
+class MockupConfig(CoreParserConfig):
+    pass
+
+
+class MockupParser(CoreParser):
+    def __init__(self, name: str, config: CoreParserConfig) -> None:
+        super().__init__(name=name, config=config)
+
+    def parse(self, input_, output_):
+        output_.eventID = 1
+        output_.template = "hello"
+        output_.variables = ["a", "b"]
+
+
+class NoneMockupParser(CoreParser):
+    def __init__(self, name: str, config: CoreParserConfig) -> None:
+        super().__init__(name=name, config=config)
+        self.value = True
+
+    def parse(self, input_, output_):
+        self.value = not self.value
+
+        output_.eventID = 1
+        output_.template = "hello"
+        output_.variables = ["a", "b"]
+
+        return self.value
+
+
+class MutatingParser(MockupParser):
+    """A parser that writes to its input."""
+    def parse(self, input_, output_):
+        input_.log = "This message was changed!"
+        super().parse(input_, output_)
+
+
+pytestmark = pytest.mark.usefixtures("frozen_timestamps")
+
+default_args = {
+    "parsers": {
+        "TestParser": {
+            "auto_config": True,
+            "method_type": "core_parser",
+        }
+    }
+}
+
+picky_args = {
+    "parsers": {
+        "TestParser": {
+            "auto_config": True,
+            "method_type": "core_parser",
+            "log_source": "A",
+        }
+    }
+}
+
+
+class TestCoreParser:
+    def test_process_not_eligeble_input_schema(self) -> None:
+        parser = MockupParser(name="TestParser", config=picky_args)
+
+        data = sc.LogSchema({"logID": "1", "log": "This is a log.", "logSource": "A"})
+        assert parser.process(data) is not None
+
+        data = sc.LogSchema({"logID": "1", "log": "This is a log.", "logSource": "B"})
+        assert parser.process(data) is None
+
+        parser = MockupParser(name="TestParser", config=default_args)
+
+        data = sc.LogSchema({"logID": "1", "log": "This is a log.", "logSource": "B"})
+        assert parser.process(data) is not None
+
+    def test_process_correct_input_schema_not_serialize(self) -> None:
+        parser = MockupParser(name="TestParser", config=MockupConfig())
+        expected_result = sc.ParserSchema({
+            "__version__": "2.0.0",
+            "parserType": "core_parser",
+            "parserID": "TestParser",
+            "eventID": 1,
+            "template": "hello",
+            "parsedLogID": "TestParser_10",
+            "logID": "1",
+            "log": "This is a log.",
+            "receivedTimestamp": 0,
+            "parsedTimestamp": 0,
+        })
+        expected_result.variables = ["a", "b"]
+        expected_result.headerVariables["Time"] = "0"
+
+        data = sc.LogSchema({"logID": "1", "log": "This is a log."})
+        result = parser.process(data)
+
+        assert result == expected_result, f"results {result} and expected {expected_result}"
+
+    def test_process_ids(self) -> None:
+        parser = MockupParser(name="TestParser", config=MockupConfig())
+        data = sc.LogSchema({
+            "logID": "1", "log": "This is a log.", "logSource": "", "hostname": ""
+        })
+
+        result = parser.process(data)
+        assert result.parsedLogID == "TestParser_10"
+
+        result = parser.process(data)
+        assert result.parsedLogID == "TestParser_11"
+
+    def test_none_parser(self) -> None:
+        parser = NoneMockupParser(name="TestParser", config=MockupConfig())
+        data = sc.LogSchema({
+            "logID": "1", "log": "This is a log.", "logSource": "", "hostname": ""
+        })
+
+        assert parser.process(data) is None
+        assert parser.process(data) is not None
+
+    def test_parse_cannot_change_the_callers_log(self) -> None:
+        """Process() hands parse() a copy: what parse() writes to its input
+        stays inside the parser."""
+        parser = MutatingParser(name="TestParser", config=MockupConfig())
+        data = sc.LogSchema({"logID": "1", "log": "This is a log."})
+
+        result = parser.process(data)
+
+        assert data.log == "This is a log."
+        assert result.log == "This is a log."

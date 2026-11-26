@@ -1,0 +1,48 @@
+{
+  "chain": "C3",
+  "dataset": "sessions.log",
+  "training_lines": 186,
+  "detector": "EventSequenceDetector",
+  "config": {
+    "method_type": "event_sequence_detector",
+    "auto_config": true,
+    "data_use_configure": 185,
+    "data_use_training": 1,
+    "params": {
+      "session_variable": "blk"
+    }
+  },
+  "alerts": [
+    [
+      "187"
+    ],
+    [
+      "188"
+    ],
+    [
+      "190"
+    ],
+    [
+      "196"
+    ],
+    [
+      "201"
+    ],
+    [
+      "206"
+    ],
+    [
+      "207"
+    ],
+    [
+      "216"
+    ],
+    [
+      "224"
+    ],
+    [
+      "228"
+    ]
+  ],
+  "regenerate": "uv run pytest tests/e2e -m '' --update-golden"
+}

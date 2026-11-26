@@ -1,0 +1,785 @@
+"""Tests for detectmatelibrary.detectors.new_value_combo_detector."""
+from detectmatelibrary.detectors.new_value_combo_detector import (
+    NewValueComboDetector,
+    NewValueComboDetectorConfig,
+    ComboAutoConfigParams,
+)
+from detectmatelibrary.utils.persistency.data_structures.trackers import (
+    ClassificationMethods,
+)
+import detectmatelibrary.schemas as sc
+import logging
+
+import pytest
+
+# Set time test mode for consistent timestamps
+pytestmark = pytest.mark.usefixtures("frozen_timestamps")
+
+
+config = {
+    "detectors": {
+        "CustomInit": {
+            "method_type": "new_value_combo_detector",
+            "auto_config": False,
+            "auto_config_params": {
+                "max_combo_size": 4
+            },
+            "events": {
+                1: {
+                    "instance1": {
+                        "params": {},
+                        "variables": [{
+                            "pos": 0, "name": "sad", "params": {}
+                        }]
+                    }
+                }
+            }
+        },
+        "MultipleDetector": {
+            "method_type": "new_value_combo_detector",
+            "auto_config": False,
+            "auto_config_params": {
+                "max_combo_size": 2
+            },
+            "events": {
+                1: {
+                    "test": {
+                        "params": {},
+                        "variables": [{
+                            "pos": 1, "name": "test", "params": {}
+                        }],
+                        "header_variables": [{
+                            "pos": "level", "params": {}
+                        }]
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+class TestNewValueComboDetectorTraining:
+    def test_train_multiple_values(self):
+        """Only event 1 is configured; it learns the combinations of variable 1
+        and the header `level`."""
+        detector = NewValueComboDetector(config=config, name="MultipleDetector")
+        for event in range(3):
+            for level in ["INFO", "WARNING", "ERROR"]:
+                detector.train(sc.ParserSchema({
+                    "parserType": "test", "eventID": event, "template": "test template",
+                    "variables": ["0", "assa"], "logID": "1", "parsedLogID": "1", "parserID": "test_parser",
+                    "log": "test log message", "headerVariables": {"level": level},
+                }))
+
+        assert len(detector.persistency) == 1
+        combos = detector.persistency.get_event_data(1)[("test", "level")].unique_set
+        assert combos == {("assa", "INFO"), ("assa", "WARNING"), ("assa", "ERROR")}
+
+
+class TestNewValueComboDetectorDetection:
+    """Test NewValueComboDetector detection functionality."""
+
+    def test_detect_known_value_no_alert(self):
+        detector = NewValueComboDetector(config=config, name="MultipleDetector")
+
+        # Train with a value
+        train_data = sc.ParserSchema({
+            "parserType": "test",
+            "eventID": 1,
+            "template": "test template",
+            "variables": ["adsasd", "asdasd"],
+            "logID": "1",
+            "parsedLogID": "1",
+            "parserID": "test_parser",
+            "log": "test log message",
+            "headerVariables": {"level": "INFO"}
+        })
+        detector.train(train_data)
+
+        train_data = sc.ParserSchema({
+            "parserType": "test",
+            "eventID": 1,
+            "template": "test template",
+            "variables": ["adsasd", "other_value"],
+            "logID": "1",
+            "parsedLogID": "1",
+            "parserID": "test_parser",
+            "log": "test log message",
+            "headerVariables": {"level": "CRITICAL"}
+        })
+        detector.train(train_data)
+
+        # Detect with the same value
+        test_data = sc.ParserSchema({
+            "parserType": "test",
+            "eventID": 12,
+            "template": "test template",
+            "variables": ["adsasd"],
+            "logID": "2",
+            "parsedLogID": "2",
+            "parserID": "test_parser",
+            "log": "test log message",
+            "headerVariables": {"level": "CRITICAL"}
+        })
+        output = sc.DetectorSchema()
+
+        result = detector.detect(test_data, output)
+
+        assert not result
+        assert output.score == 0.0
+
+    def test_detect_known_value_alert(self):
+        detector = NewValueComboDetector(config=config, name="MultipleDetector")
+
+        # Train with a value
+        train_data = sc.ParserSchema({
+            "parserType": "test",
+            "eventID": 1,
+            "template": "test template",
+            "variables": ["adsasd", "asdasd"],
+            "logID": "1",
+            "parsedLogID": "1",
+            "parserID": "test_parser",
+            "log": "test log message",
+            "headerVariables": {"level": "INFO"}
+        })
+        detector.train(train_data)
+
+        train_data = sc.ParserSchema({
+            "parserType": "test",
+            "eventID": 1,
+            "template": "test template",
+            "variables": ["adsasd", "other_value"],
+            "logID": "1",
+            "parsedLogID": "1",
+            "parserID": "test_parser",
+            "log": "test log message",
+            "headerVariables": {"level": "CRITICAL"}
+        })
+        detector.train(train_data)
+
+        # Detect with an unknown combination (pos 1 has a new value)
+        test_data = sc.ParserSchema({
+            "parserType": "test",
+            "eventID": 1,
+            "template": "test template",
+            "variables": ["adsasd", "new_unknown_value"],
+            "logID": "2",
+            "parsedLogID": "2",
+            "parserID": "test_parser",
+            "log": "test log message",
+            "headerVariables": {"level": "CRITICAL"}
+        })
+        output = sc.DetectorSchema()
+
+        result = detector.detect(test_data, output)
+
+        assert result
+        assert output.score == 1.0
+
+
+class TestNewValueComboDetectorConfiguration:
+    """Test NewValueComboDetector configuration functionality."""
+
+    def test_configure_method_ingests_events(self):
+        """Test that configure method properly ingests events."""
+        detector = NewValueComboDetector()
+
+        # Configure with sample events
+        for event_id in [1, 2, 3]:
+            parser_data = sc.ParserSchema({
+                "parserType": "test",
+                "eventID": event_id,
+                "template": f"Template {event_id}",
+                "variables": ["val1", "val2", "val3"],
+                "logID": str(event_id),
+                "parsedLogID": str(event_id),
+                "parserID": "test_parser",
+                "log": "test log",
+                "headerVariables": {"level": "INFO"}
+            })
+            detector.configure(parser_data)
+
+        # Verify events were ingested
+        events_data = detector.auto_conf_persistency.get_events_data()
+        assert len(events_data) == 3
+        assert 1 in events_data
+        assert 2 in events_data
+        assert 3 in events_data
+
+    def test_set_configuration_updates_config(self):
+        """Test that set_configuration properly updates detector config."""
+        detector = NewValueComboDetector()
+
+        # Configure with events that have varying stability
+        for i in range(10):
+            parser_data = sc.ParserSchema({
+                "parserType": "test",
+                "eventID": 1,
+                "template": "Template 1",
+                "variables": ["constant", f"varying_{i}", "another_constant"],
+                "logID": str(i),
+                "parsedLogID": str(i),
+                "parserID": "test_parser",
+                "log": "test log",
+                "headerVariables": {"level": "INFO"}
+            })
+            detector.configure(parser_data)
+
+        # Set configuration
+        detector.set_configuration(max_combo_size=2)
+
+        # Verify config was updated
+        assert detector.config.events is not None
+        assert detector.config.auto_config_params.max_combo_size == 2
+
+    def test_configuration_workflow(self):
+        """Configure, set_configuration, train, detect.
+
+        Two variables cycle through a few values (STABLE) and one never
+        changes (STATIC, left out by default), so each event gets one
+        instance over positions 1 and 2.
+        """
+        detector = NewValueComboDetector(config=NewValueComboDetectorConfig())
+        records = [
+            sc.ParserSchema({
+                "parserType": "test", "eventID": event_id, "template": f"Template {event_id}",
+                "variables": ["static_val", f"var_{i % 3}", f"host_{i % 2}"], "logID": str(2 * i + event_id),
+                "parsedLogID": str(2 * i + event_id), "parserID": "test_parser", "log": "test log",
+                "headerVariables": {"level": "INFO"},
+            })
+            for i in range(20) for event_id in [1, 2]
+        ]
+        for record in records:
+            detector.configure(record)
+
+        detector.set_configuration(max_combo_size=3)
+        for record in records:
+            detector.train(record)
+
+        instance = {"params": {}, "variables": [{"pos": 1, "name": "var_1"}, {"pos": 2, "name": "var_2"}]}
+        expected = {event_id: {"NewValueComboDetector_var_1_var_2": instance} for event_id in [1, 2]}
+        assert detector.config.events.to_dict() == expected
+
+        def detect(variables):
+            record = records[0].copy()
+            record["variables"].clear()
+            record["variables"].extend(variables)
+            return detector.detect(record, sc.DetectorSchema())
+
+        assert detect(["static_val", "var_9", "host_0"]) is True   # new value in the combination
+        assert detect(["static_val", "var_1", "host_1"]) is False  # combination seen in training
+
+    def test_set_configuration_with_combo_size(self):
+        """Test set_configuration respects max_combo_size parameter."""
+        detector = NewValueComboDetector()
+
+        # Configure with multiple variable events
+        for i in range(15):
+            parser_data = sc.ParserSchema({
+                "parserType": "test",
+                "eventID": 1,
+                "template": "Multi-var template",
+                "variables": ["v1", "v2", "v3", "v4", "v5"],
+                "logID": str(i),
+                "parsedLogID": str(i),
+                "parserID": "test_parser",
+                "log": "test log",
+                "headerVariables": {}
+            })
+            detector.configure(parser_data)
+
+        # Set configuration with specific combo size
+        detector.set_configuration(max_combo_size=4)
+
+        # Verify max_combo_size was updated
+        assert detector.config.auto_config_params.max_combo_size == 4
+
+    def test_configuration_with_no_stable_variables(self, caplog):
+        """Every value is new each time: nothing is stable, the configuration
+        stays empty and a warning says the detector will not alert."""
+        detector = NewValueComboDetector(config=NewValueComboDetectorConfig())
+        for i in range(10):
+            detector.configure(sc.ParserSchema({
+                "parserType": "test", "eventID": 1, "template": "Variable template",
+                "variables": [f"val_{i}_0", f"val_{i}_1"], "logID": str(i), "parsedLogID": str(i),
+                "parserID": "test_parser", "log": "test log", "headerVariables": {},
+            }))
+
+        with caplog.at_level(logging.WARNING):
+            detector.set_configuration()
+
+        assert detector.config.events.to_dict() == {}
+        assert any("empty configuration" in record.message for record in caplog.records)
+
+
+class TestConfigureTrainDetect:
+    """Test the full configure → set_configuration → train → detect workflow as
+    demonstrated in the commented-out example in
+    new_value_combo_detector.py."""
+
+    @staticmethod
+    def _make_schema(event_id, template, variables, log_format_variables, log_id="1"):
+        return sc.ParserSchema({
+            "parserType": "test",
+            "eventID": event_id,
+            "template": template,
+            "variables": variables,
+            "logID": log_id,
+            "parsedLogID": log_id,
+            "parserID": "test_parser",
+            "log": "test log message",
+            "headerVariables": log_format_variables,
+        })
+
+    def test_configure_train_detect_anomalous_combo(self):
+        """Anomalous user/IP combo is detected after auto-configuration."""
+        sample_events = []
+        # Repeat the pattern 3x so variables are classified as STABLE
+        for _ in range(3):
+            for _ in range(3):
+                sample_events.append(self._make_schema(
+                    4624, "User <*> logged in from <*>",
+                    ["user1", "192.168.1.100"],
+                    {"username": "user1", "src_ip": "192.168.1.100"},
+                ))
+            for _ in range(3):
+                sample_events.append(self._make_schema(
+                    4624, "User <*> logged in from <*>",
+                    ["user2", "10.0.0.50"],
+                    {"username": "user2", "src_ip": "10.0.0.50"},
+                ))
+            for _ in range(2):
+                sample_events.append(self._make_schema(
+                    4663, "User <*> accessed file <*>",
+                    ["user1", "/data/report.pdf"],
+                    {"username": "user1", "filepath": "/data/report.pdf"},
+                ))
+
+        detector = NewValueComboDetector(name="TestComboDetector")
+
+        # Phase 1: Configuration — learn variable stability
+        for schema in sample_events:
+            detector.configure(schema)
+        detector.set_configuration(max_combo_size=2)
+
+        # Phase 2: Training — learn normal value combinations
+        for schema in sample_events:
+            detector.train(schema)
+
+        # Phase 3: Detection — unknown combo must trigger alert
+        anomalous = self._make_schema(
+            4624, "User <*> logged in from <*>",
+            ["MALICIOUS_USER", "MALICIOUS_IP"],
+            {"username": "MALICIOUS_USER", "src_ip": "MALICIOUS_IP"},
+        )
+        output = sc.DetectorSchema()
+        result = detector.detect(anomalous, output)
+
+        assert result is True
+        assert output.score > 0
+
+    def test_configure_train_detect_benign_combo(self):
+        """Known user/IP combo is NOT flagged after auto-configuration."""
+        sample_events = []
+        for _ in range(3):
+            for _ in range(3):
+                sample_events.append(self._make_schema(
+                    4624, "User <*> logged in from <*>",
+                    ["user1", "192.168.1.100"],
+                    {"username": "user1", "src_ip": "192.168.1.100"},
+                ))
+            for _ in range(3):
+                sample_events.append(self._make_schema(
+                    4624, "User <*> logged in from <*>",
+                    ["user2", "10.0.0.50"],
+                    {"username": "user2", "src_ip": "10.0.0.50"},
+                ))
+            for _ in range(2):
+                sample_events.append(self._make_schema(
+                    4663, "User <*> accessed file <*>",
+                    ["user1", "/data/report.pdf"],
+                    {"username": "user1", "filepath": "/data/report.pdf"},
+                ))
+
+        detector = NewValueComboDetector(name="TestComboDetector")
+
+        for schema in sample_events:
+            detector.configure(schema)
+        detector.set_configuration(max_combo_size=2)
+
+        for schema in sample_events:
+            detector.train(schema)
+
+        # Benign event — known combo must NOT trigger alert
+        benign = self._make_schema(
+            4624, "User <*> logged in from <*>",
+            ["user1", "192.168.1.100"],
+            {"username": "user1", "src_ip": "192.168.1.100"},
+        )
+        output = sc.DetectorSchema()
+        result = detector.detect(benign, output)
+
+        assert result is False
+        assert output.score == 0.0
+
+    def test_configure_only_selects_stable_event_types(self):
+        """Event types with only STATIC variables (single unique value) are
+        excluded from the auto-generated config."""
+        sample_events = []
+        for _ in range(3):
+            for _ in range(3):
+                sample_events.append(self._make_schema(
+                    4624, "User <*> logged in from <*>",
+                    ["user1", "192.168.1.100"],
+                    {"username": "user1", "src_ip": "192.168.1.100"},
+                ))
+            for _ in range(3):
+                sample_events.append(self._make_schema(
+                    4624, "User <*> logged in from <*>",
+                    ["user2", "10.0.0.50"],
+                    {"username": "user2", "src_ip": "10.0.0.50"},
+                ))
+            # EventID 4663 always has the exact same values → STATIC, not STABLE
+            for _ in range(2):
+                sample_events.append(self._make_schema(
+                    4663, "User <*> accessed file <*>",
+                    ["user1", "/data/report.pdf"],
+                    {"username": "user1", "filepath": "/data/report.pdf"},
+                ))
+
+        detector = NewValueComboDetector(name="TestComboDetector")
+
+        for schema in sample_events:
+            detector.configure(schema)
+        detector.set_configuration(max_combo_size=2)
+
+        # EventID 4624 has STABLE variables → should be in config
+        # EventID 4663 has only STATIC variables → should NOT be in config
+        assert 4624 in detector.config.events
+        # Detecting for EventID 4663 should produce no alert (no config for it)
+        file_event = self._make_schema(
+            4663, "User <*> accessed file <*>",
+            ["hacker", "/etc/shadow"],
+            {"username": "hacker", "filepath": "/etc/shadow"},
+        )
+        output = sc.DetectorSchema()
+        result = detector.detect(file_event, output)
+        assert result is False
+
+
+class TestNewValueComboDetectorClassificationCombos:
+    """The combo-stability pass must honour the classification block too.
+
+    auto_conf_persistency_combos is built directly in __init__ rather than from
+    the _event_data_kwargs hook, and its re-ingest loop in set_configuration
+    calls ingest_event itself -- so both halves of the classification block
+    (the tracker kwarg and the per-record timestamp) have to be wired up
+    explicitly. A classification block that reaches the first-pass trackers
+    but not the combo trackers is worse than none at all: the generated
+    config would be selected on a different rule than the one the operator
+    asked for.
+    """
+
+    @staticmethod
+    def _records(classification=None):
+        detector = NewValueComboDetector(
+            config=NewValueComboDetectorConfig(
+                auto_config_params=ComboAutoConfigParams(
+                    classification=classification or ClassificationMethods(
+                        index=False, time=True
+                    ),
+                    timestamp_variable="ts",
+                ),
+            ),
+            name="NewValueComboDetector",
+        )
+        for i in range(12):
+            # var_0 and var_1 both cycle over 3 values -> both STABLE in pass 1,
+            # so pass 2 gets a ("var_0", "var_1") combo tracker to look at.
+            detector.configure(sc.ParserSchema({
+                "parserType": "test",
+                "eventID": 1,
+                "template": "Template 1",
+                "variables": [f"a{i % 3}", f"b{i % 3}", "constant"],
+                "logID": str(i),
+                "parsedLogID": str(i),
+                "parserID": "test_parser",
+                "log": "test log",
+                "headerVariables": {"ts": str(1700000000 + i * 60)},
+            }))
+        return detector
+
+    def test_combo_trackers_record_timestamps(self):
+        detector = self._records()
+        detector.set_configuration(max_combo_size=2)
+
+        combo_trackers = detector.auto_conf_persistency_combos.get_events_data()[1].get_data()
+        assert ("var_0", "var_1") in combo_trackers
+        tracker = combo_trackers[("var_0", "var_1")]
+        assert tracker.classification.enabled == ("time",)
+        assert len(tracker.timestamps) == len(tracker.change_series) == 12
+        assert tracker.timestamps[1] - tracker.timestamps[0] == 60.0
+
+    def test_combo_trackers_stay_index_based_when_no_time_method_is_on(self):
+        detector = self._records(classification=ClassificationMethods(index=True))
+        detector.set_configuration(max_combo_size=2)
+
+        tracker = detector.auto_conf_persistency_combos.get_events_data()[1].get_data()[
+            ("var_0", "var_1")
+        ]
+        assert tracker.classification.enabled == ("index",)
+        assert tracker.timestamps == []
+
+    def test_auto_config_params_round_trip(self):
+        """A populated block survives from_dict -> to_dict unchanged and never
+        leaks into params."""
+        block = {
+            "use_stable_vars": True,
+            "use_static_vars": True,
+            "classification": {"index": True, "time": True, "slope_index": True},
+            "timestamp_variable": "level",
+            "timestamp_format": "%y%m%d %H%M%S",
+        }
+        source = {
+            "detectors": {
+                "NewValueComboDetector": {
+                    "method_type": "new_value_combo_detector",
+                    "auto_config": True,
+                    "auto_config_params": block,
+                    # Explicit (rather than omitted) so the first from_dict
+                    # already coerces `events` to EventsConfig -- otherwise it
+                    # stays the bare-dict field default and the round-trip
+                    # equality below fails on that unrelated field, not on
+                    # auto_config_params (pydantic does not validate/coerce
+                    # field defaults, only explicit constructor input).
+                    "events": {},
+                }
+            }
+        }
+        config = NewValueComboDetectorConfig.from_dict(source, "NewValueComboDetector")
+        dumped = config.to_dict(method_id="NewValueComboDetector")
+        entry = dumped["detectors"]["NewValueComboDetector"]
+        auto_params = entry["auto_config_params"]
+        # Subset, not equality: later tasks add fields to this model and an
+        # exact-match assertion would break every time one lands. `classification`
+        # round-trips as a full six-key dict (slope_time, slope_threshold and
+        # decision included), so it is compared via model equality rather than
+        # raw dict equality.
+        non_classification = {k: v for k, v in block.items() if k != "classification"}
+        assert non_classification.items() <= auto_params.items()
+        assert ClassificationMethods(**auto_params["classification"]) == ClassificationMethods(
+            **block["classification"]
+        )
+        assert not set(block) & set(entry.get("params", {}))
+        assert NewValueComboDetectorConfig.from_dict(dumped, "NewValueComboDetector") == config
+
+
+class TestNewValueComboDetectorConfigureSpill:
+    """The configure records kept for the second pass spill to disk past
+    train_buffer_max_records, like the train buffer, and are released
+    afterwards."""
+
+    @staticmethod
+    def _record(i: int) -> sc.ParserSchema:
+        return sc.ParserSchema({
+            "parserType": "test",
+            "eventID": 1,
+            "template": "Template 1",
+            "variables": [f"a{min(i, 3)}", f"b{min(i, 4)}", f"c{min(i, 2)}"],
+            "logID": str(i),
+            "parsedLogID": str(i),
+            "parserID": "test_parser",
+            "log": "test log",
+        })
+
+    def _configured(self, **config) -> NewValueComboDetector:
+        detector = NewValueComboDetector(
+            config=NewValueComboDetectorConfig(**config), name="NewValueComboDetector"
+        )
+        for i in range(25):
+            detector.configure(self._record(i))
+        return detector
+
+    def _processed(self, n: int, **config) -> NewValueComboDetector:
+        """Feed ``n`` records through process(); the first 25 configure."""
+        detector = NewValueComboDetector(
+            config=NewValueComboDetectorConfig(data_use_configure=25, data_use_training=3, **config),
+            name="NewValueComboDetector",
+        )
+        for i in range(n):
+            detector.process(self._record(i))
+        return detector
+
+    def test_configure_inputs_spill_and_are_released(self, tmp_path):
+        detector = self._configured(train_buffer_max_records=10, train_buffer_dir=str(tmp_path))
+        assert len(list(tmp_path.glob("*/part-*.parquet"))) == 2
+        detector.set_configuration(max_combo_size=2)
+        assert list(tmp_path.iterdir()) == []
+
+    def test_spilled_configuration_matches_in_memory(self, tmp_path):
+        spilled = self._configured(train_buffer_max_records=10, train_buffer_dir=str(tmp_path))
+        in_memory = self._configured()
+        spilled.set_configuration(max_combo_size=2)
+        in_memory.set_configuration(max_combo_size=2)
+        assert len(in_memory.config.events[1].instances) == 3
+        assert spilled.config.events == in_memory.config.events
+
+    @pytest.mark.parametrize("replay", [True, False])
+    @pytest.mark.parametrize("max_records", [10, 100_000])
+    def test_processed_configuration_matches_direct(self, tmp_path, monkeypatch, replay, max_records):
+        trained: list[str] = []
+        train = NewValueComboDetector.train
+
+        def spy(self, input_):
+            trained.append(input_["logID"])
+            train(self, input_)
+
+        monkeypatch.setattr(NewValueComboDetector, "train", spy)
+        processed = self._processed(
+            26, use_config_data_as_training=replay,
+            train_buffer_max_records=max_records, train_buffer_dir=str(tmp_path),
+        )
+        direct = self._configured()
+        direct.set_configuration()
+        assert len(direct.config.events[1].instances) > 0
+        assert processed.config.events == direct.config.events
+        # the second configure pass leaves the configure records to training
+        assert trained == ([str(i) for i in range(26)] if replay else ["25"])
+        assert list(processed.buffer_train) == list(processed.inputs) == []
+        assert list(tmp_path.iterdir()) == []
+
+
+class TestNewValueComboDetectorAllCombos:
+    """Every instance of an event is its own combination: all of them are
+    trained and checked, and the generated config does not depend on the order
+    the variables arrive in."""
+
+    @staticmethod
+    def _record(variables, log_format_variables=None, event_id=1, log_id="1"):
+        return sc.ParserSchema({
+            "parserType": "test",
+            "eventID": event_id,
+            "template": "Template 1",
+            "variables": variables,
+            "logID": log_id,
+            "parsedLogID": log_id,
+            "parserID": "test_parser",
+            "log": "test log",
+            "headerVariables": log_format_variables or {},
+        })
+
+    @staticmethod
+    def _two_combos(allow_fed=False):
+        return NewValueComboDetector(name="TwoCombos", config={
+            "detectors": {
+                "TwoCombos": {
+                    "method_type": "new_value_combo_detector",
+                    "auto_config": False,
+                    "params": {"allow_fed": allow_fed},
+                    "events": {
+                        1: {
+                            "first": {
+                                "params": {},
+                                "variables": [
+                                    {"pos": 0, "name": "var_0", "params": {}},
+                                    {"pos": 1, "name": "var_1", "params": {}},
+                                ],
+                            },
+                            "second": {
+                                "params": {},
+                                "variables": [{"pos": 0, "name": "var_0", "params": {}}],
+                                "header_variables": [{"pos": "level", "params": {}}],
+                            },
+                        }
+                    },
+                }
+            }
+        })
+
+    def test_unseen_value_pair_in_a_later_combo_alerts(self):
+        detector = self._two_combos()
+        detector.train(self._record(["a", "x"], {"level": "INFO"}))
+        detector.train(self._record(["b", "y"], {"level": "ERROR"}))
+
+        # ("a", "x") is known to the first combo; ("a", "ERROR") is new to the second
+        output = sc.DetectorSchema()
+        assert detector.detect(self._record(["a", "x"], {"level": "ERROR"}), output)
+        assert output.score == 1.0
+        assert list(output.alertDetails) == ["EventID 1 - ('var_0', 'level')"]
+
+    def test_every_combo_is_trained(self):
+        detector = self._two_combos()
+        detector.train(self._record(["a", "x"], {"level": "INFO"}))
+
+        trackers = detector.persistency.get_events_data()[1].get_data()
+        assert list(trackers) == [("var_0", "var_1"), ("var_0", "level")]
+        assert not detector.detect(
+            self._record(["a", "x"], {"level": "INFO"}), sc.DetectorSchema()
+        )
+
+    def test_combo_with_a_missing_variable_is_skipped(self):
+        detector = self._two_combos()
+        detector.train(self._record(["a", "x"], {"level": "INFO"}))
+        # no `level`: the second combo is incomplete and must not be learned in part
+        detector.train(self._record(["b", "y"]))
+
+        trackers = detector.persistency.get_events_data()[1].get_data()
+        assert list(trackers) == [("var_0", "var_1"), ("var_0", "level")]
+        assert trackers[("var_0", "level")].unique_set == {("a", "INFO")}
+
+        output = sc.DetectorSchema()
+        assert not detector.detect(self._record(["b", "y"]), output)
+        assert not detector.detect(self._record(["new"]), output)
+
+    def test_every_combo_survives_federation(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)  # the federation table is written under the cwd
+        detector = self._two_combos(allow_fed=True)
+        detector.train(self._record(["a", "x"], {"level": "INFO"}))
+        detector.train(self._record(["b", "y"], {"level": "ERROR"}))
+
+        received = self._two_combos(allow_fed=True).from_binary(detector.to_binary())
+
+        trackers = received.persistency.get_events_data()[1].get_data()
+        assert trackers[("var_0", "var_1")].unique_set == {("a", "x"), ("b", "y")}
+        assert trackers[("var_0", "level")].unique_set == {("a", "INFO"), ("b", "ERROR")}
+        assert received.detect(
+            self._record(["a", "x"], {"level": "ERROR"}), sc.DetectorSchema()
+        )
+
+    @staticmethod
+    def _configured(header_order):
+        """Configure a detector whose header variables reach the first pass in
+        ``header_order``.
+
+        ParserSchema keeps headerVariables in a protobuf map, whose
+        iteration order changes from process to process, so the order is
+        fixed here by feeding the first-pass store directly.
+        """
+        detector = NewValueComboDetector(name="Ordered")
+        for i in range(12):
+            headers = {"user": f"u{i % 3}", "ip": f"p{i % 3}", "method": f"m{i % 3}"}
+            record = TestNewValueComboDetectorAllCombos._record(
+                [f"a{i % 3}"], headers, log_id=str(i)
+            )
+            detector.inputs.add(record)
+            detector.auto_conf_persistency.ingest_event(
+                event_id=1,
+                event_template="Template 1",
+                variables=record["variables"],
+                named_variables={name: headers[name] for name in header_order},
+            )
+        detector.set_configuration(max_combo_size=2)
+        return detector
+
+    def test_generated_config_ignores_the_variable_order(self):
+        forward = self._configured(["user", "ip", "method"])
+        backward = self._configured(["method", "ip", "user"])
+
+        expected = [
+            "Ordered_var_0_ip", "Ordered_var_0_method", "Ordered_var_0_user",
+            "Ordered_ip_method", "Ordered_ip_user", "Ordered_method_user",
+        ]
+        assert list(forward.config.events[1].instances) == expected
+        assert list(backward.config.events[1].instances) == expected

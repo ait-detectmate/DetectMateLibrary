@@ -1,0 +1,45 @@
+{
+  "chain": "C3",
+  "dataset": "audit.log",
+  "detector": "DeeplogDetector",
+  "parser": {
+    "log_format": "type=<Type> msg=audit(<Time>): <Content>",
+    "time_format": null,
+    "params": {
+      "remove_spaces": true,
+      "remove_punctuation": true,
+      "lowercase": true
+    }
+  },
+  "config": {
+    "method_type": "deeplog_detector",
+    "auto_config": false,
+    "data_use_training": 1800,
+    "window_size": 3,
+    "hyperparameters": {
+      "Model": {
+        "hidden_dim": 64,
+        "n_layers": 2
+      },
+      "Train": {
+        "seed": 0,
+        "batch_size": 2048,
+        "learning_rate": 0.01,
+        "epochs": 10,
+        "patience": 3
+      },
+      "Finetune": []
+    }
+  },
+  "measured": {
+    "labelled_found": [
+      "1861",
+      "1862",
+      "1863"
+    ],
+    "false_alarms": []
+  },
+  "min_labelled_found": 2,
+  "max_false_alarms": 5,
+  "regenerate": "uv run pytest tests/e2e -m '' --update-golden"
+}

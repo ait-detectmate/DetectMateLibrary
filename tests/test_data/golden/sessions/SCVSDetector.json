@@ -1,0 +1,35 @@
+{
+  "chain": "C3",
+  "dataset": "sessions.log",
+  "training_lines": 186,
+  "detector": "SCVSDetector",
+  "config": {
+    "method_type": "scvs_detector",
+    "data_use_training": 186,
+    "params": {
+      "session_variable": "blk",
+      "window_size": 3
+    }
+  },
+  "alerts": [
+    [
+      "187"
+    ],
+    [
+      "188"
+    ],
+    [
+      "201"
+    ],
+    [
+      "216"
+    ],
+    [
+      "224"
+    ],
+    [
+      "228"
+    ]
+  ],
+  "regenerate": "uv run pytest tests/e2e -m '' --update-golden"
+}

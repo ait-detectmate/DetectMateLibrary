@@ -1,0 +1,656 @@
+"""Tests for detectmatelibrary.utils.persistency.persistency_saver."""
+import json
+import time
+import threading
+
+import fsspec
+import pytest
+
+from detectmatelibrary.utils.persistency.event_persistency import EventPersistency
+from detectmatelibrary.utils.persistency.persistency_saver import (
+    PersistencySaverConfig,
+    PersistencyLoadError,
+    PersistencySaveError,
+    PersistencySaver,
+    _SaveTimer,
+    save as standalone_save,
+    load as standalone_load,
+)
+import detectmatelibrary.utils.persistency.persistency_saver as ps
+from detectmatelibrary.utils import persistency
+from tests.support.timing import wait_until
+
+import logging
+import zipfile
+import io
+
+
+class TestPersistencySaverConfig:
+    def test_requires_path(self):
+        cfg = PersistencySaverConfig(path="file:///tmp/test")
+        assert cfg.path == "file:///tmp/test"
+
+    def test_defaults(self):
+        cfg = PersistencySaverConfig(path="file:///tmp/test")
+        assert cfg.save_interval_seconds == 300
+        assert cfg.events_until_save is None
+        assert cfg.auto_load is False
+        assert cfg.storage_options == {}
+
+
+class TestSaveTimer:
+    def test_callback_fires_after_interval(self):
+        fired = threading.Event()
+        timer = _SaveTimer(interval=0.05, callback=fired.set)
+        timer.start()
+        assert fired.wait(timeout=5.0), "callback did not fire"
+        timer.stop()
+        timer.join(timeout=1.0)
+
+    def test_stop_prevents_further_callbacks(self):
+        count = {"n": 0}
+
+        def inc():
+            count["n"] += 1
+
+        timer = _SaveTimer(interval=0.01, callback=inc)
+        timer.start()
+        wait_until(lambda: count["n"] >= 1)
+        timer.stop()
+        timer.join(timeout=5.0)
+
+        assert not timer.is_alive()  # the thread ended, so nothing can fire any more
+
+
+def _make_persistency_with_data() -> EventPersistency:
+    p = EventPersistency()
+    p.ingest_event(event_id="E1", event_template="User <*>", variables=["alice"], named_variables={})
+    p.ingest_event(event_id="E1", event_template="User <*>", variables=["bob"], named_variables={})
+    p.ingest_event(event_id="E2", event_template="Error <*>", variables=["timeout"], named_variables={})
+    return p
+
+
+def _memory_saver(path: str = "memory://test/state") -> tuple[PersistencySaver, EventPersistency]:
+    p = _make_persistency_with_data()
+    cfg = PersistencySaverConfig(path=path)
+    saver = PersistencySaver(p, cfg)
+    return saver, p
+
+
+class TestPersistencySaverSaveLoad:
+    def test_save_creates_metadata_json(self):
+        saver, _ = _memory_saver()
+        saver.save()
+        fs = fsspec.filesystem("memory")
+        assert fs.exists("test/state/metadata.json")
+
+    def test_metadata_contains_events_seen(self):
+        saver, _ = _memory_saver()
+        saver.save()
+        fs = fsspec.filesystem("memory")
+        with fs.open("test/state/metadata.json", "r") as f:
+            meta = json.load(f)
+        assert set(meta["events_seen"]) == {"E1", "E2"}
+
+    def test_save_resets_events_since_save(self):
+        saver, p = _memory_saver()
+        assert p._events_since_save == 3
+        saver.save()
+        assert p._events_since_save == 0
+
+    def test_load_restores_events_seen(self):
+        saver, _ = _memory_saver()
+        saver.save()
+
+        p2 = EventPersistency()
+        cfg = PersistencySaverConfig(path="memory://test/state")
+        saver2 = PersistencySaver(p2, cfg)
+        saver2.load()
+        assert "E1" in p2.get_events_seen()
+        assert "E2" in p2.get_events_seen()
+
+    def test_load_restores_event_data(self):
+        saver, _ = _memory_saver()
+        saver.save()
+
+        p2 = EventPersistency()
+        cfg = PersistencySaverConfig(path="memory://test/state")
+        PersistencySaver(p2, cfg).load()
+        assert len(p2.get_event_data("E1")) == 1
+
+    def test_load_restores_templates(self):
+        saver, _ = _memory_saver()
+        saver.save()
+
+        p2 = EventPersistency()
+        PersistencySaver(p2, PersistencySaverConfig(path="memory://test/state")).load()
+        assert p2.get_event_template("E1") == "User <*>"
+
+    def test_load_raises_on_missing_path(self):
+        p = EventPersistency()
+        saver = PersistencySaver(p, PersistencySaverConfig(path="memory://nonexistent/path"))
+        with pytest.raises(PersistencyLoadError):
+            saver.load()
+
+    def test_load_clears_stale_events_data(self):
+        """Loading into a non-empty EP must replace, not merge, events_data."""
+        saver, _ = _memory_saver()
+        saver.save()  # saves E1 and E2
+
+        p2 = EventPersistency()
+        # Pre-populate with a key NOT in the saved snapshot
+        p2.ingest_event(event_id="STALE", event_template="stale", variables=["x"], named_variables={})
+        PersistencySaver(p2, PersistencySaverConfig(path="memory://test/state")).load()
+
+        assert "STALE" not in p2.get_events_data()
+        assert "E1" in p2.get_events_data()
+
+    def test_load_restores_event_data_kwargs(self):
+        """event_data_kwargs must be written back to ep after load."""
+        p = EventPersistency(
+            event_data_kwargs={},
+        )
+        p.ingest_event(event_id="E1", event_template="t", variables=["v"], named_variables={})
+        saver = PersistencySaver(p, PersistencySaverConfig(path="memory://kwargs_test/state"))
+        saver.save()
+
+        p2 = EventPersistency()  # no kwargs
+        PersistencySaver(p2, PersistencySaverConfig(path="memory://kwargs_test/state")).load()
+        assert p2.event_struct.data_kwargs == {}
+
+
+class TestPersistencySaverTriggers:
+    def test_timer_triggers_save(self):
+        p = _make_persistency_with_data()
+        cfg = PersistencySaverConfig(
+            path="memory://trigger_test/state",
+            save_interval_seconds=0,  # fire immediately
+        )
+        saver = PersistencySaver(p, cfg)
+        saver.start()
+        fs = fsspec.filesystem("memory")
+        # checked before stop(), which saves as well
+        wait_until(lambda: fs.exists("trigger_test/state/metadata.json"))
+        saver.stop()
+
+    def test_timed_save_resets_events_since_save(self):
+        p = EventPersistency()
+        cfg = PersistencySaverConfig(
+            path="memory://dirty_test2/state",
+            save_interval_seconds=0,
+        )
+        saver = PersistencySaver(p, cfg)
+        saver.start()
+
+        p.ingest_event(event_id="E1", event_template="T", variables=["x"], named_variables={})
+        p.ingest_event(event_id="E1", event_template="T", variables=["y"], named_variables={})
+        # save() by the timer resets the counter; checked before stop(), which saves as well
+        wait_until(lambda: p._events_since_save == 0)
+        saver.stop()
+
+    def test_stop_does_final_save(self):
+        p = _make_persistency_with_data()
+        cfg = PersistencySaverConfig(
+            path="memory://stop_test/state",
+            save_interval_seconds=9999,
+        )
+        saver = PersistencySaver(p, cfg)
+        saver.start()
+        saver.stop()
+        fs = fsspec.filesystem("memory")
+        assert fs.exists("stop_test/state/metadata.json")
+
+    def test_events_until_save_triggers_save(self):
+        p = EventPersistency()
+        cfg = PersistencySaverConfig(
+            path="memory://events_count_test/state",
+            save_interval_seconds=9999,
+            events_until_save=3,
+        )
+        PersistencySaver(p, cfg)  # no start() needed — callback fires on ingest
+        for i in range(3):
+            p.ingest_event(event_id="E1", event_template="T", variables=[str(i)], named_variables={})
+        fs = fsspec.filesystem("memory")
+        assert fs.exists("events_count_test/state/metadata.json")
+
+    def test_events_until_save_no_save_before_threshold(self):
+        p = EventPersistency()
+        cfg = PersistencySaverConfig(
+            path="memory://events_count_test2/state",
+            save_interval_seconds=9999,
+            events_until_save=5,
+        )
+        PersistencySaver(p, cfg)
+        for i in range(4):
+            p.ingest_event(event_id="E1", event_template="T", variables=[str(i)], named_variables={})
+        fs = fsspec.filesystem("memory")
+        assert not fs.exists("events_count_test2/state/metadata.json")
+
+    def test_events_until_save_resets_counter_and_retrigggers(self):
+        p = EventPersistency()
+        cfg = PersistencySaverConfig(
+            path="memory://events_count_test3/state",
+            save_interval_seconds=9999,
+            events_until_save=2,
+        )
+        PersistencySaver(p, cfg)
+        for i in range(4):
+            p.ingest_event(event_id="E1", event_template="T", variables=[str(i)], named_variables={})
+        # counter should be 0 — two saves fired (at event 2 and event 4)
+        assert p._events_since_save == 0
+
+    def test_auto_load_on_init(self):
+        # First: save some state
+        p1 = _make_persistency_with_data()
+        PersistencySaver(p1, PersistencySaverConfig(path="memory://autoload/state")).save()
+
+        # Then: create new persistency with auto_load=True
+        p2 = EventPersistency()
+        PersistencySaver(p2, PersistencySaverConfig(path="memory://autoload/state", auto_load=True))
+        assert "E1" in p2.get_events_seen()
+
+    def test_auto_load_on_init_no_state_starts_fresh(self):
+        # auto_load=True with no prior save must not crash but starts with empty state
+        p = EventPersistency()
+        cfg = PersistencySaverConfig(path="memory://autoload_no_prior_state/state", auto_load=True)
+        saver = PersistencySaver(p, cfg)
+        assert len(p.get_events_seen()) == 0
+        assert len(p.get_events_data()) == 0
+        assert saver is not None
+
+
+class TestPersistencySaverGetStatus:
+    def test_config_fields(self):
+        p = EventPersistency()
+        cfg = PersistencySaverConfig(
+            path="memory://status_test3/state",
+            save_interval_seconds=120,
+            events_until_save=500,
+            auto_load=True,
+        )
+        saver = PersistencySaver(p, cfg)
+        status = saver.get_status()
+        assert status["path"] == "memory://status_test3/state"
+        assert status["save_interval_seconds"] == 120
+        assert status["events_until_save"] == 500
+        assert status["auto_load"] is True
+
+
+class TestPersistencySaverIntegration:
+    def test_full_cycle_dataframe_backend(self):
+        """Train → save → restore → verify data identical."""
+        p1 = EventPersistency()
+        for i in range(20):
+            p1.ingest_event(
+                event_id=f"E{i % 3}",
+                event_template=f"Template {i % 3}",
+                variables=[f"val_{i}"],
+                named_variables={},
+            )
+
+        saver1 = PersistencySaver(p1, PersistencySaverConfig(path="memory://integration/df"))
+        saver1.save()
+
+        p2 = EventPersistency()
+        PersistencySaver(p2, PersistencySaverConfig(path="memory://integration/df")).load()
+
+        assert p2.get_events_seen() == p1.get_events_seen()
+        assert p2.get_event_templates() == p1.get_event_templates()
+        for eid in p1.get_events_data():
+            original = p1.get_event_data(eid)
+            restored = p2.get_event_data(eid)
+            assert len(restored) == len(original)
+
+    def test_full_cycle_tracker_backend(self):
+        """Train → save → restore → verify tracker state identical."""
+        p1 = EventPersistency()
+        for i in range(30):
+            p1.ingest_event(
+                event_id="E1",
+                event_template="Tmpl",
+                variables=[f"v_{i % 5}"],
+                named_variables={},
+            )
+
+        saver1 = PersistencySaver(p1, PersistencySaverConfig(path="memory://integration/tracker"))
+        saver1.save()
+
+        p2 = EventPersistency()
+        PersistencySaver(p2, PersistencySaverConfig(path="memory://integration/tracker")).load()
+
+        original_tracker = p1.get_events_data()["E1"]
+        restored_tracker = p2.get_events_data()["E1"]
+
+        for var_name in original_tracker.get_variables():
+            orig = original_tracker.get_data()[var_name]
+            rest = restored_tracker.get_data()[var_name]
+            assert list(rest.change_series) == list(orig.change_series)
+            assert rest.unique_set == orig.unique_set
+
+
+class TestPersistencySaverConcurrency:
+    def test_ingest_blocks_while_saver_lock_held(self):
+        """ingest_event must serialize on the saver's lock so save/load can't
+        race with a concurrent ingest."""
+        p = EventPersistency()
+        saver = PersistencySaver(p, PersistencySaverConfig(path="memory://concurrency/state"))
+        done = threading.Event()
+
+        def worker():
+            p.ingest_event(event_id="E1", event_template="T", variables=["x"], named_variables={})
+            done.set()
+
+        with saver.locked():
+            t = threading.Thread(target=worker)
+            t.start()
+            # ample time for an unguarded ingest to complete; a slow machine can only
+            # make the check below easier to pass, never make it fail
+            time.sleep(0.1)
+            assert not done.is_set(), "ingest_event ran while the saver lock was held"
+            assert "E1" not in p.get_events_seen()
+        t.join(timeout=1.0)
+        assert done.is_set()
+        assert "E1" in p.get_events_seen()
+
+    def test_ingest_not_blocked_by_save_write(self, monkeypatch):
+        """The file write must run OUTSIDE the lock: a blocked save write must
+        not block a concurrent ingest_event (only serialization is guarded)."""
+
+        p = EventPersistency()
+        saver = PersistencySaver(p, PersistencySaverConfig(path="memory://write_block/state"))
+
+        write_started = threading.Event()
+        release_write = threading.Event()
+        real_write = ps._write
+
+        def blocking_write(fs, root, files):
+            write_started.set()
+            release_write.wait(timeout=2.0)
+            real_write(fs, root, files)
+
+        monkeypatch.setattr(ps, "_write", blocking_write)
+
+        saver_thread = threading.Thread(target=saver.save)
+        saver_thread.start()
+        assert write_started.wait(timeout=1.0), "save write never started"
+
+        # Write is in progress with the lock released — ingest must proceed.
+        ingested = threading.Event()
+
+        def worker():
+            p.ingest_event(event_id="E2", event_template="T", variables=["y"], named_variables={})
+            ingested.set()
+
+        t = threading.Thread(target=worker)
+        t.start()
+        assert ingested.wait(timeout=1.0), "ingest_event blocked while save write was in progress"
+
+        release_write.set()
+        saver_thread.join(timeout=2.0)
+        t.join(timeout=1.0)
+        assert "E2" in p.get_events_seen()
+
+
+def _failing_write(attempts: list[int] | None = None):
+    def write(fs, root, files):
+        if attempts is not None:
+            attempts.append(1)
+        raise OSError("Permission denied")
+    return write
+
+
+class TestPersistencySaverSaveFailure:
+    def test_save_raises_on_write_failure(self, monkeypatch):
+        import detectmatelibrary.utils.persistency.persistency_saver as ps
+        saver, _ = _memory_saver("memory://save_fail1/state")
+        monkeypatch.setattr(ps, "_write", _failing_write())
+        with pytest.raises(PersistencySaveError) as exc_info:
+            saver.save()
+        assert isinstance(exc_info.value.__cause__, OSError)
+
+    def test_failed_save_keeps_events_since_save(self, monkeypatch):
+        import detectmatelibrary.utils.persistency.persistency_saver as ps
+        saver, p = _memory_saver("memory://save_fail2/state")
+        monkeypatch.setattr(ps, "_write", _failing_write())
+        with pytest.raises(PersistencySaveError):
+            saver.save()
+        assert p.events_since_save == 3
+        assert saver.get_status()["events_since_save"] == 3
+
+    def test_events_ingested_during_write_stay_counted(self, monkeypatch):
+        """Only the events captured in the snapshot are cleared by a successful
+        save; events ingested while the write is in flight stay unsaved."""
+        import detectmatelibrary.utils.persistency.persistency_saver as ps
+        saver, p = _memory_saver("memory://save_fail3/state")
+        write_started = threading.Event()
+        release_write = threading.Event()
+        real_write = ps._write
+
+        def blocking_write(fs, root, files):
+            write_started.set()
+            release_write.wait(timeout=2.0)
+            real_write(fs, root, files)
+
+        monkeypatch.setattr(ps, "_write", blocking_write)
+        saver_thread = threading.Thread(target=saver.save)
+        saver_thread.start()
+        assert write_started.wait(timeout=1.0)
+        p.ingest_event(event_id="E3", event_template="T", variables=["x"], named_variables={})
+        p.ingest_event(event_id="E3", event_template="T", variables=["y"], named_variables={})
+        release_write.set()
+        saver_thread.join(timeout=2.0)
+        assert p.events_since_save == 2
+
+    def test_stop_raises_when_final_save_fails(self, monkeypatch):
+        import detectmatelibrary.utils.persistency.persistency_saver as ps
+        p = _make_persistency_with_data()
+        saver = PersistencySaver(
+            p, PersistencySaverConfig(path="memory://save_fail4/state", save_interval_seconds=9999)
+        )
+        saver.start()
+        monkeypatch.setattr(ps, "_write", _failing_write())
+        with pytest.raises(PersistencySaveError):
+            saver.stop()
+
+    def test_timer_keeps_running_after_failed_save(self, monkeypatch):
+        import detectmatelibrary.utils.persistency.persistency_saver as ps
+        attempts: list[int] = []
+        monkeypatch.setattr(ps, "_write", _failing_write(attempts))
+        p = _make_persistency_with_data()
+        saver = PersistencySaver(
+            p, PersistencySaverConfig(path="memory://save_fail5/state", save_interval_seconds=0)
+        )
+        saver.start()
+        wait_until(lambda: len(attempts) > 1)
+        assert saver._timer is not None and saver._timer.is_alive()
+        with pytest.raises(PersistencySaveError):
+            saver.stop()
+
+    def test_count_triggered_failure_does_not_raise_from_ingest(self, monkeypatch):
+        monkeypatch.setattr(ps, "_write", _failing_write())
+        p = EventPersistency()
+        PersistencySaver(
+            p, PersistencySaverConfig(path="memory://save_fail6/state", events_until_save=2)
+        )
+        for i in range(3):
+            p.ingest_event(event_id="E1", event_template="T", variables=[str(i)], named_variables={})
+        assert p.events_since_save == 3
+
+    def test_count_triggered_failure_retries_every_threshold_not_every_event(self, monkeypatch):
+        attempts: list[int] = []
+        monkeypatch.setattr(ps, "_write", _failing_write(attempts))
+        p = EventPersistency()
+        PersistencySaver(
+            p, PersistencySaverConfig(path="memory://save_fail7/state", events_until_save=2)
+        )
+        for i in range(6):
+            p.ingest_event(event_id="E1", event_template="T", variables=[str(i)], named_variables={})
+        assert len(attempts) == 3  # at events 2, 4 and 6
+
+    def test_background_save_failure_logged_as_error(self, monkeypatch, caplog):
+        monkeypatch.setattr(ps, "_write", _failing_write())
+        p = EventPersistency()
+        PersistencySaver(
+            p, PersistencySaverConfig(path="memory://save_fail8/state", events_until_save=1)
+        )
+        with caplog.at_level(logging.ERROR):
+            p.ingest_event(event_id="E1", event_template="T", variables=["x"], named_variables={})
+        assert any(
+            r.levelno == logging.ERROR and "Permission denied" in r.getMessage() for r in caplog.records
+        )
+
+
+class TestStandaloneSaveLoad:
+    def test_save_creates_metadata(self):
+        p = _make_persistency_with_data()
+        standalone_save(p, "memory://standalone_save1/state")
+        fs = fsspec.filesystem("memory")
+        assert fs.exists("standalone_save1/state/metadata.json")
+
+    def test_save_does_not_reset_events_since_save(self):
+        # Module-level save() (used by export_state) is a plain snapshot and
+        # must NOT touch the save counter — only PersistencySaver.save() does.
+        p = _make_persistency_with_data()
+        assert p._events_since_save == 3
+        standalone_save(p, "memory://standalone_save3/state")
+        assert p._events_since_save == 3
+
+    def test_load_restores_events_seen(self):
+        p = _make_persistency_with_data()
+        standalone_save(p, "memory://standalone_load1/state")
+        p2 = EventPersistency()
+        standalone_load(p2, "memory://standalone_load1/state")
+        assert "E1" in p2.get_events_seen()
+        assert "E2" in p2.get_events_seen()
+
+    def test_load_raises_when_missing(self):
+        p = EventPersistency()
+        with pytest.raises(PersistencyLoadError):
+            standalone_load(p, "memory://nonexistent_standalone/state")
+
+    def test_exported_from_package(self):
+        assert callable(persistency.save)
+        assert callable(persistency.load)
+
+    def test_save_returns_bytes_when_no_path(self):
+        p = _make_persistency_with_data()
+        result = standalone_save(p)
+        assert isinstance(result, bytes)
+        assert len(result) > 0
+
+    def test_save_bytes_is_zip(self):
+        p = _make_persistency_with_data()
+        data = standalone_save(p)
+        assert zipfile.is_zipfile(io.BytesIO(data))
+
+    def test_save_path_returns_none(self):
+        p = _make_persistency_with_data()
+        result = standalone_save(p, "memory://save_returns_none/state")
+        assert result is None
+
+    def test_load_from_bytes_restores_events_seen(self):
+        p = _make_persistency_with_data()
+        data = standalone_save(p)
+        p2 = EventPersistency()
+        standalone_load(p2, data)
+        assert "E1" in p2.get_events_seen()
+        assert "E2" in p2.get_events_seen()
+
+    def test_load_from_bytes_restores_event_data(self):
+        p = _make_persistency_with_data()
+        data = standalone_save(p)
+        p2 = EventPersistency()
+        standalone_load(p2, data)
+        assert len(p2.get_event_data("E1")) == 1
+
+
+class TestPersistencySaverThreadSafety:
+    def test_load_with_running_timer_does_not_raise(self, monkeypatch):
+        p = _make_persistency_with_data()
+        path = "memory://threadsafe_test/state"
+        # Save initial state
+        PersistencySaver(p, PersistencySaverConfig(path=path)).save()
+        # Start a saver with a fast timer and wait until it has written once
+        writes: list[int] = []
+        write = ps._write
+
+        def counting_write(*args):
+            writes.append(1)
+            write(*args)
+
+        monkeypatch.setattr(ps, "_write", counting_write)
+        saver = PersistencySaver(p, PersistencySaverConfig(path=path, save_interval_seconds=0))
+        saver.start()
+        wait_until(lambda: writes)
+        # Load into a second persistency while first saver's timer is firing
+        p2 = EventPersistency()
+        PersistencySaver(p2, PersistencySaverConfig(path=path)).load()
+        saver.stop()
+        assert "E1" in p2.get_events_seen()
+
+
+def test_persistency_load_error_is_exception():
+    err = PersistencyLoadError("test error")
+    assert isinstance(err, Exception)
+    assert str(err) == "test error"
+
+
+class TestPersistencySaverBrokenState:
+    """A saved state that cannot be restored raises PersistencyLoadError."""
+
+    ROOT = "corrupt/state"
+
+    def _saved(self) -> fsspec.AbstractFileSystem:
+        saver, _ = _memory_saver(f"memory://{self.ROOT}")
+        saver.save()
+        return fsspec.filesystem("memory")
+
+    def _load(self) -> None:
+        PersistencySaver(EventPersistency(), PersistencySaverConfig(path=f"memory://{self.ROOT}")).load()
+
+    def test_an_unknown_tracker_type(self):
+        fs = self._saved()
+        metadata = json.loads(fs.cat(f"{self.ROOT}/metadata.json"))
+        metadata["event_backends"]["E1"] = "NoSuchTracker"
+        fs.pipe(f"{self.ROOT}/metadata.json", json.dumps(metadata).encode())
+        with pytest.raises(PersistencyLoadError, match="Unknown backend 'NoSuchTracker'"):
+            self._load()
+
+    def test_a_corrupt_event_file(self):
+        fs = self._saved()
+        fs.pipe(f"{self.ROOT}/events/E1.msgpack", b"not msgpack")
+        with pytest.raises(PersistencyLoadError, match="Failed to restore state"):
+            self._load()
+
+    def test_metadata_without_its_fields(self):
+        fs = self._saved()
+        fs.pipe(f"{self.ROOT}/metadata.json", b'{"version": 1}')
+        with pytest.raises(PersistencyLoadError, match="Failed to restore state"):
+            self._load()
+
+
+class TestPersistencySaverStartStop:
+    def test_stop_without_start_saves_nothing(self):
+        saver, _ = _memory_saver("memory://never_started/state")
+        saver.stop()
+        assert not fsspec.filesystem("memory").exists("never_started/state/metadata.json")
+
+    def test_start_outside_the_main_thread_skips_the_signal_handler(self):
+        """signal.signal() only works in the main thread; the saver starts
+        anyway and stop() still saves."""
+        saver, _ = _memory_saver("memory://worker_thread/state")
+        worker = threading.Thread(target=saver.start)
+        worker.start()
+        worker.join()
+
+        assert saver._timer is not None and saver._timer.is_alive()
+        saver.stop()
+        assert fsspec.filesystem("memory").exists("worker_thread/state/metadata.json")
+
+    def test_status_tolerates_unreadable_metadata(self, caplog):
+        saver, _ = _memory_saver("memory://bad_meta/state")
+        fsspec.filesystem("memory").pipe("bad_meta/state/metadata.json", b"{not json")
+        with caplog.at_level(logging.WARNING):
+            status = saver.get_status()
+        assert status["last_saved_at"] is None
+        assert "could not read metadata.json" in caplog.text
