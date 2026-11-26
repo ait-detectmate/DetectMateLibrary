@@ -102,7 +102,7 @@ class MyParser(CoreParser):
 
 ## Testing parsers
 
-Unit test `parse()` directly using `ParserSchema` objects:
+Test `parse()` directly with a `LogSchema` input and a `ParserSchema` output.
 
 ```python title="Testing parser"
 from detectmatelibrary.parsers.my_parser import MyParser
@@ -126,11 +126,13 @@ def test_my_parser_parse():
 - [Template Tree Matcher](parsers/template_tree_matcher.md): matches logs against a predefined set of `<*>` templates using a tree structure.
 - [LogBatcher Parser](parsers/logbatcher_parser.md): LLM-based parser that infers templates from raw logs with no training data.
 - [Drain parser](parsers/drain_parser.md): Parser inspired by [Drain Publication](https://ieeexplore.ieee.org/document/8029742).
+- [Brain Parser](parsers/brain.md) groups logs by token frequency to learn templates.
+- [AECID-PG Parser](parsers/aecid_pg.md) learns templates by pruning a tree of token sequences.
 - [Auto parser](parsers/auto_parser.md): The auto parser uses a brute-force strategy: it iterates through every log-type record in the internal dataset and chooses the regex and templates that best matches the provided logs.
 
 ### Common parameters (all parsers)
 
-There are some parameters, that **every** parser inherits from `CoreParserConfig`/`CoreConfig`/`BasicConfig`, regardless of what it does. The other parameters, that are **specific** for the respective parser, are explained right at the parsers documentation page, later on.
+All parsers inherit parameters from `CoreParserConfig`, `CoreConfig`, and `BasicConfig`. Each parser’s page explains its specific parameters.
 
 <!-- Start common_arguments -->
 ???+ note "Top level"
@@ -146,12 +148,25 @@ There are some parameters, that **every** parser inherits from `CoreParserConfig
     | `start_id` | integer | 10 | Number used to start the unique ID generator. |
     | `data_use_training` | integer, null | None | Number of logs used for training. None skips training. |
     | `data_use_configure` | integer, null | None | Number of logs used for the configuration step. None skips it. |
-    | `use_config_data_as_training` | boolean | True | Combine the configured data in the training process if True. |
+    | `use_config_data_as_training` | boolean | True | Reuse configuration records as training data. |
     | `train_buffer_max_records` | integer | 100000 | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
     | `connector_name` | string, null | None | Add a connector to the output schema. |
     | `connector_url` | string, null | None | Set up the URL of the connector for the output schema. |
-    | `log_format` | string, null | None | fitting description yet to find |
-    | `time_format` | string, null | None | fitting description yet to find |
+    | `log_format` | string, null | None | Pattern with named fields such as `<Time>` and `<Content>` for splitting a raw log. |
+    | `time_format` | string, null | None | Format used to parse the timestamp field. |
     | `log_source` | string, null | None | Process only inputs of the same log source. |
 <!-- End common_arguments -->
+
+### Parser generators
+
+Drain, Brain, and AECID-PG use `ParserGenerator` to learn templates from buffered logs and merge templates during [federation](federation.md). Their configs inherit these additional fields from `ParserGeneratorConfig`. Each parser defines its own default `Finetune` search grid. The search runs when `auto_config` is enabled and `data_use_configure` is set.
+
+<!-- Start parser_generator_arguments -->
+???+ note "params"
+
+    | Field | Type | Default | Description |
+    |---|---|---|---|
+    | `reset_in_post_train` | boolean | False | Clear buffered training logs after generating templates. |
+    | `Finetune` | array | [] | Candidate [parameter, values] pairs for automatic configuration. |
+<!-- End parser_generator_arguments -->

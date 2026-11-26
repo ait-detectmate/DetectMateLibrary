@@ -1,19 +1,17 @@
 # Data Buffer [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/utils/data_buffer.py)]
 
-The data buffer is an auxiliary method that can be used in all the components. It takes the stream data and formats it to the given specifications.
-
-It has different configuration states to configure its behaviour.
+Components use the data buffer to process streaming input one item at a time, in batches, or in sliding windows.
 
 | Type   | State   | Description |
 |--------|---------|-------------|
-| **No buffer** | BufferMode.NO_BUF | Returns one value at the time. |
-| **Batch** | BufferMode.BATCH | Returns values by batches.|
-| **Window**| BufferMode.WINDOW | Returns values by time windows. |
+| **No buffer** | BufferMode.NO_BUF | Returns one value at a time. |
+| **Batch** | BufferMode.BATCH | Returns values in batches. |
+| **Window** | BufferMode.WINDOW | Returns values in sliding windows. |
 
 
 ## Examples
 
-Code examples to show the behaviour of the **DataBuffer** class.
+These examples show how `DataBuffer` works in each mode.
 
 ### No Buffer mode
 ```python title="No Buffer"

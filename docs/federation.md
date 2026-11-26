@@ -13,7 +13,7 @@ def aggregate_strategy(self, components: set["FedOperations"]) -> None:
     """(Federation only) Define how to aggregate a set of federated components."""
 
 def finalize_federation(self) -> None:
-    """(Federation only) Liberate memory from federation"""
+    """Release resources used during federation."""
 ```
 
 The tracker detectors (subclasses of `base_detectors.TrackerDetector`: New Event, New Value, New Value Combo, Value Range, Charset, Event Sequence, SCVS and ECVC) implement all four in `TrackerDetector`, which is the reference implementation. Set `allow_fed: true` in their `params` to enable it.

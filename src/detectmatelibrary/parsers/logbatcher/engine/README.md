@@ -62,8 +62,10 @@ Note that if you find the access to specific API versions is lost, please refer 
 To ensure the long-term reusability of LogBatcher, we recommend using OpenAI's latest released models. For example, as indicated on [Open AI](https://platform.openai.com/docs/deprecations), the GPT-3.5 series is soon to be deprecated, and it is recommended to switch to the newer gpt-4o-mini model. Additionally, we also support the open-source LLMs as the base model. You can use the API provided by [Together AI](https://www.together.ai/) to replace LogBatcher's base model with their commercially available open-source models (such as LLama 3.1, etc.).
 
 ```json
-"api_key_from_openai": "<OpenAI_API_KEY>",
-"api_key_from_together":"<Together_API_KEY>",
+{
+  "api_key_from_openai": "<OpenAI_API_KEY>",
+  "api_key_from_together": "<Together_API_KEY>"
+}
 ```
 
 _To run with docker:_

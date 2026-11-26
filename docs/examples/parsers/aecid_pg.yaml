@@ -1,0 +1,6 @@
+parsers:
+  AECIDPGParser:
+    method_type: aecid_pg_parser
+    params:
+      data_use_training: 2
+      theta_1: 0.6

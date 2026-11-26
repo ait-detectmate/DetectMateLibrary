@@ -1,7 +1,7 @@
 from detectmatelibrary.common._core_op._fed_component import FedOperations
 from detectmatelibrary.common.detector import CoreDetector, CoreDetectorConfig
-from detectmatelibrary.base_detectors._persist import PersistConfig, load_state, save_state, start_saver
-from detectmatelibrary.base_detectors._stability import StabilityAutoConfigParams, TimestampReader
+from detectmatelibrary.bases.base_detectors._persist import PersistConfig, load_state, save_state, start_saver
+from detectmatelibrary.bases.base_detectors._stability import StabilityAutoConfigParams, TimestampReader
 
 from detectmatelibrary.utils.data_buffer import BufferMode
 from detectmatelibrary.utils.persistency.data_structures.trackers.stability import ClassificationMethods

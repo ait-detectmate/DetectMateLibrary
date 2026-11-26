@@ -17,6 +17,10 @@ Input and output schemas in the pipeline
 | **Input**  | [LogSchema](../schemas.md) | Unstructured log   |
 | **Output** | [ParserSchema](../schemas.md) | Structured log   |
 
+| Learns from training data | Auto-configuration | Needs `events` | Federation |
+|---|---|---|---|
+| ✅ | ✅  | ❌  | ❌ |
+
 !!! warning "Not yet stable"
     This parser is not yet in a stable release and may behave differently across platforms or hardware.
 
@@ -56,23 +60,23 @@ All parameters this parser accepts, grouped by the YAML block they go in. **Scop
 
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
-    | `method_type` | string | auto_parser | shared | fitting description yet to find |
+    | `method_type` | string | auto_parser | shared | Identifies the Auto Parser method. |
     | `auto_config` | boolean | False | shared | Runs the configuration step before the training process. |
 
 ???+ note "params"
 
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
-    | `fix_type` | string |  | specific | fitting description yet to find |
+    | `fix_type` | string |  | specific | Built-in log type to use. An empty string lets the parser choose a type. |
     | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
     | `data_use_training` | integer, null | None | shared | Number of logs used for training. None skips training. |
     | `data_use_configure` | integer, null | None | shared | Number of logs used for the configuration step. None skips it. |
-    | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
+    | `use_config_data_as_training` | boolean | True | shared | Reuse configuration records as training data. |
     | `train_buffer_max_records` | integer | 100000 | shared | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
     | `connector_name` | string, null | None | shared | Add a connector to the output schema. |
     | `connector_url` | string, null | None | shared | Set up the URL of the connector for the output schema. |
-    | `log_format` | string, null | None | shared | fitting description yet to find |
-    | `time_format` | string, null | None | shared | fitting description yet to find |
+    | `log_format` | string, null | None | shared | Pattern with named fields such as `<Time>` and `<Content>` for splitting a raw log. |
+    | `time_format` | string, null | None | shared | Format used to parse the timestamp field. |
     | `log_source` | string, null | None | shared | Process only inputs of the same log source. |
 <!-- End arguments -->

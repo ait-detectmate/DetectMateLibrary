@@ -1,6 +1,6 @@
 from typing import Any, List
 
-from detectmatelibrary.base_detectors import CountVectorDetector, CountVectorDetectorConfig
+from detectmatelibrary.bases.base_detectors import CountVectorDetector, CountVectorDetectorConfig
 from detectmatelibrary.utils.sequence_encoding import count_events, encode_count_vec
 from detectmatelibrary import schemas
 

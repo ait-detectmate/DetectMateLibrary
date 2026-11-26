@@ -58,17 +58,7 @@ block in its config and `TrackerDetector` starts the saver.
 ## Quick start
 
 ```python title="Quick start"
-from detectmatelibrary.utils import persistency
-
-ep = persistency.EventPersistency()
-
-ep.ingest_event(
-    event_id="4624",
-    event_template="An account was successfully logged on.",
-    named_variables={"AccountName": "alice", "LogonType": "3"},
-)
-
-tracker = ep.get_event_data("4624")  # or ep["4624"]
+--8<-- "docs/examples/others/persistency.py:example_1"
 ```
 
 That snippet covers the whole in-memory API: pick a backend class, ingest
@@ -88,14 +78,7 @@ events, query state.
 Common methods:
 
 ```python title="Quick start"
-ep.ingest_event(event_id, event_template, variables=..., named_variables=...)
-
-ep.get_event_data(event_id)        # backend for a single event
-ep.get_events_data()               # dict[event_id -> backend]
-ep.get_event_template(event_id)
-ep.get_event_templates()
-ep.get_events_seen()               # all event IDs ever ingested
-ep[event_id]                       # alias for get_event_data
+--8<-- "docs/examples/others/persistency.py:example_2"
 ```
 
 ### Available backends
@@ -104,25 +87,12 @@ ep[event_id]                       # alias for get_event_data
 |---|---|
 | `persistency.EventStabilityTracker` | You only care about how variables behave over time (`STATIC` / `STABLE` / `UNSTABLE` / `RANDOM`). Cheapest memory footprint. |
 
-All three are re-exported from the top of the package: `persistency.X` is the
-canonical import; the deeply nested submodules are an implementation detail.
+The persistency package exports `EventStabilityTracker` directly.
 
 ### Persisting to disk
 
 ```python title="Persistency to disk"
-saver = persistency.PersistencySaver(
-    ep,
-    persistency.PersistencySaverConfig(
-        path="./state/my-detector",
-        save_interval_seconds=300,
-        events_until_save=10_000,     # save after this many ingests, too
-        auto_load=False,
-        storage_options={},           # forwarded to fsspec
-    ),
-)
-saver.start()
-# ... detector runs ...
-saver.stop()    # final flush, stops the background timer
+--8<-- "docs/examples/others/persistency.py:example_3"
 ```
 
 `PersistencySaver.save()` is thread-safe, and `stop()` is idempotent. The two
@@ -139,11 +109,7 @@ another `events_until_save` events before retrying.
 #### Restoring state
 
 ```python title="Restoring state"
-saver = persistency.PersistencySaver(
-    ep,
-    persistency.PersistencySaverConfig(path="./state/my-detector", auto_load=True),
-)
-# ep is now pre-populated from disk
+--8<-- "docs/examples/others/persistency.py:example_4"
 ```
 
 If `auto_load=True` and no saved state exists, the constructor raises
@@ -156,19 +122,7 @@ For one-shot transfers (e.g. moving trained state to a new environment, or
 taking a manual snapshot), use the standalone functions directly:
 
 ```python title="Export and importint states"
-from detectmatelibrary.utils import persistency
-
-# Export to a file URI
-persistency.save(ep, "./snapshots/trained-state")
-
-# Export to bytes (no disk I/O; useful when sending state over a network API)
-data: bytes = persistency.save(ep)
-
-# Import from a file URI
-persistency.load(ep, "./snapshots/trained-state")
-
-# Import from bytes
-persistency.load(ep, data)
+--8<-- "docs/examples/others/persistency.py:example_5"
 ```
 
 `save` writes the same format as `PersistencySaver` and resets
@@ -189,17 +143,7 @@ the methods on the detector object directly, with no need to access
 `EventPersistency` internals:
 
 ```python title="Detector export-import"
-# Export to a file URI
-detector.export_state("./snapshots/my-detector")
-
-# Export to bytes (e.g. for an API response)
-data: bytes = detector.export_state()
-
-# Import from a file URI
-detector.import_state("./snapshots/my-detector")
-
-# Import from bytes (e.g. from an API request body)
-detector.import_state(data)
+--8<-- "docs/examples/others/persistency.py:example_6"
 ```
 
 Both methods are thread-safe: they hold the saver lock while a
@@ -217,7 +161,7 @@ credentials and tuning knobs go in `storage_options`.
 ## Using persistency inside a detector
 
 Detectors do not import `utils.persistency`. A detector that keeps state
-subclasses `base_detectors.TrackerDetector`, which owns the stores, the
+subclasses `bases.base_detectors.TrackerDetector`, which owns the stores, the
 `persist:` saver, `export_state()` / `import_state()` and federation. The
 tracker detectors are New Event, New Value, New Value Combo, Value Range,
 Charset, Event Sequence, Bigram Frequency, SCVS and ECVC; only they accept a
@@ -227,21 +171,7 @@ for the config schema.
 In detector code, the pattern is:
 
 ```python title="Detector with persistency"
-from detectmatelibrary.base_detectors import TrackerDetector, TrackerDetectorConfig
-
-class MyDetectorConfig(TrackerDetectorConfig):
-    method_type: str = "my_detector"
-
-class MyDetector(TrackerDetector):
-    def __init__(self, name="MyDetector", config=MyDetectorConfig()):
-        super().__init__(name=name, config=config)
-
-    def train(self, input_):
-        self._ingest(input_, variables={...}, event_id=input_["eventID"])
-
-    def detect(self, input_, output_):
-        tracker = self.persistency.get_events_data().get(input_["eventID"])
-        # compare against tracker to produce alerts
+--8<-- "docs/examples/others/persistency.py:example_7"
 ```
 
 `TrackerDetector` builds `self.persistency`, the store training and detection

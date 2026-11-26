@@ -33,18 +33,13 @@ Take this log line (from now on we refer to log messages as *lines*):
 User alice logged in from 192.168.0.5
 ```
 
-The static parts here are `User` and `logged in from`, because they don't change across logging statements.
-`alice` and `192.168.0.5` do change, as you can see in the next one:
+The words `User` and `logged in from` stay the same across log lines. The username and IP address can change, as in the next line.
 
 ```console title="Log example"
 User bob logged in from 10.0.0.2
 ```
 
-Now the name `alice` changed to `bob` for example.
-
-In DetectMate the static part is called the **template**, and the placeholders
-are marked with `<*>`. The variable parts are extracted into a separate list of
-**variables**.
+In DetectMate, the static parts and `<*>` placeholders form the **template**. The parser extracts the variable values into a separate list.
 
 Logs often include a prefix with metadata, such as a timestamp, log level, or
 hostname.
@@ -62,20 +57,17 @@ INFO [18-05-2005] hello I am a log about DetectMate getting started and about wh
 
 This line has three parts:
 
-- **`INFO`: the category of the message (the "log level").** Some other
-messages from the program could be for example `DEBUG` (fine-grained detail for developers) or `WARNING` (something looks off, but it's not a failure yet). So this part just gives you a hint how important this logging statement is.
+- **`INFO`** is the log level. `DEBUG` indicates detailed information for developers, and `WARNING` indicates a potential problem.
 
-- **`[18-05-2005]`: the timestamp,** i.e. when the message was written.
+- **`[18-05-2005]`** is the timestamp that records when the message was written.
 
-- **`hello I am a log...`: the actual text,** i.e. what the program wants to tell you.
+- **`hello I am a log...`** is the message text.
 
 The log level sits at the very front because it acts as a filter: in real systems thousands of lines pile up every second, so you can say e.g. "only show me `WARNING` and worse." That way both humans and machines can instantly decide whether a line is relevant.
 
 ## What is a parsed log?
 
-A parsed log is a raw log that has been decomposed into structured fields: the
-log is split at the right points and each part is labelled with what it is
-(template, variables, timestamp, and so on).
+A parsed log stores structured fields such as the template, variables, and timestamp.
 
 The pattern that tells the parser how to split a line is called the
 **`log_format`**. It names the fields in the order they appear in the raw line,

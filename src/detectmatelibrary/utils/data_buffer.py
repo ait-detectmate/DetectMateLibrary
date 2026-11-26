@@ -10,15 +10,15 @@ class BufferMode(Enum):
 
     def describe(self) -> str:
         descriptions = {
-            "no_buf": "Return one value at the time.",
-            "batch": "Return values by batches.",
-            "window": "Return values by time windows."
+            "no_buf": "Return one value at a time.",
+            "batch": "Return values in batches.",
+            "window": "Return values in sliding windows."
         }
         return descriptions[self.value]
 
 
 class ArgsBuffer:
-    """Arguments for DataBuffer class."""
+    """Configuration for the data buffer."""
     def __init__(
         self,
         mode: BufferMode = BufferMode.NO_BUF,
@@ -52,14 +52,8 @@ class ArgsBuffer:
 
 
 class DataBuffer:
-    """
-    Buffer for managing incoming data in different modes:
-
-    Modes:
-    1. Batch buffer: Processes data_points in fixed-size batches.
-    2. Bulk buffer: Stores all data_points, processes them on flush.
-    3. Window buffer: Processes data_points in a sliding window of fixed size.
-    """
+    """Process incoming items one at a time, in fixed-size batches, or in
+    sliding windows."""
 
     def __init__(self, args: ArgsBuffer = ArgsBuffer(BufferMode.NO_BUF)) -> None:
         self.mode = args.mode

@@ -3,11 +3,11 @@
 
 ![UML](docs/img/logo.svg)
 
-DetectMate is a flexible, component-based library for parsing and log anomaly detection.
+DetectMate is a flexible, component-based library for log parsing and anomaly detection.
 
 ## Installation
 
-Download us from `Pip`!!
+Install the package with pip.
 
 ```bash
 pip install detectmatelibrary
@@ -15,18 +15,16 @@ pip install detectmatelibrary
 
 ## Documentation
 
-Main documentations:
-
 - [Library Documentation](https://ait-detectmate.github.io/DetectMateLibrary/latest/) (this repo)
 - [Service Documentation](https://ait-detectmate.github.io/DetectMateService/latest/)
 
 ## Contribution
 
-We're happily taking patches and other contributions. Please see the following links for how to get started:
+We welcome patches and other contributions. The GitHub workflow explains how to get started.
 
 - [GitHub Workflow](https://ait-detectmate.github.io/DetectMateLibrary/latest/contribution/)
 
-If you encounter any bugs, please create an issue on [Github](https://github.com/ait-detectmate/DetectMateLibrary/issues).
+If you find a bug, please open an issue. [GitHub Issues](https://github.com/ait-detectmate/DetectMateLibrary/issues)
 
 ## License
 

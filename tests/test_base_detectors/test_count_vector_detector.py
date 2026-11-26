@@ -1,5 +1,5 @@
-from detectmatelibrary.base_detectors import CountVectorDetector, CountVectorDetectorConfig
-from detectmatelibrary.base_detectors import count_vector_detector
+from detectmatelibrary.bases.base_detectors import CountVectorDetector, CountVectorDetectorConfig
+from detectmatelibrary.bases.base_detectors import count_vector_detector
 from detectmatelibrary.detectors import ecvc_detector
 from detectmatelibrary.detectors.ecvc_detector import ECVCDetector, ECVCDetectorConfig
 

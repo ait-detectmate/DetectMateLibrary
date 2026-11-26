@@ -4,7 +4,7 @@ from typing import Any, Literal, cast
 
 from pydantic import Field, NonNegativeFloat
 
-from detectmatelibrary.base_alert_aggregation import (
+from detectmatelibrary.bases.base_alert_aggregation import (
     DensityClusteringAggregation,
     DensityClusteringAggregationConfig,
 )
@@ -21,9 +21,8 @@ from detectmatelibrary.utils.data_buffer import BufferMode
 class AlertBERTAggregationConfig(DensityClusteringAggregationConfig):
     """Configuration of the AlertBERTAggregation class.
 
-    Besides the parameters of the alert aggregation this configuration
-    also determines the training of the masked-languge-model used to
-    obtain the alert embeddings.
+    This configuration covers alert aggregation and training for the
+    masked language model that produces alert embeddings.
     """
     # general
     method_type: str = Field(

@@ -1,6 +1,6 @@
 # LogID Count Alert Aggregation [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/alert_aggregation/logid_count.py)]
 
-The logID count alert aggregation tracks how many times each log ID appears in the alerts, and if it exceeds a specified threshold, it triggers the aggregation.
+The LogID Count aggregator counts occurrences of each log ID across alerts. It emits an aggregated record when a log ID reaches the configured threshold.
 
 ## In/out
 
@@ -17,9 +17,8 @@ The logID count alert aggregation tracks how many times each log ID appears in t
 
 ## Description
 
-A log ID counter stores, in a fixed-size table, the counts for different log IDs. If the count for any log ID from the Detector Schemas exceeds a defined threshold, it returns an alert aggregation.
+A fixed-size table stores the count for each log ID. When the table is full, a new log ID replaces the oldest entry.
 
-The fixed-size table operates as a FIFO: once it is full, it removes the oldest entry and inserts the new log ID.
 ## Example
 
 ```python title="Example"
@@ -36,7 +35,7 @@ The configuration used by the example above. It sets only what this use case nee
 
 ## Configuration arguments
 
-All parameters this detector accepts, grouped by the YAML block they go in. **Scope** tells whether a parameter is `specific` to this detector or `shared` with other detectors (see the [Alert Aggregation overview](../alert_aggregator.md#common-parameters-all-alert-aggregators)). Where this detector changes a shared default, the shared value is shown in brackets.
+Parameters are grouped by YAML block. **Scope** indicates whether a parameter is specific to this aggregator or shared with other aggregators. When a shared default is overridden, the base default appears in parentheses. [Shared parameters](../alert_aggregator.md#common-parameters-all-alert-aggregators)
 
 <!-- Start arguments -->
 ??? note "Top level"
@@ -50,12 +49,12 @@ All parameters this detector accepts, grouped by the YAML block they go in. **Sc
 
     | Field | Type | Default | Scope | Description |
     |---|---|---|---|---|
-    | `max_count` | integer | 4 | specific | Max count of alerts in a specific logID. |
-    | `max_memory` | integer | 5000 | specific | Max number of logIDs store in the count memory. |
+    | `max_count` | integer | 4 | specific | Alert count threshold for a log ID. |
+    | `max_memory` | integer | 5000 | specific | Maximum number of log IDs tracked at once. |
     | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
     | `data_use_training` | integer, null | None | shared | Number of logs used for training. None skips training. |
     | `data_use_configure` | integer, null | None | shared | Number of logs used for the configuration step. None skips it. |
-    | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
+    | `use_config_data_as_training` | boolean | True | shared | Reuse configuration records as training data. |
     | `train_buffer_max_records` | integer | 100000 | shared | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
     | `connector_name` | string, null | None | shared | Add a connector to the output schema. |

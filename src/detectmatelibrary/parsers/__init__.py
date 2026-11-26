@@ -28,6 +28,20 @@ except ImportError:
 else:
     __all__.extend(["TemplateCppTreeMatcher", "TemplateCppTreeMatcherConfig"])
 
+try:
+    from .brain import BrainParser, BrainConfig
+except ImportError:
+    pass
+else:
+    __all__.extend(["BrainParser", "BrainConfig"])
+
+try:
+    from .aecid_pg import AECIDPGParser, AECIDPGConfig
+except ImportError:
+    pass
+else:
+    __all__.extend(["AECIDPGParser", "AECIDPGConfig"])
+
 from .template_matcher import MatcherParser, MatcherParserConfig
 
 __all__.extend(["MatcherParser", "MatcherParserConfig"])

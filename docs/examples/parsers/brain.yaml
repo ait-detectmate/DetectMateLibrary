@@ -1,0 +1,5 @@
+parsers:
+  BrainParser:
+    method_type: brain_parser
+    params:
+      data_use_training: 2

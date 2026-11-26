@@ -18,7 +18,9 @@ Schemas are used to transfer data between components. Each schema implements the
 
 ![UML](img/uml_schemas.svg)
 
-All concrete schema classes extend `BaseSchema`. The `Connector` classes make it possible to read schema metadata from databases and write it to them, which can then be used for downstream tasks such as monitoring or data analysis. The diagram below illustrates a use case showing how schemas can be used. The Service sends bytes to the Library as input; these bytes are deserialized and initialized as a Protobuf instance within the schema. This Protobuf object can be handled like a dictionary and manipulated through an instance that inherits from `CoreComponent`. Once processing is complete, the schema can be returned to the Service as bytes. If a `Connector` is configured, the schema can be automatically stored in a database, and a Python script can simply initialize a new schema and retrieve the information from the database.
+All concrete schema classes extend `BaseSchema`. Connectors let you read and write schema data in databases for downstream tasks such as monitoring and data analysis.
+
+The diagram shows how the Service sends bytes to the Library. The Library deserializes those bytes into a Protobuf-backed schema that a `CoreComponent` can process through its dictionary-like interface. After processing, the Library can serialize the schema and return it to the Service. With a connector configured, a script can also retrieve a stored record by initializing a schema that uses the same connector.
 
 
 
@@ -99,7 +101,7 @@ Fields:
 | logID | string | Unique identifier for the raw log. |
 | log | string | Raw log text. |
 | logSource | string | Source of the log (file, topic, etc.). |
-| hostname | string | Hostname where log originated. |
+| hostname | string | Hostname where the log originated. |
 
 ### ParserSchema
 Output of a Parser. Contains parsed fields and template information.
@@ -117,7 +119,7 @@ Fields:
 | logID | string | Original raw log ID (link to LogSchema). |
 | log | string | Raw log text. |
 | headerVariables | map<string,string> | Key/value pairs from format extraction. |
-| receivedTimestamp | int64 | Timestamp when log was received. |
+| receivedTimestamp | int64 | Timestamp when the log was received. |
 | parsedTimestamp | int64 | Timestamp when parsing completed. |
 
 ### DetectorSchema
@@ -135,7 +137,7 @@ Fields:
 | score | float | Confidence/score (if applicable). |
 | logTimestamps | repeated int64 | Timestamps extracted from logs. |
 | description | string | Human-readable description of the alert. |
-| receivedTimestamp | int64 | When inputs were received by detector. |
+| receivedTimestamp | int64 | When the detector received the input. |
 | alertDetails | map<string,string> | Additional alert metadata. |
 
 ### AggregateSchema
@@ -145,7 +147,7 @@ Fields:
 
 | Field | Type | Notes |
 |---|---|---|
-| detectorIDs | repeated string | List of detector instance identifier. |
+| detectorIDs | repeated string | List of detector instance identifiers. |
 | detectorTypes | repeated string | List of type/name of detectors. |
 | alertIDs | repeated string | List of unique alert identifiers. |
 | aggregatedTimestamp | int64 | When the aggregation was produced. |

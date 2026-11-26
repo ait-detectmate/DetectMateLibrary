@@ -14,11 +14,11 @@ class LogBatcherParserConfig(CoreParserConfig):
 
     method_type: str = Field(default="logbatcher_parser", description="Indicates what type of method it is.")
     model: str = Field(
-        default="gpt-4o-mini", description="fitting description yet to find"
+        default="gpt-4o-mini", description="Model used to infer templates on cache misses."
     )
-    api_key: str = Field(default="", description="fitting description yet to find")
-    base_url: str = Field(default="", description="fitting description yet to find")
-    batch_size: int = Field(default=10, description="fitting description yet to find")
+    api_key: str = Field(default="", description="API key for the model provider.")
+    base_url: str = Field(default="", description="Base URL of the OpenAI-compatible API.")
+    batch_size: int = Field(default=10, description="Maximum number of logs sampled for a model request.")
 
 
 class LogBatcherParser(CoreParser):

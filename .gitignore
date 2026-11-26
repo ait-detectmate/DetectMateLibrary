@@ -207,3 +207,4 @@ docs/design/
 
 # Leaked local persistency state (see PersistConfig default ./state)
 /state/
+snapshots/*

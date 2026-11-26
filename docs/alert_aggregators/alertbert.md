@@ -1,6 +1,6 @@
 # AlertBERT Alert Aggregation [[Code](https://github.com/ait-detectmate/DetectMateLibrary/blob/main/src/detectmatelibrary/alert_aggregation/alertbert.py)]
 
-The AlertBERT alert aggregator implements alert aggregation by grouping alerts according to their time-differences and embeddings of them obtained through masked-language-models, as proposed by [Karner et al.](https://doi.org/10.48550/arXiv.2602.06534).
+AlertBERT groups alerts using time differences and embeddings from a masked language model. [Karner et al.](https://doi.org/10.48550/arXiv.2602.06534)
 
 ## In/out
 
@@ -17,15 +17,11 @@ The AlertBERT alert aggregator implements alert aggregation by grouping alerts a
 
 ## Description
 
-This class implements alert aggregation by considering the differences between the timestamps of alerts and embeddings of alerts created by masked-language-models.
-
-To this end, the method has two threshold parameters $\delta$ and $\theta$.
+The method uses two thresholds, $\delta$ and $\theta$.
 Two alerts will be assigned to the same group if the time difference between them is $\leq\delta$ and the cosine distance of their embeddings is $\leq\delta/\theta$.
-The time difference is computed based on the timestamps of the last logs associated with each alert as these determine the earliest time at which the alert was detected.
-Important: It is assumed that the alerts arrive in order of their timestamps!
+The aggregator computes the time difference between the last logs associated with the two alerts. It expects alerts in timestamp order.
 
-To obtain the embeddings, in the configuration one can either specify the path of a saved masked-language-model, or one can specify the number of alerts to use as training data and the features of the alerts to use as input to the model.
-Optionally, it is possible to add features to alerts in a pre-processing step by assigning them to the field `alert['alertDetails']['<feature-name>']`, which can then be specified in the configuration as `'alertDetails:<feature-name>`.
+To obtain embeddings, specify the path to a saved masked language model or configure the number of training alerts and the features to use as model inputs. To add a feature during preprocessing, assign it to `alert['alertDetails']['<feature-name>']` and refer to it in the configuration as `alertDetails:<feature-name>`.
 
 ## Example
 
@@ -90,7 +86,7 @@ All parameters this alert aggregator accepts, grouped by the YAML block they go 
     | `start_id` | integer | 10 | shared | Number used to start the unique ID generator. |
     | `data_use_training` | integer, null | None | shared | Number of logs used for training. None skips training. |
     | `data_use_configure` | integer, null | None | shared | Number of logs used for the configuration step. None skips it. |
-    | `use_config_data_as_training` | boolean | True | shared | Combine the configured data in the training process if True. |
+    | `use_config_data_as_training` | boolean | True | shared | Reuse configuration records as training data. |
     | `train_buffer_max_records` | integer | 100000 | shared | Configure records kept in memory for training (use_config_data_as_training) before the buffer spills to Parquet files on disk, in parts of this many records. |
     | `train_buffer_dir` | string, null | None | shared | Local directory for the spilled training buffer. None uses the system temp directory (TMPDIR). Each spill goes to a private detectmate-train-* directory, removed after training reads it; a killed process leaves it behind. |
     | `connector_name` | string, null | None | shared | Add a connector to the output schema. |

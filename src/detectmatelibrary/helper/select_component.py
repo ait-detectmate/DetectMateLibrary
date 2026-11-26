@@ -54,7 +54,7 @@ def selectComponent(
 
     component = _find_component_from_type(method_type, component_type=component_type)
     if component is None:
-        raise ValueError(f"{method_type} form {component_type} not found.")
+        raise ValueError(f"Unknown method type {method_type!r} for {component_type}.")
 
     return component(config=config)
 
