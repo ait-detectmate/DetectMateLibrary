@@ -18,7 +18,7 @@ class TestSCVSDetector:
         input_ = [
             schemas.ParserSchema({"eventID": i}) for i in [0, 1, 4, 0]
         ]
-        expected = tuple([2, 1, 0, 0, 1])
+        expected = tuple([0, 0, 2, 1, 0, 0, 1])
 
         assert build_count_vec(input_) == expected
 

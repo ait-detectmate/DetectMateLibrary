@@ -19,6 +19,8 @@ cv_i = \sum_{j=1}^{n} \mathbf{1}(x_j = event\_id_i)
 
 where \(event\_id_i\) is the event ID assigned to position \(i\) of the vector, and \( x_j\) is the event ID at position \(j\) of the sequence.
 
+Lines a parser could not resolve keep their own positions ahead of the real event IDs: one for eventID -2 (no message field) and one for eventID -1 (no template matched), so an unparsed line never counts as another event. SCVS and ECVC count a window the same way.
+
 
 ## In/out
 
