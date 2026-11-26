@@ -543,6 +543,12 @@ class TestTrainBufferSpill:
         with pytest.raises(pydantic.ValidationError):
             CoreConfig(train_buffer_max_records=0)
 
+    def test_core_still_exports_train_buffer(self) -> None:
+        """TrainBuffer moved to _core_op; the old import path keeps working."""
+        from detectmatelibrary.common.core import TrainBuffer
+        from detectmatelibrary.common._core_op._train_buffer import TrainBuffer as Moved
+        assert TrainBuffer is Moved
+
     def test_spilled_configure_data_trains_in_order(self, tmp_path) -> None:
         config = MockConfigWithTraining(
             data_use_configure=7, data_use_training=2, use_config_data_as_training=True,

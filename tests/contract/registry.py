@@ -176,18 +176,35 @@ def _repeating(n: int) -> Callable[[], list[sc.ParserSchema]]:
     return lambda: event_stream([1, 2, 3, 4] * n)
 
 
+# Event streams for the sequence and count-vector detectors (windows of 2). Each
+# half of the training data teaches windows the normal probes need, (1, 2) and
+# (2, 1) the first, (1, 3) and (3, 1) the second, so a federation that loses
+# either half is caught. The normal probes avoid the window (1, 1) across the
+# two halves, which only a detector trained on all of it has seen.
+def _two_halves() -> list[sc.ParserSchema]:
+    return event_stream([1, 2, 1] + [1, 3, 1])
+
+
+def _needs_both_halves() -> list[sc.ParserSchema]:
+    return event_stream([2, 1, 3, 1], start=10)
+
+
+def _unseen_event() -> list[sc.ParserSchema]:
+    return event_stream([4, 4], start=20)
+
+
 DETECTORS = [
     DetectorCase(detectors.NewValueDetector, events=_variable_events("user"), tracker=True, auto_config=True,
                  train=lambda: [parsed_log(0, 1, ("alice",)), parsed_log(1, 1, ("bob",))],
-                 normal=lambda: [parsed_log(10, 1, ("alice",))],
+                 normal=lambda: [parsed_log(10, 1, ("alice",)), parsed_log(12, 1, ("bob",))],
                  anomalous=lambda: [parsed_log(11, 1, ("mallory",))]),
     DetectorCase(detectors.NewValueComboDetector, events=_variable_events("user", "host"), tracker=True,
                  auto_config=True,
                  train=lambda: [parsed_log(0, 1, ("alice", "h1")), parsed_log(1, 1, ("bob", "h2"))],
-                 normal=lambda: [parsed_log(10, 1, ("alice", "h1"))],
+                 normal=lambda: [parsed_log(10, 1, ("alice", "h1")), parsed_log(12, 1, ("bob", "h2"))],
                  anomalous=lambda: [parsed_log(11, 1, ("alice", "h2"))]),
     DetectorCase(detectors.CharsetDetector, events=_variable_events("user"), tracker=True, auto_config=True,
-                 train=lambda: [parsed_log(0, 1, ("abc",)), parsed_log(1, 1, ("cab",))],
+                 train=lambda: [parsed_log(0, 1, ("ab",)), parsed_log(1, 1, ("bc",))],
                  normal=lambda: [parsed_log(10, 1, ("bca",))],
                  anomalous=lambda: [parsed_log(11, 1, ("ab!",))]),
     DetectorCase(detectors.ValueRangeDetector, events=_variable_events("size"), tracker=True,
@@ -202,22 +219,17 @@ DETECTORS = [
                  normal=lambda: [parsed_log(10, 1, ("INFO",))],
                  anomalous=lambda: [parsed_log(11, 1, ("CRITICAL",))]),
     DetectorCase(detectors.NewEventDetector, tracker=True, auto_config=True,
-                 train=lambda: event_stream([1, 2, 1, 2]),
-                 normal=lambda: event_stream([1], start=10), anomalous=lambda: event_stream([3], start=11)),
+                 train=lambda: event_stream([1, 1, 2, 2]),
+                 normal=lambda: event_stream([1, 2], start=10),
+                 anomalous=lambda: event_stream([3], start=12)),
     DetectorCase(detectors.EventSequenceDetector, params={"fixed_window_size": 2}, tracker=True,
                  auto_config=True, session=True,
-                 train=lambda: event_stream([1, 2, 1, 2, 1, 2]),
-                 normal=lambda: event_stream([1, 2, 1], start=10),
-                 anomalous=lambda: event_stream([1, 2, 3], start=20)),
+                 train=_two_halves, normal=_needs_both_halves, anomalous=_unseen_event),
     DetectorCase(detectors.SCVSDetector, params={"window_size": 2}, tracker=True, window=2, session=True,
-                 train=lambda: event_stream([1, 2, 1, 2, 1, 2]),
-                 normal=lambda: event_stream([1, 2, 1], start=10),
-                 anomalous=lambda: event_stream([3, 3], start=20)),
+                 train=_two_halves, normal=_needs_both_halves, anomalous=_unseen_event),
     DetectorCase(detectors.ECVCDetector, params={"window_size": 2, "validation_per": 0.0}, tracker=True,
                  window=2, session=True,
-                 train=lambda: event_stream([1, 2, 1, 2, 1, 2]),
-                 normal=lambda: event_stream([1, 2, 1], start=10),
-                 anomalous=lambda: event_stream([3, 3], start=20)),
+                 train=_two_halves, normal=_needs_both_halves, anomalous=_unseen_event),
     DetectorCase(detectors.RandomDetector,
                  events={1: {"instance": {"variables": [
                      {"pos": 0, "name": "user", "params": {"threshold": 0.0}}]}}},

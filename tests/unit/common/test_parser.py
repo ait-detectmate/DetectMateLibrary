@@ -34,6 +34,13 @@ class NoneMockupParser(CoreParser):
         return self.value
 
 
+class MutatingParser(MockupParser):
+    """A parser that writes to its input."""
+    def parse(self, input_, output_):
+        input_.log = "This message was changed!"
+        super().parse(input_, output_)
+
+
 pytestmark = pytest.mark.usefixtures("frozen_timestamps")
 
 default_args = {
@@ -113,3 +120,14 @@ class TestCoreParser:
 
         assert parser.process(data) is None
         assert parser.process(data) is not None
+
+    def test_parse_cannot_change_the_callers_log(self) -> None:
+        """Process() hands parse() a copy: what parse() writes to its input
+        stays inside the parser."""
+        parser = MutatingParser(name="TestParser", config=MockupConfig())
+        data = sc.LogSchema({"logID": "1", "log": "This is a log."})
+
+        result = parser.process(data)
+
+        assert data.log == "This is a log."
+        assert result.log == "This is a log."

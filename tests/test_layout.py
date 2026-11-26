@@ -21,7 +21,7 @@ UNIT = TESTS / "unit"
 SRC = TESTS.parent / "src" / "detectmatelibrary"
 
 TOP_LEVEL = {
-    "__init__.py", "conftest.py", "compose.yaml", "test_layout.py", "README.md",
+    "__init__.py", "conftest.py", "compose.yaml", "test_layout.py", "README.md", "AGENTS.md",
     "support", "test_data", "unit", "contract", "integration", "e2e",
 }
 

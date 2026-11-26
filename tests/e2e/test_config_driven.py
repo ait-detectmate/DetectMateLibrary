@@ -1,7 +1,8 @@
 """Chain C7: components set up from config files only.
 
 A Pipeline loaded from a YAML file must give the outputs of the same
-pipeline built in Python (chain C2's golden file). A detector configured
+pipeline built in Python (chain C2's golden file; while bug B10 is open it
+holds only Charset's alerts, see tests/e2e/test_pipeline.py). A detector configured
 with named event IDs and named variables from a named-templates CSV,
 resolved by TemplateMatcher.compile_detector_config(), must get the config
 the positional names give, and find the labelled su/sudo anomalies.

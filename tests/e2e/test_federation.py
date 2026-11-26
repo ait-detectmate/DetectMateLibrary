@@ -67,20 +67,15 @@ def test_server_of_three_clients_raises_the_golden_alerts(name, join, audit_logs
     assert [list(output["logIDs"]) for output in outputs if output is not None] == golden["alerts"]
 
 
-def _learned(detector: TrackerDetector) -> dict:
-    """What each event's tracker learned, serialized (store equality ignores
-    it: bug B11)."""
-    return {event: tracker.dump() for event, tracker in detector.persistency.get_events_data().items()}
-
-
 @pytest.mark.slow
 @pytest.mark.parametrize("join", ["from_binary", "add"])
 @pytest.mark.parametrize("name", ["ECVCDetector", "SCVSDetector"])
 def test_count_vector_state_reaches_the_other_node(name, join, audit_logs):
     """ECVC and SCVS need post_train(), which an untrained server never runs,
     so for them the check is on the state: a copy (from_binary) or an
-    untrained peer (aggregate) of a detector trained on audit.log holds its
-    store, and for ECVC the count vectors and threshold built from it."""
+    untrained peer (aggregate) of a detector trained on audit.log holds the
+    windows it learned (kept in events_seen, not in per-event trackers), and
+    for ECVC the count vectors and threshold built from them."""
     golden = golden_files.read(f"audit/{name}")
     config = {"detectors": {name: {**golden["config"], "allow_fed": True}}}
     trained = getattr(detectors, name)(name=name, config=config)
@@ -94,7 +89,7 @@ def test_count_vector_state_reaches_the_other_node(name, join, audit_logs):
         (trained + other).aggregate()
 
     assert trained.persistency.get_events_seen()
-    assert _learned(other) == _learned(trained)
+    assert other.persistency.get_events_seen() == trained.persistency.get_events_seen()
     if name == "ECVCDetector":
         assert (other.count_vecs == trained.count_vecs).all()
         assert other.threshold == trained.threshold

@@ -61,12 +61,29 @@ class TestExportImport:
     @pytest.mark.parametrize("target", [None, "memory://contract/export"], ids=["bytes", "path"])
     def test_imported_state_gives_the_same_detections(self, case, target):
         trained = case.trained()
-        state = trained.export_state(target) or target
+        exported = trained.export_state(target)
+        if target is None:
+            assert isinstance(exported, bytes)
+            state = exported
+        else:
+            assert exported is None, "export_state(path) writes to the path and returns nothing"
+            state = target
 
         restored = case.build()
         restored.import_state(state)
 
         assert _detections(restored, case) == _expected(case)
+
+    def test_export_leaves_the_saver_cadence_alone(self, case):
+        """export_state() is a snapshot, not a save: it must not reset the
+        counter that times the background saver."""
+        detector = case.trained()
+        before = detector.persistency._events_since_save
+        assert before > 0
+
+        detector.export_state("memory://contract/export")
+
+        assert detector.persistency._events_since_save == before
 
     def test_missing_state_raises_and_keeps_the_learned_state(self, case):
         detector = case.trained()
@@ -94,9 +111,7 @@ class TestFederation:
         The detector that saw the end of the training data receives the
         other's state: its sliding window then matches the reference.
         """
-        train = case.train()
-        half = len(train) // 2
-        first, last = _trained_on(case, train[:half]), _trained_on(case, train[half:])
+        first, last = _halves(case)
 
         if join == "add":
             (last + first).aggregate()
@@ -107,9 +122,7 @@ class TestFederation:
         assert _detections(last, case) == _expected(case)
 
     def test_aggregate_returns_the_federated_state(self, case):
-        train = case.train()
-        half = len(train) // 2
-        first, last = _trained_on(case, train[:half]), _trained_on(case, train[half:])
+        first, last = _halves(case)
         last.stack(first)
 
         copy = case.build(allow_fed=True).from_binary(last.aggregate())
@@ -131,6 +144,23 @@ def _trained_on(case, records: list):
     for record in records:
         detector.process(record)
     return detector
+
+
+def _halves(case) -> tuple:
+    """Two detectors trained on the two halves of the training data.
+
+    The federation checks only have teeth if neither half is enough on its
+    own: a detector trained on one half must report something else than
+    the reference, or a merge that drops the other half would still pass.
+    """
+    train = case.train()
+    half = len(train) // 2
+    for part in (train[:half], train[half:]):
+        assert _detections(_trained_on(case, part), case) != _expected(case), (
+            "one half of the training data already gives the reference detections; "
+            "give each half something the probes need"
+        )
+    return _trained_on(case, train[:half]), _trained_on(case, train[half:])
 
 
 @pytest.mark.parametrize("case", cases(TRACKER_DETECTORS))

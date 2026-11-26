@@ -41,6 +41,8 @@ CASES = [
     # the same logs as without a global instance: the one event ID never seen in training
     pytest.param(detectors.NewEventDetector, "Type", {}, {"1863"}, id="NewEventDetector", marks=_B9),
 ]
+# the same cases without the B9 mark: what B9 breaks is only the set of flagged logs
+UNMARKED = [pytest.param(*case.values, id=case.id) for case in CASES]
 
 
 @pytest.fixture(scope="module")
@@ -48,8 +50,12 @@ def audit_logs() -> list:
     return list(From.log(MatcherParser(config=PARSER_CONFIG), in_path=AUDIT_LOG, do_process=True))
 
 
-@pytest.mark.parametrize("detector_cls, variable, settings, expected", CASES)
-def test_global_instance_flags_the_expected_logs(detector_cls, variable, settings, expected, audit_logs):
+def _run(detector_cls, variable: str, settings: dict, audit_logs: list) -> tuple:
+    """Train on the first TRAIN_UNTIL logs, detect on the rest.
+
+    Returns the detector and the alert keys of each flagged log, by
+    logID.
+    """
     name = detector_cls.__name__
     detector = detector_cls(name=name, config={"detectors": {name: {
         "method_type": detector_cls().config.method_type,
@@ -61,12 +67,28 @@ def test_global_instance_flags_the_expected_logs(detector_cls, variable, setting
 
     for log in logs[:TRAIN_UNTIL]:
         detector.train(log)
-    assert GLOBAL_EVENT_ID in detector.persistency.get_events_seen()
 
-    detected = set()
+    alerts = {}
     for log in logs[TRAIN_UNTIL:]:
         alert = sc.DetectorSchema()
         if detector.detect(log, output_=alert):
-            assert all(key.startswith("Global -") for key in alert["alertDetails"])
-            detected.add(log["logID"])
-    assert detected == expected
+            alerts[log["logID"]] = list(alert["alertDetails"])
+    return detector, alerts
+
+
+@pytest.mark.parametrize("detector_cls, variable, settings, expected", UNMARKED)
+def test_global_instance_alerts_come_from_the_global_tracker(detector_cls, variable, settings, expected,
+                                                             audit_logs):
+    """Holds for every case, B9 included: the instance is stored under
+    GLOBAL_EVENT_ID and every alert names it."""
+    detector, alerts = _run(detector_cls, variable, settings, audit_logs)
+
+    assert GLOBAL_EVENT_ID in detector.persistency.get_events_seen()
+    assert alerts, "the global instance must raise at least one alert"
+    assert all(key.startswith("Global -") for keys in alerts.values() for key in keys)
+
+
+@pytest.mark.parametrize("detector_cls, variable, settings, expected", CASES)
+def test_global_instance_flags_the_expected_logs(detector_cls, variable, settings, expected, audit_logs):
+    _, alerts = _run(detector_cls, variable, settings, audit_logs)
+    assert set(alerts) == expected

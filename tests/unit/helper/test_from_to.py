@@ -336,6 +336,17 @@ class TestCaseFromTo:
         assert _written(target, out_path) == [output.as_dict() for output in outputs]
 
     @pytest.mark.parametrize("target", FORMATS)
+    def test_log_to_file_writes_each_log_before_yielding_it(self, target):
+        """A consumer that stops early still finds every log it received on
+        disk."""
+        out_path = f"out.{EXTENSIONS[target]}"
+        gen = getattr(FromTo, f"log2{target}")(DummyParser(), AUDIT_TEMPLATES, out_path)
+
+        received = [next(gen) for _ in range(5)]
+
+        assert _written(target, out_path) == [log.as_dict() for log in received]
+
+    @pytest.mark.parametrize("target", FORMATS)
     @pytest.mark.parametrize("source", FORMATS)
     def test_file_to_file_parses_each_record_and_writes_it(self, source, target):
         logs = list(From.log(DummyParser(), AUDIT_TEMPLATES, do_process=False))[:5]

@@ -117,7 +117,7 @@ A known bug is pinned by a test marked `xfail(strict=True)` that asserts the **c
 | B7 | `finalize_federation()` deletes every detector's table | `unit/base_detectors/test_tracker_detector.py::TestFinalizeFederation::test_leaves_other_detectors_tables_alone` |
 | B8 | importing LogBatcher breaks `selectComponent` for parsers | `unit/helper/test_select_component.py::test_finds_a_parser_after_logbatcher_was_imported` |
 | B9 | NewEvent with a global instance alerts on every log | `integration/test_global_instances.py::test_global_instance_flags_the_expected_logs[NewEventDetector]` |
-| B10 | without a training phase `post_train()` never runs | `unit/common/test_core.py::TestPostTrain::test_post_train_follows_the_replayed_configure_records` |
+| B10 | without a training phase `post_train()` never runs; the fix changes `golden/pipeline/audit_aggregated.json` (C2, C7), which today holds only Charset's alerts | `unit/common/test_core.py::TestPostTrain::test_post_train_follows_the_replayed_configure_records` |
 | B11 | persistency equality ignores what the trackers learned | `unit/utils/persistency/test_basic_persistency.py::TestPersistencyStructEquality::test_different_learned_values_are_not_equal` |
 
 Open questions (no test pins either answer yet):
