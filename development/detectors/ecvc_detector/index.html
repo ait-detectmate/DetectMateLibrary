@@ -2188,6 +2188,7 @@ score = min(\{\frac{\sum_{i=0}^{n-1} |\hat{cv_i} - W_{i,j}|}{\sum_{i=0}^{n-1} ma
 cv_i = \sum_{j=1}^{n} \mathbf{1}(x_j = event\_id_i)
 \]</div>
 <p>where <span class="arithmatex">\(event\_id_i\)</span> is the event ID assigned to position <span class="arithmatex">\(i\)</span> of the vector, and <span class="arithmatex">\( x_j\)</span> is the event ID at position <span class="arithmatex">\(j\)</span> of the sequence.</p>
+<p>Lines a parser could not resolve keep their own positions ahead of the real event IDs: one for eventID -2 (no message field) and one for eventID -1 (no template matched), so an unparsed line never counts as another event. SCVS and ECVC count a window the same way.</p>
 <h2 id="inout">In/out</h2>
 <p>Input and output schemas in the pipeline</p>
 <table>
