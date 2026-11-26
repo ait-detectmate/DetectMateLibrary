@@ -28,16 +28,37 @@ class TestWarnOnWindowSizeMismatch:
 
 class TestBuildCountVec:
     def test_count_events(self):
-        assert count_events([0, 1, 4, 0]) == (2, 1, 0, 0, 1)
-        assert count_events([3]) == (0, 0, 0, 1)
+        assert count_events([0, 1, 4, 0]) == (0, 0, 2, 1, 0, 0, 1)
+        assert count_events([3]) == (0, 0, 0, 0, 0, 1)
 
     def test_build_count_vec(self):
         input_ = [
             schemas.ParserSchema({"eventID": i}) for i in [0, 1, 4, 0]
         ]
-        expected = tuple([2, 1, 0, 0, 1])
+        expected = tuple([0, 0, 2, 1, 0, 0, 1])
 
         assert build_count_vec(input_) == expected
+
+
+class TestCountEvents:
+    def test_slot_layout(self) -> None:
+        # slot 0: eventID -2, slot 1: eventID -1, slot e + 2: eventID e
+        assert count_events([0, 1, 4, 0]) == (0, 0, 2, 1, 0, 0, 1)
+        assert count_events([-1]) == (0, 1)
+        assert count_events([-2]) == (1,)
+        assert count_events([4, -1, 2, -2, -1]) == (1, 2, 0, 0, 1, 0, 1)
+
+    def test_unparsed_lines_do_not_count_as_another_event(self) -> None:
+        assert count_events([3, -1]) != count_events([3, 3])
+        assert count_events([-1, 3]) != count_events([0, 3])
+
+    def test_order_does_not_change_the_counts(self) -> None:
+        windows = [[4, -1, 2, -2], [-1, 4, -2, 2], [-2, 2, -1, 4], [2, 4, -2, -1]]
+        assert len({count_events(w) for w in windows}) == 1
+
+    def test_eventid_below_minus_two_raises(self) -> None:
+        with pytest.raises(ValueError, match="-3"):
+            count_events([1, -3])
 
 
 class TestCountVecCodec:

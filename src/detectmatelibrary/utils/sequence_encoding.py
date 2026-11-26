@@ -24,20 +24,27 @@ def decode_sequence(encoded: str) -> tuple[int, ...]:
     return tuple(int(event_id) for event_id in encoded.split(_SEQUENCE_SEPARATOR))
 
 
+# Lowest eventID a parser emits: -2 is a log without a message field, -1 a message that
+# matches no template. Each gets its own slot in a count vector, ahead of the real events.
+_LOWEST_EVENT_ID = -2
+
+
 def build_count_vec(input_: List[schemas.ParserSchema]) -> tuple[int, ...]:
-    """Count how often each EventID occurs in a window, indexed by EventID."""
+    """Count how often each EventID occurs in a window (see `count_events`)."""
     return count_events([in_["eventID"] for in_ in input_])
 
 
 def count_events(events: Sequence[int]) -> tuple[int, ...]:
-    """Count how often each EventID occurs in `events`, indexed by EventID."""
-    sequence, n = [0], 0
+    """Count how often each EventID occurs in `events`.
+
+    Slot 0 counts eventID -2, slot 1 counts eventID -1 and slot e + 2
+    counts eventID e, so an unparsed line never counts as another event.
+    """
+    if (lowest := min(events)) < _LOWEST_EVENT_ID:
+        raise ValueError(f"eventID {lowest} has no slot in a count vector")
+    sequence = [0] * (max(events) - _LOWEST_EVENT_ID + 1)
     for event in events:
-        if n < event:
-            for _ in range(n, event):
-                sequence.append(0)
-            n = event
-        sequence[event] += 1
+        sequence[event - _LOWEST_EVENT_ID] += 1
 
     return tuple(sequence)
 
@@ -46,7 +53,7 @@ def encode_count_vec(window_size: int, count_vec: tuple[int, ...]) -> str:
     """Encode a count vector as a persistency key.
 
     The window size leads the key so restored state can be compared against the
-    configured window: a count vector's length is max(EventID) + 1, which says
+    configured window: a count vector's length is max(EventID) + 3, which says
     nothing about the window it was counted over.
     """
     return encode_sequence((window_size, *count_vec))

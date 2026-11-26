@@ -1,5 +1,6 @@
 """Tests for detectmatelibrary.detectors.ecvc_detector."""
 from detectmatelibrary.detectors.ecvc_detector import ECVCOp, ECVCDetectorConfig, ECVCDetector, SessionWindows
+from detectmatelibrary.detectors.scvs_detector import SCVSDetector, SCVSDetectorConfig
 from detectmatelibrary.utils.sequence_encoding import count_events, encode_count_vec
 from detectmatelibrary import schemas
 
@@ -21,11 +22,16 @@ class TestECVCOP:
             schemas.ParserSchema({"eventID": i}) for i in [0, 1, 4, 0]
         ]
 
-        expected = np.array([2, 1, 0, 0, 1, 0, 0, 0])
+        expected = np.array([0, 0, 2, 1, 0, 0, 1, 0])
         assert np.array_equal(ECVCOp.build_one_vec(input_, 8), expected)
 
-        expected = np.array([2, 1, 0, 0, 1])
+        expected = np.array([0, 0, 2, 1, 0, 0, 1])
         assert np.array_equal(ECVCOp.build_one_vec(input_, 3), expected)
+
+    def test_build_one_vec_counts_like_count_events(self):
+        """ECVC counts a window at detection as it was counted in training."""
+        for events in ([3, -1, 3, 5], [-1, 2], [-2, 4, -1, 0]):
+            assert tuple(ECVCOp.events_vec(events, 0)) == count_events(events)
 
     def test_init_count_matrix(self):
         input_ = [
@@ -154,6 +160,59 @@ class TestECVC:
             y = ECVCOp.build_one_vec(window, ecvc.count_vecs.shape[1])
             expected = _row_loop_score(y, ecvc.count_vecs) > ecvc.threshold
             assert ecvc.detect(window, schemas.DetectorSchema()) == expected
+
+
+# Windows that hold unparsed lines: eventID -1 (no template) and -2 (no message field).
+UNPARSED_WINDOWS = [[3, -1, 3, 5], [-1, 2, 2, 2], [5, 5, -1, -1], [-2, 1, -1, 4], [0, 1, 2, 3]]
+
+
+class TestUnparsedLines:
+    """ECVC and SCVS count a window the same way, so ECVC's alerts nest in
+    SCVS's."""
+
+    def test_learned_window_with_unparsed_lines_never_alerts(self):
+        # threshold_method "default" sets the threshold to 0: any unlearned vector alerts.
+        ecvc = ECVCDetector(config=ECVCDetectorConfig(window_size=4, threshold_method="default"))
+        scvs = SCVSDetector(config=SCVSDetectorConfig(window_size=4))
+        for window in UNPARSED_WINDOWS:
+            ecvc.train(_window(window))
+            scvs.train(_window(window))
+        ecvc.post_train()
+
+        for window in UNPARSED_WINDOWS:
+            assert not ecvc.detect(_window(window), schemas.DetectorSchema()), window
+            assert not scvs.detect(_window(window), schemas.DetectorSchema()), window
+
+    def test_unparsed_line_is_not_another_event(self):
+        ecvc = ECVCDetector(config=ECVCDetectorConfig(window_size=2, threshold_method="default"))
+        scvs = SCVSDetector(config=SCVSDetectorConfig(window_size=2))
+        ecvc.train(_window([3, 3]))
+        scvs.train(_window([3, 3]))
+        ecvc.post_train()
+
+        assert ecvc.detect(_window([3, -1]), schemas.DetectorSchema())
+        assert scvs.detect(_window([3, -1]), schemas.DetectorSchema())
+
+    @pytest.mark.parametrize("threshold_method", ["mean", "default"])
+    @pytest.mark.parametrize("lowest", [-1, -2])
+    def test_every_ecvc_alert_is_an_scvs_alert(self, threshold_method, lowest):
+        rng = np.random.default_rng(0)
+        windows = [_window(rng.integers(lowest, 6, 10).tolist()) for _ in range(300)]
+        ecvc = ECVCDetector(config=ECVCDetectorConfig(
+            window_size=10, validation_per=0.5, threshold_method=threshold_method
+        ))
+        scvs = SCVSDetector(config=SCVSDetectorConfig(window_size=10))
+        for window in windows[:150]:
+            ecvc.train(window)
+            scvs.train(window)
+        ecvc.post_train()
+
+        ecvc_alerts = {i for i, w in enumerate(windows) if ecvc.detect(w, schemas.DetectorSchema())}
+        scvs_alerts = {i for i, w in enumerate(windows) if scvs.detect(w, schemas.DetectorSchema())}
+        assert ecvc_alerts  # the windows do exercise detection
+        assert ecvc_alerts <= scvs_alerts
+        if threshold_method == "default":
+            assert ecvc_alerts == scvs_alerts
 
 
 def _row_loop_score(y, matrix):

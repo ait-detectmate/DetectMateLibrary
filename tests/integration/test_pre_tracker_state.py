@@ -18,6 +18,7 @@ from detectmatelibrary.detectors.event_sequence_detector import (
     EventSequenceDetector,
     EventSequenceDetectorConfig,
 )
+from detectmatelibrary.utils.sequence_encoding import decode_count_vec, encode_count_vec
 
 FIXTURES = PRE_TRACKER_STATE
 
@@ -99,10 +100,16 @@ class TestPreTrackerState:
         assert restored.config.fixed_window_size == 3
         assert restored.get_known_sequences() == {(1, 2, 3), (2, 3, 1), (3, 1, 2)}
 
-    def test_ecvc_rebuilds_the_same_count_vectors(self) -> None:
+    def test_ecvc_rebuilds_the_old_count_vectors(self) -> None:
+        # Count vectors gained two leading slots for eventIDs -2 and -1 after these
+        # fixtures were written; the saved ones lack them, so ECVC must be retrained.
         restored = _restore(_ecvc(), "ecvc")
         fresh = _trained()["ecvc"]
-        assert restored.persistency.get_events_seen() == fresh.persistency.get_events_seen()
+        assert restored.persistency.get_events_seen() == {
+            encode_count_vec(size, counts[2:])
+            for size, counts in map(decode_count_vec, fresh.persistency.get_events_seen())
+        }
         assert restored.count_vecs is not None and fresh.count_vecs is not None
-        assert np.array_equal(restored.count_vecs, fresh.count_vecs)
+        assert not fresh.count_vecs[:, :2].any()
+        assert np.array_equal(restored.count_vecs, fresh.count_vecs[:, 2:])
         assert restored.threshold == fresh.threshold
