@@ -3621,7 +3621,7 @@ wheels = [
 
 [[package]]
 name = "tensordict"
-version = "0.15.5"
+version = "0.15.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cloudpickle" },
@@ -3631,7 +3631,7 @@ dependencies = [
     { name = "torch", version = "2.15.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin'" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/dc/6c/b0f5c33efa1863aa5ef9ffdade764e93cbf046b06254de56c5177cb922c8/tensordict-0.15.5-py3-none-any.whl", hash = "sha256:8073221c62c580cdf37b61a6c8d1ec1fe2d54ec0a8dbdcf8228546f793ba312b", size = 872312, upload-time = "2026-11-05T20:09:16.919Z" },
+    { url = "https://files.pythonhosted.org/packages/78/6a/afc9e529c87fc47d6b9d869d7d4906334b4153f75764338158da1f32a1cd/tensordict-0.15.6-py3-none-any.whl", hash = "sha256:fd4dc096ad5f98d9418a90ed572fdb1d1f1f3286c82b7dc138e9a4130a6ba5c3", size = 876045, upload-time = "2026-11-11T21:18:33.021Z" },
 ]
 
 [[package]]
