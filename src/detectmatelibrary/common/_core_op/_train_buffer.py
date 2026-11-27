@@ -13,16 +13,13 @@ before it, so only the logs are written, each once, and replay rebuilds the
 windows from them.
 """
 import tempfile
+import pyarrow as pa
+import pyarrow.parquet as pq
 from collections import deque
 from pathlib import Path
 from typing import Iterator, cast
-
-import pyarrow as pa
-import pyarrow.parquet as pq
-
 from detectmatelibrary.schemas import BaseSchema
 from detectmatelibrary.tools.logging import logger
-
 Record = BaseSchema | list[BaseSchema]
 
 
@@ -56,11 +53,13 @@ class TrainBuffer:
         self._memory: list[Record] = []
         self._parts: list[Path] = []
         self._tmp: tempfile.TemporaryDirectory[str] | None = None
+        self._size = 0
 
     def add(self, record: Record) -> None:
         self._memory.append(record)
         if len(self._memory) >= self.max_records:
             self._spill()
+        self._size += 1
 
     def __iter__(self) -> Iterator[Record]:
         logs: deque[BaseSchema] = deque(maxlen=self.window)
@@ -69,13 +68,21 @@ class TrainBuffer:
                 if self.window is not None:
                     logs.append(self._decode(blob))
                     if len(logs) == self.window:
+                        self._size -= self.window
                         yield list(logs)
                 elif isinstance(blob, list):
+                    self._size -= len(blob)
                     yield [self._decode(b) for b in blob]
                 else:
+                    self._size -= 1
                     yield self._decode(blob)
-        yield from self._memory
+        for record in self._memory:
+            self._size -= 1
+            yield record
         self.clear()
+
+    def __len__(self) -> int:
+        return self._size
 
     def clear(self) -> None:
         """Drop every record and remove the spill directory."""
@@ -87,6 +94,7 @@ class TrainBuffer:
             except OSError as e:
                 logger.warning(f"{self.name}: could not remove {self._tmp.name} ({e}); delete it by hand.")
             self._tmp = None
+        self._size = 0
 
     def _spill(self) -> None:
         """Write the in-memory records as the next part file."""
@@ -104,7 +112,7 @@ class TrainBuffer:
         self._parts.append(path)  # only once the part is complete
         self._memory = []
 
-    def _encode(self) -> pa.Array:
+    def _encode(self) -> pa.Array | pa.ChunkedArray:
         if self.window is not None:
             windows = cast(list[list[BaseSchema]], self._memory)
             # The first part holds the whole first window, then each window adds its last log.

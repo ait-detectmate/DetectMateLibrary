@@ -967,7 +967,7 @@ class TestEventSequenceDetectorSessions:
         the configure phase must still carry them into its window."""
         detector = _session_detector(
             "SessionPhases", auto_config=False, fixed_window_size=2,
-            data_use_configure=2, data_use_training=2,
+            data_use_configure=2, data_use_training=4,
         )
         # configure: a1, b1 (replayed into training); train: b2, c1
         for i, (session, event_id) in enumerate([("a", 1), ("b", 1), ("b", 2), ("c", 1)]):

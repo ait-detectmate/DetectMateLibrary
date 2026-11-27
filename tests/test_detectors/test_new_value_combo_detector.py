@@ -860,7 +860,7 @@ class TestNewValueComboDetectorConfigureSpill:
     def _processed(self, n: int, **config) -> NewValueComboDetector:
         """Feed ``n`` records through process(); the first 25 configure."""
         detector = NewValueComboDetector(
-            config=NewValueComboDetectorConfig(data_use_configure=25, data_use_training=3, **config),
+            config=NewValueComboDetectorConfig(data_use_configure=25, data_use_training=28, **config),
             name="NewValueComboDetector",
         )
         for i in range(n):

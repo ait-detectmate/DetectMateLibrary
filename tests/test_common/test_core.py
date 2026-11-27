@@ -295,7 +295,7 @@ class TestCoreComponent:
             )
         total = component.fitlogic.train_state.total_need_data
         total += component.fitlogic.config_state.total_need_data
-        assert len(component.train_data) == total
+        assert component.fitlogic.config_state.data_used + component.fitlogic.train_state.data_used == total
         for i, log in enumerate(component.train_data):
             expected = sc.LogSchema({
                 "__version__": "2.0.0",
@@ -397,7 +397,7 @@ class TestCoreComponent:
     def test_configuration_before_training_with_buffer(self) -> None:
         config = CoreConfig(
             auto_config=True,
-            data_use_configure=2, data_use_training=3, use_config_data_as_training=True
+            data_use_configure=2, data_use_training=5, use_config_data_as_training=True
         )
         component = MockComponentWithConfigureAndTraining(name="DummyCfg5", config=config)
 
@@ -441,7 +441,7 @@ class TestAutoConfigGate:
     def test_auto_config_off_still_trains_on_configure_window(self) -> None:
         config = CoreConfig(
             auto_config=False,
-            data_use_configure=2, data_use_training=3, use_config_data_as_training=True
+            data_use_configure=2, data_use_training=5, use_config_data_as_training=True
         )
         component = MockComponentWithConfigureAndTraining(name="GateOff2", config=config)
 
@@ -665,7 +665,7 @@ class TestTrainBufferSpill:
 
     def test_spilled_configure_data_trains_in_order(self, tmp_path) -> None:
         config = MockConfigWithTraining(
-            data_use_configure=7, data_use_training=2, use_config_data_as_training=True,
+            data_use_configure=7, data_use_training=9, use_config_data_as_training=True,
             train_buffer_max_records=3, train_buffer_dir=str(tmp_path),
         )
         component = MockComponentWithTraining(name="Spill1", config=config)
@@ -677,7 +677,7 @@ class TestTrainBufferSpill:
 
     def test_spilled_window_records_train_in_order(self, tmp_path) -> None:
         config = CoreConfig(
-            data_use_configure=5, data_use_training=1,
+            data_use_configure=5, data_use_training=6,
             train_buffer_max_records=2, train_buffer_dir=str(tmp_path),
         )
         component = MockWindowComponent(name="Spill2", config=config)
